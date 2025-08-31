@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -357,81 +357,191 @@ export default function Profile() {
 
           {/* Gaming Tab */}
           <TabsContent value="gaming">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {userGamingProfiles.map((profile) => {
-                const community = communities.find(c => c.id === profile.communityId);
-                return (
-                  <Card key={profile.id}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <i className={community?.iconClass || 'fas fa-gamepad'}></i>
-                        {community?.displayName || 'Unknown Game'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {profile.rank && (
-                        <div>
-                          <Label className="text-sm font-medium">Rank</Label>
-                          <p className="text-sm">{profile.rank}</p>
-                        </div>
-                      )}
-                      {profile.experience && (
-                        <div>
-                          <Label className="text-sm font-medium">Experience</Label>
-                          <Badge variant="outline">{profile.experience}</Badge>
-                        </div>
-                      )}
-                      {profile.favoriteDeck && (
-                        <div>
-                          <Label className="text-sm font-medium">Favorite Deck/Strategy</Label>
-                          <p className="text-sm text-muted-foreground">{profile.favoriteDeck}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              
-              {userGamingProfiles.length === 0 && (
-                <div className="col-span-full text-center py-8">
-                  <i className="fas fa-gamepad text-4xl text-muted-foreground mb-4"></i>
-                  <h3 className="text-lg font-semibold mb-2">No Gaming Profiles</h3>
-                  <p className="text-muted-foreground">No gaming information has been added yet</p>
-                </div>
+            <div className="space-y-6">
+              {isOwnProfile && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gaming Preferences</CardTitle>
+                    <CardDescription>Select which games you play and your preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Games You Play</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {communities.map((community) => (
+                          <div key={community.id} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
+                            <input 
+                              type="checkbox" 
+                              id={`game-${community.id}`}
+                              className="w-4 h-4 text-primary"
+                              defaultChecked={userGamingProfiles.some(p => p.communityId === community.id)}
+                            />
+                            <label htmlFor={`game-${community.id}`} className="flex items-center gap-2 cursor-pointer">
+                              <i className={community.iconClass} style={{ color: community.themeColor }}></i>
+                              <span className="text-sm font-medium">{community.displayName}</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Button className="w-full" disabled>
+                      <i className="fas fa-save mr-2"></i>
+                      Save Gaming Preferences
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">Gaming preferences are currently managed by the system</p>
+                  </CardContent>
+                </Card>
               )}
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {userGamingProfiles.map((profile) => {
+                  const community = communities.find(c => c.id === profile.communityId);
+                  return (
+                    <Card key={profile.id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <i className={community?.iconClass || 'fas fa-gamepad'} style={{ color: community?.themeColor }}></i>
+                          {community?.displayName || 'Unknown Game'}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {profile.rank && (
+                          <div>
+                            <Label className="text-sm font-medium">Rank</Label>
+                            <p className="text-sm">{profile.rank}</p>
+                          </div>
+                        )}
+                        {profile.experience && (
+                          <div>
+                            <Label className="text-sm font-medium">Experience</Label>
+                            <Badge variant="outline">{profile.experience}</Badge>
+                          </div>
+                        )}
+                        {profile.favoriteDeck && (
+                          <div>
+                            <Label className="text-sm font-medium">Favorite Deck/Strategy</Label>
+                            <p className="text-sm text-muted-foreground">{profile.favoriteDeck}</p>
+                          </div>
+                        )}
+                        {profile.statistics && (
+                          <div>
+                            <Label className="text-sm font-medium">Statistics</Label>
+                            <div className="text-sm text-muted-foreground">
+                              {JSON.stringify(profile.statistics)}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                
+                {userGamingProfiles.length === 0 && (
+                  <div className="col-span-full text-center py-8">
+                    <i className="fas fa-gamepad text-4xl text-muted-foreground mb-4"></i>
+                    <h3 className="text-lg font-semibold mb-2">No Gaming Profiles</h3>
+                    <p className="text-muted-foreground">No gaming information has been added yet</p>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
 
           {/* Social Tab */}
           <TabsContent value="social">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              {/* Social Links */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Friends</CardTitle>
+                  <CardTitle>Social Platforms</CardTitle>
+                  <CardDescription>Connect and discover {isOwnProfile ? 'your' : `${profileUser.firstName}'s`} social presence</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-center py-4">Friends list coming soon!</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Communities</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {communities.map((community) => (
-                      <div key={community.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                        <i className={`${community.iconClass} text-lg`} style={{ color: community.themeColor }}></i>
-                        <span className="font-medium">{community.displayName}</span>
-                        {profileUser.primaryCommunity === community.id && (
-                          <Badge variant="default" className="text-xs">Primary</Badge>
-                        )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {userSocialLinks.filter(link => link.isPublic || isOwnProfile).map((link, index) => {
+                      const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
+                      return (
+                        <div key={index} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50">
+                          <div 
+                            className="w-10 h-10 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: getPlatformColor(link.platform || '') }}
+                          >
+                            <i className={`${platform?.icon} text-white text-lg`}></i>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{platform?.name}</p>
+                            <a href={link.url || '#'} target="_blank" rel="noopener noreferrer" 
+                               className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
+                              {link.username}
+                              <i className="fas fa-external-link-alt text-xs"></i>
+                            </a>
+                          </div>
+                          {!link.isPublic && isOwnProfile && (
+                            <Badge variant="secondary" className="text-xs">Private</Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {userSocialLinks.filter(link => link.isPublic || isOwnProfile).length === 0 && (
+                      <div className="col-span-full text-center py-8">
+                        <i className="fas fa-link text-4xl text-muted-foreground mb-4"></i>
+                        <h3 className="text-lg font-semibold mb-2">No Social Links</h3>
+                        <p className="text-muted-foreground">{isOwnProfile ? 'You haven\'t added any social links yet' : 'This user hasn\'t shared any social links'}</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Friends</CardTitle>
+                    <CardDescription>{profileUser.friendCount || 0} connections</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <i className="fas fa-user-friends text-4xl text-muted-foreground mb-4"></i>
+                      <h3 className="text-lg font-semibold mb-2">Friends System</h3>
+                      <p className="text-muted-foreground mb-4">Connect with other players</p>
+                      {!isOwnProfile && (
+                        <Button variant="outline" size="sm">
+                          <i className="fas fa-user-plus mr-2"></i>
+                          Send Friend Request
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Communities</CardTitle>
+                    <CardDescription>Gaming communities {isOwnProfile ? 'you\'re' : 'they\'re'} part of</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {communities.map((community) => (
+                        <div key={community.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50">
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: community.themeColor }}
+                          >
+                            <i className={`${community.iconClass} text-white text-sm`}></i>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{community.displayName}</p>
+                            <p className="text-xs text-muted-foreground">{community.description}</p>
+                          </div>
+                          {profileUser.primaryCommunity === community.id && (
+                            <Badge variant="default" className="text-xs">Primary</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 

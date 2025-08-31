@@ -115,18 +115,6 @@ export function Header() {
               TableSync
             </Link>
             <Link 
-              href="/social" 
-              className={`transition-colors ${location === "/social" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Social Hub
-            </Link>
-            <Link 
-              href="/calendar" 
-              className={`transition-colors ${location === "/calendar" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Calendar
-            </Link>
-            <Link 
               href="/matchmaking" 
               className={`transition-colors ${location === "/matchmaking" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
             >

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/header";
@@ -151,7 +151,7 @@ export default function Home() {
             </Card>
           </Link>
 
-          <Link href="/calendar">
+          <Link href="/tablesync?view=schedule">
             <Card className="community-card cursor-pointer hover:border-accent transition-all duration-300 h-full">
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -162,22 +162,69 @@ export default function Home() {
               </CardContent>
             </Card>
           </Link>
-
-          <Link href="/social">
-            <Card className="community-card cursor-pointer hover:border-green-500 transition-all duration-300 h-full">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <i className="fas fa-share-nodes text-white text-xl"></i>
-                </div>
-                <h3 className="font-semibold mb-2">Social Hub</h3>
-                <p className="text-sm text-muted-foreground">Manage platforms</p>
-              </CardContent>
-            </Card>
-          </Link>
         </div>
 
         {/* Dashboard Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Social Hub Section */}
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <i className="fas fa-share-nodes text-green-500"></i>
+                <span>Social Hub</span>
+              </CardTitle>
+              <CardDescription>Manage your social platforms and connections</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="flex items-center space-x-3 p-3 border rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i className="fab fa-discord text-white text-sm"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Discord</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <div className="w-8 h-8 bg-gradient-to-r from-black to-gray-800 rounded-lg flex items-center justify-center">
+                    <i className="fab fa-x-twitter text-white text-sm"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Twitter/X</p>
+                    <p className="text-xs text-muted-foreground">Connect</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
+                    <i className="fab fa-instagram text-white text-sm"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Instagram</p>
+                    <p className="text-xs text-muted-foreground">Connect</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
+                    <i className="fas fa-cloud text-white text-sm"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Bluesky</p>
+                    <p className="text-xs text-muted-foreground">Connect</p>
+                  </div>
+                </div>
+                <Link href="/social" className="flex items-center space-x-3 p-3 border-2 border-dashed border-primary/30 rounded-lg hover:border-primary/50 cursor-pointer transition-colors">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <i className="fas fa-plus text-primary text-sm"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary">Manage All</p>
+                    <p className="text-xs text-muted-foreground">Full social hub</p>
+                  </div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
           {/* Recent Activity */}
           <Card className="lg:col-span-2">
             <CardHeader>

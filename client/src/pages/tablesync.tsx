@@ -102,27 +102,57 @@ export default function TableSync() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">
+          {/* Header Section with New Branding */}
+          <div className="text-center mb-12 space-y-6">
+            <div className="flex items-center justify-center mb-6">
+              <img 
+                src="@assets/9_1756664764439.png" 
+                alt="TableSync Logo" 
+                className="h-24 w-auto drop-shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-orange-500 to-purple-600 bg-clip-text text-transparent">
               TableSync
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Connect with players worldwide for remote TCG gameplay. Create or join game rooms across all your favorite card games.
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
+              Connect with players worldwide for remote TCG gameplay. Synchronize your card games across any distance with real-time coordination.
             </p>
+            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                <span>Real-time Sync</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                <span>Global Play</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                <span>All TCG Games</span>
+              </div>
+            </div>
           </div>
 
           <Tabs defaultValue="join" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger value="join" data-testid="tab-join-room">Join Room</TabsTrigger>
-              <TabsTrigger value="create" data-testid="tab-create-room">Create Room</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-gradient-to-r from-purple-100 to-orange-100 dark:from-purple-900 dark:to-orange-900">
+              <TabsTrigger value="join" data-testid="tab-join-room" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+                <i className="fas fa-users mr-2"></i>
+                Join Room
+              </TabsTrigger>
+              <TabsTrigger value="create" data-testid="tab-create-room" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+                <i className="fas fa-plus-circle mr-2"></i>
+                Create Room
+              </TabsTrigger>
             </TabsList>
 
             {/* Join Room Tab */}
             <TabsContent value="join" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {ACTIVE_ROOMS.map((room) => (
-                  <Card key={room.id} className="hover:border-primary/50 transition-colors" data-testid={`card-room-${room.id}`}>
+                  <Card key={room.id} className="hover:border-purple-400 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 border-2" data-testid={`card-room-${room.id}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -168,11 +198,18 @@ export default function TableSync() {
 
             {/* Create Room Tab */}
             <TabsContent value="create">
-              <Card className="max-w-2xl mx-auto">
+              <Card className="max-w-2xl mx-auto border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-purple-50 dark:from-orange-950 dark:to-purple-950">
                 <CardHeader>
-                  <CardTitle>Create New Game Room</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-purple-500 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-gamepad text-white text-sm"></i>
+                    </div>
+                    <span className="bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">
+                      Create New Game Room
+                    </span>
+                  </CardTitle>
                   <CardDescription>
-                    Set up a new room for remote gameplay with other TCG enthusiasts
+                    Set up a new TableSync room for remote gameplay with other TCG enthusiasts around the world
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
