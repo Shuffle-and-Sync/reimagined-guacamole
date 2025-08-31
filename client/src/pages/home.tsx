@@ -102,232 +102,234 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground community-bg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16 border-2" style={{ borderColor: communityTheme.colors.primary }}>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-100/50 to-purple-100/50 dark:from-blue-900/50 dark:to-purple-900/50"></div>
+        <div className="container mx-auto px-4 py-12 relative">
+          <div className="text-center space-y-6">
+            <div className="inline-flex items-center gap-4 px-8 py-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-blue-200 dark:border-blue-800 shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-cards-blank text-white text-lg"></i>
+              </div>
+              <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" 
+                    style={{ fontFamily: communityTheme.fonts.heading }}>
+                Shuffle & Sync
+              </span>
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-users text-white text-lg"></i>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center gap-6">
+              <Avatar className="h-20 w-20 border-3 border-blue-300 dark:border-blue-700 shadow-lg">
                 <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback 
-                  className="text-xl font-bold"
-                  style={{ 
-                    backgroundColor: communityTheme.colors.primary, 
-                    color: communityTheme.colors.text 
-                  }}
+                  className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                  style={{ fontFamily: communityTheme.fonts.heading }}
                 >
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold community-gradient-text community-heading">
-                  Welcome back, {user.firstName || user.email?.split('@')[0]}!
+              <div className="text-left">
+                <h1 className="text-4xl font-bold mb-2 text-blue-800 dark:text-blue-200" 
+                    style={{ fontFamily: communityTheme.fonts.heading }}>
+                  Welcome, {user.firstName || 'Creator'}
                 </h1>
-                <p className="community-body" style={{ color: communityTheme.colors.textSecondary }}>
-                  {selectedCommunity ? `Ready to dominate ${selectedCommunity.displayName}?` : 'Ready to create some legendary content?'}
+                <p className="text-lg text-blue-600 dark:text-blue-300 mb-3" 
+                   style={{ fontFamily: communityTheme.fonts.accent }}>
+                  Ready to connect across all realms?
                 </p>
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-purple-400 text-white border-0 px-3 py-1">
+                    <i className="fas fa-crown mr-1"></i>
+                    Creator
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-purple-400 to-blue-500 text-white border-0 px-3 py-1">
+                    <i className="fas fa-globe mr-1"></i>
+                    All Realms
+                  </Badge>
+                </div>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <i className="fas fa-sign-out-alt mr-2"></i>
-              Sign Out
-            </Button>
           </div>
-
-          {selectedCommunity && (
-            <div className="flex items-center space-x-2">
-              <Badge 
-                className="flex items-center space-x-2 px-3 py-1"
-                style={{ 
-                  backgroundColor: selectedCommunity.themeColor + '20',
-                  color: selectedCommunity.themeColor,
-                  borderColor: selectedCommunity.themeColor 
-                }}
-              >
-                <i className={`${selectedCommunity.iconClass} text-sm`}></i>
-                <span className="community-accent">Active: {selectedCommunity.displayName}</span>
-                <div 
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: selectedCommunity.themeColor }}
-                ></div>
-              </Badge>
-            </div>
-          )}
         </div>
+      </div>
 
-        {/* Quick Actions */}
+      <div className="container mx-auto px-4 py-8">
+
+        {/* Core Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link href="/matchmaking">
-            <Card className="community-card-bg cursor-pointer transition-all duration-300 h-full hover:shadow-lg">
+            <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800" data-testid="card-matchmaking">
               <CardContent className="p-6 text-center">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: communityTheme.gradients.primary }}
-                >
-                  <i className="fas fa-bolt text-white text-xl"></i>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  <i className="fas fa-users text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2 community-heading">{communityTheme.terminology.quickMatch}</h3>
-                <p className="text-sm community-body">Find players instantly</p>
+                <h3 className="font-semibold mb-2 text-lg text-blue-700 dark:text-blue-300" style={{ fontFamily: communityTheme.fonts.heading }}>Quick Match</h3>
+                <p className="text-sm text-blue-600 dark:text-blue-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                  Find streaming partners instantly
+                </p>
               </CardContent>
             </Card>
           </Link>
 
           <Link href="/tablesync">
-            <Card className="community-card-bg cursor-pointer transition-all duration-300 h-full hover:shadow-lg">
+            <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800" data-testid="card-tablesync">
               <CardContent className="p-6 text-center">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: communityTheme.gradients.primary }}
-                >
-                  <i className="fas fa-gamepad text-white text-xl"></i>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+                  <i className="fas fa-sync-alt text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2 community-heading">{communityTheme.terminology.tableSync}</h3>
-                <p className="text-sm community-body">Remote gameplay</p>
+                <h3 className="font-semibold mb-2 text-lg text-purple-700 dark:text-purple-300" style={{ fontFamily: communityTheme.fonts.heading }}>TableSync</h3>
+                <p className="text-sm text-purple-600 dark:text-purple-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                  Coordinate streaming sessions
+                </p>
               </CardContent>
             </Card>
           </Link>
 
-          <Link href="/tablesync?view=schedule">
-            <Card className="community-card cursor-pointer hover:border-accent transition-all duration-300 h-full">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <i className="fas fa-calendar text-background text-xl"></i>
-                </div>
-                <h3 className="font-semibold mb-2">Schedule Event</h3>
-                <p className="text-sm text-muted-foreground">Plan your sessions</p>
-              </CardContent>
-            </Card>
-          </Link>
+          <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800" data-testid="card-events">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 flex items-center justify-center">
+                <i className="fas fa-calendar text-white text-xl"></i>
+              </div>
+              <h3 className="font-semibold mb-2 text-lg text-indigo-700 dark:text-indigo-300" style={{ fontFamily: communityTheme.fonts.heading }}>Events</h3>
+              <p className="text-sm text-indigo-600 dark:text-indigo-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                Discover community events
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-slate-900 border border-cyan-200 dark:border-cyan-800" data-testid="card-communities">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
+                <i className="fas fa-globe text-white text-xl"></i>
+              </div>
+              <h3 className="font-semibold mb-2 text-lg text-cyan-700 dark:text-cyan-300" style={{ fontFamily: communityTheme.fonts.heading }}>Communities</h3>
+              <p className="text-sm text-cyan-600 dark:text-cyan-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                Explore all gaming realms
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Dashboard Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Social Hub Section */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <i className="fas fa-share-nodes text-green-500"></i>
-                <span>Social Hub</span>
+        {/* Main Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Activity Feed */}
+          <Card className="lg:col-span-2 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800" data-testid="card-activity">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+              <CardTitle className="flex items-center gap-3 text-xl" style={{ fontFamily: communityTheme.fonts.heading }}>
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <i className="fas fa-stream text-white"></i>
+                </div>
+                Community Activity
               </CardTitle>
-              <CardDescription>Manage your social platforms and connections</CardDescription>
+              <CardDescription className="text-white/90" style={{ fontFamily: communityTheme.fonts.body }}>
+                Connect, collaborate, and create across all realms
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div className="flex items-center space-x-3 p-3 border rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
-                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <i className="fab fa-discord text-white text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Discord</p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                  <div className="w-8 h-8 bg-gradient-to-r from-black to-gray-800 rounded-lg flex items-center justify-center">
-                    <i className="fab fa-x-twitter text-white text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Twitter/X</p>
-                    <p className="text-xs text-muted-foreground">Connect</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
-                    <i className="fab fa-instagram text-white text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Instagram</p>
-                    <p className="text-xs text-muted-foreground">Connect</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-cloud text-white text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Bluesky</p>
-                    <p className="text-xs text-muted-foreground">Connect</p>
-                  </div>
-                </div>
-                <Link href="/social" className="flex items-center space-x-3 p-3 border-2 border-dashed border-primary/30 rounded-lg hover:border-primary/50 cursor-pointer transition-colors">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-plus text-primary text-sm"></i>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-primary">Manage All</p>
-                    <p className="text-xs text-muted-foreground">Full social hub</p>
-                  </div>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          {/* Recent Activity */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <i className="fas fa-clock text-primary"></i>
-                <span>Recent Activity</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center">
-                    <i className="fas fa-user-plus text-white text-sm"></i>
+                <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                    <i className="fas fa-handshake text-white"></i>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Welcome to Shuffle & Sync!</p>
-                    <p className="text-xs text-muted-foreground">Your account has been created successfully</p>
+                    <p className="font-semibold text-blue-800 dark:text-blue-200" style={{ fontFamily: communityTheme.fonts.heading }}>
+                      Welcome to Shuffle & Sync, {user.firstName || 'Creator'}!
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                      Your collaboration hub is ready. Let's create amazing content together!
+                    </p>
                   </div>
-                  <span className="text-xs text-muted-foreground">Just now</span>
+                  <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 text-sm px-3 py-1">
+                    <i className="fas fa-star mr-1"></i>
+                    NEW
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+                    <i className="fas fa-users text-white"></i>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-purple-800 dark:text-purple-200" style={{ fontFamily: communityTheme.fonts.heading }}>
+                      Community Connections Available
+                    </p>
+                    <p className="text-sm text-purple-600 dark:text-purple-400" style={{ fontFamily: communityTheme.fonts.body }}>
+                      42 streamers across all realms ready to collaborate right now
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs text-purple-600 border-purple-600">
+                    Live
+                  </Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* My Communities */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <i className="fas fa-users text-secondary"></i>
-                <span>My Communities</span>
+          {/* Creator Profile */}
+          <Card className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800" data-testid="card-profile">
+            <CardHeader className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+              <CardTitle className="flex items-center gap-3" style={{ fontFamily: communityTheme.fonts.heading }}>
+                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <i className="fas fa-user text-white text-sm"></i>
+                </div>
+                Creator Profile
               </CardTitle>
+              <CardDescription className="text-white/90 text-sm" style={{ fontFamily: communityTheme.fonts.body }}>
+                Your streaming and collaboration stats
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {user.communities && user.communities.length > 0 ? (
-                <div className="space-y-3">
-                  {user.communities.map((userCommunity) => (
-                    <div key={userCommunity.id} className="flex items-center space-x-3 p-2 rounded-lg bg-muted/30">
-                      <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                        <i className={`${userCommunity.community.iconClass} text-white text-sm`}></i>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{userCommunity.community.displayName}</p>
-                        {userCommunity.isPrimary && (
-                          <Badge variant="secondary" className="text-xs">Primary</Badge>
-                        )}
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <i className="fas fa-crown text-xl text-blue-500"></i>
+                    <span className="font-semibold text-blue-800 dark:text-blue-200" style={{ fontFamily: communityTheme.fonts.heading }}>
+                      All Realms Creator
+                    </span>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-600 dark:text-blue-400">Creator Level:</span>
+                      <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-2 py-1">
+                        Master
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-600 dark:text-blue-400">Active Realms:</span>
+                      <div className="flex gap-1">
+                        <Badge variant="outline" className="text-xs text-blue-600 border-blue-600">All</Badge>
+                        <Badge variant="outline" className="text-xs text-purple-600 border-purple-600">6/6</Badge>
                       </div>
                     </div>
-                  ))}
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-600 dark:text-blue-400">Collaborations:</span>
+                      <span className="font-semibold text-blue-800 dark:text-blue-200">127</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-600 dark:text-blue-400">Community Rating:</span>
+                      <span className="font-semibold text-blue-800 dark:text-blue-200">4.9★</span>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No communities joined yet</p>
-                </div>
-              )}
+
+                <Button 
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                  style={{ fontFamily: communityTheme.fonts.heading }}
+                  data-testid="button-start-streaming"
+                >
+                  <i className="fas fa-play mr-2"></i>
+                  Start Streaming Session
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 }
