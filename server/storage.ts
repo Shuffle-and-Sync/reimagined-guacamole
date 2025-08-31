@@ -81,10 +81,7 @@ export class DatabaseStorage implements IStorage {
   async createCommunity(communityData: InsertCommunity): Promise<Community> {
     const [community] = await db
       .insert(communities)
-      .values({
-        ...communityData,
-        id: communityData.id || crypto.randomUUID(),
-      })
+      .values(communityData)
       .returning();
     return community;
   }

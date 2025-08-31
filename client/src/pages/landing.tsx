@@ -28,20 +28,76 @@ export default function Landing() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 hero-bg overflow-hidden">
+      <section className="relative py-20 lg:py-32 cartoon-hero-bg overflow-hidden">
+        {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-4 h-4 bg-accent rounded-full animate-float opacity-60"></div>
-          <div className="absolute top-40 right-20 w-6 h-6 bg-primary rounded-full animate-float opacity-40" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-secondary rounded-full animate-float opacity-50" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-20 right-1/3 w-5 h-5 bg-accent rounded-full animate-float opacity-30" style={{animationDelay: '0.5s'}}></div>
+          {/* Sparkles */}
+          <div className="absolute top-20 left-10 w-2 h-2 bg-yellow-300 rotate-45 animate-sparkle opacity-80"></div>
+          <div className="absolute top-32 right-16 w-3 h-3 bg-pink-300 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-40 left-1/4 w-2 h-2 bg-cyan-300 rotate-45 animate-sparkle opacity-60" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-24 right-1/3 w-4 h-4 bg-orange-300 rotate-45 animate-sparkle opacity-80" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/2 left-20 w-2 h-2 bg-purple-300 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/4 w-3 h-3 bg-green-300 rotate-45 animate-sparkle opacity-60" style={{animationDelay: '2.5s'}}></div>
+          
+          {/* Floating Chat Bubbles */}
+          <div className="absolute top-1/4 left-1/3 w-8 h-6 bg-orange-400 rounded-full animate-float opacity-40" style={{animationDelay: '0.3s'}}>
+            <div className="absolute bottom-0 left-2 w-2 h-2 bg-orange-400 rotate-45 transform translate-y-1"></div>
+          </div>
+          <div className="absolute bottom-1/3 right-1/4 w-6 h-5 bg-purple-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.2s'}}>
+            <div className="absolute bottom-0 right-1 w-1.5 h-1.5 bg-purple-400 rotate-45 transform translate-y-0.5"></div>
+          </div>
         </div>
         
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 gradient-text leading-tight">
-              The Ultimate Streaming Coordination Platform
+            {/* Main Characters Section */}
+            <div className="flex justify-center items-center mb-8">
+              <div className="relative">
+                {/* Left Card Character */}
+                <div className="relative w-24 h-32 bg-gradient-to-br from-orange-400 via-pink-400 to-red-400 rounded-xl transform -rotate-12 animate-float-gentle shadow-lg">
+                  <div className="absolute top-2 right-2">
+                    <div className="w-6 h-4 bg-yellow-300 text-xs font-bold text-gray-800 rounded px-1 flex items-center justify-center">LIVE</div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">😊</span>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-2 -right-4 w-8 h-8 text-white text-2xl animate-bounce">
+                    ✋
+                  </div>
+                </div>
+                
+                {/* Collision Sparkle */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                  <div className="w-8 h-8 bg-yellow-300 rounded-full animate-ping"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl animate-spin">✨</div>
+                </div>
+                
+                {/* Right Card Character */}
+                <div className="relative w-24 h-32 bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 rounded-xl transform rotate-12 animate-float-gentle shadow-lg" style={{animationDelay: '0.5s'}}>
+                  <div className="absolute top-2 left-2">
+                    <div className="w-6 h-4 bg-purple-300 text-xs font-bold text-gray-800 rounded px-1 flex items-center justify-center">LIVE</div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-cyan-200 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">😄</span>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-2 -left-4 w-8 h-8 text-white text-2xl animate-bounce" style={{animationDelay: '0.2s'}}>
+                    🤚
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 cartoon-text leading-tight">
+              Shuffle & Sync
             </h1>
-            <p className="text-xl lg:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            <div className="text-2xl lg:text-3xl font-semibold mb-4 text-orange-300">
+              The Ultimate Streaming Coordination Platform
+            </div>
+            <p className="text-xl lg:text-2xl text-purple-200 mb-8 max-w-3xl mx-auto leading-relaxed">
               Connect with your gaming community, coordinate epic collaborative streams, and create legendary content across all major TCG platforms.
             </p>
             
@@ -85,11 +141,18 @@ export default function Landing() {
       </section>
 
       {/* Community Showcase */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-indigo-900/20 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-1/4 w-3 h-3 bg-yellow-400 rotate-45 animate-sparkle opacity-60"></div>
+          <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-pink-400 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-1/2 left-10 w-4 h-4 bg-cyan-400 rotate-45 animate-sparkle opacity-50" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">Choose Your Gaming Community</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 cartoon-text">Choose Your Gaming Community</h2>
+            <p className="text-xl text-purple-200 max-w-3xl mx-auto">
               Each community features specialized streaming tools, unique themes, and dedicated coordination features tailored for your favorite TCG.
             </p>
           </div>
@@ -351,8 +414,8 @@ export default function Landing() {
                 <div className="w-16 h-16 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <i className="fas fa-shield-alt text-white text-2xl"></i>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Always Free</h3>
-                <p className="text-muted-foreground">Core features are completely free forever. No hidden costs.</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Secure & Reliable</h3>
+                <p className="text-muted-foreground">Enterprise-grade security with 99.9% uptime guaranteed.</p>
               </div>
               
               <div className="text-center">
