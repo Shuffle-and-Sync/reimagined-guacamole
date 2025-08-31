@@ -281,8 +281,11 @@ export class DatabaseStorage implements IStorage {
         location: events.location,
         communityId: events.communityId,
         creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
         isPublic: events.isPublic,
+        status: events.status,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -306,7 +309,7 @@ export class DatabaseStorage implements IStorage {
 
     let query = baseQuery;
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = baseQuery.where(and(...conditions));
     }
 
     const rawEvents = await query.orderBy(events.date, events.time);
@@ -351,8 +354,11 @@ export class DatabaseStorage implements IStorage {
         location: events.location,
         communityId: events.communityId,
         creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
         isPublic: events.isPublic,
+        status: events.status,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -448,6 +454,7 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
+        role: eventAttendees.role,
         joinedAt: eventAttendees.joinedAt,
         user: users,
       })
@@ -463,6 +470,7 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
+        role: eventAttendees.role,
         joinedAt: eventAttendees.joinedAt,
         event: events,
       })
@@ -505,9 +513,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(passwordResetTokens)
       .where(
-        and(
-          gte(new Date(), passwordResetTokens.expiresAt)
-        )
+        sql`${passwordResetTokens.expiresAt} < ${new Date()}`
       );
   }
 
@@ -726,7 +732,7 @@ export class DatabaseStorage implements IStorage {
         community: communities,
       })
       .from(userGamingProfiles)
-      .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+      .innerJoin(communities, eq(userGamingProfiles.communityId, communities.id))
       .where(eq(userGamingProfiles.userId, userId));
     return profiles;
   }
@@ -786,6 +792,12 @@ export class DatabaseStorage implements IStorage {
   
   // User activity operations
   async getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]> {
+    let conditions = [eq(userActivities.userId, userId)];
+    
+    if (options?.communityId) {
+      conditions.push(eq(userActivities.communityId, options.communityId));
+    }
+    
     let query = db
       .select({
         id: userActivities.id,
@@ -801,18 +813,17 @@ export class DatabaseStorage implements IStorage {
       })
       .from(userActivities)
       .leftJoin(communities, eq(userActivities.communityId, communities.id))
-      .where(eq(userActivities.userId, userId));
-    
-    if (options?.communityId) {
-      query = query.where(eq(userActivities.communityId, options.communityId));
-    }
+      .where(and(...conditions));
     
     if (options?.limit) {
       query = query.limit(options.limit);
     }
     
     const activities = await query.orderBy(sql`${userActivities.createdAt} DESC`);
-    return activities;
+    return activities.map(activity => ({
+      ...activity,
+      community: activity.community || undefined,
+    }));
   }
 
   async createUserActivity(data: InsertUserActivity): Promise<UserActivity> {

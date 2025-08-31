@@ -1,4 +1,5 @@
 import { MailService } from '@sendgrid/mail';
+import { logger } from './logger';
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
@@ -31,7 +32,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     await mailService.send(emailData);
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    logger.error('Failed to send email via SendGrid', error, { to: params.to, subject: params.subject });
     return false;
   }
 }
