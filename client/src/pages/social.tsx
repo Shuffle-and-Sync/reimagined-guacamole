@@ -80,12 +80,47 @@ export default function Social() {
 
   const handleConnectPlatform = (platformId: string) => {
     // TODO: Implement OAuth connection flow
-    console.log("Connecting to platform:", platformId);
+    const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
+    if (platform) {
+      console.log(`Connecting to ${platform.name}...`);
+      // Future: Initiate OAuth flow for the specific platform
+    }
   };
 
   const handleCreatePost = () => {
     // TODO: Implement post creation logic
-    console.log("Creating post:", { newPost, selectedPlatforms, scheduleTime, autoPost });
+    if (!newPost.trim()) return;
+    
+    console.log("Creating/scheduling post:", {
+      content: newPost,
+      platforms: selectedPlatforms,
+      scheduled: scheduleTime || "now",
+      autoPost
+    });
+    
+    // Reset form after posting
+    setNewPost("");
+    setSelectedPlatforms([]);
+    setScheduleTime("");
+    setAutoPost(false);
+  };
+
+  const handleEditPost = (postId: string) => {
+    // TODO: Implement post editing logic
+    console.log("Editing post:", postId);
+  };
+
+  const handleCancelPost = (postId: string) => {
+    // TODO: Implement post cancellation logic  
+    console.log("Cancelling scheduled post:", postId);
+  };
+
+  const handlePlatformSettings = (platformId: string) => {
+    // TODO: Open platform-specific settings
+    const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
+    if (platform) {
+      console.log(`Opening ${platform.name} settings`);
+    }
   };
 
   const togglePlatform = (platformId: string) => {
@@ -243,8 +278,22 @@ export default function Social() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Badge variant="secondary">Scheduled</Badge>
-                          <Button size="sm" variant="outline">Edit</Button>
-                          <Button size="sm" variant="destructive">Cancel</Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditPost(post.id)}
+                            data-testid={`button-edit-${post.id}`}
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleCancelPost(post.id)}
+                            data-testid={`button-cancel-${post.id}`}
+                          >
+                            Cancel
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -272,7 +321,14 @@ export default function Social() {
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Connected</Badge>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm">Settings</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handlePlatformSettings(platform.id)}
+                              data-testid={`button-settings-${platform.id}`}
+                            >
+                              Settings
+                            </Button>
                           </div>
                           <p className="text-sm text-muted-foreground">{platform.description}</p>
                         </CardContent>

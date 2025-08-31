@@ -9,10 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Community } from "@shared/schema";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
+
+  // Fetch communities for the selector
+  const { data: communities = [] } = useQuery<Community[]>({
+    queryKey: ['/api/communities'],
+  });
 
   const handleSignIn = () => {
     window.location.href = "/api/login";
@@ -20,6 +27,21 @@ export function Header() {
 
   const handleSignOut = () => {
     window.location.href = "/api/logout";
+  };
+
+  const handleProfile = () => {
+    // TODO: Navigate to profile page when implemented
+    console.log("Navigate to profile page");
+  };
+
+  const handleSettings = () => {
+    // TODO: Navigate to settings page when implemented
+    console.log("Navigate to settings page");
+  };
+
+  const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    // TODO: Implement community switching logic
+    console.log("Community changed to:", event.target.value);
   };
 
   const getUserInitials = () => {
@@ -43,14 +65,14 @@ export function Header() {
             <select 
               className="bg-muted border border-border rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary"
               data-testid="select-community"
+              onChange={handleCommunityChange}
             >
-              <option>All Communities</option>
-              <option>Scry & Gather (MTG)</option>
-              <option>PokeStream Hub</option>
-              <option>Decksong (Lorcana)</option>
-              <option>Duelcraft (Yu-Gi-Oh)</option>
-              <option>Bladeforge</option>
-              <option>Deckmaster</option>
+              <option value="">All Communities</option>
+              {communities.map((community) => (
+                <option key={community.id} value={community.id}>
+                  {community.displayName}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -107,12 +129,12 @@ export function Header() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => console.log("Profile")}>
+              <DropdownMenuContent align="end" data-testid="dropdown-user-menu">
+                <DropdownMenuItem onClick={handleProfile} data-testid="menu-item-profile">
                   <i className="fas fa-user mr-2"></i>
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log("Settings")}>
+                <DropdownMenuItem onClick={handleSettings} data-testid="menu-item-settings">
                   <i className="fas fa-cog mr-2"></i>
                   Settings
                 </DropdownMenuItem>

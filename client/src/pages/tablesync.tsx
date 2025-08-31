@@ -64,13 +64,36 @@ export default function TableSync() {
   const [description, setDescription] = useState("");
 
   const handleCreateRoom = () => {
-    // TODO: Implement room creation logic
-    console.log("Creating room:", { roomName, selectedFormat, maxPlayers, powerLevel, description });
+    // TODO: Implement room creation logic with backend
+    if (!roomName.trim() || !selectedFormat) return;
+    
+    const roomData = {
+      name: roomName,
+      format: selectedFormat,
+      maxPlayers: parseInt(maxPlayers),
+      powerLevel,
+      description: description.trim()
+    };
+    
+    console.log("Creating game room:", roomData);
+    
+    // Reset form after creation
+    setRoomName("");
+    setSelectedFormat("");
+    setMaxPlayers("4");
+    setPowerLevel("");
+    setDescription("");
+    
+    // Future: Send to backend and redirect to room
   };
 
   const handleJoinRoom = (roomId: string) => {
-    // TODO: Implement room joining logic
-    console.log("Joining room:", roomId);
+    // TODO: Implement room joining logic with backend
+    const room = ACTIVE_ROOMS.find(r => r.id === roomId);
+    if (room) {
+      console.log(`Joining "${room.name}" hosted by ${room.host}`);
+      // Future: Connect to game room and start session
+    }
   };
 
   return (

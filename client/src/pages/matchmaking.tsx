@@ -121,13 +121,21 @@ export default function Matchmaking() {
   };
 
   const handleSendInvite = (playerId: string) => {
-    // TODO: Implement invite logic
-    console.log("Sending invite to player:", playerId);
+    // TODO: Implement actual invite logic with backend
+    const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
+    if (player) {
+      console.log(`Sending game invite to ${player.username}`);
+      // Future: Send actual invite through API
+    }
   };
 
   const handleMessagePlayer = (playerId: string) => {
-    // TODO: Implement messaging logic
-    console.log("Messaging player:", playerId);
+    // TODO: Implement actual messaging system with backend
+    const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
+    if (player) {
+      console.log(`Opening chat with ${player.username}`);
+      // Future: Open messaging interface
+    }
   };
 
   const toggleGame = (game: string) => {
@@ -510,8 +518,25 @@ export default function Matchmaking() {
                   </div>
 
                   <div className="flex justify-end space-x-3">
-                    <Button variant="outline">Reset to Defaults</Button>
-                    <Button>Save Preferences</Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        // TODO: Reset all preferences to default values
+                        console.log("Resetting preferences to defaults");
+                      }}
+                      data-testid="button-reset-preferences"
+                    >
+                      Reset to Defaults
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        // TODO: Save preferences to backend
+                        console.log("Saving matchmaking preferences");
+                      }}
+                      data-testid="button-save-preferences"
+                    >
+                      Save Preferences
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
