@@ -5,6 +5,7 @@ import {
   themePreferences,
   events,
   eventAttendees,
+  passwordResetTokens,
   type User,
   type UpsertUser,
   type Community,
@@ -12,11 +13,13 @@ import {
   type ThemePreference,
   type Event,
   type EventAttendee,
+  type PasswordResetToken,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
   type InsertEvent,
   type InsertEventAttendee,
+  type InsertPasswordResetToken,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, count, sql } from "drizzle-orm";
@@ -26,6 +29,7 @@ export interface IStorage {
   // User operations
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Community operations
@@ -54,6 +58,12 @@ export interface IStorage {
   leaveEvent(eventId: string, userId: string): Promise<void>;
   getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]>;
   getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]>;
+  
+  // Password reset operations
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredTokens(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -62,6 +72,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -383,6 +398,46 @@ export class DatabaseStorage implements IStorage {
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+  }
+
+  // Password reset operations
+  async createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [token] = await db
+      .insert(passwordResetTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.isUsed, false),
+          gte(passwordResetTokens.expiresAt, new Date())
+        )
+      );
+    return resetToken;
+  }
+
+  async markTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(passwordResetTokens)
+      .set({ isUsed: true })
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async cleanupExpiredTokens(): Promise<void> {
+    await db
+      .delete(passwordResetTokens)
+      .where(
+        and(
+          gte(new Date(), passwordResetTokens.expiresAt)
+        )
+      );
   }
 }
 

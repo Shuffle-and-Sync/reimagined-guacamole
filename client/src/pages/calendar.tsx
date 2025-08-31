@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { Header } from "@/components/header";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -33,12 +34,22 @@ type ExtendedEvent = Event & {
 
 export default function Calendar() {
   const { user } = useAuth();
+  const { selectedCommunity } = useCommunity();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
   const [filterCommunity, setFilterCommunity] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Sync local filter with global community selection
+  useEffect(() => {
+    if (selectedCommunity) {
+      setFilterCommunity(selectedCommunity.id);
+    } else {
+      setFilterCommunity("all");
+    }
+  }, [selectedCommunity]);
 
   // Event creation form state
   const [newEventTitle, setNewEventTitle] = useState("");
@@ -164,6 +175,24 @@ export default function Calendar() {
               <p className="text-xl text-muted-foreground mt-2">
                 Stay updated with tournaments, conventions, releases, and community events
               </p>
+              {selectedCommunity && (
+                <div className="flex items-center space-x-2 mt-4">
+                  <Badge 
+                    className="flex items-center space-x-2 px-3 py-1"
+                    style={{ 
+                      backgroundColor: selectedCommunity.themeColor + '20',
+                      color: selectedCommunity.themeColor,
+                      borderColor: selectedCommunity.themeColor 
+                    }}
+                  >
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: selectedCommunity.themeColor }}
+                    ></div>
+                    <span>Filtering by {selectedCommunity.displayName}</span>
+                  </Badge>
+                </div>
+              )}
             </div>
             
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

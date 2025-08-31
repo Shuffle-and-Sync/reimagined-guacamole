@@ -95,6 +95,16 @@ export const eventAttendees = pgTable("event_attendees", {
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
+// Password reset tokens for secure password recovery
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
@@ -186,6 +196,12 @@ export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit
   joinedAt: true,
 });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  isUsed: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -200,3 +216,5 @@ export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
 export type InsertThemePreference = z.infer<typeof insertThemePreferenceSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertEventAttendee = z.infer<typeof insertEventAttendeeSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,17 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import type { Community } from "@shared/schema";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { selectedCommunity, setSelectedCommunity, communities } = useCommunity();
   const [location] = useLocation();
-
-  // Fetch communities for the selector
-  const { data: communities = [] } = useQuery<Community[]>({
-    queryKey: ['/api/communities'],
-  });
 
   const handleSignIn = () => {
     window.location.href = "/api/login";
@@ -40,8 +35,15 @@ export function Header() {
   };
 
   const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    // TODO: Implement community switching logic
-    console.log("Community changed to:", event.target.value);
+    const communityId = event.target.value;
+    if (communityId === "") {
+      setSelectedCommunity(null);
+    } else {
+      const community = communities.find(c => c.id === communityId);
+      if (community) {
+        setSelectedCommunity(community);
+      }
+    }
   };
 
   const getUserInitials = () => {
@@ -62,18 +64,34 @@ export function Header() {
           
           {/* Community Selector - Hidden on mobile */}
           <div className="hidden md:flex items-center space-x-2 ml-8">
-            <select 
-              className="bg-muted border border-border rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary"
-              data-testid="select-community"
-              onChange={handleCommunityChange}
-            >
-              <option value="">All Communities</option>
-              {communities.map((community) => (
-                <option key={community.id} value={community.id}>
-                  {community.displayName}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center space-x-2">
+              <i className="fas fa-users text-muted-foreground text-sm"></i>
+              <select 
+                className={`bg-muted border border-border rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary ${
+                  selectedCommunity ? 'font-medium' : ''
+                }`}
+                data-testid="select-community"
+                onChange={handleCommunityChange}
+                value={selectedCommunity?.id || ""}
+                style={{
+                  color: selectedCommunity ? selectedCommunity.themeColor : undefined
+                }}
+              >
+                <option value="">All Communities</option>
+                {communities.map((community) => (
+                  <option key={community.id} value={community.id}>
+                    {community.displayName}
+                  </option>
+                ))}
+              </select>
+              {selectedCommunity && (
+                <div 
+                  className="w-3 h-3 rounded-full border border-border"
+                  style={{ backgroundColor: selectedCommunity.themeColor }}
+                  title={`${selectedCommunity.displayName} Community`}
+                ></div>
+              )}
+            </div>
           </div>
         </div>
 
