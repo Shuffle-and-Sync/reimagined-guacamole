@@ -10,6 +10,14 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Link } from "wouter";
 import { getCommunityTheme } from "@/lib/communityThemes";
+import { 
+  ScryGatherDashboard, 
+  PokeStreamDashboard, 
+  DecksongDashboard, 
+  DuelcraftDashboard, 
+  BladeforgeDashboard, 
+  DeckmasterDashboard 
+} from "@/components/realm-dashboards";
 
 export default function Home() {
   const { toast } = useToast();
@@ -57,6 +65,27 @@ export default function Home() {
     const last = user.lastName?.[0] || "";
     return first + last || user.email?.[0]?.toUpperCase() || "U";
   };
+
+  // Render realm-specific dashboard if community is selected
+  if (selectedCommunity) {
+    switch (selectedCommunity.id) {
+      case 'scry-gather':
+        return <ScryGatherDashboard user={user} />;
+      case 'pokestream-hub':
+        return <PokeStreamDashboard user={user} />;
+      case 'decksong':
+        return <DecksongDashboard user={user} />;
+      case 'duelcraft':
+        return <DuelcraftDashboard user={user} />;
+      case 'bladeforge':
+        return <BladeforgeDashboard user={user} />;
+      case 'deckmaster':
+        return <DeckmasterDashboard user={user} />;
+      default:
+        // Fall through to default dashboard
+        break;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground community-bg">
