@@ -67,7 +67,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Gatherings',
       quickMatch: 'Spell Circle',
-      tableSync: 'Planar Sync',
+      tableSync: 'TableSync',
       schedule: 'Conjure Gathering',
       host: 'Planeswalker',
       coHost: 'Ally Mage',
@@ -105,7 +105,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Adventures',
       quickMatch: 'Wild Encounter',
-      tableSync: 'Link Trade',
+      tableSync: 'TableSync',
       schedule: 'Plan Adventure',
       host: 'Gym Leader',
       coHost: 'Elite Trainer',
@@ -143,7 +143,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Royal Gatherings',
       quickMatch: 'Enchanted Duel',
-      tableSync: 'Story Sync',
+      tableSync: 'TableSync',
       schedule: 'Weave Tale',
       host: 'Storyteller',
       coHost: 'Narrator',
@@ -181,7 +181,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Shadow Duels',
       quickMatch: 'Heart of Cards',
-      tableSync: 'Duel Links',
+      tableSync: 'TableSync',
       schedule: 'Summon Duel',
       host: 'Duel Master',
       coHost: 'Shadow Duelist',
@@ -219,7 +219,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Operations',
       quickMatch: 'Strike Mission',
-      tableSync: 'Tactical Link',
+      tableSync: 'TableSync',
       schedule: 'Deploy Operation',
       host: 'Commander',
       coHost: 'Lieutenant',
@@ -257,7 +257,7 @@ export const communityThemes: Record<string, CommunityTheme> = {
     terminology: {
       events: 'Symposiums',
       quickMatch: 'Strategy Session',
-      tableSync: 'Meta Analysis',
+      tableSync: 'TableSync',
       schedule: 'Arrange Session',
       host: 'Strategist',
       coHost: 'Analyst',
