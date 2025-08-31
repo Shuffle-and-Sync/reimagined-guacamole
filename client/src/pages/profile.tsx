@@ -324,16 +324,7 @@ export default function Profile() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Social Links</CardTitle>
-                  {isOwnProfile && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setIsEditingSocials(true)}
-                      data-testid="button-edit-social-links"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </Button>
-                  )}
+{/* Social links editing removed - these are system managed */}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -471,10 +462,18 @@ export default function Profile() {
                         <Label className="font-medium">Show Online Status</Label>
                         <p className="text-sm text-muted-foreground">Let others see when you're online</p>
                       </div>
-                      <Switch 
-                        checked={editedProfile.showOnlineStatus ?? true}
-                        onCheckedChange={(checked) => setEditedProfile(prev => ({ ...prev, showOnlineStatus: checked }))}
-                      />
+                      <Select 
+                        value={editedProfile.showOnlineStatus || "everyone"}
+                        onValueChange={(value) => setEditedProfile(prev => ({ ...prev, showOnlineStatus: value }))}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="everyone">Everyone</SelectItem>
+                          <SelectItem value="friends_only">Friends Only</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <Separator />
@@ -484,10 +483,18 @@ export default function Profile() {
                         <Label className="font-medium">Allow Direct Messages</Label>
                         <p className="text-sm text-muted-foreground">Allow other users to message you</p>
                       </div>
-                      <Switch 
-                        checked={editedProfile.allowDirectMessages ?? true}
-                        onCheckedChange={(checked) => setEditedProfile(prev => ({ ...prev, allowDirectMessages: checked }))}
-                      />
+                      <Select 
+                        value={editedProfile.allowDirectMessages || "everyone"}
+                        onValueChange={(value) => setEditedProfile(prev => ({ ...prev, allowDirectMessages: value }))}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="everyone">Everyone</SelectItem>
+                          <SelectItem value="friends_only">Friends Only</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   
@@ -655,112 +662,7 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Edit Social Links Modal */}
-      {isEditingSocials && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Edit Social Links</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {socialLinks.map((link, index) => (
-                <div key={index} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Social Link {index + 1}</h4>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => removeSocialLink(index)}
-                      data-testid={`button-remove-social-${index}`}
-                    >
-                      <i className="fas fa-trash text-destructive"></i>
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Platform</Label>
-                      <Select 
-                        value={link.platform || ''} 
-                        onValueChange={(value) => updateSocialLink(index, 'platform', value)}
-                      >
-                        <SelectTrigger data-testid={`select-platform-${index}`}>
-                          <SelectValue placeholder="Choose platform" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SOCIAL_PLATFORMS.map((platform) => (
-                            <SelectItem key={platform.id} value={platform.id}>
-                              <div className="flex items-center gap-2">
-                                <i className={platform.icon}></i>
-                                {platform.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label>Username</Label>
-                      <Input
-                        value={link.username || ''}
-                        onChange={(e) => updateSocialLink(index, 'username', e.target.value)}
-                        placeholder={SOCIAL_PLATFORMS.find(p => p.id === link.platform)?.placeholder || 'username'}
-                        data-testid={`input-username-${index}`}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={link.isPublic ?? true}
-                      onCheckedChange={(checked) => updateSocialLink(index, 'isPublic', checked)}
-                    />
-                    <Label className="text-sm">Public (visible to everyone)</Label>
-                  </div>
-                </div>
-              ))}
-              
-              <Button 
-                variant="outline" 
-                onClick={addSocialLink} 
-                className="w-full"
-                data-testid="button-add-social-link"
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Add Social Link
-              </Button>
-              
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleSaveSocialLinks} 
-                  disabled={updateSocialLinksMutation.isPending}
-                  data-testid="button-save-social-links"
-                >
-                  {updateSocialLinksMutation.isPending ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-save mr-2"></i>
-                      Save Social Links
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsEditingSocials(false)}
-                  data-testid="button-cancel-social-edit"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Social links editing removed - users cannot edit social networks */}
     </div>
   );
 }
