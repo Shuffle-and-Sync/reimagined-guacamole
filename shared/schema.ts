@@ -80,8 +80,11 @@ export const events = pgTable("events", {
   location: varchar("location").notNull(),
   communityId: varchar("community_id").references(() => communities.id),
   creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  hostId: varchar("host_id").notNull().references(() => users.id, { onDelete: "cascade" }).default(''), // Primary host
+  coHostId: varchar("co_host_id").references(() => users.id, { onDelete: "set null" }), // Optional co-host
   maxAttendees: integer("max_attendees"), // null means unlimited
   isPublic: boolean("is_public").default(true),
+  status: varchar("status").default("active"), // active, cancelled, completed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -92,7 +95,53 @@ export const eventAttendees = pgTable("event_attendees", {
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: varchar("status").default("attending"), // attending, maybe, not_attending
+  role: varchar("role").default("participant"), // participant, host, co_host
   joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+// Notifications table for real-time user notifications
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // event_join, event_leave, game_invite, message, system
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"), // Additional contextual data (event IDs, user IDs, etc.)
+  isRead: boolean("is_read").default(false),
+  priority: varchar("priority").default("normal"), // low, normal, high, urgent
+  communityId: varchar("community_id").references(() => communities.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration for temporary notifications
+});
+
+// Messages table for user-to-user communication
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recipientId: varchar("recipient_id").references(() => users.id, { onDelete: "cascade" }),
+  eventId: varchar("event_id").references(() => events.id, { onDelete: "cascade" }), // Optional: message tied to an event
+  communityId: varchar("community_id").references(() => communities.id),
+  content: text("content").notNull(),
+  messageType: varchar("message_type").default("direct"), // direct, event, community
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  editedAt: timestamp("edited_at"),
+});
+
+// Game sessions table for real-time game coordination
+export const gameSessions = pgTable("game_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  hostId: varchar("host_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  coHostId: varchar("co_host_id").references(() => users.id, { onDelete: "set null" }),
+  status: varchar("status").default("waiting"), // waiting, active, paused, completed, cancelled
+  currentPlayers: integer("current_players").default(0),
+  maxPlayers: integer("max_players").notNull(),
+  gameData: jsonb("game_data"), // Store game-specific data (deck info, match details, etc.)
+  communityId: varchar("community_id").references(() => communities.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
 });
 
 // Password reset tokens for secure password recovery
@@ -111,6 +160,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   themePreferences: many(themePreferences),
   createdEvents: many(events),
   eventAttendees: many(eventAttendees),
+  notifications: many(notifications),
+  sentMessages: many(messages, { relationName: "sentMessages" }),
+  receivedMessages: many(messages, { relationName: "receivedMessages" }),
+  hostedGameSessions: many(gameSessions, { relationName: "hostedGameSessions" }),
+  coHostedGameSessions: many(gameSessions, { relationName: "coHostedGameSessions" }),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -146,11 +200,21 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     fields: [events.creatorId],
     references: [users.id],
   }),
+  host: one(users, {
+    fields: [events.hostId],
+    references: [users.id],
+  }),
+  coHost: one(users, {
+    fields: [events.coHostId],
+    references: [users.id],
+  }),
   community: one(communities, {
     fields: [events.communityId],
     references: [communities.id],
   }),
   attendees: many(eventAttendees),
+  gameSession: one(gameSessions),
+  messages: many(messages),
 }));
 
 export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
@@ -161,6 +225,59 @@ export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
   user: one(users, {
     fields: [eventAttendees.userId],
     references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [notifications.communityId],
+    references: [communities.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+    relationName: "sentMessages",
+  }),
+  recipient: one(users, {
+    fields: [messages.recipientId],
+    references: [users.id],
+    relationName: "receivedMessages",
+  }),
+  event: one(events, {
+    fields: [messages.eventId],
+    references: [events.id],
+  }),
+  community: one(communities, {
+    fields: [messages.communityId],
+    references: [communities.id],
+  }),
+}));
+
+export const gameSessionsRelations = relations(gameSessions, ({ one }) => ({
+  event: one(events, {
+    fields: [gameSessions.eventId],
+    references: [events.id],
+  }),
+  host: one(users, {
+    fields: [gameSessions.hostId],
+    references: [users.id],
+    relationName: "hostedGameSessions",
+  }),
+  coHost: one(users, {
+    fields: [gameSessions.coHostId],
+    references: [users.id],
+    relationName: "coHostedGameSessions",
+  }),
+  community: one(communities, {
+    fields: [gameSessions.communityId],
+    references: [communities.id],
   }),
 }));
 
@@ -196,6 +313,24 @@ export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit
   joinedAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+  editedAt: true,
+});
+
+export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
+  id: true,
+  createdAt: true,
+  startedAt: true,
+  endedAt: true,
+});
+
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
   id: true,
   isUsed: true,
@@ -210,11 +345,18 @@ export type UserCommunity = typeof userCommunities.$inferSelect;
 export type ThemePreference = typeof themePreferences.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventAttendee = typeof eventAttendees.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type GameSession = typeof gameSessions.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
 export type InsertThemePreference = z.infer<typeof insertThemePreferenceSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertEventAttendee = z.infer<typeof insertEventAttendeeSchema>;
-export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertGameSession = z.infer<typeof insertGameSessionSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

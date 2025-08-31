@@ -5,6 +5,9 @@ import {
   themePreferences,
   events,
   eventAttendees,
+  notifications,
+  messages,
+  gameSessions,
   passwordResetTokens,
   type User,
   type UpsertUser,
@@ -13,12 +16,18 @@ import {
   type ThemePreference,
   type Event,
   type EventAttendee,
+  type Notification,
+  type Message,
+  type GameSession,
   type PasswordResetToken,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
   type InsertEvent,
   type InsertEventAttendee,
+  type InsertNotification,
+  type InsertMessage,
+  type InsertGameSession,
   type InsertPasswordResetToken,
 } from "@shared/schema";
 import { db } from "./db";
@@ -65,6 +74,26 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markTokenAsUsed(token: string): Promise<void>;
   cleanupExpiredTokens(): Promise<void>;
+  
+  // Notification operations
+  getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
+  createNotification(data: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  deleteNotification(notificationId: string): Promise<void>;
+  
+  // Message operations
+  getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]>;
+  sendMessage(data: InsertMessage): Promise<Message>;
+  markMessageAsRead(messageId: string): Promise<void>;
+  getConversation(userId1: string, userId2: string): Promise<(Message & { sender: User; recipient?: User })[]>;
+  
+  // Game session operations
+  getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]>;
+  createGameSession(data: InsertGameSession): Promise<GameSession>;
+  updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession>;
+  joinGameSession(sessionId: string, userId: string): Promise<void>;
+  leaveGameSession(sessionId: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -451,6 +480,179 @@ export class DatabaseStorage implements IStorage {
           gte(new Date(), passwordResetTokens.expiresAt)
         )
       );
+  }
+
+  // Notification operations
+  async getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]> {
+    let conditions = [eq(notifications.userId, userId)];
+    
+    if (options?.unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+    
+    let query = db.select().from(notifications).where(and(...conditions));
+    
+    if (options?.limit) {
+      query = query.limit(options.limit) as any;
+    }
+    
+    return await query.orderBy(sql`${notifications.createdAt} DESC`);
+  }
+
+  async createNotification(data: InsertNotification): Promise<Notification> {
+    const [notification] = await db.insert(notifications).values(data).returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async deleteNotification(notificationId: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, notificationId));
+  }
+
+  // Message operations
+  async getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+    let conditions = [
+      sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`
+    ];
+
+    if (options?.eventId) {
+      conditions.push(eq(messages.eventId, options.eventId));
+    }
+
+    if (options?.communityId) {
+      conditions.push(eq(messages.communityId, options.communityId));
+    }
+
+    const results = await db.select({
+      message: messages,
+      sender: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .where(and(...conditions))
+    .orderBy(sql`${messages.createdAt} DESC`)
+    .limit(options?.limit || 50);
+
+    return results.map((r: any) => ({ ...r.message, sender: r.sender }));
+  }
+
+  async sendMessage(data: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(data).returning();
+    return message;
+  }
+
+  async markMessageAsRead(messageId: string): Promise<void> {
+    await db.update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.id, messageId));
+  }
+
+  async getConversation(userId1: string, userId2: string): Promise<(Message & { sender: User; recipient?: User })[]> {
+    const results = await db.select({
+      message: messages,
+      sender: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .where(
+      and(
+        sql`((${messages.senderId} = ${userId1} AND ${messages.recipientId} = ${userId2}) OR 
+             (${messages.senderId} = ${userId2} AND ${messages.recipientId} = ${userId1}))`
+      )
+    )
+    .orderBy(sql`${messages.createdAt} ASC`);
+
+    return results.map((r: any) => ({ ...r.message, sender: r.sender }));
+  }
+
+  // Game session operations
+  async getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
+    let conditions = [];
+
+    if (filters?.eventId) {
+      conditions.push(eq(gameSessions.eventId, filters.eventId));
+    }
+
+    if (filters?.communityId) {
+      conditions.push(eq(gameSessions.communityId, filters.communityId));
+    }
+
+    if (filters?.hostId) {
+      conditions.push(eq(gameSessions.hostId, filters.hostId));
+    }
+
+    if (filters?.status) {
+      conditions.push(eq(gameSessions.status, filters.status));
+    }
+
+    const results = await db.select({
+      gameSession: gameSessions,
+      host: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+      event: events,
+    })
+    .from(gameSessions)
+    .leftJoin(users, eq(gameSessions.hostId, users.id))
+    .leftJoin(events, eq(gameSessions.eventId, events.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(sql`${gameSessions.createdAt} DESC`);
+
+    return results.map((r: any) => ({ ...r.gameSession, host: r.host, event: r.event }));
+  }
+
+  async createGameSession(data: InsertGameSession): Promise<GameSession> {
+    const [gameSession] = await db.insert(gameSessions).values(data).returning();
+    return gameSession;
+  }
+
+  async updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession> {
+    const [gameSession] = await db.update(gameSessions)
+      .set(data)
+      .where(eq(gameSessions.id, id))
+      .returning();
+    return gameSession;
+  }
+
+  async joinGameSession(sessionId: string, userId: string): Promise<void> {
+    // Increment current players count
+    await db.update(gameSessions)
+      .set({ currentPlayers: sql`${gameSessions.currentPlayers} + 1` })
+      .where(eq(gameSessions.id, sessionId));
+  }
+
+  async leaveGameSession(sessionId: string, userId: string): Promise<void> {
+    // Decrement current players count
+    await db.update(gameSessions)
+      .set({ currentPlayers: sql`GREATEST(${gameSessions.currentPlayers} - 1, 0)` })
+      .where(eq(gameSessions.id, sessionId));
   }
 }
 

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserProfileDialog } from "@/components/UserProfileDialog";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { Link, useLocation } from "wouter";
 
 export function Header() {
@@ -139,7 +140,9 @@ export function Header() {
           {isLoading ? (
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
           ) : isAuthenticated && user ? (
-            <DropdownMenu>
+            <>
+              <NotificationCenter />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-10 w-10 rounded-full p-0" data-testid="button-user-menu">
                   <Avatar className="h-10 w-10">
@@ -165,6 +168,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <>
               <Button 

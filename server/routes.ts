@@ -395,6 +395,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification routes
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const { unreadOnly, limit } = req.query;
+      const notifications = await storage.getUserNotifications(user.claims.sub, {
+        unreadOnly: unreadOnly === 'true',
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const notificationData = { ...req.body, userId: user.claims.sub };
+      const notification = await storage.createNotification(notificationData);
+      res.status(201).json(notification);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.markNotificationAsRead(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      await storage.markAllNotificationsAsRead(user.claims.sub);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Message routes
+  app.get('/api/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const { eventId, communityId, limit } = req.query;
+      const messages = await storage.getUserMessages(user.claims.sub, {
+        eventId: eventId as string,
+        communityId: communityId as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const messageData = { ...req.body, senderId: user.claims.sub };
+      const message = await storage.sendMessage(messageData);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/conversations/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const { userId } = req.params;
+      const conversation = await storage.getConversation(user.claims.sub, userId);
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Game session routes
+  app.get('/api/game-sessions', isAuthenticated, async (req: any, res) => {
+    try {
+      const { eventId, communityId, hostId, status } = req.query;
+      const gameSessions = await storage.getGameSessions({
+        eventId: eventId as string,
+        communityId: communityId as string,
+        hostId: hostId as string,
+        status: status as string,
+      });
+      res.json(gameSessions);
+    } catch (error) {
+      console.error('Error fetching game sessions:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/game-sessions', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const sessionData = { ...req.body, hostId: user.claims.sub };
+      const gameSession = await storage.createGameSession(sessionData);
+      res.status(201).json(gameSession);
+    } catch (error) {
+      console.error('Error creating game session:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/game-sessions/:id/join', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      await storage.joinGameSession(id, user.claims.sub);
+      
+      // Create notification for host when someone joins
+      const gameSession = await storage.getGameSessions({ eventId: id });
+      if (gameSession.length > 0) {
+        await storage.createNotification({
+          userId: gameSession[0].hostId,
+          type: 'event_join',
+          title: 'Player Joined Game',
+          message: `${user.claims.first_name || user.claims.email} joined your game session`,
+          data: { gameSessionId: id, playerId: user.claims.sub },
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error joining game session:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/game-sessions/:id/leave', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      await storage.leaveGameSession(id, user.claims.sub);
+      
+      // Create notification for host when someone leaves
+      const gameSession = await storage.getGameSessions({ eventId: id });
+      if (gameSession.length > 0) {
+        await storage.createNotification({
+          userId: gameSession[0].hostId,
+          type: 'event_leave',
+          title: 'Player Left Game',
+          message: `${user.claims.first_name || user.claims.email} left your game session`,
+          data: { gameSessionId: id, playerId: user.claims.sub },
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error leaving game session:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
