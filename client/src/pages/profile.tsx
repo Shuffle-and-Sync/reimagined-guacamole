@@ -58,9 +58,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<Partial<User>>({});
   
-  // Social links editing state
-  const [socialLinks, setSocialLinks] = useState<Partial<UserSocialLink>[]>([]);
-  const [isEditingSocials, setIsEditingSocials] = useState(false);
+  // Removed social links editing - users cannot edit these
 
   // Fetch user profile data
   const { data: profileUser, isLoading: profileLoading } = useQuery<ExtendedUser>({
@@ -68,13 +66,13 @@ export default function Profile() {
     enabled: !!profileUserId,
   });
 
-  // Fetch user's social links
+  // Fetch user's social links (read-only)
   const { data: userSocialLinks = [] } = useQuery<UserSocialLink[]>({
     queryKey: ['/api/user/social-links', profileUserId],
     enabled: !!profileUserId,
   });
 
-  // Fetch user's gaming profiles
+  // Fetch user's gaming profiles (read-only)
   const { data: userGamingProfiles = [] } = useQuery<UserGamingProfile[]>({
     queryKey: ['/api/user/gaming-profiles', profileUserId],
     enabled: !!profileUserId,
@@ -94,21 +92,13 @@ export default function Profile() {
         statusMessage: profileUser.statusMessage || '',
         timezone: profileUser.timezone || '',
         isPrivate: profileUser.isPrivate || false,
-        showOnlineStatus: profileUser.showOnlineStatus ?? true,
-        allowDirectMessages: profileUser.allowDirectMessages ?? true,
+        showOnlineStatus: profileUser.showOnlineStatus || "everyone",
+        allowDirectMessages: profileUser.allowDirectMessages || "everyone",
       });
     }
   }, [profileUser, isOwnProfile]);
 
-  // Initialize social links state
-  useEffect(() => {
-    setSocialLinks(userSocialLinks.map(link => ({
-      platform: link.platform,
-      username: link.username,
-      url: link.url,
-      isPublic: link.isPublic,
-    })));
-  }, [userSocialLinks]);
+  // Social links are now read-only, no editing state needed
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -126,74 +116,13 @@ export default function Profile() {
     },
   });
 
-  // Social links update mutation
-  const updateSocialLinksMutation = useMutation({
-    mutationFn: async (links: Partial<UserSocialLink>[]) => {
-      return apiRequest('PUT', '/api/user/social-links', { links });
-    },
-    onSuccess: () => {
-      toast({ title: 'Social links updated successfully!' });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/social-links'] });
-      setIsEditingSocials(false);
-    },
-    onError: () => {
-      toast({ title: 'Failed to update social links', variant: 'destructive' });
-    },
-  });
+  // Social links editing removed
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate(editedProfile);
   };
 
-  const handleSaveSocialLinks = () => {
-    updateSocialLinksMutation.mutate(socialLinks.filter(link => link.platform && link.username));
-  };
-
-  const addSocialLink = () => {
-    setSocialLinks([...socialLinks, { platform: '', username: '', url: '', isPublic: true }]);
-  };
-
-  const removeSocialLink = (index: number) => {
-    setSocialLinks(socialLinks.filter((_, i) => i !== index));
-  };
-
-  const updateSocialLink = (index: number, field: string, value: any) => {
-    const updated = [...socialLinks];
-    updated[index] = { ...updated[index], [field]: value };
-    
-    // Auto-generate URL based on platform and username
-    if (field === 'username' || field === 'platform') {
-      const platform = updated[index].platform;
-      const username = updated[index].username;
-      if (platform && username) {
-        const platformData = SOCIAL_PLATFORMS.find(p => p.id === platform);
-        if (platformData) {
-          switch (platform) {
-            case 'discord':
-              updated[index].url = `https://discord.com/users/${username}`;
-              break;
-            case 'twitch':
-              updated[index].url = `https://twitch.tv/${username}`;
-              break;
-            case 'twitter':
-              updated[index].url = `https://twitter.com/${username.replace('@', '')}`;
-              break;
-            case 'youtube':
-              updated[index].url = `https://youtube.com/@${username}`;
-              break;
-            case 'steam':
-              updated[index].url = `https://steamcommunity.com/id/${username}`;
-              break;
-            case 'instagram':
-              updated[index].url = `https://instagram.com/${username.replace('@', '')}`;
-              break;
-          }
-        }
-      }
-    }
-    
-    setSocialLinks(updated);
-  };
+  // Social links editing functions removed
 
   const getUserInitials = (user?: User) => {
     if (!user) return "U";

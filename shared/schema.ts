@@ -44,8 +44,8 @@ export const users = pgTable("users", {
   timezone: varchar("timezone"), // User's timezone
   dateOfBirth: varchar("date_of_birth"), // YYYY-MM-DD format
   isPrivate: boolean("is_private").default(false), // Private profile setting
-  showOnlineStatus: boolean("show_online_status").default(true),
-  allowDirectMessages: boolean("allow_direct_messages").default(true),
+  showOnlineStatus: varchar("show_online_status").default("everyone"), // "everyone", "friends_only"
+  allowDirectMessages: varchar("allow_direct_messages").default("everyone"), // "everyone", "friends_only"
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
