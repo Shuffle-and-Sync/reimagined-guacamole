@@ -34,6 +34,18 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   primaryCommunity: varchar("primary_community"), // Main gaming community
+  // Enhanced profile fields
+  username: varchar("username"), // Unique display name (will add unique constraint later)
+  bio: text("bio"), // User biography/description
+  location: varchar("location"), // Geographic location
+  website: varchar("website"), // Personal website URL
+  status: varchar("status").default("offline"), // online, offline, away, busy, gaming
+  statusMessage: varchar("status_message"), // Custom status message
+  timezone: varchar("timezone"), // User's timezone
+  dateOfBirth: varchar("date_of_birth"), // YYYY-MM-DD format
+  isPrivate: boolean("is_private").default(false), // Private profile setting
+  showOnlineStatus: boolean("show_online_status").default(true),
+  allowDirectMessages: boolean("allow_direct_messages").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -154,6 +166,55 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User social links (Discord, Twitch, Twitter, etc.)
+export const userSocialLinks = pgTable("user_social_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  platform: varchar("platform").notNull(), // discord, twitch, twitter, youtube, steam, etc.
+  username: varchar("username").notNull(),
+  url: varchar("url").notNull(),
+  isPublic: boolean("is_public").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User gaming preferences and statistics
+export const userGamingProfiles = pgTable("user_gaming_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  communityId: varchar("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
+  rank: varchar("rank"), // Player rank/rating in this game
+  experience: varchar("experience"), // Experience level (beginner, intermediate, expert)
+  favoriteDeck: text("favorite_deck"), // Favorite deck/character description
+  achievements: jsonb("achievements"), // Game-specific achievements
+  statistics: jsonb("statistics"), // Win/loss ratios, games played, etc.
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Friends and social connections
+export const friendships = pgTable("friendships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  requesterId: varchar("requester_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  addresseeId: varchar("addressee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: varchar("status").default("pending"), // pending, accepted, declined, blocked
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User activity feed
+export const userActivities = pgTable("user_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // event_join, friendship_new, achievement_unlock, game_win, etc.
+  title: varchar("title").notNull(),
+  description: text("description"),
+  data: jsonb("data"), // Additional context data
+  isPublic: boolean("is_public").default(true),
+  communityId: varchar("community_id").references(() => communities.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
@@ -165,6 +226,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   receivedMessages: many(messages, { relationName: "receivedMessages" }),
   hostedGameSessions: many(gameSessions, { relationName: "hostedGameSessions" }),
   coHostedGameSessions: many(gameSessions, { relationName: "coHostedGameSessions" }),
+  socialLinks: many(userSocialLinks),
+  gamingProfiles: many(userGamingProfiles),
+  sentFriendRequests: many(friendships, { relationName: "sentFriendRequests" }),
+  receivedFriendRequests: many(friendships, { relationName: "receivedFriendRequests" }),
+  activities: many(userActivities),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -281,6 +347,48 @@ export const gameSessionsRelations = relations(gameSessions, ({ one }) => ({
   }),
 }));
 
+export const userSocialLinksRelations = relations(userSocialLinks, ({ one }) => ({
+  user: one(users, {
+    fields: [userSocialLinks.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userGamingProfilesRelations = relations(userGamingProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [userGamingProfiles.userId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [userGamingProfiles.communityId],
+    references: [communities.id],
+  }),
+}));
+
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  requester: one(users, {
+    fields: [friendships.requesterId],
+    references: [users.id],
+    relationName: "sentFriendRequests",
+  }),
+  addressee: one(users, {
+    fields: [friendships.addresseeId],
+    references: [users.id],
+    relationName: "receivedFriendRequests",
+  }),
+}));
+
+export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivities.userId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [userActivities.communityId],
+    references: [communities.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -337,6 +445,28 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
   createdAt: true,
 });
 
+export const insertUserSocialLinkSchema = createInsertSchema(userSocialLinks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserGamingProfileSchema = createInsertSchema(userGamingProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFriendshipSchema = createInsertSchema(friendships).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserActivitySchema = createInsertSchema(userActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -349,6 +479,10 @@ export type Notification = typeof notifications.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type GameSession = typeof gameSessions.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type UserSocialLink = typeof userSocialLinks.$inferSelect;
+export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
+export type Friendship = typeof friendships.$inferSelect;
+export type UserActivity = typeof userActivities.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -360,3 +494,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertGameSession = z.infer<typeof insertGameSessionSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
+export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSchema>;
+export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;

@@ -9,6 +9,10 @@ import {
   messages,
   gameSessions,
   passwordResetTokens,
+  userSocialLinks,
+  userGamingProfiles,
+  friendships,
+  userActivities,
   type User,
   type UpsertUser,
   type Community,
@@ -20,6 +24,10 @@ import {
   type Message,
   type GameSession,
   type PasswordResetToken,
+  type UserSocialLink,
+  type UserGamingProfile,
+  type Friendship,
+  type UserActivity,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
@@ -29,6 +37,10 @@ import {
   type InsertMessage,
   type InsertGameSession,
   type InsertPasswordResetToken,
+  type InsertUserSocialLink,
+  type InsertUserGamingProfile,
+  type InsertFriendship,
+  type InsertUserActivity,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, count, sql } from "drizzle-orm";
@@ -94,6 +106,23 @@ export interface IStorage {
   updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession>;
   joinGameSession(sessionId: string, userId: string): Promise<void>;
   leaveGameSession(sessionId: string, userId: string): Promise<void>;
+  
+  // Social link operations
+  getUserSocialLinks(userId: string): Promise<UserSocialLink[]>;
+  updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]>;
+  
+  // Gaming profile operations
+  getUserGamingProfiles(userId: string): Promise<(UserGamingProfile & { community: Community })[]>;
+  upsertUserGamingProfile(data: InsertUserGamingProfile): Promise<UserGamingProfile>;
+  
+  // Friendship operations
+  getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]>;
+  sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship>;
+  respondToFriendRequest(friendshipId: string, status: 'accepted' | 'declined' | 'blocked'): Promise<Friendship>;
+  
+  // User activity operations
+  getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]>;
+  createUserActivity(data: InsertUserActivity): Promise<UserActivity>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -653,6 +682,145 @@ export class DatabaseStorage implements IStorage {
     await db.update(gameSessions)
       .set({ currentPlayers: sql`GREATEST(${gameSessions.currentPlayers} - 1, 0)` })
       .where(eq(gameSessions.id, sessionId));
+  }
+  
+  // Social link operations
+  async getUserSocialLinks(userId: string): Promise<UserSocialLink[]> {
+    const links = await db
+      .select()
+      .from(userSocialLinks)
+      .where(eq(userSocialLinks.userId, userId));
+    return links;
+  }
+
+  async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
+    // Delete existing links
+    await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
+    
+    // Insert new links
+    if (links.length > 0) {
+      const newLinks = await db
+        .insert(userSocialLinks)
+        .values(links.map(link => ({ ...link, userId })))
+        .returning();
+      return newLinks;
+    }
+    return [];
+  }
+  
+  // Gaming profile operations
+  async getUserGamingProfiles(userId: string): Promise<(UserGamingProfile & { community: Community })[]> {
+    const profiles = await db
+      .select({
+        id: userGamingProfiles.id,
+        userId: userGamingProfiles.userId,
+        communityId: userGamingProfiles.communityId,
+        rank: userGamingProfiles.rank,
+        experience: userGamingProfiles.experience,
+        favoriteDeck: userGamingProfiles.favoriteDeck,
+        achievements: userGamingProfiles.achievements,
+        statistics: userGamingProfiles.statistics,
+        isVisible: userGamingProfiles.isVisible,
+        createdAt: userGamingProfiles.createdAt,
+        updatedAt: userGamingProfiles.updatedAt,
+        community: communities,
+      })
+      .from(userGamingProfiles)
+      .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+      .where(eq(userGamingProfiles.userId, userId));
+    return profiles;
+  }
+
+  async upsertUserGamingProfile(data: InsertUserGamingProfile): Promise<UserGamingProfile> {
+    const [profile] = await db
+      .insert(userGamingProfiles)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [userGamingProfiles.userId, userGamingProfiles.communityId],
+        set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return profile;
+  }
+  
+  // Friendship operations
+  async getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]> {
+    // This is a simplified implementation - would need proper joins
+    const result = await db
+      .select()
+      .from(friendships)
+      .where(
+        and(
+          eq(friendships.status, 'accepted')
+        )
+      );
+    return result as any;
+  }
+
+  async sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
+    const [friendship] = await db
+      .insert(friendships)
+      .values({
+        requesterId,
+        addresseeId,
+        status: 'pending',
+      })
+      .returning();
+    return friendship;
+  }
+
+  async respondToFriendRequest(friendshipId: string, status: 'accepted' | 'declined' | 'blocked'): Promise<Friendship> {
+    const [friendship] = await db
+      .update(friendships)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(friendships.id, friendshipId))
+      .returning();
+    return friendship;
+  }
+  
+  // User activity operations
+  async getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]> {
+    let query = db
+      .select({
+        id: userActivities.id,
+        userId: userActivities.userId,
+        type: userActivities.type,
+        title: userActivities.title,
+        description: userActivities.description,
+        data: userActivities.data,
+        isPublic: userActivities.isPublic,
+        communityId: userActivities.communityId,
+        createdAt: userActivities.createdAt,
+        community: communities,
+      })
+      .from(userActivities)
+      .leftJoin(communities, eq(userActivities.communityId, communities.id))
+      .where(eq(userActivities.userId, userId));
+    
+    if (options?.communityId) {
+      query = query.where(eq(userActivities.communityId, options.communityId));
+    }
+    
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    const activities = await query.orderBy(sql`${userActivities.createdAt} DESC`);
+    return activities;
+  }
+
+  async createUserActivity(data: InsertUserActivity): Promise<UserActivity> {
+    const [activity] = await db
+      .insert(userActivities)
+      .values(data)
+      .returning();
+    return activity;
   }
 }
 

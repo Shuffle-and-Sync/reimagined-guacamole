@@ -39,18 +39,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      const { firstName, lastName, primaryCommunity } = req.body;
+      const { 
+        firstName, lastName, primaryCommunity, username, bio, location, 
+        website, status, statusMessage, timezone, isPrivate, 
+        showOnlineStatus, allowDirectMessages 
+      } = req.body;
       
       const updates: Partial<UpsertUser> = {};
       if (firstName !== undefined) updates.firstName = firstName;
       if (lastName !== undefined) updates.lastName = lastName;
       if (primaryCommunity !== undefined) updates.primaryCommunity = primaryCommunity;
+      if (username !== undefined) updates.username = username;
+      if (bio !== undefined) updates.bio = bio;
+      if (location !== undefined) updates.location = location;
+      if (website !== undefined) updates.website = website;
+      if (status !== undefined) updates.status = status;
+      if (statusMessage !== undefined) updates.statusMessage = statusMessage;
+      if (timezone !== undefined) updates.timezone = timezone;
+      if (isPrivate !== undefined) updates.isPrivate = isPrivate;
+      if (showOnlineStatus !== undefined) updates.showOnlineStatus = showOnlineStatus;
+      if (allowDirectMessages !== undefined) updates.allowDirectMessages = allowDirectMessages;
 
       const updatedUser = await storage.updateUser(userId, updates);
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Get user profile (for viewing other users' profiles)
+  app.get('/api/user/profile/:userId?', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const targetUserId = req.params.userId || currentUserId;
+      
+      const user = await storage.getUser(targetUserId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get additional profile data
+      const userCommunities = await storage.getUserCommunities(targetUserId);
+      
+      res.json({
+        ...user,
+        communities: userCommunities,
+        isOwnProfile: currentUserId === targetUserId,
+        friendCount: 0, // TODO: implement friend count
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  // Social links routes
+  app.get('/api/user/social-links/:userId?', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const targetUserId = req.params.userId || currentUserId;
+      
+      const socialLinks = await storage.getUserSocialLinks(targetUserId);
+      res.json(socialLinks);
+    } catch (error) {
+      console.error("Error fetching social links:", error);
+      res.status(500).json({ message: "Failed to fetch social links" });
+    }
+  });
+
+  app.put('/api/user/social-links', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { links } = req.body;
+      
+      const updatedLinks = await storage.updateUserSocialLinks(userId, links);
+      res.json(updatedLinks);
+    } catch (error) {
+      console.error("Error updating social links:", error);
+      res.status(500).json({ message: "Failed to update social links" });
+    }
+  });
+
+  // Gaming profiles routes
+  app.get('/api/user/gaming-profiles/:userId?', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const targetUserId = req.params.userId || currentUserId;
+      
+      const gamingProfiles = await storage.getUserGamingProfiles(targetUserId);
+      res.json(gamingProfiles);
+    } catch (error) {
+      console.error("Error fetching gaming profiles:", error);
+      res.status(500).json({ message: "Failed to fetch gaming profiles" });
     }
   });
 

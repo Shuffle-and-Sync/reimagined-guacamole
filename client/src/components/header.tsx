@@ -30,7 +30,7 @@ export function Header() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   
   const handleProfile = () => {
-    setIsProfileDialogOpen(true);
+    window.location.href = "/profile";
   };
 
   const handleSettings = () => {
