@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/header";
+import { useCommunity } from "@/contexts/CommunityContext";
 
 const GAME_FORMATS = [
   { id: "commander", name: "Commander/EDH", players: "2-4 players" },
@@ -57,6 +58,7 @@ const ACTIVE_ROOMS = [
 
 export default function TableSync() {
   const { user } = useAuth();
+  const { selectedCommunity, communityTheme } = useCommunity();
   const [roomName, setRoomName] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("4");
@@ -97,7 +99,14 @@ export default function TableSync() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen"
+      style={{ 
+        background: selectedCommunity 
+          ? `linear-gradient(135deg, ${selectedCommunity.themeColor}15 0%, ${selectedCommunity.themeColor}05 100%)`
+          : 'var(--background)'
+      }}
+    >
       <Header />
       
       <main className="container mx-auto px-4 py-8">

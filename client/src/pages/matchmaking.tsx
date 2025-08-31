@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
+import { useCommunity } from "@/contexts/CommunityContext";
 
 const GAME_FORMATS = [
   { id: "commander", name: "Commander/EDH", game: "MTG" },
@@ -92,6 +93,7 @@ const SUGGESTED_PLAYERS = [
 export default function Matchmaking() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedCommunity, communityTheme } = useCommunity();
   
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
@@ -162,7 +164,14 @@ export default function Matchmaking() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen"
+      style={{ 
+        background: selectedCommunity 
+          ? `linear-gradient(135deg, ${selectedCommunity.themeColor}15 0%, ${selectedCommunity.themeColor}05 100%)`
+          : 'var(--background)'
+      }}
+    >
       <Header />
       
       <main className="container mx-auto px-4 py-8">
