@@ -6,6 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import TableSync from "@/pages/tablesync";
+import Social from "@/pages/social";
+import Calendar from "@/pages/calendar";
+import Matchmaking from "@/pages/matchmaking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +22,10 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/tablesync" component={TableSync} />
+          <Route path="/social" component={Social} />
+          <Route path="/calendar" component={Calendar} />
+          <Route path="/matchmaking" component={Matchmaking} />
         </>
       )}
       <Route component={NotFound} />

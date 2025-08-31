@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { Link } from "wouter";
 
 export default function Home() {
   const { toast } = useToast();
@@ -97,45 +98,53 @@ export default function Home() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="community-card cursor-pointer hover:border-primary transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-bolt text-white text-xl"></i>
-              </div>
-              <h3 className="font-semibold mb-2">Quick Match</h3>
-              <p className="text-sm text-muted-foreground">Find players instantly</p>
-            </CardContent>
-          </Card>
+          <Link href="/matchmaking">
+            <Card className="community-card cursor-pointer hover:border-primary transition-all duration-300 h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-bolt text-white text-xl"></i>
+                </div>
+                <h3 className="font-semibold mb-2">Quick Match</h3>
+                <p className="text-sm text-muted-foreground">Find players instantly</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="community-card cursor-pointer hover:border-secondary transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-video text-white text-xl"></i>
-              </div>
-              <h3 className="font-semibold mb-2">TableSync</h3>
-              <p className="text-sm text-muted-foreground">Start streaming</p>
-            </CardContent>
-          </Card>
+          <Link href="/tablesync">
+            <Card className="community-card cursor-pointer hover:border-secondary transition-all duration-300 h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-gamepad text-white text-xl"></i>
+                </div>
+                <h3 className="font-semibold mb-2">TableSync</h3>
+                <p className="text-sm text-muted-foreground">Remote gameplay</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="community-card cursor-pointer hover:border-accent transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-calendar text-background text-xl"></i>
-              </div>
-              <h3 className="font-semibold mb-2">Schedule Event</h3>
-              <p className="text-sm text-muted-foreground">Plan your sessions</p>
-            </CardContent>
-          </Card>
+          <Link href="/calendar">
+            <Card className="community-card cursor-pointer hover:border-accent transition-all duration-300 h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-calendar text-background text-xl"></i>
+                </div>
+                <h3 className="font-semibold mb-2">Schedule Event</h3>
+                <p className="text-sm text-muted-foreground">Plan your sessions</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="community-card cursor-pointer hover:border-green-500 transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-share-nodes text-white text-xl"></i>
-              </div>
-              <h3 className="font-semibold mb-2">Social Hub</h3>
-              <p className="text-sm text-muted-foreground">Manage platforms</p>
-            </CardContent>
-          </Card>
+          <Link href="/social">
+            <Card className="community-card cursor-pointer hover:border-green-500 transition-all duration-300 h-full">
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-share-nodes text-white text-xl"></i>
+                </div>
+                <h3 className="font-semibold mb-2">Social Hub</h3>
+                <p className="text-sm text-muted-foreground">Manage platforms</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* Dashboard Content */}

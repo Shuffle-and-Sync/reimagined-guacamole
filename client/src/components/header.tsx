@@ -8,9 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Link, useLocation } from "wouter";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
 
   const handleSignIn = () => {
     window.location.href = "/api/login";
@@ -31,10 +33,10 @@ export function Header() {
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Logo />
             <span className="text-xl font-bold gradient-text">Shuffle & Sync</span>
-          </div>
+          </Link>
           
           {/* Community Selector - Hidden on mobile */}
           <div className="hidden md:flex items-center space-x-2 ml-8">
@@ -54,13 +56,40 @@ export function Header() {
         </div>
 
         {/* Navigation - Hidden on smaller screens */}
-        <nav className="hidden lg:flex items-center space-x-6">
-          <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</a>
-          <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Matchmaking</a>
-          <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">TableSync</a>
-          <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Social Hub</a>
-          <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Calendar</a>
-        </nav>
+        {isAuthenticated && (
+          <nav className="hidden lg:flex items-center space-x-6">
+            <Link 
+              href="/" 
+              className={`transition-colors ${location === "/" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Dashboard
+            </Link>
+            <Link 
+              href="/tablesync" 
+              className={`transition-colors ${location === "/tablesync" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              TableSync
+            </Link>
+            <Link 
+              href="/social" 
+              className={`transition-colors ${location === "/social" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Social Hub
+            </Link>
+            <Link 
+              href="/calendar" 
+              className={`transition-colors ${location === "/calendar" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Calendar
+            </Link>
+            <Link 
+              href="/matchmaking" 
+              className={`transition-colors ${location === "/matchmaking" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Matchmaking
+            </Link>
+          </nav>
+        )}
 
         {/* User Menu */}
         <div className="flex items-center space-x-4">
