@@ -39,15 +39,13 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
-  const [filterCommunity, setFilterCommunity] = useState("all");
+  // Removed filterCommunity since events are automatically filtered by selected community
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Sync local filter with global community selection
+  // Auto-set community when creating new events
   useEffect(() => {
     if (selectedCommunity) {
-      setFilterCommunity(selectedCommunity.id);
-    } else {
-      setFilterCommunity("all");
+      setNewEventCommunityId(selectedCommunity.id);
     }
   }, [selectedCommunity]);
 
@@ -60,10 +58,10 @@ export default function Calendar() {
   const [newEventDescription, setNewEventDescription] = useState("");
   const [newEventCommunityId, setNewEventCommunityId] = useState("");
 
-  // Fetch events
+  // Fetch events for the selected community only
   const { data: events = [], isLoading: eventsLoading, refetch: refetchEvents } = useQuery<ExtendedEvent[]>({
-    queryKey: ['/api/events', { communityId: filterCommunity !== 'all' ? filterCommunity : undefined, type: filterType !== 'all' ? filterType : undefined, upcoming: true }],
-    enabled: !!user,
+    queryKey: ['/api/events', { communityId: selectedCommunity?.id, type: filterType !== 'all' ? filterType : undefined, upcoming: true }],
+    enabled: !!user && !!selectedCommunity,
   });
 
   // Fetch communities
@@ -143,7 +141,7 @@ export default function Calendar() {
       time: newEventTime,
       location: newEventLocation,
       description: newEventDescription,
-      communityId: newEventCommunityId || null,
+      communityId: selectedCommunity?.id || null, // Auto-set to current community
     });
   };
 
@@ -151,9 +149,9 @@ export default function Calendar() {
     joinEventMutation.mutate({ eventId, isCurrentlyAttending });
   };
 
+  // Events are already filtered by community in the API query, just filter by type
   const filteredEvents = events.filter(event => {
     if (filterType !== "all" && event.type !== filterType) return false;
-    if (filterCommunity !== "all" && event.communityId !== filterCommunity) return false;
     return true;
   });
 
@@ -436,17 +434,9 @@ export default function Calendar() {
                       </SelectContent>
                     </Select>
 
-                    <Select value={filterCommunity} onValueChange={setFilterCommunity}>
-                      <SelectTrigger className="w-48" data-testid="select-filter-community">
-                        <SelectValue placeholder="Filter by community" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Communities</SelectItem>
-                        {communities.map((community) => (
-                          <SelectItem key={community.id} value={community.id}>{community.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded-md border">
+                      <span className="font-medium">{selectedCommunity?.name || 'Unknown Community'}</span> {communityTheme.terminology.events}
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
