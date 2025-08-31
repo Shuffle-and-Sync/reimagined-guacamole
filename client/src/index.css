@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(230, 23%, 6%);
+  --foreground: hsl(213, 27%, 84%);
+  --card: hsl(230, 25%, 11%);
+  --card-foreground: hsl(213, 27%, 84%);
+  --popover: hsl(230, 25%, 11%);
+  --popover-foreground: hsl(213, 27%, 84%);
+  --primary: hsl(267, 70%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(196, 68%, 58%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(230, 25%, 15%);
+  --muted-foreground: hsl(213, 13%, 65%);
+  --accent: hsl(51, 91%, 61%);
+  --accent-foreground: hsl(230, 23%, 6%);
+  --destructive: hsl(0, 75%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(230, 25%, 18%);
+  --input: hsl(230, 25%, 18%);
+  --ring: hsl(267, 70%, 65%);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00), 0px 1px 2px -1px hsl(267, 70%, 65% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00), 0px 1px 2px -1px hsl(267, 70%, 65% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00), 0px 2px 4px -1px hsl(267, 70%, 65% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00), 0px 4px 6px -1px hsl(267, 70%, 65% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00), 0px 8px 10px -1px hsl(267, 70%, 65% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: hsl(230, 23%, 6%);
+  --foreground: hsl(213, 27%, 84%);
+  --card: hsl(230, 25%, 11%);
+  --card-foreground: hsl(213, 27%, 84%);
+  --popover: hsl(230, 25%, 11%);
+  --popover-foreground: hsl(213, 27%, 84%);
+  --primary: hsl(267, 70%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(196, 68%, 58%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(230, 25%, 15%);
+  --muted-foreground: hsl(213, 13%, 65%);
+  --accent: hsl(51, 91%, 61%);
+  --accent-foreground: hsl(230, 23%, 6%);
+  --destructive: hsl(0, 75%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(230, 25%, 18%);
+  --input: hsl(230, 25%, 18%);
+  --ring: hsl(267, 70%, 65%);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Custom animations and effects */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 20px hsl(267, 70%, 65% / 0.3); }
+  100% { box-shadow: 0 0 40px hsl(267, 70%, 65% / 0.6); }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, hsl(267, 70%, 65%), hsl(196, 68%, 58%), hsl(51, 91%, 61%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.community-card {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, hsl(230, 25%, 11% / 0.8), hsl(230, 25%, 15% / 0.9));
+  backdrop-filter: blur(10px);
+}
+
+.community-card:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.hero-bg {
+  background: radial-gradient(ellipse at center, hsl(267, 70%, 65% / 0.1) 0%, transparent 70%),
+              radial-gradient(ellipse at 80% 20%, hsl(196, 68%, 58% / 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, hsl(51, 91%, 61% / 0.1) 0%, transparent 50%);
+}
+
+.live-indicator {
+  animation: pulse 2s infinite;
+}
+
+.social-platform-card {
+  background: linear-gradient(135deg, hsl(230, 25%, 11%), hsl(230, 25%, 15%));
+  border: 1px solid hsl(230, 25%, 18%);
+  transition: all 0.3s ease;
+}
+
+.social-platform-card:hover {
+  border-color: hsl(267, 70%, 65%);
+  box-shadow: 0 10px 30px hsl(267, 70%, 65% / 0.2);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
