@@ -60,70 +60,70 @@ export function Header() {
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        {/* Left: Logo and Community Switcher */}
+        <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2">
             <Logo />
             <span className="text-xl font-bold gradient-text">Shuffle & Sync</span>
           </Link>
           
-          {/* Community Selector - Only show when authenticated */}
-          {isAuthenticated && communities.length > 0 && (
-            <div className="flex items-center space-x-2 ml-4 md:ml-8">
-              <div className="flex items-center space-x-2">
-                <i className="fas fa-dice-d20 text-muted-foreground text-sm"></i>
-                <select 
-                  className={`bg-muted border border-border rounded-md px-2 md:px-3 py-1 text-xs md:text-sm focus:ring-2 focus:ring-primary min-w-0 ${
-                    selectedCommunity ? 'font-medium' : ''
-                  }`}
-                  data-testid="select-community"
-                  onChange={handleCommunityChange}
-                  value={selectedCommunity?.id || ""}
-                  style={{
-                    color: selectedCommunity ? selectedCommunity.themeColor : undefined
-                  }}
-                >
-                  <option value="">All Realms</option>
-                  {communities.map((community) => (
-                    <option key={community.id} value={community.id}>
-                      {community.displayName}
-                    </option>
-                  ))}
-                </select>
-                {selectedCommunity && (
-                  <div 
-                    className="w-3 h-3 rounded-full border border-border animate-pulse"
-                    style={{ backgroundColor: selectedCommunity.themeColor }}
-                    title={`Active: ${selectedCommunity.displayName}`}
-                  ></div>
-                )}
-              </div>
+          {/* Community Switcher - Always visible when communities are available */}
+          {communities.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <i className="fas fa-dice-d20 text-muted-foreground text-sm"></i>
+              <select 
+                className={`bg-muted border border-border rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary ${
+                  selectedCommunity ? 'font-medium' : ''
+                }`}
+                data-testid="select-community"
+                onChange={handleCommunityChange}
+                value={selectedCommunity?.id || ""}
+                style={{
+                  color: selectedCommunity ? selectedCommunity.themeColor : undefined
+                }}
+              >
+                <option value="">All Realms</option>
+                {communities.map((community) => (
+                  <option key={community.id} value={community.id}>
+                    {community.displayName}
+                  </option>
+                ))}
+              </select>
+              {selectedCommunity && (
+                <div 
+                  className="w-3 h-3 rounded-full border border-border animate-pulse"
+                  style={{ backgroundColor: selectedCommunity.themeColor }}
+                  title={`Active: ${selectedCommunity.displayName}`}
+                ></div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Navigation - Hidden on smaller screens */}
-        {isAuthenticated && (
-          <nav className="hidden lg:flex items-center space-x-6">
-            <Link 
-              href="/" 
-              className={`transition-colors ${location === "/" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              href="/tablesync" 
-              className={`transition-colors ${location === "/tablesync" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              TableSync
-            </Link>
-            <Link 
-              href="/matchmaking" 
-              className={`transition-colors ${location === "/matchmaking" ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Matchmaking
-            </Link>
-          </nav>
-        )}
+        {/* Center: Main Navigation */}
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link 
+            href="/" 
+            className={`transition-colors font-medium ${location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="nav-home"
+          >
+            Home
+          </Link>
+          <Link 
+            href="/tablesync" 
+            className={`transition-colors font-medium ${location === "/tablesync" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="nav-tablesync"
+          >
+            TableSync
+          </Link>
+          <Link 
+            href="/profile" 
+            className={`transition-colors font-medium ${location === "/profile" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="nav-profile"
+          >
+            Profile
+          </Link>
+        </nav>
 
         {/* User Menu */}
         <div className="flex items-center space-x-4">
