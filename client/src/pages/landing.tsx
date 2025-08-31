@@ -58,12 +58,12 @@ export default function Landing() {
               <div className="relative w-80 h-80">
                 {/* Hexagonal Golden Border */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-72 h-72 bg-gradient-to-br from-yellow-400 via-orange-400 to-yellow-300 rounded-3xl transform rotate-12 opacity-20 animate-pulse"></div>
+                  <div className="w-72 h-72 bg-gradient-to-br from-yellow-400 via-orange-400 to-yellow-300 rounded-3xl transform rotate-12 opacity-10"></div>
                 </div>
                 
                 {/* Orbital Ring */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-64 border-4 border-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-30 animate-spin" style={{animationDuration: '20s'}}></div>
+                  <div className="w-64 h-64 border-2 border-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-15 animate-spin" style={{animationDuration: '60s'}}></div>
                 </div>
                 
                 {/* Floating Decorative Elements */}
@@ -113,23 +113,23 @@ export default function Landing() {
                   <div className="relative">
                     {/* Energy Rays */}
                     <div className="absolute inset-0">
-                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-yellow-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-0 animate-pulse"></div>
-                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-orange-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-pink-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90 animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-purple-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-135 animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-yellow-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-0 opacity-60"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-orange-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 opacity-50"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-pink-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90 opacity-40"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-purple-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-135 opacity-50"></div>
                     </div>
                     
                     {/* Central Burst */}
-                    <div className="w-12 h-12 bg-gradient-to-br from-white via-yellow-200 to-orange-300 rounded-full animate-ping shadow-2xl"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full animate-spin shadow-lg">
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-lg font-bold">✨</div>
+                    <div className="w-8 h-8 bg-gradient-to-br from-white via-yellow-200 to-orange-300 rounded-full shadow-lg opacity-80"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full shadow-md">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-sm font-bold">✨</div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Golden Hexagonal Frame */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-80 h-80 border-4 border-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 rounded-3xl opacity-60 animate-pulse transform rotate-12"></div>
+                  <div className="w-80 h-80 border-2 border-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 rounded-3xl opacity-30 transform rotate-12"></div>
                 </div>
               </div>
             </div>
