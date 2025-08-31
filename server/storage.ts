@@ -81,7 +81,7 @@ export class DatabaseStorage implements IStorage {
   async createCommunity(communityData: InsertCommunity): Promise<Community> {
     const [community] = await db
       .insert(communities)
-      .values(communityData)
+      .values([communityData])
       .returning();
     return community;
   }

@@ -110,7 +110,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 export const insertCommunitySchema = createInsertSchema(communities).omit({
-  id: true,
   createdAt: true,
 });
 
