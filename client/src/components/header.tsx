@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +16,7 @@ import { Link, useLocation } from "wouter";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { selectedCommunity, setSelectedCommunity, communities } = useCommunity();
   const [location] = useLocation();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
@@ -34,6 +36,18 @@ export function Header() {
     console.log("Navigate to settings page");
   };
 
+  const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const communityId = event.target.value;
+    if (communityId === "") {
+      setSelectedCommunity(null);
+    } else {
+      const community = communities.find(c => c.id === communityId);
+      if (community) {
+        setSelectedCommunity(community);
+      }
+    }
+  };
+
   const getUserInitials = () => {
     if (!user) return "U";
     const first = user.firstName?.[0] || "";
@@ -44,12 +58,37 @@ export function Header() {
   return (
     <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Left: Logo */}
+        {/* Left: Logo and Community Switcher */}
         <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2">
             <Logo />
             <span className="text-xl font-bold text-gray-900 dark:text-white">Shuffle & Sync</span>
           </Link>
+          
+          {/* Community Switcher */}
+          <div className="flex items-center space-x-2">
+            <i className="fas fa-dice-d20 text-gray-500 text-sm"></i>
+            <select 
+              className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+              data-testid="select-community"
+              onChange={handleCommunityChange}
+              value={selectedCommunity?.id || ""}
+            >
+              <option value="">All Realms</option>
+              {communities.map((community) => (
+                <option key={community.id} value={community.id}>
+                  {community.displayName}
+                </option>
+              ))}
+            </select>
+            {selectedCommunity && (
+              <div 
+                className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                style={{ backgroundColor: selectedCommunity.themeColor }}
+                title={`Active: ${selectedCommunity.displayName}`}
+              ></div>
+            )}
+          </div>
         </div>
 
         {/* Center: Main Navigation */}

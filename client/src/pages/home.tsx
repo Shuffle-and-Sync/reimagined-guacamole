@@ -66,25 +66,39 @@ export default function Home() {
     return first + last || user.email?.[0]?.toUpperCase() || "U";
   };
 
-  // Render realm-specific dashboard if community is selected
-  if (selectedCommunity) {
-    switch (selectedCommunity.id) {
-      case 'scry-gather':
-        return <ScryGatherDashboard user={user} />;
-      case 'pokestream-hub':
-        return <PokeStreamDashboard user={user} />;
-      case 'decksong':
-        return <DecksongDashboard user={user} />;
-      case 'duelcraft':
-        return <DuelcraftDashboard user={user} />;
-      case 'bladeforge':
-        return <BladeforgeDashboard user={user} />;
-      case 'deckmaster':
-        return <DeckmasterDashboard user={user} />;
-      default:
-        // Fall through to default dashboard
-        break;
+  // Get realm-specific dashboard content if community is selected
+  const renderDashboardContent = () => {
+    if (selectedCommunity) {
+      switch (selectedCommunity.id) {
+        case 'scry-gather':
+          return <ScryGatherDashboard user={user} />;
+        case 'pokestream-hub':
+          return <PokeStreamDashboard user={user} />;
+        case 'decksong':
+          return <DecksongDashboard user={user} />;
+        case 'duelcraft':
+          return <DuelcraftDashboard user={user} />;
+        case 'bladeforge':
+          return <BladeforgeDashboard user={user} />;
+        case 'deckmaster':
+          return <DeckmasterDashboard user={user} />;
+        default:
+          return null;
+      }
     }
+    return null;
+  };
+
+  // Render realm-specific dashboard if selected, otherwise show default dashboard
+  const dashboardContent = renderDashboardContent();
+  
+  if (dashboardContent) {
+    return (
+      <div className="min-h-screen bg-background text-foreground community-bg">
+        <Header />
+        {dashboardContent}
+      </div>
+    );
   }
 
   return (
@@ -312,7 +326,7 @@ export default function Home() {
           </Card>
         </div>
       </div>
-
+      
       <Footer />
     </div>
   );
