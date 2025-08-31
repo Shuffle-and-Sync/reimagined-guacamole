@@ -10,6 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/header";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Event, Community } from "@shared/schema";
 
 const EVENT_TYPES = [
   { id: "tournament", name: "Tournament", icon: "fas fa-trophy", color: "bg-yellow-500" },
@@ -20,75 +24,21 @@ const EVENT_TYPES = [
   { id: "personal", name: "Personal Game", icon: "fas fa-gamepad", color: "bg-indigo-500" }
 ];
 
-const UPCOMING_EVENTS = [
-  {
-    id: "event1",
-    title: "Magic: The Gathering Pro Tour",
-    type: "tournament",
-    date: "2024-09-15",
-    time: "10:00",
-    location: "Las Vegas, NV",
-    community: "Magic: The Gathering",
-    description: "The biggest MTG tournament of the year featuring the best players worldwide.",
-    attendees: 1247,
-    isAttending: false
-  },
-  {
-    id: "event2",
-    title: "Pokemon World Championships",
-    type: "tournament", 
-    date: "2024-09-22",
-    time: "09:00",
-    location: "Yokohama, Japan",
-    community: "Pokemon",
-    description: "The ultimate Pokemon TCG competition determining the world champion.",
-    attendees: 2156,
-    isAttending: true
-  },
-  {
-    id: "event3",
-    title: "Weekly Commander Night",
-    type: "community",
-    date: "2024-09-01",
-    time: "19:00", 
-    location: "Local Game Store",
-    community: "Magic: The Gathering",
-    description: "Casual Commander games with the local community. All skill levels welcome!",
-    attendees: 24,
-    isAttending: true
-  },
-  {
-    id: "event4",
-    title: "Lorcana: Into the Inklands Release",
-    type: "release",
-    date: "2024-09-08",
-    time: "00:00",
-    location: "Worldwide",
-    community: "Lorcana",
-    description: "New Lorcana set release featuring characters from The Lion King and more!",
-    attendees: 5432,
-    isAttending: false
-  },
-  {
-    id: "event5",
-    title: "Gen Con 2024",
-    type: "convention",
-    date: "2024-08-31",
-    time: "09:00",
-    location: "Indianapolis, IN",
-    community: "All",
-    description: "The largest tabletop gaming convention in North America.",
-    attendees: 60000,
-    isAttending: false
-  }
-];
+type ExtendedEvent = Event & { 
+  creator: any; 
+  community: Community | null; 
+  attendeeCount: number; 
+  isUserAttending?: boolean; 
+};
 
 export default function Calendar() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
   const [filterCommunity, setFilterCommunity] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Event creation form state
   const [newEventTitle, setNewEventTitle] = useState("");
@@ -97,32 +47,107 @@ export default function Calendar() {
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventLocation, setNewEventLocation] = useState("");
   const [newEventDescription, setNewEventDescription] = useState("");
+  const [newEventCommunityId, setNewEventCommunityId] = useState("");
+
+  // Fetch events
+  const { data: events = [], isLoading: eventsLoading, refetch: refetchEvents } = useQuery<ExtendedEvent[]>({
+    queryKey: ['/api/events', { communityId: filterCommunity !== 'all' ? filterCommunity : undefined, type: filterType !== 'all' ? filterType : undefined, upcoming: true }],
+    enabled: !!user,
+  });
+
+  // Fetch communities
+  const { data: communities = [] } = useQuery<Community[]>({
+    queryKey: ['/api/communities'],
+  });
+
+  // Create event mutation
+  const createEventMutation = useMutation({
+    mutationFn: async (eventData: any) => {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(eventData),
+      });
+      if (!response.ok) throw new Error('Failed to create event');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Event created successfully!" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      setIsCreateDialogOpen(false);
+      // Reset form
+      setNewEventTitle("");
+      setNewEventType("");
+      setNewEventDate("");
+      setNewEventTime("");
+      setNewEventLocation("");
+      setNewEventDescription("");
+      setNewEventCommunityId("");
+    },
+    onError: () => {
+      toast({ title: "Failed to create event", variant: "destructive" });
+    },
+  });
+
+  // Join event mutation
+  const joinEventMutation = useMutation({
+    mutationFn: async ({ eventId, isCurrentlyAttending }: { eventId: string; isCurrentlyAttending: boolean }) => {
+      const url = isCurrentlyAttending ? `/api/events/${eventId}/leave` : `/api/events/${eventId}/join`;
+      const method = isCurrentlyAttending ? 'DELETE' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: method === 'POST' ? JSON.stringify({ status: 'attending' }) : undefined,
+      });
+      if (!response.ok) throw new Error(`Failed to ${isCurrentlyAttending ? 'leave' : 'join'} event`);
+      return response.json();
+    },
+    onSuccess: (_, { isCurrentlyAttending }) => {
+      toast({ 
+        title: isCurrentlyAttending ? "Left event successfully!" : "Joined event successfully!" 
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+    },
+    onError: (_, { isCurrentlyAttending }) => {
+      toast({ 
+        title: `Failed to ${isCurrentlyAttending ? 'leave' : 'join'} event`, 
+        variant: "destructive" 
+      });
+    },
+  });
 
   const handleCreateEvent = () => {
-    // TODO: Implement event creation logic
-    console.log("Creating event:", {
+    if (!newEventTitle || !newEventType || !newEventDate || !newEventTime || !newEventLocation) {
+      toast({ title: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    createEventMutation.mutate({
       title: newEventTitle,
       type: newEventType,
       date: newEventDate,
       time: newEventTime,
       location: newEventLocation,
-      description: newEventDescription
+      description: newEventDescription,
+      communityId: newEventCommunityId || null,
     });
   };
 
-  const handleAttendEvent = (eventId: string) => {
-    // TODO: Implement event attendance logic
-    console.log("Attending event:", eventId);
+  const handleAttendEvent = (eventId: string, isCurrentlyAttending: boolean) => {
+    joinEventMutation.mutate({ eventId, isCurrentlyAttending });
   };
 
-  const filteredEvents = UPCOMING_EVENTS.filter(event => {
+  const filteredEvents = events.filter(event => {
     if (filterType !== "all" && event.type !== filterType) return false;
-    if (filterCommunity !== "all" && event.community !== filterCommunity) return false;
+    if (filterCommunity !== "all" && event.communityId !== filterCommunity) return false;
     return true;
   });
 
-  const todaysEvents = UPCOMING_EVENTS.filter(event => event.date === new Date().toISOString().split('T')[0]);
-  const upcomingEvents = UPCOMING_EVENTS.filter(event => event.date > new Date().toISOString().split('T')[0]).slice(0, 5);
+  const todaysEvents = events.filter(event => event.date === new Date().toISOString().split('T')[0]);
+  const upcomingEvents = events.filter(event => event.date > new Date().toISOString().split('T')[0]).slice(0, 5);
 
   return (
     <div className="min-h-screen bg-background">
@@ -141,7 +166,7 @@ export default function Calendar() {
               </p>
             </div>
             
-            <Dialog>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90" data-testid="button-create-event">
                   <i className="fas fa-plus mr-2"></i>
@@ -188,15 +213,30 @@ export default function Calendar() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="event-location">Location</Label>
-                      <Input
-                        id="event-location"
-                        placeholder="Event location or 'Online'"
-                        value={newEventLocation}
-                        onChange={(e) => setNewEventLocation(e.target.value)}
-                        data-testid="input-event-location"
-                      />
+                      <Label htmlFor="event-community">Community</Label>
+                      <Select value={newEventCommunityId} onValueChange={setNewEventCommunityId}>
+                        <SelectTrigger data-testid="select-event-community">
+                          <SelectValue placeholder="Select community (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No specific community</SelectItem>
+                          {communities.map((community) => (
+                            <SelectItem key={community.id} value={community.id}>{community.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location</Label>
+                    <Input
+                      id="event-location"
+                      placeholder="Event location or 'Online'"
+                      value={newEventLocation}
+                      onChange={(e) => setNewEventLocation(e.target.value)}
+                      data-testid="input-event-location"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,7 +313,7 @@ export default function Calendar() {
                                 <div className={`w-8 h-8 ${eventType?.color} rounded-lg flex items-center justify-center`}>
                                   <i className={`${eventType?.icon} text-white text-sm`}></i>
                                 </div>
-                                <Badge variant="outline">{event.community}</Badge>
+                                <Badge variant="outline">{event.community?.name || 'All Communities'}</Badge>
                               </div>
                               <span className="text-sm text-muted-foreground">{event.time}</span>
                             </div>
@@ -283,7 +323,7 @@ export default function Calendar() {
                             <p className="text-sm text-muted-foreground mb-3">{event.description}</p>
                             <div className="flex items-center justify-between text-sm">
                               <span>📍 {event.location}</span>
-                              <span>👥 {event.attendees.toLocaleString()}</span>
+                              <span>👥 {event.attendeeCount?.toLocaleString() || '0'}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -320,22 +360,22 @@ export default function Calendar() {
                                   <span>📅 {new Date(event.date).toLocaleDateString()}</span>
                                   <span>🕒 {event.time}</span>
                                   <span>📍 {event.location}</span>
-                                  <Badge variant="outline">{event.community}</Badge>
+                                  <Badge variant="outline">{event.community?.name || 'All Communities'}</Badge>
                                 </div>
                               </div>
                             </div>
                             <div className="flex items-center space-x-3">
                               <div className="text-right text-sm">
-                                <div className="font-medium">{event.attendees.toLocaleString()}</div>
+                                <div className="font-medium">{event.attendeeCount?.toLocaleString() || '0'}</div>
                                 <div className="text-muted-foreground">attending</div>
                               </div>
                               <Button
-                                variant={event.isAttending ? "secondary" : "default"}
+                                variant={event.isUserAttending ? "secondary" : "default"}
                                 size="sm"
-                                onClick={() => handleAttendEvent(event.id)}
+                                onClick={() => handleAttendEvent(event.id, event.isUserAttending || false)}
                                 data-testid={`button-attend-${event.id}`}
                               >
-                                {event.isAttending ? "Attending" : "Attend"}
+                                {event.isUserAttending ? "Leave Event" : "Join Event"}
                               </Button>
                             </div>
                           </div>
@@ -373,10 +413,9 @@ export default function Calendar() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Communities</SelectItem>
-                        <SelectItem value="Magic: The Gathering">Magic: The Gathering</SelectItem>
-                        <SelectItem value="Pokemon">Pokemon</SelectItem>
-                        <SelectItem value="Lorcana">Lorcana</SelectItem>
-                        <SelectItem value="Yu-Gi-Oh">Yu-Gi-Oh</SelectItem>
+                        {communities.map((community) => (
+                          <SelectItem key={community.id} value={community.id}>{community.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -447,7 +486,7 @@ export default function Calendar() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {UPCOMING_EVENTS.filter(e => e.isAttending).map((event) => (
+                      {events.filter(e => e.isUserAttending).map((event) => (
                         <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg mb-2">
                           <div>
                             <div className="font-medium">{event.title}</div>
@@ -472,7 +511,7 @@ export default function Calendar() {
                       <div className="text-center py-8">
                         <i className="fas fa-calendar-day text-4xl text-muted-foreground mb-4"></i>
                         <p className="text-muted-foreground mb-4">You haven't created any events yet</p>
-                        <Dialog>
+                        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
                               <i className="fas fa-plus mr-2"></i>

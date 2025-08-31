@@ -3,17 +3,23 @@ import {
   communities,
   userCommunities,
   themePreferences,
+  events,
+  eventAttendees,
   type User,
   type UpsertUser,
   type Community,
   type UserCommunity,
   type ThemePreference,
+  type Event,
+  type EventAttendee,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
+  type InsertEvent,
+  type InsertEventAttendee,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, count, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -35,6 +41,19 @@ export interface IStorage {
   // Theme preference operations
   getUserThemePreferences(userId: string): Promise<ThemePreference[]>;
   upsertThemePreference(data: InsertThemePreference): Promise<ThemePreference>;
+  
+  // Event operations
+  getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]>;
+  getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined>;
+  createEvent(data: InsertEvent): Promise<Event>;
+  updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
+  
+  // Event attendee operations
+  joinEvent(data: InsertEventAttendee): Promise<EventAttendee>;
+  leaveEvent(eventId: string, userId: string): Promise<void>;
+  getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]>;
+  getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -161,6 +180,209 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return preference;
+  }
+
+  // Event operations
+  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]> {
+    const baseQuery = db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id));
+
+    let conditions = [];
+    if (filters?.communityId) {
+      conditions.push(eq(events.communityId, filters.communityId));
+    }
+    if (filters?.type) {
+      conditions.push(eq(events.type, filters.type));
+    }
+    if (filters?.upcoming) {
+      const today = new Date().toISOString().split('T')[0];
+      conditions.push(gte(events.date, today));
+    }
+
+    let query = baseQuery;
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const rawEvents = await query.orderBy(events.date, events.time);
+
+    // Get attendee counts and user attendance separately
+    const eventIds = rawEvents.map(e => e.id);
+    const attendeeCounts = eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+        count: count(eventAttendees.id).as('count'),
+      })
+      .from(eventAttendees)
+      .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
+      .groupBy(eventAttendees.eventId) : [];
+
+    const userAttendance = filters?.userId && eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+      })
+      .from(eventAttendees)
+      .where(and(
+        sql`${eventAttendees.eventId} IN ${eventIds}`,
+        eq(eventAttendees.userId, filters.userId)
+      )) : [];
+
+    return rawEvents.map(event => ({
+      ...event,
+      attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
+      isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
+    }));
+  }
+
+  async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
+    const [event] = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id))
+      .where(eq(events.id, id));
+
+    if (!event) return undefined;
+
+    // Get attendee count
+    const [attendeeCount] = await db
+      .select({ count: count(eventAttendees.id) })
+      .from(eventAttendees)
+      .where(eq(eventAttendees.eventId, id));
+
+    // Check if user is attending
+    const isUserAttending = userId ? await db
+      .select({ id: eventAttendees.id })
+      .from(eventAttendees)
+      .where(and(
+        eq(eventAttendees.eventId, id),
+        eq(eventAttendees.userId, userId)
+      ))
+      .then(result => result.length > 0) : false;
+
+    return {
+      ...event,
+      attendeeCount: attendeeCount?.count || 0,
+      isUserAttending,
+    };
+  }
+
+  async createEvent(data: InsertEvent): Promise<Event> {
+    const [event] = await db
+      .insert(events)
+      .values(data)
+      .returning();
+    return event;
+  }
+
+  async updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event> {
+    const [event] = await db
+      .update(events)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, id))
+      .returning();
+    return event;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db
+      .delete(events)
+      .where(eq(events.id, id));
+  }
+
+  // Event attendee operations
+  async joinEvent(data: InsertEventAttendee): Promise<EventAttendee> {
+    const [attendee] = await db
+      .insert(eventAttendees)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [eventAttendees.eventId, eventAttendees.userId],
+        set: {
+          status: data.status || 'attending',
+          joinedAt: new Date(),
+        },
+      })
+      .returning();
+    return attendee;
+  }
+
+  async leaveEvent(eventId: string, userId: string): Promise<void> {
+    await db
+      .delete(eventAttendees)
+      .where(
+        and(
+          eq(eventAttendees.eventId, eventId),
+          eq(eventAttendees.userId, userId)
+        )
+      );
+  }
+
+  async getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]> {
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        joinedAt: eventAttendees.joinedAt,
+        user: users,
+      })
+      .from(eventAttendees)
+      .innerJoin(users, eq(eventAttendees.userId, users.id))
+      .where(eq(eventAttendees.eventId, eventId));
+  }
+
+  async getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]> {
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        joinedAt: eventAttendees.joinedAt,
+        event: events,
+      })
+      .from(eventAttendees)
+      .innerJoin(events, eq(eventAttendees.eventId, events.id))
+      .where(eq(eventAttendees.userId, userId));
   }
 }
 

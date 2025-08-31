@@ -69,15 +69,44 @@ export const themePreferences = pgTable("theme_preferences", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Events table for calendar events
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  type: varchar("type").notNull(), // tournament, convention, release, stream, community, personal
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  time: varchar("time").notNull(), // HH:MM format
+  location: varchar("location").notNull(),
+  communityId: varchar("community_id").references(() => communities.id),
+  creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  maxAttendees: integer("max_attendees"), // null means unlimited
+  isPublic: boolean("is_public").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event attendees table for tracking who's attending which events
+export const eventAttendees = pgTable("event_attendees", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: varchar("status").default("attending"), // attending, maybe, not_attending
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
   themePreferences: many(themePreferences),
+  createdEvents: many(events),
+  eventAttendees: many(eventAttendees),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
   userCommunities: many(userCommunities),
   themePreferences: many(themePreferences),
+  events: many(events),
 }));
 
 export const userCommunitiesRelations = relations(userCommunities, ({ one }) => ({
@@ -102,6 +131,29 @@ export const themePreferencesRelations = relations(themePreferences, ({ one }) =
   }),
 }));
 
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [events.creatorId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [events.communityId],
+    references: [communities.id],
+  }),
+  attendees: many(eventAttendees),
+}));
+
+export const eventAttendeesRelations = relations(eventAttendees, ({ one }) => ({
+  event: one(events, {
+    fields: [eventAttendees.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventAttendees.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -123,13 +175,28 @@ export const insertThemePreferenceSchema = createInsertSchema(themePreferences).
   updatedAt: true,
 });
 
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({
+  id: true,
+  joinedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Community = typeof communities.$inferSelect;
 export type UserCommunity = typeof userCommunities.$inferSelect;
 export type ThemePreference = typeof themePreferences.$inferSelect;
+export type Event = typeof events.$inferSelect;
+export type EventAttendee = typeof eventAttendees.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
 export type InsertThemePreference = z.infer<typeof insertThemePreferenceSchema>;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertEventAttendee = z.infer<typeof insertEventAttendeeSchema>;
