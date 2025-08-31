@@ -1,19 +1,21 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Community } from '@shared/schema';
-import { getCommunityTheme, applyCommunityTheme } from '@/lib/communityThemes';
+import { getCommunityTheme, applyCommunityTheme, type CommunityTheme } from '@/lib/communityThemes';
 
 interface CommunityContextType {
   selectedCommunity: Community | null;
   setSelectedCommunity: (community: Community | null) => void;
   communities: Community[];
   isLoading: boolean;
+  communityTheme: CommunityTheme;
 }
 
 const CommunityContext = createContext<CommunityContextType | undefined>(undefined);
 
 export function CommunityProvider({ children }: { children: ReactNode }) {
   const [selectedCommunity, setSelectedCommunityState] = useState<Community | null>(null);
+  const [communityTheme, setCommunityTheme] = useState<CommunityTheme>(() => getCommunityTheme(null));
   
   // Fetch all communities
   const { data: communities = [], isLoading } = useQuery<Community[]>({
@@ -48,12 +50,14 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     // Apply community theme
     const theme = getCommunityTheme(community?.id);
     applyCommunityTheme(theme);
+    setCommunityTheme(theme);
   };
 
   // Apply theme when community changes
   useEffect(() => {
     const theme = getCommunityTheme(selectedCommunity?.id);
     applyCommunityTheme(theme);
+    setCommunityTheme(theme);
   }, [selectedCommunity]);
 
   return (
@@ -63,6 +67,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
         setSelectedCommunity,
         communities,
         isLoading,
+        communityTheme,
       }}
     >
       {children}
