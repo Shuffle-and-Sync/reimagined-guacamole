@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
+/* Community-specific fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Uncial+Antiqua&family=Orbitron:wght@400;500;700;900&family=Fredoka+One&family=Dancing+Script:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Pacifico&family=Bangers&family=Exo+2:wght@300;400;500;600;700&family=Creepster&family=Oswald:wght@300;400;500;600;700&family=Bungee&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Philosopher:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,6 +42,21 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(267, 70%, 65% / 0.00);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  
+  /* Community theming variables - defaults */
+  --community-primary: hsl(222, 84%, 65%);
+  --community-secondary: hsl(222, 70%, 45%);
+  --community-accent: hsl(280, 80%, 70%);
+  --community-background: hsl(222, 15%, 8%);
+  --community-surface: hsl(222, 20%, 12%);
+  --community-text: hsl(222, 10%, 95%);
+  --community-text-secondary: hsl(222, 15%, 70%);
+  --community-gradient-primary: linear-gradient(135deg, hsl(222, 84%, 65%) 0%, hsl(280, 80%, 70%) 100%);
+  --community-gradient-hero: linear-gradient(135deg, hsl(222, 15%, 8%) 0%, hsl(222, 25%, 15%) 50%, hsl(222, 15%, 8%) 100%);
+  --community-gradient-card: linear-gradient(145deg, hsl(222, 20%, 12%) 0%, hsl(222, 25%, 16%) 100%);
+  --community-font-heading: "Inter", sans-serif;
+  --community-font-body: "Inter", sans-serif;
+  --community-font-accent: "DM Sans", sans-serif;
 }
 
 .dark {
@@ -109,6 +127,50 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.community-gradient-text {
+  background: var(--community-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.community-heading {
+  font-family: var(--community-font-heading);
+  color: var(--community-primary);
+}
+
+.community-body {
+  font-family: var(--community-font-body);
+  color: var(--community-text);
+}
+
+.community-accent {
+  font-family: var(--community-font-accent);
+  color: var(--community-accent);
+}
+
+.community-bg {
+  background: var(--community-gradient-hero);
+}
+
+.community-card-bg {
+  background: var(--community-gradient-card);
+  border: 1px solid var(--community-primary);
+  border-opacity: 0.2;
+}
+
+.community-button {
+  background: var(--community-primary);
+  color: var(--community-text);
+  border: 2px solid var(--community-primary);
+  transition: all 0.3s ease;
+}
+
+.community-button:hover {
+  background: var(--community-secondary);
+  border-color: var(--community-secondary);
 }
 
 .cartoon-text {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { Logo } from "@/components/ui/logo";
@@ -9,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserProfileDialog } from "@/components/UserProfileDialog";
 import { Link, useLocation } from "wouter";
 
 export function Header() {
@@ -24,9 +26,10 @@ export function Header() {
     window.location.href = "/api/logout";
   };
 
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  
   const handleProfile = () => {
-    // TODO: Navigate to profile page when implemented
-    console.log("Navigate to profile page");
+    setIsProfileDialogOpen(true);
   };
 
   const handleSettings = () => {
@@ -182,6 +185,12 @@ export function Header() {
           )}
         </div>
       </div>
+      
+      {/* Profile Dialog */}
+      <UserProfileDialog 
+        open={isProfileDialogOpen}
+        onOpenChange={setIsProfileDialogOpen}
+      />
     </header>
   );
 }

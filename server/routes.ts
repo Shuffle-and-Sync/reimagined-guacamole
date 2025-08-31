@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema } from "@shared/schema";
+import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { randomBytes } from "crypto";
 
@@ -32,6 +32,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const { firstName, lastName, primaryCommunity } = req.body;
+      
+      const updates: Partial<UpsertUser> = {};
+      if (firstName !== undefined) updates.firstName = firstName;
+      if (lastName !== undefined) updates.lastName = lastName;
+      if (primaryCommunity !== undefined) updates.primaryCommunity = primaryCommunity;
+
+      const updatedUser = await storage.updateUser(userId, updates);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 

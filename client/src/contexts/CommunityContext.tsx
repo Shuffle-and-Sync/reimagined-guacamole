@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Community } from '@shared/schema';
+import { getCommunityTheme, applyCommunityTheme } from '@/lib/communityThemes';
 
 interface CommunityContextType {
   selectedCommunity: Community | null;
@@ -43,7 +44,17 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.removeItem('selectedCommunityId');
     }
+    
+    // Apply community theme
+    const theme = getCommunityTheme(community?.id);
+    applyCommunityTheme(theme);
   };
+
+  // Apply theme when community changes
+  useEffect(() => {
+    const theme = getCommunityTheme(selectedCommunity?.id);
+    applyCommunityTheme(theme);
+  }, [selectedCommunity]);
 
   return (
     <CommunityContext.Provider

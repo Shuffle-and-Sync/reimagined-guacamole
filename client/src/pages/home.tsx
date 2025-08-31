@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Link } from "wouter";
+import { getCommunityTheme } from "@/lib/communityThemes";
 
 export default function Home() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { selectedCommunity } = useCommunity();
+  
+  const communityTheme = getCommunityTheme(selectedCommunity?.id);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -54,7 +59,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground community-bg">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -62,18 +67,24 @@ export default function Home() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-16 w-16 border-2" style={{ borderColor: communityTheme.colors.primary }}>
                 <AvatarImage src={user.profileImageUrl || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                <AvatarFallback 
+                  className="text-xl font-bold"
+                  style={{ 
+                    backgroundColor: communityTheme.colors.primary, 
+                    color: communityTheme.colors.text 
+                  }}
+                >
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-3xl font-bold gradient-text">
+                <h1 className="text-3xl font-bold community-gradient-text community-heading">
                   Welcome back, {user.firstName || user.email?.split('@')[0]}!
                 </h1>
-                <p className="text-muted-foreground">
-                  Ready to create some legendary content?
+                <p className="community-body" style={{ color: communityTheme.colors.textSecondary }}>
+                  {selectedCommunity ? `Ready to dominate ${selectedCommunity.displayName}?` : 'Ready to create some legendary content?'}
                 </p>
               </div>
             </div>
@@ -87,10 +98,22 @@ export default function Home() {
             </Button>
           </div>
 
-          {user.primaryCommunity && (
+          {selectedCommunity && (
             <div className="flex items-center space-x-2">
-              <Badge className="bg-primary text-primary-foreground">
-                Primary Community: {user.primaryCommunity}
+              <Badge 
+                className="flex items-center space-x-2 px-3 py-1"
+                style={{ 
+                  backgroundColor: selectedCommunity.themeColor + '20',
+                  color: selectedCommunity.themeColor,
+                  borderColor: selectedCommunity.themeColor 
+                }}
+              >
+                <i className={`${selectedCommunity.iconClass} text-sm`}></i>
+                <span className="community-accent">Active: {selectedCommunity.displayName}</span>
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: selectedCommunity.themeColor }}
+                ></div>
               </Badge>
             </div>
           )}
@@ -99,25 +122,31 @@ export default function Home() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link href="/matchmaking">
-            <Card className="community-card cursor-pointer hover:border-primary transition-all duration-300 h-full">
+            <Card className="community-card-bg cursor-pointer transition-all duration-300 h-full hover:shadow-lg">
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: communityTheme.gradients.primary }}
+                >
                   <i className="fas fa-bolt text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2">Quick Match</h3>
-                <p className="text-sm text-muted-foreground">Find players instantly</p>
+                <h3 className="font-semibold mb-2 community-heading">Quick Match</h3>
+                <p className="text-sm community-body">Find players instantly</p>
               </CardContent>
             </Card>
           </Link>
 
           <Link href="/tablesync">
-            <Card className="community-card cursor-pointer hover:border-secondary transition-all duration-300 h-full">
+            <Card className="community-card-bg cursor-pointer transition-all duration-300 h-full hover:shadow-lg">
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: communityTheme.gradients.primary }}
+                >
                   <i className="fas fa-gamepad text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2">TableSync</h3>
-                <p className="text-sm text-muted-foreground">Remote gameplay</p>
+                <h3 className="font-semibold mb-2 community-heading">TableSync</h3>
+                <p className="text-sm community-body">Remote gameplay</p>
               </CardContent>
             </Card>
           </Link>
