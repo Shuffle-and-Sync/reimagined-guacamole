@@ -34,7 +34,7 @@ type ExtendedEvent = Event & {
 
 export default function Calendar() {
   const { user } = useAuth();
-  const { selectedCommunity } = useCommunity();
+  const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState("month");
@@ -329,7 +329,7 @@ export default function Calendar() {
             <TabsContent value="overview" className="space-y-8">
               {/* Today's Events */}
               <div>
-                <h2 className="text-2xl font-bold mb-4">Today's Events</h2>
+                <h2 className="text-2xl font-bold mb-4 community-heading">Today's {communityTheme.terminology.events}</h2>
                 {todaysEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {todaysEvents.map((event) => {
@@ -371,7 +371,7 @@ export default function Calendar() {
 
               {/* Upcoming Events */}
               <div>
-                <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
+                <h2 className="text-2xl font-bold mb-4 community-heading">Upcoming {communityTheme.terminology.events}</h2>
                 <div className="space-y-4">
                   {upcomingEvents.map((event) => {
                     const eventType = EVENT_TYPES.find(t => t.id === event.type);
@@ -470,7 +470,7 @@ export default function Calendar() {
                 {/* Calendar Grid */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Event Calendar - {viewMode === "month" ? "Month" : "Week"} View</CardTitle>
+                    <CardTitle>{communityTheme.terminology.events} Calendar - {viewMode === "month" ? "Month" : "Week"} View</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -504,7 +504,7 @@ export default function Calendar() {
             {/* My Events Tab */}
             <TabsContent value="my-events">
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold">My Events</h2>
+                <h2 className="text-2xl font-bold community-heading">My {communityTheme.terminology.events}</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>

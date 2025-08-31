@@ -130,7 +130,7 @@ export default function Home() {
                 >
                   <i className="fas fa-bolt text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2 community-heading">Quick Match</h3>
+                <h3 className="font-semibold mb-2 community-heading">{communityTheme.terminology.quickMatch}</h3>
                 <p className="text-sm community-body">Find players instantly</p>
               </CardContent>
             </Card>
@@ -145,7 +145,7 @@ export default function Home() {
                 >
                   <i className="fas fa-gamepad text-white text-xl"></i>
                 </div>
-                <h3 className="font-semibold mb-2 community-heading">TableSync</h3>
+                <h3 className="font-semibold mb-2 community-heading">{communityTheme.terminology.tableSync}</h3>
                 <p className="text-sm community-body">Remote gameplay</p>
               </CardContent>
             </Card>
