@@ -31,62 +31,105 @@ export default function Landing() {
       <section className="relative py-20 lg:py-32 cartoon-hero-bg overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          {/* Sparkles */}
-          <div className="absolute top-20 left-10 w-2 h-2 bg-yellow-300 rotate-45 animate-sparkle opacity-80"></div>
-          <div className="absolute top-32 right-16 w-3 h-3 bg-pink-300 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute bottom-40 left-1/4 w-2 h-2 bg-cyan-300 rotate-45 animate-sparkle opacity-60" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-24 right-1/3 w-4 h-4 bg-orange-300 rotate-45 animate-sparkle opacity-80" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute top-1/2 left-20 w-2 h-2 bg-purple-300 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/3 right-1/4 w-3 h-3 bg-green-300 rotate-45 animate-sparkle opacity-60" style={{animationDelay: '2.5s'}}></div>
+          {/* Cosmic Sparkles */}
+          <div className="absolute top-20 left-10 w-1 h-1 bg-white rounded-full animate-sparkle opacity-90"></div>
+          <div className="absolute top-32 right-16 w-2 h-2 bg-yellow-300 clip-path-diamond animate-sparkle opacity-80" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-40 left-1/4 w-1 h-1 bg-cyan-300 rounded-full animate-sparkle opacity-70" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-24 right-1/3 w-3 h-3 bg-orange-300 clip-path-diamond animate-sparkle opacity-60" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/2 left-20 w-1 h-1 bg-purple-300 rounded-full animate-sparkle opacity-80" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-pink-300 clip-path-diamond animate-sparkle opacity-70" style={{animationDelay: '2.5s'}}></div>
           
-          {/* Floating Chat Bubbles */}
-          <div className="absolute top-1/4 left-1/3 w-8 h-6 bg-orange-400 rounded-full animate-float opacity-40" style={{animationDelay: '0.3s'}}>
-            <div className="absolute bottom-0 left-2 w-2 h-2 bg-orange-400 rotate-45 transform translate-y-1"></div>
-          </div>
-          <div className="absolute bottom-1/3 right-1/4 w-6 h-5 bg-purple-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.2s'}}>
-            <div className="absolute bottom-0 right-1 w-1.5 h-1.5 bg-purple-400 rotate-45 transform translate-y-0.5"></div>
-          </div>
+          {/* Floating Geometric Shapes */}
+          <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full animate-float opacity-30" style={{animationDelay: '0.3s'}}></div>
+          <div className="absolute bottom-1/3 right-1/4 w-3 h-3 bg-gradient-to-br from-purple-400 to-blue-400 clip-path-diamond animate-float opacity-40" style={{animationDelay: '1.2s'}}></div>
+          <div className="absolute top-3/4 left-1/5 w-2 h-2 bg-gradient-to-br from-cyan-400 to-teal-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.8s'}}></div>
+          <div className="absolute top-1/5 right-1/5 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-400 clip-path-diamond animate-float opacity-20" style={{animationDelay: '2.3s'}}></div>
+          
+          {/* Floating Chat/Social Icons */}
+          <div className="absolute top-1/4 right-1/3 text-orange-400 text-sm animate-float opacity-60" style={{animationDelay: '0.8s'}}>💬</div>
+          <div className="absolute bottom-1/4 left-1/3 text-pink-400 text-sm animate-float opacity-50" style={{animationDelay: '1.5s'}}>❤️</div>
+          <div className="absolute top-2/3 right-1/5 text-cyan-400 text-sm animate-float opacity-40" style={{animationDelay: '2.1s'}}>⭐</div>
         </div>
         
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            {/* Main Characters Section */}
+            {/* Main Emblem Section */}
             <div className="flex justify-center items-center mb-8">
-              <div className="relative">
-                {/* Left Card Character */}
-                <div className="relative w-24 h-32 bg-gradient-to-br from-orange-400 via-pink-400 to-red-400 rounded-xl transform -rotate-12 animate-float-gentle shadow-lg">
-                  <div className="absolute top-2 right-2">
-                    <div className="w-6 h-4 bg-yellow-300 text-xs font-bold text-gray-800 rounded px-1 flex items-center justify-center">LIVE</div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center">
-                      <span className="text-2xl">😊</span>
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-2 -right-4 w-8 h-8 text-white text-2xl animate-bounce">
-                    ✋
-                  </div>
+              <div className="relative w-80 h-80">
+                {/* Hexagonal Golden Border */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-72 h-72 bg-gradient-to-br from-yellow-400 via-orange-400 to-yellow-300 rounded-3xl transform rotate-12 opacity-20 animate-pulse"></div>
                 </div>
                 
-                {/* Collision Sparkle */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                  <div className="w-8 h-8 bg-yellow-300 rounded-full animate-ping"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl animate-spin">✨</div>
+                {/* Orbital Ring */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-64 h-64 border-4 border-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-30 animate-spin" style={{animationDuration: '20s'}}></div>
+                </div>
+                
+                {/* Floating Decorative Elements */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="w-6 h-6 bg-yellow-400 clip-path-diamond animate-float opacity-80"></div>
+                </div>
+                <div className="absolute bottom-8 right-8">
+                  <div className="w-4 h-4 bg-cyan-400 rounded-full animate-float opacity-60" style={{animationDelay: '1s'}}></div>
+                </div>
+                <div className="absolute top-12 left-8">
+                  <div className="w-3 h-3 bg-pink-400 clip-path-diamond animate-float opacity-70" style={{animationDelay: '2s'}}></div>
+                </div>
+                <div className="absolute bottom-12 left-12">
+                  <div className="w-5 h-5 bg-purple-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.5s'}}></div>
+                </div>
+                
+                {/* Left Card Character */}
+                <div className="absolute top-1/2 left-8 transform -translate-y-1/2 -rotate-12 z-10">
+                  <div className="relative w-28 h-36 bg-gradient-to-br from-cyan-400 via-teal-400 to-blue-400 rounded-xl shadow-2xl border-4 border-yellow-400 animate-float-gentle">
+                    <div className="absolute -top-2 left-2">
+                      <div className="w-8 h-5 bg-gradient-to-r from-pink-400 to-orange-400 text-xs font-bold text-white rounded-full px-2 flex items-center justify-center shadow-lg">LIVE</div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-cyan-200 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <span className="text-3xl">🎮</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Right Card Character */}
-                <div className="relative w-24 h-32 bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 rounded-xl transform rotate-12 animate-float-gentle shadow-lg" style={{animationDelay: '0.5s'}}>
-                  <div className="absolute top-2 left-2">
-                    <div className="w-6 h-4 bg-purple-300 text-xs font-bold text-gray-800 rounded px-1 flex items-center justify-center">LIVE</div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-cyan-200 rounded-full flex items-center justify-center">
-                      <span className="text-2xl">😄</span>
+                <div className="absolute top-1/2 right-8 transform -translate-y-1/2 rotate-12 z-10">
+                  <div className="relative w-28 h-36 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 rounded-xl shadow-2xl border-4 border-yellow-400 animate-float-gentle" style={{animationDelay: '0.5s'}}>
+                    <div className="absolute -top-2 right-2">
+                      <div className="w-8 h-5 bg-gradient-to-r from-purple-400 to-pink-400 text-xs font-bold text-white rounded-full px-2 flex items-center justify-center shadow-lg">LIVE</div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-300 to-indigo-200 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <div className="text-3xl font-bold text-purple-800">&</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="absolute -bottom-2 -left-4 w-8 h-8 text-white text-2xl animate-bounce" style={{animationDelay: '0.2s'}}>
-                    🤚
+                </div>
+                
+                {/* Central Energy Burst */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                  <div className="relative">
+                    {/* Energy Rays */}
+                    <div className="absolute inset-0">
+                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-yellow-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-0 animate-pulse"></div>
+                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-orange-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-pink-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90 animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      <div className="w-2 h-16 bg-gradient-to-t from-transparent via-purple-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-135 animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                    </div>
+                    
+                    {/* Central Burst */}
+                    <div className="w-12 h-12 bg-gradient-to-br from-white via-yellow-200 to-orange-300 rounded-full animate-ping shadow-2xl"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full animate-spin shadow-lg">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-lg font-bold">✨</div>
+                    </div>
                   </div>
+                </div>
+                
+                {/* Golden Hexagonal Frame */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-80 h-80 border-4 border-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 rounded-3xl opacity-60 animate-pulse transform rotate-12"></div>
                 </div>
               </div>
             </div>
