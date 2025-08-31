@@ -229,19 +229,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">No communities joined yet</p>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      // TODO: Navigate to communities discovery page when implemented
-                      console.log("Navigate to communities page");
-                    }}
-                    data-testid="button-explore-communities"
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Explore Communities
-                  </Button>
+                  <p className="text-muted-foreground">No communities joined yet</p>
                 </div>
               )}
             </CardContent>

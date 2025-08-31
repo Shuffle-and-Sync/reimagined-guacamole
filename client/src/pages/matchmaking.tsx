@@ -8,8 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 
 const GAME_FORMATS = [
@@ -89,6 +91,7 @@ const SUGGESTED_PLAYERS = [
 
 export default function Matchmaking() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
@@ -574,7 +577,7 @@ export default function Matchmaking() {
                       <CardDescription>Invites you've sent and received</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="text-sm font-medium">Sent (2)</div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -594,6 +597,48 @@ export default function Matchmaking() {
                               <span className="text-sm">PokeMaster2024</span>
                             </div>
                             <Badge variant="outline">Pending</Badge>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="text-sm font-medium">Received (1)</div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>DT</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium">DragonTamer</p>
+                                <p className="text-xs text-muted-foreground">Wants to play Commander</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                onClick={() => {
+                                  // TODO: Accept invite functionality
+                                  toast({ title: "Invite accepted! You can now connect with DragonTamer." });
+                                }}
+                                data-testid="button-accept-invite"
+                              >
+                                <i className="fas fa-check mr-1"></i>
+                                Accept
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  // TODO: Decline invite functionality  
+                                  toast({ title: "Invite declined.", variant: "destructive" });
+                                }}
+                                data-testid="button-decline-invite"
+                              >
+                                <i className="fas fa-times mr-1"></i>
+                                Decline
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
