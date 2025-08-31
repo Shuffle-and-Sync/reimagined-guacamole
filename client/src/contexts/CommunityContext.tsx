@@ -22,29 +22,29 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/communities'],
   });
 
-  // Set initial community (first one or saved preference)
+  // Set initial community (saved preference only, default to All Realms)
   useEffect(() => {
-    if (communities.length > 0 && !selectedCommunity) {
+    if (communities.length > 0 && selectedCommunity === null) {
       // Try to get saved community from localStorage
       const savedCommunityId = localStorage.getItem('selectedCommunityId');
-      if (savedCommunityId) {
+      if (savedCommunityId && savedCommunityId !== 'null') {
         const savedCommunity = communities.find(c => c.id === savedCommunityId);
         if (savedCommunity) {
           setSelectedCommunityState(savedCommunity);
           return;
         }
       }
-      // Default to first community
-      setSelectedCommunityState(communities[0]);
+      // Default to All Realms (null) - don't auto-select a community
+      setSelectedCommunityState(null);
     }
-  }, [communities, selectedCommunity]);
+  }, [communities]);
 
   const setSelectedCommunity = (community: Community | null) => {
     setSelectedCommunityState(community);
     if (community) {
       localStorage.setItem('selectedCommunityId', community.id);
     } else {
-      localStorage.removeItem('selectedCommunityId');
+      localStorage.setItem('selectedCommunityId', 'null'); // Explicitly save "All Realms" choice
     }
     
     // Apply community theme
