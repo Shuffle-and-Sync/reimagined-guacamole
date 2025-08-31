@@ -27,57 +27,51 @@ export function DecksongDashboard({ user }: DecksongDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #6b46c1 0%, #a855f7 25%, #06b6d4 50%, #a855f7 75%, #6b46c1 100%)' }}>
-      {/* Enchanted Castle Header */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
+      {/* Elegant Disney Header */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 to-cyan-900/30"></div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <div className="text-center space-y-8">
-            <div className="inline-flex items-center gap-4 px-10 py-6 rounded-3xl bg-white/95 backdrop-blur-lg border border-purple-300 shadow-2xl">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-cyan-400 rounded-full flex items-center justify-center shadow-lg">
-                <i className="fas fa-crown text-white text-2xl"></i>
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-100/50 to-pink-100/50 dark:from-purple-900/50 dark:to-pink-900/50"></div>
+        <div className="container mx-auto px-4 py-12 relative">
+          <div className="text-center space-y-6">
+            <div className="inline-flex items-center gap-4 px-8 py-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-purple-200 dark:border-purple-800 shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-400 rounded-full flex items-center justify-center">
+                <i className="fas fa-crown text-white text-lg"></i>
               </div>
-              <span className="text-4xl font-bold bg-gradient-to-r from-purple-700 to-cyan-600 bg-clip-text text-transparent" 
+              <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent" 
                     style={{ fontFamily: theme.fonts.heading }}>
                 Decksong
               </span>
-              <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <i className="fas fa-magic text-white text-2xl"></i>
+              <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-sparkles text-white text-lg"></i>
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-8">
-              <Avatar className="h-28 w-28 border-4 border-white shadow-2xl">
+            <div className="flex items-center justify-center gap-6">
+              <Avatar className="h-20 w-20 border-3 border-purple-300 dark:border-purple-700 shadow-lg">
                 <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback 
-                  className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-cyan-400 text-white"
+                  className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white"
                   style={{ fontFamily: theme.fonts.heading }}
                 >
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left">
-                <h1 className="text-6xl font-bold mb-3 text-white" 
-                    style={{ 
-                      fontFamily: theme.fonts.heading, 
-                      textShadow: '3px 3px 6px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3)' 
-                    }}>
+                <h1 className="text-4xl font-bold mb-2 text-purple-800 dark:text-purple-200" 
+                    style={{ fontFamily: theme.fonts.heading }}>
                   Welcome, {user.firstName || 'Storyteller'}
                 </h1>
-                <p className="text-2xl text-white/95 mb-4" 
-                   style={{ 
-                     fontFamily: theme.fonts.accent,
-                     textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
-                   }}>
-                  Let's weave magical tales together
+                <p className="text-lg text-purple-600 dark:text-purple-300 mb-3" 
+                   style={{ fontFamily: theme.fonts.accent }}>
+                  Ready to weave enchanting tales?
                 </p>
-                <div className="flex items-center gap-4">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-500 text-white border-0 text-xl px-6 py-3">
-                    <i className="fas fa-feather mr-2"></i>
-                    Royal Storyteller
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-400 text-white border-0 px-3 py-1">
+                    <i className="fas fa-feather mr-1"></i>
+                    Storyteller
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 text-xl px-6 py-3">
-                    <i className="fas fa-star mr-2"></i>
+                  <Badge className="bg-gradient-to-r from-pink-400 to-purple-500 text-white border-0 px-3 py-1">
+                    <i className="fas fa-star mr-1"></i>
                     Dreamweaver
                   </Badge>
                 </div>
@@ -88,76 +82,64 @@ export function DecksongDashboard({ user }: DecksongDashboardProps) {
       </div>
 
       <div className="container mx-auto px-4 pb-16">
-        {/* Enchanted Action Portals */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 -mt-12">
+        {/* Elegant Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 -mt-6">
           <Link href="/matchmaking">
-            <Card className="group hover:scale-110 hover:-rotate-2 transition-all duration-500 cursor-pointer bg-white/95 backdrop-blur-sm border-2 border-purple-300 shadow-2xl">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-xl group-hover:animate-pulse relative">
-                  <i className="fas fa-sparkles text-white text-3xl"></i>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center animate-bounce">
-                    <i className="fas fa-star text-white text-sm"></i>
-                  </div>
+            <Card className="group hover:scale-105 transition-all duration-300 cursor-pointer bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800 shadow-lg hover:shadow-xl">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center shadow-md">
+                  <i className="fas fa-sparkles text-white text-xl"></i>
                 </div>
-                <h3 className="font-bold mb-3 text-2xl text-purple-700" style={{ fontFamily: theme.fonts.heading }}>
+                <h3 className="font-bold mb-2 text-lg text-purple-700 dark:text-purple-300" style={{ fontFamily: theme.fonts.heading }}>
                   {theme.terminology.quickMatch}
                 </h3>
-                <p className="text-purple-600" style={{ fontFamily: theme.fonts.body }}>
-                  Find magical dueling partners
+                <p className="text-sm text-purple-600 dark:text-purple-400" style={{ fontFamily: theme.fonts.body }}>
+                  Find magical partners
                 </p>
               </CardContent>
             </Card>
           </Link>
 
           <Link href="/tablesync">
-            <Card className="group hover:scale-110 hover:rotate-2 transition-all duration-500 cursor-pointer bg-white/95 backdrop-blur-sm border-2 border-cyan-300 shadow-2xl">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center shadow-xl group-hover:animate-pulse relative">
-                  <i className="fas fa-book-open text-white text-3xl"></i>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center animate-bounce">
-                    <i className="fas fa-magic text-white text-sm"></i>
-                  </div>
+            <Card className="group hover:scale-105 transition-all duration-300 cursor-pointer bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-blue-400 to-cyan-400 flex items-center justify-center shadow-md">
+                  <i className="fas fa-book-open text-white text-xl"></i>
                 </div>
-                <h3 className="font-bold mb-3 text-2xl text-cyan-700" style={{ fontFamily: theme.fonts.heading }}>
+                <h3 className="font-bold mb-2 text-lg text-blue-700 dark:text-blue-300" style={{ fontFamily: theme.fonts.heading }}>
                   {theme.terminology.tableSync}
                 </h3>
-                <p className="text-cyan-600" style={{ fontFamily: theme.fonts.body }}>
-                  Synchronize your stories
+                <p className="text-sm text-blue-600 dark:text-blue-400" style={{ fontFamily: theme.fonts.body }}>
+                  Synchronize stories
                 </p>
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="group hover:scale-110 hover:-rotate-2 transition-all duration-500 cursor-pointer bg-white/95 backdrop-blur-sm border-2 border-pink-300 shadow-2xl">
-            <CardContent className="p-8 text-center">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center shadow-xl group-hover:animate-pulse relative">
-                <i className="fas fa-calendar-heart text-white text-3xl"></i>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center animate-bounce">
-                  <i className="fas fa-crown text-white text-sm"></i>
-                </div>
+          <Card className="group hover:scale-105 transition-all duration-300 cursor-pointer bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-pink-200 dark:border-pink-800 shadow-lg hover:shadow-xl">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-pink-400 to-rose-400 flex items-center justify-center shadow-md">
+                <i className="fas fa-calendar-heart text-white text-xl"></i>
               </div>
-              <h3 className="font-bold mb-3 text-2xl text-pink-700" style={{ fontFamily: theme.fonts.heading }}>
+              <h3 className="font-bold mb-2 text-lg text-pink-700 dark:text-pink-300" style={{ fontFamily: theme.fonts.heading }}>
                 {theme.terminology.events}
               </h3>
-              <p className="text-pink-600" style={{ fontFamily: theme.fonts.body }}>
-                Orchestrate grand tales
+              <p className="text-sm text-pink-600 dark:text-pink-400" style={{ fontFamily: theme.fonts.body }}>
+                Grand gatherings
               </p>
             </CardContent>
           </Card>
 
-          <Card className="group hover:scale-110 hover:rotate-2 transition-all duration-500 cursor-pointer bg-white/95 backdrop-blur-sm border-2 border-indigo-300 shadow-2xl">
-            <CardContent className="p-8 text-center">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center shadow-xl group-hover:animate-pulse relative">
-                <i className="fas fa-castle text-white text-3xl"></i>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center animate-bounce">
-                  <i className="fas fa-users text-white text-sm"></i>
-                </div>
+          <Card className="group hover:scale-105 transition-all duration-300 cursor-pointer bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                <i className="fas fa-castle text-white text-xl"></i>
               </div>
-              <h3 className="font-bold mb-3 text-2xl text-indigo-700" style={{ fontFamily: theme.fonts.heading }}>
+              <h3 className="font-bold mb-2 text-lg text-indigo-700 dark:text-indigo-300" style={{ fontFamily: theme.fonts.heading }}>
                 Royal Court
               </h3>
-              <p className="text-indigo-600" style={{ fontFamily: theme.fonts.body }}>
-                Meet fellow dreamers
+              <p className="text-sm text-indigo-600 dark:text-indigo-400" style={{ fontFamily: theme.fonts.body }}>
+                Connect with dreamers
               </p>
             </CardContent>
           </Card>

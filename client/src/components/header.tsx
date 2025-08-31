@@ -66,12 +66,12 @@ export function Header() {
             <span className="text-xl font-bold gradient-text">Shuffle & Sync</span>
           </Link>
           
-          {/* Community Selector - Hidden on mobile */}
-          <div className="hidden md:flex items-center space-x-2 ml-8">
+          {/* Community Selector - Now visible on all devices */}
+          <div className="flex items-center space-x-2 ml-4 md:ml-8">
             <div className="flex items-center space-x-2">
               <i className="fas fa-users text-muted-foreground text-sm"></i>
               <select 
-                className={`bg-muted border border-border rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary ${
+                className={`bg-muted border border-border rounded-md px-2 md:px-3 py-1 text-xs md:text-sm focus:ring-2 focus:ring-primary min-w-0 ${
                   selectedCommunity ? 'font-medium' : ''
                 }`}
                 data-testid="select-community"
@@ -81,7 +81,7 @@ export function Header() {
                   color: selectedCommunity ? selectedCommunity.themeColor : undefined
                 }}
               >
-                <option value="">All Communities</option>
+                <option value="">All Realms</option>
                 {communities.map((community) => (
                   <option key={community.id} value={community.id}>
                     {community.displayName}
@@ -90,9 +90,9 @@ export function Header() {
               </select>
               {selectedCommunity && (
                 <div 
-                  className="w-3 h-3 rounded-full border border-border"
+                  className="w-3 h-3 rounded-full border border-border animate-pulse"
                   style={{ backgroundColor: selectedCommunity.themeColor }}
-                  title={`${selectedCommunity.displayName} Community`}
+                  title={`Active: ${selectedCommunity.displayName}`}
                 ></div>
               )}
             </div>
