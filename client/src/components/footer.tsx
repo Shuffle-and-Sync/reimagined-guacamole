@@ -46,11 +46,12 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-4">Support</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Getting Started</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">API Docs</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Community Forum</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
+              <li><a href="/help-center" className="text-muted-foreground hover:text-foreground transition-colors">Help Center</a></li>
+              <li><a href="/getting-started" className="text-muted-foreground hover:text-foreground transition-colors">Getting Started</a></li>
+              <li><a href="/faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a></li>
+              <li><a href="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">API Docs</a></li>
+              <li><a href="/community-forum" className="text-muted-foreground hover:text-foreground transition-colors">Community Forum</a></li>
+              <li><a href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
             </ul>
           </div>
         </div>

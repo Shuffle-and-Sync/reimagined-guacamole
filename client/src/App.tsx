@@ -14,6 +14,12 @@ import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
+import HelpCenter from "@/pages/help-center";
+import GettingStarted from "@/pages/getting-started";
+import FAQ from "@/pages/faq";
+import APIDocs from "@/pages/api-docs";
+import CommunityForum from "@/pages/community-forum";
+import Contact from "@/pages/contact";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,6 +30,13 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/tablesync" component={TableSyncLanding} />
+          {/* Footer pages accessible to all users */}
+          <Route path="/help-center" component={HelpCenter} />
+          <Route path="/getting-started" component={GettingStarted} />
+          <Route path="/faq" component={FAQ} />
+          <Route path="/api-docs" component={APIDocs} />
+          <Route path="/community-forum" component={CommunityForum} />
+          <Route path="/contact" component={Contact} />
         </>
       ) : (
         <>
@@ -34,6 +47,13 @@ function Router() {
           <Route path="/matchmaking" component={Matchmaking} />
           <Route path="/profile" component={Profile} />
           <Route path="/profile/:userId" component={Profile} />
+          {/* Footer pages accessible to all users */}
+          <Route path="/help-center" component={HelpCenter} />
+          <Route path="/getting-started" component={GettingStarted} />
+          <Route path="/faq" component={FAQ} />
+          <Route path="/api-docs" component={APIDocs} />
+          <Route path="/community-forum" component={CommunityForum} />
+          <Route path="/contact" component={Contact} />
         </>
       )}
       <Route component={NotFound} />

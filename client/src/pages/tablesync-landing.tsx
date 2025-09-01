@@ -19,89 +19,47 @@ export default function TableSyncLanding() {
       
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Animated Background Gaming Elements */}
-        <div className="absolute inset-0">
-          {/* Floating gaming dice */}
-          <div className="absolute top-20 left-10 text-orange-400 text-3xl animate-float opacity-60" style={{animationDelay: '0s'}}>🎲</div>
-          <div className="absolute top-32 right-16 text-cyan-400 text-2xl animate-float opacity-50" style={{animationDelay: '1s'}}>⚄</div>
-          <div className="absolute bottom-40 left-1/4 text-pink-400 text-xl animate-float opacity-70" style={{animationDelay: '2s'}}>🃏</div>
-          <div className="absolute bottom-24 right-1/3 text-yellow-400 text-2xl animate-float opacity-60" style={{animationDelay: '1.5s'}}>♠️</div>
-          <div className="absolute top-1/2 left-20 text-green-400 text-xl animate-float opacity-80" style={{animationDelay: '0.5s'}}>♦️</div>
-          <div className="absolute top-1/3 right-1/4 text-purple-400 text-3xl animate-float opacity-70" style={{animationDelay: '2.5s'}}>🎯</div>
-          
-          {/* TCG symbols scattered */}
-          <div className="absolute top-1/4 left-1/3 text-orange-300 text-lg animate-sparkle opacity-40" style={{animationDelay: '1s'}}>⭐</div>
-          <div className="absolute bottom-1/3 right-1/4 text-blue-300 text-lg animate-sparkle opacity-50" style={{animationDelay: '2s'}}>💎</div>
-          <div className="absolute top-3/4 left-1/5 text-pink-300 text-lg animate-sparkle opacity-30" style={{animationDelay: '0.5s'}}>✨</div>
-          <div className="absolute top-1/5 right-1/5 text-cyan-300 text-lg animate-sparkle opacity-60" style={{animationDelay: '1.5s'}}>🎮</div>
-          
-          {/* Card deck representations */}
-          <div className="absolute top-1/4 right-1/3 w-8 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg transform rotate-12 animate-float opacity-30" style={{animationDelay: '0.8s'}}></div>
-          <div className="absolute bottom-1/4 left-1/3 w-8 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg shadow-lg transform -rotate-12 animate-float opacity-40" style={{animationDelay: '1.8s'}}></div>
-          <div className="absolute top-2/3 right-1/5 w-6 h-9 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg shadow-lg transform rotate-45 animate-float opacity-35" style={{animationDelay: '2.2s'}}></div>
+        {/* Clean Gaming Pattern Background */}
+        <div className="absolute inset-0 opacity-20">
+          {/* Subtle geometric gaming symbols */}
+          <div className="absolute top-20 left-1/4 w-3 h-3 bg-cyan-400 transform rotate-45" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-40 right-1/4 w-4 h-4 bg-orange-400 rounded-full" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-pink-400 transform rotate-45" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-60 right-1/3 w-3 h-3 bg-yellow-400 rounded-full" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/2 left-16 w-2 h-2 bg-purple-400 transform rotate-45" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute top-1/3 right-20 w-3 h-3 bg-green-400 rounded-full" style={{animationDelay: '2.5s'}}></div>
         </div>
         
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            {/* Main TableSync Logo Section */}
+            {/* Clean Gaming Elements */}
             <div className="flex justify-center items-center mb-12">
               <div className="relative">
-                {/* Gaming table background */}
-                <div className="w-80 h-80 bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 rounded-full relative shadow-2xl">
-                  {/* Table surface */}
-                  <div className="absolute inset-4 bg-gradient-to-br from-green-800 via-green-700 to-green-900 rounded-full shadow-inner">
-                    {/* Table center circle */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-amber-600 via-yellow-600 to-orange-600 rounded-full shadow-lg border-4 border-yellow-400">
-                      {/* Center gem */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full shadow-lg"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Cards around the table */}
-                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2 -rotate-12">
-                    <div className="w-12 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg border-2 border-white animate-float"></div>
-                  </div>
-                  <div className="absolute top-1/4 right-8 transform rotate-45">
-                    <div className="w-12 h-16 bg-gradient-to-br from-red-600 to-pink-600 rounded-lg shadow-lg border-2 border-white animate-float" style={{animationDelay: '0.5s'}}></div>
-                  </div>
-                  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 rotate-12">
-                    <div className="w-12 h-16 bg-gradient-to-br from-green-600 to-teal-600 rounded-lg shadow-lg border-2 border-white animate-float" style={{animationDelay: '1s'}}></div>
-                  </div>
-                  <div className="absolute top-1/4 left-8 transform -rotate-45">
-                    <div className="w-12 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg shadow-lg border-2 border-white animate-float" style={{animationDelay: '1.5s'}}></div>
-                  </div>
-                  <div className="absolute bottom-1/4 right-8 transform rotate-90">
-                    <div className="w-12 h-16 bg-gradient-to-br from-orange-600 to-yellow-600 rounded-lg shadow-lg border-2 border-white animate-float" style={{animationDelay: '0.3s'}}></div>
-                  </div>
-                  <div className="absolute bottom-1/4 left-8 transform -rotate-90">
-                    <div className="w-12 h-16 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg shadow-lg border-2 border-white animate-float" style={{animationDelay: '0.8s'}}></div>
-                  </div>
-                </div>
+                {/* Simple decorative gaming symbols around title */}
+                <div className="absolute -top-8 -left-8 w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 transform rotate-45 opacity-80"></div>
+                <div className="absolute -top-6 -right-6 w-3 h-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-70"></div>
+                <div className="absolute -bottom-4 left-12 w-3 h-3 bg-gradient-to-br from-purple-400 to-pink-500 transform rotate-45 opacity-60"></div>
+                <div className="absolute -bottom-6 -right-8 w-4 h-4 bg-gradient-to-br from-green-400 to-teal-500 rounded-full opacity-75"></div>
+                
+                {/* Subtle card representations */}
+                <div className="absolute top-4 right-16 w-6 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded border-2 border-white/50 shadow-lg transform rotate-12 opacity-60"></div>
+                <div className="absolute bottom-8 left-16 w-6 h-8 bg-gradient-to-br from-pink-500 to-red-600 rounded border-2 border-white/50 shadow-lg transform -rotate-12 opacity-60"></div>
               </div>
             </div>
             
-            {/* TableSync Title with colorful styling */}
-            <div className="mb-8">
-              <h1 className="text-6xl lg:text-8xl font-black mb-4 leading-tight">
-                <span className="inline-block bg-gradient-to-r from-green-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">T</span>
-                <span className="inline-block bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">a</span>
-                <span className="inline-block bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">b</span>
-                <span className="inline-block bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">l</span>
-                <span className="inline-block bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">e</span>
-                <span className="mx-4"></span>
-                <span className="inline-block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">S</span>
-                <span className="inline-block bg-gradient-to-r from-orange-500 via-yellow-500 to-green-400 bg-clip-text text-transparent transform hover:scale-105 transition-transform">y</span>
-                <span className="inline-block bg-gradient-to-r from-yellow-500 via-green-400 to-cyan-400 bg-clip-text text-transparent transform hover:scale-105 transition-transform">n</span>
-                <span className="inline-block bg-gradient-to-r from-green-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform">c</span>
+            {/* TableSync Title with clean colorful styling */}
+            <div className="mb-12">
+              <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight tracking-wider">
+                <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">T</span>
+                <span className="inline-block bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">A</span>
+                <span className="inline-block bg-gradient-to-r from-yellow-400 to-green-400 bg-clip-text text-transparent">B</span>
+                <span className="inline-block bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">L</span>
+                <span className="inline-block bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">E</span>
+                <span className="inline-block bg-gradient-to-r from-purple-400 to-red-400 bg-clip-text text-transparent">S</span>
+                <span className="inline-block bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Y</span>
+                <span className="inline-block bg-gradient-to-r from-pink-400 to-indigo-400 bg-clip-text text-transparent">N</span>
+                <span className="inline-block bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">C</span>
               </h1>
-              
-              {/* Floating gaming elements around title */}
-              <div className="relative">
-                <div className="absolute -top-8 -left-8 w-6 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded border-2 border-white shadow-lg transform rotate-12 animate-float opacity-80"></div>
-                <div className="absolute -top-6 -right-6 w-6 h-8 bg-gradient-to-br from-pink-500 to-red-500 rounded border-2 border-white shadow-lg transform -rotate-12 animate-float opacity-70" style={{animationDelay: '0.5s'}}></div>
-                <div className="absolute -bottom-4 left-1/4 w-6 h-8 bg-gradient-to-br from-green-500 to-teal-500 rounded border-2 border-white shadow-lg transform rotate-45 animate-float opacity-60" style={{animationDelay: '1s'}}></div>
-                <div className="absolute -bottom-6 right-1/4 w-6 h-8 bg-gradient-to-br from-orange-500 to-yellow-500 rounded border-2 border-white shadow-lg transform -rotate-45 animate-float opacity-75" style={{animationDelay: '1.5s'}}></div>
-              </div>
             </div>
             
             <div className="text-2xl lg:text-3xl font-bold mb-6 text-orange-300">
