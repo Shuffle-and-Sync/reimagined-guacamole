@@ -99,7 +99,10 @@ export default function Profile() {
     }
   }, [profileUser, isOwnProfile]);
 
-  // Social links are now read-only, no editing state needed
+  // Social links editing state
+  const [isEditingSocialLinks, setIsEditingSocialLinks] = useState(false);
+  const [editedSocialLinks, setEditedSocialLinks] = useState<UserSocialLink[]>([]);
+  const [newSocialLink, setNewSocialLink] = useState({ platform: '', username: '', url: '', isPublic: true });
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -117,7 +120,68 @@ export default function Profile() {
     },
   });
 
-  // Social links editing removed
+  // Initialize social links when data loads
+  useEffect(() => {
+    if (userSocialLinks && isOwnProfile) {
+      setEditedSocialLinks([...userSocialLinks]);
+    }
+  }, [userSocialLinks, isOwnProfile]);
+
+  // Social links update mutation
+  const updateSocialLinksMutation = useMutation({
+    mutationFn: async (links: UserSocialLink[]) => {
+      return apiRequest('PUT', '/api/user/social-links', { links });
+    },
+    onSuccess: () => {
+      toast({ title: 'Social links updated successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/social-links'] });
+      setIsEditingSocialLinks(false);
+    },
+    onError: () => {
+      toast({ title: 'Failed to update social links', variant: 'destructive' });
+    },
+  });
+
+  const handleSaveSocialLinks = () => {
+    updateSocialLinksMutation.mutate(editedSocialLinks);
+  };
+
+  const handleAddSocialLink = () => {
+    if (!newSocialLink.platform || !newSocialLink.username) {
+      toast({ title: 'Please fill in all fields', variant: 'destructive' });
+      return;
+    }
+
+    const url = generateSocialUrl(newSocialLink.platform, newSocialLink.username);
+    const newLink: UserSocialLink = {
+      id: `temp-${Date.now()}`,
+      userId: currentUser?.id || '',
+      platform: newSocialLink.platform,
+      username: newSocialLink.username,
+      url,
+      isPublic: newSocialLink.isPublic,
+      createdAt: new Date(),
+    };
+
+    setEditedSocialLinks(prev => [...prev, newLink]);
+    setNewSocialLink({ platform: '', username: '', url: '', isPublic: true });
+  };
+
+  const handleRemoveSocialLink = (index: number) => {
+    setEditedSocialLinks(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const generateSocialUrl = (platform: string, username: string): string => {
+    const urls: Record<string, string> = {
+      discord: `https://discord.com/users/${username}`,
+      twitch: `https://twitch.tv/${username}`,
+      twitter: `https://twitter.com/${username.replace('@', '')}`,
+      youtube: `https://youtube.com/@${username}`,
+      steam: `https://steamcommunity.com/id/${username}`,
+      instagram: `https://instagram.com/${username.replace('@', '')}`,
+    };
+    return urls[platform] || username;
+  };
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate(editedProfile);
@@ -453,44 +517,178 @@ export default function Profile() {
             <div className="space-y-6">
               {/* Social Links */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Social Platforms</CardTitle>
-                  <CardDescription>Connect and discover {isOwnProfile ? 'your' : `${profileUser.firstName}'s`} social presence</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Social Platforms</CardTitle>
+                    <CardDescription>Connect and discover {isOwnProfile ? 'your' : `${profileUser.firstName}'s`} social presence</CardDescription>
+                  </div>
+                  {isOwnProfile && !isEditingSocialLinks && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsEditingSocialLinks(true)}
+                      data-testid="button-edit-social-links"
+                    >
+                      <i className="fas fa-edit mr-2"></i>
+                      Edit Links
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userSocialLinks.filter(link => link.isPublic || isOwnProfile).map((link, index) => {
-                      const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
-                      return (
-                        <div key={index} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50">
-                          <div 
-                            className="w-10 h-10 rounded-lg flex items-center justify-center"
-                            style={{ backgroundColor: getPlatformColor(link.platform || '') }}
-                          >
-                            <i className={`${platform?.icon} text-white text-lg`}></i>
+                  {isEditingSocialLinks && isOwnProfile ? (
+                    <div className="space-y-6">
+                      {/* Add New Social Link */}
+                      <div className="p-4 border-2 border-dashed border-muted rounded-lg">
+                        <h4 className="text-sm font-medium mb-3">Add New Social Link</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                          <Select value={newSocialLink.platform} onValueChange={(value) => setNewSocialLink(prev => ({ ...prev, platform: value }))}>
+                            <SelectTrigger data-testid="select-social-platform">
+                              <SelectValue placeholder="Platform" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SOCIAL_PLATFORMS.map((platform) => (
+                                <SelectItem key={platform.id} value={platform.id}>
+                                  <div className="flex items-center gap-2">
+                                    <i className={platform.icon}></i>
+                                    {platform.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder={SOCIAL_PLATFORMS.find(p => p.id === newSocialLink.platform)?.placeholder || "Username"}
+                            value={newSocialLink.username}
+                            onChange={(e) => setNewSocialLink(prev => ({ ...prev, username: e.target.value }))}
+                            data-testid="input-social-username"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="public-link"
+                              checked={newSocialLink.isPublic}
+                              onCheckedChange={(checked) => setNewSocialLink(prev => ({ ...prev, isPublic: checked }))}
+                            />
+                            <Label htmlFor="public-link" className="text-sm">Public</Label>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium">{platform?.name}</p>
-                            <a href={link.url || '#'} target="_blank" rel="noopener noreferrer" 
-                               className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
-                              {link.username}
-                              <i className="fas fa-external-link-alt text-xs"></i>
-                            </a>
+                          <Button onClick={handleAddSocialLink} data-testid="button-add-social-link">
+                            <i className="fas fa-plus mr-2"></i>
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Edit Existing Links */}
+                      <div className="space-y-3">
+                        {editedSocialLinks.map((link, index) => {
+                          const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
+                          return (
+                            <div key={index} className="flex items-center gap-3 p-4 border rounded-lg">
+                              <div 
+                                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                style={{ backgroundColor: getPlatformColor(link.platform || '') }}
+                              >
+                                <i className={`${platform?.icon} text-white text-lg`}></i>
+                              </div>
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">{platform?.name}</Label>
+                                  <p className="font-medium">{link.username}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Switch
+                                    checked={link.isPublic || false}
+                                    onCheckedChange={(checked) => {
+                                      const updated = [...editedSocialLinks];
+                                      updated[index] = { ...updated[index], isPublic: checked };
+                                      setEditedSocialLinks(updated);
+                                    }}
+                                  />
+                                  <Label className="text-sm">{link.isPublic ? 'Public' : 'Private'}</Label>
+                                </div>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => handleRemoveSocialLink(index)}
+                                  data-testid={`button-remove-social-${index}`}
+                                >
+                                  <i className="fas fa-trash mr-2"></i>
+                                  Remove
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Save/Cancel Buttons */}
+                      <div className="flex justify-end gap-3">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setIsEditingSocialLinks(false);
+                            setEditedSocialLinks([...userSocialLinks]);
+                          }}
+                          data-testid="button-cancel-social-edit"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleSaveSocialLinks}
+                          disabled={updateSocialLinksMutation.isPending}
+                          data-testid="button-save-social-links"
+                        >
+                          <i className="fas fa-save mr-2"></i>
+                          {updateSocialLinksMutation.isPending ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userSocialLinks.filter(link => link.isPublic || isOwnProfile).map((link, index) => {
+                        const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
+                        return (
+                          <div key={index} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50">
+                            <div 
+                              className="w-10 h-10 rounded-lg flex items-center justify-center"
+                              style={{ backgroundColor: getPlatformColor(link.platform || '') }}
+                            >
+                              <i className={`${platform?.icon} text-white text-lg`}></i>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{platform?.name}</p>
+                              <a href={link.url || '#'} target="_blank" rel="noopener noreferrer" 
+                                 className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
+                                {link.username}
+                                <i className="fas fa-external-link-alt text-xs"></i>
+                              </a>
+                            </div>
+                            {!link.isPublic && isOwnProfile && (
+                              <Badge variant="secondary" className="text-xs">Private</Badge>
+                            )}
                           </div>
-                          {!link.isPublic && isOwnProfile && (
-                            <Badge variant="secondary" className="text-xs">Private</Badge>
+                        );
+                      })}
+                      {userSocialLinks.filter(link => link.isPublic || isOwnProfile).length === 0 && (
+                        <div className="col-span-full text-center py-8">
+                          <i className="fas fa-link text-4xl text-muted-foreground mb-4"></i>
+                          <h3 className="text-lg font-semibold mb-2">No Social Links</h3>
+                          <p className="text-muted-foreground">{isOwnProfile ? 'You haven\'t added any social links yet' : 'This user hasn\'t shared any social links'}</p>
+                          {isOwnProfile && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-4"
+                              onClick={() => setIsEditingSocialLinks(true)}
+                              data-testid="button-add-first-social-link"
+                            >
+                              <i className="fas fa-plus mr-2"></i>
+                              Add Your First Social Link
+                            </Button>
                           )}
                         </div>
-                      );
-                    })}
-                    {userSocialLinks.filter(link => link.isPublic || isOwnProfile).length === 0 && (
-                      <div className="col-span-full text-center py-8">
-                        <i className="fas fa-link text-4xl text-muted-foreground mb-4"></i>
-                        <h3 className="text-lg font-semibold mb-2">No Social Links</h3>
-                        <p className="text-muted-foreground">{isOwnProfile ? 'You haven\'t added any social links yet' : 'This user hasn\'t shared any social links'}</p>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
