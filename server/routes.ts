@@ -427,6 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventData = insertEventSchema.parse({
         ...req.body,
         creatorId: userId,
+        hostId: userId, // Set host to the same user who created the event
       });
       
       const event = await storage.createEvent(eventData);
