@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { getGameName } from '@/lib/gameNames';
 import type { User, UserSocialLink, UserGamingProfile, Friendship } from '@shared/schema';
 
 interface ExtendedUser extends User {
@@ -378,7 +379,7 @@ export default function Profile() {
                             />
                             <label htmlFor={`game-${community.id}`} className="flex items-center gap-2 cursor-pointer">
                               <i className={community.iconClass} style={{ color: community.themeColor }}></i>
-                              <span className="text-sm font-medium">{community.displayName}</span>
+                              <span className="text-sm font-medium">{getGameName(community.id)}</span>
                             </label>
                           </div>
                         ))}
@@ -401,7 +402,7 @@ export default function Profile() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <i className={community?.iconClass || 'fas fa-gamepad'} style={{ color: community?.themeColor }}></i>
-                          {community?.displayName || 'Unknown Game'}
+                          {community ? getGameName(community.id) : 'Unknown Game'}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
@@ -427,7 +428,7 @@ export default function Profile() {
                           <div>
                             <Label className="text-sm font-medium">Statistics</Label>
                             <div className="text-sm text-muted-foreground">
-                              <span>{typeof profile.statistics === 'object' ? JSON.stringify(profile.statistics) : String(profile.statistics)}</span>
+                              <span>{typeof profile.statistics === 'object' ? JSON.stringify(profile.statistics) : String(profile.statistics || '')}</span>
                             </div>
                           </div>
                         )}
