@@ -488,14 +488,14 @@ export default function Profile() {
                             <p className="text-sm text-muted-foreground">{profile.favoriteDeck}</p>
                           </div>
                         )}
-                        {profile.statistics && (
+                        {profile.statistics ? (
                           <div>
                             <Label className="text-sm font-medium">Statistics</Label>
                             <div className="text-sm text-muted-foreground">
                               <span>{typeof profile.statistics === 'object' ? JSON.stringify(profile.statistics) : String(profile.statistics || '')}</span>
                             </div>
                           </div>
-                        )}
+                        ) : null}
                       </CardContent>
                     </Card>
                   );

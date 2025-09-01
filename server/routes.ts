@@ -48,9 +48,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/health', healthCheck);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -64,14 +65,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         communities: userCommunities,
       });
     } catch (error) {
-      logger.error("Failed to fetch user", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch user", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       const { 
         firstName, lastName, primaryCommunity, username, bio, location, 
@@ -97,15 +99,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUser(userId, updates);
       res.json(updatedUser);
     } catch (error) {
-      logger.error("Failed to update user profile", error, { userId: req.user.claims.sub });
+      logger.error("Failed to update user profile", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
   // Get user profile (for viewing other users' profiles)
-  app.get('/api/user/profile/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/profile/:userId?', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = authenticatedReq.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
       
       const user = await storage.getUser(targetUserId);
@@ -123,48 +126,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         friendCount: 0, // TODO: implement friend count
       });
     } catch (error) {
-      logger.error("Failed to fetch user profile", error, { currentUserId: req.user.claims.sub, targetUserId: req.params.userId });
+      logger.error("Failed to fetch user profile", error, { currentUserId: authenticatedReq.user.claims.sub, targetUserId: req.params.userId });
       res.status(500).json({ message: "Failed to fetch profile" });
     }
   });
 
   // Social links routes
-  app.get('/api/user/social-links/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/social-links/:userId?', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = authenticatedReq.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
       
       const socialLinks = await storage.getUserSocialLinks(targetUserId);
       res.json(socialLinks);
     } catch (error) {
-      logger.error("Failed to fetch social links", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch social links", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch social links" });
     }
   });
 
-  app.put('/api/user/social-links', isAuthenticated, validateRequest(validateSocialLinksSchema), async (req: AuthenticatedRequest, res) => {
+  app.put('/api/user/social-links', isAuthenticated, validateRequest(validateSocialLinksSchema), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const { links } = req.body;
       
       const updatedLinks = await storage.updateUserSocialLinks(userId, links);
       res.json(updatedLinks);
     } catch (error) {
-      logger.error("Failed to update social links", error, { userId: req.user.claims.sub });
+      logger.error("Failed to update social links", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update social links" });
     }
   });
 
   // Gaming profiles routes
-  app.get('/api/user/gaming-profiles/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/user/gaming-profiles/:userId?', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = authenticatedReq.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
       
       const gamingProfiles = await storage.getUserGamingProfiles(targetUserId);
       res.json(gamingProfiles);
     } catch (error) {
-      logger.error("Failed to fetch gaming profiles", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch gaming profiles", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch gaming profiles" });
     }
   });
@@ -305,8 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User community management
   app.post('/api/user/communities/:communityId/join', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const { communityId } = req.params;
       
       // Verify community exists
@@ -323,39 +330,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(userCommunity);
     } catch (error) {
-      logger.error("Failed to join community", error, { userId: req.user.claims.sub, communityId: req.body.communityId });
+      logger.error("Failed to join community", error, { userId: authenticatedReq.user.claims.sub, communityId: req.body.communityId });
       res.status(500).json({ message: "Failed to join community" });
     }
   });
 
   app.post('/api/user/communities/:communityId/set-primary', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const { communityId } = req.params;
       
       await storage.setPrimaryCommunity(userId, communityId);
       res.json({ success: true });
     } catch (error) {
-      logger.error("Failed to set primary community", error, { userId: req.user.claims.sub, communityId: req.body.communityId });
+      logger.error("Failed to set primary community", error, { userId: authenticatedReq.user.claims.sub, communityId: req.body.communityId });
       res.status(500).json({ message: "Failed to set primary community" });
     }
   });
 
   // Theme preferences
   app.get('/api/user/theme-preferences', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const preferences = await storage.getUserThemePreferences(userId);
       res.json(preferences);
     } catch (error) {
-      logger.error("Failed to fetch theme preferences", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch theme preferences", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch theme preferences" });
     }
   });
 
   app.post('/api/user/theme-preferences', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const { communityId, themeMode, customColors } = req.body;
       
       const preference = await storage.upsertThemePreference({
@@ -367,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(preference);
     } catch (error) {
-      logger.error("Failed to update theme preferences", error, { userId: req.user.claims.sub });
+      logger.error("Failed to update theme preferences", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update theme preferences" });
     }
   });
@@ -410,8 +420,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post('/api/events', isAuthenticated, eventCreationRateLimit, validateRequest(validateEventSchema), async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const eventData = insertEventSchema.parse({
         ...req.body,
         creatorId: userId,
@@ -420,15 +431,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await storage.createEvent(eventData);
       res.json(event);
     } catch (error) {
-      logger.error("Failed to create event", error, { userId: req.user.claims.sub });
+      logger.error("Failed to create event", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to create event" });
     }
   });
 
   app.put('/api/events/:id', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       // Check if user owns the event
       const existingEvent = await storage.getEvent(id);
@@ -450,9 +462,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete('/api/events/:id', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       // Check if user owns the event
       const existingEvent = await storage.getEvent(id);
@@ -473,9 +486,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Event attendance routes
   app.post('/api/events/:eventId/join', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { eventId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       const { status = 'attending' } = req.body;
       
       // Verify event exists
@@ -492,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(attendee);
     } catch (error) {
-      logger.error("Failed to join event", error, { userId: req.user.claims.sub, eventId: req.body.eventId });
+      logger.error("Failed to join event", error, { userId: authenticatedReq.user.claims.sub, eventId: req.body.eventId });
       res.status(500).json({ message: "Failed to join event" });
     }
   });
@@ -500,12 +514,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/events/:eventId/leave', isAuthenticated, async (req: any, res) => {
     try {
       const { eventId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       await storage.leaveEvent(eventId, userId);
       res.json({ success: true });
     } catch (error) {
-      logger.error("Failed to leave event", error, { userId: req.user.claims.sub, eventId: req.params.eventId });
+      logger.error("Failed to leave event", error, { userId: authenticatedReq.user.claims.sub, eventId: req.params.eventId });
       res.status(500).json({ message: "Failed to leave event" });
     }
   });
@@ -523,21 +537,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/user/events', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = req.user.claims.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       const attendance = await storage.getUserEventAttendance(userId);
       res.json(attendance);
     } catch (error) {
-      logger.error("Failed to fetch user events", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch user events", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch user events" });
     }
   });
 
   // Notification routes
   app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const { unreadOnly, limit } = req.query;
       const notifications = await storage.getUserNotifications(user.claims.sub, {
         unreadOnly: unreadOnly === 'true',
@@ -545,14 +561,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json(notifications);
     } catch (error) {
-      logger.error("Failed to fetch notifications", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch notifications", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   app.post('/api/notifications', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const notificationData = { ...req.body, userId: user.claims.sub };
       const notification = await storage.createNotification(notificationData);
       res.status(201).json(notification);
@@ -563,6 +580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
       await storage.markNotificationAsRead(id);
@@ -574,20 +592,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       await storage.markAllNotificationsAsRead(user.claims.sub);
       res.json({ success: true });
     } catch (error) {
-      logger.error("Failed to mark all notifications as read", error, { userId: req.user.claims.sub });
+      logger.error("Failed to mark all notifications as read", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   // Message routes
-  app.get('/api/messages', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/messages', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const { eventId, communityId, limit } = req.query;
       const messages = await storage.getUserMessages(user.claims.sub, {
         eventId: eventId as string,
@@ -596,37 +616,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json(messages);
     } catch (error) {
-      logger.error("Failed to fetch messages", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch messages", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   app.post('/api/messages', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const messageData = { ...req.body, senderId: user.claims.sub };
       const message = await storage.sendMessage(messageData);
       res.status(201).json(message);
     } catch (error) {
-      logger.error("Failed to send message", error, { userId: req.user.claims.sub });
+      logger.error("Failed to send message", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
-  app.get('/api/conversations/:userId', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/conversations/:userId', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const { userId } = req.params;
       const conversation = await storage.getConversation(user.claims.sub, userId);
       res.json(conversation);
     } catch (error) {
-      logger.error("Failed to fetch conversation", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch conversation", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   // Game session routes
-  app.get('/api/game-sessions', isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/game-sessions', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { eventId, communityId, hostId, status } = req.query;
       const gameSessions = await storage.getGameSessions({
@@ -637,26 +660,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json(gameSessions);
     } catch (error) {
-      logger.error("Failed to fetch game sessions", error, { userId: req.user.claims.sub });
+      logger.error("Failed to fetch game sessions", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   app.post('/api/game-sessions', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const sessionData = { ...req.body, hostId: user.claims.sub };
       const gameSession = await storage.createGameSession(sessionData);
       res.status(201).json(gameSession);
     } catch (error) {
-      logger.error("Failed to create game session", error, { userId: req.user.claims.sub });
+      logger.error("Failed to create game session", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   app.post('/api/game-sessions/:id/join', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const { id } = req.params;
       await storage.joinGameSession(id, user.claims.sub);
       
@@ -674,14 +699,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
-      logger.error("Failed to join game session", error, { userId: req.user.claims.sub });
+      logger.error("Failed to join game session", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   app.post('/api/game-sessions/:id/leave', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = req.user as any;
+      const user = authenticatedReq.user as any;
       const { id } = req.params;
       await storage.leaveGameSession(id, user.claims.sub);
       
@@ -699,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
-      logger.error("Failed to leave game session", error, { userId: req.user.claims.sub });
+      logger.error("Failed to leave game session", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
