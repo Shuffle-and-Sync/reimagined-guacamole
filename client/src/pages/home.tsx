@@ -18,6 +18,7 @@ import {
   BladeforgeDashboard, 
   DeckmasterDashboard 
 } from "@/components/realm-dashboards";
+import type { User } from "@shared/schema";
 
 export default function Home() {
   const { toast } = useToast();
@@ -69,19 +70,29 @@ export default function Home() {
   // Get realm-specific dashboard content if community is selected
   const renderDashboardContent = () => {
     if (selectedCommunity) {
+      // Convert database User type to dashboard-compatible format
+      const dashboardUser = {
+        id: user.id,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        email: user.email || undefined,
+        profileImageUrl: user.profileImageUrl || undefined,
+        communities: user.communities || [],
+      };
+      
       switch (selectedCommunity.id) {
         case 'scry-gather':
-          return <ScryGatherDashboard user={user} />;
+          return <ScryGatherDashboard user={dashboardUser} />;
         case 'pokestream-hub':
-          return <PokeStreamDashboard user={user} />;
+          return <PokeStreamDashboard user={dashboardUser} />;
         case 'decksong':
-          return <DecksongDashboard user={user} />;
+          return <DecksongDashboard user={dashboardUser} />;
         case 'duelcraft':
-          return <DuelcraftDashboard user={user} />;
+          return <DuelcraftDashboard user={dashboardUser} />;
         case 'bladeforge':
-          return <BladeforgeDashboard user={user} />;
+          return <BladeforgeDashboard user={dashboardUser} />;
         case 'deckmaster':
-          return <DeckmasterDashboard user={user} />;
+          return <DeckmasterDashboard user={dashboardUser} />;
         default:
           return null;
       }
