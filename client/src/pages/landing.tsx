@@ -167,16 +167,16 @@ export default function Landing() {
             {/* Stats Bar */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-accent" data-testid="text-active-users">25,000+</div>
-                <div className="text-muted-foreground">Active Streamers</div>
+                <div className="text-3xl font-bold text-accent" data-testid="text-active-users">Ready</div>
+                <div className="text-muted-foreground">To Connect</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-secondary" data-testid="text-communities">{communities.length}</div>
                 <div className="text-muted-foreground">Gaming Communities</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary" data-testid="text-streams-today">500+</div>
-                <div className="text-muted-foreground">Streams Today</div>
+                <div className="text-3xl font-bold text-primary" data-testid="text-streams-today">Launch</div>
+                <div className="text-muted-foreground">Your Journey</div>
               </div>
             </div>
           </div>
