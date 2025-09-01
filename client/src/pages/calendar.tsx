@@ -473,7 +473,7 @@ export default function Calendar() {
                                 <div className={`w-6 h-6 ${eventType?.color} rounded flex items-center justify-center`}>
                                   <i className={`${eventType?.icon} text-white text-xs`}></i>
                                 </div>
-                                <Badge variant="outline" className="text-xs">{event.community}</Badge>
+                                <Badge variant="outline" className="text-xs">{event.community?.name || 'All Communities'}</Badge>
                               </div>
                               <h4 className="font-semibold text-sm mb-1">{event.title}</h4>
                               <div className="text-xs text-muted-foreground space-y-1">

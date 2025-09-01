@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUser(userId, updates);
       res.json(updatedUser);
     } catch (error) {
-      logger.error("Failed to update user profile", error, { userId: req.user.claims.sub, updates: Object.keys(updates) });
+      logger.error("Failed to update user profile", error, { userId: req.user.claims.sub });
       res.status(500).json({ message: "Failed to update profile" });
     }
   });

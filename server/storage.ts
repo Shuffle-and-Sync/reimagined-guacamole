@@ -307,10 +307,9 @@ export class DatabaseStorage implements IStorage {
       conditions.push(gte(events.date, today));
     }
 
-    let query = baseQuery;
-    if (conditions.length > 0) {
-      query = baseQuery.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
     const rawEvents = await query.orderBy(events.date, events.time);
 

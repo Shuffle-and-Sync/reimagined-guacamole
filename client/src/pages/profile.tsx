@@ -187,8 +187,8 @@ export default function Profile() {
                   </Avatar>
                   
                   {/* Status Indicator */}
-                  <div className={`absolute bottom-2 right-2 w-6 h-6 ${getStatusColor(profileUser.status)} rounded-full border-2 border-white flex items-center justify-center`}>
-                    <i className={`${getStatusIcon(profileUser.status)} text-white text-xs`}></i>
+                  <div className={`absolute bottom-2 right-2 w-6 h-6 ${getStatusColor(profileUser.status || undefined)} rounded-full border-2 border-white flex items-center justify-center`}>
+                    <i className={`${getStatusIcon(profileUser.status || undefined)} text-white text-xs`}></i>
                   </div>
                 </div>
                 
@@ -427,7 +427,7 @@ export default function Profile() {
                           <div>
                             <Label className="text-sm font-medium">Statistics</Label>
                             <div className="text-sm text-muted-foreground">
-                              {JSON.stringify(profile.statistics)}
+                              <span>{typeof profile.statistics === 'object' ? JSON.stringify(profile.statistics) : String(profile.statistics)}</span>
                             </div>
                           </div>
                         )}
