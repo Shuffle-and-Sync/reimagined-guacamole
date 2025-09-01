@@ -75,8 +75,10 @@ export default function GameRoom() {
   const [connectedPlayers, setConnectedPlayers] = useState<any[]>([]);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
-  const [isCameraOn, setIsCameraOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [cameraPermissionGranted, setCameraPermissionGranted] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [videoLayout, setVideoLayout] = useState<'grid' | 'focused'>('grid');
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
@@ -91,54 +93,67 @@ export default function GameRoom() {
   });
 
   // Initialize camera and microphone
-  useEffect(() => {
-    if (!user) return;
-
-    const initializeMedia = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user'
-          },
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true
-          }
-        });
-        
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
+  const initializeMedia = async () => {
+    try {
+      setCameraError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
         }
-      } catch (error) {
-        console.error('Error accessing camera/microphone:', error);
-        toast({
-          title: "Camera access required",
-          description: "Please allow camera and microphone access for video chat.",
-          variant: "destructive"
-        });
+      });
+      
+      setLocalStream(stream);
+      setCameraPermissionGranted(true);
+      setIsCameraOn(true);
+      setIsMicOn(true);
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
       }
-    };
-
-    initializeMedia();
-    
-    // Start WebRTC connections for existing players
-    if (connectedPlayers.length > 0) {
+      
+      // Start WebRTC connections for existing players
       connectedPlayers.forEach(player => {
-        if (player.id !== user.id) {
+        if (player.id !== user?.id) {
           createPeerConnection(player.id);
         }
       });
+      
+      toast({
+        title: "Camera enabled",
+        description: "Video chat is now active for the game room."
+      });
+    } catch (error: any) {
+      console.error('Error accessing camera/microphone:', error);
+      setCameraPermissionGranted(false);
+      
+      let errorMessage = "Camera and microphone access is needed for video chat.";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Please allow camera and microphone access in your browser settings.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "No camera or microphone found. Please connect a camera to use video chat.";
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = "Video chat is not supported in this browser or environment.";
+      }
+      
+      setCameraError(errorMessage);
     }
+  };
 
+  // Clean up media stream on unmount
+  useEffect(() => {
     return () => {
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [user]);
+  }, [localStream]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -566,40 +581,54 @@ export default function GameRoom() {
                     Video Chat ({connectedPlayers.length + 1}/4 players)
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant={isCameraOn ? "default" : "destructive"}
-                      size="sm"
-                      onClick={() => {
-                        if (localStream) {
-                          const videoTrack = localStream.getVideoTracks()[0];
-                          if (videoTrack) {
-                            videoTrack.enabled = !isCameraOn;
-                            setIsCameraOn(!isCameraOn);
+                    {!cameraPermissionGranted ? (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={initializeMedia}
+                        data-testid="button-enable-camera"
+                      >
+                        <i className="fas fa-video mr-2"></i>
+                        Enable Camera
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={isCameraOn ? "default" : "destructive"}
+                        size="sm"
+                        onClick={() => {
+                          if (localStream) {
+                            const videoTrack = localStream.getVideoTracks()[0];
+                            if (videoTrack) {
+                              videoTrack.enabled = !isCameraOn;
+                              setIsCameraOn(!isCameraOn);
+                            }
                           }
-                        }
-                      }}
-                      data-testid="button-toggle-camera"
-                    >
-                      <i className={`fas ${isCameraOn ? 'fa-video' : 'fa-video-slash'} mr-2`}></i>
-                      {isCameraOn ? 'Camera On' : 'Camera Off'}
-                    </Button>
-                    <Button
-                      variant={isMicOn ? "default" : "destructive"}
-                      size="sm"
-                      onClick={() => {
-                        if (localStream) {
-                          const audioTrack = localStream.getAudioTracks()[0];
-                          if (audioTrack) {
-                            audioTrack.enabled = !isMicOn;
-                            setIsMicOn(!isMicOn);
+                        }}
+                        data-testid="button-toggle-camera"
+                      >
+                        <i className={`fas ${isCameraOn ? 'fa-video' : 'fa-video-slash'} mr-2`}></i>
+                        {isCameraOn ? 'Camera On' : 'Camera Off'}
+                      </Button>
+                    )}
+                    {cameraPermissionGranted && (
+                      <Button
+                        variant={isMicOn ? "default" : "destructive"}
+                        size="sm"
+                        onClick={() => {
+                          if (localStream) {
+                            const audioTrack = localStream.getAudioTracks()[0];
+                            if (audioTrack) {
+                              audioTrack.enabled = !isMicOn;
+                              setIsMicOn(!isMicOn);
+                            }
                           }
-                        }
-                      }}
-                      data-testid="button-toggle-mic"
-                    >
-                      <i className={`fas ${isMicOn ? 'fa-microphone' : 'fa-microphone-slash'} mr-2`}></i>
-                      {isMicOn ? 'Mic On' : 'Mic Off'}
-                    </Button>
+                        }}
+                        data-testid="button-toggle-mic"
+                      >
+                        <i className={`fas ${isMicOn ? 'fa-microphone' : 'fa-microphone-slash'} mr-2`}></i>
+                        {isMicOn ? 'Mic On' : 'Mic Off'}
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -616,29 +645,51 @@ export default function GameRoom() {
                 <div className={`grid gap-4 ${videoLayout === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
                   {/* Local Video (Your Camera) */}
                   <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                    <video
-                      ref={localVideoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover"
-                      data-testid="video-local"
-                    />
-                    <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-                      <i className="fas fa-user mr-1"></i>
-                      You ({user?.firstName || 'Player'})
-                    </div>
-                    {!isCameraOn && (
-                      <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <i className="fas fa-video-slash text-4xl mb-2"></i>
-                          <p>Camera Off</p>
+                    {cameraPermissionGranted ? (
+                      <>
+                        <video
+                          ref={localVideoRef}
+                          autoPlay
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                          data-testid="video-local"
+                        />
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                          <i className="fas fa-user mr-1"></i>
+                          You ({user?.firstName || 'Player'})
                         </div>
-                      </div>
-                    )}
-                    {!isMicOn && (
-                      <div className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded">
-                        <i className="fas fa-microphone-slash text-sm"></i>
+                        {!isCameraOn && (
+                          <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                            <div className="text-center text-white">
+                              <i className="fas fa-video-slash text-4xl mb-2"></i>
+                              <p>Camera Off</p>
+                            </div>
+                          </div>
+                        )}
+                        {!isMicOn && (
+                          <div className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded">
+                            <i className="fas fa-microphone-slash text-sm"></i>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-700 flex items-center justify-center">
+                        <div className="text-center text-white p-4">
+                          <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mb-3 mx-auto">
+                            {user?.profileImageUrl ? (
+                              <img src={user.profileImageUrl} alt="Your avatar" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              <span className="text-xl font-bold">{user?.firstName?.charAt(0).toUpperCase() || 'Y'}</span>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium mb-2">You ({user?.firstName || 'Player'})</p>
+                          {cameraError ? (
+                            <p className="text-xs text-gray-300">{cameraError}</p>
+                          ) : (
+                            <p className="text-xs text-gray-300">Click "Enable Camera" to join video chat</p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -702,17 +753,31 @@ export default function GameRoom() {
                 </div>
 
                 {/* Video Tips */}
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-start gap-3">
-                    <i className="fas fa-lightbulb text-blue-500 mt-1"></i>
-                    <div className="text-sm">
-                      <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">Video Chat Tips</p>
-                      <p className="text-blue-600 dark:text-blue-400">
-                        Position your camera to show your playing area clearly. Use good lighting and ensure your cards are visible to other players.
-                      </p>
+                {cameraPermissionGranted ? (
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <i className="fas fa-lightbulb text-blue-500 mt-1"></i>
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">Video Chat Tips</p>
+                        <p className="text-blue-600 dark:text-blue-400">
+                          Position your camera to show your playing area clearly. Use good lighting and ensure your cards are visible to other players.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <div className="flex items-start gap-3">
+                      <i className="fas fa-info-circle text-amber-500 mt-1"></i>
+                      <div className="text-sm">
+                        <p className="font-medium text-amber-700 dark:text-amber-300 mb-1">Video Chat Available</p>
+                        <p className="text-amber-600 dark:text-amber-400">
+                          Enable your camera to see other players and show your playing area. Video chat works like SpellTable for remote card game play.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
