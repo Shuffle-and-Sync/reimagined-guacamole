@@ -8,9 +8,6 @@ interface CommunityCardProps {
 }
 
 export function CommunityCard({ community, onSelect }: CommunityCardProps) {
-  // Mock active users for demo
-  const activeUsers = Math.floor(Math.random() * 1000) + 200;
-  const onlineNow = Math.floor(activeUsers * 0.7);
 
   return (
     <Card 
@@ -28,8 +25,8 @@ export function CommunityCard({ community, onSelect }: CommunityCardProps) {
               LIVE
             </Badge>
           </div>
-          <div className="text-2xl font-bold text-orange-300" data-testid={`text-active-users-${community.id}`}>
-            {activeUsers}
+          <div className="text-lg font-bold text-orange-300" data-testid={`text-status-${community.id}`}>
+            Active
           </div>
         </div>
         
@@ -44,8 +41,8 @@ export function CommunityCard({ community, onSelect }: CommunityCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <i className="fas fa-users text-orange-400 text-sm"></i>
-            <span className="text-sm text-purple-200" data-testid={`text-online-now-${community.id}`}>
-              {onlineNow} online
+            <span className="text-sm text-purple-200" data-testid={`text-community-ready-${community.id}`}>
+              Ready to explore
             </span>
           </div>
           <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
