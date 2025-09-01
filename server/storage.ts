@@ -102,6 +102,7 @@ export interface IStorage {
   
   // Game session operations
   getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]>;
+  getGameSessionById(id: string): Promise<(GameSession & { host: User; coHost?: User; event: Event }) | null>;
   createGameSession(data: InsertGameSession): Promise<GameSession>;
   updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession>;
   joinGameSession(sessionId: string, userId: string): Promise<void>;
@@ -637,6 +638,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Game session operations
+  async getGameSessionById(id: string): Promise<(GameSession & { host: User; coHost?: User; event: Event }) | null> {
+    const results = await db.select({
+      gameSession: gameSessions,
+      host: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+      event: events,
+    })
+    .from(gameSessions)
+    .leftJoin(users, eq(gameSessions.hostId, users.id))
+    .leftJoin(events, eq(gameSessions.eventId, events.id))
+    .where(eq(gameSessions.id, id))
+    .limit(1);
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const r = results[0];
+    return { ...r.gameSession, host: r.host, event: r.event };
+  }
+
   async getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
     let conditions = [];
 

@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import TableSync from "@/pages/tablesync";
 import TableSyncLanding from "@/pages/tablesync-landing";
+import GameRoom from "@/pages/game-room";
 import Social from "@/pages/social";
 import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
@@ -42,6 +43,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/tablesync" component={TableSync} />
+          <Route path="/tablesync/room/:id" component={GameRoom} />
           <Route path="/social" component={Social} />
           <Route path="/calendar" component={Calendar} />
           <Route path="/matchmaking" component={Matchmaking} />

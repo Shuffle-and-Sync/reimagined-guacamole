@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 import { useCommunity } from "@/contexts/CommunityContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 const GAME_FORMATS = [
   { id: "commander", name: "Commander/EDH", players: "2-4 players" },
@@ -21,52 +24,91 @@ const GAME_FORMATS = [
   { id: "casual", name: "Casual", players: "2-6 players" },
 ];
 
-const ACTIVE_ROOMS = [
-  {
-    id: "room1",
-    name: "Chill Commander Games",
-    host: "CardMaster2024",
-    format: "Commander/EDH",
-    players: 3,
-    maxPlayers: 4,
-    powerLevel: "6-7",
-    description: "Looking for fun, interactive games. No infinite combos please!",
-    community: "Magic: The Gathering"
-  },
-  {
-    id: "room2", 
-    name: "Pokemon PTCG Live",
-    host: "PikachuTrainer",
-    format: "Standard",
-    players: 1,
-    maxPlayers: 2,
-    powerLevel: "Competitive",
-    description: "Testing new deck builds for upcoming tournament",
-    community: "Pokemon"
-  },
-  {
-    id: "room3",
-    name: "Lorcana Story Time",
-    host: "DisneyFan99",
-    format: "Casual",
-    players: 2,
-    maxPlayers: 4,
-    powerLevel: "Casual",
-    description: "Friendly Lorcana games with story discussion!",
-    community: "Lorcana"
-  }
-];
+interface GameRoom {
+  id: string;
+  name: string;
+  host: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+  format: string;
+  currentPlayers: number;
+  maxPlayers: number;
+  powerLevel: string;
+  description: string;
+  communityId: string;
+  status: string;
+  gameData?: any;
+  createdAt: string;
+}
 
 export default function TableSync() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { selectedCommunity, communityTheme } = useCommunity();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [roomName, setRoomName] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("4");
   const [powerLevel, setPowerLevel] = useState("");
   const [description, setDescription] = useState("");
-  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  
+  // Fetch active game sessions
+  const { data: gameSessions = [], isLoading: isLoadingSessions } = useQuery({
+    queryKey: ['/api/game-sessions'],
+    select: (data: GameRoom[]) => data.filter(session => session.status === 'waiting'),
+  });
+  
+  // Create game session mutation
+  const createSessionMutation = useMutation({
+    mutationFn: async (sessionData: any) => {
+      const response = await apiRequest('POST', '/api/game-sessions', sessionData);
+      return await response.json();
+    },
+    onSuccess: (newSession) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-sessions'] });
+      toast({
+        title: "Room created successfully!",
+        description: `Your ${selectedFormat} room "${roomName}" is now live. Redirecting to game room...`
+      });
+      // Redirect to the game room
+      setLocation(`/tablesync/room/${newSession.id}`);
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create room",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Join game session mutation
+  const joinSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      const response = await apiRequest('POST', `/api/game-sessions/${sessionId}/join`);
+      return await response.json();
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-sessions'] });
+      toast({
+        title: "Successfully joined!",
+        description: "Connecting to game room..."
+      });
+      // Redirect to the game room
+      setLocation(`/tablesync/room/${sessionId}`);
+    },
+    onError: () => {
+      toast({
+        title: "Failed to join room",
+        description: "Room may be full or no longer available.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleCreateRoom = async () => {
     if (!roomName.trim()) {
@@ -87,73 +129,85 @@ export default function TableSync() {
       return;
     }
     
-    setIsCreatingRoom(true);
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to create a game room.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create a temporary event for this game session
+    const tempEvent = {
+      title: `${roomName} - ${selectedFormat}`,
+      description: description.trim() || `${selectedFormat} game session`,
+      type: "game_session",
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().split(' ')[0].slice(0, 5),
+      location: "TableSync Remote",
+      communityId: selectedCommunity?.id,
+      maxAttendees: parseInt(maxPlayers),
+    };
     
     try {
-      const roomData = {
-        name: roomName,
-        format: selectedFormat,
+      // First create an event
+      const eventResponse = await apiRequest('POST', '/api/events', tempEvent);
+      const event = await eventResponse.json();
+      
+      // Then create the game session
+      const sessionData = {
+        eventId: event.id,
         maxPlayers: parseInt(maxPlayers),
-        powerLevel,
-        description: description.trim(),
-        host: user?.firstName || user?.email || "Anonymous",
-        community: selectedCommunity?.name || "General"
+        communityId: selectedCommunity?.id,
+        gameData: {
+          name: roomName,
+          format: selectedFormat,
+          powerLevel,
+          description: description.trim(),
+        }
       };
       
-      // Simulate room creation API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      createSessionMutation.mutate(sessionData);
       
-      toast({
-        title: "Room created successfully!",
-        description: `Your ${selectedFormat} room "${roomName}" is now live and ready for players to join.`
-      });
-      
-      // Reset form after creation
+      // Reset form after successful submission
       setRoomName("");
       setSelectedFormat("");
       setMaxPlayers("4");
       setPowerLevel("");
       setDescription("");
       
-      // In a real app, this would redirect to the newly created room
     } catch (error) {
       toast({
         title: "Failed to create room",
         description: "Please try again later.",
         variant: "destructive"
       });
-    } finally {
-      setIsCreatingRoom(false);
     }
   };
 
-  const handleJoinRoom = (roomId: string) => {
-    const room = ACTIVE_ROOMS.find(r => r.id === roomId);
-    if (room) {
-      if (room.players >= room.maxPlayers) {
+  const handleJoinRoom = (sessionId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to join a game room.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const session = gameSessions.find(s => s.id === sessionId);
+    if (session) {
+      if (session.currentPlayers >= session.maxPlayers) {
         toast({
           title: "Room is full",
-          description: `"${room.name}" has reached its maximum capacity of ${room.maxPlayers} players.`,
+          description: `This room has reached its maximum capacity of ${session.maxPlayers} players.`,
           variant: "destructive"
         });
         return;
       }
       
-      toast({
-        title: "Joining room...",
-        description: `Connecting you to "${room.name}" hosted by ${room.host}.`
-      });
-      
-      // Simulate room joining process
-      setTimeout(() => {
-        toast({
-          title: "Successfully joined!",
-          description: `You are now in "${room.name}". The game coordinator will start shortly.`
-        });
-      }, 1000);
-      
-      // In a real app, this would connect to the WebSocket room
-      // and redirect to the game interface
+      joinSessionMutation.mutate(sessionId);
     }
   };
 
@@ -218,50 +272,95 @@ export default function TableSync() {
 
             {/* Join Room Tab */}
             <TabsContent value="join" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {ACTIVE_ROOMS.map((room) => (
-                  <Card key={room.id} className="hover:border-purple-400 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 border-2" data-testid={`card-room-${room.id}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{room.name}</CardTitle>
-                          <CardDescription>Hosted by {room.host}</CardDescription>
+              {isLoadingSessions ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mt-4"></div>
                         </div>
-                        <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                          {room.players}/{room.maxPlayers}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Format:</span>
-                          <span className="font-medium">{room.format}</span>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : gameSessions.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="max-w-md mx-auto">
+                    <i className="fas fa-gamepad text-4xl text-muted-foreground mb-4"></i>
+                    <h3 className="text-lg font-semibold mb-2">No Active Rooms</h3>
+                    <p className="text-muted-foreground mb-4">
+                      No game rooms are currently available. Be the first to create one!
+                    </p>
+                    <Button onClick={() => {
+                      const createTab = document.querySelector('[data-testid="tab-create-room"]') as HTMLElement;
+                      createTab?.click();
+                    }}>
+                      Create First Room
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {gameSessions.map((session) => (
+                    <Card key={session.id} className="hover:border-purple-400 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 border-2" data-testid={`card-room-${session.id}`}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{session.gameData?.name || 'Game Room'}</CardTitle>
+                            <CardDescription>Hosted by {session.host?.firstName || session.host?.email}</CardDescription>
+                          </div>
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                            {session.currentPlayers}/{session.maxPlayers}
+                          </Badge>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Power Level:</span>
-                          <span className="font-medium">{room.powerLevel}</span>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Format:</span>
+                            <span className="font-medium">{session.gameData?.format || 'Not specified'}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Power Level:</span>
+                            <span className="font-medium">{session.gameData?.powerLevel || 'Any'}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Status:</span>
+                            <Badge variant="outline" className="text-xs capitalize">{session.status}</Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Community:</span>
-                          <Badge variant="outline" className="text-xs">{room.community}</Badge>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground">{room.description}</p>
-                      
-                      <Button 
-                        className="w-full" 
-                        onClick={() => handleJoinRoom(room.id)}
-                        disabled={room.players >= room.maxPlayers}
-                        data-testid={`button-join-${room.id}`}
-                      >
-                        {room.players >= room.maxPlayers ? "Room Full" : "Join Room"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        
+                        <p className="text-sm text-muted-foreground">{session.gameData?.description || 'No description provided'}</p>
+                        
+                        <Button 
+                          className="w-full" 
+                          onClick={() => handleJoinRoom(session.id)}
+                          disabled={session.currentPlayers >= session.maxPlayers || joinSessionMutation.isPending}
+                          data-testid={`button-join-${session.id}`}
+                        >
+                          {joinSessionMutation.isPending ? (
+                            <>
+                              <i className="fas fa-spinner animate-spin mr-2"></i>
+                              Joining...
+                            </>
+                          ) : session.currentPlayers >= session.maxPlayers ? (
+                            "Room Full"
+                          ) : (
+                            "Join Room"
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* Create Room Tab */}
@@ -356,10 +455,10 @@ export default function TableSync() {
                   <Button 
                     className="w-full" 
                     onClick={handleCreateRoom}
-                    disabled={!roomName || !selectedFormat || isCreatingRoom}
+                    disabled={!roomName || !selectedFormat || createSessionMutation.isPending || !user}
                     data-testid="button-create-room"
                   >
-                    {isCreatingRoom ? (
+                    {createSessionMutation.isPending ? (
                       <>
                         <i className="fas fa-spinner animate-spin mr-2"></i>
                         Creating Room...

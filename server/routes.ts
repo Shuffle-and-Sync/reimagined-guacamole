@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
@@ -704,6 +705,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single game session
+  app.get('/api/game-sessions/:id', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      const gameSession = await storage.getGameSessionById(id);
+      
+      if (!gameSession) {
+        return res.status(404).json({ message: 'Game session not found' });
+      }
+      
+      res.json(gameSession);
+    } catch (error) {
+      logger.error("Failed to fetch game session", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.post('/api/game-sessions/:id/leave', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -731,6 +750,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // WebSocket server for real-time game coordination
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Game room connections: sessionId -> Set of WebSocket connections
+  const gameRooms = new Map();
+  
+  wss.on('connection', (ws, req) => {
+    console.log('WebSocket connection established');
+    
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        switch (message.type) {
+          case 'join_room':
+            const { sessionId, user } = message;
+            
+            // Add user info to WebSocket
+            (ws as any).userId = user.id;
+            (ws as any).userName = user.name;
+            (ws as any).userAvatar = user.avatar;
+            (ws as any).sessionId = sessionId;
+            
+            // Add to game room
+            if (!gameRooms.has(sessionId)) {
+              gameRooms.set(sessionId, new Set());
+            }
+            gameRooms.get(sessionId)?.add(ws as any);
+            
+            // Notify other players
+            const roomPlayers = Array.from(gameRooms.get(sessionId) || []).map(client => ({
+              id: (client as any).userId,
+              name: (client as any).userName,
+              avatar: (client as any).userAvatar
+            }));
+            
+            // Broadcast to all players in room
+            gameRooms.get(sessionId)?.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: 'player_joined',
+                  player: { id: user.id, name: user.name, avatar: user.avatar },
+                  players: roomPlayers
+                }));
+              }
+            });
+            break;
+            
+          case 'message':
+            const room = gameRooms.get(message.sessionId);
+            if (room) {
+              const chatMessage = {
+                type: 'message',
+                message: {
+                  id: Date.now().toString(),
+                  senderId: message.user.id,
+                  sender: {
+                    firstName: message.user.name.split(' ')[0],
+                    email: message.user.name,
+                    profileImageUrl: message.user.avatar
+                  },
+                  content: message.content,
+                  timestamp: new Date().toISOString(),
+                  type: 'chat'
+                }
+              };
+              
+              room.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify(chatMessage));
+                }
+              });
+            }
+            break;
+            
+          case 'game_action':
+            const gameRoom = gameRooms.get(message.sessionId);
+            if (gameRoom) {
+              gameRoom.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'game_action',
+                    action: message.action,
+                    player: message.user.name,
+                    result: message.data.result,
+                    data: message.data
+                  }));
+                }
+              });
+            }
+            break;
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      // Remove from all game rooms
+      const wsWithData = ws as any;
+      if (wsWithData.sessionId) {
+        const room = gameRooms.get(wsWithData.sessionId);
+        if (room) {
+          room.delete(ws as any);
+          
+          // Notify other players
+          const remainingPlayers = Array.from(room).map(client => ({
+            id: (client as any).userId,
+            name: (client as any).userName,
+            avatar: (client as any).userAvatar
+          }));
+          
+          room.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'player_left',
+                player: { id: wsWithData.userId, name: wsWithData.userName },
+                players: remainingPlayers
+              }));
+            }
+          });
+          
+          // Clean up empty rooms
+          if (room.size === 0) {
+            gameRooms.delete(wsWithData.sessionId);
+          }
+        }
+      }
+    });
+  });
+  
   return httpServer;
 }
 
