@@ -7,11 +7,14 @@ import { Logo } from "@/components/ui/logo";
 import { CommunityCard } from "@/components/community-card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { DemoModal } from "@/components/DemoModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Community } from "@shared/schema";
 
 export default function Landing() {
   useDocumentTitle("TCG Streaming Coordination Platform");
+  
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   
   const { data: communities = [], isLoading } = useQuery<Community[]>({
     queryKey: ["/api/communities"],
@@ -22,7 +25,7 @@ export default function Landing() {
   };
 
   const handleWatchDemo = () => {
-    // TODO: Implement demo modal or video
+    setIsDemoOpen(true);
   };
 
   return (
@@ -476,6 +479,12 @@ export default function Landing() {
       </section>
 
       <Footer />
+      
+      <DemoModal 
+        isOpen={isDemoOpen} 
+        onClose={() => setIsDemoOpen(false)} 
+        type="platform" 
+      />
 
       {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 z-50">

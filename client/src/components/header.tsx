@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserProfileDialog } from "@/components/UserProfileDialog";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { SettingsModal } from "@/components/SettingsModal";
 import { Link, useLocation } from "wouter";
 
 export function Header() {
@@ -19,6 +20,7 @@ export function Header() {
   const { selectedCommunity, setSelectedCommunity, communities } = useCommunity();
   const [location] = useLocation();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSignIn = () => {
     window.location.href = "/api/login";
@@ -33,7 +35,7 @@ export function Header() {
   };
 
   const handleSettings = () => {
-    // TODO: Implement settings navigation
+    setIsSettingsOpen(true);
   };
 
   const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -177,6 +179,12 @@ export function Header() {
       <UserProfileDialog 
         open={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
+      />
+      
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </header>
   );

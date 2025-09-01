@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { getCommunityTheme } from "@/lib/communityThemes";
 import { 
   ScryGatherDashboard, 
@@ -25,6 +25,7 @@ export default function Home() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { selectedCommunity } = useCommunity();
+  const [, setLocation] = useLocation();
   
   useDocumentTitle("Dashboard", selectedCommunity?.displayName);
   
@@ -68,6 +69,31 @@ export default function Home() {
     const first = user.firstName?.[0] || "";
     const last = user.lastName?.[0] || "";
     return first + last || user.email?.[0]?.toUpperCase() || "U";
+  };
+
+  const handleStartStreaming = () => {
+    // Navigate to streaming setup or show streaming options
+    if (selectedCommunity) {
+      setLocation('/tablesync');
+    } else {
+      toast({
+        title: "Select a community first",
+        description: "Choose a gaming community to start your streaming session.",
+        variant: "default"
+      });
+    }
+  };
+
+  const handleEventsClick = () => {
+    setLocation('/calendar');
+  };
+
+  const handleAllRealmsClick = () => {
+    setLocation('/');
+    toast({
+      title: "Explore all realms",
+      description: "Switch between communities using the realm selector in the header."
+    });
   };
 
   // Get realm-specific dashboard content if community is selected
@@ -275,7 +301,11 @@ export default function Home() {
             </Card>
           </Link>
 
-          <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer bg-gradient-to-br from-white to-indigo-50 dark:from-slate-900 dark:to-indigo-950 border-2 border-indigo-200 dark:border-indigo-800 relative overflow-hidden" data-testid="card-events">
+          <Card 
+            className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer bg-gradient-to-br from-white to-indigo-50 dark:from-slate-900 dark:to-indigo-950 border-2 border-indigo-200 dark:border-indigo-800 relative overflow-hidden" 
+            onClick={handleEventsClick}
+            data-testid="card-events"
+          >
             <div className="absolute top-2 right-2">
               <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
             </div>
@@ -295,7 +325,11 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer bg-gradient-to-br from-white to-cyan-50 dark:from-slate-900 dark:to-cyan-950 border-2 border-cyan-200 dark:border-cyan-800 relative overflow-hidden" data-testid="card-communities">
+          <Card 
+            className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer bg-gradient-to-br from-white to-cyan-50 dark:from-slate-900 dark:to-cyan-950 border-2 border-cyan-200 dark:border-cyan-800 relative overflow-hidden" 
+            onClick={handleAllRealmsClick}
+            data-testid="card-communities"
+          >
             <div className="absolute top-2 right-2">
               <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></div>
             </div>
@@ -419,6 +453,7 @@ export default function Home() {
                 </div>
 
                 <Button 
+                  onClick={handleStartStreaming}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
                   style={{ fontFamily: communityTheme.fonts.heading }}
                   data-testid="button-start-streaming"

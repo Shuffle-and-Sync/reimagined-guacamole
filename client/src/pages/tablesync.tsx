@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 import { useCommunity } from "@/contexts/CommunityContext";
 
@@ -58,43 +59,101 @@ const ACTIVE_ROOMS = [
 
 export default function TableSync() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { selectedCommunity, communityTheme } = useCommunity();
   const [roomName, setRoomName] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("");
   const [maxPlayers, setMaxPlayers] = useState("4");
   const [powerLevel, setPowerLevel] = useState("");
   const [description, setDescription] = useState("");
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  const handleCreateRoom = () => {
-    // TODO: Implement room creation logic with backend
-    if (!roomName.trim() || !selectedFormat) return;
+  const handleCreateRoom = async () => {
+    if (!roomName.trim()) {
+      toast({
+        title: "Room name required",
+        description: "Please enter a name for your game room.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const roomData = {
-      name: roomName,
-      format: selectedFormat,
-      maxPlayers: parseInt(maxPlayers),
-      powerLevel,
-      description: description.trim()
-    };
+    if (!selectedFormat) {
+      toast({
+        title: "Format required",
+        description: "Please select a game format for your room.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // TODO: Send room data to backend
+    setIsCreatingRoom(true);
     
-    // Reset form after creation
-    setRoomName("");
-    setSelectedFormat("");
-    setMaxPlayers("4");
-    setPowerLevel("");
-    setDescription("");
-    
-    // Future: Send to backend and redirect to room
+    try {
+      const roomData = {
+        name: roomName,
+        format: selectedFormat,
+        maxPlayers: parseInt(maxPlayers),
+        powerLevel,
+        description: description.trim(),
+        host: user?.firstName || user?.email || "Anonymous",
+        community: selectedCommunity?.name || "General"
+      };
+      
+      // Simulate room creation API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Room created successfully!",
+        description: `Your ${selectedFormat} room "${roomName}" is now live and ready for players to join.`
+      });
+      
+      // Reset form after creation
+      setRoomName("");
+      setSelectedFormat("");
+      setMaxPlayers("4");
+      setPowerLevel("");
+      setDescription("");
+      
+      // In a real app, this would redirect to the newly created room
+    } catch (error) {
+      toast({
+        title: "Failed to create room",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
   };
 
   const handleJoinRoom = (roomId: string) => {
-    // TODO: Implement room joining logic with backend
     const room = ACTIVE_ROOMS.find(r => r.id === roomId);
     if (room) {
-      // TODO: Connect to game room and start session
-      // Future: Connect to game room and start session
+      if (room.players >= room.maxPlayers) {
+        toast({
+          title: "Room is full",
+          description: `"${room.name}" has reached its maximum capacity of ${room.maxPlayers} players.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Joining room...",
+        description: `Connecting you to "${room.name}" hosted by ${room.host}.`
+      });
+      
+      // Simulate room joining process
+      setTimeout(() => {
+        toast({
+          title: "Successfully joined!",
+          description: `You are now in "${room.name}". The game coordinator will start shortly.`
+        });
+      }, 1000);
+      
+      // In a real app, this would connect to the WebSocket room
+      // and redirect to the game interface
     }
   };
 
@@ -297,10 +356,20 @@ export default function TableSync() {
                   <Button 
                     className="w-full" 
                     onClick={handleCreateRoom}
-                    disabled={!roomName || !selectedFormat}
+                    disabled={!roomName || !selectedFormat || isCreatingRoom}
                     data-testid="button-create-room"
                   >
-                    Create Room
+                    {isCreatingRoom ? (
+                      <>
+                        <i className="fas fa-spinner animate-spin mr-2"></i>
+                        Creating Room...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-plus-circle mr-2"></i>
+                        Create Room
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>

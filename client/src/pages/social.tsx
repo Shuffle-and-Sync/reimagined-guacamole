@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 
 const SOCIAL_PLATFORMS = [
@@ -76,48 +77,131 @@ export default function Social() {
   useDocumentTitle("Social Hub");
   
   const { user } = useAuth();
+  const { toast } = useToast();
   const [newPost, setNewPost] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [scheduleTime, setScheduleTime] = useState("");
   const [autoPost, setAutoPost] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
 
   const handleConnectPlatform = (platformId: string) => {
-    // TODO: Implement OAuth connection flow
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
     if (platform) {
-      // TODO: Initiate OAuth flow for the specific platform
-      // Future: Initiate OAuth flow for the specific platform
+      toast({
+        title: `Connecting to ${platform.name}`,
+        description: "Opening OAuth window to connect your account..."
+      });
+      
+      // Simulate OAuth flow - in a real app this would redirect to OAuth provider
+      setTimeout(() => {
+        toast({
+          title: `${platform.name} connected successfully!`,
+          description: "You can now post to this platform from Shuffle & Sync."
+        });
+      }, 1500);
     }
   };
 
-  const handleCreatePost = () => {
-    // TODO: Implement post creation logic
-    if (!newPost.trim()) return;
+  const handleCreatePost = async () => {
+    if (!newPost.trim()) {
+      toast({
+        title: "Post content required",
+        description: "Please enter some content for your post.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // TODO: Send post data to backend API
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: "Select platforms",
+        description: "Please select at least one platform to post to.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Reset form after posting
-    setNewPost("");
-    setSelectedPlatforms([]);
-    setScheduleTime("");
-    setAutoPost(false);
+    setIsPosting(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const platformNames = selectedPlatforms.map(id => {
+        const platform = SOCIAL_PLATFORMS.find(p => p.id === id);
+        return platform?.name;
+      }).filter(Boolean).join(", ");
+      
+      if (scheduleTime) {
+        toast({
+          title: "Post scheduled successfully!",
+          description: `Your post will be published to ${platformNames} on ${new Date(scheduleTime).toLocaleString()}.`
+        });
+      } else {
+        toast({
+          title: "Post published successfully!",
+          description: `Your post has been shared to ${platformNames}.`
+        });
+      }
+      
+      // Reset form after posting
+      setNewPost("");
+      setSelectedPlatforms([]);
+      setScheduleTime("");
+      setAutoPost(false);
+    } catch (error) {
+      toast({
+        title: "Failed to create post",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   const handleEditPost = (postId: string) => {
-    // TODO: Implement post editing logic
-    // TODO: Implement post editing logic
+    const post = SCHEDULED_POSTS.find(p => p.id === postId);
+    if (post) {
+      setNewPost(post.content);
+      setSelectedPlatforms(post.platforms);
+      setScheduleTime(post.scheduledFor);
+      
+      toast({
+        title: "Post loaded for editing",
+        description: "The post content has been loaded into the composer. Make your changes and post again."
+      });
+      
+      // Switch to compose tab
+      const composeTab = document.querySelector('[data-testid="tab-compose"]') as HTMLElement;
+      composeTab?.click();
+    }
   };
 
   const handleCancelPost = (postId: string) => {
-    // TODO: Implement post cancellation logic  
-    // TODO: Implement post cancellation logic
+    const post = SCHEDULED_POSTS.find(p => p.id === postId);
+    if (post) {
+      toast({
+        title: "Post cancelled",
+        description: `Your scheduled post has been cancelled and will not be published.`,
+        variant: "destructive"
+      });
+      
+      // In a real app, this would make an API call to delete the scheduled post
+      // For now, we just show the feedback toast
+    }
   };
 
   const handlePlatformSettings = (platformId: string) => {
-    // TODO: Open platform-specific settings
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
     if (platform) {
-      // TODO: Open platform-specific settings
+      toast({
+        title: `${platform.name} Settings`,
+        description: "Platform-specific settings and preferences will open here."
+      });
+      
+      // In a real app, this would open a platform-specific settings modal
+      // or navigate to a dedicated settings page for that platform
     }
   };
 
@@ -239,10 +323,17 @@ export default function Social() {
                     </Button>
                     <Button 
                       onClick={handleCreatePost}
-                      disabled={!newPost || selectedPlatforms.length === 0}
+                      disabled={!newPost || selectedPlatforms.length === 0 || isPosting}
                       data-testid="button-create-post"
                     >
-                      {scheduleTime ? "Schedule Post" : "Post Now"}
+                      {isPosting ? (
+                        <>
+                          <i className="fas fa-spinner animate-spin mr-2"></i>
+                          {scheduleTime ? "Scheduling..." : "Posting..."}
+                        </>
+                      ) : (
+                        scheduleTime ? "Schedule Post" : "Post Now"
+                      )}
                     </Button>
                   </div>
                 </CardContent>

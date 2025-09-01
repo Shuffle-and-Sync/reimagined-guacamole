@@ -3,14 +3,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { DemoModal } from "@/components/DemoModal";
+import { useState } from "react";
 
 export default function TableSyncLanding() {
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  
   const handleGetStarted = () => {
     window.location.href = "/api/login";
   };
 
   const handleWatchDemo = () => {
-    // TODO: Implement demo modal or video
+    setIsDemoOpen(true);
   };
 
   return (
@@ -419,6 +423,12 @@ export default function TableSyncLanding() {
       </section>
 
       <Footer />
+      
+      <DemoModal 
+        isOpen={isDemoOpen} 
+        onClose={() => setIsDemoOpen(false)} 
+        type="tablesync" 
+      />
     </div>
   );
 }

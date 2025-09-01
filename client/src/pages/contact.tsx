@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function Contact() {
   useDocumentTitle("Contact Us");
@@ -18,6 +19,32 @@ export default function Contact() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  const handleHelpCenter = () => {
+    toast({
+      title: "Help Center",
+      description: "Our comprehensive help center is coming soon! For now, please use the contact form."
+    });
+  };
+  
+  const handleGettingStarted = () => {
+    toast({
+      title: "Getting Started Guide",
+      description: "Redirecting you to our quick start guide..."
+    });
+    // Navigate to the main landing page which has the demo and onboarding
+    setLocation('/');
+  };
+  
+  const handleCommunityForum = () => {
+    toast({
+      title: "Community Forum",
+      description: "Join our Discord community for real-time discussions and support!"
+    });
+    // In a real app, this would redirect to Discord invite or forum page
+    window.open('https://discord.gg/shuffleandsync', '_blank');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,17 +254,32 @@ export default function Contact() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-help-center">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start" 
+                      onClick={handleHelpCenter}
+                      data-testid="button-help-center"
+                    >
                       <i className="fas fa-question-circle mr-2"></i>
-                      Help Center (Coming Soon)
+                      Help Center
                     </Button>
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-getting-started">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start" 
+                      onClick={handleGettingStarted}
+                      data-testid="button-getting-started"
+                    >
                       <i className="fas fa-rocket mr-2"></i>
-                      Getting Started (Coming Soon)
+                      Getting Started Guide
                     </Button>
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-community-forum">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start" 
+                      onClick={handleCommunityForum}
+                      data-testid="button-community-forum"
+                    >
                       <i className="fas fa-comments mr-2"></i>
-                      Community Forum (Coming Soon)
+                      Join Discord Community
                     </Button>
                   </div>
                 </CardContent>
