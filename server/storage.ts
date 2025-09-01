@@ -494,16 +494,39 @@ export class DatabaseStorage implements IStorage {
       .insert(events)
       .values(data)
       .returning();
+      
+    // Auto-create TableSync session for game pod events
+    if (event.type === 'game-pod') {
+      try {
+        const gameSessionData = {
+          eventId: event.id,
+          hostId: event.creatorId,
+          status: 'waiting',
+          currentPlayers: 0,
+          maxPlayers: event.playerSlots || 4,
+          gameData: {
+            name: event.title,
+            format: event.gameFormat || 'commander',
+            powerLevel: event.powerLevel || 'casual',
+            description: event.description || '',
+          },
+          communityId: event.communityId,
+        };
+        
+        await this.createGameSession(gameSessionData);
+      } catch (error) {
+        console.error('Failed to create automatic TableSync session:', error);
+        // Don't fail the event creation if TableSync session fails
+      }
+    }
+    
     return event;
   }
 
   async updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event> {
     const [event] = await db
       .update(events)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(events.id, id))
       .returning();
     return event;
@@ -583,7 +606,35 @@ export class DatabaseStorage implements IStorage {
       .insert(events)
       .values(data)
       .returning();
-    return createdEvents as Event[];
+      
+    // Auto-create TableSync sessions for game pod events
+    for (const event of createdEvents) {
+      if (event.type === 'game-pod') {
+        try {
+          const gameSessionData = {
+            eventId: event.id,
+            hostId: event.creatorId,
+            status: 'waiting',
+            currentPlayers: 0,
+            maxPlayers: event.playerSlots || 4,
+            gameData: {
+              name: event.title,
+              format: event.gameFormat || 'commander',
+              powerLevel: event.powerLevel || 'casual',
+              description: event.description || '',
+            },
+            communityId: event.communityId,
+          };
+          
+          await this.createGameSession(gameSessionData);
+        } catch (error) {
+          console.error(`Failed to create automatic TableSync session for event ${event.id}:`, error);
+          // Don't fail the bulk creation if individual TableSync sessions fail
+        }
+      }
+    }
+    
+    return createdEvents;
   }
 
   async createRecurringEvents(data: InsertEvent, endDate: string): Promise<Event[]> {
@@ -601,11 +652,11 @@ export class DatabaseStorage implements IStorage {
       eventList.push({
         ...data,
         date: currentDate.toISOString().split('T')[0],
-        parentEventId: undefined, // Will be set after first event is created
+        parentEventId: null, // Will be set after first event is created
       });
       
       // Calculate next occurrence based on pattern
-      switch (data.recurrencePattern) {
+      switch (data.recurrencePattern as string) {
         case 'daily':
           currentDate.setDate(currentDate.getDate() + interval);
           break;
