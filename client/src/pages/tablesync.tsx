@@ -143,7 +143,7 @@ export default function TableSync() {
     const tempEvent = {
       title: `${roomName} - ${selectedFormat}`,
       description: description.trim() || `${selectedFormat} game session`,
-      type: "game_session",
+      type: "stream",
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].slice(0, 5),
       location: "TableSync Remote",
