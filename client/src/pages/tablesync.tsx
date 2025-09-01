@@ -55,6 +55,7 @@ export default function TableSync() {
   const [maxPlayers, setMaxPlayers] = useState("4");
   const [powerLevel, setPowerLevel] = useState("");
   const [description, setDescription] = useState("");
+  const [activeTab, setActiveTab] = useState("join");
   
   // Fetch active game sessions
   const { data: gameSessions = [], isLoading: isLoadingSessions } = useQuery({
@@ -258,7 +259,7 @@ export default function TableSync() {
             </div>
           </div>
 
-          <Tabs defaultValue="join" className="space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-gradient-to-r from-purple-100 to-orange-100 dark:from-purple-900 dark:to-orange-900">
               <TabsTrigger value="join" data-testid="tab-join-room" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
                 <i className="fas fa-users mr-2"></i>
@@ -298,10 +299,7 @@ export default function TableSync() {
                     <p className="text-muted-foreground mb-4">
                       No game rooms are currently available. Be the first to create one!
                     </p>
-                    <Button onClick={() => {
-                      const createTab = document.querySelector('[data-testid="tab-create-room"]') as HTMLElement;
-                      createTab?.click();
-                    }}>
+                    <Button onClick={() => setActiveTab("create")} data-testid="button-create-first-room">
                       Create First Room
                     </Button>
                   </div>

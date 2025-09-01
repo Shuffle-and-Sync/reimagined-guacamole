@@ -83,6 +83,7 @@ export default function Social() {
   const [scheduleTime, setScheduleTime] = useState("");
   const [autoPost, setAutoPost] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [activeTab, setActiveTab] = useState("compose");
 
   const handleConnectPlatform = (platformId: string) => {
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
@@ -173,8 +174,7 @@ export default function Social() {
       });
       
       // Switch to compose tab
-      const composeTab = document.querySelector('[data-testid="tab-compose"]') as HTMLElement;
-      composeTab?.click();
+      setActiveTab('compose');
     }
   };
 
@@ -232,7 +232,7 @@ export default function Social() {
             </p>
           </div>
 
-          <Tabs defaultValue="compose" className="space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
               <TabsTrigger value="compose" data-testid="tab-compose">Compose</TabsTrigger>
               <TabsTrigger value="scheduled" data-testid="tab-scheduled">Scheduled</TabsTrigger>

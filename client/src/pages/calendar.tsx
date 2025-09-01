@@ -305,7 +305,7 @@ export default function Calendar() {
                   </div>
 
                   <div className="flex justify-end space-x-3">
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} data-testid="button-cancel-event">Cancel</Button>
                     <Button 
                       onClick={handleCreateEvent}
                       disabled={!newEventTitle || !newEventType || !newEventDate}

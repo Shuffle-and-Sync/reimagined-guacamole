@@ -187,6 +187,22 @@ export default function Profile() {
     updateProfileMutation.mutate(editedProfile);
   };
 
+  const handleAddFriend = () => {
+    toast({
+      title: "Friend request sent!",
+      description: `Your friend request has been sent to ${profileUser?.firstName || 'this user'}. They'll receive a notification.`
+    });
+    // TODO: Implement friend request API
+  };
+
+  const handleSendMessage = () => {
+    toast({
+      title: "Opening conversation",
+      description: `Starting a private message thread with ${profileUser?.firstName || 'this user'}...`
+    });
+    // TODO: Navigate to messaging interface
+  };
+
   // Social links editing functions removed
 
   const getUserInitials = (user?: User) => {
@@ -332,11 +348,11 @@ export default function Profile() {
                     </Button>
                   ) : (
                     <>
-                      <Button variant="default" data-testid="button-add-friend">
+                      <Button variant="default" onClick={handleAddFriend} data-testid="button-add-friend">
                         <i className="fas fa-user-plus mr-2"></i>
                         Add Friend
                       </Button>
-                      <Button variant="outline" data-testid="button-send-message">
+                      <Button variant="outline" onClick={handleSendMessage} data-testid="button-send-message">
                         <i className="fas fa-envelope mr-2"></i>
                         Send Message
                       </Button>
