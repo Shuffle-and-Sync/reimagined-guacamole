@@ -34,11 +34,11 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-semibold text-foreground mb-4">Platform</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Matchmaking</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">TableSync</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Social Hub</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Analytics</a></li>
+              <li><a href="/" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</a></li>
+              <li><a href="/matchmaking" className="text-muted-foreground hover:text-foreground transition-colors">Matchmaking</a></li>
+              <li><a href="/tablesync" className="text-muted-foreground hover:text-foreground transition-colors">TableSync</a></li>
+              <li><a href="/social" className="text-muted-foreground hover:text-foreground transition-colors">Social Hub</a></li>
+              <li><a href="/calendar" className="text-muted-foreground hover:text-foreground transition-colors">Analytics</a></li>
             </ul>
           </div>
 

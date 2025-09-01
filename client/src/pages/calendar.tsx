@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,8 @@ type ExtendedEvent = Event & {
 };
 
 export default function Calendar() {
+  useDocumentTitle("Calendar");
+  
   const { user } = useAuth();
   const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
+import { sendContactEmail } from "./email";
 import { randomBytes } from "crypto";
 import { logger } from "./logger";
 import { AuthenticatedRequest, NotFoundError, ValidationError } from "./types";
@@ -250,6 +251,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error("Failed to reset password", error, { token: req.body.token });
       res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
+  // Contact form route
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      
+      if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const emailSent = await sendContactEmail({ name, email, subject, message });
+      
+      if (emailSent) {
+        logger.info("Contact email sent successfully", { senderEmail: email, subject });
+        res.json({ message: "Message sent successfully" });
+      } else {
+        logger.warn("Contact email failed to send", { senderEmail: email, subject });
+        res.status(500).json({ message: "Failed to send message" });
+      }
+    } catch (error) {
+      logger.error("Contact form error", error, { email: req.body?.email });
+      res.status(500).json({ message: "Failed to send message" });
     }
   });
 

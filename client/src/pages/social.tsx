@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -72,6 +73,8 @@ const SCHEDULED_POSTS = [
 ];
 
 export default function Social() {
+  useDocumentTitle("Social Hub");
+  
   const { user } = useAuth();
   const [newPost, setNewPost] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);

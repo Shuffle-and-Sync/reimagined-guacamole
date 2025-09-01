@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -91,6 +92,8 @@ const SUGGESTED_PLAYERS = [
 ];
 
 export default function Matchmaking() {
+  useDocumentTitle("Matchmaking");
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const { selectedCommunity, communityTheme } = useCommunity();

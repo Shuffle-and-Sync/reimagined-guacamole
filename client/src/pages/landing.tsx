@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,9 +7,12 @@ import { Logo } from "@/components/ui/logo";
 import { CommunityCard } from "@/components/community-card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import type { Community } from "@shared/schema";
 
 export default function Landing() {
+  useDocumentTitle("TCG Streaming Coordination Platform");
+  
   const { data: communities = [], isLoading } = useQuery<Community[]>({
     queryKey: ["/api/communities"],
   });
