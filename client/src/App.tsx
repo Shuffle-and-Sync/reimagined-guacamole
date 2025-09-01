@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import TableSync from "@/pages/tablesync";
+import TableSyncLanding from "@/pages/tablesync-landing";
 import Social from "@/pages/social";
 import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
@@ -20,7 +21,10 @@ function Router() {
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/tablesync" component={TableSyncLanding} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />
