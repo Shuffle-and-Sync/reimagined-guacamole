@@ -233,7 +233,7 @@ export default function Home() {
                   Find your streaming squad instantly!
                 </p>
                 <Badge className="mt-3 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                  42 creators online
+                  Ready to connect
                 </Badge>
               </CardContent>
             </Card>
@@ -255,7 +255,7 @@ export default function Home() {
                   Epic collaborative sessions await!
                 </p>
                 <Badge className="mt-3 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                  15 sessions live
+                  Start collaborating
                 </Badge>
               </CardContent>
             </Card>
@@ -276,7 +276,7 @@ export default function Home() {
                 Join amazing community events!
               </p>
               <Badge className="mt-3 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
-                3 today
+                Create & discover
               </Badge>
             </CardContent>
           </Card>
@@ -346,7 +346,7 @@ export default function Home() {
                       Community Connections Available
                     </p>
                     <p className="text-sm text-purple-600 dark:text-purple-400" style={{ fontFamily: communityTheme.fonts.body }}>
-                      42 streamers across all realms ready to collaborate right now
+                      Connect with streamers across all realms and start collaborating
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs text-purple-600 border-purple-600">
