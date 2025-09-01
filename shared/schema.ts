@@ -99,7 +99,12 @@ export const events = pgTable("events", {
   status: varchar("status").default("active"), // active, cancelled, completed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_events_creator_id").on(table.creatorId),
+  index("idx_events_community_id").on(table.communityId),
+  index("idx_events_date").on(table.date),
+  index("idx_events_status").on(table.status),
+]);
 
 // Event attendees table for tracking who's attending which events
 export const eventAttendees = pgTable("event_attendees", {
@@ -109,7 +114,11 @@ export const eventAttendees = pgTable("event_attendees", {
   status: varchar("status").default("attending"), // attending, maybe, not_attending
   role: varchar("role").default("participant"), // participant, host, co_host
   joinedAt: timestamp("joined_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_event_attendees_event_id").on(table.eventId),
+  index("idx_event_attendees_user_id").on(table.userId),
+  index("idx_event_attendees_composite").on(table.eventId, table.userId),
+]);
 
 // Notifications table for real-time user notifications
 export const notifications = pgTable("notifications", {
@@ -124,7 +133,11 @@ export const notifications = pgTable("notifications", {
   communityId: varchar("community_id").references(() => communities.id),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"), // Optional expiration for temporary notifications
-});
+}, (table) => [
+  index("idx_notifications_user_id").on(table.userId),
+  index("idx_notifications_is_read").on(table.isRead),
+  index("idx_notifications_created_at").on(table.createdAt),
+]);
 
 // Messages table for user-to-user communication
 export const messages = pgTable("messages", {
@@ -138,7 +151,12 @@ export const messages = pgTable("messages", {
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   editedAt: timestamp("edited_at"),
-});
+}, (table) => [
+  index("idx_messages_sender_id").on(table.senderId),
+  index("idx_messages_recipient_id").on(table.recipientId),
+  index("idx_messages_created_at").on(table.createdAt),
+  index("idx_messages_conversation").on(table.senderId, table.recipientId),
+]);
 
 // Game sessions table for real-time game coordination
 export const gameSessions = pgTable("game_sessions", {
@@ -154,7 +172,12 @@ export const gameSessions = pgTable("game_sessions", {
   createdAt: timestamp("created_at").defaultNow(),
   startedAt: timestamp("started_at"),
   endedAt: timestamp("ended_at"),
-});
+}, (table) => [
+  index("idx_game_sessions_host_id").on(table.hostId),
+  index("idx_game_sessions_event_id").on(table.eventId),
+  index("idx_game_sessions_community_id").on(table.communityId),
+  index("idx_game_sessions_status").on(table.status),
+]);
 
 // Password reset tokens for secure password recovery
 export const passwordResetTokens = pgTable("password_reset_tokens", {
@@ -200,7 +223,11 @@ export const friendships = pgTable("friendships", {
   status: varchar("status").default("pending"), // pending, accepted, declined, blocked
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_friendships_requester_id").on(table.requesterId),
+  index("idx_friendships_addressee_id").on(table.addresseeId),
+  index("idx_friendships_status").on(table.status),
+]);
 
 // User activity feed
 export const userActivities = pgTable("user_activities", {

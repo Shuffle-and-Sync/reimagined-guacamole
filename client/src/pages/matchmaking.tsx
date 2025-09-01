@@ -534,7 +534,6 @@ export default function Matchmaking() {
                       variant="outline"
                       onClick={() => {
                         // TODO: Reset all preferences to default values
-                        console.log("Resetting preferences to defaults");
                       }}
                       data-testid="button-reset-preferences"
                     >
@@ -543,7 +542,6 @@ export default function Matchmaking() {
                     <Button
                       onClick={() => {
                         // TODO: Save preferences to backend
-                        console.log("Saving matchmaking preferences");
                       }}
                       data-testid="button-save-preferences"
                     >

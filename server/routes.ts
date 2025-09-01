@@ -6,6 +6,8 @@ import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, ty
 import { sendPasswordResetEmail } from "./email-service";
 import { randomBytes } from "crypto";
 import { logger } from "./logger";
+import { AuthenticatedRequest, NotFoundError, ValidationError } from "./types";
+import { healthCheck } from "./health";
 import { 
   validateRequest, 
   validateParams, 
@@ -41,8 +43,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default communities
   await initializeDefaultCommunities();
 
+  // Health check endpoint
+  app.get('/api/health', healthCheck);
+
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -63,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req: any, res) => {
+  app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user.claims.sub;
       
@@ -97,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user profile (for viewing other users' profiles)
-  app.get('/api/user/profile/:userId?', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/profile/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const currentUserId = req.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
@@ -123,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Social links routes
-  app.get('/api/user/social-links/:userId?', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/social-links/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const currentUserId = req.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
@@ -136,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/user/social-links', isAuthenticated, validateRequest(validateSocialLinksSchema), async (req: any, res) => {
+  app.put('/api/user/social-links', isAuthenticated, validateRequest(validateSocialLinksSchema), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user.claims.sub;
       const { links } = req.body;
@@ -150,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gaming profiles routes
-  app.get('/api/user/gaming-profiles/:userId?', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/gaming-profiles/:userId?', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const currentUserId = req.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
@@ -555,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Message routes
-  app.get('/api/messages', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messages', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user as any;
       const { eventId, communityId, limit } = req.query;
@@ -583,7 +588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/conversations/:userId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/conversations/:userId', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user as any;
       const { userId } = req.params;
@@ -596,7 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Game session routes
-  app.get('/api/game-sessions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/game-sessions', isAuthenticated, async (req: AuthenticatedRequest, res) => {
     try {
       const { eventId, communityId, hostId, status } = req.query;
       const gameSessions = await storage.getGameSessions({

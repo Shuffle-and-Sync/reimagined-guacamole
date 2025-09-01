@@ -336,6 +336,14 @@ export class DatabaseStorage implements IStorage {
 
     return rawEvents.map(event => ({
       ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone', allowDirectMessages: 'everyone',
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
       attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
     }));
@@ -388,6 +396,14 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone', allowDirectMessages: 'everyone',
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
       attendeeCount: attendeeCount?.count || 0,
       isUserAttending,
     };
@@ -524,13 +540,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(notifications.isRead, false));
     }
     
-    let query = db.select().from(notifications).where(and(...conditions));
+    const baseQuery = db.select().from(notifications).where(and(...conditions));
     
-    if (options?.limit) {
-      query = query.limit(options.limit) as any;
-    }
+    const limitedQuery = options?.limit ? baseQuery.limit(options.limit) : baseQuery;
     
-    return await query.orderBy(sql`${notifications.createdAt} DESC`);
+    return await limitedQuery.orderBy(sql`${notifications.createdAt} DESC`);
   }
 
   async createNotification(data: InsertNotification): Promise<Notification> {
@@ -584,7 +598,7 @@ export class DatabaseStorage implements IStorage {
     .orderBy(sql`${messages.createdAt} DESC`)
     .limit(options?.limit || 50);
 
-    return results.map((r: any) => ({ ...r.message, sender: r.sender }));
+    return results.map((r: { message: any; sender: any }) => ({ ...r.message, sender: r.sender }));
   }
 
   async sendMessage(data: InsertMessage): Promise<Message> {
@@ -619,7 +633,7 @@ export class DatabaseStorage implements IStorage {
     )
     .orderBy(sql`${messages.createdAt} ASC`);
 
-    return results.map((r: any) => ({ ...r.message, sender: r.sender }));
+    return results.map((r: { message: any; sender: any }) => ({ ...r.message, sender: r.sender }));
   }
 
   // Game session operations
@@ -659,7 +673,7 @@ export class DatabaseStorage implements IStorage {
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map((r: any) => ({ ...r.gameSession, host: r.host, event: r.event }));
+    return results.map((r: { gameSession: any; host: any; event: any }) => ({ ...r.gameSession, host: r.host, event: r.event }));
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -762,7 +776,7 @@ export class DatabaseStorage implements IStorage {
           eq(friendships.status, 'accepted')
         )
       );
-    return result as any;
+    return result as (Friendship & { requester: User; addressee: User })[];
   }
 
   async sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
@@ -797,7 +811,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(userActivities.communityId, options.communityId));
     }
     
-    let query = db
+    const baseQuery = db
       .select({
         id: userActivities.id,
         userId: userActivities.userId,
@@ -814,11 +828,9 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(communities, eq(userActivities.communityId, communities.id))
       .where(and(...conditions));
     
-    if (options?.limit) {
-      query = query.limit(options.limit);
-    }
+    const limitedQuery = options?.limit ? baseQuery.limit(options.limit) : baseQuery;
     
-    const activities = await query.orderBy(sql`${userActivities.createdAt} DESC`);
+    const activities = await limitedQuery.orderBy(sql`${userActivities.createdAt} DESC`);
     return activities.map(activity => ({
       ...activity,
       community: activity.community || undefined,
