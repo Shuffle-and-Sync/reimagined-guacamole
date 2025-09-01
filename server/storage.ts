@@ -99,6 +99,10 @@ export interface IStorage {
   createEvent(data: InsertEvent): Promise<Event>;
   updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
+  // Bulk calendar operations for game pods
+  createBulkEvents(data: InsertEvent[]): Promise<Event[]>;
+  createRecurringEvents(data: InsertEvent, endDate: string): Promise<Event[]>;
+  getCalendarEvents(filters: { communityId?: string; startDate: string; endDate: string; type?: string }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[]>;
   
   // Event attendee operations
   joinEvent(data: InsertEventAttendee): Promise<EventAttendee>;
@@ -344,6 +348,15 @@ export class DatabaseStorage implements IStorage {
         maxAttendees: events.maxAttendees,
         isPublic: events.isPublic,
         status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -398,13 +411,13 @@ export class DatabaseStorage implements IStorage {
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
         primaryCommunity: null, username: null, bio: null, location: null, website: null,
         status: null, statusMessage: null, timezone: null, dateOfBirth: null,
-        isPrivate: false, showOnlineStatus: 'everyone', allowDirectMessages: 'everyone',
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
         createdAt: new Date(), updatedAt: new Date()
       },
       community: event.community,
       attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
-    }));
+    })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
   }
 
   async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
@@ -424,6 +437,15 @@ export class DatabaseStorage implements IStorage {
         maxAttendees: events.maxAttendees,
         isPublic: events.isPublic,
         status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -458,13 +480,13 @@ export class DatabaseStorage implements IStorage {
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
         primaryCommunity: null, username: null, bio: null, location: null, website: null,
         status: null, statusMessage: null, timezone: null, dateOfBirth: null,
-        isPrivate: false, showOnlineStatus: 'everyone', allowDirectMessages: 'everyone',
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
         createdAt: new Date(), updatedAt: new Date()
       },
       community: event.community,
       attendeeCount: attendeeCount?.count || 0,
       isUserAttending,
-    };
+    } as Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean };
   }
 
   async createEvent(data: InsertEvent): Promise<Event> {
@@ -528,6 +550,7 @@ export class DatabaseStorage implements IStorage {
         userId: eventAttendees.userId,
         status: eventAttendees.status,
         role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
         joinedAt: eventAttendees.joinedAt,
         user: users,
       })
@@ -544,12 +567,138 @@ export class DatabaseStorage implements IStorage {
         userId: eventAttendees.userId,
         status: eventAttendees.status,
         role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
         joinedAt: eventAttendees.joinedAt,
         event: events,
       })
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+  }
+
+  // Bulk calendar operations for game pods
+  async createBulkEvents(data: InsertEvent[]): Promise<Event[]> {
+    if (data.length === 0) return [];
+    const createdEvents = await db
+      .insert(events)
+      .values(data)
+      .returning();
+    return createdEvents as Event[];
+  }
+
+  async createRecurringEvents(data: InsertEvent, endDate: string): Promise<Event[]> {
+    if (!data.isRecurring || !data.recurrencePattern || !data.recurrenceInterval) {
+      throw new Error('Invalid recurring event data');
+    }
+
+    const eventList: InsertEvent[] = [];
+    const startDate = new Date(data.date + 'T' + (data.time || '12:00'));
+    const end = new Date(endDate);
+    let currentDate = new Date(startDate);
+    const interval = Number(data.recurrenceInterval) || 1;
+    
+    while (currentDate <= end) {
+      eventList.push({
+        ...data,
+        date: currentDate.toISOString().split('T')[0],
+        parentEventId: undefined, // Will be set after first event is created
+      });
+      
+      // Calculate next occurrence based on pattern
+      switch (data.recurrencePattern) {
+        case 'daily':
+          currentDate.setDate(currentDate.getDate() + interval);
+          break;
+        case 'weekly':
+          currentDate.setDate(currentDate.getDate() + (7 * interval));
+          break;
+        case 'monthly':
+          currentDate.setMonth(currentDate.getMonth() + interval);
+          break;
+      }
+    }
+
+    return this.createBulkEvents(eventList);
+  }
+
+  async getCalendarEvents(filters: { communityId?: string; startDate: string; endDate: string; type?: string }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[]> {
+    const baseQuery = db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id));
+
+    let conditions = [
+      gte(events.date, filters.startDate),
+      sql`${events.date} <= ${filters.endDate}`
+    ];
+    
+    if (filters.communityId) {
+      conditions.push(eq(events.communityId, filters.communityId));
+    }
+    if (filters.type) {
+      conditions.push(eq(events.type, filters.type));
+    }
+
+    const rawEvents = await baseQuery
+      .where(and(...conditions))
+      .orderBy(events.date, events.time);
+
+    // Get player counts for each event
+    const eventIds = rawEvents.map(e => e.id);
+    const playerCounts = eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+        totalCount: count(eventAttendees.id).as('totalCount'),
+        mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'),
+        alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'),
+      })
+      .from(eventAttendees)
+      .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
+      .groupBy(eventAttendees.eventId) : [];
+
+    return rawEvents.map(event => ({
+      ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
+      attendeeCount: playerCounts.find(pc => pc.eventId === event.id)?.totalCount || 0,
+      mainPlayers: playerCounts.find(pc => pc.eventId === event.id)?.mainPlayers || 0,
+      alternates: playerCounts.find(pc => pc.eventId === event.id)?.alternates || 0,
+    })) as (Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[];
   }
 
   // Password reset operations
@@ -1156,7 +1305,7 @@ export class DatabaseStorage implements IStorage {
           avatar: user.profileImageUrl,
           games: [gaming.communityId],
           formats: userPrefs?.selectedFormats || [],
-          powerLevel: Math.floor(Math.random() * 10) + 1, // TODO: Calculate from gaming stats
+          powerLevel: this.calculatePowerLevel(gaming, userPrefs),
           playstyle: gaming.experience || 'intermediate',
           location: user.location || 'Online Only',
           availability: userPrefs?.availability || 'any',
@@ -1171,6 +1320,26 @@ export class DatabaseStorage implements IStorage {
       .slice(0, 20); // Limit results
 
     return scoredMatches;
+  }
+
+  // Calculate power level based on gaming experience and stats
+  private calculatePowerLevel(gaming: any, preferences: any): number {
+    let powerLevel = 5; // Base level
+    
+    // Adjust based on experience
+    switch (gaming?.experience?.toLowerCase()) {
+      case 'beginner': powerLevel = 2; break;
+      case 'intermediate': powerLevel = 5; break;
+      case 'advanced': powerLevel = 8; break;
+      case 'expert': powerLevel = 10; break;
+      default: powerLevel = 5;
+    }
+    
+    // Add slight variance based on preferences
+    if (preferences?.selectedFormats?.length > 3) powerLevel += 1;
+    if (preferences?.competitiveLevel === 'competitive') powerLevel += 1;
+    
+    return Math.min(Math.max(powerLevel, 1), 10);
   }
   
   // Tournament operations
@@ -1193,7 +1362,13 @@ export class DatabaseStorage implements IStorage {
       query.where(eq(tournaments.communityId, communityId));
     }
 
-    return await query;
+    const results = await query;
+    return results.map(result => ({
+      ...result.tournament,
+      organizer: result.organizer,
+      community: result.community,
+      participantCount: result.participantCount,
+    }));
   }
 
   async getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined> {

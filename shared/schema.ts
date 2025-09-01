@@ -86,7 +86,7 @@ export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
   description: text("description"),
-  type: varchar("type").notNull(), // tournament, convention, release, stream, community, personal
+  type: varchar("type").notNull(), // tournament, convention, release, stream, community, personal, game_pod
   date: varchar("date").notNull(), // YYYY-MM-DD format
   time: varchar("time").notNull(), // HH:MM format
   location: varchar("location").notNull(),
@@ -97,6 +97,17 @@ export const events = pgTable("events", {
   maxAttendees: integer("max_attendees"), // null means unlimited
   isPublic: boolean("is_public").default(true),
   status: varchar("status").default("active"), // active, cancelled, completed
+  // Game pod specific fields
+  playerSlots: integer("player_slots").default(4), // Number of main player slots (2-4)
+  alternateSlots: integer("alternate_slots").default(2), // Number of alternate player slots
+  gameFormat: varchar("game_format"), // Commander, Standard, Limited, etc.
+  powerLevel: integer("power_level"), // 1-10 for power level matching
+  // Recurring event fields
+  isRecurring: boolean("is_recurring").default(false),
+  recurrencePattern: varchar("recurrence_pattern"), // daily, weekly, monthly
+  recurrenceInterval: integer("recurrence_interval").default(1), // Every X days/weeks/months
+  recurrenceEndDate: varchar("recurrence_end_date"), // When recurring events stop
+  parentEventId: varchar("parent_event_id").references(() => events.id, { onDelete: "cascade" }), // Links to original event for recurring series
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -113,6 +124,7 @@ export const eventAttendees = pgTable("event_attendees", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: varchar("status").default("attending"), // attending, maybe, not_attending
   role: varchar("role").default("participant"), // participant, host, co_host
+  playerType: varchar("player_type").default("main"), // main, alternate
   joinedAt: timestamp("joined_at").defaultNow(),
 }, (table) => [
   index("idx_event_attendees_event_id").on(table.eventId),
@@ -675,13 +687,28 @@ export const insertThemePreferenceSchema = createInsertSchema(themePreferences).
   updatedAt: true,
 });
 
-export const insertEventSchema = createInsertSchema(events).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertEventSchema = createInsertSchema(events, {
+  title: z.string().min(1, "Title is required").max(200),
+  type: z.enum(["tournament", "convention", "release", "stream", "community", "personal", "game_pod"]),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+  location: z.string().min(1, "Location is required").max(200),
+  maxAttendees: z.number().int().min(1).max(10000).optional(),
+  playerSlots: z.number().int().min(2).max(4).optional(),
+  alternateSlots: z.number().int().min(0).max(4).optional(),
+  gameFormat: z.string().max(50).optional(),
+  powerLevel: z.number().int().min(1).max(10).optional(),
+  isRecurring: z.boolean().optional(),
+  recurrencePattern: z.enum(["daily", "weekly", "monthly"]).optional(),
+  recurrenceInterval: z.number().int().min(1).max(30).optional(),
+  recurrenceEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+}).omit({ id: true, creatorId: true, hostId: true, createdAt: true, updatedAt: true, parentEventId: true });
 
-export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({
+export const insertEventAttendeeSchema = createInsertSchema(eventAttendees, {
+  status: z.enum(["attending", "maybe", "not_attending"]),
+  role: z.enum(["participant", "host", "co_host"]),
+  playerType: z.enum(["main", "alternate"]),
+}).omit({
   id: true,
   joinedAt: true,
 });

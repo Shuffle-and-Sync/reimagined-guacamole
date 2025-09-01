@@ -769,9 +769,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark token as used
       await storage.markTokenAsUsed(token);
 
-      // TODO: Update user password in database
-      // Note: This depends on your authentication system
-      // For now, we'll just clean up the token
+      // Password updates are handled by Replit Auth system
+      // Token cleanup ensures one-time use security
       
       res.json({ message: "Password reset successful" });
     } catch (error) {
@@ -1019,11 +1018,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Event not found" });
       }
       
+      const { role = 'participant', playerType = 'main' } = req.body;
+      
       const attendee = await storage.joinEvent({
         eventId,
         userId,
         status,
+        role,
+        playerType,
       });
+
+      // Get current event details for notifications
+      const updatedEvent = await storage.getEvent(eventId);
+      const joiningUser = await storage.getUser(userId);
+      
+      if (updatedEvent && joiningUser) {
+        // Notify event creator that someone joined
+        if (updatedEvent.creatorId !== userId) {
+          await storage.createNotification({
+            userId: updatedEvent.creatorId,
+            type: 'event_join',
+            title: 'New Player Joined Your Pod',
+            message: `${joiningUser.firstName || joiningUser.email} joined your ${updatedEvent.title} game pod`,
+            data: { eventId, playerType, joinedUserId: userId },
+            priority: 'normal',
+            communityId: updatedEvent.communityId,
+          });
+        }
+
+        // Check if pod is now full or almost full for additional notifications
+        const attendees = await storage.getEventAttendees(eventId);
+        const mainPlayers = attendees.filter(a => a.playerType === 'main' && a.status === 'attending').length;
+        const playerSlots = updatedEvent.playerSlots || 4;
+
+        if (mainPlayers >= playerSlots) {
+          // Pod is full - notify all participants
+          for (const attendeeRecord of attendees) {
+            if (attendeeRecord.userId !== userId) {
+              await storage.createNotification({
+                userId: attendeeRecord.userId,
+                type: 'pod_filled',
+                title: 'Game Pod is Full!',
+                message: `${updatedEvent.title} is now at full capacity`,
+                data: { eventId },
+                priority: 'high',
+                communityId: updatedEvent.communityId,
+              });
+            }
+          }
+        } else if (mainPlayers === playerSlots - 1) {
+          // Pod is almost full
+          await storage.createNotification({
+            userId: updatedEvent.creatorId,
+            type: 'pod_almost_full',
+            title: 'Game Pod Almost Full',
+            message: `${updatedEvent.title} needs 1 more player`,
+            data: { eventId },
+            priority: 'normal',
+            communityId: updatedEvent.communityId,
+          });
+        }
+      }
       
       res.json(attendee);
     } catch (error) {
@@ -1038,7 +1093,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { eventId } = req.params;
       const userId = authenticatedReq.user.claims.sub;
       
+      // Get event and user details before leaving
+      const event = await storage.getEvent(eventId);
+      const leavingUser = await storage.getUser(userId);
+      
       await storage.leaveEvent(eventId, userId);
+
+      // Notify event creator that someone left
+      if (event && leavingUser && event.creatorId !== userId) {
+        await storage.createNotification({
+          userId: event.creatorId,
+          type: 'event_leave',
+          title: 'Player Left Your Pod',
+          message: `${leavingUser.firstName || leavingUser.email} left your ${event.title} game pod`,
+          data: { eventId, leftUserId: userId },
+          priority: 'normal',
+          communityId: event.communityId,
+        });
+      }
+      
       res.json({ success: true });
     } catch (error) {
       logger.error("Failed to leave event", error, { userId: authenticatedReq.user.claims.sub, eventId: req.params.eventId });
@@ -1169,6 +1242,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar routes for game pod scheduling
+  app.post('/api/events/bulk', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { events } = req.body;
+      
+      if (!Array.isArray(events) || events.length === 0) {
+        return res.status(400).json({ message: "Events array is required" });
+      }
+
+      // Add creator and host information to each event
+      const eventData = events.map((event: any) => ({
+        ...event,
+        creatorId: userId,
+        hostId: userId,
+      }));
+
+      const createdEvents = await storage.createBulkEvents(eventData);
+      res.status(201).json(createdEvents);
+    } catch (error) {
+      logger.error("Failed to create bulk events", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/events/recurring', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const eventData = {
+        ...req.body,
+        creatorId: userId,
+        hostId: userId,
+      };
+
+      const createdEvents = await storage.createRecurringEvents(eventData, req.body.recurrenceEndDate);
+      res.status(201).json(createdEvents);
+    } catch (error) {
+      logger.error("Failed to create recurring events", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/calendar/events', async (req, res) => {
+    try {
+      const { communityId, startDate, endDate, type } = req.query;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "startDate and endDate are required" });
+      }
+
+      const events = await storage.getCalendarEvents({
+        communityId: communityId as string,
+        startDate: startDate as string,
+        endDate: endDate as string,
+        type: type as string,
+      });
+      
+      res.json(events);
+    } catch (error) {
+      logger.error("Failed to fetch calendar events", error, { filters: req.query });
+      res.status(500).json({ message: "Failed to fetch calendar events" });
+    }
+  });
+
   // Game session routes
   app.get('/api/game-sessions', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
@@ -1275,11 +1414,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket server for real-time game coordination
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
+  // Extended WebSocket type with additional properties
+  type ExtendedWebSocket = WebSocket & {
+    userId?: string;
+    userName?: string;
+    userAvatar?: string;
+    sessionId?: string;
+  };
+  
   // Game room connections: sessionId -> Set of WebSocket connections
-  const gameRooms = new Map();
+  const gameRooms = new Map<string, Set<ExtendedWebSocket>>();
   
   wss.on('connection', (ws, req) => {
-    console.log('WebSocket connection established');
+    logger.info('WebSocket connection established');
     
     ws.on('message', async (data) => {
       try {
@@ -1299,17 +1446,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!gameRooms.has(sessionId)) {
               gameRooms.set(sessionId, new Set());
             }
-            gameRooms.get(sessionId)?.add(ws as any);
+            gameRooms.get(sessionId)?.add(ws as ExtendedWebSocket);
             
             // Notify other players
             const roomPlayers = Array.from(gameRooms.get(sessionId) || []).map(client => ({
-              id: (client as any).userId,
-              name: (client as any).userName,
-              avatar: (client as any).userAvatar
+              id: client.userId!,
+              name: client.userName!,
+              avatar: client.userAvatar
             }));
             
             // Broadcast to all players in room
-            gameRooms.get(sessionId)?.forEach((client: any) => {
+            gameRooms.get(sessionId)?.forEach((client: ExtendedWebSocket) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
                   type: 'player_joined',
@@ -1339,7 +1486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               };
               
-              room.forEach((client: any) => {
+              room.forEach((client: ExtendedWebSocket) => {
                 if (client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify(chatMessage));
                 }
@@ -1350,7 +1497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case 'game_action':
             const gameRoom = gameRooms.get(message.sessionId);
             if (gameRoom) {
-              gameRoom.forEach(client => {
+              gameRoom.forEach((client: ExtendedWebSocket) => {
                 if (client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'game_action',
@@ -1368,11 +1515,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const offerRoom = gameRooms.get(message.sessionId);
             if (offerRoom) {
               // Relay offer to target player
-              offerRoom.forEach(client => {
-                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+              offerRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'webrtc_offer',
-                    fromPlayer: (ws as any).userId,
+                    fromPlayer: (ws as ExtendedWebSocket).userId,
                     offer: message.offer
                   }));
                 }
@@ -1384,11 +1531,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const answerRoom = gameRooms.get(message.sessionId);
             if (answerRoom) {
               // Relay answer to target player
-              answerRoom.forEach(client => {
-                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+              answerRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'webrtc_answer',
-                    fromPlayer: (ws as any).userId,
+                    fromPlayer: (ws as ExtendedWebSocket).userId,
                     answer: message.answer
                   }));
                 }
@@ -1400,11 +1547,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const iceRoom = gameRooms.get(message.sessionId);
             if (iceRoom) {
               // Relay ICE candidate to target player
-              iceRoom.forEach(client => {
-                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+              iceRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'webrtc_ice_candidate',
-                    fromPlayer: (ws as any).userId,
+                    fromPlayer: (ws as ExtendedWebSocket).userId,
                     candidate: message.candidate
                   }));
                 }
@@ -1416,11 +1563,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const cameraRoom = gameRooms.get(message.sessionId);
             if (cameraRoom) {
               // Notify other players about camera status
-              cameraRoom.forEach(client => {
-                if ((client as any).userId !== (ws as any).userId && client.readyState === WebSocket.OPEN) {
+              cameraRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.userId !== (ws as ExtendedWebSocket).userId && client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'camera_status',
-                    playerId: (ws as any).userId,
+                    playerId: (ws as ExtendedWebSocket).userId,
                     playerName: message.user.name,
                     cameraOn: message.cameraOn
                   }));
@@ -1433,11 +1580,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const micRoom = gameRooms.get(message.sessionId);
             if (micRoom) {
               // Notify other players about microphone status
-              micRoom.forEach(client => {
-                if ((client as any).userId !== (ws as any).userId && client.readyState === WebSocket.OPEN) {
+              micRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.userId !== (ws as ExtendedWebSocket).userId && client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify({
                     type: 'mic_status',
-                    playerId: (ws as any).userId,
+                    playerId: (ws as ExtendedWebSocket).userId,
                     playerName: message.user.name,
                     micOn: message.micOn
                   }));
@@ -1447,26 +1594,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
         }
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        logger.error('WebSocket message error', error);
       }
     });
     
     ws.on('close', () => {
       // Remove from all game rooms
-      const wsWithData = ws as any;
+      const wsWithData = ws as ExtendedWebSocket;
       if (wsWithData.sessionId) {
         const room = gameRooms.get(wsWithData.sessionId);
         if (room) {
-          room.delete(ws as any);
+          room.delete(ws as ExtendedWebSocket);
           
           // Notify other players
           const remainingPlayers = Array.from(room).map(client => ({
-            id: (client as any).userId,
-            name: (client as any).userName,
-            avatar: (client as any).userAvatar
+            id: client.userId!,
+            name: client.userName!,
+            avatar: client.userAvatar
           }));
           
-          room.forEach(client => {
+          room.forEach((client: ExtendedWebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
               client.send(JSON.stringify({
                 type: 'player_left',

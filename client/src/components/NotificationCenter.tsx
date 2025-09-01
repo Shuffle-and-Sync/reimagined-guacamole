@@ -82,6 +82,16 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         return 'fas fa-user-plus text-green-500';
       case 'event_leave':
         return 'fas fa-user-minus text-red-500';
+      case 'pod_filled':
+        return 'fas fa-users text-orange-500';
+      case 'pod_almost_full':
+        return 'fas fa-hourglass-half text-yellow-500';
+      case 'pod_created':
+        return 'fas fa-calendar-plus text-blue-500';
+      case 'pod_cancelled':
+        return 'fas fa-calendar-times text-red-500';
+      case 'pod_reminder':
+        return 'fas fa-clock text-purple-500';
       case 'game_invite':
         return 'fas fa-gamepad text-blue-500';
       case 'message':

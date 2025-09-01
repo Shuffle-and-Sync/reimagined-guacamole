@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
 import { getCommunityTheme } from "@/lib/communityThemes";
+import GamePodCalendar from "@/components/GamePodCalendar";
 
 interface User {
   id: string;
@@ -168,6 +169,15 @@ export function BladeforgeDashboard({ user }: BladeforgeDashboardProps) {
                 </p>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Game Pod Calendar */}
+          <div className="mb-8">
+            <GamePodCalendar 
+              communityId="bladeforge" 
+              communityName="Bladeforge"
+              theme={theme}
+            />
           </div>
 
           {/* Command Dashboard */}

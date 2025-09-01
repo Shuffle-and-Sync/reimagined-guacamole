@@ -249,7 +249,7 @@ export default function Calendar() {
                           <SelectValue placeholder="Select community (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No specific community</SelectItem>
+                          <SelectItem value="none">No specific community</SelectItem>
                           {communities.map((community) => (
                             <SelectItem key={community.id} value={community.id}>{community.name}</SelectItem>
                           ))}

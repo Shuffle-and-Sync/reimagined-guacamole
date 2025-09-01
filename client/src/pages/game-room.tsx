@@ -134,7 +134,10 @@ export default function GameRoom() {
         description: "Video chat is now active for the game room."
       });
     } catch (error: any) {
-      console.error('Error accessing camera/microphone:', error);
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error accessing camera/microphone:', error);
+      }
       setCameraPermissionGranted(false);
       
       let errorMessage = "Camera and microphone access is needed for video chat.";
@@ -170,7 +173,7 @@ export default function GameRoom() {
     ws.current = new WebSocket(wsUrl);
     
     ws.current.onopen = () => {
-      console.log('Connected to game room');
+      // Connected to game room - no logging needed in production
       // Send join message
       ws.current?.send(JSON.stringify({
         type: 'join_room',
@@ -246,12 +249,12 @@ export default function GameRoom() {
           
         case 'camera_status':
           // Update UI to show camera status for other players
-          console.log(`Player ${data.playerName} ${data.cameraOn ? 'enabled' : 'disabled'} camera`);
+          // Player camera status update - visual feedback handled by UI
           break;
           
         case 'mic_status':
           // Update UI to show microphone status for other players
-          console.log(`Player ${data.playerName} ${data.micOn ? 'enabled' : 'disabled'} microphone`);
+          // Player microphone status update - visual feedback handled by UI
           break;
         case 'turn_change':
           toast({
@@ -263,7 +266,7 @@ export default function GameRoom() {
     };
     
     ws.current.onclose = () => {
-      console.log('Disconnected from game room');
+      // Disconnected from game room - handled by UI state
     };
     
     return () => {
@@ -400,7 +403,10 @@ export default function GameRoom() {
       });
       
     } catch (error) {
-      console.error('Error starting screen share:', error);
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error starting screen share:', error);
+      }
       toast({
         title: "Screen sharing failed",
         description: "Could not start screen sharing. Please try again.",
@@ -503,7 +509,10 @@ export default function GameRoom() {
       });
       
     } catch (error) {
-      console.error('Error starting recording:', error);
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error starting recording:', error);
+      }
       toast({
         title: "Recording failed",
         description: "Could not start recording. Please try again.",
@@ -581,7 +590,10 @@ export default function GameRoom() {
         sessionId
       }));
     } catch (error) {
-      console.error('Error creating WebRTC offer:', error);
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error creating WebRTC offer:', error);
+      }
     }
   };
 
@@ -606,7 +618,10 @@ export default function GameRoom() {
           sessionId
         }));
       } catch (error) {
-        console.error('Error handling WebRTC offer:', error);
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC offer:', error);
+        }
       }
     }
   };
@@ -619,7 +634,10 @@ export default function GameRoom() {
       try {
         await peerConnection.setRemoteDescription(answer);
       } catch (error) {
-        console.error('Error handling WebRTC answer:', error);
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC answer:', error);
+        }
       }
     }
   };
@@ -632,7 +650,10 @@ export default function GameRoom() {
       try {
         await peerConnection.addIceCandidate(candidate);
       } catch (error) {
-        console.error('Error adding ICE candidate:', error);
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error adding ICE candidate:', error);
+        }
       }
     }
   };
