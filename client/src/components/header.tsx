@@ -116,6 +116,13 @@ export function Header() {
           >
             Tournaments
           </Link>
+          <Link 
+            href="/community-forum" 
+            className={`transition-colors font-medium ${location === "/community-forum" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            data-testid="nav-forum"
+          >
+            Forum
+          </Link>
           {isAuthenticated && (
             <>
               <Link 

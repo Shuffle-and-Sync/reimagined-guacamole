@@ -17,6 +17,10 @@ import {
   matchmakingPreferences,
   tournaments,
   tournamentParticipants,
+  forumPosts,
+  forumReplies,
+  forumPostLikes,
+  forumReplyLikes,
   type User,
   type UpsertUser,
   type Community,
@@ -36,6 +40,10 @@ import {
   type MatchmakingPreferences,
   type Tournament,
   type TournamentParticipant,
+  type ForumPost,
+  type ForumReply,
+  type ForumPostLike,
+  type ForumReplyLike,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
@@ -53,9 +61,13 @@ import {
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type InsertTournamentParticipant,
+  type InsertForumPost,
+  type InsertForumReply,
+  type InsertForumPostLike,
+  type InsertForumReplyLike,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, count, sql, or, desc } from "drizzle-orm";
+import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -156,6 +168,19 @@ export interface IStorage {
   createTournament(data: InsertTournament): Promise<Tournament>;
   joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
   leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
+  
+  // Forum operations
+  getForumPosts(communityId: string, options?: { category?: string; limit?: number; offset?: number }): Promise<(ForumPost & { author: User; community: Community; replyCount: number; likeCount: number; isLiked?: boolean })[]>;
+  getForumPost(id: string, userId?: string): Promise<(ForumPost & { author: User; community: Community; isLiked: boolean }) | undefined>;
+  createForumPost(data: InsertForumPost): Promise<ForumPost>;
+  updateForumPost(id: string, data: Partial<InsertForumPost>): Promise<ForumPost>;
+  deleteForumPost(id: string): Promise<void>;
+  likeForumPost(postId: string, userId: string): Promise<void>;
+  unlikeForumPost(postId: string, userId: string): Promise<void>;
+  getForumReplies(postId: string, userId?: string): Promise<(ForumReply & { author: User; isLiked?: boolean; childReplies?: ForumReply[] })[]>;
+  createForumReply(data: InsertForumReply): Promise<ForumReply>;
+  likeForumReply(replyId: string, userId: string): Promise<void>;
+  unlikeForumReply(replyId: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1076,7 +1101,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
       .where(
         and(
-          ne(users.id, userId), // Exclude self
+          not(eq(users.id, userId)), // Exclude self
           eq(users.status, 'online'), // Only online users
           eq(userGamingProfiles.isVisible, true) // Only visible profiles
         )
@@ -1227,7 +1252,256 @@ export class DatabaseStorage implements IStorage {
           eq(tournamentParticipants.userId, userId)
         )
       );
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Forum operations
+  async getForumPosts(communityId: string, options: { category?: string; limit?: number; offset?: number } = {}): Promise<(ForumPost & { author: User; community: Community; replyCount: number; likeCount: number; isLiked?: boolean })[]> {
+    const { category, limit = 20, offset = 0 } = options;
+    
+    const query = db
+      .select({
+        post: forumPosts,
+        author: users,
+        community: communities,
+        replyCount: sql<number>`COUNT(DISTINCT ${forumReplies.id})::int`.as('replyCount'),
+        likeCount: sql<number>`COUNT(DISTINCT ${forumPostLikes.id})::int`.as('likeCount'),
+      })
+      .from(forumPosts)
+      .innerJoin(users, eq(forumPosts.authorId, users.id))
+      .innerJoin(communities, eq(forumPosts.communityId, communities.id))
+      .leftJoin(forumReplies, eq(forumPosts.id, forumReplies.postId))
+      .leftJoin(forumPostLikes, eq(forumPosts.id, forumPostLikes.postId))
+      .where(
+        and(
+          eq(forumPosts.communityId, communityId),
+          category ? eq(forumPosts.category, category) : undefined
+        )
+      )
+      .groupBy(forumPosts.id, users.id, communities.id)
+      .orderBy(desc(forumPosts.isPinned), desc(forumPosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    const results = await query;
+    
+    return results.map(r => ({
+      ...r.post,
+      author: r.author,
+      community: r.community,
+      replyCount: r.replyCount,
+      likeCount: r.likeCount,
+    }));
+  }
+
+  async getForumPost(id: string, userId?: string): Promise<(ForumPost & { author: User; community: Community; isLiked: boolean }) | undefined> {
+    const postQuery = db
+      .select({
+        post: forumPosts,
+        author: users,
+        community: communities,
+      })
+      .from(forumPosts)
+      .innerJoin(users, eq(forumPosts.authorId, users.id))
+      .innerJoin(communities, eq(forumPosts.communityId, communities.id))
+      .where(eq(forumPosts.id, id));
+
+    const [result] = await postQuery;
+    if (!result) return undefined;
+
+    // Check if user liked this post
+    let isLiked = false;
+    if (userId) {
+      const [like] = await db
+        .select()
+        .from(forumPostLikes)
+        .where(
+          and(
+            eq(forumPostLikes.postId, id),
+            eq(forumPostLikes.userId, userId)
+          )
+        );
+      isLiked = !!like;
+    }
+
+    // Increment view count
+    await db
+      .update(forumPosts)
+      .set({ 
+        viewCount: sql`${forumPosts.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(forumPosts.id, id));
+
+    return {
+      ...result.post,
+      author: result.author,
+      community: result.community,
+      isLiked,
+    };
+  }
+
+  async createForumPost(data: InsertForumPost): Promise<ForumPost> {
+    const [post] = await db
+      .insert(forumPosts)
+      .values(data)
+      .returning();
+    return post;
+  }
+
+  async updateForumPost(id: string, data: Partial<InsertForumPost>): Promise<ForumPost> {
+    const [post] = await db
+      .update(forumPosts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(forumPosts.id, id))
+      .returning();
+    return post;
+  }
+
+  async deleteForumPost(id: string): Promise<void> {
+    await db.delete(forumPosts).where(eq(forumPosts.id, id));
+  }
+
+  async likeForumPost(postId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .insert(forumPostLikes)
+        .values({ postId, userId })
+        .onConflictDoNothing();
+      
+      // Update like count
+      await db
+        .update(forumPosts)
+        .set({ 
+          likeCount: sql`${forumPosts.likeCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumPosts.id, postId));
+    } catch (error) {
+      // Ignore if already liked
+    }
+  }
+
+  async unlikeForumPost(postId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(forumPostLikes)
+      .where(
+        and(
+          eq(forumPostLikes.postId, postId),
+          eq(forumPostLikes.userId, userId)
+        )
+      );
+    
+    if ((result.rowCount ?? 0) > 0) {
+      // Update like count
+      await db
+        .update(forumPosts)
+        .set({ 
+          likeCount: sql`GREATEST(${forumPosts.likeCount} - 1, 0)`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumPosts.id, postId));
+    }
+  }
+
+  async getForumReplies(postId: string, userId?: string): Promise<(ForumReply & { author: User; isLiked?: boolean; childReplies?: ForumReply[] })[]> {
+    const replies = await db
+      .select({
+        reply: forumReplies,
+        author: users,
+      })
+      .from(forumReplies)
+      .innerJoin(users, eq(forumReplies.authorId, users.id))
+      .where(eq(forumReplies.postId, postId))
+      .orderBy(forumReplies.createdAt);
+
+    // Add like status if user is provided
+    const enrichedReplies = await Promise.all(
+      replies.map(async (r) => {
+        let isLiked = false;
+        if (userId) {
+          const [like] = await db
+            .select()
+            .from(forumReplyLikes)
+            .where(
+              and(
+                eq(forumReplyLikes.replyId, r.reply.id),
+                eq(forumReplyLikes.userId, userId)
+              )
+            );
+          isLiked = !!like;
+        }
+
+        return {
+          ...r.reply,
+          author: r.author,
+          isLiked,
+        };
+      })
+    );
+
+    return enrichedReplies;
+  }
+
+  async createForumReply(data: InsertForumReply): Promise<ForumReply> {
+    const [reply] = await db
+      .insert(forumReplies)
+      .values(data)
+      .returning();
+    
+    // Update reply count on the post
+    await db
+      .update(forumPosts)
+      .set({ 
+        replyCount: sql`${forumPosts.replyCount} + 1`,
+        lastReplyAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(forumPosts.id, data.postId));
+    
+    return reply;
+  }
+
+  async likeForumReply(replyId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .insert(forumReplyLikes)
+        .values({ replyId, userId })
+        .onConflictDoNothing();
+      
+      // Update like count
+      await db
+        .update(forumReplies)
+        .set({ 
+          likeCount: sql`${forumReplies.likeCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumReplies.id, replyId));
+    } catch (error) {
+      // Ignore if already liked
+    }
+  }
+
+  async unlikeForumReply(replyId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(forumReplyLikes)
+      .where(
+        and(
+          eq(forumReplyLikes.replyId, replyId),
+          eq(forumReplyLikes.userId, userId)
+        )
+      );
+    
+    if ((result.rowCount ?? 0) > 0) {
+      // Update like count
+      await db
+        .update(forumReplies)
+        .set({ 
+          likeCount: sql`GREATEST(${forumReplies.likeCount} - 1, 0)`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumReplies.id, replyId));
+    }
   }
 
   // Analytics operations
@@ -1346,13 +1620,13 @@ export class DatabaseStorage implements IStorage {
   // Data export operations
   async exportUserData(userId: string): Promise<any> {
     // Get all user data for export
-    const userData = await this.getUserById(userId);
+    const userData = await this.getUser(userId);
     const socialLinks = await this.getUserSocialLinks(userId);
     const gamingProfiles = await this.getUserGamingProfiles(userId);
     const matchmakingPrefs = await this.getMatchmakingPreferences(userId);
     
     // Get tournament participation
-    const tournaments = await db
+    const userTournaments = await db
       .select({
         tournament: tournaments,
         participant: tournamentParticipants,
@@ -1377,7 +1651,7 @@ export class DatabaseStorage implements IStorage {
       socialLinks,
       gamingProfiles,
       matchmakingPreferences: matchmakingPrefs,
-      tournaments: tournaments.map(t => t.tournament),
+      tournaments: userTournaments.map((t: any) => t.tournament),
       friends,
       exportDate: new Date().toISOString(),
       platform: 'Shuffle & Sync',
@@ -1415,7 +1689,7 @@ export class DatabaseStorage implements IStorage {
       // Finally delete the user
       const result = await db.delete(users).where(eq(users.id, userId));
       
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Error deleting user account:', error);
       return false;

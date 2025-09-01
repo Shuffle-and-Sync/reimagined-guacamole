@@ -448,6 +448,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Forum routes
+  app.get('/api/forum/posts', async (req, res) => {
+    try {
+      const { communityId, category, limit, offset } = req.query;
+      
+      if (!communityId) {
+        return res.status(400).json({ message: "Community ID is required" });
+      }
+      
+      const posts = await storage.getForumPosts(communityId as string, {
+        category: category as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+      });
+      
+      res.json(posts);
+    } catch (error) {
+      logger.error("Failed to fetch forum posts", error, { communityId: req.query.communityId });
+      res.status(500).json({ message: "Failed to fetch forum posts" });
+    }
+  });
+
+  app.get('/api/forum/posts/:id', async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.query.userId as string;
+      
+      const post = await storage.getForumPost(postId, userId);
+      if (!post) {
+        return res.status(404).json({ message: "Forum post not found" });
+      }
+      
+      res.json(post);
+    } catch (error) {
+      logger.error("Failed to fetch forum post", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to fetch forum post" });
+    }
+  });
+
+  app.post('/api/forum/posts', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const postData = { ...req.body, authorId: userId };
+      
+      const post = await storage.createForumPost(postData);
+      res.json(post);
+    } catch (error) {
+      logger.error("Failed to create forum post", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to create forum post" });
+    }
+  });
+
+  app.put('/api/forum/posts/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const postId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // Check if user owns the post
+      const existingPost = await storage.getForumPost(postId);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Forum post not found" });
+      }
+      if (existingPost.authorId !== userId) {
+        return res.status(403).json({ message: "Not authorized to edit this post" });
+      }
+      
+      const updatedPost = await storage.updateForumPost(postId, req.body);
+      res.json(updatedPost);
+    } catch (error) {
+      logger.error("Failed to update forum post", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to update forum post" });
+    }
+  });
+
+  app.delete('/api/forum/posts/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const postId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // Check if user owns the post
+      const existingPost = await storage.getForumPost(postId);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Forum post not found" });
+      }
+      if (existingPost.authorId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this post" });
+      }
+      
+      await storage.deleteForumPost(postId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to delete forum post", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to delete forum post" });
+    }
+  });
+
+  app.post('/api/forum/posts/:id/like', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const postId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      await storage.likeForumPost(postId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to like forum post", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to like forum post" });
+    }
+  });
+
+  app.delete('/api/forum/posts/:id/like', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const postId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      await storage.unlikeForumPost(postId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to unlike forum post", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to unlike forum post" });
+    }
+  });
+
+  app.get('/api/forum/posts/:id/replies', async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.query.userId as string;
+      
+      const replies = await storage.getForumReplies(postId, userId);
+      res.json(replies);
+    } catch (error) {
+      logger.error("Failed to fetch forum replies", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to fetch forum replies" });
+    }
+  });
+
+  app.post('/api/forum/posts/:id/replies', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const postId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      const replyData = { ...req.body, postId, authorId: userId };
+      
+      const reply = await storage.createForumReply(replyData);
+      res.json(reply);
+    } catch (error) {
+      logger.error("Failed to create forum reply", error, { postId: req.params.id });
+      res.status(500).json({ message: "Failed to create forum reply" });
+    }
+  });
+
+  app.post('/api/forum/replies/:id/like', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const replyId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      await storage.likeForumReply(replyId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to like forum reply", error, { replyId: req.params.id });
+      res.status(500).json({ message: "Failed to like forum reply" });
+    }
+  });
+
+  app.delete('/api/forum/replies/:id/like', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const replyId = req.params.id;
+      const userId = authenticatedReq.user.claims.sub;
+      
+      await storage.unlikeForumReply(replyId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to unlike forum reply", error, { replyId: req.params.id });
+      res.status(500).json({ message: "Failed to unlike forum reply" });
+    }
+  });
+
   // Analytics routes
   app.get('/api/analytics', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
@@ -850,6 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete('/api/events/:eventId/leave', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { eventId } = req.params;
       const userId = authenticatedReq.user.claims.sub;

@@ -320,6 +320,67 @@ export const tournamentParticipants = pgTable("tournament_participants", {
   index("idx_tournament_participants_user_id").on(table.userId),
 ]);
 
+// Forum posts table for community discussions
+export const forumPosts = pgTable("forum_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  authorId: varchar("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  communityId: varchar("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
+  category: varchar("category").notNull(), // strategy, deck-tech, stream-tips, general, collaboration
+  isPinned: boolean("is_pinned").default(false),
+  isLocked: boolean("is_locked").default(false),
+  viewCount: integer("view_count").default(0),
+  likeCount: integer("like_count").default(0),
+  replyCount: integer("reply_count").default(0),
+  lastReplyAt: timestamp("last_reply_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_forum_posts_author_id").on(table.authorId),
+  index("idx_forum_posts_community_id").on(table.communityId),
+  index("idx_forum_posts_category").on(table.category),
+  index("idx_forum_posts_created_at").on(table.createdAt),
+]);
+
+// Forum replies table for post discussions
+export const forumReplies = pgTable("forum_replies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
+  authorId: varchar("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  parentReplyId: varchar("parent_reply_id").references(() => forumReplies.id, { onDelete: "cascade" }), // For nested replies
+  likeCount: integer("like_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_forum_replies_post_id").on(table.postId),
+  index("idx_forum_replies_author_id").on(table.authorId),
+  index("idx_forum_replies_created_at").on(table.createdAt),
+]);
+
+// Forum post likes table for tracking user likes
+export const forumPostLikes = pgTable("forum_post_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_forum_post_likes_post_id").on(table.postId),
+  index("idx_forum_post_likes_user_id").on(table.userId),
+]);
+
+// Forum reply likes table for tracking user likes on replies
+export const forumReplyLikes = pgTable("forum_reply_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  replyId: varchar("reply_id").notNull().references(() => forumReplies.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_forum_reply_likes_reply_id").on(table.replyId),
+  index("idx_forum_reply_likes_user_id").on(table.userId),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
@@ -340,12 +401,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   matchmakingPreferences: many(matchmakingPreferences),
   organizedTournaments: many(tournaments, { relationName: "organizedTournaments" }),
   tournamentParticipation: many(tournamentParticipants),
+  forumPosts: many(forumPosts),
+  forumReplies: many(forumReplies),
+  forumPostLikes: many(forumPostLikes),
+  forumReplyLikes: many(forumReplyLikes),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
   userCommunities: many(userCommunities),
   themePreferences: many(themePreferences),
   events: many(events),
+  forumPosts: many(forumPosts),
 }));
 
 export const userCommunitiesRelations = relations(userCommunities, ({ one }) => ({
@@ -535,6 +601,59 @@ export const tournamentParticipantsRelations = relations(tournamentParticipants,
   }),
 }));
 
+export const forumPostsRelations = relations(forumPosts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [forumPosts.authorId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [forumPosts.communityId],
+    references: [communities.id],
+  }),
+  replies: many(forumReplies),
+  likes: many(forumPostLikes),
+}));
+
+export const forumRepliesRelations = relations(forumReplies, ({ one, many }) => ({
+  post: one(forumPosts, {
+    fields: [forumReplies.postId],
+    references: [forumPosts.id],
+  }),
+  author: one(users, {
+    fields: [forumReplies.authorId],
+    references: [users.id],
+  }),
+  parentReply: one(forumReplies, {
+    fields: [forumReplies.parentReplyId],
+    references: [forumReplies.id],
+    relationName: "parentReply",
+  }),
+  childReplies: many(forumReplies, { relationName: "parentReply" }),
+  likes: many(forumReplyLikes),
+}));
+
+export const forumPostLikesRelations = relations(forumPostLikes, ({ one }) => ({
+  post: one(forumPosts, {
+    fields: [forumPostLikes.postId],
+    references: [forumPosts.id],
+  }),
+  user: one(users, {
+    fields: [forumPostLikes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const forumReplyLikesRelations = relations(forumReplyLikes, ({ one }) => ({
+  reply: one(forumReplies, {
+    fields: [forumReplyLikes.replyId],
+    references: [forumReplies.id],
+  }),
+  user: one(users, {
+    fields: [forumReplyLikes.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -636,6 +755,33 @@ export const insertTournamentParticipantSchema = createInsertSchema(tournamentPa
   joinedAt: true,
 });
 
+export const insertForumPostSchema = createInsertSchema(forumPosts).omit({
+  id: true,
+  viewCount: true,
+  likeCount: true,
+  replyCount: true,
+  lastReplyAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertForumReplySchema = createInsertSchema(forumReplies).omit({
+  id: true,
+  likeCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertForumPostLikeSchema = createInsertSchema(forumPostLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertForumReplyLikeSchema = createInsertSchema(forumReplyLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -656,6 +802,10 @@ export type UserSettings = typeof userSettings.$inferSelect;
 export type MatchmakingPreferences = typeof matchmakingPreferences.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
+export type ForumPost = typeof forumPosts.$inferSelect;
+export type ForumReply = typeof forumReplies.$inferSelect;
+export type ForumPostLike = typeof forumPostLikes.$inferSelect;
+export type ForumReplyLike = typeof forumReplyLikes.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -675,3 +825,7 @@ export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type InsertMatchmakingPreferences = z.infer<typeof insertMatchmakingPreferencesSchema>;
 export type InsertTournament = z.infer<typeof insertTournamentSchema>;
 export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
+export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
+export type InsertForumReply = z.infer<typeof insertForumReplySchema>;
+export type InsertForumPostLike = z.infer<typeof insertForumPostLikeSchema>;
+export type InsertForumReplyLike = z.infer<typeof insertForumReplyLikeSchema>;

@@ -836,12 +836,7 @@ export default function GameRoom() {
                     {cameraPermissionGranted ? (
                       <>
                         <video
-                          ref={(ref) => {
-                            localVideoRef.current = ref;
-                            if (ref) {
-                              ref.srcObject = isScreenSharing ? screenStream : localStream;
-                            }
-                          }}
+                          ref={localVideoRef}
                           autoPlay
                           muted
                           playsInline
