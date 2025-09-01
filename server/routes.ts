@@ -619,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const gameSession = await storage.createGameSession(sessionData);
       res.status(201).json(gameSession);
     } catch (error) {
-      console.error('Error creating game session:', error);
+      logger.error("Failed to create game session", error, { userId: req.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -644,7 +644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
-      console.error('Error joining game session:', error);
+      logger.error("Failed to join game session", error, { userId: req.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
-      console.error('Error leaving game session:', error);
+      logger.error("Failed to leave game session", error, { userId: req.user.claims.sub });
       res.status(500).json({ message: 'Internal server error' });
     }
   });

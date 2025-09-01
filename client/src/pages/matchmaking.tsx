@@ -129,7 +129,7 @@ export default function Matchmaking() {
     // TODO: Implement actual invite logic with backend
     const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
     if (player) {
-      console.log(`Sending game invite to ${player.username}`);
+      // TODO: Send actual invite through API
       // Future: Send actual invite through API
     }
   };
@@ -138,7 +138,7 @@ export default function Matchmaking() {
     // TODO: Implement actual messaging system with backend
     const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
     if (player) {
-      console.log(`Opening chat with ${player.username}`);
+      // TODO: Open messaging interface
       // Future: Open messaging interface
     }
   };

@@ -77,7 +77,7 @@ export default function TableSync() {
       description: description.trim()
     };
     
-    console.log("Creating game room:", roomData);
+    // TODO: Send room data to backend
     
     // Reset form after creation
     setRoomName("");
@@ -93,7 +93,7 @@ export default function TableSync() {
     // TODO: Implement room joining logic with backend
     const room = ACTIVE_ROOMS.find(r => r.id === roomId);
     if (room) {
-      console.log(`Joining "${room.name}" hosted by ${room.host}`);
+      // TODO: Connect to game room and start session
       // Future: Connect to game room and start session
     }
   };

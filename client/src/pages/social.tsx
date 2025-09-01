@@ -82,7 +82,7 @@ export default function Social() {
     // TODO: Implement OAuth connection flow
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
     if (platform) {
-      console.log(`Connecting to ${platform.name}...`);
+      // TODO: Initiate OAuth flow for the specific platform
       // Future: Initiate OAuth flow for the specific platform
     }
   };
@@ -91,12 +91,7 @@ export default function Social() {
     // TODO: Implement post creation logic
     if (!newPost.trim()) return;
     
-    console.log("Creating/scheduling post:", {
-      content: newPost,
-      platforms: selectedPlatforms,
-      scheduled: scheduleTime || "now",
-      autoPost
-    });
+    // TODO: Send post data to backend API
     
     // Reset form after posting
     setNewPost("");
@@ -107,19 +102,19 @@ export default function Social() {
 
   const handleEditPost = (postId: string) => {
     // TODO: Implement post editing logic
-    console.log("Editing post:", postId);
+    // TODO: Implement post editing logic
   };
 
   const handleCancelPost = (postId: string) => {
     // TODO: Implement post cancellation logic  
-    console.log("Cancelling scheduled post:", postId);
+    // TODO: Implement post cancellation logic
   };
 
   const handlePlatformSettings = (platformId: string) => {
     // TODO: Open platform-specific settings
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
     if (platform) {
-      console.log(`Opening ${platform.name} settings`);
+      // TODO: Open platform-specific settings
     }
   };
 

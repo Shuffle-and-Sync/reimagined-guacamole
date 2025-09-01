@@ -20,7 +20,6 @@ export default function Landing() {
 
   const handleWatchDemo = () => {
     // TODO: Implement demo modal or video
-    console.log("Watch demo clicked");
   };
 
   return (

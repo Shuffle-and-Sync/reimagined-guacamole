@@ -33,7 +33,7 @@ export function Header() {
   };
 
   const handleSettings = () => {
-    console.log("Navigate to settings page");
+    // TODO: Implement settings navigation
   };
 
   const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
