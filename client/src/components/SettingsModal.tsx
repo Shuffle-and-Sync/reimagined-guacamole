@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { UserSettings } from '@shared/schema';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -47,12 +50,68 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   });
 
+  // Fetch user settings
+  const { data: userSettings, isLoading: settingsLoading } = useQuery<UserSettings>({
+    queryKey: ['/api/user/settings'],
+    enabled: !!user?.id,
+  });
+
+  // Load settings from backend when available
+  useEffect(() => {
+    if (userSettings) {
+      setPreferences({
+        theme: userSettings.theme || "system",
+        notifications: userSettings.notificationSettings || {
+          email: true,
+          browser: true,
+          eventReminders: true,
+          socialUpdates: false,
+          weeklyDigest: true
+        },
+        privacy: userSettings.privacySettings || {
+          profileVisible: true,
+          showOnlineStatus: true,
+          allowDirectMessages: true,
+          shareStreamingActivity: true
+        },
+        streaming: userSettings.streamingSettings || {
+          defaultQuality: "720p",
+          autoStartRecording: false,
+          chatOverlay: true,
+          showViewerCount: true
+        }
+      });
+    }
+  }, [userSettings]);
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (settingsData: any) => {
+      const response = await apiRequest('PUT', '/api/user/settings', {
+        theme: settingsData.theme,
+        notificationSettings: settingsData.notifications,
+        privacySettings: settingsData.privacy,
+        streamingSettings: settingsData.streaming,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/settings'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to save settings",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSaveSettings = () => {
-    // TODO: Implement settings save to backend
-    toast({
-      title: "Settings saved",
-      description: "Your preferences have been updated successfully."
-    });
+    saveSettingsMutation.mutate(preferences);
   };
 
   const handleResetToDefaults = () => {
@@ -84,21 +143,57 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     });
   };
 
+  const exportDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/user/export-data', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Data export requested",
+        description: "Your data export will be emailed to you within 24 hours."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to export data",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleExportData = () => {
-    // TODO: Implement data export functionality
-    toast({
-      title: "Data export requested",
-      description: "Your data export will be emailed to you within 24 hours."
-    });
+    exportDataMutation.mutate();
   };
 
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', '/api/user/account', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
+        variant: "destructive"
+      });
+      // Redirect to login after account deletion
+      window.location.href = '/api/logout';
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete account",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleDeleteAccount = () => {
-    // TODO: Implement account deletion confirmation
-    toast({
-      title: "Account deletion",
-      description: "Please contact support to delete your account.",
-      variant: "destructive"
-    });
+    if (window.confirm('Are you sure you want to permanently delete your account? This action cannot be undone.')) {
+      deleteAccountMutation.mutate();
+    }
   };
 
   return (

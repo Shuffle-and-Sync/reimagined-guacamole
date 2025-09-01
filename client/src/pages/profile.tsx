@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useParams } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -187,20 +187,39 @@ export default function Profile() {
     updateProfileMutation.mutate(editedProfile);
   };
 
+  const addFriendMutation = useMutation({
+    mutationFn: async (addresseeId: string) => {
+      const response = await apiRequest('POST', '/api/friend-requests', { addresseeId });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Friend request sent!",
+        description: `Your friend request has been sent to ${profileUser?.firstName || 'this user'}. They'll receive a notification.`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/friend-requests'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send friend request",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddFriend = () => {
-    toast({
-      title: "Friend request sent!",
-      description: `Your friend request has been sent to ${profileUser?.firstName || 'this user'}. They'll receive a notification.`
-    });
-    // TODO: Implement friend request API
+    if (profileUser?.id) {
+      addFriendMutation.mutate(profileUser.id);
+    }
   };
 
+  const [, setLocation] = useLocation();
+
   const handleSendMessage = () => {
-    toast({
-      title: "Opening conversation",
-      description: `Starting a private message thread with ${profileUser?.firstName || 'this user'}...`
-    });
-    // TODO: Navigate to messaging interface
+    if (profileUser?.id) {
+      setLocation(`/social?conversation=${profileUser.id}`);
+    }
   };
 
   // Social links editing functions removed

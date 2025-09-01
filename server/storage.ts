@@ -13,6 +13,7 @@ import {
   userGamingProfiles,
   friendships,
   userActivities,
+  userSettings,
   type User,
   type UpsertUser,
   type Community,
@@ -28,6 +29,7 @@ import {
   type UserGamingProfile,
   type Friendship,
   type UserActivity,
+  type UserSettings,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
@@ -41,9 +43,11 @@ import {
   type InsertUserGamingProfile,
   type InsertFriendship,
   type InsertUserActivity,
+  type InsertUserSettings,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, count, sql } from "drizzle-orm";
+import { eq, and, gte, count, sql, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
 export interface IStorage {
@@ -118,12 +122,19 @@ export interface IStorage {
   
   // Friendship operations
   getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]>;
+  getFriendRequests(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]>;
+  getFriendCount(userId: string): Promise<number>;
   sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship>;
   respondToFriendRequest(friendshipId: string, status: 'accepted' | 'declined' | 'blocked'): Promise<Friendship>;
+  checkFriendshipStatus(userId1: string, userId2: string): Promise<Friendship | undefined>;
   
   // User activity operations
   getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]>;
   createUserActivity(data: InsertUserActivity): Promise<UserActivity>;
+  
+  // User settings operations
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  upsertUserSettings(data: InsertUserSettings): Promise<UserSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -661,7 +672,11 @@ export class DatabaseStorage implements IStorage {
     }
 
     const r = results[0];
-    return { ...r.gameSession, host: r.host, event: r.event };
+    return { 
+      ...r.gameSession, 
+      host: r.host as User, 
+      event: r.event as Event 
+    };
   }
 
   async getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
@@ -700,7 +715,11 @@ export class DatabaseStorage implements IStorage {
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map((r: { gameSession: any; host: any; event: any }) => ({ ...r.gameSession, host: r.host, event: r.event }));
+    return results.map((r: { gameSession: any; host: any; event: any }) => ({ 
+      ...r.gameSession, 
+      host: r.host as User, 
+      event: r.event as Event 
+    }));
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -794,16 +813,105 @@ export class DatabaseStorage implements IStorage {
   
   // Friendship operations
   async getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]> {
-    // This is a simplified implementation - would need proper joins
-    const result = await db
-      .select()
+    const requesterUser = alias(users, 'requesterUser');
+    const addresseeUser = alias(users, 'addresseeUser');
+    
+    const results = await db
+      .select({
+        id: friendships.id,
+        requesterId: friendships.requesterId,
+        addresseeId: friendships.addresseeId,
+        status: friendships.status,
+        createdAt: friendships.createdAt,
+        updatedAt: friendships.updatedAt,
+        requester: requesterUser,
+        addressee: addresseeUser,
+      })
+      .from(friendships)
+      .innerJoin(requesterUser, eq(friendships.requesterId, requesterUser.id))
+      .innerJoin(addresseeUser, eq(friendships.addresseeId, addresseeUser.id))
+      .where(
+        and(
+          eq(friendships.status, 'accepted'),
+          or(
+            eq(friendships.requesterId, userId),
+            eq(friendships.addresseeId, userId)
+          )
+        )
+      );
+    
+    return results.map(r => ({
+      ...r,
+      requester: r.requester as User,
+      addressee: r.addressee as User,
+    }));
+  }
+
+  async getFriendRequests(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]> {
+    const requesterUser = alias(users, 'requesterUser');
+    const addresseeUser = alias(users, 'addresseeUser');
+    
+    const results = await db
+      .select({
+        id: friendships.id,
+        requesterId: friendships.requesterId,
+        addresseeId: friendships.addresseeId,
+        status: friendships.status,
+        createdAt: friendships.createdAt,
+        updatedAt: friendships.updatedAt,
+        requester: requesterUser,
+        addressee: addresseeUser,
+      })
+      .from(friendships)
+      .innerJoin(requesterUser, eq(friendships.requesterId, requesterUser.id))
+      .innerJoin(addresseeUser, eq(friendships.addresseeId, addresseeUser.id))
+      .where(
+        and(
+          eq(friendships.status, 'pending'),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+    
+    return results.map(r => ({
+      ...r,
+      requester: r.requester as User,
+      addressee: r.addressee as User,
+    }));
+  }
+
+  async getFriendCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count(friendships.id) })
       .from(friendships)
       .where(
         and(
-          eq(friendships.status, 'accepted')
+          eq(friendships.status, 'accepted'),
+          or(
+            eq(friendships.requesterId, userId),
+            eq(friendships.addresseeId, userId)
+          )
         )
       );
-    return result as (Friendship & { requester: User; addressee: User })[];
+    return result?.count || 0;
+  }
+
+  async checkFriendshipStatus(userId1: string, userId2: string): Promise<Friendship | undefined> {
+    const [friendship] = await db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          and(
+            eq(friendships.requesterId, userId1),
+            eq(friendships.addresseeId, userId2)
+          ),
+          and(
+            eq(friendships.requesterId, userId2),
+            eq(friendships.addresseeId, userId1)
+          )
+        )
+      );
+    return friendship;
   }
 
   async sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
@@ -870,6 +978,33 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return activity;
+  }
+  
+  // User settings operations
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
+    return settings;
+  }
+
+  async upsertUserSettings(data: InsertUserSettings): Promise<UserSettings> {
+    const [settings] = await db
+      .insert(userSettings)
+      .values(data)
+      .onConflictDoUpdate({
+        target: userSettings.userId,
+        set: {
+          theme: data.theme,
+          notificationSettings: data.notificationSettings,
+          privacySettings: data.privacySettings,
+          streamingSettings: data.streamingSettings,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return settings;
   }
 }
 

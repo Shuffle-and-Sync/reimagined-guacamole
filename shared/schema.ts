@@ -242,6 +242,34 @@ export const userActivities = pgTable("user_activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User settings and preferences
+export const userSettings = pgTable("user_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  theme: varchar("theme").default("system"), // system, light, dark
+  notificationSettings: jsonb("notification_settings").default({
+    email: true,
+    browser: true,
+    eventReminders: true,
+    socialUpdates: false,
+    weeklyDigest: true
+  }),
+  privacySettings: jsonb("privacy_settings").default({
+    profileVisible: true,
+    showOnlineStatus: true,
+    allowDirectMessages: true,
+    shareStreamingActivity: true
+  }),
+  streamingSettings: jsonb("streaming_settings").default({
+    defaultQuality: "720p",
+    autoStartRecording: false,
+    chatOverlay: true,
+    showViewerCount: true
+  }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
@@ -258,6 +286,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sentFriendRequests: many(friendships, { relationName: "sentFriendRequests" }),
   receivedFriendRequests: many(friendships, { relationName: "receivedFriendRequests" }),
   activities: many(userActivities),
+  settings: many(userSettings),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -416,6 +445,13 @@ export const userActivitiesRelations = relations(userActivities, ({ one }) => ({
   }),
 }));
 
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [userSettings.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -494,6 +530,12 @@ export const insertUserActivitySchema = createInsertSchema(userActivities).omit(
   createdAt: true,
 });
 
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -510,6 +552,7 @@ export type UserSocialLink = typeof userSocialLinks.$inferSelect;
 export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
 export type Friendship = typeof friendships.$inferSelect;
 export type UserActivity = typeof userActivities.$inferSelect;
+export type UserSettings = typeof userSettings.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -525,3 +568,4 @@ export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
 export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSchema>;
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;

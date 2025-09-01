@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...user,
         communities: userCommunities,
         isOwnProfile: currentUserId === targetUserId,
-        friendCount: 0, // TODO: implement friend count
+        friendCount: await storage.getFriendCount(targetUserId),
       });
     } catch (error) {
       logger.error("Failed to fetch user profile", error, { currentUserId: authenticatedReq.user.claims.sub, targetUserId: req.params.userId });
@@ -173,6 +173,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error("Failed to fetch gaming profiles", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to fetch gaming profiles" });
+    }
+  });
+
+  // Friendship routes
+  app.get('/api/friends', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const friends = await storage.getFriends(userId);
+      res.json(friends);
+    } catch (error) {
+      logger.error("Failed to fetch friends", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch friends" });
+    }
+  });
+
+  app.get('/api/friend-requests', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const friendRequests = await storage.getFriendRequests(userId);
+      res.json(friendRequests);
+    } catch (error) {
+      logger.error("Failed to fetch friend requests", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch friend requests" });
+    }
+  });
+
+  app.post('/api/friend-requests', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const requesterId = authenticatedReq.user.claims.sub;
+      const { addresseeId } = req.body;
+      
+      if (!addresseeId) {
+        return res.status(400).json({ message: "Addressee ID is required" });
+      }
+
+      if (requesterId === addresseeId) {
+        return res.status(400).json({ message: "Cannot send friend request to yourself" });
+      }
+
+      // Check if friendship already exists
+      const existingFriendship = await storage.checkFriendshipStatus(requesterId, addresseeId);
+      if (existingFriendship) {
+        return res.status(400).json({ message: "Friendship request already exists" });
+      }
+
+      const friendship = await storage.sendFriendRequest(requesterId, addresseeId);
+      
+      // Create notification for the addressee
+      await storage.createNotification({
+        userId: addresseeId,
+        type: 'friend_request',
+        title: 'New Friend Request',
+        message: `You have a new friend request`,
+        data: { friendshipId: friendship.id, requesterId },
+      });
+      
+      res.status(201).json(friendship);
+    } catch (error) {
+      logger.error("Failed to send friend request", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to send friend request" });
+    }
+  });
+
+  app.put('/api/friend-requests/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['accepted', 'declined', 'blocked'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const friendship = await storage.respondToFriendRequest(id, status);
+      
+      // Create notification for the requester if accepted
+      if (status === 'accepted') {
+        await storage.createNotification({
+          userId: friendship.requesterId,
+          type: 'friend_accepted',
+          title: 'Friend Request Accepted',
+          message: `Your friend request was accepted`,
+          data: { friendshipId: friendship.id },
+        });
+      }
+      
+      res.json(friendship);
+    } catch (error) {
+      logger.error("Failed to respond to friend request", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to respond to friend request" });
+    }
+  });
+
+  app.delete('/api/friends/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { id } = req.params;
+      
+      // First check if the user is part of this friendship
+      const friendship = await storage.checkFriendshipStatus(userId, id);
+      if (!friendship) {
+        return res.status(404).json({ message: "Friendship not found" });
+      }
+
+      await storage.respondToFriendRequest(friendship.id, 'declined');
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to remove friend", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to remove friend" });
+    }
+  });
+
+  // User settings routes
+  app.get('/api/user/settings', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const settings = await storage.getUserSettings(userId);
+      res.json(settings);
+    } catch (error) {
+      logger.error("Failed to fetch user settings", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.put('/api/user/settings', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const settingsData = { ...req.body, userId };
+      
+      const settings = await storage.upsertUserSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      logger.error("Failed to update user settings", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
+  // Data export route
+  app.post('/api/user/export-data', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // TODO: In production, this would generate and email a data export
+      // For now, we'll just confirm the request
+      logger.info("Data export requested", { userId });
+      
+      res.json({ 
+        message: "Data export requested successfully",
+        status: "pending" 
+      });
+    } catch (error) {
+      logger.error("Failed to export user data", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  // Account deletion route  
+  app.delete('/api/user/account', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // TODO: In production, implement actual account deletion
+      // This would need to carefully delete user data from all tables
+      logger.info("Account deletion requested", { userId });
+      
+      res.json({ 
+        message: "Account deletion requested successfully",
+        status: "pending" 
+      });
+    } catch (error) {
+      logger.error("Failed to delete user account", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to delete account" });
     }
   });
 
