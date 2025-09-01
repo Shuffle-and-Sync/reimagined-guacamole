@@ -61,20 +61,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     if (userSettings) {
       setPreferences({
         theme: userSettings.theme || "system",
-        notifications: userSettings.notificationSettings || {
+        notifications: (userSettings.notificationSettings as any) || {
           email: true,
           browser: true,
           eventReminders: true,
           socialUpdates: false,
           weeklyDigest: true
         },
-        privacy: userSettings.privacySettings || {
+        privacy: (userSettings.privacySettings as any) || {
           profileVisible: true,
           showOnlineStatus: true,
           allowDirectMessages: true,
           shareStreamingActivity: true
         },
-        streaming: userSettings.streamingSettings || {
+        streaming: (userSettings.streamingSettings as any) || {
           defaultQuality: "720p",
           autoStartRecording: false,
           chatOverlay: true,

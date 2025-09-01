@@ -820,7 +820,7 @@ export default function Profile() {
                       <h3 className="text-lg font-semibold mb-2">Friends System</h3>
                       <p className="text-muted-foreground mb-4">Connect with other players</p>
                       {!isOwnProfile && (
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={handleAddFriend} data-testid="button-send-friend-request">
                           <i className="fas fa-user-plus mr-2"></i>
                           Send Friend Request
                         </Button>
