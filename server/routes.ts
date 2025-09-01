@@ -1309,7 +1309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }));
             
             // Broadcast to all players in room
-            gameRooms.get(sessionId)?.forEach(client => {
+            gameRooms.get(sessionId)?.forEach((client: any) => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
                   type: 'player_joined',
@@ -1339,7 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               };
               
-              room.forEach(client => {
+              room.forEach((client: any) => {
                 if (client.readyState === WebSocket.OPEN) {
                   client.send(JSON.stringify(chatMessage));
                 }

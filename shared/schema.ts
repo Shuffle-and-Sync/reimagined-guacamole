@@ -349,7 +349,7 @@ export const forumReplies = pgTable("forum_replies", {
   postId: varchar("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
   authorId: varchar("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  parentReplyId: varchar("parent_reply_id").references(() => forumReplies.id, { onDelete: "cascade" }), // For nested replies
+  parentReplyId: varchar("parent_reply_id"), // For nested replies - self reference added later
   likeCount: integer("like_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -373,7 +373,7 @@ export const forumPostLikes = pgTable("forum_post_likes", {
 // Forum reply likes table for tracking user likes on replies
 export const forumReplyLikes = pgTable("forum_reply_likes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  replyId: varchar("reply_id").notNull().references(() => forumReplies.id, { onDelete: "cascade" }),
+  replyId: varchar("reply_id").notNull(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [

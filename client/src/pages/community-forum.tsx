@@ -62,19 +62,43 @@ export default function CommunityForum() {
 
   // Fetch forum posts for selected community
   const { data: posts = [], isLoading: postsLoading, refetch: refetchPosts } = useQuery<ExtendedForumPost[]>({
-    queryKey: ['/api/forum/posts', { communityId: selectedCommunity?.id, category: selectedCategory !== 'all' ? selectedCategory : undefined }],
+    queryKey: ['/api/forum/posts', selectedCommunity?.id, selectedCategory],
+    queryFn: async () => {
+      if (!selectedCommunity) return [];
+      const params = new URLSearchParams({
+        communityId: selectedCommunity.id,
+        ...(selectedCategory !== 'all' && { category: selectedCategory }),
+      });
+      const response = await fetch(`/api/forum/posts?${params}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch posts');
+      return response.json();
+    },
     enabled: !!selectedCommunity,
   });
 
   // Fetch detailed post when one is selected
   const { data: currentPost, isLoading: postLoading, refetch: refetchCurrentPost } = useQuery<ExtendedForumPost>({
-    queryKey: ['/api/forum/posts', selectedPost, { userId: user?.id }],
+    queryKey: ['/api/forum/posts', selectedPost],
+    queryFn: async () => {
+      if (!selectedPost || !user) return null;
+      const params = new URLSearchParams({ userId: user.id });
+      const response = await fetch(`/api/forum/posts/${selectedPost}?${params}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch post');
+      return response.json();
+    },
     enabled: !!selectedPost && !!user,
   });
 
   // Fetch replies for current post
   const { data: replies = [], isLoading: repliesLoading, refetch: refetchReplies } = useQuery<ExtendedForumReply[]>({
-    queryKey: ['/api/forum/posts', selectedPost, 'replies', { userId: user?.id }],
+    queryKey: ['/api/forum/posts', selectedPost, 'replies'],
+    queryFn: async () => {
+      if (!selectedPost || !user) return [];
+      const params = new URLSearchParams({ userId: user.id });
+      const response = await fetch(`/api/forum/posts/${selectedPost}/replies?${params}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch replies');
+      return response.json();
+    },
     enabled: !!selectedPost && !!user,
   });
 
@@ -268,13 +292,13 @@ export default function CommunityForum() {
                             <Avatar className="h-6 w-6">
                               <AvatarImage src={currentPost.author.profileImageUrl || undefined} />
                               <AvatarFallback className="text-xs">
-                                {currentPost.author.displayName?.[0] || currentPost.author.username?.[0] || "U"}
+                                {(currentPost.author.firstName || currentPost.author.username || currentPost.author.email)?.[0]?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{currentPost.author.displayName || currentPost.author.username}</span>
+                            <span>{currentPost.author.firstName || currentPost.author.username || currentPost.author.email}</span>
                           </div>
                           <span>•</span>
-                          <span>{formatDistanceToNow(new Date(currentPost.createdAt))} ago</span>
+                          <span>{formatDistanceToNow(currentPost.createdAt || new Date())} ago</span>
                           <span>•</span>
                           <span>{currentPost.viewCount} views</span>
                         </div>
@@ -317,7 +341,7 @@ export default function CommunityForum() {
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={user.profileImageUrl || undefined} />
                             <AvatarFallback className="text-xs">
-                              {user.displayName?.[0] || user.username?.[0] || "U"}
+                              {(user.firstName || user.username || user.email)?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 space-y-2">
@@ -352,16 +376,16 @@ export default function CommunityForum() {
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={reply.author.profileImageUrl || undefined} />
                               <AvatarFallback className="text-xs">
-                                {reply.author.displayName?.[0] || reply.author.username?.[0] || "U"}
+                                {(reply.author.firstName || reply.author.username || reply.author.email)?.[0]?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium">
-                                  {reply.author.displayName || reply.author.username}
+                                  {reply.author.firstName || reply.author.username || reply.author.email}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {formatDistanceToNow(new Date(reply.createdAt))} ago
+                                  {formatDistanceToNow(reply.createdAt || new Date())} ago
                                 </span>
                               </div>
                               <div className="prose prose-sm max-w-none dark:prose-invert">
@@ -566,13 +590,13 @@ export default function CommunityForum() {
                             <Avatar className="h-5 w-5">
                               <AvatarImage src={post.author.profileImageUrl || undefined} />
                               <AvatarFallback className="text-xs">
-                                {post.author.displayName?.[0] || post.author.username?.[0] || "U"}
+                                {(post.author.firstName || post.author.username || post.author.email)?.[0]?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{post.author.displayName || post.author.username}</span>
+                            <span>{post.author.firstName || post.author.username || post.author.email}</span>
                           </div>
                           <span>•</span>
-                          <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
+                          <span>{formatDistanceToNow(post.createdAt || new Date())} ago</span>
                           <span>•</span>
                           <span>{post.viewCount} views</span>
                         </div>
