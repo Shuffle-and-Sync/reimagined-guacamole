@@ -73,6 +73,14 @@ export default function GameRoom() {
   const ws = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<GameMessage[]>([]);
   const [connectedPlayers, setConnectedPlayers] = useState<any[]>([]);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [videoLayout, setVideoLayout] = useState<'grid' | 'focused'>('grid');
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
 
   const sessionId = params.id;
 
@@ -81,6 +89,56 @@ export default function GameRoom() {
     queryKey: ['/api/game-sessions', sessionId],
     enabled: !!sessionId,
   });
+
+  // Initialize camera and microphone
+  useEffect(() => {
+    if (!user) return;
+
+    const initializeMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        });
+        
+        setLocalStream(stream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera/microphone:', error);
+        toast({
+          title: "Camera access required",
+          description: "Please allow camera and microphone access for video chat.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initializeMedia();
+    
+    // Start WebRTC connections for existing players
+    if (connectedPlayers.length > 0) {
+      connectedPlayers.forEach(player => {
+        if (player.id !== user.id) {
+          createPeerConnection(player.id);
+        }
+      });
+    }
+
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [user]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -118,12 +176,31 @@ export default function GameRoom() {
             title: "Player joined",
             description: `${data.player.name} joined the game room`
           });
+          
+          // Create WebRTC connection for new player
+          if (data.player?.id !== user?.id && localStream) {
+            setTimeout(() => createPeerConnection(data.player.id), 1000);
+          }
           break;
         case 'player_left':
           setConnectedPlayers(data.players);
           toast({
             title: "Player left",
             description: `${data.player.name} left the game room`
+          });
+          
+          // Clean up WebRTC connection
+          const peerConnection = peerConnections.current.get(data.player.id);
+          if (peerConnection) {
+            peerConnection.close();
+            peerConnections.current.delete(data.player.id);
+          }
+          
+          // Remove remote stream
+          setRemoteStreams(prev => {
+            const newStreams = new Map(prev);
+            newStreams.delete(data.player.id);
+            return newStreams;
           });
           break;
         case 'game_action':
@@ -133,6 +210,28 @@ export default function GameRoom() {
               description: `${data.player} rolled a ${data.result}`
             });
           }
+          break;
+          
+        case 'webrtc_offer':
+          handleWebRTCOffer(data);
+          break;
+          
+        case 'webrtc_answer':
+          handleWebRTCAnswer(data);
+          break;
+          
+        case 'webrtc_ice_candidate':
+          handleICECandidate(data);
+          break;
+          
+        case 'camera_status':
+          // Update UI to show camera status for other players
+          console.log(`Player ${data.playerName} ${data.cameraOn ? 'enabled' : 'disabled'} camera`);
+          break;
+          
+        case 'mic_status':
+          // Update UI to show microphone status for other players
+          console.log(`Player ${data.playerName} ${data.micOn ? 'enabled' : 'disabled'} microphone`);
           break;
         case 'turn_change':
           toast({
@@ -242,6 +341,118 @@ export default function GameRoom() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // WebRTC Functions
+  const createPeerConnection = async (playerId: string) => {
+    if (peerConnections.current.has(playerId)) return;
+
+    const peerConnection = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+    peerConnections.current.set(playerId, peerConnection);
+
+    // Add local stream to peer connection
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+
+    // Handle remote stream
+    peerConnection.ontrack = (event) => {
+      const [remoteStream] = event.streams;
+      setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
+      
+      // Set video element source
+      const videoElement = remoteVideoRefs.current.get(playerId);
+      if (videoElement) {
+        videoElement.srcObject = remoteStream;
+      }
+    };
+
+    // Handle ICE candidates
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && ws.current) {
+        ws.current.send(JSON.stringify({
+          type: 'webrtc_ice_candidate',
+          targetPlayer: playerId,
+          candidate: event.candidate,
+          sessionId
+        }));
+      }
+    };
+
+    // Create and send offer
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      
+      ws.current?.send(JSON.stringify({
+        type: 'webrtc_offer',
+        targetPlayer: playerId,
+        offer: offer,
+        sessionId
+      }));
+    } catch (error) {
+      console.error('Error creating WebRTC offer:', error);
+    }
+  };
+
+  const handleWebRTCOffer = async (data: any) => {
+    const { fromPlayer, offer } = data;
+    
+    if (!peerConnections.current.has(fromPlayer)) {
+      await createPeerConnection(fromPlayer);
+    }
+    
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(offer);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        
+        ws.current?.send(JSON.stringify({
+          type: 'webrtc_answer',
+          targetPlayer: fromPlayer,
+          answer: answer,
+          sessionId
+        }));
+      } catch (error) {
+        console.error('Error handling WebRTC offer:', error);
+      }
+    }
+  };
+
+  const handleWebRTCAnswer = async (data: any) => {
+    const { fromPlayer, answer } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(answer);
+      } catch (error) {
+        console.error('Error handling WebRTC answer:', error);
+      }
+    }
+  };
+
+  const handleICECandidate = async (data: any) => {
+    const { fromPlayer, candidate } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.addIceCandidate(candidate);
+      } catch (error) {
+        console.error('Error adding ICE candidate:', error);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -343,6 +554,167 @@ export default function GameRoom() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* Video Chat Section */}
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <i className="fas fa-video text-blue-500"></i>
+                    Video Chat ({connectedPlayers.length + 1}/4 players)
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={isCameraOn ? "default" : "destructive"}
+                      size="sm"
+                      onClick={() => {
+                        if (localStream) {
+                          const videoTrack = localStream.getVideoTracks()[0];
+                          if (videoTrack) {
+                            videoTrack.enabled = !isCameraOn;
+                            setIsCameraOn(!isCameraOn);
+                          }
+                        }
+                      }}
+                      data-testid="button-toggle-camera"
+                    >
+                      <i className={`fas ${isCameraOn ? 'fa-video' : 'fa-video-slash'} mr-2`}></i>
+                      {isCameraOn ? 'Camera On' : 'Camera Off'}
+                    </Button>
+                    <Button
+                      variant={isMicOn ? "default" : "destructive"}
+                      size="sm"
+                      onClick={() => {
+                        if (localStream) {
+                          const audioTrack = localStream.getAudioTracks()[0];
+                          if (audioTrack) {
+                            audioTrack.enabled = !isMicOn;
+                            setIsMicOn(!isMicOn);
+                          }
+                        }
+                      }}
+                      data-testid="button-toggle-mic"
+                    >
+                      <i className={`fas ${isMicOn ? 'fa-microphone' : 'fa-microphone-slash'} mr-2`}></i>
+                      {isMicOn ? 'Mic On' : 'Mic Off'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setVideoLayout(videoLayout === 'grid' ? 'focused' : 'grid')}
+                      data-testid="button-toggle-layout"
+                    >
+                      <i className={`fas ${videoLayout === 'grid' ? 'fa-expand' : 'fa-th'} mr-2`}></i>
+                      {videoLayout === 'grid' ? 'Focus Mode' : 'Grid View'}
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className={`grid gap-4 ${videoLayout === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Local Video (Your Camera) */}
+                  <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                      data-testid="video-local"
+                    />
+                    <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                      <i className="fas fa-user mr-1"></i>
+                      You ({user?.firstName || 'Player'})
+                    </div>
+                    {!isCameraOn && (
+                      <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <i className="fas fa-video-slash text-4xl mb-2"></i>
+                          <p>Camera Off</p>
+                        </div>
+                      </div>
+                    )}
+                    {!isMicOn && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded">
+                        <i className="fas fa-microphone-slash text-sm"></i>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Remote Videos (Other Players) */}
+                  {connectedPlayers.map((player, index) => {
+                    const hasStream = remoteStreams.has(player.id);
+                    return (
+                      <div key={player.id} className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                        {hasStream ? (
+                          <video
+                            ref={(ref) => {
+                              if (ref && remoteStreams.get(player.id)) {
+                                ref.srcObject = remoteStreams.get(player.id)!;
+                                remoteVideoRefs.current.set(player.id, ref);
+                              }
+                            }}
+                            autoPlay
+                            playsInline
+                            className="w-full h-full object-cover"
+                            data-testid={`video-remote-${player.id}`}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-white">
+                            <div className="text-center">
+                              <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mb-2 mx-auto">
+                                {player.avatar ? (
+                                  <img src={player.avatar} alt={player.name} className="w-full h-full rounded-full object-cover" />
+                                ) : (
+                                  <span className="text-xl font-bold">{player.name?.charAt(0).toUpperCase()}</span>
+                                )}
+                              </div>
+                              <p className="text-sm">{player.name}</p>
+                              <p className="text-xs text-gray-400">
+                                <i className="fas fa-spinner animate-spin mr-1"></i>
+                                Connecting camera...
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                          <i className="fas fa-user mr-1"></i>
+                          {player.name}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Empty Slots */}
+                  {Array.from({ length: Math.max(0, 3 - connectedPlayers.length) }, (_, index) => (
+                    <div key={`empty-${index}`} className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden aspect-video border-2 border-dashed border-gray-300 dark:border-gray-600">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center text-gray-500">
+                          <i className="fas fa-user-plus text-3xl mb-2"></i>
+                          <p className="text-sm">Waiting for player...</p>
+                          <p className="text-xs">Invite friends to join</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Video Tips */}
+                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-3">
+                    <i className="fas fa-lightbulb text-blue-500 mt-1"></i>
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">Video Chat Tips</p>
+                      <p className="text-blue-600 dark:text-blue-400">
+                        Position your camera to show your playing area clearly. Use good lighting and ensure your cards are visible to other players.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -843,6 +843,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
             break;
+            
+          case 'webrtc_offer':
+            const offerRoom = gameRooms.get(message.sessionId);
+            if (offerRoom) {
+              // Relay offer to target player
+              offerRoom.forEach(client => {
+                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'webrtc_offer',
+                    fromPlayer: (ws as any).userId,
+                    offer: message.offer
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'webrtc_answer':
+            const answerRoom = gameRooms.get(message.sessionId);
+            if (answerRoom) {
+              // Relay answer to target player
+              answerRoom.forEach(client => {
+                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'webrtc_answer',
+                    fromPlayer: (ws as any).userId,
+                    answer: message.answer
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'webrtc_ice_candidate':
+            const iceRoom = gameRooms.get(message.sessionId);
+            if (iceRoom) {
+              // Relay ICE candidate to target player
+              iceRoom.forEach(client => {
+                if ((client as any).userId === message.targetPlayer && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'webrtc_ice_candidate',
+                    fromPlayer: (ws as any).userId,
+                    candidate: message.candidate
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'camera_toggle':
+            const cameraRoom = gameRooms.get(message.sessionId);
+            if (cameraRoom) {
+              // Notify other players about camera status
+              cameraRoom.forEach(client => {
+                if ((client as any).userId !== (ws as any).userId && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'camera_status',
+                    playerId: (ws as any).userId,
+                    playerName: message.user.name,
+                    cameraOn: message.cameraOn
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'mic_toggle':
+            const micRoom = gameRooms.get(message.sessionId);
+            if (micRoom) {
+              // Notify other players about microphone status
+              micRoom.forEach(client => {
+                if ((client as any).userId !== (ws as any).userId && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'mic_status',
+                    playerId: (ws as any).userId,
+                    playerName: message.user.name,
+                    micOn: message.micOn
+                  }));
+                }
+              });
+            }
+            break;
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
