@@ -222,6 +222,87 @@ export default function Profile() {
     }
   };
 
+  // Export data mutation
+  const exportDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('GET', '/api/user/export-data');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const dataStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shuffle-sync-user-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Data exported successfully",
+        description: "Your complete user data has been downloaded"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Export failed",
+        description: error.message || "Could not export your data",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete account mutation
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const confirmed = window.confirm(
+        "Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete all your data, including:\n\n• Profile information\n• Game history and statistics\n• Tournament participation\n• Friends and connections\n• All messages and activity\n\nType 'DELETE' to confirm:"
+      );
+      
+      if (!confirmed) {
+        throw new Error("Account deletion cancelled");
+      }
+      
+      const confirmationText = window.prompt("Please type 'DELETE' to confirm account deletion:");
+      if (confirmationText !== 'DELETE') {
+        throw new Error("Account deletion cancelled - confirmation text did not match");
+      }
+      
+      const response = await apiRequest('DELETE', '/api/user/account');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Account deleted",
+        description: "Your account and all associated data have been permanently deleted"
+      });
+      // Redirect to landing page after successful deletion
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    },
+    onError: (error: any) => {
+      if (error.message.includes("cancelled")) {
+        return; // Don't show error for user cancellation
+      }
+      toast({
+        title: "Account deletion failed",
+        description: error.message || "Could not delete your account",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleExportData = () => {
+    exportDataMutation.mutate();
+  };
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate();
+  };
+
   // Social links editing functions removed
 
   const getUserInitials = (user?: User) => {
@@ -1000,6 +1081,75 @@ export default function Profile() {
                 >
                   Cancel
                 </Button>
+              </div>
+
+              {/* Data Export and Account Deletion */}
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-destructive">Data Management</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Export Your Data</CardTitle>
+                      <CardDescription className="text-xs">
+                        Download all your profile data, game history, and preferences
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleExportData}
+                        disabled={exportDataMutation.isPending}
+                        data-testid="button-export-data"
+                        className="w-full"
+                      >
+                        {exportDataMutation.isPending ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                            Preparing...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-download mr-2"></i>
+                            Export Data
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-destructive">
+                    <CardHeader>
+                      <CardTitle className="text-sm text-destructive">Delete Account</CardTitle>
+                      <CardDescription className="text-xs">
+                        Permanently delete your account and all associated data
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={handleDeleteAccount}
+                        disabled={deleteAccountMutation.isPending}
+                        data-testid="button-delete-account"
+                        className="w-full"
+                      >
+                        {deleteAccountMutation.isPending ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-trash mr-2"></i>
+                            Delete Account
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </CardContent>
           </Card>

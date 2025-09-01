@@ -317,20 +317,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Data export route
-  app.post('/api/user/export-data', isAuthenticated, async (req, res) => {
+  // Matchmaking routes
+  app.get('/api/matchmaking/preferences', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const preferences = await storage.getMatchmakingPreferences(userId);
+      res.json(preferences);
+    } catch (error) {
+      logger.error("Failed to fetch matchmaking preferences", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch preferences" });
+    }
+  });
+
+  app.put('/api/matchmaking/preferences', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const preferencesData = { ...req.body, userId };
+      
+      const preferences = await storage.upsertMatchmakingPreferences(preferencesData);
+      res.json(preferences);
+    } catch (error) {
+      logger.error("Failed to update matchmaking preferences", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to update preferences" });
+    }
+  });
+
+  app.post('/api/matchmaking/find-players', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = authenticatedReq.user.claims.sub;
       
-      // TODO: In production, this would generate and email a data export
-      // For now, we'll just confirm the request
-      logger.info("Data export requested", { userId });
+      // Get user's current preferences or use request body preferences
+      let preferences = await storage.getMatchmakingPreferences(userId);
+      if (!preferences) {
+        // Create default preferences if none exist
+        preferences = await storage.upsertMatchmakingPreferences({
+          userId,
+          selectedGames: req.body.selectedGames || ["MTG"],
+          selectedFormats: req.body.selectedFormats || ["commander"],
+          powerLevelMin: req.body.powerLevelMin || 1,
+          powerLevelMax: req.body.powerLevelMax || 10,
+          playstyle: req.body.playstyle || "any",
+          location: req.body.location || null,
+          onlineOnly: req.body.onlineOnly || false,
+          availability: req.body.availability || "any",
+          language: req.body.language || "english",
+          maxDistance: req.body.maxDistance || 50,
+        });
+      }
       
-      res.json({ 
-        message: "Data export requested successfully",
-        status: "pending" 
-      });
+      const matches = await storage.findMatchingPlayers(userId, preferences);
+      res.json(matches);
+    } catch (error) {
+      logger.error("Failed to find matching players", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to find matches" });
+    }
+  });
+
+  // Tournament routes
+  app.get('/api/tournaments', async (req, res) => {
+    try {
+      const communityId = req.query.community as string | undefined;
+      const tournaments = await storage.getTournaments(communityId);
+      res.json(tournaments);
+    } catch (error) {
+      logger.error("Failed to fetch tournaments", error);
+      res.status(500).json({ message: "Failed to fetch tournaments" });
+    }
+  });
+
+  app.get('/api/tournaments/:id', async (req, res) => {
+    try {
+      const tournamentId = req.params.id;
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        return res.status(404).json({ message: "Tournament not found" });
+      }
+      res.json(tournament);
+    } catch (error) {
+      logger.error("Failed to fetch tournament", error, { tournamentId: req.params.id });
+      res.status(500).json({ message: "Failed to fetch tournament" });
+    }
+  });
+
+  app.post('/api/tournaments', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const tournamentData = { ...req.body, organizerId: userId };
+      
+      const tournament = await storage.createTournament(tournamentData);
+      res.json(tournament);
+    } catch (error) {
+      logger.error("Failed to create tournament", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to create tournament" });
+    }
+  });
+
+  app.post('/api/tournaments/:id/join', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const tournamentId = req.params.id;
+      
+      const participant = await storage.joinTournament(tournamentId, userId);
+      res.json(participant);
+    } catch (error) {
+      logger.error("Failed to join tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+      res.status(500).json({ message: "Failed to join tournament" });
+    }
+  });
+
+  app.delete('/api/tournaments/:id/leave', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const tournamentId = req.params.id;
+      
+      const success = await storage.leaveTournament(tournamentId, userId);
+      if (success) {
+        res.json({ message: "Left tournament successfully" });
+      } else {
+        res.status(404).json({ message: "Tournament participation not found" });
+      }
+    } catch (error) {
+      logger.error("Failed to leave tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+      res.status(500).json({ message: "Failed to leave tournament" });
+    }
+  });
+
+  // Analytics routes
+  app.get('/api/analytics', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // Get analytics data for the current user
+      const analytics = await storage.getAnalyticsData(userId);
+      res.json(analytics);
+    } catch (error) {
+      logger.error("Failed to fetch analytics", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Data export route
+  app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // Get comprehensive user data for export
+      const userData = await storage.exportUserData(userId);
+      
+      logger.info("Data export completed", { userId });
+      res.json(userData);
     } catch (error) {
       logger.error("Failed to export user data", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to export data" });
@@ -343,14 +486,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = authenticatedReq.user.claims.sub;
       
-      // TODO: In production, implement actual account deletion
-      // This would need to carefully delete user data from all tables
-      logger.info("Account deletion requested", { userId });
+      // Perform cascade deletion of user data
+      const success = await storage.deleteUserAccount(userId);
       
-      res.json({ 
-        message: "Account deletion requested successfully",
-        status: "pending" 
-      });
+      if (success) {
+        logger.info("Account deletion completed", { userId });
+        
+        // Clear session and cookies
+        req.session.destroy((err) => {
+          if (err) {
+            logger.error("Failed to destroy session during account deletion", err);
+          }
+        });
+        
+        res.clearCookie('connect.sid');
+        res.json({ 
+          message: "Account deleted successfully"
+        });
+      } else {
+        res.status(404).json({ message: "User account not found" });
+      }
     } catch (error) {
       logger.error("Failed to delete user account", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to delete account" });

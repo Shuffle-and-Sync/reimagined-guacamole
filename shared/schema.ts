@@ -270,6 +270,56 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Matchmaking preferences
+export const matchmakingPreferences = pgTable("matchmaking_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  selectedGames: jsonb("selected_games").default(["MTG"]),
+  selectedFormats: jsonb("selected_formats").default(["commander"]),
+  powerLevelMin: integer("power_level_min").default(1),
+  powerLevelMax: integer("power_level_max").default(10),
+  playstyle: varchar("playstyle").default("any"), // casual, focused, competitive, any
+  location: varchar("location"),
+  onlineOnly: boolean("online_only").default(false),
+  availability: varchar("availability").default("any"), // morning, afternoon, evening, night, any
+  language: varchar("language").default("english"),
+  maxDistance: integer("max_distance").default(50), // km for location-based matching
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tournament brackets
+export const tournaments = pgTable("tournaments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  gameFormat: varchar("game_format").notNull(),
+  communityId: varchar("community_id").notNull().references(() => communities.id),
+  organizerId: varchar("organizer_id").notNull().references(() => users.id),
+  maxParticipants: integer("max_participants").default(8),
+  currentParticipants: integer("current_participants").default(0),
+  status: varchar("status").default("upcoming"), // upcoming, active, completed, cancelled
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  bracketData: jsonb("bracket_data"), // Tournament bracket structure
+  prizePool: varchar("prize_pool"),
+  rules: text("rules"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tournamentParticipants = pgTable("tournament_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tournamentId: varchar("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  seed: integer("seed"), // Tournament seeding
+  status: varchar("status").default("registered"), // registered, active, eliminated, winner
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => [
+  index("idx_tournament_participants_tournament_id").on(table.tournamentId),
+  index("idx_tournament_participants_user_id").on(table.userId),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userCommunities: many(userCommunities),
@@ -287,6 +337,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   receivedFriendRequests: many(friendships, { relationName: "receivedFriendRequests" }),
   activities: many(userActivities),
   settings: many(userSettings),
+  matchmakingPreferences: many(matchmakingPreferences),
+  organizedTournaments: many(tournaments, { relationName: "organizedTournaments" }),
+  tournamentParticipation: many(tournamentParticipants),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -452,6 +505,36 @@ export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   }),
 }));
 
+export const matchmakingPreferencesRelations = relations(matchmakingPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [matchmakingPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
+  organizer: one(users, {
+    fields: [tournaments.organizerId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [tournaments.communityId],
+    references: [communities.id],
+  }),
+  participants: many(tournamentParticipants),
+}));
+
+export const tournamentParticipantsRelations = relations(tournamentParticipants, ({ one }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentParticipants.tournamentId],
+    references: [tournaments.id],
+  }),
+  user: one(users, {
+    fields: [tournamentParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -536,6 +619,23 @@ export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
   updatedAt: true,
 });
 
+export const insertMatchmakingPreferencesSchema = createInsertSchema(matchmakingPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentSchema = createInsertSchema(tournaments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants).omit({
+  id: true,
+  joinedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -553,6 +653,9 @@ export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
 export type Friendship = typeof friendships.$inferSelect;
 export type UserActivity = typeof userActivities.$inferSelect;
 export type UserSettings = typeof userSettings.$inferSelect;
+export type MatchmakingPreferences = typeof matchmakingPreferences.$inferSelect;
+export type Tournament = typeof tournaments.$inferSelect;
+export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -569,3 +672,6 @@ export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSche
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+export type InsertMatchmakingPreferences = z.infer<typeof insertMatchmakingPreferencesSchema>;
+export type InsertTournament = z.infer<typeof insertTournamentSchema>;
+export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;

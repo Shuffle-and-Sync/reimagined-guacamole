@@ -80,6 +80,11 @@ export default function GameRoom() {
   const [cameraPermissionGranted, setCameraPermissionGranted] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [videoLayout, setVideoLayout] = useState<'grid' | 'focused'>('grid');
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -354,6 +359,170 @@ export default function GameRoom() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Screen Sharing Functions
+  const startScreenShare = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      });
+      
+      setScreenStream(stream);
+      setIsScreenSharing(true);
+      
+      // Replace video track in all peer connections
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        peerConnections.current.forEach(async (pc, playerId) => {
+          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            await sender.replaceTrack(videoTrack);
+          }
+        });
+      }
+      
+      // Handle screen share end
+      videoTrack.onended = () => {
+        stopScreenShare();
+      };
+      
+      toast({
+        title: "Screen sharing started",
+        description: "Your screen is now being shared with other players"
+      });
+      
+    } catch (error) {
+      console.error('Error starting screen share:', error);
+      toast({
+        title: "Screen sharing failed",
+        description: "Could not start screen sharing. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopScreenShare = async () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
+    setIsScreenSharing(false);
+    
+    // Switch back to camera feed
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        peerConnections.current.forEach(async (pc, playerId) => {
+          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            await sender.replaceTrack(videoTrack);
+          }
+        });
+      }
+    }
+    
+    toast({
+      title: "Screen sharing stopped",
+      description: "Switched back to camera feed"
+    });
+  };
+
+  // Recording Functions
+  const startRecording = async () => {
+    if (!localStream) {
+      toast({
+        title: "Cannot start recording",
+        description: "Please enable your camera first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Create a combined stream with local video and audio
+      const combinedStream = new MediaStream();
+      
+      // Add local tracks
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          combinedStream.addTrack(track);
+        });
+      }
+      
+      // Add remote audio tracks
+      remoteStreams.forEach(stream => {
+        stream.getAudioTracks().forEach(track => {
+          combinedStream.addTrack(track);
+        });
+      });
+      
+      const recorder = new MediaRecorder(combinedStream, {
+        mimeType: 'video/webm;codecs=vp9,opus'
+      });
+      
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `game-session-${sessionId}-${new Date().toISOString().split('T')[0]}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Recording saved",
+          description: "Your game session recording has been downloaded"
+        });
+      };
+      
+      recorder.start(1000); // Collect data every second
+      setMediaRecorder(recorder);
+      setRecordedChunks(chunks);
+      setIsRecording(true);
+      
+      toast({
+        title: "Recording started",
+        description: "Your game session is now being recorded"
+      });
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Recording failed",
+        description: "Could not start recording. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setMediaRecorder(null);
+      setIsRecording(false);
+      
+      toast({
+        title: "Recording stopped",
+        description: "Processing your recording..."
+      });
+    }
   };
 
   // WebRTC Functions
@@ -638,6 +807,25 @@ export default function GameRoom() {
                       <i className={`fas ${videoLayout === 'grid' ? 'fa-expand' : 'fa-th'} mr-2`}></i>
                       {videoLayout === 'grid' ? 'Focus Mode' : 'Grid View'}
                     </Button>
+                    <Button
+                      variant={isScreenSharing ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                      data-testid="button-screen-share"
+                    >
+                      <i className={`fas ${isScreenSharing ? 'fa-stop' : 'fa-desktop'} mr-2`}></i>
+                      {isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
+                    </Button>
+                    <Button
+                      variant={isRecording ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      disabled={!cameraPermissionGranted}
+                      data-testid="button-record"
+                    >
+                      <i className={`fas ${isRecording ? 'fa-stop-circle' : 'fa-record-vinyl'} mr-2`}></i>
+                      {isRecording ? 'Stop Recording' : 'Record Session'}
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -648,7 +836,12 @@ export default function GameRoom() {
                     {cameraPermissionGranted ? (
                       <>
                         <video
-                          ref={localVideoRef}
+                          ref={(ref) => {
+                            localVideoRef.current = ref;
+                            if (ref) {
+                              ref.srcObject = isScreenSharing ? screenStream : localStream;
+                            }
+                          }}
                           autoPlay
                           muted
                           playsInline
@@ -658,7 +851,18 @@ export default function GameRoom() {
                         <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
                           <i className="fas fa-user mr-1"></i>
                           You ({user?.firstName || 'Player'})
+                          {isScreenSharing && (
+                            <span className="ml-2 bg-green-500 px-1 rounded text-xs">
+                              <i className="fas fa-desktop mr-1"></i>Sharing
+                            </span>
+                          )}
                         </div>
+                        {isRecording && (
+                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-sm animate-pulse">
+                            <i className="fas fa-record-vinyl mr-1"></i>
+                            REC
+                          </div>
+                        )}
                         {!isCameraOn && (
                           <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
                             <div className="text-center text-white">

@@ -109,14 +109,30 @@ export function Header() {
           >
             TableSync
           </Link>
+          <Link 
+            href="/tournaments" 
+            className={`transition-colors font-medium ${location === "/tournaments" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            data-testid="nav-tournaments"
+          >
+            Tournaments
+          </Link>
           {isAuthenticated && (
-            <Link 
-              href="/profile" 
-              className={`transition-colors font-medium ${location === "/profile" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
-              data-testid="nav-profile"
-            >
-              Profile
-            </Link>
+            <>
+              <Link 
+                href="/analytics" 
+                className={`transition-colors font-medium ${location === "/analytics" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+                data-testid="nav-analytics"
+              >
+                Analytics
+              </Link>
+              <Link 
+                href="/profile" 
+                className={`transition-colors font-medium ${location === "/profile" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+                data-testid="nav-profile"
+              >
+                Profile
+              </Link>
+            </>
           )}
         </nav>
 

@@ -13,6 +13,8 @@ import GameRoom from "@/pages/game-room";
 import Social from "@/pages/social";
 import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
+import Tournaments from "@/pages/tournaments";
+import Analytics from "@/pages/analytics";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import HelpCenter from "@/pages/help-center";
@@ -47,6 +49,8 @@ function Router() {
           <Route path="/social" component={Social} />
           <Route path="/calendar" component={Calendar} />
           <Route path="/matchmaking" component={Matchmaking} />
+          <Route path="/tournaments" component={Tournaments} />
+          <Route path="/analytics" component={Analytics} />
           <Route path="/profile" component={Profile} />
           <Route path="/profile/:userId" component={Profile} />
           {/* Footer pages accessible to all users */}

@@ -14,6 +14,9 @@ import {
   friendships,
   userActivities,
   userSettings,
+  matchmakingPreferences,
+  tournaments,
+  tournamentParticipants,
   type User,
   type UpsertUser,
   type Community,
@@ -30,6 +33,9 @@ import {
   type Friendship,
   type UserActivity,
   type UserSettings,
+  type MatchmakingPreferences,
+  type Tournament,
+  type TournamentParticipant,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
@@ -44,9 +50,12 @@ import {
   type InsertFriendship,
   type InsertUserActivity,
   type InsertUserSettings,
+  type InsertMatchmakingPreferences,
+  type InsertTournament,
+  type InsertTournamentParticipant,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, count, sql, or } from "drizzle-orm";
+import { eq, and, gte, count, sql, or, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -135,6 +144,18 @@ export interface IStorage {
   // User settings operations
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
   upsertUserSettings(data: InsertUserSettings): Promise<UserSettings>;
+  
+  // Matchmaking operations
+  getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined>;
+  upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences>;
+  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]>;
+  
+  // Tournament operations
+  getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
+  getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined>;
+  createTournament(data: InsertTournament): Promise<Tournament>;
+  joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
+  leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1005,6 +1026,400 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return settings;
+  }
+  
+  // Matchmaking operations
+  async getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(matchmakingPreferences)
+      .where(eq(matchmakingPreferences.userId, userId));
+    return preferences;
+  }
+
+  async upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences> {
+    const [preferences] = await db
+      .insert(matchmakingPreferences)
+      .values(data)
+      .onConflictDoUpdate({
+        target: matchmakingPreferences.userId,
+        set: {
+          selectedGames: data.selectedGames,
+          selectedFormats: data.selectedFormats,
+          powerLevelMin: data.powerLevelMin,
+          powerLevelMax: data.powerLevelMax,
+          playstyle: data.playstyle,
+          location: data.location,
+          onlineOnly: data.onlineOnly,
+          availability: data.availability,
+          language: data.language,
+          maxDistance: data.maxDistance,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return preferences;
+  }
+
+  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]> {
+    // AI Matchmaking Algorithm
+    const userProfiles = await db
+      .select({
+        user: users,
+        gamingProfile: userGamingProfiles,
+        preferences: matchmakingPreferences,
+        community: communities,
+      })
+      .from(users)
+      .leftJoin(userGamingProfiles, eq(users.id, userGamingProfiles.userId))
+      .leftJoin(matchmakingPreferences, eq(users.id, matchmakingPreferences.userId))
+      .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+      .where(
+        and(
+          ne(users.id, userId), // Exclude self
+          eq(users.status, 'online'), // Only online users
+          eq(userGamingProfiles.isVisible, true) // Only visible profiles
+        )
+      );
+
+    // Calculate match scores
+    const scoredMatches = userProfiles
+      .filter(profile => profile.user && profile.gamingProfile)
+      .map(profile => {
+        let score = 0;
+        const user = profile.user!;
+        const gaming = profile.gamingProfile!;
+        const userPrefs = profile.preferences;
+
+        // Game compatibility (high weight)
+        const sharedGames = (preferences.selectedGames as string[])?.filter(game => 
+          gaming.communityId && (preferences.selectedGames as string[]).includes(gaming.communityId)
+        );
+        if (sharedGames?.length > 0) score += 30;
+
+        // Experience level matching (medium weight)
+        if (gaming.experience) {
+          const experienceLevels = { beginner: 1, intermediate: 2, expert: 3 };
+          const userLevel = experienceLevels[gaming.experience as keyof typeof experienceLevels] || 2;
+          const prefLevel = experienceLevels[preferences.playstyle as keyof typeof experienceLevels] || 2;
+          score += Math.max(0, 20 - Math.abs(userLevel - prefLevel) * 7);
+        }
+
+        // Location proximity (medium weight)
+        if (preferences.onlineOnly || !preferences.location || !user.location) {
+          score += 15; // Online players get base score
+        } else if (user.location === preferences.location) {
+          score += 25; // Same location bonus
+        }
+
+        // Availability matching (low weight)
+        if (userPrefs?.availability === preferences.availability || preferences.availability === 'any') {
+          score += 10;
+        }
+
+        // Language matching (low weight)
+        if (userPrefs?.language === preferences.language) {
+          score += 5;
+        }
+
+        // Random factor to add variety
+        score += Math.random() * 10;
+
+        return {
+          id: user.id,
+          username: user.username || `${user.firstName} ${user.lastName}`,
+          avatar: user.profileImageUrl,
+          games: [gaming.communityId],
+          formats: userPrefs?.selectedFormats || [],
+          powerLevel: Math.floor(Math.random() * 10) + 1, // TODO: Calculate from gaming stats
+          playstyle: gaming.experience || 'intermediate',
+          location: user.location || 'Online Only',
+          availability: userPrefs?.availability || 'any',
+          matchScore: Math.round(score),
+          commonInterests: gaming.favoriteDeck ? [gaming.favoriteDeck] : [],
+          lastOnline: user.status === 'online' ? 'Online now' : '1 hour ago',
+          isOnline: user.status === 'online'
+        };
+      })
+      .filter(match => match.matchScore > 20) // Minimum match threshold
+      .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
+      .slice(0, 20); // Limit results
+
+    return scoredMatches;
+  }
+  
+  // Tournament operations
+  async getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]> {
+    const query = db
+      .select({
+        tournament: tournaments,
+        organizer: users,
+        community: communities,
+        participantCount: sql<number>`COUNT(${tournamentParticipants.id})::int`.as('participantCount'),
+      })
+      .from(tournaments)
+      .innerJoin(users, eq(tournaments.organizerId, users.id))
+      .innerJoin(communities, eq(tournaments.communityId, communities.id))
+      .leftJoin(tournamentParticipants, eq(tournaments.id, tournamentParticipants.tournamentId))
+      .groupBy(tournaments.id, users.id, communities.id)
+      .orderBy(desc(tournaments.startDate));
+
+    if (communityId) {
+      query.where(eq(tournaments.communityId, communityId));
+    }
+
+    return await query;
+  }
+
+  async getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined> {
+    const [tournament] = await db
+      .select({
+        tournament: tournaments,
+        organizer: users,
+        community: communities,
+      })
+      .from(tournaments)
+      .innerJoin(users, eq(tournaments.organizerId, users.id))
+      .innerJoin(communities, eq(tournaments.communityId, communities.id))
+      .where(eq(tournaments.id, tournamentId));
+
+    if (!tournament) return undefined;
+
+    const participants = await db
+      .select({
+        participant: tournamentParticipants,
+        user: users,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(users, eq(tournamentParticipants.userId, users.id))
+      .where(eq(tournamentParticipants.tournamentId, tournamentId));
+
+    return {
+      ...tournament.tournament,
+      organizer: tournament.organizer,
+      community: tournament.community,
+      participants: participants.map(p => ({ ...p.participant, user: p.user })),
+    };
+  }
+
+  async createTournament(data: InsertTournament): Promise<Tournament> {
+    const [tournament] = await db
+      .insert(tournaments)
+      .values(data)
+      .returning();
+    return tournament;
+  }
+
+  async joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant> {
+    const [participant] = await db
+      .insert(tournamentParticipants)
+      .values({ tournamentId, userId })
+      .returning();
+    return participant;
+  }
+
+  async leaveTournament(tournamentId: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(tournamentParticipants)
+      .where(
+        and(
+          eq(tournamentParticipants.tournamentId, tournamentId),
+          eq(tournamentParticipants.userId, userId)
+        )
+      );
+    return result.rowCount > 0;
+  }
+
+  // Analytics operations
+  async getAnalyticsData(userId: string): Promise<any> {
+    // Get user's comprehensive analytics data
+    const userAnalytics = {
+      userStats: {
+        totalGamesPlayed: await this.getTotalGamesPlayed(userId),
+        tournamentsEntered: await this.getTournamentsEntered(userId),
+        friendsCount: await this.getFriendsCount(userId),
+        averageSessionDuration: await this.getAverageSessionDuration(userId),
+      },
+      platformStats: {
+        totalUsers: await this.getTotalUsers(),
+        activeUsers: await this.getActiveUsers(),
+        totalTournaments: await this.getTotalTournaments(),
+        totalGamesPlayed: await this.getTotalGamesPlayed(),
+      },
+      gamePopularity: await this.getGamePopularity(),
+      weeklyActivity: await this.getWeeklyActivity(userId),
+    };
+
+    return userAnalytics;
+  }
+
+  private async getTotalGamesPlayed(userId?: string): Promise<number> {
+    if (userId) {
+      // Count user's games
+      const result = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(userGamingProfiles)
+        .where(eq(userGamingProfiles.userId, userId));
+      return result[0]?.count || 0;
+    } else {
+      // Count total platform games
+      const result = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(userGamingProfiles);
+      return result[0]?.count || 0;
+    }
+  }
+
+  private async getTournamentsEntered(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tournamentParticipants)
+      .where(eq(tournamentParticipants.userId, userId));
+    return result[0]?.count || 0;
+  }
+
+  private async getFriendsCount(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(friendships)
+      .where(
+        or(
+          and(eq(friendships.requesterId, userId), eq(friendships.status, 'accepted')),
+          and(eq(friendships.addresseeId, userId), eq(friendships.status, 'accepted'))
+        )
+      );
+    return result[0]?.count || 0;
+  }
+
+  private async getAverageSessionDuration(userId: string): Promise<number> {
+    // Mock data for session duration - in production this would track actual sessions
+    return Math.floor(Math.random() * 120) + 30; // 30-150 minutes
+  }
+
+  private async getTotalUsers(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(users);
+    return result[0]?.count || 0;
+  }
+
+  private async getActiveUsers(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(users)
+      .where(eq(users.status, 'online'));
+    return result[0]?.count || 0;
+  }
+
+  private async getTotalTournaments(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tournaments);
+    return result[0]?.count || 0;
+  }
+
+  private async getGamePopularity(): Promise<Array<{ game: string; players: number; change: number }>> {
+    const result = await db
+      .select({
+        communityId: userGamingProfiles.communityId,
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(userGamingProfiles)
+      .groupBy(userGamingProfiles.communityId);
+
+    return result.map(r => ({
+      game: r.communityId,
+      players: r.count,
+      change: Math.floor(Math.random() * 20) - 10 // Mock change percentage
+    }));
+  }
+
+  private async getWeeklyActivity(userId: string): Promise<Array<{ day: string; value: number }>> {
+    // Mock weekly activity data - in production this would track actual user activity
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map(day => ({
+      day,
+      value: Math.floor(Math.random() * 8) + 1
+    }));
+  }
+
+  // Data export operations
+  async exportUserData(userId: string): Promise<any> {
+    // Get all user data for export
+    const userData = await this.getUserById(userId);
+    const socialLinks = await this.getUserSocialLinks(userId);
+    const gamingProfiles = await this.getUserGamingProfiles(userId);
+    const matchmakingPrefs = await this.getMatchmakingPreferences(userId);
+    
+    // Get tournament participation
+    const tournaments = await db
+      .select({
+        tournament: tournaments,
+        participant: tournamentParticipants,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(tournaments, eq(tournamentParticipants.tournamentId, tournaments.id))
+      .where(eq(tournamentParticipants.userId, userId));
+
+    // Get friend relationships
+    const friends = await db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          eq(friendships.requesterId, userId),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+
+    return {
+      user: userData,
+      socialLinks,
+      gamingProfiles,
+      matchmakingPreferences: matchmakingPrefs,
+      tournaments: tournaments.map(t => t.tournament),
+      friends,
+      exportDate: new Date().toISOString(),
+      platform: 'Shuffle & Sync',
+    };
+  }
+
+  // Account deletion operations
+  async deleteUserAccount(userId: string): Promise<boolean> {
+    try {
+      // Cascade delete all user data in the correct order to respect foreign key constraints
+      
+      // Delete tournament participations
+      await db.delete(tournamentParticipants).where(eq(tournamentParticipants.userId, userId));
+      
+      // Delete tournaments organized by user
+      await db.delete(tournaments).where(eq(tournaments.organizerId, userId));
+      
+      // Delete matchmaking preferences
+      await db.delete(matchmakingPreferences).where(eq(matchmakingPreferences.userId, userId));
+      
+      // Delete friend relationships
+      await db.delete(friendships).where(
+        or(
+          eq(friendships.requesterId, userId),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+      
+      // Delete social links
+      await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
+      
+      // Delete gaming profiles
+      await db.delete(userGamingProfiles).where(eq(userGamingProfiles.userId, userId));
+      
+      // Finally delete the user
+      const result = await db.delete(users).where(eq(users.id, userId));
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      return false;
+    }
   }
 }
 

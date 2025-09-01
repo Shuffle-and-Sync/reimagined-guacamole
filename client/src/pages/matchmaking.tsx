@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { MatchmakingPreferences } from '@shared/schema';
 import { Header } from "@/components/header";
 import { useCommunity } from "@/contexts/CommunityContext";
 
@@ -110,35 +113,104 @@ export default function Matchmaking() {
 
   // Search state
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState(SUGGESTED_PLAYERS);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  // Fetch user's matchmaking preferences
+  const { data: savedPreferences, isLoading: preferencesLoading } = useQuery<MatchmakingPreferences>({
+    queryKey: ['/api/matchmaking/preferences'],
+    enabled: !!user?.id,
+  });
+  
+  // Load saved preferences when available
+  useEffect(() => {
+    if (savedPreferences) {
+      setSelectedGames(savedPreferences.selectedGames as string[] || ["MTG"]);
+      setSelectedFormats(savedPreferences.selectedFormats as string[] || ["commander"]);
+      setPowerLevelRange([savedPreferences.powerLevelMin || 1, savedPreferences.powerLevelMax || 10]);
+      setPlaystyle(savedPreferences.playstyle || "any");
+      setLocation(savedPreferences.location || "");
+      setOnlineOnly(savedPreferences.onlineOnly || false);
+      setAvailability(savedPreferences.availability || "any");
+      setLanguage(savedPreferences.language || "english");
+    }
+  }, [savedPreferences]);
+
+  // Save preferences mutation
+  const savePreferencesMutation = useMutation({
+    mutationFn: async (preferencesData: any) => {
+      const response = await apiRequest('PUT', '/api/matchmaking/preferences', preferencesData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Preferences saved",
+        description: "Your matchmaking preferences have been updated."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/matchmaking/preferences'] });
+    }
+  });
+  
+  // Find players mutation
+  const findPlayersMutation = useMutation({
+    mutationFn: async (searchPreferences: any) => {
+      const response = await apiRequest('POST', '/api/matchmaking/find-players', searchPreferences);
+      return response.json();
+    },
+    onSuccess: (matches) => {
+      setSearchResults(matches);
+      setIsSearching(false);
+      toast({
+        title: "Players found!",
+        description: `Found ${matches.length} compatible players for you.`
+      });
+    },
+    onError: (error: any) => {
+      setIsSearching(false);
+      toast({
+        title: "Search failed",
+        description: error.message || "Failed to find matching players",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleStartMatching = () => {
     setIsSearching(true);
-    // TODO: Implement AI matchmaking algorithm
-    setTimeout(() => {
-      setIsSearching(false);
-      // Filter results based on preferences
-      const filtered = SUGGESTED_PLAYERS.filter(player => {
-        if (selectedGames.length > 0 && !player.games.some(game => selectedGames.includes(game))) return false;
-        if (player.powerLevel < powerLevelRange[0] || player.powerLevel > powerLevelRange[1]) return false;
-        if (playstyle !== "any" && player.playstyle.toLowerCase() !== playstyle) return false;
-        return true;
-      });
-      setSearchResults(filtered);
-    }, 2000);
+    
+    const searchPreferences = {
+      selectedGames,
+      selectedFormats,
+      powerLevelMin: powerLevelRange[0],
+      powerLevelMax: powerLevelRange[1],
+      playstyle,
+      location,
+      onlineOnly,
+      availability,
+      language,
+      maxDistance: 50
+    };
+    
+    // Save preferences and find matches
+    savePreferencesMutation.mutate(searchPreferences);
+    findPlayersMutation.mutate(searchPreferences);
   };
 
-  const handleSendInvite = (playerId: string) => {
-    const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
-    if (player) {
+  const sendInviteMutation = useMutation({
+    mutationFn: async (data: { playerId: string; message?: string }) => {
+      const response = await apiRequest('POST', '/api/friend-requests', { addresseeId: data.playerId });
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      const player = searchResults.find(p => p.id === variables.playerId);
       toast({
         title: "Invite sent!",
-        description: `Your game invite has been sent to ${player.username}. They'll receive a notification and can accept or decline.`
+        description: `Your game invite has been sent to ${player?.username || 'this player'}. They'll receive a notification and can accept or decline.`
       });
-      
-      // In a real app, this would make an API call to send the invite
-      // For now, we provide user feedback through the toast notification
     }
+  });
+  
+  const handleSendInvite = (playerId: string) => {
+    sendInviteMutation.mutate({ playerId });
   };
 
   const handleMessagePlayer = (playerId: string) => {
@@ -412,7 +484,7 @@ export default function Matchmaking() {
                                   <div className="mt-3">
                                     <div className="text-sm text-muted-foreground mb-2">Common Interests:</div>
                                     <div className="flex flex-wrap gap-2">
-                                      {player.commonInterests.map((interest, index) => (
+                                      {player.commonInterests.map((interest: string, index: number) => (
                                         <Badge key={index} variant="outline" className="text-xs">
                                           {interest}
                                         </Badge>
@@ -550,7 +622,18 @@ export default function Matchmaking() {
                     <Button 
                       variant="outline"
                       onClick={() => {
-                        // TODO: Reset all preferences to default values
+                        setSelectedGames(["MTG"]);
+                        setSelectedFormats(["commander"]);
+                        setPowerLevelRange([1, 10]);
+                        setPlaystyle("any");
+                        setLocation("");
+                        setOnlineOnly(false);
+                        setAvailability("any");
+                        setLanguage("english");
+                        toast({
+                          title: "Preferences reset",
+                          description: "All matchmaking preferences have been reset to defaults."
+                        });
                       }}
                       data-testid="button-reset-preferences"
                     >
@@ -558,8 +641,21 @@ export default function Matchmaking() {
                     </Button>
                     <Button
                       onClick={() => {
-                        // TODO: Save preferences to backend
+                        const preferencesData = {
+                          selectedGames,
+                          selectedFormats,
+                          powerLevelMin: powerLevelRange[0],
+                          powerLevelMax: powerLevelRange[1],
+                          playstyle,
+                          location,
+                          onlineOnly,
+                          availability,
+                          language,
+                          maxDistance: 50
+                        };
+                        savePreferencesMutation.mutate(preferencesData);
                       }}
+                      disabled={savePreferencesMutation.isPending}
                       data-testid="button-save-preferences"
                     >
                       Save Preferences
