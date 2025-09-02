@@ -42,14 +42,6 @@ export default function Tournaments() {
   // Fetch tournaments
   const { data: tournaments = [], isLoading: tournamentsLoading } = useQuery<Tournament[]>({
     queryKey: ['/api/tournaments', selectedCommunity?.id],
-    queryFn: async () => {
-      const url = selectedCommunity?.id 
-        ? `/api/tournaments?community=${selectedCommunity.id}`
-        : '/api/tournaments';
-      const response = await fetch(url, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch tournaments');
-      return response.json();
-    }
   });
 
   // Create tournament mutation

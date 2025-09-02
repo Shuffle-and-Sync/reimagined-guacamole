@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Contact() {
   useDocumentTitle("Contact Us");
@@ -60,13 +61,7 @@ export default function Contact() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, subject, message }),
-      });
+      const response = await apiRequest('POST', '/api/contact', { name, email, subject, message });
 
       if (response.ok) {
         toast({
@@ -77,8 +72,6 @@ export default function Contact() {
         setEmail("");
         setSubject("");
         setMessage("");
-      } else {
-        throw new Error('Failed to send message');
       }
     } catch (error) {
       toast({

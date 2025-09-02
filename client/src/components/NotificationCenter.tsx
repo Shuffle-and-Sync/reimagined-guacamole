@@ -32,15 +32,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   // Mark single notification as read
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to mark notification as read');
-      }
+      const response = await apiRequest('PATCH', `/api/notifications/${notificationId}/read`);
       return response.json();
     },
     onSuccess: () => {
@@ -51,15 +43,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   // Mark all notifications as read
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/notifications/read-all', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to mark all notifications as read');
-      }
+      const response = await apiRequest('PATCH', '/api/notifications/read-all');
       return response.json();
     },
     onSuccess: () => {
