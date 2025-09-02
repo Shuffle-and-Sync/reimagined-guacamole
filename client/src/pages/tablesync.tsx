@@ -487,6 +487,8 @@ export default function TableSync() {
                   )}
                 </div>
               )}
+            </div>
+            )}
             </TabsContent>
 
             {/* Create Room Tab */}
