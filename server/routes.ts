@@ -1421,7 +1421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (gameSession.length > 0) {
         await storage.createNotification({
           userId: gameSession[0].hostId,
-          type: 'event_join',
+          type: 'spectator_join',
           title: 'New Spectator',
           message: `${user.claims.first_name || user.claims.email} is now spectating your game`,
           data: { gameSessionId: id, spectatorId: user.claims.sub },
