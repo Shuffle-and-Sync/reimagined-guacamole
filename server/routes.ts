@@ -942,11 +942,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = authenticatedReq.user.claims.sub;
+      console.log('Creating event with userId:', userId);
+      console.log('Request body:', req.body);
+      
       const eventData = insertEventSchema.parse({
         ...req.body,
         creatorId: userId,
         hostId: userId, // Set host to the same user who created the event
       });
+      
+      console.log('Parsed event data:', eventData);
       
       const event = await storage.createEvent(eventData);
       res.json(event);
