@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   index,
+  uniqueIndex,
   jsonb,
   pgTable,
   timestamp,
@@ -212,6 +213,65 @@ export const userSocialLinks = pgTable("user_social_links", {
   isPublic: boolean("is_public").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Platform OAuth tokens for real API integrations
+export const platformTokens = pgTable("platform_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  platform: varchar("platform").notNull(), // twitch, youtube, discord, twitter, instagram, tiktok
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  tokenType: varchar("token_type").default("Bearer"),
+  expiresAt: timestamp("expires_at"),
+  scope: text("scope"), // Platform-specific permissions
+  platformUserId: varchar("platform_user_id"), // User ID on the external platform
+  platformUsername: varchar("platform_username"), // Username on the external platform
+  isActive: boolean("is_active").default(true),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_platform_tokens_user_id").on(table.userId),
+  index("idx_platform_tokens_platform").on(table.platform),
+  uniqueIndex("unique_user_platform").on(table.userId, table.platform),
+]);
+
+// Social media posts and scheduling
+export const socialPosts = pgTable("social_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  platforms: jsonb("platforms").notNull(), // Array of platform IDs to post to
+  scheduledFor: timestamp("scheduled_for"),
+  publishedAt: timestamp("published_at"),
+  status: varchar("status").default("draft"), // draft, scheduled, published, failed
+  mediaUrls: jsonb("media_urls"), // Array of media URLs/attachments
+  platformData: jsonb("platform_data"), // Platform-specific data (hashtags, mentions, etc.)
+  engagement: jsonb("engagement").default({}), // Likes, shares, comments per platform
+  errors: jsonb("errors"), // Any posting errors encountered
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_social_posts_user_id").on(table.userId),
+  index("idx_social_posts_status").on(table.status),
+  index("idx_social_posts_scheduled_for").on(table.scheduledFor),
+]);
+
+// Webhook configurations for platform events  
+export const webhookConfigs = pgTable("webhook_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  platform: varchar("platform").notNull(), // twitch, youtube, discord
+  eventType: varchar("event_type").notNull(), // stream_start, stream_end, new_follower, etc.
+  webhookUrl: varchar("webhook_url").notNull(),
+  secret: varchar("secret"), // Webhook verification secret
+  isActive: boolean("is_active").default(true),
+  lastTriggered: timestamp("last_triggered"),
+  triggerCount: integer("trigger_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_webhook_configs_platform").on(table.platform),
+  index("idx_webhook_configs_event_type").on(table.eventType),
+]);
 
 // User gaming preferences and statistics
 export const userGamingProfiles = pgTable("user_gaming_profiles", {
@@ -743,6 +803,23 @@ export const insertUserSocialLinkSchema = createInsertSchema(userSocialLinks).om
   createdAt: true,
 });
 
+export const insertPlatformTokenSchema = createInsertSchema(platformTokens).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSocialPostSchema = createInsertSchema(socialPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWebhookConfigSchema = createInsertSchema(webhookConfigs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserGamingProfileSchema = createInsertSchema(userGamingProfiles).omit({
   id: true,
   createdAt: true,
@@ -823,6 +900,9 @@ export type Message = typeof messages.$inferSelect;
 export type GameSession = typeof gameSessions.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type UserSocialLink = typeof userSocialLinks.$inferSelect;
+export type PlatformToken = typeof platformTokens.$inferSelect;
+export type SocialPost = typeof socialPosts.$inferSelect;
+export type WebhookConfig = typeof webhookConfigs.$inferSelect;
 export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
 export type Friendship = typeof friendships.$inferSelect;
 export type UserActivity = typeof userActivities.$inferSelect;
@@ -846,6 +926,9 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertGameSession = z.infer<typeof insertGameSessionSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
+export type InsertPlatformToken = z.infer<typeof insertPlatformTokenSchema>;
+export type InsertSocialPost = z.infer<typeof insertSocialPostSchema>;
+export type InsertWebhookConfig = z.infer<typeof insertWebhookConfigSchema>;
 export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSchema>;
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;

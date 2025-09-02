@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { PlatformToken, SocialPost } from "@shared/schema";
 
 const SOCIAL_PLATFORMS = [
   {
@@ -78,12 +81,111 @@ export default function Social() {
   
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [newPost, setNewPost] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [scheduleTime, setScheduleTime] = useState("");
   const [autoPost, setAutoPost] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [activeTab, setActiveTab] = useState("compose");
+
+  // Fetch user's platform tokens
+  const { data: platformTokens, isLoading: tokensLoading } = useQuery({
+    queryKey: ['/api/platforms/tokens'],
+    enabled: !!user,
+  });
+
+  // Fetch user's social posts
+  const { data: socialPosts, isLoading: postsLoading } = useQuery({
+    queryKey: ['/api/social/posts'],
+    enabled: !!user,
+  });
+
+  // Platform authentication mutation
+  const connectPlatformMutation = useMutation({
+    mutationFn: (data: { platform: string; code: string; state?: string }) =>
+      apiRequest('/api/platforms/auth', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (data, variables) => {
+      toast({
+        title: `${variables.platform} connected successfully!`,
+        description: "You can now post to this platform from Shuffle & Sync."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/platforms/tokens'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Connection failed",
+        description: "Unable to connect to the platform. Please try again.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  // Social post creation mutation
+  const createPostMutation = useMutation({
+    mutationFn: (data: { content: string; platforms: string[]; scheduledFor?: string }) =>
+      apiRequest('/api/social/post', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (data, variables) => {
+      const platformNames = variables.platforms.map(id => {
+        const platform = SOCIAL_PLATFORMS.find(p => p.id === id);
+        return platform?.name;
+      }).filter(Boolean).join(", ");
+      
+      if (variables.scheduledFor) {
+        toast({
+          title: "Post scheduled successfully!",
+          description: `Your post will be published to ${platformNames} on ${new Date(variables.scheduledFor).toLocaleString()}.`
+        });
+      } else {
+        toast({
+          title: "Post published successfully!",
+          description: `Your post has been shared to ${platformNames}.`
+        });
+      }
+      
+      // Reset form and refresh data
+      setNewPost("");
+      setSelectedPlatforms([]);
+      setScheduleTime("");
+      setAutoPost(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create post",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  // Platform disconnect mutation
+  const disconnectPlatformMutation = useMutation({
+    mutationFn: (platform: string) =>
+      apiRequest(`/api/platforms/${platform}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: (data, platform) => {
+      toast({
+        title: `Disconnected from ${platform}`,
+        description: "Platform has been disconnected successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/platforms/tokens'] });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to disconnect",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    },
+  });
 
   const handleConnectPlatform = (platformId: string) => {
     const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
@@ -93,13 +195,15 @@ export default function Social() {
         description: "Opening OAuth window to connect your account..."
       });
       
-      // Simulate OAuth flow - in a real app this would redirect to OAuth provider
-      setTimeout(() => {
-        toast({
-          title: `${platform.name} connected successfully!`,
-          description: "You can now post to this platform from Shuffle & Sync."
-        });
-      }, 1500);
+      // For now, simulate OAuth flow with mock code
+      // In production, this would open OAuth popup and get real authorization code
+      const mockCode = `mock_auth_code_${Date.now()}`;
+      
+      connectPlatformMutation.mutate({
+        platform: platformId,
+        code: mockCode,
+        state: `state_${Date.now()}`,
+      });
     }
   };
 
@@ -122,51 +226,19 @@ export default function Social() {
       return;
     }
     
-    setIsPosting(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const platformNames = selectedPlatforms.map(id => {
-        const platform = SOCIAL_PLATFORMS.find(p => p.id === id);
-        return platform?.name;
-      }).filter(Boolean).join(", ");
-      
-      if (scheduleTime) {
-        toast({
-          title: "Post scheduled successfully!",
-          description: `Your post will be published to ${platformNames} on ${new Date(scheduleTime).toLocaleString()}.`
-        });
-      } else {
-        toast({
-          title: "Post published successfully!",
-          description: `Your post has been shared to ${platformNames}.`
-        });
-      }
-      
-      // Reset form after posting
-      setNewPost("");
-      setSelectedPlatforms([]);
-      setScheduleTime("");
-      setAutoPost(false);
-    } catch (error) {
-      toast({
-        title: "Failed to create post",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsPosting(false);
-    }
+    createPostMutation.mutate({
+      content: newPost,
+      platforms: selectedPlatforms,
+      scheduledFor: scheduleTime || undefined,
+    });
   };
 
   const handleEditPost = (postId: string) => {
-    const post = SCHEDULED_POSTS.find(p => p.id === postId);
+    const post = socialPosts?.find((p: any) => p.id === postId);
     if (post) {
       setNewPost(post.content);
       setSelectedPlatforms(post.platforms);
-      setScheduleTime(post.scheduledFor);
+      setScheduleTime(post.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : "");
       
       toast({
         title: "Post loaded for editing",
@@ -179,17 +251,23 @@ export default function Social() {
   };
 
   const handleCancelPost = (postId: string) => {
-    const post = SCHEDULED_POSTS.find(p => p.id === postId);
-    if (post) {
-      toast({
-        title: "Post cancelled",
-        description: `Your scheduled post has been cancelled and will not be published.`,
-        variant: "destructive"
+    // Delete the scheduled post via API
+    apiRequest(`/api/social/posts/${postId}`, { method: 'DELETE' })
+      .then(() => {
+        toast({
+          title: "Post cancelled",
+          description: `Your scheduled post has been cancelled and will not be published.`,
+          variant: "destructive"
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/social/posts'] });
+      })
+      .catch(() => {
+        toast({
+          title: "Failed to cancel post",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
       });
-      
-      // In a real app, this would make an API call to delete the scheduled post
-      // For now, we just show the feedback toast
-    }
   };
 
   const handlePlatformSettings = (platformId: string) => {
@@ -213,8 +291,14 @@ export default function Social() {
     );
   };
 
-  const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => p.connected);
-  const unconnectedPlatforms = SOCIAL_PLATFORMS.filter(p => !p.connected);
+  // Update platform connection status based on real tokens
+  const platformsWithStatus = SOCIAL_PLATFORMS.map(platform => ({
+    ...platform,
+    connected: platformTokens?.some((token: any) => token.platform === platform.id && token.isActive) || false
+  }));
+
+  const connectedPlatforms = platformsWithStatus.filter(p => p.connected);
+  const unconnectedPlatforms = platformsWithStatus.filter(p => !p.connected);
 
   return (
     <div className="min-h-screen bg-background">
@@ -323,10 +407,10 @@ export default function Social() {
                     </Button>
                     <Button 
                       onClick={handleCreatePost}
-                      disabled={!newPost || selectedPlatforms.length === 0 || isPosting}
+                      disabled={!newPost || selectedPlatforms.length === 0 || createPostMutation.isPending}
                       data-testid="button-create-post"
                     >
-                      {isPosting ? (
+                      {createPostMutation.isPending ? (
                         <>
                           <i className="fas fa-spinner animate-spin mr-2"></i>
                           {scheduleTime ? "Scheduling..." : "Posting..."}
@@ -344,50 +428,69 @@ export default function Social() {
             <TabsContent value="scheduled">
               <div className="max-w-4xl mx-auto space-y-6">
                 <h2 className="text-2xl font-bold text-center">Scheduled Posts</h2>
-                {SCHEDULED_POSTS.map((post) => (
-                  <Card key={post.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <p className="text-sm mb-3">{post.content}</p>
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span>📅 {new Date(post.scheduledFor).toLocaleString()}</span>
-                            <div className="flex items-center space-x-2">
-                              <span>Platforms:</span>
-                              {post.platforms.map((platformId) => {
-                                const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
-                                return platform ? (
-                                  <div key={platformId} className={`w-6 h-6 bg-gradient-to-br ${platform.color} rounded flex items-center justify-center`}>
-                                    <i className={`${platform.icon} text-white text-xs`}></i>
-                                  </div>
-                                ) : null;
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="secondary">Scheduled</Badge>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditPost(post.id)}
-                            data-testid={`button-edit-${post.id}`}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleCancelPost(post.id)}
-                            data-testid={`button-cancel-${post.id}`}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
+                {postsLoading ? (
+                  <div className="text-center text-muted-foreground">
+                    Loading scheduled posts...
+                  </div>
+                ) : !socialPosts || socialPosts.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <p className="text-muted-foreground mb-4">No scheduled posts found</p>
+                      <Button onClick={() => setActiveTab('compose')}>
+                        Create Your First Post
+                      </Button>
                     </CardContent>
                   </Card>
-                ))}
+                ) : (
+                  socialPosts
+                    .filter((post: any) => post.status === 'scheduled')
+                    .map((post: any) => (
+                      <Card key={post.id}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <p className="text-sm mb-3">{post.content}</p>
+                              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                <span>📅 {post.scheduledFor ? new Date(post.scheduledFor).toLocaleString() : 'Not scheduled'}</span>
+                                <div className="flex items-center space-x-2">
+                                  <span>Platforms:</span>
+                                  {(post.platforms || []).map((platformId: string) => {
+                                    const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
+                                    return platform ? (
+                                      <div key={platformId} className={`w-6 h-6 bg-gradient-to-br ${platform.color} rounded flex items-center justify-center`}>
+                                        <i className={`${platform.icon} text-white text-xs`}></i>
+                                      </div>
+                                    ) : null;
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="secondary">
+                                {post.status === 'scheduled' ? 'Scheduled' : post.status === 'published' ? 'Published' : 'Draft'}
+                              </Badge>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleEditPost(post.id)}
+                                data-testid={`button-edit-${post.id}`}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleCancelPost(post.id)}
+                                data-testid={`button-cancel-${post.id}`}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                )}
               </div>
             </TabsContent>
 
@@ -410,14 +513,29 @@ export default function Social() {
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Connected</Badge>
                               </div>
                             </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handlePlatformSettings(platform.id)}
-                              data-testid={`button-settings-${platform.id}`}
-                            >
-                              Settings
-                            </Button>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handlePlatformSettings(platform.id)}
+                                data-testid={`button-settings-${platform.id}`}
+                              >
+                                Settings
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => disconnectPlatformMutation.mutate(platform.id)}
+                                disabled={disconnectPlatformMutation.isPending}
+                                data-testid={`button-disconnect-${platform.id}`}
+                              >
+                                {disconnectPlatformMutation.isPending ? (
+                                  <i className="fas fa-spinner animate-spin" />
+                                ) : (
+                                  'Disconnect'
+                                )}
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-sm text-muted-foreground">{platform.description}</p>
                         </CardContent>
@@ -444,9 +562,17 @@ export default function Social() {
                             </div>
                             <Button 
                               onClick={() => handleConnectPlatform(platform.id)}
+                              disabled={connectPlatformMutation.isPending}
                               data-testid={`button-connect-${platform.id}`}
                             >
-                              Connect
+                              {connectPlatformMutation.isPending ? (
+                                <>
+                                  <i className="fas fa-spinner animate-spin mr-2"></i>
+                                  Connecting...
+                                </>
+                              ) : (
+                                'Connect'
+                              )}
                             </Button>
                           </div>
                           <p className="text-sm text-muted-foreground">{platform.description}</p>

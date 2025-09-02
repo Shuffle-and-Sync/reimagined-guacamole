@@ -59,6 +59,28 @@ export const validateSocialLinksSchema = z.object({
   })).max(10, 'Maximum 10 social links allowed'),
 });
 
+// Platform integration validation schemas
+export const validatePlatformAuthSchema = z.object({
+  platform: z.enum(['twitch', 'youtube', 'discord', 'twitter', 'instagram', 'tiktok']),
+  code: z.string().min(1, 'Authorization code is required'),
+  state: z.string().optional(),
+});
+
+export const validateSocialPostSchema = z.object({
+  content: z.string().min(1, 'Post content is required').max(2000, 'Post content too long'),
+  platforms: z.array(z.string()).min(1, 'At least one platform is required'),
+  scheduledFor: z.string().datetime().optional(),
+  mediaUrls: z.array(z.string().url()).optional(),
+  platformData: z.record(z.any()).optional(),
+});
+
+export const validateWebhookSchema = z.object({
+  platform: z.enum(['twitch', 'youtube', 'discord']),
+  eventType: z.string().min(1, 'Event type is required'),
+  webhookUrl: z.string().url('Valid webhook URL is required'),
+  secret: z.string().min(1, 'Webhook secret is required'),
+});
+
 export const validateJoinCommunitySchema = z.object({
   communityId: z.string().min(1, 'Community ID is required').max(50),
 });

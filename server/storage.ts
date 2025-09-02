@@ -10,6 +10,9 @@ import {
   gameSessions,
   passwordResetTokens,
   userSocialLinks,
+  platformTokens,
+  socialPosts,
+  webhookConfigs,
   userGamingProfiles,
   friendships,
   userActivities,
@@ -33,6 +36,9 @@ import {
   type GameSession,
   type PasswordResetToken,
   type UserSocialLink,
+  type PlatformToken,
+  type SocialPost,
+  type WebhookConfig,
   type UserGamingProfile,
   type Friendship,
   type UserActivity,
@@ -54,6 +60,9 @@ import {
   type InsertGameSession,
   type InsertPasswordResetToken,
   type InsertUserSocialLink,
+  type InsertPlatformToken,
+  type InsertSocialPost,
+  type InsertWebhookConfig,
   type InsertUserGamingProfile,
   type InsertFriendship,
   type InsertUserActivity,
@@ -185,6 +194,28 @@ export interface IStorage {
   createForumReply(data: InsertForumReply): Promise<ForumReply>;
   likeForumReply(replyId: string, userId: string): Promise<void>;
   unlikeForumReply(replyId: string, userId: string): Promise<void>;
+  
+  // Platform integration operations
+  getUserPlatformTokens(userId: string): Promise<PlatformToken[]>;
+  getPlatformToken(userId: string, platform: string): Promise<PlatformToken | undefined>;
+  savePlatformToken(data: InsertPlatformToken): Promise<PlatformToken>;
+  updatePlatformToken(userId: string, platform: string, data: Partial<InsertPlatformToken>): Promise<PlatformToken>;
+  deletePlatformToken(userId: string, platform: string): Promise<void>;
+  refreshPlatformToken(userId: string, platform: string, newTokenData: Partial<InsertPlatformToken>): Promise<PlatformToken>;
+  
+  // Social media posting operations
+  createSocialPost(data: InsertSocialPost): Promise<SocialPost>;
+  getUserSocialPosts(userId: string, options?: { status?: string; limit?: number }): Promise<SocialPost[]>;
+  updateSocialPost(postId: string, data: Partial<InsertSocialPost>): Promise<SocialPost>;
+  deleteSocialPost(postId: string): Promise<void>;
+  getScheduledPosts(userId?: string): Promise<SocialPost[]>;
+  
+  // Webhook operations
+  getWebhookConfigs(platform?: string): Promise<WebhookConfig[]>;
+  createWebhookConfig(data: InsertWebhookConfig): Promise<WebhookConfig>;
+  updateWebhookConfig(id: string, data: Partial<InsertWebhookConfig>): Promise<WebhookConfig>;
+  deleteWebhookConfig(id: string): Promise<void>;
+  logWebhookTrigger(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1920,6 +1951,12 @@ export class DatabaseStorage implements IStorage {
         )
       );
       
+      // Delete platform tokens
+      await db.delete(platformTokens).where(eq(platformTokens.userId, userId));
+      
+      // Delete social posts
+      await db.delete(socialPosts).where(eq(socialPosts.userId, userId));
+      
       // Delete social links
       await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
       
@@ -1934,6 +1971,182 @@ export class DatabaseStorage implements IStorage {
       console.error('Error deleting user account:', error);
       return false;
     }
+  }
+
+  // Platform integration operations
+  async getUserPlatformTokens(userId: string): Promise<PlatformToken[]> {
+    return await db
+      .select()
+      .from(platformTokens)
+      .where(and(eq(platformTokens.userId, userId), eq(platformTokens.isActive, true)))
+      .orderBy(platformTokens.platform);
+  }
+
+  async getPlatformToken(userId: string, platform: string): Promise<PlatformToken | undefined> {
+    const [token] = await db
+      .select()
+      .from(platformTokens)
+      .where(and(
+        eq(platformTokens.userId, userId),
+        eq(platformTokens.platform, platform),
+        eq(platformTokens.isActive, true)
+      ));
+    return token;
+  }
+
+  async savePlatformToken(data: InsertPlatformToken): Promise<PlatformToken> {
+    const [token] = await db
+      .insert(platformTokens)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [platformTokens.userId, platformTokens.platform],
+        set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return token;
+  }
+
+  async updatePlatformToken(userId: string, platform: string, data: Partial<InsertPlatformToken>): Promise<PlatformToken> {
+    const [token] = await db
+      .update(platformTokens)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(platformTokens.userId, userId), eq(platformTokens.platform, platform)))
+      .returning();
+    return token;
+  }
+
+  async deletePlatformToken(userId: string, platform: string): Promise<void> {
+    await db
+      .delete(platformTokens)
+      .where(and(eq(platformTokens.userId, userId), eq(platformTokens.platform, platform)));
+  }
+
+  async refreshPlatformToken(userId: string, platform: string, newTokenData: Partial<InsertPlatformToken>): Promise<PlatformToken> {
+    const [token] = await db
+      .update(platformTokens)
+      .set({
+        ...newTokenData,
+        lastUsed: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(platformTokens.userId, userId), eq(platformTokens.platform, platform)))
+      .returning();
+    return token;
+  }
+
+  // Social media posting operations
+  async createSocialPost(data: InsertSocialPost): Promise<SocialPost> {
+    const [post] = await db
+      .insert(socialPosts)
+      .values(data)
+      .returning();
+    return post;
+  }
+
+  async getUserSocialPosts(userId: string, options?: { status?: string; limit?: number }): Promise<SocialPost[]> {
+    const whereConditions = [eq(socialPosts.userId, userId)];
+    
+    if (options?.status) {
+      whereConditions.push(eq(socialPosts.status, options.status));
+    }
+
+    let query = db
+      .select()
+      .from(socialPosts)
+      .where(and(...whereConditions))
+      .orderBy(desc(socialPosts.createdAt));
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    return await query;
+  }
+
+  async updateSocialPost(postId: string, data: Partial<InsertSocialPost>): Promise<SocialPost> {
+    const [post] = await db
+      .update(socialPosts)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(socialPosts.id, postId))
+      .returning();
+    return post;
+  }
+
+  async deleteSocialPost(postId: string): Promise<void> {
+    await db
+      .delete(socialPosts)
+      .where(eq(socialPosts.id, postId));
+  }
+
+  async getScheduledPosts(userId?: string): Promise<SocialPost[]> {
+    const whereConditions = [eq(socialPosts.status, "scheduled")];
+    
+    if (userId) {
+      whereConditions.push(eq(socialPosts.userId, userId));
+    }
+
+    return await db
+      .select()
+      .from(socialPosts)
+      .where(and(...whereConditions))
+      .orderBy(socialPosts.scheduledFor);
+  }
+
+  // Webhook operations
+  async getWebhookConfigs(platform?: string): Promise<WebhookConfig[]> {
+    const whereConditions = [eq(webhookConfigs.isActive, true)];
+    
+    if (platform) {
+      whereConditions.push(eq(webhookConfigs.platform, platform));
+    }
+
+    return await db
+      .select()
+      .from(webhookConfigs)
+      .where(and(...whereConditions))
+      .orderBy(webhookConfigs.platform);
+  }
+
+  async createWebhookConfig(data: InsertWebhookConfig): Promise<WebhookConfig> {
+    const [config] = await db
+      .insert(webhookConfigs)
+      .values(data)
+      .returning();
+    return config;
+  }
+
+  async updateWebhookConfig(id: string, data: Partial<InsertWebhookConfig>): Promise<WebhookConfig> {
+    const [config] = await db
+      .update(webhookConfigs)
+      .set(data)
+      .where(eq(webhookConfigs.id, id))
+      .returning();
+    return config;
+  }
+
+  async deleteWebhookConfig(id: string): Promise<void> {
+    await db
+      .delete(webhookConfigs)
+      .where(eq(webhookConfigs.id, id));
+  }
+
+  async logWebhookTrigger(id: string): Promise<void> {
+    await db
+      .update(webhookConfigs)
+      .set({
+        lastTriggered: new Date(),
+        triggerCount: sql`${webhookConfigs.triggerCount} + 1`,
+      })
+      .where(eq(webhookConfigs.id, id));
   }
 }
 

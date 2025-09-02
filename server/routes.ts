@@ -19,6 +19,9 @@ import {
   validateEventSchema,
   validatePasswordResetSchema,
   validateSocialLinksSchema,
+  validatePlatformAuthSchema,
+  validateSocialPostSchema,
+  validateWebhookSchema,
   validateJoinCommunitySchema,
   validateJoinEventSchema,
   validateMessageSchema,
@@ -158,6 +161,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error("Failed to update social links", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update social links" });
+    }
+  });
+
+  // Platform integration routes
+  app.get('/api/platforms/tokens', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const tokens = await storage.getUserPlatformTokens(userId);
+      
+      // Return tokens without sensitive data
+      const sanitizedTokens = tokens.map(token => ({
+        platform: token.platform,
+        isActive: token.isActive,
+        lastUsed: token.lastUsed,
+        createdAt: token.createdAt,
+      }));
+      
+      res.json(sanitizedTokens);
+    } catch (error) {
+      logger.error("Failed to fetch platform tokens", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch platform tokens" });
+    }
+  });
+
+  app.post('/api/platforms/auth', isAuthenticated, validateRequest(validatePlatformAuthSchema), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { platform, code, state } = req.body;
+      
+      // Mock OAuth flow - in production this would exchange the code for tokens
+      // For now, create a placeholder token
+      const token = await storage.savePlatformToken({
+        userId,
+        platform,
+        accessToken: `mock_access_${Date.now()}`,
+        refreshToken: `mock_refresh_${Date.now()}`,
+        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        scopes: ['read', 'write'],
+        isActive: true,
+      });
+      
+      res.status(201).json({ 
+        success: true,
+        platform: token.platform,
+        message: `Successfully connected to ${platform}` 
+      });
+    } catch (error) {
+      logger.error("Failed to authenticate platform", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to authenticate platform" });
+    }
+  });
+
+  app.delete('/api/platforms/:platform', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { platform } = req.params;
+      
+      await storage.deletePlatformToken(userId, platform);
+      res.json({ success: true, message: `Disconnected from ${platform}` });
+    } catch (error) {
+      logger.error("Failed to disconnect platform", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to disconnect platform" });
+    }
+  });
+
+  // Social media posting routes
+  app.post('/api/social/post', isAuthenticated, validateRequest(validateSocialPostSchema), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const postData = req.body;
+      
+      const post = await storage.createSocialPost({
+        ...postData,
+        userId,
+        scheduledFor: postData.scheduledFor ? new Date(postData.scheduledFor) : undefined,
+        status: postData.scheduledFor ? 'scheduled' : 'draft',
+      });
+      
+      res.status(201).json(post);
+    } catch (error) {
+      logger.error("Failed to create social post", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to create social post" });
+    }
+  });
+
+  app.get('/api/social/posts', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      const { status, limit } = req.query;
+      
+      const posts = await storage.getUserSocialPosts(userId, {
+        status: status as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      
+      res.json(posts);
+    } catch (error) {
+      logger.error("Failed to fetch social posts", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch social posts" });
+    }
+  });
+
+  app.put('/api/social/posts/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const post = await storage.updateSocialPost(id, updateData);
+      res.json(post);
+    } catch (error) {
+      logger.error("Failed to update social post", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to update social post" });
+    }
+  });
+
+  app.delete('/api/social/posts/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteSocialPost(id);
+      res.json({ success: true, message: "Post deleted successfully" });
+    } catch (error) {
+      logger.error("Failed to delete social post", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to delete social post" });
+    }
+  });
+
+  // Webhook configuration routes
+  app.get('/api/webhooks', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { platform } = req.query;
+      const configs = await storage.getWebhookConfigs(platform as string);
+      res.json(configs);
+    } catch (error) {
+      logger.error("Failed to fetch webhook configs", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch webhook configs" });
+    }
+  });
+
+  app.post('/api/webhooks', isAuthenticated, validateRequest(validateWebhookSchema), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const webhookData = req.body;
+      
+      const config = await storage.createWebhookConfig({
+        ...webhookData,
+        isActive: true,
+        triggerCount: 0,
+      });
+      
+      res.status(201).json(config);
+    } catch (error) {
+      logger.error("Failed to create webhook config", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to create webhook config" });
+    }
+  });
+
+  app.put('/api/webhooks/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const config = await storage.updateWebhookConfig(id, updateData);
+      res.json(config);
+    } catch (error) {
+      logger.error("Failed to update webhook config", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to update webhook config" });
+    }
+  });
+
+  app.delete('/api/webhooks/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteWebhookConfig(id);
+      res.json({ success: true, message: "Webhook deleted successfully" });
+    } catch (error) {
+      logger.error("Failed to delete webhook config", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to delete webhook config" });
     }
   });
 
