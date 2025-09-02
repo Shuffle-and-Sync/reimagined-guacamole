@@ -65,6 +65,10 @@ export default function GameRoom() {
   const { toast } = useToast();
   const { selectedCommunity } = useCommunity();
   const queryClient = useQueryClient();
+  
+  // Check if user is in spectator mode
+  const searchParams = new URLSearchParams(window.location.search);
+  const isSpectatorMode = searchParams.get('mode') === 'spectate';
   const [newMessage, setNewMessage] = useState("");
   const [diceResult, setDiceResult] = useState<number | null>(null);
   const [gameTimer, setGameTimer] = useState(0);
@@ -771,82 +775,91 @@ export default function GameRoom() {
                     Video Chat ({connectedPlayers.length + 1}/4 players)
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    {!cameraPermissionGranted ? (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={initializeMedia}
-                        data-testid="button-enable-camera"
-                      >
-                        <i className="fas fa-video mr-2"></i>
-                        Enable Camera
-                      </Button>
+                    {isSpectatorMode ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <i className="fas fa-eye mr-2"></i>
+                        <span className="text-sm">Spectator Mode - Video controls disabled</span>
+                      </div>
                     ) : (
-                      <Button
-                        variant={isCameraOn ? "default" : "destructive"}
-                        size="sm"
-                        onClick={() => {
-                          if (localStream) {
-                            const videoTrack = localStream.getVideoTracks()[0];
-                            if (videoTrack) {
-                              videoTrack.enabled = !isCameraOn;
-                              setIsCameraOn(!isCameraOn);
-                            }
-                          }
-                        }}
-                        data-testid="button-toggle-camera"
-                      >
-                        <i className={`fas ${isCameraOn ? 'fa-video' : 'fa-video-slash'} mr-2`}></i>
-                        {isCameraOn ? 'Camera On' : 'Camera Off'}
-                      </Button>
+                      <>
+                        {!cameraPermissionGranted ? (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={initializeMedia}
+                            data-testid="button-enable-camera"
+                          >
+                            <i className="fas fa-video mr-2"></i>
+                            Enable Camera
+                          </Button>
+                        ) : (
+                          <Button
+                            variant={isCameraOn ? "default" : "destructive"}
+                            size="sm"
+                            onClick={() => {
+                              if (localStream) {
+                                const videoTrack = localStream.getVideoTracks()[0];
+                                if (videoTrack) {
+                                  videoTrack.enabled = !isCameraOn;
+                                  setIsCameraOn(!isCameraOn);
+                                }
+                              }
+                            }}
+                            data-testid="button-toggle-camera"
+                          >
+                            <i className={`fas ${isCameraOn ? 'fa-video' : 'fa-video-slash'} mr-2`}></i>
+                            {isCameraOn ? 'Camera On' : 'Camera Off'}
+                          </Button>
+                        )}
+                        {cameraPermissionGranted && (
+                          <Button
+                            variant={isMicOn ? "default" : "destructive"}
+                            size="sm"
+                            onClick={() => {
+                              if (localStream) {
+                                const audioTrack = localStream.getAudioTracks()[0];
+                                if (audioTrack) {
+                                  audioTrack.enabled = !isMicOn;
+                                  setIsMicOn(!isMicOn);
+                                }
+                              }
+                            }}
+                            data-testid="button-toggle-mic"
+                          >
+                            <i className={`fas ${isMicOn ? 'fa-microphone' : 'fa-microphone-slash'} mr-2`}></i>
+                            {isMicOn ? 'Mic On' : 'Mic Off'}
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVideoLayout(videoLayout === 'grid' ? 'focused' : 'grid')}
+                          data-testid="button-toggle-layout"
+                        >
+                          <i className={`fas ${videoLayout === 'grid' ? 'fa-expand' : 'fa-th'} mr-2`}></i>
+                          {videoLayout === 'grid' ? 'Focus Mode' : 'Grid View'}
+                        </Button>
+                        <Button
+                          variant={isScreenSharing ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                          data-testid="button-screen-share"
+                        >
+                          <i className={`fas ${isScreenSharing ? 'fa-stop' : 'fa-desktop'} mr-2`}></i>
+                          {isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
+                        </Button>
+                        <Button
+                          variant={isRecording ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={isRecording ? stopRecording : startRecording}
+                          disabled={!cameraPermissionGranted}
+                          data-testid="button-record"
+                        >
+                          <i className={`fas ${isRecording ? 'fa-stop-circle' : 'fa-record-vinyl'} mr-2`}></i>
+                          {isRecording ? 'Stop Recording' : 'Record Session'}
+                        </Button>
+                      </>
                     )}
-                    {cameraPermissionGranted && (
-                      <Button
-                        variant={isMicOn ? "default" : "destructive"}
-                        size="sm"
-                        onClick={() => {
-                          if (localStream) {
-                            const audioTrack = localStream.getAudioTracks()[0];
-                            if (audioTrack) {
-                              audioTrack.enabled = !isMicOn;
-                              setIsMicOn(!isMicOn);
-                            }
-                          }
-                        }}
-                        data-testid="button-toggle-mic"
-                      >
-                        <i className={`fas ${isMicOn ? 'fa-microphone' : 'fa-microphone-slash'} mr-2`}></i>
-                        {isMicOn ? 'Mic On' : 'Mic Off'}
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setVideoLayout(videoLayout === 'grid' ? 'focused' : 'grid')}
-                      data-testid="button-toggle-layout"
-                    >
-                      <i className={`fas ${videoLayout === 'grid' ? 'fa-expand' : 'fa-th'} mr-2`}></i>
-                      {videoLayout === 'grid' ? 'Focus Mode' : 'Grid View'}
-                    </Button>
-                    <Button
-                      variant={isScreenSharing ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-                      data-testid="button-screen-share"
-                    >
-                      <i className={`fas ${isScreenSharing ? 'fa-stop' : 'fa-desktop'} mr-2`}></i>
-                      {isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
-                    </Button>
-                    <Button
-                      variant={isRecording ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={isRecording ? stopRecording : startRecording}
-                      disabled={!cameraPermissionGranted}
-                      data-testid="button-record"
-                    >
-                      <i className={`fas ${isRecording ? 'fa-stop-circle' : 'fa-record-vinyl'} mr-2`}></i>
-                      {isRecording ? 'Stop Recording' : 'Record Session'}
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -1072,27 +1085,36 @@ export default function GameRoom() {
                     </TabsList>
                     
                     <TabsContent value="dice" className="space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {[4, 6, 8, 10, 12, 20].map((sides) => (
-                          <Button
-                            key={sides}
-                            variant="outline"
-                            onClick={() => rollDice(sides)}
-                            data-testid={`button-dice-${sides}`}
-                            className="h-12"
-                          >
-                            <i className="fas fa-dice mr-1"></i>
-                            d{sides}
-                          </Button>
-                        ))}
-                      </div>
-                      {diceResult && (
-                        <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                            {diceResult}
-                          </div>
-                          <p className="text-sm text-muted-foreground">Last roll result</p>
+                      {isSpectatorMode ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <i className="fas fa-eye text-3xl mb-2"></i>
+                          <p>Spectator mode - dice rolls are view-only</p>
                         </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[4, 6, 8, 10, 12, 20].map((sides) => (
+                              <Button
+                                key={sides}
+                                variant="outline"
+                                onClick={() => rollDice(sides)}
+                                data-testid={`button-dice-${sides}`}
+                                className="h-12"
+                              >
+                                <i className="fas fa-dice mr-1"></i>
+                                d{sides}
+                              </Button>
+                            ))}
+                          </div>
+                          {diceResult && (
+                            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                                {diceResult}
+                              </div>
+                              <p className="text-sm text-muted-foreground">Last roll result</p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </TabsContent>
                     
@@ -1101,20 +1123,27 @@ export default function GameRoom() {
                         <div className="text-4xl font-mono font-bold mb-4">
                           {formatTime(gameTimer)}
                         </div>
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant={isTimerRunning ? "default" : "outline"}
-                            onClick={isTimerRunning ? pauseTimer : startTimer}
-                            data-testid="button-timer-toggle"
-                          >
-                            <i className={`fas ${isTimerRunning ? 'fa-pause' : 'fa-play'} mr-2`}></i>
-                            {isTimerRunning ? 'Pause' : 'Start'}
-                          </Button>
-                          <Button variant="outline" onClick={resetTimer} data-testid="button-timer-reset">
-                            <i className="fas fa-redo mr-2"></i>
-                            Reset
-                          </Button>
-                        </div>
+                        {isSpectatorMode ? (
+                          <div className="text-muted-foreground">
+                            <i className="fas fa-eye mr-2"></i>
+                            Spectator mode - timer is view-only
+                          </div>
+                        ) : (
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant={isTimerRunning ? "default" : "outline"}
+                              onClick={isTimerRunning ? pauseTimer : startTimer}
+                              data-testid="button-timer-toggle"
+                            >
+                              <i className={`fas ${isTimerRunning ? 'fa-pause' : 'fa-play'} mr-2`}></i>
+                              {isTimerRunning ? 'Pause' : 'Start'}
+                            </Button>
+                            <Button variant="outline" onClick={resetTimer} data-testid="button-timer-reset">
+                              <i className="fas fa-redo mr-2"></i>
+                              Reset
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     
@@ -1187,18 +1216,25 @@ export default function GameRoom() {
                   <Separator />
                   
                   <div className="p-4 flex-shrink-0">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Type a message..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                        data-testid="input-chat-message"
-                      />
-                      <Button onClick={sendMessage} data-testid="button-send-message">
-                        <i className="fas fa-paper-plane"></i>
-                      </Button>
-                    </div>
+                    {isSpectatorMode ? (
+                      <div className="text-center text-muted-foreground py-2">
+                        <i className="fas fa-eye mr-2"></i>
+                        Spectator mode - chat is view-only
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Type a message..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                          data-testid="input-chat-message"
+                        />
+                        <Button onClick={sendMessage} data-testid="button-send-message">
+                          <i className="fas fa-paper-plane"></i>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1210,24 +1246,31 @@ export default function GameRoom() {
             <Card>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Button variant="outline" onClick={() => rollDice(6)} data-testid="button-quick-dice">
-                      <i className="fas fa-dice mr-2"></i>
-                      Quick d6
-                    </Button>
-                    <Button variant="outline" onClick={() => rollDice(20)} data-testid="button-quick-d20">
-                      <i className="fas fa-dice-d20 mr-2"></i>
-                      Quick d20
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={isTimerRunning ? pauseTimer : startTimer}
-                      data-testid="button-quick-timer"
-                    >
-                      <i className={`fas ${isTimerRunning ? 'fa-pause' : 'fa-play'} mr-2`}></i>
-                      {isTimerRunning ? 'Pause' : 'Start'} Timer
-                    </Button>
-                  </div>
+                  {isSpectatorMode ? (
+                    <div className="flex items-center gap-4 text-muted-foreground">
+                      <i className="fas fa-eye mr-2"></i>
+                      <span>Spectator Mode - You can watch but not interact with game controls</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" onClick={() => rollDice(6)} data-testid="button-quick-dice">
+                        <i className="fas fa-dice mr-2"></i>
+                        Quick d6
+                      </Button>
+                      <Button variant="outline" onClick={() => rollDice(20)} data-testid="button-quick-d20">
+                        <i className="fas fa-dice-d20 mr-2"></i>
+                        Quick d20
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={isTimerRunning ? pauseTimer : startTimer}
+                        data-testid="button-quick-timer"
+                      >
+                        <i className={`fas ${isTimerRunning ? 'fa-pause' : 'fa-play'} mr-2`}></i>
+                        {isTimerRunning ? 'Pause' : 'Start'} Timer
+                      </Button>
+                    </div>
+                  )}
                   
                   <div className="flex items-center gap-4">
                     <div className="text-sm text-muted-foreground">
