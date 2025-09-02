@@ -35,6 +35,7 @@ interface CalendarEvent {
   gameFormat: string;
   powerLevel: number;
   creator: any;
+  creatorId: string;
   attendeeCount: number;
   mainPlayers: number;
   alternates: number;
@@ -627,7 +628,7 @@ export default function GamePodCalendar({ communityId, communityName, theme }: G
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label>Repeat</Label>
-                          <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
+                          <Select value={recurrencePattern} onValueChange={(value) => setRecurrencePattern(value as "daily" | "weekly" | "monthly")}>
                             <SelectTrigger data-testid="select-recurrence-pattern">
                               <SelectValue />
                             </SelectTrigger>
