@@ -63,7 +63,19 @@ export default function Calendar() {
 
   // Fetch events for the selected community only
   const { data: events = [], isLoading: eventsLoading, refetch: refetchEvents } = useQuery<ExtendedEvent[]>({
-    queryKey: ['/api/events', { communityId: selectedCommunity?.id, type: filterType !== 'all' ? filterType : undefined, upcoming: true }],
+    queryKey: ['/api/events', selectedCommunity?.id, filterType !== 'all' ? filterType : 'all', 'upcoming'],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCommunity?.id) params.append('communityId', selectedCommunity.id);
+      if (filterType !== 'all') params.append('type', filterType);
+      params.append('upcoming', 'true');
+      
+      const response = await fetch(`/api/events?${params.toString()}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch events');
+      return response.json();
+    },
     enabled: !!user && !!selectedCommunity,
   });
 

@@ -702,7 +702,7 @@ export const insertEventSchema = createInsertSchema(events, {
   recurrencePattern: z.enum(["daily", "weekly", "monthly"]).optional(),
   recurrenceInterval: z.number().int().min(1).max(30).optional(),
   recurrenceEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-}).omit({ id: true, creatorId: true, hostId: true, createdAt: true, updatedAt: true, parentEventId: true });
+}).omit({ id: true, createdAt: true, updatedAt: true, parentEventId: true });
 
 export const insertEventAttendeeSchema = createInsertSchema(eventAttendees, {
   status: z.enum(["attending", "maybe", "not_attending"]),
