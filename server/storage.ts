@@ -994,6 +994,20 @@ export class DatabaseStorage implements IStorage {
       .set({ currentPlayers: sql`GREATEST(${gameSessions.currentPlayers} - 1, 0)` })
       .where(eq(gameSessions.id, sessionId));
   }
+
+  async spectateGameSession(sessionId: string, userId: string): Promise<void> {
+    // Increment spectator count
+    await db.update(gameSessions)
+      .set({ spectators: sql`${gameSessions.spectators} + 1` })
+      .where(eq(gameSessions.id, sessionId));
+  }
+
+  async leaveSpectating(sessionId: string, userId: string): Promise<void> {
+    // Decrement spectator count
+    await db.update(gameSessions)
+      .set({ spectators: sql`GREATEST(${gameSessions.spectators} - 1, 0)` })
+      .where(eq(gameSessions.id, sessionId));
+  }
   
   // Social link operations
   async getUserSocialLinks(userId: string): Promise<UserSocialLink[]> {

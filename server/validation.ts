@@ -26,7 +26,7 @@ export const validateUserProfileUpdateSchema = z.object({
 export const validateEventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
-  type: z.enum(['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']),
+  type: z.enum(['tournament', 'convention', 'release', 'community', 'game_pod']),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
   location: z.string().min(1, 'Location is required').max(200),

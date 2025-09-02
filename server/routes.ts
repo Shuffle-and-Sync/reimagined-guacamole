@@ -1409,6 +1409,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/game-sessions/:id/spectate', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const user = authenticatedReq.user as any;
+      const { id } = req.params;
+      await storage.spectateGameSession(id, user.claims.sub);
+      
+      // Create notification for host when someone starts spectating
+      const gameSession = await storage.getGameSessions({ eventId: id });
+      if (gameSession.length > 0) {
+        await storage.createNotification({
+          userId: gameSession[0].hostId,
+          type: 'event_join',
+          title: 'New Spectator',
+          message: `${user.claims.first_name || user.claims.email} is now spectating your game`,
+          data: { gameSessionId: id, spectatorId: user.claims.sub },
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to spectate game session", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/game-sessions/:id/leave-spectating', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const user = authenticatedReq.user as any;
+      const { id } = req.params;
+      await storage.leaveSpectating(id, user.claims.sub);
+      
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to leave spectating", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time game coordination

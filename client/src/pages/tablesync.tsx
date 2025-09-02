@@ -128,6 +128,30 @@ export default function TableSync() {
     }
   });
 
+  // Spectate game session mutation
+  const spectateSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      const response = await apiRequest('POST', `/api/game-sessions/${sessionId}/spectate`);
+      return await response.json();
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/game-sessions'] });
+      toast({
+        title: "Now spectating!",
+        description: "You can watch the game in progress."
+      });
+      // Redirect to the game room as spectator
+      setLocation(`/tablesync/room/${sessionId}?mode=spectate`);
+    },
+    onError: () => {
+      toast({
+        title: "Failed to spectate",
+        description: "Unable to join as spectator.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateRoom = async () => {
     if (!roomName.trim()) {
       toast({
@@ -160,7 +184,7 @@ export default function TableSync() {
     const tempEvent = {
       title: `${roomName} - ${selectedFormat}`,
       description: description.trim() || `${selectedFormat} game session`,
-      type: "stream",
+      type: "game_pod",
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].slice(0, 5),
       location: "TableSync Remote",
@@ -229,6 +253,19 @@ export default function TableSync() {
     }
   };
 
+  const handleSpectateRoom = (sessionId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to spectate a game room.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    spectateSessionMutation.mutate(sessionId);
+  };
+
   // Event join mutation (reuse from calendar)
   const eventJoinMutation = useMutation({
     mutationFn: async ({ eventId, isCurrentlyAttending }: { eventId: string; isCurrentlyAttending: boolean }) => {
@@ -269,6 +306,68 @@ export default function TableSync() {
     }
     
     eventJoinMutation.mutate({ eventId, isCurrentlyAttending });
+  };
+
+  const handleJoinEventAsPlayer = (eventId: string, playerType: 'main' | 'alternate' | 'spectator') => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to join events.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const roleMap = {
+      'main': 'participant',
+      'alternate': 'participant', 
+      'spectator': 'spectator'
+    };
+    
+    const titleMap = {
+      'main': 'Joined as player!',
+      'alternate': 'Added to waiting list!',
+      'spectator': 'Spectating event!'
+    };
+    
+    const descriptionMap = {
+      'main': 'You\'re confirmed as a main player.',
+      'alternate': 'You\'ll be notified if a spot opens up.',
+      'spectator': 'You can watch this event when it starts.'
+    };
+    
+    // Call the join event API with specific role and player type
+    const joinMutation = useMutation({
+      mutationFn: async () => {
+        const response = await fetch(`/api/events/${eventId}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            status: 'attending',
+            role: roleMap[playerType],
+            playerType: playerType === 'spectator' ? 'main' : playerType
+          })
+        });
+        if (!response.ok) throw new Error('Failed to join event');
+        return response.json();
+      },
+      onSuccess: () => {
+        toast({ 
+          title: titleMap[playerType],
+          description: descriptionMap[playerType]
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/events', 'game_pod', 'upcoming'] });
+      },
+      onError: () => {
+        toast({ 
+          title: `Failed to join as ${playerType}`, 
+          variant: "destructive" 
+        });
+      },
+    });
+    
+    joinMutation.mutate();
   };
 
   return (
@@ -378,9 +477,17 @@ export default function TableSync() {
                             <CardTitle className="text-lg">{session.gameData?.name || 'Game Room'}</CardTitle>
                             <CardDescription>Hosted by {session.host?.firstName || session.host?.email}</CardDescription>
                           </div>
-                          <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                            {session.currentPlayers}/{session.maxPlayers}
-                          </Badge>
+                          <div className="flex gap-2">
+                            <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                              {session.currentPlayers}/{session.maxPlayers}
+                            </Badge>
+                            {session.spectators > 0 && (
+                              <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                <i className="fas fa-eye mr-1"></i>
+                                {session.spectators}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -401,23 +508,48 @@ export default function TableSync() {
                         
                         <p className="text-sm text-muted-foreground">{session.gameData?.description || 'No description provided'}</p>
                         
-                        <Button 
-                          className="w-full" 
-                          onClick={() => handleJoinRoom(session.id)}
-                          disabled={session.currentPlayers >= session.maxPlayers || joinSessionMutation.isPending}
-                          data-testid={`button-join-${session.id}`}
-                        >
-                          {joinSessionMutation.isPending ? (
-                            <>
-                              <i className="fas fa-spinner animate-spin mr-2"></i>
-                              Joining...
-                            </>
-                          ) : session.currentPlayers >= session.maxPlayers ? (
-                            "Room Full"
+                        <div className="space-y-2">
+                          {session.currentPlayers < session.maxPlayers ? (
+                            <Button 
+                              className="w-full" 
+                              onClick={() => handleJoinRoom(session.id)}
+                              disabled={joinSessionMutation.isPending}
+                              data-testid={`button-join-${session.id}`}
+                            >
+                              {joinSessionMutation.isPending ? (
+                                <>
+                                  <i className="fas fa-spinner animate-spin mr-2"></i>
+                                  Joining...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fas fa-gamepad mr-2"></i>
+                                  Join Game
+                                </>
+                              )}
+                            </Button>
                           ) : (
-                            "Join Room"
+                            <Button 
+                              className="w-full" 
+                              variant="outline"
+                              onClick={() => handleSpectateRoom(session.id)}
+                              disabled={spectateSessionMutation.isPending}
+                              data-testid={`button-spectate-${session.id}`}
+                            >
+                              {spectateSessionMutation.isPending ? (
+                                <>
+                                  <i className="fas fa-spinner animate-spin mr-2"></i>
+                                  Spectating...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fas fa-eye mr-2"></i>
+                                  Spectate (Full)
+                                </>
+                              )}
+                            </Button>
                           )}
-                        </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -436,9 +568,18 @@ export default function TableSync() {
                                   <CardTitle className="text-lg">{event.title}</CardTitle>
                                   <CardDescription>Hosted by {event.creator?.firstName || event.creator?.email}</CardDescription>
                                 </div>
-                                <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                                  {event.attendeeCount || 0}/{event.maxAttendees || 4}
-                                </Badge>
+                                <div className="flex gap-2">
+                                  <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                    <i className="fas fa-users mr-1"></i>
+                                    {event.mainPlayers || 0}/{event.playerSlots || 4}
+                                  </Badge>
+                                  {event.alternateSlots > 0 && (
+                                    <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                                      <i className="fas fa-clock mr-1"></i>
+                                      {event.alternates || 0}/{event.alternateSlots}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -460,14 +601,52 @@ export default function TableSync() {
                               <p className="text-sm text-muted-foreground">{event.description || 'No description provided'}</p>
                               
                               {user ? (
-                                <Button 
-                                  className="w-full" 
-                                  onClick={() => handleJoinEvent(event.id, event.isUserAttending || false)}
-                                  variant={event.isUserAttending ? "secondary" : "default"}
-                                  data-testid={`button-join-event-${event.id}`}
-                                >
-                                  {event.isUserAttending ? "Leave Event" : "Join Event"}
-                                </Button>
+                                <div className="space-y-2">
+                                  {!event.isUserAttending ? (
+                                    <>
+                                      {(event.mainPlayers || 0) < (event.playerSlots || 4) ? (
+                                        <Button 
+                                          className="w-full" 
+                                          onClick={() => handleJoinEventAsPlayer(event.id, 'main')}
+                                          data-testid={`button-join-main-${event.id}`}
+                                        >
+                                          <i className="fas fa-gamepad mr-2"></i>
+                                          Join as Player
+                                        </Button>
+                                      ) : event.alternateSlots > 0 && (event.alternates || 0) < event.alternateSlots ? (
+                                        <Button 
+                                          className="w-full" 
+                                          variant="outline"
+                                          onClick={() => handleJoinEventAsPlayer(event.id, 'alternate')}
+                                          data-testid={`button-join-alternate-${event.id}`}
+                                        >
+                                          <i className="fas fa-clock mr-2"></i>
+                                          Join Waiting List
+                                        </Button>
+                                      ) : (
+                                        <Button 
+                                          className="w-full" 
+                                          variant="secondary"
+                                          onClick={() => handleJoinEventAsPlayer(event.id, 'spectator')}
+                                          data-testid={`button-spectate-event-${event.id}`}
+                                        >
+                                          <i className="fas fa-eye mr-2"></i>
+                                          Spectate Event
+                                        </Button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <Button 
+                                      className="w-full" 
+                                      variant="secondary"
+                                      onClick={() => handleJoinEvent(event.id, true)}
+                                      data-testid={`button-leave-event-${event.id}`}
+                                    >
+                                      <i className="fas fa-sign-out-alt mr-2"></i>
+                                      Leave Event
+                                    </Button>
+                                  )}
+                                </div>
                               ) : (
                                 <Button 
                                   className="w-full" 

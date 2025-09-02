@@ -107,7 +107,7 @@ export const events = pgTable("events", {
   recurrencePattern: varchar("recurrence_pattern"), // daily, weekly, monthly
   recurrenceInterval: integer("recurrence_interval").default(1), // Every X days/weeks/months
   recurrenceEndDate: varchar("recurrence_end_date"), // When recurring events stop
-  parentEventId: varchar("parent_event_id").references(() => events.id, { onDelete: "cascade" }), // Links to original event for recurring series
+  parentEventId: varchar("parent_event_id"), // Links to original event for recurring series
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -123,7 +123,7 @@ export const eventAttendees = pgTable("event_attendees", {
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: varchar("status").default("attending"), // attending, maybe, not_attending
-  role: varchar("role").default("participant"), // participant, host, co_host
+  role: varchar("role").default("participant"), // participant, host, co_host, spectator
   playerType: varchar("player_type").default("main"), // main, alternate
   joinedAt: timestamp("joined_at").defaultNow(),
 }, (table) => [
@@ -179,6 +179,7 @@ export const gameSessions = pgTable("game_sessions", {
   status: varchar("status").default("waiting"), // waiting, active, paused, completed, cancelled
   currentPlayers: integer("current_players").default(0),
   maxPlayers: integer("max_players").notNull(),
+  spectators: integer("spectators").default(0),
   gameData: jsonb("game_data"), // Store game-specific data (deck info, match details, etc.)
   communityId: varchar("community_id").references(() => communities.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -702,11 +703,11 @@ export const insertEventSchema = createInsertSchema(events, {
   recurrencePattern: z.enum(["daily", "weekly", "monthly"]).optional(),
   recurrenceInterval: z.number().int().min(1).max(30).optional(),
   recurrenceEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true, parentEventId: true });
+}).omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertEventAttendeeSchema = createInsertSchema(eventAttendees, {
   status: z.enum(["attending", "maybe", "not_attending"]),
-  role: z.enum(["participant", "host", "co_host"]),
+  role: z.enum(["participant", "host", "co_host", "spectator"]),
   playerType: z.enum(["main", "alternate"]),
 }).omit({
   id: true,

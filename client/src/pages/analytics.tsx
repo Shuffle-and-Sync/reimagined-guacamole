@@ -112,7 +112,32 @@ export default function Analytics() {
     }
   };
 
-  const displayData = analytics || mockAnalytics;
+  // Safely merge analytics data with mock data as fallback
+  const displayData: AnalyticsData = {
+    userStats: {
+      totalUsers: analytics?.userStats?.totalUsers ?? mockAnalytics.userStats.totalUsers,
+      activeUsers: analytics?.userStats?.activeUsers ?? mockAnalytics.userStats.activeUsers,
+      newUsersThisWeek: analytics?.userStats?.newUsersThisWeek ?? mockAnalytics.userStats.newUsersThisWeek,
+      retentionRate: analytics?.userStats?.retentionRate ?? mockAnalytics.userStats.retentionRate,
+    },
+    gameStats: {
+      totalSessions: analytics?.gameStats?.totalSessions ?? mockAnalytics.gameStats.totalSessions,
+      averageSessionDuration: analytics?.gameStats?.averageSessionDuration ?? mockAnalytics.gameStats.averageSessionDuration,
+      popularGames: analytics?.gameStats?.popularGames ?? mockAnalytics.gameStats.popularGames,
+      weeklyActivity: analytics?.gameStats?.weeklyActivity ?? mockAnalytics.gameStats.weeklyActivity,
+    },
+    communityStats: {
+      totalCommunities: analytics?.communityStats?.totalCommunities ?? mockAnalytics.communityStats.totalCommunities,
+      activeCommunities: analytics?.communityStats?.activeCommunities ?? mockAnalytics.communityStats.activeCommunities,
+      membershipDistribution: analytics?.communityStats?.membershipDistribution ?? mockAnalytics.communityStats.membershipDistribution,
+    },
+    tournamentStats: {
+      totalTournaments: analytics?.tournamentStats?.totalTournaments ?? mockAnalytics.tournamentStats.totalTournaments,
+      activeTournaments: analytics?.tournamentStats?.activeTournaments ?? mockAnalytics.tournamentStats.activeTournaments,
+      totalParticipants: analytics?.tournamentStats?.totalParticipants ?? mockAnalytics.tournamentStats.totalParticipants,
+      avgParticipantsPerTournament: analytics?.tournamentStats?.avgParticipantsPerTournament ?? mockAnalytics.tournamentStats.avgParticipantsPerTournament,
+    },
+  };
 
   const exportData = () => {
     const dataStr = JSON.stringify(displayData, null, 2);

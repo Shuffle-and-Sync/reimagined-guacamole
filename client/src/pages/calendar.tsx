@@ -21,9 +21,8 @@ const EVENT_TYPES = [
   { id: "tournament", name: "Tournament", icon: "fas fa-trophy", color: "bg-yellow-500" },
   { id: "convention", name: "Convention", icon: "fas fa-building", color: "bg-purple-500" },
   { id: "release", name: "Product Release", icon: "fas fa-box", color: "bg-blue-500" },
-  { id: "stream", name: "Stream Session", icon: "fas fa-video", color: "bg-red-500" },
-  { id: "community", name: "Community Event", icon: "fas fa-users", color: "bg-green-500" },
-  { id: "personal", name: "Personal Game", icon: "fas fa-gamepad", color: "bg-indigo-500" }
+  { id: "game_pod", name: "Game Pod", icon: "fas fa-gamepad", color: "bg-red-500" },
+  { id: "community", name: "Community Event", icon: "fas fa-users", color: "bg-green-500" }
 ];
 
 type ExtendedEvent = Event & { 
