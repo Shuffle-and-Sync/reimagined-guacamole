@@ -62,6 +62,23 @@ export default function TableSync() {
     queryKey: ['/api/game-sessions'],
     select: (data: GameRoom[]) => data.filter(session => session.status === 'waiting'),
   });
+
+  // Fetch upcoming game pod events that users can join
+  const { data: gameEvents = [], isLoading: isLoadingEvents } = useQuery({
+    queryKey: ['/api/events', 'game_pod', 'upcoming'],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('type', 'game_pod');
+      params.append('upcoming', 'true');
+      if (selectedCommunity?.id) params.append('communityId', selectedCommunity.id);
+      
+      const response = await fetch(`/api/events?${params.toString()}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch game pod events');
+      return response.json();
+    },
+  });
   
   // Create game session mutation
   const createSessionMutation = useMutation({
@@ -212,6 +229,48 @@ export default function TableSync() {
     }
   };
 
+  // Event join mutation (reuse from calendar)
+  const eventJoinMutation = useMutation({
+    mutationFn: async ({ eventId, isCurrentlyAttending }: { eventId: string; isCurrentlyAttending: boolean }) => {
+      const url = isCurrentlyAttending ? `/api/events/${eventId}/leave` : `/api/events/${eventId}/join`;
+      const method = isCurrentlyAttending ? 'DELETE' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: method === 'POST' ? JSON.stringify({ status: 'attending' }) : undefined,
+      });
+      if (!response.ok) throw new Error(`Failed to ${isCurrentlyAttending ? 'leave' : 'join'} event`);
+      return response.json();
+    },
+    onSuccess: (_, { isCurrentlyAttending }) => {
+      toast({ 
+        title: isCurrentlyAttending ? "Left event successfully!" : "Joined event successfully!" 
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', 'game_pod', 'upcoming'] });
+    },
+    onError: (_, { isCurrentlyAttending }) => {
+      toast({ 
+        title: `Failed to ${isCurrentlyAttending ? 'leave' : 'join'} event`, 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const handleJoinEvent = (eventId: string, isCurrentlyAttending: boolean) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to join events.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    eventJoinMutation.mutate({ eventId, isCurrentlyAttending });
+  };
+
   return (
     <div 
       className="min-h-screen"
@@ -273,7 +332,7 @@ export default function TableSync() {
 
             {/* Join Room Tab */}
             <TabsContent value="join" className="space-y-6">
-              {isLoadingSessions ? (
+              {isLoadingSessions || isLoadingEvents ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="animate-pulse">
@@ -291,13 +350,13 @@ export default function TableSync() {
                     </Card>
                   ))}
                 </div>
-              ) : gameSessions.length === 0 ? (
+              ) : gameSessions.length === 0 && gameEvents.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="max-w-md mx-auto">
                     <i className="fas fa-gamepad text-4xl text-muted-foreground mb-4"></i>
-                    <h3 className="text-lg font-semibold mb-2">No Active Rooms</h3>
+                    <h3 className="text-lg font-semibold mb-2">No Active Rooms or Events</h3>
                     <p className="text-muted-foreground mb-4">
-                      No game rooms are currently available. Be the first to create one!
+                      No game rooms are currently available and no upcoming game pod events. Be the first to create one!
                     </p>
                     <Button onClick={() => setActiveTab("create")} data-testid="button-create-first-room">
                       Create First Room
@@ -305,8 +364,13 @@ export default function TableSync() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {gameSessions.map((session) => (
+                <div className="space-y-8">
+                  {/* Active Game Sessions */}
+                  {gameSessions.length > 0 && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4">Active Game Rooms</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {gameSessions.map((session) => (
                     <Card key={session.id} className="hover:border-purple-400 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 border-2" data-testid={`card-room-${session.id}`}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -357,6 +421,70 @@ export default function TableSync() {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+
+                  {/* Upcoming Game Pod Events */}
+                  {gameEvents.length > 0 && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4">Upcoming Game Pod Events</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {gameEvents.map((event: any) => (
+                          <Card key={event.id} className="hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border-2" data-testid={`card-event-${event.id}`}>
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <CardTitle className="text-lg">{event.title}</CardTitle>
+                                  <CardDescription>Hosted by {event.creator?.firstName || event.creator?.email}</CardDescription>
+                                </div>
+                                <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                  {event.attendeeCount || 0}/{event.maxAttendees || 4}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-muted-foreground">Date:</span>
+                                  <span className="font-medium">{new Date(event.date).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-muted-foreground">Time:</span>
+                                  <span className="font-medium">{event.time}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-muted-foreground">Location:</span>
+                                  <span className="font-medium">{event.location}</span>
+                                </div>
+                              </div>
+                              
+                              <p className="text-sm text-muted-foreground">{event.description || 'No description provided'}</p>
+                              
+                              {user ? (
+                                <Button 
+                                  className="w-full" 
+                                  onClick={() => handleJoinEvent(event.id, event.isUserAttending || false)}
+                                  variant={event.isUserAttending ? "secondary" : "default"}
+                                  data-testid={`button-join-event-${event.id}`}
+                                >
+                                  {event.isUserAttending ? "Leave Event" : "Join Event"}
+                                </Button>
+                              ) : (
+                                <Button 
+                                  className="w-full" 
+                                  variant="outline"
+                                  onClick={() => toast({ title: "Please log in to join events", variant: "destructive" })}
+                                  data-testid={`button-login-event-${event.id}`}
+                                >
+                                  <i className="fas fa-sign-in-alt mr-2"></i>
+                                  Login to Join
+                                </Button>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>

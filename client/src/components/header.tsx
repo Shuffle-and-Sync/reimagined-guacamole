@@ -110,6 +110,13 @@ export function Header() {
             TableSync
           </Link>
           <Link 
+            href="/calendar" 
+            className={`transition-colors font-medium ${location === "/calendar" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            data-testid="nav-calendar"
+          >
+            Calendar
+          </Link>
+          <Link 
             href="/tournaments" 
             className={`transition-colors font-medium ${location === "/tournaments" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-tournaments"

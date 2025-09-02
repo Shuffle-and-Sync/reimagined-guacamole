@@ -76,7 +76,7 @@ export default function Calendar() {
       if (!response.ok) throw new Error('Failed to fetch events');
       return response.json();
     },
-    enabled: !!user && !!selectedCommunity,
+    enabled: !!selectedCommunity, // Allow viewing events without authentication
   });
 
   // Fetch communities
@@ -100,6 +100,7 @@ export default function Calendar() {
       toast({ title: "Event created successfully!" });
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       setIsCreateDialogOpen(false);
+      setEditingEventId(null);
       // Reset form
       setNewEventTitle("");
       setNewEventType("");
@@ -143,6 +144,57 @@ export default function Calendar() {
     },
   });
 
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: async (eventData: any) => {
+      const { id, ...updateData } = eventData;
+      const response = await fetch(`/api/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updateData),
+      });
+      if (!response.ok) throw new Error('Failed to update event');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Event updated successfully!" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      setIsCreateDialogOpen(false);
+      setEditingEventId(null);
+      // Reset form
+      setNewEventTitle("");
+      setNewEventType("");
+      setNewEventDate("");
+      setNewEventTime("");
+      setNewEventLocation("");
+      setNewEventDescription("");
+      setNewEventCommunityId("");
+    },
+    onError: () => {
+      toast({ title: "Failed to update event", variant: "destructive" });
+    },
+  });
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to delete event');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Event deleted successfully!" });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete event", variant: "destructive" });
+    },
+  });
+
   const handleCreateEvent = () => {
     if (!newEventTitle || !newEventType || !newEventDate || !newEventTime || !newEventLocation) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
@@ -154,20 +206,57 @@ export default function Calendar() {
       return;
     }
 
-    createEventMutation.mutate({
-      title: newEventTitle,
-      type: newEventType,
-      date: newEventDate,
-      time: newEventTime,
-      location: newEventLocation,
-      description: newEventDescription,
-      communityId: selectedCommunity.id, // Auto-set to current community
-    });
+    if (editingEventId) {
+      // Update existing event
+      updateEventMutation.mutate({
+        id: editingEventId,
+        title: newEventTitle,
+        type: newEventType,
+        date: newEventDate,
+        time: newEventTime,
+        location: newEventLocation,
+        description: newEventDescription,
+        communityId: selectedCommunity.id,
+      });
+    } else {
+      // Create new event
+      createEventMutation.mutate({
+        title: newEventTitle,
+        type: newEventType,
+        date: newEventDate,
+        time: newEventTime,
+        location: newEventLocation,
+        description: newEventDescription,
+        communityId: selectedCommunity.id, // Auto-set to current community
+      });
+    }
   };
 
   const handleAttendEvent = (eventId: string, isCurrentlyAttending: boolean) => {
     joinEventMutation.mutate({ eventId, isCurrentlyAttending });
   };
+
+  const handleEditEvent = (event: ExtendedEvent) => {
+    // Pre-populate form with existing event data
+    setNewEventTitle(event.title);
+    setNewEventType(event.type);
+    setNewEventDate(event.date);
+    setNewEventTime(event.time);
+    setNewEventLocation(event.location);
+    setNewEventDescription(event.description || '');
+    setNewEventCommunityId(event.communityId || '');
+    setEditingEventId(event.id);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      deleteEventMutation.mutate(eventId);
+    }
+  };
+
+  // Add state for editing
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   // Events are already filtered by community in the API query, just filter by type
   const filteredEvents = events.filter(event => {
@@ -232,7 +321,7 @@ export default function Calendar() {
                 </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create New Event</DialogTitle>
+                  <DialogTitle>{editingEventId ? 'Edit Event' : 'Create New Event'}</DialogTitle>
                   <DialogDescription>
                     Schedule a new gaming event, tournament, or community gathering
                   </DialogDescription>
@@ -338,7 +427,7 @@ export default function Calendar() {
                       disabled={!newEventTitle || !newEventType || !newEventDate || !selectedCommunity}
                       data-testid="button-submit-event"
                     >
-                      Create Event
+                      {editingEventId ? 'Update Event' : 'Create Event'}
                     </Button>
                   </div>
                 </div>
@@ -427,14 +516,50 @@ export default function Calendar() {
                                 <div className="font-medium">{event.attendeeCount?.toLocaleString() || '0'}</div>
                                 <div className="text-muted-foreground">attending</div>
                               </div>
-                              <Button
-                                variant={event.isUserAttending ? "secondary" : "default"}
-                                size="sm"
-                                onClick={() => handleAttendEvent(event.id, event.isUserAttending || false)}
-                                data-testid={`button-attend-${event.id}`}
-                              >
-                                {event.isUserAttending ? "Leave Event" : "Join Event"}
-                              </Button>
+                              <div className="flex space-x-2">
+                                {user && (user.id === event.creator?.id || user.id === event.hostId) && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditEvent(event)}
+                                      data-testid={`button-edit-${event.id}`}
+                                    >
+                                      <i className="fas fa-edit mr-2"></i>
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => handleDeleteEvent(event.id)}
+                                      data-testid={`button-delete-${event.id}`}
+                                    >
+                                      <i className="fas fa-trash mr-2"></i>
+                                      Delete
+                                    </Button>
+                                  </>
+                                )}
+                                {user ? (
+                                  <Button
+                                    variant={event.isUserAttending ? "secondary" : "default"}
+                                    size="sm"
+                                    onClick={() => handleAttendEvent(event.id, event.isUserAttending || false)}
+                                    data-testid={`button-attend-${event.id}`}
+                                  >
+                                    {event.isUserAttending ? "Leave Event" : "Join Event"}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => toast({ title: "Please log in to join events", variant: "destructive" })}
+                                    data-testid={`button-login-required-${event.id}`}
+                                  >
+                                    <i className="fas fa-sign-in-alt mr-2"></i>
+                                    Login to Join
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </CardContent>
