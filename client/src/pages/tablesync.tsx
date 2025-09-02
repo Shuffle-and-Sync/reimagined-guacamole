@@ -36,6 +36,7 @@ interface GameRoom {
   format: string;
   currentPlayers: number;
   maxPlayers: number;
+  spectators: number;
   powerLevel: string;
   description: string;
   communityId: string;
