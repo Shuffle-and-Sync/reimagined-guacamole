@@ -26,13 +26,23 @@ export const validateUserProfileUpdateSchema = z.object({
 export const validateEventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
-  type: z.enum(['tournament', 'convention', 'release', 'stream', 'community', 'personal']),
+  type: z.enum(['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
   location: z.string().min(1, 'Location is required').max(200),
-  communityId: z.string().max(50).optional(),
+  communityId: z.string().min(1, 'Community ID is required').max(50),
   maxAttendees: z.number().int().min(1).max(10000).optional(),
   isPublic: z.boolean().optional(),
+  // Game pod specific fields
+  playerSlots: z.number().int().min(2).max(8).optional(),
+  alternateSlots: z.number().int().min(0).max(8).optional(),
+  gameFormat: z.string().max(50).optional(),
+  powerLevel: z.number().int().min(1).max(10).optional(),
+  // Recurring event fields
+  isRecurring: z.boolean().optional(),
+  recurrencePattern: z.enum(['daily', 'weekly', 'monthly']).optional(),
+  recurrenceInterval: z.number().int().min(1).max(365).optional(),
+  recurrenceEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format').optional(),
 });
 
 export const validatePasswordResetSchema = z.object({
