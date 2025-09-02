@@ -201,17 +201,23 @@ export default function Calendar() {
               )}
             </div>
             
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="bg-primary hover:bg-primary/90" 
-                  data-testid="button-create-event"
-                  disabled={!selectedCommunity}
-                >
-                  <i className="fas fa-plus mr-2"></i>
-                  Create Event
-                </Button>
-              </DialogTrigger>
+            <div className="flex flex-col items-end space-y-2">
+              {!selectedCommunity && (
+                <p className="text-sm text-muted-foreground">
+                  Select a specific realm to create events
+                </p>
+              )}
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-primary hover:bg-primary/90" 
+                    data-testid="button-create-event"
+                    disabled={!selectedCommunity}
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Create Event
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Create New Event</DialogTitle>
@@ -326,6 +332,7 @@ export default function Calendar() {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           <Tabs defaultValue="overview" className="space-y-8">
