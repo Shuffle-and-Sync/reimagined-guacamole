@@ -137,6 +137,11 @@ export default function Calendar() {
       return;
     }
 
+    if (!selectedCommunity?.id) {
+      toast({ title: "Please select a community first", variant: "destructive" });
+      return;
+    }
+
     createEventMutation.mutate({
       title: newEventTitle,
       type: newEventType,
@@ -144,7 +149,7 @@ export default function Calendar() {
       time: newEventTime,
       location: newEventLocation,
       description: newEventDescription,
-      communityId: selectedCommunity?.id || null, // Auto-set to current community
+      communityId: selectedCommunity.id, // Auto-set to current community
     });
   };
 
@@ -198,7 +203,11 @@ export default function Calendar() {
             
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90" data-testid="button-create-event">
+                <Button 
+                  className="bg-primary hover:bg-primary/90" 
+                  data-testid="button-create-event"
+                  disabled={!selectedCommunity}
+                >
                   <i className="fas fa-plus mr-2"></i>
                   Create Event
                 </Button>
@@ -308,7 +317,7 @@ export default function Calendar() {
                     <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} data-testid="button-cancel-event">Cancel</Button>
                     <Button 
                       onClick={handleCreateEvent}
-                      disabled={!newEventTitle || !newEventType || !newEventDate}
+                      disabled={!newEventTitle || !newEventType || !newEventDate || !selectedCommunity}
                       data-testid="button-submit-event"
                     >
                       Create Event
@@ -535,7 +544,11 @@ export default function Calendar() {
                         <p className="text-muted-foreground mb-4">You haven't created any events yet</p>
                         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              disabled={!selectedCommunity}
+                            >
                               <i className="fas fa-plus mr-2"></i>
                               Create Your First Event
                             </Button>
