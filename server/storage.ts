@@ -2056,14 +2056,14 @@ export class DatabaseStorage implements IStorage {
       whereConditions.push(eq(socialPosts.status, options.status));
     }
 
-    let query = db
+    const query = db
       .select()
       .from(socialPosts)
       .where(and(...whereConditions))
       .orderBy(desc(socialPosts.createdAt));
 
     if (options?.limit) {
-      query = query.limit(options.limit);
+      return await query.limit(options.limit);
     }
 
     return await query;
