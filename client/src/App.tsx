@@ -50,7 +50,7 @@ function Router() {
           <Route path="/calendar" component={Calendar} />
           <Route path="/matchmaking" component={Matchmaking} />
           <Route path="/tournaments" component={Tournaments} />
-          <Route path="/analytics" component={Analytics} />
+          {/* Analytics is admin-only - remove from user routes */}
           <Route path="/profile" component={Profile} />
           <Route path="/profile/:userId" component={Profile} />
           {/* Footer pages accessible to all users */}

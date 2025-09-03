@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,13 +90,13 @@ export default function Social() {
   const [activeTab, setActiveTab] = useState("compose");
 
   // Fetch user's platform tokens
-  const { data: platformTokens, isLoading: tokensLoading } = useQuery({
+  const { data: platformTokens = [], isLoading: tokensLoading } = useQuery<PlatformToken[]>({
     queryKey: ['/api/platforms/tokens'],
     enabled: !!user,
   });
 
   // Fetch user's social posts
-  const { data: socialPosts, isLoading: postsLoading } = useQuery({
+  const { data: socialPosts = [], isLoading: postsLoading } = useQuery<SocialPost[]>({
     queryKey: ['/api/social/posts'],
     enabled: !!user,
   });
@@ -104,10 +104,7 @@ export default function Social() {
   // Platform authentication mutation
   const connectPlatformMutation = useMutation({
     mutationFn: (data: { platform: string; code: string; state?: string }) =>
-      apiRequest('/api/platforms/auth', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('/api/platforms/auth', 'POST', data),
     onSuccess: (data, variables) => {
       toast({
         title: `${variables.platform} connected successfully!`,
@@ -127,10 +124,7 @@ export default function Social() {
   // Social post creation mutation
   const createPostMutation = useMutation({
     mutationFn: (data: { content: string; platforms: string[]; scheduledFor?: string }) =>
-      apiRequest('/api/social/post', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('/api/social/post', 'POST', data),
     onSuccess: (data, variables) => {
       const platformNames = variables.platforms.map(id => {
         const platform = SOCIAL_PLATFORMS.find(p => p.id === id);
@@ -168,9 +162,7 @@ export default function Social() {
   // Platform disconnect mutation
   const disconnectPlatformMutation = useMutation({
     mutationFn: (platform: string) =>
-      apiRequest(`/api/platforms/${platform}`, {
-        method: 'DELETE',
-      }),
+      apiRequest(`/api/platforms/${platform}`, 'DELETE'),
     onSuccess: (data, platform) => {
       toast({
         title: `Disconnected from ${platform}`,
@@ -234,10 +226,10 @@ export default function Social() {
   };
 
   const handleEditPost = (postId: string) => {
-    const post = socialPosts?.find((p: any) => p.id === postId);
+    const post = socialPosts.find((p) => p.id === postId) as SocialPost | undefined;
     if (post) {
       setNewPost(post.content);
-      setSelectedPlatforms(post.platforms);
+      setSelectedPlatforms(Array.isArray(post.platforms) ? post.platforms : []);
       setScheduleTime(post.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : "");
       
       toast({
@@ -252,7 +244,7 @@ export default function Social() {
 
   const handleCancelPost = (postId: string) => {
     // Delete the scheduled post via API
-    apiRequest(`/api/social/posts/${postId}`, { method: 'DELETE' })
+    apiRequest(`/api/social/posts/${postId}`, 'DELETE')
       .then(() => {
         toast({
           title: "Post cancelled",
@@ -292,13 +284,15 @@ export default function Social() {
   };
 
   // Update platform connection status based on real tokens
-  const platformsWithStatus = SOCIAL_PLATFORMS.map(platform => ({
-    ...platform,
-    connected: platformTokens?.some((token: any) => token.platform === platform.id && token.isActive) || false
-  }));
+  const platformsWithStatus = useMemo(() => {
+    return SOCIAL_PLATFORMS.map(platform => ({
+      ...platform,
+      connected: platformTokens.some((token: PlatformToken) => token.platform === platform.id && token.isActive) || false
+    }));
+  }, [platformTokens]);
 
-  const connectedPlatforms = platformsWithStatus.filter(p => p.connected);
-  const unconnectedPlatforms = platformsWithStatus.filter(p => !p.connected);
+  const connectedPlatforms = useMemo(() => platformsWithStatus.filter(p => p.connected), [platformsWithStatus]);
+  const unconnectedPlatforms = useMemo(() => platformsWithStatus.filter(p => !p.connected), [platformsWithStatus]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -317,11 +311,10 @@ export default function Social() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
+            <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
               <TabsTrigger value="compose" data-testid="tab-compose">Compose</TabsTrigger>
               <TabsTrigger value="scheduled" data-testid="tab-scheduled">Scheduled</TabsTrigger>
               <TabsTrigger value="platforms" data-testid="tab-platforms">Platforms</TabsTrigger>
-              <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
             </TabsList>
 
             {/* Compose Tab */}
@@ -584,71 +577,6 @@ export default function Social() {
               </div>
             </TabsContent>
 
-            {/* Analytics Tab */}
-            <TabsContent value="analytics">
-              <div className="max-w-6xl mx-auto space-y-8">
-                <h2 className="text-2xl font-bold text-center">Social Media Analytics</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-primary mb-2">1,247</div>
-                      <div className="text-sm text-muted-foreground">Total Followers</div>
-                      <div className="text-xs text-green-500 mt-1">+12% this week</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-secondary mb-2">89</div>
-                      <div className="text-sm text-muted-foreground">Posts This Month</div>
-                      <div className="text-xs text-blue-500 mt-1">+5% vs last month</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-accent mb-2">4.2%</div>
-                      <div className="text-sm text-muted-foreground">Engagement Rate</div>
-                      <div className="text-xs text-green-500 mt-1">Above average</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <div className="text-3xl font-bold text-orange-500 mb-2">23</div>
-                      <div className="text-sm text-muted-foreground">Scheduled Posts</div>
-                      <div className="text-xs text-muted-foreground mt-1">Next 7 days</div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Platform Performance</CardTitle>
-                    <CardDescription>Engagement metrics across your connected platforms</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {connectedPlatforms.map((platform) => (
-                        <div key={platform.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 bg-gradient-to-br ${platform.color} rounded-lg flex items-center justify-center`}>
-                              <i className={`${platform.icon} text-white text-sm`}></i>
-                            </div>
-                            <span className="font-medium">{platform.name}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold">342 followers</div>
-                            <div className="text-sm text-muted-foreground">4.8% engagement</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
       </main>
