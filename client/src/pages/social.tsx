@@ -104,7 +104,7 @@ export default function Social() {
   // Platform authentication mutation
   const connectPlatformMutation = useMutation({
     mutationFn: (data: { platform: string; code: string; state?: string }) =>
-      apiRequest('/api/platforms/auth', 'POST', data),
+      apiRequest('POST', '/api/platforms/auth', data),
     onSuccess: (data, variables) => {
       toast({
         title: `${variables.platform} connected successfully!`,
@@ -124,7 +124,7 @@ export default function Social() {
   // Social post creation mutation
   const createPostMutation = useMutation({
     mutationFn: (data: { content: string; platforms: string[]; scheduledFor?: string }) =>
-      apiRequest('/api/social/post', 'POST', data),
+      apiRequest('POST', '/api/social/post', data),
     onSuccess: (data, variables) => {
       const platformNames = variables.platforms.map(id => {
         const platform = SOCIAL_PLATFORMS.find(p => p.id === id);
@@ -162,7 +162,7 @@ export default function Social() {
   // Platform disconnect mutation
   const disconnectPlatformMutation = useMutation({
     mutationFn: (platform: string) =>
-      apiRequest(`/api/platforms/${platform}`, 'DELETE'),
+      apiRequest('DELETE', `/api/platforms/${platform}`),
     onSuccess: (data, platform) => {
       toast({
         title: `Disconnected from ${platform}`,
@@ -244,7 +244,7 @@ export default function Social() {
 
   const handleCancelPost = (postId: string) => {
     // Delete the scheduled post via API
-    apiRequest(`/api/social/posts/${postId}`, 'DELETE')
+    apiRequest('DELETE', `/api/social/posts/${postId}`)
       .then(() => {
         toast({
           title: "Post cancelled",
