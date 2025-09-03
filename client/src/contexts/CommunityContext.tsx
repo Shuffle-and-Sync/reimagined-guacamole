@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Community } from '@shared/schema';
 import { getCommunityTheme, applyCommunityTheme, type CommunityTheme } from '@/lib/communityThemes';
@@ -16,6 +16,7 @@ const CommunityContext = createContext<CommunityContextType | undefined>(undefin
 export function CommunityProvider({ children }: { children: ReactNode }) {
   const [selectedCommunity, setSelectedCommunityState] = useState<Community | null>(null);
   const [communityTheme, setCommunityTheme] = useState<CommunityTheme>(() => getCommunityTheme(null));
+  const hasInitialized = useRef(false);
   
   // Fetch all communities
   const { data: communities = [], isLoading } = useQuery<Community[]>({
@@ -24,7 +25,10 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
 
   // Set initial community (saved preference only, default to All Realms)
   useEffect(() => {
-    if (communities.length > 0 && selectedCommunity === null) {
+    // Only run once when communities are first loaded
+    if (communities.length > 0 && !hasInitialized.current) {
+      hasInitialized.current = true;
+      
       // Try to get saved community from localStorage
       const savedCommunityId = localStorage.getItem('selectedCommunityId');
       if (savedCommunityId && savedCommunityId !== 'null') {
@@ -34,8 +38,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
           return;
         }
       }
-      // Default to All Realms (null) - don't auto-select a community
-      setSelectedCommunityState(null);
+      // selectedCommunity is already null by default, no need to set it again
     }
   }, [communities]);
 

@@ -43,7 +43,47 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    try {
+      console.log("🔧 Attempting Vite setup with timeout...");
+      
+      // Set up a timeout for Vite initialization
+      const viteTimeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Vite setup timeout')), 15000);
+      });
+      
+      await Promise.race([
+        setupVite(app, server),
+        viteTimeout
+      ]);
+      
+      console.log("✅ Vite setup completed successfully");
+    } catch (error) {
+      console.warn("⚠️ Vite setup failed or timed out, falling back to basic static serving");
+      
+      // Fallback to basic static serving without the full Vite build
+      app.use("*", (req, res) => {
+        res.send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Shuffle & Sync - TCG Streaming Platform</title>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body>
+              <div id="root">
+                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                  <h1>🎮 Shuffle & Sync</h1>
+                  <p>TCG Streaming Coordination Platform</p>
+                  <p>Server is running, but frontend development mode is temporarily disabled.</p>
+                  <p>The API endpoints are available for testing.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `);
+      });
+    }
   } else {
     serveStatic(app);
   }
@@ -59,6 +99,6 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     logger.info(`Server started successfully`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
-    log(`serving on port ${port}`); // Keep Vite's log for development
+    log(`serving on port ${port}`);
   });
 })();
