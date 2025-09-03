@@ -48,7 +48,7 @@ app.use((req, res, next) => {
       
       // Set up a timeout for Vite initialization
       const viteTimeout = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Vite setup timeout')), 15000);
+        setTimeout(() => reject(new Error('Vite setup timeout')), 10000);
       });
       
       await Promise.race([
@@ -58,31 +58,36 @@ app.use((req, res, next) => {
       
       console.log("✅ Vite setup completed successfully");
     } catch (error) {
-      console.warn("⚠️ Vite setup failed or timed out, falling back to basic static serving");
+      console.warn("⚠️ Vite setup failed or timed out, serving built static files instead");
       
-      // Fallback to basic static serving without the full Vite build
-      app.use("*", (req, res) => {
-        res.send(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Shuffle & Sync - TCG Streaming Platform</title>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body>
-              <div id="root">
-                <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
-                  <h1>🎮 Shuffle & Sync</h1>
-                  <p>TCG Streaming Coordination Platform</p>
-                  <p>Server is running, but frontend development mode is temporarily disabled.</p>
-                  <p>The API endpoints are available for testing.</p>
+      // Serve the built static files instead of the fallback HTML
+      try {
+        serveStatic(app);
+        console.log("✅ Static file serving enabled - React app should be available");
+      } catch (staticError) {
+        console.warn("⚠️ Static serving also failed, using minimal fallback");
+        app.use("*", (req, res) => {
+          res.send(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Shuffle & Sync - TCG Streaming Platform</title>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              </head>
+              <body>
+                <div id="root">
+                  <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                    <h1>🎮 Shuffle & Sync</h1>
+                    <p>TCG Streaming Coordination Platform</p>
+                    <p>Server is running - please check build configuration.</p>
+                  </div>
                 </div>
-              </div>
-            </body>
-          </html>
-        `);
-      });
+              </body>
+            </html>
+          `);
+        });
+      }
     }
   } else {
     serveStatic(app);
