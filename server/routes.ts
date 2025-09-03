@@ -200,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         accessToken: `mock_access_${Date.now()}`,
         refreshToken: `mock_refresh_${Date.now()}`,
         expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-        scopes: ['read', 'write'],
+        scope: 'read write',
         isActive: true,
       });
       
