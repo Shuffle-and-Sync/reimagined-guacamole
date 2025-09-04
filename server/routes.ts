@@ -63,15 +63,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/login');
   });
 
-  // Dashboard route - serve dashboard content
-  app.get('/dashboard', (req, res) => {
+  // Home route - serve dashboard content (avoiding SvelteKit conflict)
+  app.get('/home', (req, res) => {
     res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Shuffle & Sync</title>
+    <title>Home - Shuffle & Sync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -82,16 +82,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             min-height: 100vh;
             color: white;
         }
-        .dashboard-container {
+        .home-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
-        .dashboard-header {
+        .home-header {
             text-align: center;
             margin-bottom: 3rem;
         }
-        .dashboard-title {
+        .home-title {
             font-size: 2.5rem;
             font-weight: 800;
             font-family: 'Nunito', sans-serif;
@@ -110,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             margin-bottom: 2rem;
             font-weight: 600;
         }
-        .dashboard-nav {
+        .home-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -194,14 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const badge = document.createElement('div');
                 badge.className = 'success-badge';
                 badge.innerHTML = '<i class="fas fa-check-circle"></i> Registration successful! Welcome to the guild!';
-                document.querySelector('.dashboard-header').appendChild(badge);
+                document.querySelector('.home-header').appendChild(badge);
             });
         }
     </script>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav class="dashboard-nav">
+    <div class="home-container">
+        <nav class="home-nav">
             <div class="nav-brand">Shuffle & Sync</div>
             <div class="nav-actions">
                 <button class="btn btn-secondary" onclick="logout()">
@@ -210,8 +210,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             </div>
         </nav>
         
-        <div class="dashboard-header">
-            <h1 class="dashboard-title">Welcome to Your Gaming Hub!</h1>
+        <div class="home-header">
+            <h1 class="home-title">Welcome to Your Gaming Hub!</h1>
             <p class="welcome-message">You're successfully logged in and ready to coordinate epic TCG streams!</p>
         </div>
         
@@ -347,8 +347,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
         } else {
-          // HTML form submission - redirect to dashboard
-          res.redirect('/dashboard?registered=true');
+          // HTML form submission - redirect to home
+          res.redirect('/home?registered=true');
         }
       });
     } catch (error) {
@@ -422,8 +422,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
         } else {
-          // HTML form submission - redirect to dashboard
-          res.redirect('/dashboard');
+          // HTML form submission - redirect to home
+          res.redirect('/home');
         }
       });
     } catch (error) {
