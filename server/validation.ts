@@ -177,7 +177,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
     "font-src 'self' fonts.gstatic.com",
     "img-src 'self' data: blob: https:",
     "connect-src 'self' wss: ws:",
