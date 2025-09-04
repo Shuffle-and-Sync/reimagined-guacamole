@@ -40,7 +40,10 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // For development: serve different content based on routes
+  // Serve static assets first (before catch-all route)
+  app.use('/assets', express.static('assets'));
+  
+  // For development: serve different content based on routes (catch-all must be last)
   app.use("*", (req, res) => {
     const path = req.path;
     
@@ -799,8 +802,7 @@ app.use((req, res, next) => {
 </html>
     `);
     } else {
-      // Fallback for all other routes - redirect to homepage  
-      console.log("🚫 Fallback redirect triggered for path:", path);
+      // Fallback for all other routes - serve homepage content
       res.redirect('/');
     }
   });
