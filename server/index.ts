@@ -288,35 +288,35 @@ app.use((req, res, next) => {
             <h2 class="communities-title">🃏 TCG Communities</h2>
             <p class="communities-subtitle">Join your deck archetype and connect with streamers in your favorite card realms</p>
             <div class="communities-grid">
-                <div class="community-card" onclick="alert('🔥 Card Masters community! Strategic gameplay awaits.')">
+                <div class="community-card" onclick="alert('🔥 Scry & Gather community! Magic awaits.')">
                     <div class="community-icon">🔥</div>
-                    <div class="community-name">Card Masters</div>
-                    <div class="community-game">Strategic Card Games</div>
+                    <div class="community-name">Scry & Gather</div>
+                    <div class="community-game">Magic: The Gathering</div>
                 </div>
-                <div class="community-card" onclick="alert('⚡ Stream Squad community! Power up your streams.')">
+                <div class="community-card" onclick="alert('⚡ PokeStream Hub! Gotta catch em all.')">
                     <div class="community-icon">⚡</div>
-                    <div class="community-name">Stream Squad</div>
-                    <div class="community-game">Collection Card Games</div>
+                    <div class="community-name">PokeStream Hub</div>
+                    <div class="community-game">Pokemon TCG</div>
                 </div>
-                <div class="community-card" onclick="alert('👁️ Duelcraft community! Time to compete.')">
+                <div class="community-card" onclick="alert('👁️ Duelcraft community! Time to duel.')">
                     <div class="community-icon">👁️</div>
                     <div class="community-name">Duelcraft</div>
-                    <div class="community-game">Combat Card Games</div>
+                    <div class="community-game">Yu-Gi-Oh!</div>
                 </div>
-                <div class="community-card" onclick="alert('👑 Deck Royale community! Rule your realm.')">
+                <div class="community-card" onclick="alert('👑 Decksong community! Disney magic awaits.')">
                     <div class="community-icon">👑</div>
-                    <div class="community-name">Deck Royale</div>
-                    <div class="community-game">Fantasy Card Games</div>
+                    <div class="community-name">Decksong</div>
+                    <div class="community-game">Disney Lorcana</div>
                 </div>
-                <div class="community-card" onclick="alert('♟️ Tacticians community! Strategic mastery awaits.')">
+                <div class="community-card" onclick="alert('♟️ Deckmaster community! Strategic mastery.')">
                     <div class="community-icon">♟️</div>
-                    <div class="community-name">Tacticians</div>
-                    <div class="community-game">Strategy Card Games</div>
+                    <div class="community-name">Deckmaster</div>
+                    <div class="community-game">Strategic Games</div>
                 </div>
-                <div class="community-card" onclick="alert('⚔️ Battle Arena community! Combat ready streamers.')">
+                <div class="community-card" onclick="alert('⚔️ Bladeforge community! Combat ready.')">
                     <div class="community-icon">⚔️</div>
-                    <div class="community-name">Battle Arena</div>
-                    <div class="community-game">Adventure Card Games</div>
+                    <div class="community-name">Bladeforge</div>
+                    <div class="community-game">Combat Cards</div>
                 </div>
             </div>
         </section>
