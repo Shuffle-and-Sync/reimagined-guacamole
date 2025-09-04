@@ -105,21 +105,15 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    // Handle localhost in development by using the first configured domain
-    const hostname = req.hostname === 'localhost' ? process.env.REPLIT_DOMAINS!.split(",")[0] : req.hostname;
-    passport.authenticate(`replitauth:${hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+    // Since OIDC authentication is bypassed, redirect to demo mode or show message
+    console.log("⚠️  Login attempt while OIDC is bypassed - redirecting to home");
+    res.redirect("/?demo=true");
   });
 
   app.get("/api/callback", (req, res, next) => {
-    // Handle localhost in development by using the first configured domain
-    const hostname = req.hostname === 'localhost' ? process.env.REPLIT_DOMAINS!.split(",")[0] : req.hostname;
-    passport.authenticate(`replitauth:${hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
-    })(req, res, next);
+    // Since OIDC authentication is bypassed, redirect home
+    console.log("⚠️  Callback attempt while OIDC is bypassed - redirecting to home");
+    res.redirect("/");
   });
 
   app.get("/api/logout", (req, res) => {
