@@ -45,8 +45,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Initialize default communities
-  await initializeDefaultCommunities();
+  // Initialize default communities (run in background to avoid blocking startup)
+  initializeDefaultCommunities().catch(error => {
+    logger.error("Failed to initialize default communities", error);
+  });
 
   // Health check endpoint
   app.get('/api/health', healthCheck);
