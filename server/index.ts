@@ -40,8 +40,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Serve new hexagonal design landing page
-  console.log("🎮 Serving redesigned Shuffle & Sync landing page with hexagonal logo");
+  // Serve redesigned Shuffle & Sync landing page
+  console.log("🎮 Serving redesigned Shuffle & Sync landing page");
   app.use("*", (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -74,23 +74,25 @@ app.use((req, res, next) => {
             z-index: 0;
         }
         
-        .floating-hex {
+        .floating-card {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 80px;
             background: rgba(255,255,255,0.1);
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            animation: float 6s ease-in-out infinite;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: float 8s ease-in-out infinite;
         }
         
-        .floating-hex:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
-        .floating-hex:nth-child(2) { top: 70%; left: 20%; animation-delay: 2s; }
-        .floating-hex:nth-child(3) { top: 40%; right: 15%; animation-delay: 4s; }
-        .floating-hex:nth-child(4) { bottom: 30%; right: 25%; animation-delay: 1s; }
+        .floating-card:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-card:nth-child(2) { top: 70%; left: 20%; animation-delay: 2s; }
+        .floating-card:nth-child(3) { top: 40%; right: 15%; animation-delay: 4s; }
+        .floating-card:nth-child(4) { bottom: 30%; right: 25%; animation-delay: 1s; }
         
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-30px) rotate(2deg); }
         }
         
         .container {
@@ -104,10 +106,10 @@ app.use((req, res, next) => {
         /* Header */
         .header {
             text-align: center;
-            padding: 2rem 0;
+            padding: 4rem 0;
         }
         
-        /* Hexagonal Logo */
+        /* Logo */
         .logo-container {
             margin: 2rem 0;
             display: flex;
@@ -115,95 +117,53 @@ app.use((req, res, next) => {
             align-items: center;
         }
         
-        .hexagonal-logo {
+        .logo {
+            background: linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b);
+            border-radius: 20px;
+            padding: 2rem 3rem;
+            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
             position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 2rem;
+            overflow: hidden;
         }
         
-        .hex-border {
+        .logo::before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706, #b45309);
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            animation: rotate 20s linear infinite;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 3s infinite;
         }
         
-        .hex-inner {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            width: calc(100% - 16px);
-            height: calc(100% - 16px);
-            background: rgba(99, 102, 241, 0.9);
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(20px);
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            50% { transform: translateX(100%) translateY(100%); }
+            100% { transform: translateX(-100%) translateY(-100%); }
         }
         
-        .logo-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+        .logo-text {
+            font-size: 3.5rem;
             font-weight: 900;
             color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
         }
         
         .amp-symbol {
             font-size: 4rem;
-            margin: 0 0.2rem;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-        }
-        
-        .play-button {
-            position: absolute;
-            bottom: -10px;
-            right: -10px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(45deg, #10b981, #059669);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .play-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
-        }
-        
-        .play-button i {
-            color: white;
-            font-size: 1.2rem;
-            margin-left: 2px;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            margin: 0 0.3rem;
+            color: #1f2937;
+            filter: drop-shadow(2px 2px 4px rgba(255,255,255,0.5));
         }
         
         /* Main content */
         .hero-title {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: 900;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
             background: linear-gradient(45deg, #fbbf24, #f59e0b, #fbbf24);
             -webkit-background-clip: text;
@@ -212,55 +172,75 @@ app.use((req, res, next) => {
         }
         
         .hero-subtitle {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin-bottom: 3rem;
             opacity: 0.9;
             font-weight: 500;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .cta-buttons {
             display: flex;
             gap: 1.5rem;
             justify-content: center;
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 1rem 2.5rem;
+            padding: 1.2rem 3rem;
             border: none;
             border-radius: 50px;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
         }
         
         .btn-primary {
             background: linear-gradient(45deg, #10b981, #059669);
             color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
         }
         
         .btn-secondary {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.15);
             color: white;
             border: 2px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
         }
         
         .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
         }
         
         /* Communities Grid */
@@ -369,30 +349,24 @@ app.use((req, res, next) => {
 </head>
 <body>
     <div class="bg-animation">
-        <div class="floating-hex"></div>
-        <div class="floating-hex"></div>
-        <div class="floating-hex"></div>
-        <div class="floating-hex"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
+        <div class="floating-card"></div>
     </div>
     
     <div class="container">
         <header class="header">
             <div class="logo-container">
-                <div class="hexagonal-logo">
-                    <div class="hex-border"></div>
-                    <div class="hex-inner">
-                        <div class="logo-content">
-                            S <span class="amp-symbol">&</span> S
-                        </div>
-                    </div>
-                    <div class="play-button" onclick="handleGetStarted()">
-                        <i class="fas fa-play"></i>
+                <div class="logo">
+                    <div class="logo-text">
+                        S <span class="amp-symbol">&</span> S
                     </div>
                 </div>
             </div>
             
             <h1 class="hero-title">Shuffle & Sync</h1>
-            <p class="hero-subtitle">Unite TCG Streamers • Coordinate Epic Games • Build Legendary Communities</p>
+            <p class="hero-subtitle">The ultimate platform for TCG streamers to coordinate epic gameplay, build communities, and create unforgettable streaming experiences together.</p>
             
             <div class="cta-buttons">
                 <a href="/api/login" class="btn btn-primary" data-testid="button-get-started">
