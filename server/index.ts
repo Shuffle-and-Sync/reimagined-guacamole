@@ -40,8 +40,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Serve fun gaming-focused Shuffle & Sync landing page
-  console.log("🎮 Serving fun gaming-focused Shuffle & Sync landing page");
+  // Serve TCG-themed Shuffle & Sync landing page
+  console.log("🃏 Serving TCG-themed Shuffle & Sync landing page");
   app.use("*", (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -50,21 +50,21 @@ app.use((req, res, next) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shuffle & Sync - TCG Streaming Coordination Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #8B5DFF 0%, #FF6B9D 50%, #FFB85C 100%);
+            background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
             background-attachment: fixed;
             min-height: 100vh;
             color: white;
             line-height: 1.6;
         }
         
-        /* Fun gaming background */
+        /* TCG Card-inspired background */
         body::before {
             content: '';
             position: fixed;
@@ -73,9 +73,11 @@ app.use((req, res, next) => {
             right: 0;
             bottom: 0;
             background-image: 
-                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(139, 93, 255, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 20% 30%, rgba(45, 212, 191, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.02) 49%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 51%, transparent 52%);
+            background-size: 400px 400px, 350px 350px, 300px 300px, 80px 80px;
             z-index: 0;
         }
         
@@ -87,7 +89,7 @@ app.use((req, res, next) => {
             padding: 1.5rem;
         }
         
-        /* Gaming Navigation */
+        /* TCG Navigation */
         .nav {
             display: flex;
             justify-content: space-between;
@@ -97,16 +99,16 @@ app.use((req, res, next) => {
         }
         
         .logo-nav {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Nunito', sans-serif;
             font-size: 1.8rem;
             font-weight: 800;
             color: white;
             text-decoration: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
         .logo-nav .amp-symbol {
-            color: #FFB85C;
+            color: #2DD4BF;
             margin: 0 0.2rem;
             font-size: 2rem;
         }
@@ -117,31 +119,31 @@ app.use((req, res, next) => {
             padding: 2rem 0 4rem 0;
         }
         
-        /* Fun gaming hero section */
+        /* TCG-focused hero section */
         .hero-badge {
             display: inline-block;
-            background: linear-gradient(45deg, #FF6B9D, #8B5DFF);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 25px;
+            background: linear-gradient(45deg, #2DD4BF, #10B981);
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
             padding: 0.6rem 1.8rem;
             font-size: 0.95rem;
             font-weight: 600;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
-            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 15px rgba(45, 212, 191, 0.25);
+            font-family: 'Nunito', sans-serif;
         }
         
         .hero-title {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Nunito', sans-serif;
             font-size: 4.2rem;
             font-weight: 900;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #FFB85C 50%, #FF6B9D 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #2DD4BF 40%, #7C3AED 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1.1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
         
         .hero-subtitle {
@@ -149,12 +151,12 @@ app.use((req, res, next) => {
             margin-bottom: 3rem;
             opacity: 0.95;
             font-weight: 500;
-            max-width: 650px;
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
         }
         
-        /* Gaming CTA buttons */
+        /* TCG-styled CTA buttons */
         .cta-buttons {
             display: flex;
             gap: 1.2rem;
@@ -164,9 +166,9 @@ app.use((req, res, next) => {
         }
         
         .btn {
-            padding: 1.1rem 2.5rem;
+            padding: 1rem 2.5rem;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 700;
             font-size: 1.1rem;
             cursor: pointer;
@@ -175,53 +177,68 @@ app.use((req, res, next) => {
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            font-family: 'Poppins', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-family: 'Nunito', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #FF6B9D, #8B5DFF);
+            background: linear-gradient(135deg, #10B981, #2DD4BF);
             color: white;
-            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.35);
         }
         
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(16, 185, 129, 0.45);
         }
         
         .btn-secondary {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.12);
             color: white;
-            border: 2px solid rgba(255,255,255,0.4);
+            border: 2px solid rgba(255,255,255,0.3);
             backdrop-filter: blur(15px);
         }
         
         .btn-secondary:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-3px);
-            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            border-color: rgba(45, 212, 191, 0.5);
         }
         
-        /* Gaming Communities Section */
+        /* TCG Card Deck Communities Section */
         .communities-section {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 18px;
             padding: 3rem;
             margin: 4rem 0;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
             backdrop-filter: blur(20px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
         
         .communities-title {
             text-align: center;
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #FFB85C, #FF6B9D);
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #2DD4BF, #7C3AED);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -232,7 +249,7 @@ app.use((req, res, next) => {
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 3rem;
-            max-width: 600px;
+            max-width: 650px;
             margin-left: auto;
             margin-right: auto;
             font-weight: 500;
@@ -246,81 +263,58 @@ app.use((req, res, next) => {
         }
         
         .community-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
             color: white;
-            border-radius: 16px;
+            border-radius: 14px;
             padding: 2.5rem 2rem;
             text-align: center;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
             transition: all 0.3s ease;
             cursor: pointer;
             backdrop-filter: blur(15px);
             position: relative;
-            overflow: hidden;
-        }
-        
-        .community-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.6s ease;
-            opacity: 0;
-        }
-        
-        .community-card:hover::before {
-            opacity: 1;
-            transform: rotate(45deg) translate(50%, 50%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         .community-card:hover {
-            transform: translateY(-8px);
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
-            border-color: #FFB85C;
-            box-shadow: 0 15px 40px rgba(255, 184, 92, 0.2);
+            transform: translateY(-6px);
+            background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+            border-color: rgba(45, 212, 191, 0.4);
+            box-shadow: 0 12px 35px rgba(45, 212, 191, 0.15);
         }
         
         .community-icon {
             font-size: 3rem;
             margin-bottom: 1.2rem;
             display: block;
-            position: relative;
-            z-index: 2;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
         }
         
         .community-name {
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            font-family: 'Poppins', sans-serif;
-            position: relative;
-            z-index: 2;
+            font-family: 'Nunito', sans-serif;
         }
         
         .community-game {
             opacity: 0.85;
             font-size: 1rem;
             font-weight: 500;
-            position: relative;
-            z-index: 2;
         }
         
-        /* Gaming Features */
+        /* TCG Strategy Features */
         .features-section {
             margin: 5rem 0;
             text-align: center;
         }
         
         .features-title {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #8B5DFF, #FF6B9D);
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #4C63D2, #2DD4BF);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -330,7 +324,7 @@ app.use((req, res, next) => {
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 3rem;
-            max-width: 600px;
+            max-width: 650px;
             margin-left: auto;
             margin-right: auto;
             font-weight: 500;
@@ -345,31 +339,33 @@ app.use((req, res, next) => {
         .feature-card {
             text-align: center;
             padding: 2.5rem 2rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.15);
             transition: all 0.3s ease;
             backdrop-filter: blur(15px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         .feature-card:hover {
-            background: rgba(255,255,255,0.15);
-            transform: translateY(-5px);
-            border-color: rgba(255, 184, 92, 0.5);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-4px);
+            border-color: rgba(45, 212, 191, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
         }
         
         .feature-icon {
-            font-size: 3rem;
+            font-size: 2.8rem;
             margin-bottom: 1.5rem;
-            color: #FFB85C;
+            color: #2DD4BF;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
         }
         
         .feature-title {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Nunito', sans-serif;
         }
         
         .feature-desc {
@@ -408,28 +404,28 @@ app.use((req, res, next) => {
         
         <header class="header">
             <div class="hero-badge">
-                <i class="fas fa-gamepad" style="margin-right: 0.5rem;"></i>
-                Epic TCG Streaming Platform
+                <i class="fas fa-cards-blank" style="margin-right: 0.5rem;"></i>
+                Trading Card Game Streamers Unite
             </div>
             
             <h1 class="hero-title">Shuffle & Sync</h1>
-            <p class="hero-subtitle">Unite with fellow TCG streamers, coordinate epic battles, and build legendary gaming communities that viewers love to watch!</p>
+            <p class="hero-subtitle">Draw your perfect hand with fellow TCG streamers! Coordinate deck battles, build your streaming strategy, and create legendary gameplay moments together.</p>
             
             <div class="cta-buttons">
                 <a href="/api/login" class="btn btn-primary" data-testid="button-get-started">
-                    <i class="fas fa-rocket"></i>
-                    Join the Fun
+                    <i class="fas fa-hand-sparkles"></i>
+                    Draw Your Hand
                 </a>
                 <button class="btn btn-secondary" onclick="showDemo()" data-testid="button-watch-demo">
                     <i class="fas fa-play"></i>
-                    See It Live
+                    See the Deck
                 </button>
             </div>
         </header>
         
         <section class="communities-section">
-            <h2 class="communities-title">🎮 Game Communities</h2>
-            <p class="communities-subtitle">Join streamers and players across all your favorite trading card games</p>
+            <h2 class="communities-title">🃏 TCG Communities</h2>
+            <p class="communities-subtitle">Join your deck archetype and connect with streamers in your favorite card realms</p>
             <div class="communities-grid">
                 <div class="community-card" onclick="selectCommunity('mtg')" data-testid="card-community-mtg">
                     <div class="community-icon">🔥</div>
@@ -465,28 +461,28 @@ app.use((req, res, next) => {
         </section>
         
         <section class="features-section">
-            <h2 class="features-title">🚀 Epic Features</h2>
-            <p class="features-subtitle">Everything you need to level up your TCG streaming game</p>
+            <h2 class="features-title">🎯 Deck Builder Tools</h2>
+            <p class="features-subtitle">Master your streaming strategy with powerful TCG coordination features</p>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-video"></i></div>
-                    <h3 class="feature-title">Stream Squad</h3>
-                    <p class="feature-desc">Team up with other streamers, coordinate epic multi-player battles, and create unforgettable collaborative content your viewers will love.</p>
+                    <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3 class="feature-title">Deck Sync</h3>
+                    <p class="feature-desc">Coordinate multi-streamer pod matches, synchronize your deck reveals, and create epic collaborative gameplay that keeps viewers on the edge of their seats.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon"><i class="fas fa-trophy"></i></div>
-                    <h3 class="feature-title">Tournament Mode</h3>
-                    <p class="feature-desc">Host awesome tournaments with automatic brackets, live scoring, and viewer participation features that make every match exciting.</p>
+                    <h3 class="feature-title">Tournament Commander</h3>
+                    <p class="feature-desc">Host legendary tournaments with automatic bracket generation, real-time match tracking, and viewer prediction games that boost engagement.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                    <h3 class="feature-title">Growth Tracker</h3>
-                    <p class="feature-desc">See your community grow with fun analytics that show viewer engagement, popular moments, and which games drive the most excitement.</p>
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3 class="feature-title">Meta Analytics</h3>
+                    <p class="feature-desc">Track your deck performance, analyze viewer favorite moments, and discover which strategies and card interactions drive the most excitement.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-users"></i></div>
-                    <h3 class="feature-title">Creator Hub</h3>
-                    <p class="feature-desc">Connect with amazing TCG streamers, discover collaboration opportunities, and build lasting friendships in the gaming community.</p>
+                    <div class="feature-icon"><i class="fas fa-handshake"></i></div>
+                    <h3 class="feature-title">Planeswalker Network</h3>
+                    <p class="feature-desc">Connect with fellow TCG content creators, find perfect collaboration partners, and build your streaming guild across all card game formats.</p>
                 </div>
             </div>
         </section>
