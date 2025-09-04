@@ -243,6 +243,8 @@ app.use((req, res, next) => {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .communities-subtitle {
@@ -319,6 +321,8 @@ app.use((req, res, next) => {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .features-subtitle {
