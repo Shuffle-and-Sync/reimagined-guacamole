@@ -30,13 +30,22 @@ export const sessions = pgTable(
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
   id: varchar("id").primaryKey(),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   primaryCommunity: varchar("primary_community"), // Main gaming community
+  // Authentication fields
+  passwordHash: varchar("password_hash"), // Hashed password for local auth
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationToken: varchar("email_verification_token"),
+  role: varchar("role").default("user"), // user, moderator, admin, tournament_director, verified_streamer
+  accountStatus: varchar("account_status").default("active"), // active, suspended, banned, pending_verification
+  lastLoginAt: timestamp("last_login_at"),
+  loginAttempts: integer("login_attempts").default(0),
+  lockedUntil: timestamp("locked_until"),
   // Enhanced profile fields
-  username: varchar("username"), // Unique display name (will add unique constraint later)
+  username: varchar("username").unique(), // Unique display name
   bio: text("bio"), // User biography/description
   location: varchar("location"), // Geographic location
   website: varchar("website"), // Personal website URL
@@ -44,6 +53,7 @@ export const users = pgTable("users", {
   statusMessage: varchar("status_message"), // Custom status message
   timezone: varchar("timezone"), // User's timezone
   dateOfBirth: varchar("date_of_birth"), // YYYY-MM-DD format
+  ageVerified: boolean("age_verified").default(false), // Age verification for tournaments
   isPrivate: boolean("is_private").default(false), // Private profile setting
   showOnlineStatus: varchar("show_online_status").default("everyone"), // "everyone", "friends_only"
   allowDirectMessages: varchar("allow_direct_messages").default("everyone"), // "everyone", "friends_only"
@@ -200,6 +210,110 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   token: varchar("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Email verification tokens
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User roles and permissions
+export const userRoles = pgTable("user_roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(), // admin, moderator, tournament_director, verified_streamer
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  permissions: jsonb("permissions").notNull(), // Array of permission strings
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User role assignments
+export const userRoleAssignments = pgTable("user_role_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  roleId: varchar("role_id").notNull().references(() => userRoles.id, { onDelete: "cascade" }),
+  assignedBy: varchar("assigned_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration for temporary roles
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("idx_user_role_assignments_user_id").on(table.userId),
+  index("idx_user_role_assignments_role_id").on(table.roleId),
+  uniqueIndex("unique_user_role").on(table.userId, table.roleId),
+]);
+
+// API keys for bot/developer integrations
+export const apiKeys = pgTable("api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // User-friendly name for the key
+  keyHash: varchar("key_hash").notNull().unique(), // Hashed API key
+  permissions: jsonb("permissions").notNull(), // Array of allowed endpoints/actions
+  isActive: boolean("is_active").default(true),
+  lastUsed: timestamp("last_used"),
+  expiresAt: timestamp("expires_at"), // Optional expiration
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_api_keys_user_id").on(table.userId),
+  index("idx_api_keys_key_hash").on(table.keyHash),
+]);
+
+// Moderation reports
+export const moderationReports = pgTable("moderation_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reporterId: varchar("reporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reportedUserId: varchar("reported_user_id").references(() => users.id, { onDelete: "cascade" }),
+  reportedContentType: varchar("reported_content_type"), // forum_post, forum_reply, message, user_profile
+  reportedContentId: varchar("reported_content_id"), // ID of the reported content
+  reason: varchar("reason").notNull(), // harassment, spam, inappropriate_content, cheating, etc.
+  description: text("description"),
+  status: varchar("status").default("pending"), // pending, investigating, resolved, dismissed
+  moderatorId: varchar("moderator_id").references(() => users.id, { onDelete: "set null" }),
+  moderatorNotes: text("moderator_notes"),
+  actionTaken: varchar("action_taken"), // warning, suspension, ban, content_removal, none
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+}, (table) => [
+  index("idx_moderation_reports_reporter_id").on(table.reporterId),
+  index("idx_moderation_reports_reported_user_id").on(table.reportedUserId),
+  index("idx_moderation_reports_status").on(table.status),
+  index("idx_moderation_reports_created_at").on(table.createdAt),
+]);
+
+// User moderation actions (warnings, suspensions, bans)
+export const moderationActions = pgTable("moderation_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moderatorId: varchar("moderator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // warning, suspension, ban, account_restriction
+  reason: text("reason").notNull(),
+  duration: integer("duration_hours"), // Duration in hours, null for permanent
+  isActive: boolean("is_active").default(true),
+  reportId: varchar("report_id").references(() => moderationReports.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // When the action expires
+}, (table) => [
+  index("idx_moderation_actions_user_id").on(table.userId),
+  index("idx_moderation_actions_moderator_id").on(table.moderatorId),
+  index("idx_moderation_actions_type").on(table.type),
+  index("idx_moderation_actions_is_active").on(table.isActive),
+]);
+
+// Two-factor authentication
+export const twoFactorAuth = pgTable("two_factor_auth", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  secret: varchar("secret").notNull(), // TOTP secret
+  backupCodes: jsonb("backup_codes").notNull(), // Array of backup codes
+  isEnabled: boolean("is_enabled").default(false),
+  lastUsed: timestamp("last_used"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -455,7 +569,7 @@ export const forumReplyLikes = pgTable("forum_reply_likes", {
 ]);
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   userCommunities: many(userCommunities),
   themePreferences: many(themePreferences),
   createdEvents: many(events),
@@ -478,6 +592,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   forumReplies: many(forumReplies),
   forumPostLikes: many(forumPostLikes),
   forumReplyLikes: many(forumReplyLikes),
+  // Authentication relations
+  emailVerificationTokens: many(emailVerificationTokens),
+  roleAssignments: many(userRoleAssignments),
+  apiKeys: many(apiKeys),
+  moderationReportsSubmitted: many(moderationReports, { relationName: "reporterReports" }),
+  moderationReportsReceived: many(moderationReports, { relationName: "reportedUserReports" }),
+  moderationActionsReceived: many(moderationActions, { relationName: "userModerationActions" }),
+  moderationActionsPerformed: many(moderationActions, { relationName: "moderatorModerationActions" }),
+  twoFactorAuth: one(twoFactorAuth),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -915,6 +1038,99 @@ export type ForumReply = typeof forumReplies.$inferSelect;
 export type ForumPostLike = typeof forumPostLikes.$inferSelect;
 export type ForumReplyLike = typeof forumReplyLikes.$inferSelect;
 
+// Authentication table relations
+export const emailVerificationTokensRelations = relations(emailVerificationTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [emailVerificationTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userRoleAssignmentsRelations = relations(userRoleAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoleAssignments.userId],
+    references: [users.id],
+  }),
+  role: one(userRoles, {
+    fields: [userRoleAssignments.roleId],
+    references: [userRoles.id],
+  }),
+  assignedByUser: one(users, {
+    fields: [userRoleAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ many }) => ({
+  assignments: many(userRoleAssignments),
+}));
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apiKeys.userId],
+    references: [users.id],
+  }),
+}));
+
+export const moderationReportsRelations = relations(moderationReports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [moderationReports.reporterId],
+    references: [users.id],
+    relationName: "reporterReports",
+  }),
+  reportedUser: one(users, {
+    fields: [moderationReports.reportedUserId],
+    references: [users.id],
+    relationName: "reportedUserReports",
+  }),
+  moderator: one(users, {
+    fields: [moderationReports.moderatorId],
+    references: [users.id],
+  }),
+}));
+
+export const moderationActionsRelations = relations(moderationActions, ({ one }) => ({
+  user: one(users, {
+    fields: [moderationActions.userId],
+    references: [users.id],
+    relationName: "userModerationActions",
+  }),
+  moderator: one(users, {
+    fields: [moderationActions.moderatorId],
+    references: [users.id],
+    relationName: "moderatorModerationActions",
+  }),
+  report: one(moderationReports, {
+    fields: [moderationActions.reportId],
+    references: [moderationReports.id],
+  }),
+}));
+
+export const twoFactorAuthRelations = relations(twoFactorAuth, ({ one }) => ({
+  user: one(users, {
+    fields: [twoFactorAuth.userId],
+    references: [users.id],
+  }),
+}));
+
+// Authentication table types
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type UserRole = typeof userRoles.$inferSelect;
+export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type ModerationReport = typeof moderationReports.$inferSelect;
+export type ModerationAction = typeof moderationActions.$inferSelect;
+export type TwoFactorAuth = typeof twoFactorAuth.$inferSelect;
+
+// Insert schemas for authentication tables
+export const insertEmailVerificationTokenSchema = createInsertSchema(emailVerificationTokens);
+export const insertUserRoleSchema = createInsertSchema(userRoles);
+export const insertUserRoleAssignmentSchema = createInsertSchema(userRoleAssignments);
+export const insertApiKeySchema = createInsertSchema(apiKeys);
+export const insertModerationReportSchema = createInsertSchema(moderationReports);
+export const insertModerationActionSchema = createInsertSchema(moderationActions);
+export const insertTwoFactorAuthSchema = createInsertSchema(twoFactorAuth);
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
@@ -940,3 +1156,15 @@ export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
 export type InsertForumReply = z.infer<typeof insertForumReplySchema>;
 export type InsertForumPostLike = z.infer<typeof insertForumPostLikeSchema>;
 export type InsertForumReplyLike = z.infer<typeof insertForumReplyLikeSchema>;
+
+// Authentication insert types
+export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+export type InsertUserRoleAssignment = z.infer<typeof insertUserRoleAssignmentSchema>;
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type InsertModerationReport = z.infer<typeof insertModerationReportSchema>;
+export type InsertModerationAction = z.infer<typeof insertModerationActionSchema>;
+export type InsertTwoFactorAuth = z.infer<typeof insertTwoFactorAuthSchema>;
+
+// For compatibility with existing authentication system
+export type UpsertUser = typeof users.$inferInsert;

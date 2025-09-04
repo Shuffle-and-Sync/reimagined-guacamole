@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated as replitIsAuthenticated } from "./replitAuth";
 import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { sendContactEmail } from "./email";
@@ -10,6 +10,18 @@ import { randomBytes } from "crypto";
 import { logger } from "./logger";
 import { AuthenticatedRequest, NotFoundError, ValidationError } from "./types";
 import { healthCheck } from "./health";
+import {
+  hashPassword,
+  isAuthenticated,
+  optionalAuth,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+  validateLoginAttempt,
+  recordFailedLoginAttempt,
+  recordSuccessfulLogin,
+  type AuthenticatedRequest as CustomAuthRequest
+} from "./auth";
 import { 
   validateRequest, 
   validateParams, 
@@ -53,8 +65,234 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get('/api/health', healthCheck);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
+  // Custom Authentication Routes
+  app.post('/api/auth/register', authRateLimit, async (req, res) => {
+    try {
+      const { email, password, username, firstName, lastName } = req.body;
+
+      // Validate input
+      if (!email || !password || !username || !firstName || !lastName) {
+        return res.status(400).json({ 
+          message: 'All fields are required',
+          fields: ['email', 'password', 'username', 'firstName', 'lastName']
+        });
+      }
+
+      // Validate email format
+      if (!validateEmail(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+
+      // Validate password strength
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ 
+          message: 'Password does not meet requirements',
+          errors: passwordValidation.errors
+        });
+      }
+
+      // Validate username
+      const usernameValidation = validateUsername(username);
+      if (!usernameValidation.isValid) {
+        return res.status(400).json({ 
+          message: 'Username does not meet requirements',
+          errors: usernameValidation.errors
+        });
+      }
+
+      // Check if user already exists
+      const existingUserByEmail = await storage.getUserByEmail(email);
+      if (existingUserByEmail) {
+        return res.status(409).json({ message: 'Email is already registered' });
+      }
+
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(409).json({ message: 'Username is already taken' });
+      }
+
+      // Hash password
+      const passwordHash = await hashPassword(password);
+
+      // Create user
+      const user = await storage.createUser({
+        email,
+        username,
+        firstName,
+        lastName,
+        passwordHash
+      });
+
+      // Create session
+      const session = req.session as any;
+      session.userId = user.id;
+      session.save((err: any) => {
+        if (err) {
+          logger.error('Session save error during registration', err, { userId: user.id });
+          return res.status(500).json({ message: 'Registration successful but session error' });
+        }
+
+        logger.info('User registered successfully', { userId: user.id, email, username });
+        res.status(201).json({ 
+          message: 'Registration successful', 
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            emailVerified: user.emailVerified
+          }
+        });
+      });
+    } catch (error) {
+      logger.error('Registration error', error, { email: req.body?.email });
+      res.status(500).json({ message: 'Internal server error during registration' });
+    }
+  });
+
+  app.post('/api/auth/login', authRateLimit, async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+      }
+
+      // Check login attempts
+      const loginCheck = await validateLoginAttempt(email);
+      if (!loginCheck.allowed) {
+        logger.warn('Login blocked due to too many attempts', { email, lockedUntil: loginCheck.lockedUntil });
+        return res.status(429).json({ 
+          message: 'Too many failed login attempts. Account temporarily locked.',
+          lockedUntil: loginCheck.lockedUntil
+        });
+      }
+
+      // Validate credentials
+      const user = await storage.validateUserCredentials(email, password);
+      if (!user) {
+        await recordFailedLoginAttempt(email);
+        logger.warn('Failed login attempt', { email });
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      // Check account status
+      if (user.accountStatus !== 'active') {
+        logger.warn('Login attempt on inactive account', { email, accountStatus: user.accountStatus });
+        return res.status(401).json({ 
+          message: 'Account is suspended or banned',
+          accountStatus: user.accountStatus
+        });
+      }
+
+      // Record successful login
+      await recordSuccessfulLogin(user.id);
+
+      // Create session
+      const session = req.session as any;
+      session.userId = user.id;
+      session.save((err: any) => {
+        if (err) {
+          logger.error('Session save error during login', err, { userId: user.id });
+          return res.status(500).json({ message: 'Login successful but session error' });
+        }
+
+        logger.info('User logged in successfully', { userId: user.id, email });
+        res.json({ 
+          message: 'Login successful',
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            emailVerified: user.emailVerified,
+            lastLoginAt: user.lastLoginAt
+          }
+        });
+      });
+    } catch (error) {
+      logger.error('Login error', error, { email: req.body?.email });
+      res.status(500).json({ message: 'Internal server error during login' });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    const session = req.session as any;
+    const userId = session?.userId;
+    
+    session.destroy((err: any) => {
+      if (err) {
+        logger.error('Logout error', err, { userId });
+        return res.status(500).json({ message: 'Error during logout' });
+      }
+      
+      res.clearCookie('connect.sid');
+      logger.info('User logged out successfully', { userId });
+      res.json({ message: 'Logout successful' });
+    });
+  });
+
+  // Get current authenticated user (supports both auth systems)
+  app.get('/api/auth/user', optionalAuth, async (req, res) => {
+    try {
+      let user = null;
+      let userCommunities = null;
+      
+      // Try custom authentication first
+      const customAuthReq = req as CustomAuthRequest;
+      if (customAuthReq.user) {
+        user = customAuthReq.user;
+        userCommunities = await storage.getUserCommunities(user.id);
+        
+        return res.json({
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          emailVerified: user.emailVerified,
+          accountStatus: user.accountStatus,
+          lastLoginAt: user.lastLoginAt,
+          primaryCommunity: user.primaryCommunity,
+          communities: userCommunities,
+          authType: 'custom'
+        });
+      }
+      
+      // Fallback to Replit authentication
+      const authenticatedReq = req as AuthenticatedRequest;
+      if (authenticatedReq.user?.claims?.sub) {
+        const userId = authenticatedReq.user.claims.sub;
+        user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        userCommunities = await storage.getUserCommunities(userId);
+        
+        return res.json({
+          ...user,
+          communities: userCommunities,
+          authType: 'replit'
+        });
+      }
+      
+      // No authentication found
+      return res.status(401).json({ message: 'Not authenticated' });
+    } catch (error) {
+      logger.error('Error fetching authenticated user', error);
+      res.status(500).json({ message: 'Failed to fetch user' });
+    }
+  });
+
+  // Legacy Replit Auth route (for backward compatibility)
+  app.get('/api/auth/replit-user', replitIsAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = authenticatedReq.user.claims.sub;
@@ -77,9 +315,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
+    const customAuthReq = req as CustomAuthRequest;
+    const replitAuthReq = req as AuthenticatedRequest;
     try {
-      const userId = authenticatedReq.user.claims.sub;
+      // Support both authentication systems
+      const userId = customAuthReq.user?.id || replitAuthReq.user?.claims?.sub;
       
       const { 
         firstName, lastName, primaryCommunity, username, bio, location, 
@@ -105,16 +345,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUser(userId, updates);
       res.json(updatedUser);
     } catch (error) {
-      logger.error("Failed to update user profile", error, { userId: authenticatedReq.user.claims.sub });
+      logger.error("Failed to update user profile", error, { userId });
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
   // Get user profile (for viewing other users' profiles)
   app.get('/api/user/profile/:userId?', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
+    const customAuthReq = req as CustomAuthRequest;
+    const replitAuthReq = req as AuthenticatedRequest;
     try {
-      const currentUserId = authenticatedReq.user.claims.sub;
+      // Support both authentication systems
+      const currentUserId = customAuthReq.user?.id || replitAuthReq.user?.claims?.sub;
       const targetUserId = req.params.userId || currentUserId;
       
       const user = await storage.getUser(targetUserId);

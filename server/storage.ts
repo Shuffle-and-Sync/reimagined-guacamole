@@ -85,8 +85,13 @@ export interface IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
+  createUser(userData: { email: string; username: string; firstName: string; lastName: string; passwordHash: string }): Promise<User>;
+  validateUserCredentials(email: string, password: string): Promise<User | null>;
+  updateLastLogin(userId: string): Promise<void>;
+  updateLoginAttempts(email: string, attempts: number, lockedUntil?: Date): Promise<void>;
   
   // Community operations
   getCommunities(): Promise<Community[]>;
@@ -257,6 +262,66 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: { email: string; username: string; firstName: string; lastName: string; passwordHash: string }): Promise<User> {
+    const { randomUUID } = await import('crypto');
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: randomUUID(),
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        passwordHash: userData.passwordHash,
+        emailVerified: false,
+        role: 'user',
+        accountStatus: 'active',
+        loginAttempts: 0,
+      })
+      .returning();
+    return user;
+  }
+
+  async validateUserCredentials(email: string, password: string): Promise<User | null> {
+    const bcrypt = await import('bcryptjs');
+    const user = await this.getUserByEmail(email);
+    
+    if (!user || !user.passwordHash) {
+      return null;
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    return isValidPassword ? user : null;
+  }
+
+  async updateLastLogin(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        lastLoginAt: new Date(),
+        loginAttempts: 0,
+        lockedUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateLoginAttempts(email: string, attempts: number, lockedUntil?: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        loginAttempts: attempts,
+        lockedUntil: lockedUntil || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.email, email));
   }
 
   // Community operations

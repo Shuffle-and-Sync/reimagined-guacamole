@@ -23,11 +23,33 @@ export function Header() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSignIn = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
-  const handleSignOut = () => {
-    window.location.href = "/api/logout";
+  const handleJoinFree = () => {
+    window.location.href = "/register";
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      
+      if (response.ok) {
+        // Clear any cached data and redirect to home
+        window.location.href = "/";
+      } else {
+        console.error("Logout failed");
+        // Fallback: redirect anyway
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback: redirect anyway
+      window.location.href = "/";
+    }
   };
   
   const handleProfile = () => {
@@ -196,7 +218,7 @@ export function Header() {
                 Sign In
               </Button>
               <Button 
-                onClick={handleSignIn}
+                onClick={handleJoinFree}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 data-testid="button-join-free"
               >
