@@ -1,0 +1,40 @@
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com".
+
