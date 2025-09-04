@@ -27,16 +27,26 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/dashboard" | "/game-room";
+		RouteId(): "/" | "/calendar" | "/dashboard" | "/forums" | "/game-room" | "/login" | "/matchmaking" | "/messages" | "/profile" | "/register" | "/settings" | "/social" | "/tournaments";
 		RouteParams(): {
 			
 		};
 		LayoutParams(): {
 			"/": Record<string, never>;
+			"/calendar": Record<string, never>;
 			"/dashboard": Record<string, never>;
-			"/game-room": Record<string, never>
+			"/forums": Record<string, never>;
+			"/game-room": Record<string, never>;
+			"/login": Record<string, never>;
+			"/matchmaking": Record<string, never>;
+			"/messages": Record<string, never>;
+			"/profile": Record<string, never>;
+			"/register": Record<string, never>;
+			"/settings": Record<string, never>;
+			"/social": Record<string, never>;
+			"/tournaments": Record<string, never>
 		};
-		Pathname(): "/" | "/dashboard" | "/dashboard/" | "/game-room" | "/game-room/";
+		Pathname(): "/" | "/calendar" | "/calendar/" | "/dashboard" | "/dashboard/" | "/forums" | "/forums/" | "/game-room" | "/game-room/" | "/login" | "/login/" | "/matchmaking" | "/matchmaking/" | "/messages" | "/messages/" | "/profile" | "/profile/" | "/register" | "/register/" | "/settings" | "/settings/" | "/social" | "/social/" | "/tournaments" | "/tournaments/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): string & {};
 	}

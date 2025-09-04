@@ -5,15 +5,35 @@ export const nodes = [
 	() => import('./nodes/1'),
 	() => import('./nodes/2'),
 	() => import('./nodes/3'),
-	() => import('./nodes/4')
+	() => import('./nodes/4'),
+	() => import('./nodes/5'),
+	() => import('./nodes/6'),
+	() => import('./nodes/7'),
+	() => import('./nodes/8'),
+	() => import('./nodes/9'),
+	() => import('./nodes/10'),
+	() => import('./nodes/11'),
+	() => import('./nodes/12'),
+	() => import('./nodes/13'),
+	() => import('./nodes/14')
 ];
 
 export const server_loads = [];
 
 export const dictionary = {
 		"/": [2],
-		"/dashboard": [3],
-		"/game-room": [4]
+		"/calendar": [3],
+		"/dashboard": [4],
+		"/forums": [5],
+		"/game-room": [6],
+		"/login": [7],
+		"/matchmaking": [8],
+		"/messages": [9],
+		"/profile": [10],
+		"/register": [11],
+		"/settings": [12],
+		"/social": [13],
+		"/tournaments": [14]
 	};
 
 export const hooks = {

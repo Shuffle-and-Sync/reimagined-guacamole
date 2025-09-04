@@ -1,5 +1,15 @@
 {
 	"/": [],
+	"/calendar": [],
 	"/dashboard": [],
-	"/game-room": []
+	"/forums": [],
+	"/game-room": [],
+	"/login": [],
+	"/matchmaking": [],
+	"/messages": [],
+	"/profile": [],
+	"/register": [],
+	"/settings": [],
+	"/social": [],
+	"/tournaments": []
 }

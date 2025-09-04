@@ -40,9 +40,13 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Serve the beautiful TCG-themed landing page
+  // For development: redirect to SvelteKit dev server for frontend routes
   app.use("*", (req, res) => {
-    res.send(`
+    const path = req.path;
+    
+    // If this looks like a frontend route (not API), show development message
+    if (!path.startsWith('/api/')) {
+      res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -351,11 +355,11 @@ app.use((req, res, next) => {
 </body>
 </html>
     `);
+    }
   });
 
   console.log("🃏 Serving beautiful TCG-themed Shuffle & Sync landing page");
 
-  
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
