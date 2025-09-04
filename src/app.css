@@ -1,0 +1,277 @@
+/* Global Styles for Shuffle & Sync TCG Platform */
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Inter', sans-serif;
+	background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
+	background-attachment: fixed;
+	min-height: 100vh;
+	color: white;
+	line-height: 1.6;
+}
+
+/* TCG Card-inspired background */
+body::before {
+	content: '';
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background-image: 
+		radial-gradient(circle at 20% 30%, rgba(45, 212, 191, 0.15) 0%, transparent 60%),
+		radial-gradient(circle at 80% 70%, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
+		radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+	background-size: 400px 400px, 350px 350px, 300px 300px;
+	z-index: 0;
+}
+
+.container {
+	position: relative;
+	z-index: 10;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 1.5rem;
+}
+
+/* Navigation Styles */
+.nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1.5rem 0;
+	margin-bottom: 1rem;
+}
+
+.logo-nav {
+	font-family: 'Nunito', sans-serif;
+	font-size: 1.8rem;
+	font-weight: 800;
+	color: white;
+	text-decoration: none;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logo-nav .amp-symbol {
+	color: #2DD4BF;
+	margin: 0 0.2rem;
+	font-size: 2rem;
+}
+
+/* Hero Section */
+.header {
+	text-align: center;
+	padding: 2rem 0 4rem 0;
+}
+
+.hero-badge {
+	display: inline-block;
+	background: linear-gradient(45deg, #2DD4BF, #10B981);
+	border: 2px solid rgba(255, 255, 255, 0.25);
+	border-radius: 20px;
+	padding: 0.6rem 1.8rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	margin-bottom: 2rem;
+	box-shadow: 0 4px 15px rgba(45, 212, 191, 0.25);
+	font-family: 'Nunito', sans-serif;
+}
+
+.hero-title {
+	font-family: 'Nunito', sans-serif;
+	font-size: 4.2rem;
+	font-weight: 900;
+	margin-bottom: 1.5rem;
+	line-height: 1.1;
+	background: linear-gradient(135deg, #ffffff 0%, #2DD4BF 40%, #7C3AED 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	-webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+	font-size: 1.3rem;
+	margin-bottom: 3rem;
+	opacity: 0.95;
+	font-weight: 500;
+	max-width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Buttons */
+.cta-buttons {
+	display: flex;
+	gap: 1.2rem;
+	justify-content: center;
+	margin-bottom: 4rem;
+	flex-wrap: wrap;
+}
+
+.btn {
+	padding: 1rem 2.5rem;
+	border: none;
+	border-radius: 10px;
+	font-weight: 700;
+	font-size: 1.1rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	font-family: 'Nunito', sans-serif;
+}
+
+.btn-primary {
+	background: linear-gradient(135deg, #10B981, #2DD4BF);
+	color: white;
+	box-shadow: 0 5px 15px rgba(16, 185, 129, 0.35);
+}
+
+.btn-primary:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 7px 20px rgba(16, 185, 129, 0.45);
+}
+
+.btn-secondary {
+	background: rgba(255, 255, 255, 0.12);
+	color: white;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	backdrop-filter: blur(15px);
+}
+
+.btn-secondary:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: translateY(-2px);
+	border-color: rgba(45, 212, 191, 0.5);
+}
+
+/* Sections */
+.communities-section, .features-section {
+	background: rgba(255, 255, 255, 0.08);
+	border-radius: 18px;
+	padding: 3rem;
+	margin: 4rem 0;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	backdrop-filter: blur(20px);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+	text-align: center;
+	font-size: 2.8rem;
+	font-weight: 800;
+	margin-bottom: 1rem;
+	font-family: 'Nunito', sans-serif;
+	background: linear-gradient(135deg, #2DD4BF, #7C3AED);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	-webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.section-subtitle {
+	text-align: center;
+	font-size: 1.2rem;
+	opacity: 0.9;
+	margin-bottom: 3rem;
+	max-width: 650px;
+	margin-left: auto;
+	margin-right: auto;
+	font-weight: 500;
+}
+
+/* Grids */
+.communities-grid, .features-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 2rem;
+	margin-top: 2rem;
+}
+
+.community-card, .feature-card {
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+	color: white;
+	border-radius: 14px;
+	padding: 2.5rem 2rem;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	transition: all 0.3s ease;
+	cursor: pointer;
+	backdrop-filter: blur(15px);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.community-card:hover, .feature-card:hover {
+	transform: translateY(-6px);
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+	border-color: rgba(45, 212, 191, 0.4);
+	box-shadow: 0 12px 35px rgba(45, 212, 191, 0.15);
+}
+
+.community-icon, .feature-icon {
+	font-size: 3rem;
+	margin-bottom: 1.2rem;
+	display: block;
+	filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.feature-icon {
+	color: #2DD4BF;
+	font-size: 2.8rem;
+	margin-bottom: 1.5rem;
+}
+
+.community-name, .feature-title {
+	font-size: 1.4rem;
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+	font-family: 'Nunito', sans-serif;
+}
+
+.community-game, .feature-desc {
+	opacity: 0.85;
+	font-size: 1rem;
+	font-weight: 500;
+}
+
+.feature-desc {
+	opacity: 0.9;
+	line-height: 1.6;
+	font-size: 1.05rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+	.container {
+		padding: 1rem;
+	}
+	
+	.hero-title {
+		font-size: 3.2rem;
+	}
+	
+	.hero-subtitle {
+		font-size: 1.15rem;
+	}
+	
+	.section-title {
+		font-size: 2.2rem;
+	}
+	
+	.communities-grid, .features-grid {
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+	
+	.btn {
+		width: 100%;
+		max-width: 320px;
+	}
+}
