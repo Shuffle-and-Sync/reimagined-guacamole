@@ -299,6 +299,7 @@ app.use((req, res, next) => {
 </html>
       `);
     } else if (path === '/dashboard') {
+      console.log("✅ Dashboard route matched!");
       res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -486,7 +487,7 @@ app.use((req, res, next) => {
 </body>
 </html>
       `);
-    } else if (!path.startsWith('/api/') && path !== '/dashboard') {
+    } else if (path === '/') {
       res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -797,6 +798,10 @@ app.use((req, res, next) => {
 </body>
 </html>
     `);
+    } else {
+      // Fallback for all other routes - redirect to homepage  
+      console.log("🚫 Fallback redirect triggered for path:", path);
+      res.redirect('/');
     }
   });
 

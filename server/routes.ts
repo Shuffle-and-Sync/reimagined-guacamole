@@ -63,6 +63,197 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/login');
   });
 
+  // Dashboard route - serve dashboard content
+  app.get('/dashboard', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Shuffle & Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Nunito', sans-serif;
+            margin-bottom: 1rem;
+        }
+        .welcome-message {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        .success-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #10B981, #2DD4BF);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+        .dashboard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .nav-brand {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #10B981, #2DD4BF);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2DD4BF;
+        }
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .feature-desc {
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+    </style>
+    <script>
+        // Check if user just registered
+        if (window.location.search.includes('registered=true')) {
+            document.addEventListener('DOMContentLoaded', function() {
+                const badge = document.createElement('div');
+                badge.className = 'success-badge';
+                badge.innerHTML = '<i class="fas fa-check-circle"></i> Registration successful! Welcome to the guild!';
+                document.querySelector('.dashboard-header').appendChild(badge);
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">Shuffle & Sync</div>
+            <div class="nav-actions">
+                <button class="btn btn-secondary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
+        
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Welcome to Your Gaming Hub!</h1>
+            <p class="welcome-message">You're successfully logged in and ready to coordinate epic TCG streams!</p>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-users feature-icon"></i>
+                <h3 class="feature-title">Communities</h3>
+                <p class="feature-desc">Join TCG communities and connect with fellow streamers</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-trophy feature-icon"></i>
+                <h3 class="feature-title">Tournaments</h3>
+                <p class="feature-desc">Organize and participate in collaborative tournaments</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-video feature-icon"></i>
+                <h3 class="feature-title">Stream Coordination</h3>
+                <p class="feature-desc">Plan multi-streamer events and synchronized gameplay</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-gamepad feature-icon"></i>
+                <h3 class="feature-title">Game Rooms</h3>
+                <p class="feature-desc">Create interactive gaming experiences for your audience</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => window.location.href = '/')
+                .catch(() => window.location.href = '/');
+        }
+    </script>
+</body>
+</html>
+    `);
+  });
+
   // Initialize default communities (run in background to avoid blocking startup)
   initializeDefaultCommunities().catch(error => {
     logger.error("Failed to initialize default communities", error);
