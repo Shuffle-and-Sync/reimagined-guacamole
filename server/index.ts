@@ -40,12 +40,265 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // For development: redirect to SvelteKit dev server for frontend routes
+  // For development: serve different content based on routes
   app.use("*", (req, res) => {
     const path = req.path;
     
-    // If this looks like a frontend route (not API), show development message
-    if (!path.startsWith('/api/')) {
+    // Serve SvelteKit pages for specific routes
+    if (path === '/login') {
+      res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Shuffle & Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .login-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 3rem;
+            max-width: 400px;
+            width: 100%;
+            margin: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .login-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-family: 'Nunito', sans-serif;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #10B981, #2DD4BF);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .login-footer a {
+            color: #2DD4BF;
+            text-decoration: none;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #2DD4BF;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <a href="/" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        <h1 class="login-title">Draw Your Hand</h1>
+        <form action="/api/auth/login" method="POST">
+            <div class="form-group">
+                <label class="form-label">Email or Username</label>
+                <input type="text" name="emailOrUsername" class="form-input" placeholder="Enter your email or username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+        <div class="login-footer">
+            <p>New to the guild? <a href="/register">Join here</a></p>
+        </div>
+    </div>
+</body>
+</html>
+      `);
+    } else if (path === '/register') {
+      res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join the Guild - Shuffle & Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 2rem 0;
+        }
+        .register-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 3rem;
+            max-width: 400px;
+            width: 100%;
+            margin: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .register-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-family: 'Nunito', sans-serif;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .btn-register {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #10B981, #2DD4BF);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+        }
+        .register-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .register-footer a {
+            color: #2DD4BF;
+            text-decoration: none;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #2DD4BF;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <a href="/" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        <h1 class="register-title">Join the Guild</h1>
+        <form action="/api/auth/register" method="POST">
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" name="firstName" class="form-input" placeholder="Your first name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="lastName" class="form-input" placeholder="Your last name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Choose a username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-input" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Create a strong password" required>
+            </div>
+            <button type="submit" class="btn-register">
+                <i class="fas fa-user-plus"></i> Join Guild
+            </button>
+        </form>
+        <div class="register-footer">
+            <p>Already have an account? <a href="/login">Sign in here</a></p>
+        </div>
+    </div>
+</body>
+</html>
+      `);
+    } else if (!path.startsWith('/api/')) {
       res.send(`
 <!DOCTYPE html>
 <html lang="en">
