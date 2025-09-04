@@ -140,18 +140,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         logger.info('User registered successfully', { userId: user.id, email, username });
-        res.status(201).json({ 
-          message: 'Registration successful', 
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            emailVerified: user.emailVerified
-          }
-        });
+        
+        // Handle different response types
+        if (req.headers['content-type'] === 'application/json') {
+          res.status(201).json({ 
+            message: 'Registration successful', 
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+              emailVerified: user.emailVerified
+            }
+          });
+        } else {
+          // HTML form submission - redirect to dashboard
+          res.redirect('/dashboard?registered=true');
+        }
       });
     } catch (error) {
       logger.error('Registration error', error, { email: req.body?.email });
@@ -207,19 +214,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         logger.info('User logged in successfully', { userId: user.id, email });
-        res.json({ 
-          message: 'Login successful',
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            emailVerified: user.emailVerified,
-            lastLoginAt: user.lastLoginAt
-          }
-        });
+        
+        // Handle different response types
+        if (req.headers['content-type'] === 'application/json') {
+          res.json({ 
+            message: 'Login successful',
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role,
+              emailVerified: user.emailVerified,
+              lastLoginAt: user.lastLoginAt
+            }
+          });
+        } else {
+          // HTML form submission - redirect to dashboard
+          res.redirect('/dashboard');
+        }
       });
     } catch (error) {
       logger.error('Login error', error, { email: req.body?.email });
