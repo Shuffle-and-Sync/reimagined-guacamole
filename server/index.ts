@@ -143,7 +143,7 @@ app.use((req, res, next) => {
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1.1;
-            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
@@ -243,7 +243,7 @@ app.use((req, res, next) => {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
@@ -321,7 +321,7 @@ app.use((req, res, next) => {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.6);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
