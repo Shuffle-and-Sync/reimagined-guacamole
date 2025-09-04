@@ -40,8 +40,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Serve redesigned Shuffle & Sync landing page
-  console.log("🎮 Serving redesigned Shuffle & Sync landing page");
+  // Serve clean chibi-inspired Shuffle & Sync landing page
+  console.log("🎮 Serving clean chibi-inspired Shuffle & Sync landing page");
   app.use("*", (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -50,49 +50,37 @@ app.use((req, res, next) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shuffle & Sync - TCG Streaming Coordination Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #a855f7 50%, #c084fc 75%, #e879f9 100%);
+            background: #5B6BCF;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
+            position: relative;
         }
         
-        /* Animated background elements */
-        .bg-animation {
+        /* Subtle background pattern */
+        body::before {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 60px 60px, 40px 40px;
+            opacity: 0.5;
             z-index: 0;
-        }
-        
-        .floating-card {
-            position: absolute;
-            width: 60px;
-            height: 80px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            animation: float 8s ease-in-out infinite;
-        }
-        
-        .floating-card:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
-        .floating-card:nth-child(2) { top: 70%; left: 20%; animation-delay: 2s; }
-        .floating-card:nth-child(3) { top: 40%; right: 15%; animation-delay: 4s; }
-        .floating-card:nth-child(4) { bottom: 30%; right: 25%; animation-delay: 1s; }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(-2deg); }
-            50% { transform: translateY(-30px) rotate(2deg); }
         }
         
         .container {
@@ -106,267 +94,265 @@ app.use((req, res, next) => {
         /* Header */
         .header {
             text-align: center;
-            padding: 4rem 0;
+            padding: 3rem 0 4rem 0;
         }
         
-        /* Logo */
-        .logo-container {
-            margin: 2rem 0;
+        /* Chibi Card Characters */
+        .mascot-section {
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 2rem;
+            margin: 3rem 0;
         }
         
-        .logo {
-            background: linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b);
-            border-radius: 20px;
-            padding: 2rem 3rem;
-            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3);
+        .mascot-card {
             position: relative;
-            overflow: hidden;
-        }
-        
-        .logo::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shine 3s infinite;
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%); }
-            50% { transform: translateX(100%) translateY(100%); }
-            100% { transform: translateX(-100%) translateY(-100%); }
-        }
-        
-        .logo-text {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: white;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 2;
-        }
-        
-        .amp-symbol {
+            width: 120px;
+            height: 160px;
+            border-radius: 15px;
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 4rem;
-            margin: 0 0.3rem;
-            color: #1f2937;
-            filter: drop-shadow(2px 2px 4px rgba(255,255,255,0.5));
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
         
-        /* Main content */
+        .mascot-left {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            transform: rotate(-5deg);
+        }
+        
+        .mascot-right {
+            background: linear-gradient(135deg, #a78bfa, #c4b5fd);
+            transform: rotate(5deg);
+        }
+        
+        .live-banner {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .high-five {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            z-index: 5;
+        }
+        
+        /* Main Logo Text */
         .hero-title {
+            font-family: 'Fredoka', sans-serif;
             font-size: 4.5rem;
-            font-weight: 900;
-            margin-bottom: 1.5rem;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-            background: linear-gradient(45deg, #fbbf24, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 700;
+            margin: 2rem 0 1rem 0;
+            color: #FBD38D;
+            text-shadow: 
+                4px 4px 0px #2D3748,
+                4px 4px 10px rgba(0,0,0,0.5);
+            letter-spacing: -2px;
         }
         
         .hero-subtitle {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             margin-bottom: 3rem;
-            opacity: 0.9;
+            opacity: 0.95;
             font-weight: 500;
-            max-width: 800px;
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+            line-height: 1.6;
         }
         
+        /* Simple CTA buttons */
         .cta-buttons {
             display: flex;
             gap: 1.5rem;
             justify-content: center;
-            margin-bottom: 5rem;
+            margin-bottom: 4rem;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 1.2rem 3rem;
+            padding: 1rem 2.5rem;
             border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 1.2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.7rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
+            gap: 0.5rem;
+            font-family: 'Fredoka', sans-serif;
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #10b981, #059669);
+            background: linear-gradient(135deg, #38a169, #48bb78);
             color: white;
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 15px rgba(56, 161, 105, 0.4);
         }
         
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 161, 105, 0.6);
         }
         
         .btn-secondary {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.9);
+            color: #2D3748;
+            border: 2px solid white;
         }
         
         .btn-secondary:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-3px);
+            background: white;
+            transform: translateY(-2px);
         }
         
-        /* Communities Grid */
+        /* Communities Section */
         .communities-section {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 3rem;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 2.5rem;
             margin: 3rem 0;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 3px solid rgba(255,255,255,0.2);
         }
         
         .communities-title {
             text-align: center;
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 2.2rem;
+            font-weight: 700;
             margin-bottom: 2rem;
+            color: #FBD38D;
+            font-family: 'Fredoka', sans-serif;
         }
         
         .communities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
             margin-top: 2rem;
         }
         
         .community-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 16px;
-            padding: 2rem;
+            background: white;
+            color: #2D3748;
+            border-radius: 15px;
+            padding: 1.5rem;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.8);
+            transition: all 0.2s ease;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .community-card:hover {
-            transform: translateY(-8px);
-            background: rgba(255,255,255,0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-color: #FBD38D;
         }
         
         .community-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
             display: block;
         }
         
         .community-name {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
+            font-family: 'Fredoka', sans-serif;
         }
         
         .community-game {
-            opacity: 0.8;
-            font-size: 1rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
         
         /* Features */
         .features-section {
-            margin: 4rem 0;
+            margin: 3rem 0;
         }
         
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
         }
         
         .feature-card {
             text-align: center;
-            padding: 2rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.2);
         }
         
         .feature-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
         .feature-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-family: 'Fredoka', sans-serif;
         }
         
         .feature-desc {
-            opacity: 0.8;
-            line-height: 1.6;
+            opacity: 0.9;
+            line-height: 1.5;
+            font-size: 0.95rem;
         }
         
         @media (max-width: 768px) {
-            .hero-title { font-size: 2.5rem; }
-            .hero-subtitle { font-size: 1.2rem; }
+            .hero-title { font-size: 3rem; letter-spacing: -1px; }
+            .hero-subtitle { font-size: 1.1rem; }
             .cta-buttons { flex-direction: column; align-items: center; }
-            .hexagonal-logo { width: 150px; height: 150px; }
-            .logo-content { font-size: 2rem; }
-            .amp-symbol { font-size: 3rem; }
+            .mascot-section { gap: 1rem; }
+            .mascot-card { width: 100px; height: 130px; font-size: 3rem; }
+            .high-five { font-size: 1.5rem; }
+            .communities-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .container { padding: 1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-animation">
-        <div class="floating-card"></div>
-        <div class="floating-card"></div>
-        <div class="floating-card"></div>
-        <div class="floating-card"></div>
-    </div>
-    
     <div class="container">
         <header class="header">
-            <div class="logo-container">
-                <div class="logo">
-                    <div class="logo-text">
-                        S <span class="amp-symbol">&</span> S
-                    </div>
+            <!-- Chibi Card Mascots -->
+            <div class="mascot-section">
+                <div class="mascot-card mascot-left">
+                    <div class="live-banner">LIVE</div>
+                    😊
+                </div>
+                <div class="high-five">✨🙌✨</div>
+                <div class="mascot-card mascot-right">
+                    <div class="live-banner">LIVE</div>
+                    😎
                 </div>
             </div>
             
             <h1 class="hero-title">Shuffle & Sync</h1>
-            <p class="hero-subtitle">The ultimate platform for TCG streamers to coordinate epic gameplay, build communities, and create unforgettable streaming experiences together.</p>
+            <p class="hero-subtitle">Unite TCG streamers, coordinate epic battles, and build legendary gaming communities together!</p>
             
             <div class="cta-buttons">
                 <a href="/api/login" class="btn btn-primary" data-testid="button-get-started">
@@ -460,36 +446,6 @@ app.use((req, res, next) => {
             // For MTG: Transform to "Scry & Gather" with dark navy/red/green theme
             alert(\`✨ \${community.toUpperCase()} community selected! Community-specific theming coming soon.\`);
         }
-        
-        // Add some interactive sparkle effects
-        function createSparkle() {
-            const sparkle = document.createElement('div');
-            sparkle.style.position = 'absolute';
-            sparkle.style.width = '4px';
-            sparkle.style.height = '4px';
-            sparkle.style.background = '#fbbf24';
-            sparkle.style.borderRadius = '50%';
-            sparkle.style.pointerEvents = 'none';
-            sparkle.style.left = Math.random() * window.innerWidth + 'px';
-            sparkle.style.top = Math.random() * window.innerHeight + 'px';
-            sparkle.style.animation = 'sparkle 2s ease-out forwards';
-            document.body.appendChild(sparkle);
-            
-            setTimeout(() => sparkle.remove(), 2000);
-        }
-        
-        const sparkleStyle = document.createElement('style');
-        sparkleStyle.textContent = \`
-            @keyframes sparkle {
-                0% { opacity: 1; transform: scale(0); }
-                50% { opacity: 1; transform: scale(1); }
-                100% { opacity: 0; transform: scale(0); }
-            }
-        \`;
-        document.head.appendChild(sparkleStyle);
-        
-        // Create sparkles every few seconds
-        setInterval(createSparkle, 3000);
     </script>
 </body>
 </html>
