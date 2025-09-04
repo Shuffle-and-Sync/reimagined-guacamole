@@ -143,7 +143,8 @@ app.use((req, res, next) => {
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1.1;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            -webkit-text-stroke: 2px rgba(255, 215, 0, 0.6);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .hero-subtitle {
