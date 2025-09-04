@@ -280,12 +280,12 @@ app.use((req, res, next) => {
             <p class="hero-subtitle">Draw your perfect hand with fellow TCG streamers! Coordinate deck battles, build your streaming strategy, and create legendary gameplay moments together.</p>
             
             <div class="cta-buttons">
-                <a href="/api/login" class="btn btn-primary">
+                <a href="/login" class="btn btn-primary">
                     <i class="fas fa-hand-sparkles"></i> Draw Your Hand
                 </a>
-                <button class="btn btn-secondary" onclick="alert('🎮 Demo coming soon! Join us to be first to experience the platform.')">
-                    <i class="fas fa-play"></i> See the Deck
-                </button>
+                <a href="/register" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Join the Guild
+                </a>
             </div>
         </header>
         

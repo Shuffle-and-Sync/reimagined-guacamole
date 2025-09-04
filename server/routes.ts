@@ -58,6 +58,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { getSession } = await import("./replitAuth");
   app.use(getSession());
 
+  // Redirect legacy login route to SvelteKit
+  app.get('/api/login', (req, res) => {
+    res.redirect('/login');
+  });
+
   // Initialize default communities (run in background to avoid blocking startup)
   initializeDefaultCommunities().catch(error => {
     logger.error("Failed to initialize default communities", error);
