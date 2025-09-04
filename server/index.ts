@@ -40,8 +40,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Serve clean chibi-inspired Shuffle & Sync landing page
-  console.log("🎮 Serving clean chibi-inspired Shuffle & Sync landing page");
+  // Serve professional yet playful Shuffle & Sync landing page
+  console.log("🎮 Serving professional yet playful Shuffle & Sync landing page");
   app.use("*", (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -50,36 +50,32 @@ app.use((req, res, next) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shuffle & Sync - TCG Streaming Coordination Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Inter', sans-serif;
-            background: #5B6BCF;
-            background-image: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             color: white;
-            position: relative;
+            line-height: 1.6;
         }
         
-        /* Subtle background pattern */
+        /* Professional geometric background */
         body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
-                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 60px 60px, 40px 40px;
-            opacity: 0.5;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+                linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.03) 50%, transparent 51%);
             z-index: 0;
         }
         
@@ -88,271 +84,287 @@ app.use((req, res, next) => {
             z-index: 10;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem;
+        }
+        
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-nav {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .logo-nav .amp-symbol {
+            color: #fbbf24;
+            margin: 0 0.2rem;
         }
         
         /* Header */
         .header {
             text-align: center;
-            padding: 3rem 0 4rem 0;
+            padding: 4rem 0 5rem 0;
         }
         
-        /* Chibi Card Characters */
-        .mascot-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            margin: 3rem 0;
+        /* Professional hero section */
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
         }
         
-        .mascot-card {
-            position: relative;
-            width: 120px;
-            height: 160px;
-            border-radius: 15px;
-            border: 4px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-        
-        .mascot-left {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-            transform: rotate(-5deg);
-        }
-        
-        .mascot-right {
-            background: linear-gradient(135deg, #a78bfa, #c4b5fd);
-            transform: rotate(5deg);
-        }
-        
-        .live-banner {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            color: white;
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 600;
-            font-size: 0.8rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        
-        .high-five {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2rem;
-            z-index: 5;
-        }
-        
-        /* Main Logo Text */
         .hero-title {
-            font-family: 'Fredoka', sans-serif;
-            font-size: 4.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 4rem;
             font-weight: 700;
-            margin: 2rem 0 1rem 0;
-            color: #FBD38D;
-            text-shadow: 
-                4px 4px 0px #2D3748,
-                4px 4px 10px rgba(0,0,0,0.5);
-            letter-spacing: -2px;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
         }
         
         .hero-subtitle {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             margin-bottom: 3rem;
-            opacity: 0.95;
-            font-weight: 500;
-            max-width: 700px;
+            opacity: 0.9;
+            font-weight: 400;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            line-height: 1.6;
         }
         
-        /* Simple CTA buttons */
+        /* Professional CTA buttons */
         .cta-buttons {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             justify-content: center;
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 1rem 2.5rem;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 25px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #38a169, #48bb78);
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
             color: white;
-            box-shadow: 0 4px 15px rgba(56, 161, 105, 0.4);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 161, 105, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
         }
         
         .btn-secondary {
-            background: rgba(255,255,255,0.9);
-            color: #2D3748;
-            border: 2px solid white;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
         }
         
         .btn-secondary:hover {
-            background: white;
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
         }
         
-        /* Communities Section */
+        /* Professional Communities Section */
         .communities-section {
-            background: rgba(255,255,255,0.15);
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin: 3rem 0;
-            border: 3px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 3rem;
+            margin: 4rem 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
         }
         
         .communities-title {
             text-align: center;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 2rem;
-            color: #FBD38D;
-            font-family: 'Fredoka', sans-serif;
+            margin-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .communities-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .communities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
         }
         
         .community-card {
-            background: white;
-            color: #2D3748;
-            border-radius: 15px;
-            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
             text-align: center;
-            border: 3px solid rgba(255,255,255,0.8);
-            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
         }
         
         .community-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            border-color: #FBD38D;
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(251, 191, 36, 0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .community-icon {
             font-size: 2.5rem;
-            margin-bottom: 0.8rem;
+            margin-bottom: 1rem;
             display: block;
         }
         
         .community-name {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-family: 'Space Grotesk', sans-serif;
         }
         
         .community-game {
-            opacity: 0.7;
-            font-size: 0.9rem;
-            font-weight: 500;
+            opacity: 0.8;
+            font-size: 0.95rem;
+            font-weight: 400;
         }
         
-        /* Features */
+        /* Professional Features */
         .features-section {
-            margin: 3rem 0;
+            margin: 5rem 0;
+            text-align: center;
+        }
+        
+        .features-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .features-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
         }
         
         .feature-card {
-            text-align: center;
-            padding: 1.5rem;
+            text-align: left;
+            padding: 2rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
             background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            border: 2px solid rgba(255,255,255,0.2);
+            transform: translateY(-2px);
         }
         
         .feature-icon {
-            font-size: 2.5rem;
+            font-size: 2rem;
             margin-bottom: 1rem;
+            color: #fbbf24;
         }
         
         .feature-title {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             font-weight: 600;
-            margin-bottom: 0.8rem;
-            font-family: 'Fredoka', sans-serif;
+            margin-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
         }
         
         .feature-desc {
-            opacity: 0.9;
-            line-height: 1.5;
-            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            font-size: 1rem;
         }
         
         @media (max-width: 768px) {
-            .hero-title { font-size: 3rem; letter-spacing: -1px; }
-            .hero-subtitle { font-size: 1.1rem; }
-            .cta-buttons { flex-direction: column; align-items: center; }
-            .mascot-section { gap: 1rem; }
-            .mascot-card { width: 100px; height: 130px; font-size: 3rem; }
-            .high-five { font-size: 1.5rem; }
-            .communities-grid { grid-template-columns: 1fr; }
-            .features-grid { grid-template-columns: 1fr; }
             .container { padding: 1rem; }
+            .nav { padding: 1rem 0; margin-bottom: 1rem; }
+            .logo-nav { font-size: 1.5rem; }
+            .header { padding: 2rem 0 3rem 0; }
+            .hero-title { font-size: 2.8rem; line-height: 1.1; }
+            .hero-subtitle { font-size: 1.1rem; }
+            .cta-buttons { flex-direction: column; gap: 0.8rem; }
+            .btn { width: 100%; justify-content: center; max-width: 300px; }
+            .communities-section { padding: 2rem 1.5rem; margin: 3rem 0; }
+            .communities-title, .features-title { font-size: 2rem; }
+            .communities-grid, .features-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .features-section { margin: 3rem 0; }
+            .feature-card { padding: 1.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="/" class="logo-nav">
+                Shuffle <span class="amp-symbol">&</span> Sync
+            </a>
+        </nav>
+        
         <header class="header">
-            <!-- Chibi Card Mascots -->
-            <div class="mascot-section">
-                <div class="mascot-card mascot-left">
-                    <div class="live-banner">LIVE</div>
-                    😊
-                </div>
-                <div class="high-five">✨🙌✨</div>
-                <div class="mascot-card mascot-right">
-                    <div class="live-banner">LIVE</div>
-                    😎
-                </div>
+            <div class="hero-badge">
+                <i class="fas fa-magic" style="margin-right: 0.5rem;"></i>
+                For Trading Card Game Streamers
             </div>
             
-            <h1 class="hero-title">Shuffle & Sync</h1>
-            <p class="hero-subtitle">Unite TCG streamers, coordinate epic battles, and build legendary gaming communities together!</p>
+            <h1 class="hero-title">Coordinate Epic TCG Streams</h1>
+            <p class="hero-subtitle">The professional platform that connects streamers, organizes collaborative gameplay, and builds thriving gaming communities.</p>
             
             <div class="cta-buttons">
                 <a href="/api/login" class="btn btn-primary" data-testid="button-get-started">
@@ -367,10 +379,8 @@ app.use((req, res, next) => {
         </header>
         
         <section class="communities-section">
-            <h2 class="communities-title">
-                <i class="fas fa-users" style="color: #fbbf24; margin-right: 0.5rem;"></i>
-                TCG Communities
-            </h2>
+            <h2 class="communities-title">Gaming Communities</h2>
+            <p class="communities-subtitle">Connect with streamers across all major trading card games</p>
             <div class="communities-grid">
                 <div class="community-card" onclick="selectCommunity('mtg')" data-testid="card-community-mtg">
                     <div class="community-icon">🔥</div>
@@ -406,26 +416,28 @@ app.use((req, res, next) => {
         </section>
         
         <section class="features-section">
+            <h2 class="features-title">Platform Features</h2>
+            <p class="features-subtitle">Everything you need to coordinate, stream, and grow your TCG community</p>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
+                    <div class="feature-icon"><i class="fas fa-video"></i></div>
                     <h3 class="feature-title">Stream Coordination</h3>
-                    <p class="feature-desc">Organize collaborative streams, manage game pods, and coordinate epic TCG battles with real-time tools.</p>
+                    <p class="feature-desc">Organize collaborative streams, manage game pods, and coordinate epic TCG battles with professional-grade real-time tools.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🏆</div>
-                    <h3 class="feature-title">Tournament System</h3>
-                    <p class="feature-desc">Create and manage tournaments with bracket generation, live scoring, and viewer engagement features.</p>
+                    <div class="feature-icon"><i class="fas fa-trophy"></i></div>
+                    <h3 class="feature-title">Tournament Management</h3>
+                    <p class="feature-desc">Create and manage tournaments with automated bracket generation, live scoring, and comprehensive viewer engagement features.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3 class="feature-title">Community Analytics</h3>
-                    <p class="feature-desc">Track viewer engagement, community growth, and streaming performance across all TCG platforms.</p>
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3 class="feature-title">Analytics Dashboard</h3>
+                    <p class="feature-desc">Track viewer engagement, community growth, and streaming performance with detailed analytics across all TCG platforms.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🤝</div>
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
                     <h3 class="feature-title">Creator Network</h3>
-                    <p class="feature-desc">Connect with fellow TCG streamers, build partnerships, and grow your community together.</p>
+                    <p class="feature-desc">Connect with fellow TCG streamers, build strategic partnerships, and grow your community through collaborative tools.</p>
                 </div>
             </div>
         </section>
