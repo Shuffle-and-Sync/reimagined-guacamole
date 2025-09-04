@@ -1,0 +1,373 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+_app-c8a324bce67e9dd3.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+ShuffleSync:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+ShuffleSync:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+ShuffleSync:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+sp.replit.com/v1/p:1  Failed to load resource: net::ERR_SOCKET_NOT_CONNECTED
+_app-c8a324bce67e9dd3.js:38 [LaunchDarkly] LaunchDarkly client initialized
+_app-c8a324bce67e9dd3.js:38 Adding extension: Prettier - Code Formatter Object
+ShuffleSync:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'battery'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+framework-a3e06d364f4b7c4a.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-a3e06d364f4b7c4a.js:1
+dotdevproxy.picard.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.picard.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.picard.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.riker.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.riker.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.riker.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.sisko.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.sisko.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.sisko.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.worf.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.worf.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+dotdevproxy.worf.repl.co/__reachability:1  Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR
+_app-c8a324bce67e9dd3.js:38 Adding extension: Prettier - Code Formatter Object
+_app-c8a324bce67e9dd3.js:38 Adding extension: Prettier - Code Formatter Object
+6504-d48f74776127a430.js:1 WebSocket connection to 'wss://eval.picard.platform.replit.com/wsv2/v2.public.Q2dZSTJMYm54UVlTQmdqMzB1ZkZCaUlHY0dsallYSmtNQUE2d2dFS0pHTmhNMk5pTnpZeExXWXlZekF0TkRnMk1TMWlOV05tTFRJMU4ySXhZV0ppT0dFek54SURibWw0R2hoeVpYQnNhWFF0Y21Wd2JDMW1hV3hsY3kxd2FXTmhjbVFpQzFOb2RXWm1iR1ZUZVc1aktndGlaV1JwWTNOcllXVnNZVUpVQ2hseVpYQnNhWFF0Y21Wd2JDMWliRzlqYTNNdGNHbGpZWEprRWhkeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhCcFkyRnlaQm9lY21Wd2JHbDBMVzFoY21kaGNtbHVaUzFpYkc5amEzTXRjR2xqWVhKa1NnY0l0ZFN0RmhBQlVBQjRBRklqQ0FFUWdJQ0FnQ0FaQUFBQUFBQUFFRUFoQUFBQUFBQUFFRUFvZ0lDQWdNZ0...nZiRXBoZGpWMFNYbFdTamtsTWtJbE1rSTBOMFJEVUhwVGRVbHhlamxuYjBSWlVGUkZKVEpHYW1wbVExRnFaMUoyU0hVd2JXaHNkSFJXVDFsU1dHVnRSMk1sTWtZNGIyWTRibmxrUzBsUU1rWlRWWGRqU1hFbE1rWWxNa0kzUkU1RlZpVXlRbEU0T0VOUmRtdGtTWEptTlZoalJVVjFKVEpDYTBoWGRITnlja293WmtvbE1rSlRTM2xOTkVoYVIwVTNNM0V6SlRKQ1JrTk5UVTVaUzJob1pWUXlkRXBzY2pOYWFUbHFibEZEZVhOMk1WSk9RV0ZvVTBSR1RsTlFTVW96WVhaU2FGUlJNRzkwVm5KTVIwVjVUV2NsTTBRbE0wUT3wsBkmaOHAD-nr_pjiD1ySxbGBNlaYXFjexgpLKd7QL4LJjjqGZH2OS0JfcwQfpl-gZyZC2kEWzUCWfn4bA-QC.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 6504-d48f74776127a430.js:1
+6504-d48f74776127a430.js:1 WebSocket connection to 'wss://eval.picard.platform.replit.com/wsv2/v2.public.Q2dZSTJMYm54UVlTQmdqMzB1ZkZCaUlHY0dsallYSmtNQUE2d2dFS0pHTmhNMk5pTnpZeExXWXlZekF0TkRnMk1TMWlOV05tTFRJMU4ySXhZV0ppT0dFek54SURibWw0R2hoeVpYQnNhWFF0Y21Wd2JDMW1hV3hsY3kxd2FXTmhjbVFpQzFOb2RXWm1iR1ZUZVc1aktndGlaV1JwWTNOcllXVnNZVUpVQ2hseVpYQnNhWFF0Y21Wd2JDMWliRzlqYTNNdGNHbGpZWEprRWhkeVpYQnNhWFF0Y21Wd2JDMXRaWFJoTFhCcFkyRnlaQm9lY21Wd2JHbDBMVzFoY21kaGNtbHVaUzFpYkc5amEzTXRjR2xqWVhKa1NnY0l0ZFN0RmhBQlVBQjRBRklqQ0FFUWdJQ0FnQ0FaQUFBQUFBQUFFRUFoQUFBQUFBQUFFRUFvZ0lDQWdNZ0...nZiRXBoZGpWMFNYbFdTamtsTWtJbE1rSTBOMFJEVUhwVGRVbHhlamxuYjBSWlVGUkZKVEpHYW1wbVExRnFaMUoyU0hVd2JXaHNkSFJXVDFsU1dHVnRSMk1sTWtZNGIyWTRibmxrUzBsUU1rWlRWWGRqU1hFbE1rWWxNa0kzUkU1RlZpVXlRbEU0T0VOUmRtdGtTWEptTlZoalJVVjFKVEpDYTBoWGRITnlja293WmtvbE1rSlRTM2xOTkVoYVIwVTNNM0V6SlRKQ1JrTk5UVTVaUzJob1pWUXlkRXBzY2pOYWFUbHFibEZEZVhOMk1WSk9RV0ZvVTBSR1RsTlFTVW96WVhaU2FGUlJNRzkwVm5KTVIwVjVUV2NsTTBRbE0wUT3wsBkmaOHAD-nr_pjiD1ySxbGBNlaYXFjexgpLKd7QL4LJjjqGZH2OS0JfcwQfpl-gZyZC2kEWzUCWfn4bA-QC.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+connect @ 6504-d48f74776127a430.js:1
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar2nl%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com".
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+

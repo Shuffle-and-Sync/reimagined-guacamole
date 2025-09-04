@@ -54,8 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // General rate limiting for all API routes
   app.use('/api/', generalRateLimit);
   
-  // Auth middleware
-  await setupAuth(app);
+  // Setup session middleware for custom authentication
+  const { getSession } = await import("./replitAuth");
+  app.use(getSession());
 
   // Initialize default communities (run in background to avoid blocking startup)
   initializeDefaultCommunities().catch(error => {
