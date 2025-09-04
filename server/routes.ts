@@ -825,20 +825,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics routes
-  app.get('/api/analytics', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      
-      // Get analytics data for the current user
-      const analytics = await storage.getAnalyticsData(userId);
-      res.json(analytics);
-    } catch (error) {
-      logger.error("Failed to fetch analytics", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {

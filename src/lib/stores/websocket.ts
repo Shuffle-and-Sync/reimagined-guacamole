@@ -43,14 +43,12 @@ export const realtimeFeatures = writable<{
         matchmaking: boolean;
         notifications: boolean;
         social: boolean;
-        analytics: boolean;
 }>({
         messaging: true,
         tournaments: true,
         matchmaking: true,
         notifications: true,
-        social: true,
-        analytics: true
+        social: true
 });
 
 // Game room data structure
@@ -547,18 +545,6 @@ export function initializeCalendarWebSocket(userId: string) {
         });
 }
 
-// Analytics WebSocket Integration
-export function initializeAnalyticsWebSocket(userId: string) {
-        subscribeToChannel(`analytics:${userId}`, (message: WebSocketMessage) => {
-                if (message.type === 'live_metrics') {
-                        // Handle live metrics update
-                        console.log('Live metrics:', message.data);
-                } else if (message.type === 'goal_achieved') {
-                        // Handle goal achievement
-                        console.log('Goal achieved!', message.data);
-                }
-        });
-}
 
 // Utility function to initialize all WebSocket features for a user
 export function initializeAllWebSocketFeatures(userId: string) {
@@ -569,7 +555,6 @@ export function initializeAllWebSocketFeatures(userId: string) {
         initializeSocialWebSocket(userId);
         initializeForumsWebSocket(userId);
         initializeCalendarWebSocket(userId);
-        initializeAnalyticsWebSocket(userId);
         
         // Subscribe to general user notifications
         subscribeToChannel(`user:${userId}`);
