@@ -11,13 +11,13 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { MatchmakingPreferences } from '@shared/schema';
-import { Header } from "@/components/header";
-import { useCommunity } from "@/contexts/CommunityContext";
+import { Header } from "@/shared/components";
+import { useCommunity } from "@/features/communities";
 
 const GAME_FORMATS = [
   { id: "commander", name: "Commander/EDH", game: "MTG" },

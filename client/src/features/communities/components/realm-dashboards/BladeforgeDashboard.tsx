@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
 import { getCommunityTheme } from "../../utils/communityThemes";
 // TODO: Update to use events feature GamePodCalendar
-import GamePodCalendar from "@/components/GamePodCalendar";
 
 interface User {
   id: string;

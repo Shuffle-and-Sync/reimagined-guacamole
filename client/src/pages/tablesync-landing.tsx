@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import { Header } from "@/shared/components";
+import { Footer } from "@/shared/components";
 import { DemoModal } from "@/components/DemoModal";
 import { useState } from "react";
 

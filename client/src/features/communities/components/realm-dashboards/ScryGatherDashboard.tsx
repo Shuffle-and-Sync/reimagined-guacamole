@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
-import { getCommunityTheme } from "@/lib/communityThemes";
-import GamePodCalendar from "@/components/GamePodCalendar";
+import { getCommunityTheme } from "../../utils/communityThemes";
 interface User {
   id: string;
   firstName?: string;
