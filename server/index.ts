@@ -12,6 +12,9 @@ import { notificationsRoutes, messagesRouter, conversationsRouter } from "./feat
 // Import shared middleware
 import { errorHandler, requestLogger, corsHandler, securityHeaders } from "./shared/middleware";
 
+// Import auth setup
+import { setupAuth } from "./replitAuth";
+
 const app = express();
 
 // Basic middleware
@@ -21,6 +24,9 @@ app.use(express.urlencoded({ extended: false }));
 // No custom middleware for now - keep it simple
 
 (async () => {
+  // Set up authentication middleware (required for isAuthenticated to work)
+  await setupAuth(app);
+
   // Register feature-based routes
   app.use('/api/auth', authRoutes);
   app.use('/api/communities', communitiesRoutes);
