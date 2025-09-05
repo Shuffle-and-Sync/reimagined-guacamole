@@ -185,6 +185,19 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   ].join('; ');
   res.setHeader('Content-Security-Policy', csp);
   
+  // Permissions Policy to control browser features
+  const permissionsPolicy = [
+    'geolocation=()',
+    'microphone=()',
+    'camera=()',
+    'payment=()',
+    'usb=()',
+    'accelerometer=()',
+    'gyroscope=()',
+    'magnetometer=()'
+  ].join(', ');
+  res.setHeader('Permissions-Policy', permissionsPolicy);
+  
   // Don't set HSTS in development
   if (process.env.NODE_ENV === 'production') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
