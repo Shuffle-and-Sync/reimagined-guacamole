@@ -59,28 +59,6 @@ export const validateSocialLinksSchema = z.object({
   })).max(10, 'Maximum 10 social links allowed'),
 });
 
-// Platform integration validation schemas
-export const validatePlatformAuthSchema = z.object({
-  platform: z.enum(['twitch', 'youtube', 'discord', 'twitter', 'instagram', 'tiktok']),
-  code: z.string().min(1, 'Authorization code is required'),
-  state: z.string().optional(),
-});
-
-export const validateSocialPostSchema = z.object({
-  content: z.string().min(1, 'Post content is required').max(2000, 'Post content too long'),
-  platforms: z.array(z.string()).min(1, 'At least one platform is required'),
-  scheduledFor: z.string().datetime().optional(),
-  mediaUrls: z.array(z.string().url()).optional(),
-  platformData: z.record(z.any()).optional(),
-});
-
-export const validateWebhookSchema = z.object({
-  platform: z.enum(['twitch', 'youtube', 'discord']),
-  eventType: z.string().min(1, 'Event type is required'),
-  webhookUrl: z.string().url('Valid webhook URL is required'),
-  secret: z.string().min(1, 'Webhook secret is required'),
-});
-
 export const validateJoinCommunitySchema = z.object({
   communityId: z.string().min(1, 'Community ID is required').max(50),
 });
@@ -177,26 +155,13 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
-    "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com",
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+    "font-src 'self' fonts.gstatic.com",
     "img-src 'self' data: blob: https:",
     "connect-src 'self' wss: ws:",
     "frame-ancestors 'none'"
   ].join('; ');
   res.setHeader('Content-Security-Policy', csp);
-  
-  // Permissions Policy to control browser features
-  const permissionsPolicy = [
-    'geolocation=()',
-    'microphone=()',
-    'camera=()',
-    'payment=()',
-    'usb=()',
-    'accelerometer=()',
-    'gyroscope=()',
-    'magnetometer=()'
-  ].join(', ');
-  res.setHeader('Permissions-Policy', permissionsPolicy);
   
   // Don't set HSTS in development
   if (process.env.NODE_ENV === 'production') {

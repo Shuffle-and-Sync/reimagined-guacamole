@@ -1,74 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
-import helmet from "helmet";
-import cors from "cors";
 import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";
-import { monitoringMiddleware, validateEnvironment } from "./monitoring";
 
 const app = express();
-
-// Security hardening for external access
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "ws:", "wss:"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
-
-// CORS configuration for external access
-app.use(cors({
-  origin: function (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost and development domains
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'https://localhost:3000',
-      'https://127.0.0.1:3000'
-    ];
-    
-    // Allow any Replit domain
-    if (origin.includes('.replit.dev') || origin.includes('.replit.app') || origin.includes('.replit.co')) {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // For development, be more permissive
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
-
-// Additional security headers
-app.use((req, res, next) => {
-  res.header('X-Frame-Options', 'SAMEORIGIN');
-  res.header('X-Content-Type-Options', 'nosniff');
-  res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
-  next();
-});
-
-// Add monitoring middleware for external access
-app.use(monitoringMiddleware);
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -94,9 +29,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Validate environment for external access
-  validateEnvironment();
-  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -107,12 +39,19 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Express now only handles API routes - SvelteKit handles all frontend routes
-  console.log("🃏 Express configured for API-only mode - SvelteKit handles frontend");
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
+  // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
@@ -120,6 +59,6 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     logger.info(`Server started successfully`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
-    console.log(`🚀 Express API server running on port ${port}`);
+    log(`serving on port ${port}`); // Keep Vite's log for development
   });
 })();

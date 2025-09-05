@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated as replitIsAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { sendContactEmail } from "./email";
@@ -10,18 +10,6 @@ import { randomBytes } from "crypto";
 import { logger } from "./logger";
 import { AuthenticatedRequest, NotFoundError, ValidationError } from "./types";
 import { healthCheck } from "./health";
-import {
-  hashPassword,
-  isAuthenticated,
-  optionalAuth,
-  validateEmail,
-  validatePassword,
-  validateUsername,
-  validateLoginAttempt,
-  recordFailedLoginAttempt,
-  recordSuccessfulLogin,
-  type AuthenticatedRequest as CustomAuthRequest
-} from "./auth";
 import { 
   validateRequest, 
   validateParams, 
@@ -31,9 +19,6 @@ import {
   validateEventSchema,
   validatePasswordResetSchema,
   validateSocialLinksSchema,
-  validatePlatformAuthSchema,
-  validateSocialPostSchema,
-  validateWebhookSchema,
   validateJoinCommunitySchema,
   validateJoinEventSchema,
   validateMessageSchema,
@@ -54,456 +39,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // General rate limiting for all API routes
   app.use('/api/', generalRateLimit);
   
-  // Setup session middleware for custom authentication
-  const { getSession } = await import("./replitAuth");
-  app.use(getSession());
+  // Auth middleware
+  await setupAuth(app);
 
-  // Redirect legacy login route to SvelteKit
-  app.get('/api/login', (req, res) => {
-    res.redirect('/login');
-  });
-
-  // Home route - serve dashboard content (avoiding SvelteKit conflict)
-  app.get('/home', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Shuffle & Sync</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #4C63D2 0%, #7C3AED 35%, #2DD4BF 70%, #10B981 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        .home-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .home-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .home-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            font-family: 'Nunito', sans-serif;
-            margin-bottom: 1rem;
-        }
-        .welcome-message {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-        }
-        .success-badge {
-            display: inline-block;
-            background: linear-gradient(45deg, #10B981, #2DD4BF);
-            padding: 0.5rem 1.5rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            font-weight: 600;
-        }
-        .home-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 1rem 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .nav-brand {
-            font-family: 'Nunito', sans-serif;
-            font-weight: 800;
-            font-size: 1.5rem;
-        }
-        .nav-actions {
-            display: flex;
-            gap: 1rem;
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: transform 0.3s ease;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #10B981, #2DD4BF);
-            color: white;
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        .feature-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 2rem;
-            border: 1px solid rgba(255,255,255,0.2);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-4px);
-        }
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #2DD4BF;
-        }
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .feature-desc {
-            opacity: 0.8;
-            font-size: 0.95rem;
-        }
-    </style>
-    <script>
-        // Check if user just registered
-        if (window.location.search.includes('registered=true')) {
-            document.addEventListener('DOMContentLoaded', function() {
-                const badge = document.createElement('div');
-                badge.className = 'success-badge';
-                badge.innerHTML = '<i class="fas fa-check-circle"></i> Registration successful! Welcome to the guild!';
-                document.querySelector('.home-header').appendChild(badge);
-            });
-        }
-    </script>
-</head>
-<body>
-    <div class="home-container">
-        <nav class="home-nav">
-            <div class="nav-brand">Shuffle & Sync</div>
-            <div class="nav-actions">
-                <button class="btn btn-secondary" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </nav>
-        
-        <div class="home-header">
-            <h1 class="home-title">Welcome to Your Gaming Hub!</h1>
-            <p class="welcome-message">You're successfully logged in and ready to coordinate epic TCG streams!</p>
-        </div>
-        
-        <div class="feature-grid">
-            <div class="feature-card">
-                <i class="fas fa-users feature-icon"></i>
-                <h3 class="feature-title">Communities</h3>
-                <p class="feature-desc">Join TCG communities and connect with fellow streamers</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-trophy feature-icon"></i>
-                <h3 class="feature-title">Tournaments</h3>
-                <p class="feature-desc">Organize and participate in collaborative tournaments</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-video feature-icon"></i>
-                <h3 class="feature-title">Stream Coordination</h3>
-                <p class="feature-desc">Plan multi-streamer events and synchronized gameplay</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-gamepad feature-icon"></i>
-                <h3 class="feature-title">Game Rooms</h3>
-                <p class="feature-desc">Create interactive gaming experiences for your audience</p>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        function logout() {
-            fetch('/api/auth/logout', { method: 'POST' })
-                .then(() => window.location.href = '/')
-                .catch(() => window.location.href = '/');
-        }
-    </script>
-</body>
-</html>
-    `);
-  });
-
-  // Initialize default communities (run in background to avoid blocking startup)
-  initializeDefaultCommunities().catch(error => {
-    logger.error("Failed to initialize default communities", error);
-  });
+  // Initialize default communities
+  await initializeDefaultCommunities();
 
   // Health check endpoint
   app.get('/api/health', healthCheck);
 
-  // Custom Authentication Routes
-  app.post('/api/auth/register', authRateLimit, async (req, res) => {
-    try {
-      const { email, password, username, firstName, lastName } = req.body;
-
-      // Validate input
-      if (!email || !password || !username || !firstName || !lastName) {
-        return res.status(400).json({ 
-          message: 'All fields are required',
-          fields: ['email', 'password', 'username', 'firstName', 'lastName']
-        });
-      }
-
-      // Validate email format
-      if (!validateEmail(email)) {
-        return res.status(400).json({ message: 'Invalid email format' });
-      }
-
-      // Validate password strength
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation.isValid) {
-        return res.status(400).json({ 
-          message: 'Password does not meet requirements',
-          errors: passwordValidation.errors
-        });
-      }
-
-      // Validate username
-      const usernameValidation = validateUsername(username);
-      if (!usernameValidation.isValid) {
-        return res.status(400).json({ 
-          message: 'Username does not meet requirements',
-          errors: usernameValidation.errors
-        });
-      }
-
-      // Check if user already exists
-      const existingUserByEmail = await storage.getUserByEmail(email);
-      if (existingUserByEmail) {
-        return res.status(409).json({ message: 'Email is already registered' });
-      }
-
-      const existingUserByUsername = await storage.getUserByUsername(username);
-      if (existingUserByUsername) {
-        return res.status(409).json({ message: 'Username is already taken' });
-      }
-
-      // Hash password
-      const passwordHash = await hashPassword(password);
-
-      // Create user
-      const user = await storage.createUser({
-        email,
-        username,
-        firstName,
-        lastName,
-        passwordHash
-      });
-
-      // Create session
-      const session = req.session as any;
-      session.userId = user.id;
-      session.save((err: any) => {
-        if (err) {
-          logger.error('Session save error during registration', err, { userId: user.id });
-          return res.status(500).json({ message: 'Registration successful but session error' });
-        }
-
-        logger.info('User registered successfully', { userId: user.id, email, username });
-        
-        // Handle different response types
-        if (req.headers['content-type'] === 'application/json') {
-          res.status(201).json({ 
-            message: 'Registration successful', 
-            user: {
-              id: user.id,
-              email: user.email,
-              username: user.username,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role,
-              emailVerified: user.emailVerified
-            }
-          });
-        } else {
-          // HTML form submission - redirect to home
-          res.redirect('/home?registered=true');
-        }
-      });
-    } catch (error) {
-      logger.error('Registration error', error, { email: req.body?.email });
-      res.status(500).json({ message: 'Internal server error during registration' });
-    }
-  });
-
-  app.post('/api/auth/login', authRateLimit, async (req, res) => {
-    try {
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
-      }
-
-      // Check login attempts
-      const loginCheck = await validateLoginAttempt(email);
-      if (!loginCheck.allowed) {
-        logger.warn('Login blocked due to too many attempts', { email, lockedUntil: loginCheck.lockedUntil });
-        return res.status(429).json({ 
-          message: 'Too many failed login attempts. Account temporarily locked.',
-          lockedUntil: loginCheck.lockedUntil
-        });
-      }
-
-      // Validate credentials
-      const user = await storage.validateUserCredentials(email, password);
-      if (!user) {
-        await recordFailedLoginAttempt(email);
-        logger.warn('Failed login attempt', { email });
-        return res.status(401).json({ message: 'Invalid email or password' });
-      }
-
-      // Check account status
-      if (user.accountStatus !== 'active') {
-        logger.warn('Login attempt on inactive account', { email, accountStatus: user.accountStatus });
-        return res.status(401).json({ 
-          message: 'Account is suspended or banned',
-          accountStatus: user.accountStatus
-        });
-      }
-
-      // Record successful login
-      await recordSuccessfulLogin(user.id);
-
-      // Create session
-      const session = req.session as any;
-      session.userId = user.id;
-      session.save((err: any) => {
-        if (err) {
-          logger.error('Session save error during login', err, { userId: user.id });
-          return res.status(500).json({ message: 'Login successful but session error' });
-        }
-
-        logger.info('User logged in successfully', { userId: user.id, email });
-        
-        // Handle different response types
-        if (req.headers['content-type'] === 'application/json') {
-          res.json({ 
-            message: 'Login successful',
-            user: {
-              id: user.id,
-              email: user.email,
-              username: user.username,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role,
-              emailVerified: user.emailVerified,
-              lastLoginAt: user.lastLoginAt
-            }
-          });
-        } else {
-          // HTML form submission - redirect to home
-          res.redirect('/home');
-        }
-      });
-    } catch (error) {
-      logger.error('Login error', error, { email: req.body?.email });
-      res.status(500).json({ message: 'Internal server error during login' });
-    }
-  });
-
-  app.post('/api/auth/logout', (req, res) => {
-    const session = req.session as any;
-    const userId = session?.userId;
-    
-    session.destroy((err: any) => {
-      if (err) {
-        logger.error('Logout error', err, { userId });
-        return res.status(500).json({ message: 'Error during logout' });
-      }
-      
-      res.clearCookie('connect.sid');
-      logger.info('User logged out successfully', { userId });
-      res.json({ message: 'Logout successful' });
-    });
-  });
-
-  // Get current authenticated user (supports both auth systems)
-  app.get('/api/auth/user', optionalAuth, async (req, res) => {
-    try {
-      let user = null;
-      let userCommunities = null;
-      
-      // Try custom authentication first
-      const customAuthReq = req as CustomAuthRequest;
-      if (customAuthReq.user) {
-        user = customAuthReq.user;
-        userCommunities = await storage.getUserCommunities(user.id);
-        
-        return res.json({
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          emailVerified: user.emailVerified,
-          accountStatus: user.accountStatus,
-          lastLoginAt: user.lastLoginAt,
-          primaryCommunity: user.primaryCommunity,
-          communities: userCommunities,
-          authType: 'custom'
-        });
-      }
-      
-      // Fallback to Replit authentication
-      const authenticatedReq = req as AuthenticatedRequest;
-      if (authenticatedReq.user?.claims?.sub) {
-        const userId = authenticatedReq.user.claims.sub;
-        user = await storage.getUser(userId);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-        
-        userCommunities = await storage.getUserCommunities(userId);
-        
-        return res.json({
-          ...user,
-          communities: userCommunities,
-          authType: 'replit'
-        });
-      }
-      
-      // No authentication found
-      return res.status(401).json({ message: 'Not authenticated' });
-    } catch (error) {
-      logger.error('Error fetching authenticated user', error);
-      res.status(500).json({ message: 'Failed to fetch user' });
-    }
-  });
-
-  // Legacy Replit Auth route (for backward compatibility)
-  app.get('/api/auth/replit-user', replitIsAuthenticated, async (req, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = authenticatedReq.user.claims.sub;
@@ -526,11 +72,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch('/api/user/profile', isAuthenticated, validateRequest(validateUserProfileUpdateSchema), async (req, res) => {
-    const customAuthReq = req as CustomAuthRequest;
-    const replitAuthReq = req as AuthenticatedRequest;
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      // Support both authentication systems
-      const userId = customAuthReq.user?.id || replitAuthReq.user?.claims?.sub;
+      const userId = authenticatedReq.user.claims.sub;
       
       const { 
         firstName, lastName, primaryCommunity, username, bio, location, 
@@ -556,18 +100,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUser(userId, updates);
       res.json(updatedUser);
     } catch (error) {
-      logger.error("Failed to update user profile", error, { userId });
+      logger.error("Failed to update user profile", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
   // Get user profile (for viewing other users' profiles)
   app.get('/api/user/profile/:userId?', isAuthenticated, async (req, res) => {
-    const customAuthReq = req as CustomAuthRequest;
-    const replitAuthReq = req as AuthenticatedRequest;
+    const authenticatedReq = req as AuthenticatedRequest;
     try {
-      // Support both authentication systems
-      const currentUserId = customAuthReq.user?.id || replitAuthReq.user?.claims?.sub;
+      const currentUserId = authenticatedReq.user.claims.sub;
       const targetUserId = req.params.userId || currentUserId;
       
       const user = await storage.getUser(targetUserId);
@@ -616,195 +158,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error("Failed to update social links", error, { userId: authenticatedReq.user.claims.sub });
       res.status(500).json({ message: "Failed to update social links" });
-    }
-  });
-
-  // Platform integration routes
-  app.get('/api/platforms/tokens', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      const tokens = await storage.getUserPlatformTokens(userId);
-      
-      // Return tokens without sensitive data
-      const sanitizedTokens = tokens.map(token => ({
-        platform: token.platform,
-        isActive: token.isActive,
-        lastUsed: token.lastUsed,
-        createdAt: token.createdAt,
-      }));
-      
-      res.json(sanitizedTokens);
-    } catch (error) {
-      logger.error("Failed to fetch platform tokens", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to fetch platform tokens" });
-    }
-  });
-
-  app.post('/api/platforms/auth', isAuthenticated, validateRequest(validatePlatformAuthSchema), async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      const { platform, code, state } = req.body;
-      
-      // Mock OAuth flow - in production this would exchange the code for tokens
-      // For now, create a placeholder token
-      const token = await storage.savePlatformToken({
-        userId,
-        platform,
-        accessToken: `mock_access_${Date.now()}`,
-        refreshToken: `mock_refresh_${Date.now()}`,
-        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-        scope: 'read write',
-        isActive: true,
-      });
-      
-      res.status(201).json({ 
-        success: true,
-        platform: token.platform,
-        message: `Successfully connected to ${platform}` 
-      });
-    } catch (error) {
-      logger.error("Failed to authenticate platform", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to authenticate platform" });
-    }
-  });
-
-  app.delete('/api/platforms/:platform', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      const { platform } = req.params;
-      
-      await storage.deletePlatformToken(userId, platform);
-      res.json({ success: true, message: `Disconnected from ${platform}` });
-    } catch (error) {
-      logger.error("Failed to disconnect platform", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to disconnect platform" });
-    }
-  });
-
-  // Social media posting routes
-  app.post('/api/social/post', isAuthenticated, validateRequest(validateSocialPostSchema), async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      const postData = req.body;
-      
-      const post = await storage.createSocialPost({
-        ...postData,
-        userId,
-        scheduledFor: postData.scheduledFor ? new Date(postData.scheduledFor) : undefined,
-        status: postData.scheduledFor ? 'scheduled' : 'draft',
-      });
-      
-      res.status(201).json(post);
-    } catch (error) {
-      logger.error("Failed to create social post", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to create social post" });
-    }
-  });
-
-  app.get('/api/social/posts', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = authenticatedReq.user.claims.sub;
-      const { status, limit } = req.query;
-      
-      const posts = await storage.getUserSocialPosts(userId, {
-        status: status as string,
-        limit: limit ? parseInt(limit as string) : undefined,
-      });
-      
-      res.json(posts);
-    } catch (error) {
-      logger.error("Failed to fetch social posts", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to fetch social posts" });
-    }
-  });
-
-  app.put('/api/social/posts/:id', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-      
-      const post = await storage.updateSocialPost(id, updateData);
-      res.json(post);
-    } catch (error) {
-      logger.error("Failed to update social post", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to update social post" });
-    }
-  });
-
-  app.delete('/api/social/posts/:id', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      
-      await storage.deleteSocialPost(id);
-      res.json({ success: true, message: "Post deleted successfully" });
-    } catch (error) {
-      logger.error("Failed to delete social post", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to delete social post" });
-    }
-  });
-
-  // Webhook configuration routes
-  app.get('/api/webhooks', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { platform } = req.query;
-      const configs = await storage.getWebhookConfigs(platform as string);
-      res.json(configs);
-    } catch (error) {
-      logger.error("Failed to fetch webhook configs", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to fetch webhook configs" });
-    }
-  });
-
-  app.post('/api/webhooks', isAuthenticated, validateRequest(validateWebhookSchema), async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const webhookData = req.body;
-      
-      const config = await storage.createWebhookConfig({
-        ...webhookData,
-        isActive: true,
-        triggerCount: 0,
-      });
-      
-      res.status(201).json(config);
-    } catch (error) {
-      logger.error("Failed to create webhook config", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to create webhook config" });
-    }
-  });
-
-  app.put('/api/webhooks/:id', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-      
-      const config = await storage.updateWebhookConfig(id, updateData);
-      res.json(config);
-    } catch (error) {
-      logger.error("Failed to update webhook config", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to update webhook config" });
-    }
-  });
-
-  app.delete('/api/webhooks/:id', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      
-      await storage.deleteWebhookConfig(id);
-      res.json({ success: true, message: "Webhook deleted successfully" });
-    } catch (error) {
-      logger.error("Failed to delete webhook config", error, { userId: authenticatedReq.user.claims.sub });
-      res.status(500).json({ message: "Failed to delete webhook config" });
     }
   });
 
@@ -1278,6 +631,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  app.get('/api/analytics', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = authenticatedReq.user.claims.sub;
+      
+      // Get analytics data for the current user
+      const analytics = await storage.getAnalyticsData(userId);
+      res.json(analytics);
+    } catch (error) {
+      logger.error("Failed to fetch analytics", error, { userId: authenticatedReq.user.claims.sub });
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
