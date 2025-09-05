@@ -147,13 +147,13 @@ export function DeckmasterDashboard({ user }: DeckmasterDashboardProps) {
           </Card>
         </div>
 
-        {/* Game Pod Calendar */}
+        {/* Game Pod Calendar - TODO: Integrate with events feature */}
         <div className="mb-8">
-          <GamePodCalendar 
-            communityId="deckmaster" 
-            communityName="Deckmaster"
-            theme={theme}
-          />
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <CardContent className="p-6 text-center">
+              <p className="text-slate-600 dark:text-slate-400">Game Pod Calendar - Coming Soon</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Strategic Dashboard */}

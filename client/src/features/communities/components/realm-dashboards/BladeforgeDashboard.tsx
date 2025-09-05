@@ -171,13 +171,13 @@ export function BladeforgeDashboard({ user }: BladeforgeDashboardProps) {
             </Card>
           </div>
 
-          {/* Game Pod Calendar */}
+          {/* Game Pod Calendar - TODO: Integrate with events feature */}
           <div className="mb-8">
-            <GamePodCalendar 
-              communityId="bladeforge" 
-              communityName="Bladeforge"
-              theme={theme}
-            />
+            <Card className="bg-black/80 backdrop-blur-sm border-2 border-teal-400">
+              <CardContent className="p-6 text-center">
+                <p className="text-teal-300">Game Pod Calendar - Coming Soon</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Command Dashboard */}
