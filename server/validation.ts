@@ -76,6 +76,18 @@ export const validateMessageSchema = z.object({
   messageType: z.enum(['direct', 'event', 'community']).optional(),
 });
 
+export const validateGameSessionSchema = z.object({
+  eventId: z.string().min(1, 'Event ID is required').max(50),
+  maxPlayers: z.number().int().min(2, 'Must allow at least 2 players').max(8, 'Maximum 8 players allowed'),
+  communityId: z.string().min(1, 'Community ID is required').max(50),
+  gameData: z.object({
+    name: z.string().min(1, 'Room name is required').max(100),
+    format: z.string().min(1, 'Game format is required').max(50),
+    powerLevel: z.string().max(50).optional(),
+    description: z.string().max(500).optional(),
+  }).optional(),
+});
+
 // Rate limiting and sanitization utilities
 export function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '');

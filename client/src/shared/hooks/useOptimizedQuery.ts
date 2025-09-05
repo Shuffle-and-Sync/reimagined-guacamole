@@ -39,7 +39,12 @@ export function useOptimizedQuery<TData, TError = Error>(
   useEffect(() => {
     if (warmCache && query.data && queryOptions.queryKey) {
       // This could be extended to prefetch related data based on patterns
-      console.log('Cache warming opportunity for:', queryOptions.queryKey);
+      if (import.meta.env.DEV) {
+        // Only log occasionally to avoid spam
+        if (Math.random() < 0.1) {
+          console.log('Cache warming opportunity for:', queryOptions.queryKey);
+        }
+      }
     }
   }, [warmCache, query.data, queryOptions.queryKey]);
 

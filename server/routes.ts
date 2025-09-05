@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, type UpsertUser } from "@shared/schema";
+import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, insertGameSessionSchema, type UpsertUser } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { sendContactEmail } from "./email";
 import { randomBytes } from "crypto";
@@ -22,6 +22,7 @@ import {
   validateJoinCommunitySchema,
   validateJoinEventSchema,
   validateMessageSchema,
+  validateGameSessionSchema,
   validateUUID 
 } from "./validation";
 import { 
@@ -1326,7 +1327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/game-sessions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/game-sessions', isAuthenticated, validateRequest(validateGameSessionSchema), async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const user = authenticatedReq.user as any;
