@@ -158,13 +158,13 @@ export function ScryGatherDashboard({ user }: ScryGatherDashboardProps) {
           </Card>
         </div>
 
-        {/* Game Pod Calendar */}
+        {/* Game Pod Calendar - TODO: Integrate with events feature */}
         <div className="mb-8">
-          <GamePodCalendar 
-            communityId="scry-gather" 
-            communityName="Scry & Gather"
-            theme={theme}
-          />
+          <Card className="border-2" style={{ borderColor: '#ffff44', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' }}>
+            <CardContent className="p-6 text-center">
+              <p className="text-yellow-300">Game Pod Calendar - Coming Soon</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Ancient Tome Dashboard */}
