@@ -181,6 +181,15 @@ export default function TableSync() {
       return;
     }
     
+    if (!selectedCommunity?.id) {
+      toast({
+        title: "Community required",
+        description: "Please select a specific community to create a game room.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Create a temporary event for this game session
     const tempEvent = {
       title: `${roomName} - ${selectedFormat}`,
@@ -189,7 +198,7 @@ export default function TableSync() {
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].slice(0, 5),
       location: "TableSync Remote",
-      communityId: selectedCommunity?.id,
+      communityId: selectedCommunity.id,
       maxAttendees: parseInt(maxPlayers),
     };
     
@@ -202,7 +211,7 @@ export default function TableSync() {
       const sessionData = {
         eventId: event.id,
         maxPlayers: parseInt(maxPlayers),
-        communityId: selectedCommunity?.id,
+        communityId: selectedCommunity.id,
         gameData: {
           name: roomName,
           format: selectedFormat,
@@ -688,6 +697,18 @@ export default function TableSync() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Community Selection Notice */}
+                  {!selectedCommunity?.id && (
+                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+                        <i className="fas fa-info-circle"></i>
+                        <span className="text-sm font-medium">
+                          Please select a specific community from the dropdown above to create a game room.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="room-name">Room Name</Label>
                     <Input
@@ -696,6 +717,7 @@ export default function TableSync() {
                       value={roomName}
                       onChange={(e) => setRoomName(e.target.value)}
                       data-testid="input-room-name"
+                      disabled={!selectedCommunity?.id}
                     />
                   </div>
 
@@ -761,15 +783,20 @@ export default function TableSync() {
                   </div>
 
                   <Button 
-                    className="w-full" 
+                    className="w-full bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50" 
                     onClick={handleCreateRoom}
-                    disabled={!roomName || !selectedFormat || createSessionMutation.isPending || !user}
+                    disabled={!roomName || !selectedFormat || createSessionMutation.isPending || !user || !selectedCommunity?.id}
                     data-testid="button-create-room"
                   >
                     {createSessionMutation.isPending ? (
                       <>
                         <i className="fas fa-spinner animate-spin mr-2"></i>
                         Creating Room...
+                      </>
+                    ) : !selectedCommunity?.id ? (
+                      <>
+                        <i className="fas fa-dice-d20 mr-2"></i>
+                        Select Community First
                       </>
                     ) : (
                       <>
