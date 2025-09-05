@@ -93,10 +93,19 @@ export default function TableSync() {
         title: "Room created successfully!",
         description: `Your ${selectedFormat} room "${roomName}" is now live. Redirecting to game room...`
       });
+      
+      // Reset form after successful submission
+      setRoomName("");
+      setSelectedFormat("");
+      setMaxPlayers("4");
+      setPowerLevel("");
+      setDescription("");
+      
       // Redirect to the game room
       setLocation(`/tablesync/room/${newSession.id}`);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Game session creation error:', error);
       toast({
         title: "Failed to create room",
         description: "Please try again later.",
@@ -221,13 +230,6 @@ export default function TableSync() {
       };
       
       createSessionMutation.mutate(sessionData);
-      
-      // Reset form after successful submission
-      setRoomName("");
-      setSelectedFormat("");
-      setMaxPlayers("4");
-      setPowerLevel("");
-      setDescription("");
       
     } catch (error) {
       toast({
