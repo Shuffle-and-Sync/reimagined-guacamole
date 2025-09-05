@@ -1,0 +1,43 @@
+import type { UpsertUser } from "@shared/schema";
+
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  primaryCommunity?: string;
+  username?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  status?: string;
+  statusMessage?: string;
+  timezone?: string;
+  isPrivate?: boolean;
+  showOnlineStatus?: string;
+  allowDirectMessages?: string;
+}
+
+export interface SocialLinksRequest {
+  links: any[];
+}
+
+export interface UserSettingsRequest {
+  [key: string]: any;
+}
+
+export interface FriendRequestRequest {
+  addresseeId: string;
+}
+
+export interface FriendRequestResponse {
+  status: string;
+}
+
+export interface MatchmakingPreferencesRequest {
+  [key: string]: any;
+}
+
+export interface FindPlayersRequest {
+  gameType?: string;
+  skillLevel?: string;
+  communityId?: string;
+}
