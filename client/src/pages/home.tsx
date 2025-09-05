@@ -1,16 +1,16 @@
 import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useCommunity } from "@/contexts/CommunityContext";
+import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import { Header } from "@/shared/components";
+import { Footer } from "@/shared/components";
 import { Link, useLocation } from "wouter";
-import { getCommunityTheme } from "@/lib/communityThemes";
+import { getCommunityTheme } from "@/features/communities";
 import { 
   ScryGatherDashboard, 
   PokeStreamDashboard, 
@@ -18,7 +18,7 @@ import {
   DuelcraftDashboard, 
   BladeforgeDashboard, 
   DeckmasterDashboard 
-} from "@/components/realm-dashboards";
+} from "@/features/communities";
 import type { User } from "@shared/schema";
 
 export default function Home() {

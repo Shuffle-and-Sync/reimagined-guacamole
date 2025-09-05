@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Community } from '@shared/schema';
-import { getCommunityTheme, applyCommunityTheme, type CommunityTheme } from '@/lib/communityThemes';
+import { getCommunityTheme, applyCommunityTheme, type CommunityTheme } from '../utils/communityThemes';
 
 interface CommunityContextType {
   selectedCommunity: Community | null;
