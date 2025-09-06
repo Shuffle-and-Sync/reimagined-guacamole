@@ -84,8 +84,18 @@ export default function TableSync() {
   // Create game session mutation
   const createSessionMutation = useMutation({
     mutationFn: async (sessionData: any) => {
+      console.log('Sending session data:', sessionData);
       const response = await apiRequest('POST', '/api/game-sessions', sessionData);
-      return await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      try {
+        return JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON response:', responseText);
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`);
+      }
     },
     onSuccess: (newSession) => {
       queryClient.invalidateQueries({ queryKey: ['/api/game-sessions'] });
@@ -229,6 +239,7 @@ export default function TableSync() {
         }
       };
       
+      console.log('Creating game session with data:', sessionData);
       createSessionMutation.mutate(sessionData);
       
     } catch (error) {
