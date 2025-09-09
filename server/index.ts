@@ -33,6 +33,8 @@ app.use(express.urlencoded({ extended: false }));
   app.use('/api/user/communities', userCommunitiesRouter);
   app.use('/api/user/theme-preferences', themePreferencesRouter);
   app.use('/api/events', eventsRoutes);
+  // Game sessions are mounted under events since they're event-related
+  app.use('/api', eventsRoutes);
   app.use('/api/user/events', userEventsRouter);
   app.use('/api/calendar/events', calendarEventsRouter);
   app.use('/api/user', usersRoutes);
