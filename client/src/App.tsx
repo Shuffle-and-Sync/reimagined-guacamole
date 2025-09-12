@@ -14,6 +14,7 @@ import { Social, Profile } from "@/features/users";
 import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
 import Tournaments from "@/pages/tournaments";
+import TournamentDetail from "@/pages/tournament-detail";
 import NotFound from "@/pages/not-found";
 import HelpCenter from "@/pages/help-center";
 import GettingStarted from "@/pages/getting-started";
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/tablesync" component={TableSyncLanding} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/tournaments" component={Tournaments} />
+      <Route path="/tournaments/:id" component={TournamentDetail} />
       <Route path="/help-center" component={HelpCenter} />
       <Route path="/getting-started" component={GettingStarted} />
       <Route path="/faq" component={FAQ} />

@@ -402,6 +402,7 @@ export default function Tournaments() {
                         <Button 
                           size="sm" 
                           variant="outline"
+                          onClick={() => window.location.href = `/tournaments/${tournament.id}`}
                           data-testid={`button-view-tournament-${tournament.id}`}
                         >
                           <i className="fas fa-eye mr-2"></i>
