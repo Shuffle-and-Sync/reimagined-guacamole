@@ -18,58 +18,126 @@ export default function TableSyncLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Clean Gaming Pattern Background */}
-        <div className="absolute inset-0 opacity-20">
-          {/* Subtle geometric gaming symbols */}
-          <div className="absolute top-20 left-1/4 w-3 h-3 bg-cyan-400 transform rotate-45" style={{animationDelay: '0s'}}></div>
-          <div className="absolute top-40 right-1/4 w-4 h-4 bg-orange-400 rounded-full" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-pink-400 transform rotate-45" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-60 right-1/3 w-3 h-3 bg-yellow-400 rounded-full" style={{animationDelay: '1.5s'}}></div>
-          <div className="absolute top-1/2 left-16 w-2 h-2 bg-purple-400 transform rotate-45" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute top-1/3 right-20 w-3 h-3 bg-green-400 rounded-full" style={{animationDelay: '2.5s'}}></div>
+      <section className="relative py-20 lg:py-32 cartoon-hero-bg overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          {/* Cosmic Sparkles */}
+          <div className="absolute top-20 left-10 w-1 h-1 bg-white rounded-full animate-sparkle opacity-90"></div>
+          <div className="absolute top-32 right-16 w-2 h-2 bg-yellow-300 clip-path-diamond animate-sparkle opacity-80" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-40 left-1/4 w-1 h-1 bg-cyan-300 rounded-full animate-sparkle opacity-70" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-24 right-1/3 w-3 h-3 bg-orange-300 clip-path-diamond animate-sparkle opacity-60" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-1/2 left-20 w-1 h-1 bg-purple-300 rounded-full animate-sparkle opacity-80" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-pink-300 clip-path-diamond animate-sparkle opacity-70" style={{animationDelay: '2.5s'}}></div>
+          
+          {/* Floating Geometric Shapes */}
+          <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full animate-float opacity-30" style={{animationDelay: '0.3s'}}></div>
+          <div className="absolute bottom-1/3 right-1/4 w-3 h-3 bg-gradient-to-br from-purple-400 to-blue-400 clip-path-diamond animate-float opacity-40" style={{animationDelay: '1.2s'}}></div>
+          <div className="absolute top-3/4 left-1/5 w-2 h-2 bg-gradient-to-br from-cyan-400 to-teal-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.8s'}}></div>
+          <div className="absolute top-1/5 right-1/5 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-400 clip-path-diamond animate-float opacity-20" style={{animationDelay: '2.3s'}}></div>
+          
+          {/* Floating Gaming Icons */}
+          <div className="absolute top-1/4 right-1/3 text-orange-400 text-sm animate-float opacity-60" style={{animationDelay: '0.8s'}}>🎮</div>
+          <div className="absolute bottom-1/4 left-1/3 text-pink-400 text-sm animate-float opacity-50" style={{animationDelay: '1.5s'}}>🃏</div>
+          <div className="absolute top-2/3 right-1/5 text-cyan-400 text-sm animate-float opacity-40" style={{animationDelay: '2.1s'}}>🎲</div>
         </div>
         
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            {/* Clean Gaming Elements */}
-            <div className="flex justify-center items-center mb-12">
-              <div className="relative">
-                {/* Simple decorative gaming symbols around title */}
-                <div className="absolute -top-8 -left-8 w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 transform rotate-45 opacity-80"></div>
-                <div className="absolute -top-6 -right-6 w-3 h-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-70"></div>
-                <div className="absolute -bottom-4 left-12 w-3 h-3 bg-gradient-to-br from-purple-400 to-pink-500 transform rotate-45 opacity-60"></div>
-                <div className="absolute -bottom-6 -right-8 w-4 h-4 bg-gradient-to-br from-green-400 to-teal-500 rounded-full opacity-75"></div>
+            {/* Main Emblem Section */}
+            <div className="flex justify-center items-center mb-8">
+              <div className="relative w-80 h-80">
+                {/* Hexagonal Golden Border */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-72 h-72 bg-gradient-to-br from-cyan-400 via-blue-400 to-purple-400 rounded-3xl transform rotate-12 opacity-10"></div>
+                </div>
                 
-                {/* Subtle card representations */}
-                <div className="absolute top-4 right-16 w-6 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded border-2 border-white/50 shadow-lg transform rotate-12 opacity-60"></div>
-                <div className="absolute bottom-8 left-16 w-6 h-8 bg-gradient-to-br from-pink-500 to-red-600 rounded border-2 border-white/50 shadow-lg transform -rotate-12 opacity-60"></div>
+                {/* Orbital Ring */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-64 h-64 border-2 border-gradient-to-r from-cyan-400 to-purple-400 rounded-full opacity-15 animate-spin" style={{animationDuration: '60s'}}></div>
+                </div>
+                
+                {/* Floating Decorative Elements */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="w-6 h-6 bg-cyan-400 clip-path-diamond animate-float opacity-80"></div>
+                </div>
+                <div className="absolute bottom-8 right-8">
+                  <div className="w-4 h-4 bg-orange-400 rounded-full animate-float opacity-60" style={{animationDelay: '1s'}}></div>
+                </div>
+                <div className="absolute top-12 left-8">
+                  <div className="w-3 h-3 bg-pink-400 clip-path-diamond animate-float opacity-70" style={{animationDelay: '2s'}}></div>
+                </div>
+                <div className="absolute bottom-12 left-12">
+                  <div className="w-5 h-5 bg-purple-400 rounded-full animate-float opacity-50" style={{animationDelay: '1.5s'}}></div>
+                </div>
+                
+                {/* Left Game Character */}
+                <div className="absolute top-1/2 left-8 transform -translate-y-1/2 -rotate-12 z-10">
+                  <div className="relative w-28 h-36 bg-gradient-to-br from-cyan-400 via-teal-400 to-blue-400 rounded-xl shadow-2xl border-4 border-yellow-400 animate-float-gentle">
+                    <div className="absolute -top-2 left-2">
+                      <div className="w-8 h-5 bg-gradient-to-r from-pink-400 to-orange-400 text-xs font-bold text-white rounded-full px-2 flex items-center justify-center shadow-lg">SYNC</div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-cyan-200 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <span className="text-3xl">🎮</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Right Game Character */}
+                <div className="absolute top-1/2 right-8 transform -translate-y-1/2 rotate-12 z-10">
+                  <div className="relative w-28 h-36 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 rounded-xl shadow-2xl border-4 border-yellow-400 animate-float-gentle" style={{animationDelay: '0.5s'}}>
+                    <div className="absolute -top-2 right-2">
+                      <div className="w-8 h-5 bg-gradient-to-r from-purple-400 to-pink-400 text-xs font-bold text-white rounded-full px-2 flex items-center justify-center shadow-lg">PLAY</div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-300 to-indigo-200 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <span className="text-3xl">🃏</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Central Energy Burst */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                  <div className="relative">
+                    {/* Energy Rays */}
+                    <div className="absolute inset-0">
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-cyan-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-0 opacity-60"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-purple-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 opacity-50"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-pink-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90 opacity-40"></div>
+                      <div className="w-1 h-12 bg-gradient-to-t from-transparent via-orange-300 to-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-135 opacity-50"></div>
+                    </div>
+                    
+                    {/* Central Burst */}
+                    <div className="w-8 h-8 bg-gradient-to-br from-white via-cyan-200 to-purple-300 rounded-full shadow-lg opacity-80"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-gradient-to-br from-cyan-300 to-purple-400 rounded-full shadow-md">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-sm font-bold">🎲</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Golden Hexagonal Frame */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-80 h-80 border-2 border-gradient-to-r from-cyan-300 via-purple-400 to-pink-300 rounded-3xl opacity-30 transform rotate-12"></div>
+                </div>
               </div>
             </div>
             
-            {/* TableSync Title with clean colorful styling */}
-            <div className="mb-12">
-              <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight tracking-wider">
-                <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">T</span>
-                <span className="inline-block bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">A</span>
-                <span className="inline-block bg-gradient-to-r from-yellow-400 to-green-400 bg-clip-text text-transparent">B</span>
-                <span className="inline-block bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">L</span>
-                <span className="inline-block bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">E</span>
-                <span className="inline-block bg-gradient-to-r from-purple-400 to-red-400 bg-clip-text text-transparent">S</span>
-                <span className="inline-block bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Y</span>
-                <span className="inline-block bg-gradient-to-r from-pink-400 to-indigo-400 bg-clip-text text-transparent">N</span>
-                <span className="inline-block bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">C</span>
-              </h1>
-            </div>
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 cartoon-text leading-tight">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                TableSync
+              </span>
+            </h1>
             
-            <div className="text-2xl lg:text-3xl font-bold mb-6 text-orange-300">
-              Remote TCG Gaming Made Simple
+            <div className="text-2xl lg:text-3xl font-semibold mb-4 text-orange-300">
+              Remote TCG Gaming Made Epic
             </div>
-            <p className="text-xl lg:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl lg:text-2xl text-purple-200 mb-8 max-w-3xl mx-auto leading-relaxed">
               Connect with players worldwide for synchronized card game sessions. Stream, play, and coordinate with the ultimate remote gaming platform.
             </p>
             
@@ -124,15 +192,22 @@ export default function TableSyncLanding() {
       </section>
 
       {/* Supported Games Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-900/50 via-purple-900/50 to-pink-900/50 relative">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-indigo-900/20 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-1/4 w-3 h-3 bg-yellow-400 rotate-45 animate-sparkle opacity-60"></div>
+          <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-pink-400 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-1/2 left-10 w-4 h-4 bg-cyan-400 rotate-45 animate-sparkle opacity-50" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 cartoon-text">
               <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 bg-clip-text text-transparent">
                 Supported Card Games
               </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-purple-200 max-w-3xl mx-auto">
               TableSync works with all major trading card games. Pick your favorite and start playing with the global community.
             </p>
           </div>
@@ -169,12 +244,12 @@ export default function TableSyncLanding() {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 cartoon-text">
               <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                 How TableSync Works
               </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-purple-200 max-w-3xl mx-auto">
               Get started in minutes with our streamlined remote gaming setup
             </p>
           </div>
@@ -223,10 +298,17 @@ export default function TableSyncLanding() {
       </section>
 
       {/* Features Showcase */}
-      <section className="py-20 bg-gradient-to-br from-slate-800/50 via-gray-800/50 to-slate-800/50">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-indigo-900/20 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-1/4 w-3 h-3 bg-yellow-400 rotate-45 animate-sparkle opacity-60"></div>
+          <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-pink-400 rotate-45 animate-sparkle opacity-70" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-1/2 left-10 w-4 h-4 bg-cyan-400 rotate-45 animate-sparkle opacity-50" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4 cartoon-text">
               <span className="bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
                 Premium Features
               </span>
