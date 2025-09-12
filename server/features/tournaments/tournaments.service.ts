@@ -374,8 +374,9 @@ export const tournamentsService = {
         throw new Error("Tournament not found");
       }
 
-      // Get the match
-      const match = await storage.getTournamentMatch(matchId);
+      // Get the match by searching all tournament matches
+      const allMatches = await storage.getTournamentMatches(tournamentId);
+      const match = allMatches.find(m => m.id === matchId);
       if (!match) {
         throw new Error("Match not found");
       }
@@ -407,9 +408,10 @@ export const tournamentsService = {
         matchId,
         winnerId,
         loserId,
+        winnerScore: winnerId === match.player1Id ? (player1Score || 0) : (player2Score || 0),
+        loserScore: winnerId === match.player1Id ? (player2Score || 0) : (player1Score || 0),
         reportedById: reporterId,
-        verifiedById: isOrganizer ? reporterId : undefined, // Auto-verify if organizer reports
-        score: player1Score !== undefined && player2Score !== undefined ? `${player1Score}-${player2Score}` : undefined
+        verifiedById: isOrganizer ? reporterId : undefined // Auto-verify if organizer reports
       });
 
       logger.info("Match result reported successfully", { matchId, winnerId, matchResult: matchResult.id });
@@ -439,37 +441,14 @@ export const tournamentsService = {
         throw new Error("Tournament organizer not found");
       }
 
-      // Get participants with user details
-      const participantRecords = await storage.getTournamentParticipants(tournamentId);
-      const participants = await Promise.all(
-        participantRecords.map(async (participant) => {
-          const user = await storage.getUser(participant.userId);
-          return {
-            ...participant,
-            user: user || { id: participant.userId, username: 'Unknown User' }
-          };
-        })
-      );
+      // Get participants with user details (already included in tournament)
+      const participants = tournament.participants || [];
 
       // Get rounds
       const rounds = await storage.getTournamentRounds(tournamentId);
 
       // Get matches with player details
-      const allMatches = await storage.getTournamentMatchesByTournament(tournamentId);
-      const matches = await Promise.all(
-        allMatches.map(async (match) => {
-          const player1 = match.player1Id ? await storage.getUser(match.player1Id) : null;
-          const player2 = match.player2Id ? await storage.getUser(match.player2Id) : null;
-          const winner = match.winnerId ? await storage.getUser(match.winnerId) : null;
-          
-          return {
-            ...match,
-            player1: player1 || undefined,
-            player2: player2 || undefined,
-            winner: winner || undefined
-          };
-        })
-      );
+      const matches = await storage.getTournamentMatches(tournamentId);
 
       return {
         ...tournament,
@@ -482,6 +461,105 @@ export const tournamentsService = {
       };
     } catch (error) {
       logger.error("Service error: Failed to get tournament details", error, { tournamentId });
+      throw error;
+    }
+  },
+
+  /**
+   * Create a game session for a tournament match
+   */
+  async createMatchGameSession(tournamentId: string, matchId: string, userId: string) {
+    try {
+      logger.info("Creating game session for tournament match", { tournamentId, matchId, userId });
+
+      // Get the tournament and verify it exists
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        throw new Error("Tournament not found");
+      }
+
+      // Get the match and verify it exists
+      const allMatches = await storage.getTournamentMatches(tournamentId);
+      const match = allMatches.find(m => m.id === matchId);
+      if (!match || match.tournamentId !== tournamentId) {
+        throw new Error("Match not found in this tournament");
+      }
+
+      // Verify the user is one of the players in this match
+      if (match.player1Id !== userId && match.player2Id !== userId) {
+        throw new Error("Only participating players can create game sessions for their matches");
+      }
+
+      // Check if match already has a game session
+      if (match.gameSessionId) {
+        const existingSession = await storage.getGameSessionById(match.gameSessionId);
+        if (existingSession) {
+          return existingSession;
+        }
+      }
+
+      // Create a tournament-specific event for the game session
+      const eventData = {
+        title: `${tournament.name} - Match ${match.bracketPosition}`,
+        description: `Tournament match between players in ${tournament.name}`,
+        type: "tournament" as const,
+        date: new Date().toISOString().split('T')[0], // Today
+        time: new Date().toTimeString().slice(0, 5), // Current time
+        location: `Tournament Match Room`,
+        communityId: tournament.communityId,
+        organizerId: userId,
+        maxAttendees: 4, // Players + spectators
+        isPublic: false, // Tournament matches should be private
+        gameFormat: tournament.gameFormat,
+        playerSlots: 2, // Tournament matches are 1v1
+        alternateSlots: 0
+      };
+
+      // Create the event for the game session
+      const event = await storage.createEvent({
+        ...eventData,
+        creatorId: userId
+      });
+
+      // Create the game session
+      const sessionData = {
+        eventId: event.id,
+        hostId: userId,
+        maxPlayers: 2,
+        currentPlayers: 0,
+        gameData: {
+          name: `Tournament Match - ${tournament.name}`,
+          format: tournament.gameFormat,
+          powerLevel: "Tournament",
+          description: `Match ${match.bracketPosition} in tournament: ${tournament.name}`,
+          tournament: {
+            tournamentId: tournament.id,
+            matchId: match.id,
+            tournamentName: tournament.name,
+            bracketPosition: match.bracketPosition
+          }
+        },
+        communityId: tournament.communityId
+      };
+
+      const gameSession = await storage.createGameSession(sessionData);
+
+      // Link the game session to the tournament match
+      await storage.updateTournamentMatch(matchId, {
+        gameSessionId: gameSession.id,
+        status: "active",
+        startTime: new Date()
+      });
+
+      logger.info("Game session created for tournament match", { 
+        tournamentId, 
+        matchId, 
+        gameSessionId: gameSession.id 
+      });
+
+      return gameSession;
+    } catch (error) {
+      logger.error("Service error: Failed to create match game session", error, { tournamentId, matchId, userId });
       throw error;
     }
   },

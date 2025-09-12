@@ -172,4 +172,28 @@ router.get('/:id/details', async (req, res) => {
   }
 });
 
+// ======================================
+// TOURNAMENT-GAME INTEGRATION ROUTES
+// ======================================
+
+// Create game session for tournament match
+router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const userId = authenticatedReq.user.claims.sub;
+    const tournamentId = req.params.id;
+    const matchId = req.params.matchId;
+    
+    const session = await tournamentsService.createMatchGameSession(tournamentId, matchId, userId);
+    res.json(session);
+  } catch (error) {
+    logger.error("Failed to create tournament match game session", error, { 
+      userId: authenticatedReq.user.claims.sub, 
+      tournamentId: req.params.id,
+      matchId: req.params.matchId 
+    });
+    res.status(500).json({ message: (error as Error).message || "Failed to create match game session" });
+  }
+});
+
 export { router as tournamentsRoutes };

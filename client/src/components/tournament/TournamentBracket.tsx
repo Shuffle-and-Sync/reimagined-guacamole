@@ -25,10 +25,12 @@ interface MatchComponentProps {
   };
   isOrganizer: boolean;
   tournamentStatus: string;
+  currentUserId?: string;
   onAdvanceMatch?: (matchId: string, winnerId: string) => void;
+  onPlayMatch?: (matchId: string) => void;
 }
 
-const MatchComponent = ({ match, isOrganizer, tournamentStatus, onAdvanceMatch }: MatchComponentProps) => {
+const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, onAdvanceMatch, onPlayMatch }: MatchComponentProps) => {
   const getMatchStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
@@ -130,30 +132,62 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, onAdvanceMatch }
         </div>
 
         {/* Match Actions */}
-        {isOrganizer && match.status === 'pending' && tournamentStatus === 'active' && (
-          <div className="flex space-x-2 pt-2">
+        <div className="space-y-2 pt-2">
+          {/* Play Match Button - for players to start their game */}
+          {match.status === 'pending' && tournamentStatus === 'active' && 
+           (match.player1Id === currentUserId || match.player2Id === currentUserId) && (
             <Button 
               size="sm" 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
+              className="w-full"
+              onClick={() => onPlayMatch?.(match.id)}
               disabled={!match.player1Id || !match.player2Id}
-              data-testid={`button-player1-wins-${match.id}`}
+              data-testid={`button-play-match-${match.id}`}
             >
-              P1 Wins
+              <i className="fas fa-play mr-2"></i>
+              Play Match
             </Button>
+          )}
+
+          {/* Join Game Session Button - if session already exists */}
+          {match.gameSessionId && match.status === 'active' && (
             <Button 
               size="sm" 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
-              disabled={!match.player2Id}
-              data-testid={`button-player2-wins-${match.id}`}
+              variant="outline"
+              className="w-full"
+              onClick={() => window.location.href = `/app/room/${match.gameSessionId}`}
+              data-testid={`button-join-game-${match.id}`}
             >
-              P2 Wins
+              <i className="fas fa-door-open mr-2"></i>
+              Join Game Room
             </Button>
-          </div>
-        )}
+          )}
+
+          {/* Organizer Controls */}
+          {isOrganizer && match.status === 'pending' && tournamentStatus === 'active' && (
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
+                disabled={!match.player1Id || !match.player2Id}
+                data-testid={`button-player1-wins-${match.id}`}
+              >
+                P1 Wins
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
+                disabled={!match.player1Id || !match.player2Id}
+                data-testid={`button-player2-wins-${match.id}`}
+              >
+                P2 Wins
+              </Button>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -244,6 +278,35 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
       });
     }
   });
+
+  // Create game session mutation for tournament matches
+  const createGameSessionMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      const response = await apiRequest('POST', `/api/tournaments/${tournament.id}/matches/${matchId}/create-session`, {});
+      return response.json();
+    },
+    onSuccess: (gameSession, matchId) => {
+      toast({
+        title: "Game room created!",
+        description: "Redirecting to the tournament match game room..."
+      });
+      // Redirect to the game room
+      setTimeout(() => {
+        window.location.href = `/app/room/${gameSession.id}`;
+      }, 1000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create game room",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handlePlayMatch = (matchId: string) => {
+    createGameSessionMutation.mutate(matchId);
+  };
 
   const handleAdvanceMatch = (matchId: string, winnerId: string) => {
     // Simple score assignment - in a real app, you'd have a score input dialog
@@ -406,7 +469,9 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
                   match={match}
                   isOrganizer={isOrganizer}
                   tournamentStatus={tournament.status || 'upcoming'}
+                  currentUserId={user?.id}
                   onAdvanceMatch={handleAdvanceMatch}
+                  onPlayMatch={handlePlayMatch}
                 />
               ))}
             </div>
