@@ -333,6 +333,78 @@ export const tournamentParticipants = pgTable("tournament_participants", {
   index("idx_tournament_participants_user_id").on(table.userId),
 ]);
 
+// Tournament formats and types
+export const tournamentFormats = pgTable("tournament_formats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // "Single Elimination", "Double Elimination", "Swiss", "Round Robin"
+  code: varchar("code").notNull().unique(), // "single_elim", "double_elim", "swiss", "round_robin"
+  description: text("description"),
+  supportsSeeding: boolean("supports_seeding").default(true),
+  requiresEvenParticipants: boolean("requires_even_participants").default(false),
+  isActive: boolean("is_active").default(true),
+});
+
+// Tournament rounds for organizing matches
+export const tournamentRounds = pgTable("tournament_rounds", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tournamentId: varchar("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+  roundNumber: integer("round_number").notNull(),
+  name: varchar("name"), // "Round 1", "Quarterfinals", "Semifinals", "Finals"
+  status: varchar("status").default("pending"), // pending, active, completed
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_tournament_rounds_tournament_id").on(table.tournamentId),
+  index("idx_tournament_rounds_status").on(table.status),
+]);
+
+// Tournament matches between players
+export const tournamentMatches = pgTable("tournament_matches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tournamentId: varchar("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+  roundId: varchar("round_id").notNull().references(() => tournamentRounds.id, { onDelete: "cascade" }),
+  player1Id: varchar("player1_id").references(() => users.id, { onDelete: "cascade" }),
+  player2Id: varchar("player2_id").references(() => users.id, { onDelete: "cascade" }),
+  winnerId: varchar("winner_id").references(() => users.id),
+  status: varchar("status").default("pending"), // pending, active, completed, bye
+  gameSessionId: varchar("game_session_id"), // Link to actual game room
+  bracketPosition: integer("bracket_position"), // Position in the bracket
+  player1Score: integer("player1_score").default(0),
+  player2Score: integer("player2_score").default(0),
+  matchData: jsonb("match_data"), // Additional match information
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_tournament_matches_tournament_id").on(table.tournamentId),
+  index("idx_tournament_matches_round_id").on(table.roundId),
+  index("idx_tournament_matches_status").on(table.status),
+  index("idx_tournament_matches_player1_id").on(table.player1Id),
+  index("idx_tournament_matches_player2_id").on(table.player2Id),
+]);
+
+// Match results for detailed tracking
+export const matchResults = pgTable("match_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  matchId: varchar("match_id").notNull().references(() => tournamentMatches.id, { onDelete: "cascade" }),
+  winnerId: varchar("winner_id").notNull().references(() => users.id),
+  loserId: varchar("loser_id").references(() => users.id),
+  winnerScore: integer("winner_score").notNull(),
+  loserScore: integer("loser_score").notNull(),
+  gameLength: integer("game_length"), // Duration in minutes
+  resultType: varchar("result_type").default("normal"), // normal, forfeit, timeout, disqualification
+  notes: text("notes"),
+  reportedById: varchar("reported_by_id").notNull().references(() => users.id),
+  verifiedById: varchar("verified_by_id").references(() => users.id),
+  isVerified: boolean("is_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_match_results_match_id").on(table.matchId),
+  index("idx_match_results_winner_id").on(table.winnerId),
+  index("idx_match_results_loser_id").on(table.loserId),
+]);
+
 // Forum posts table for community discussions
 export const forumPosts = pgTable("forum_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -601,6 +673,8 @@ export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
     references: [communities.id],
   }),
   participants: many(tournamentParticipants),
+  rounds: many(tournamentRounds),
+  matches: many(tournamentMatches),
 }));
 
 export const tournamentParticipantsRelations = relations(tournamentParticipants, ({ one }) => ({
@@ -611,6 +685,72 @@ export const tournamentParticipantsRelations = relations(tournamentParticipants,
   user: one(users, {
     fields: [tournamentParticipants.userId],
     references: [users.id],
+  }),
+}));
+
+export const tournamentFormatsRelations = relations(tournamentFormats, ({ many }) => ({
+  tournaments: many(tournaments),
+}));
+
+export const tournamentRoundsRelations = relations(tournamentRounds, ({ one, many }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentRounds.tournamentId],
+    references: [tournaments.id],
+  }),
+  matches: many(tournamentMatches),
+}));
+
+export const tournamentMatchesRelations = relations(tournamentMatches, ({ one, many }) => ({
+  tournament: one(tournaments, {
+    fields: [tournamentMatches.tournamentId],
+    references: [tournaments.id],
+  }),
+  round: one(tournamentRounds, {
+    fields: [tournamentMatches.roundId],
+    references: [tournamentRounds.id],
+  }),
+  player1: one(users, {
+    fields: [tournamentMatches.player1Id],
+    references: [users.id],
+    relationName: "player1Matches",
+  }),
+  player2: one(users, {
+    fields: [tournamentMatches.player2Id],
+    references: [users.id],
+    relationName: "player2Matches",
+  }),
+  winner: one(users, {
+    fields: [tournamentMatches.winnerId],
+    references: [users.id],
+    relationName: "wonMatches",
+  }),
+  results: many(matchResults),
+}));
+
+export const matchResultsRelations = relations(matchResults, ({ one }) => ({
+  match: one(tournamentMatches, {
+    fields: [matchResults.matchId],
+    references: [tournamentMatches.id],
+  }),
+  winner: one(users, {
+    fields: [matchResults.winnerId],
+    references: [users.id],
+    relationName: "wonResults",
+  }),
+  loser: one(users, {
+    fields: [matchResults.loserId],
+    references: [users.id],
+    relationName: "lostResults",
+  }),
+  reportedBy: one(users, {
+    fields: [matchResults.reportedById],
+    references: [users.id],
+    relationName: "reportedResults",
+  }),
+  verifiedBy: one(users, {
+    fields: [matchResults.verifiedById],
+    references: [users.id],
+    relationName: "verifiedResults",
   }),
 }));
 
@@ -783,6 +923,25 @@ export const insertTournamentParticipantSchema = createInsertSchema(tournamentPa
   joinedAt: true,
 });
 
+export const insertTournamentFormatSchema = createInsertSchema(tournamentFormats).omit({
+  id: true,
+});
+
+export const insertTournamentRoundSchema = createInsertSchema(tournamentRounds).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTournamentMatchSchema = createInsertSchema(tournamentMatches).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMatchResultSchema = createInsertSchema(matchResults).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertForumPostSchema = createInsertSchema(forumPosts).omit({
   id: true,
   viewCount: true,
@@ -830,6 +989,10 @@ export type UserSettings = typeof userSettings.$inferSelect;
 export type MatchmakingPreferences = typeof matchmakingPreferences.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
+export type TournamentFormat = typeof tournamentFormats.$inferSelect;
+export type TournamentRound = typeof tournamentRounds.$inferSelect;
+export type TournamentMatch = typeof tournamentMatches.$inferSelect;
+export type MatchResult = typeof matchResults.$inferSelect;
 export type ForumPost = typeof forumPosts.$inferSelect;
 export type ForumReply = typeof forumReplies.$inferSelect;
 export type ForumPostLike = typeof forumPostLikes.$inferSelect;
@@ -853,6 +1016,10 @@ export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type InsertMatchmakingPreferences = z.infer<typeof insertMatchmakingPreferencesSchema>;
 export type InsertTournament = z.infer<typeof insertTournamentSchema>;
 export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
+export type InsertTournamentFormat = z.infer<typeof insertTournamentFormatSchema>;
+export type InsertTournamentRound = z.infer<typeof insertTournamentRoundSchema>;
+export type InsertTournamentMatch = z.infer<typeof insertTournamentMatchSchema>;
+export type InsertMatchResult = z.infer<typeof insertMatchResultSchema>;
 export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
 export type InsertForumReply = z.infer<typeof insertForumReplySchema>;
 export type InsertForumPostLike = z.infer<typeof insertForumPostLikeSchema>;

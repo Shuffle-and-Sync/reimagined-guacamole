@@ -17,6 +17,10 @@ import {
   matchmakingPreferences,
   tournaments,
   tournamentParticipants,
+  tournamentFormats,
+  tournamentRounds,
+  tournamentMatches,
+  matchResults,
   forumPosts,
   forumReplies,
   forumPostLikes,
@@ -40,6 +44,10 @@ import {
   type MatchmakingPreferences,
   type Tournament,
   type TournamentParticipant,
+  type TournamentFormat,
+  type TournamentRound,
+  type TournamentMatch,
+  type MatchResult,
   type ForumPost,
   type ForumReply,
   type ForumPostLike,
@@ -61,6 +69,10 @@ import {
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type InsertTournamentParticipant,
+  type InsertTournamentFormat,
+  type InsertTournamentRound,
+  type InsertTournamentMatch,
+  type InsertMatchResult,
   type InsertForumPost,
   type InsertForumReply,
   type InsertForumPostLike,
@@ -172,6 +184,18 @@ export interface IStorage {
   createTournament(data: InsertTournament): Promise<Tournament>;
   joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
   leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
+  
+  // Advanced tournament operations
+  getTournamentFormats(): Promise<TournamentFormat[]>;
+  createTournamentFormat(data: InsertTournamentFormat): Promise<TournamentFormat>;
+  getTournamentRounds(tournamentId: string): Promise<TournamentRound[]>;
+  createTournamentRound(data: InsertTournamentRound): Promise<TournamentRound>;
+  getTournamentMatches(tournamentId: string, roundId?: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]>;
+  createTournamentMatch(data: InsertTournamentMatch): Promise<TournamentMatch>;
+  updateTournamentMatch(matchId: string, data: Partial<InsertTournamentMatch>): Promise<TournamentMatch>;
+  getMatchResults(matchId: string): Promise<(MatchResult & { winner: User; loser?: User; reportedBy: User; verifiedBy?: User })[]>;
+  createMatchResult(data: InsertMatchResult): Promise<MatchResult>;
+  verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult>;
   
   // Forum operations
   getForumPosts(communityId: string, options?: { category?: string; limit?: number; offset?: number }): Promise<(ForumPost & { author: User; community: Community; replyCount: number; likeCount: number; isLiked?: boolean })[]>;
@@ -1493,6 +1517,217 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Advanced tournament operations
+  async getTournamentFormats(): Promise<TournamentFormat[]> {
+    return await db
+      .select()
+      .from(tournamentFormats)
+      .where(eq(tournamentFormats.isActive, true))
+      .orderBy(tournamentFormats.name);
+  }
+
+  async createTournamentFormat(data: InsertTournamentFormat): Promise<TournamentFormat> {
+    const [format] = await db
+      .insert(tournamentFormats)
+      .values(data)
+      .returning();
+    return format;
+  }
+
+  async getTournamentRounds(tournamentId: string): Promise<TournamentRound[]> {
+    return await db
+      .select()
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.tournamentId, tournamentId))
+      .orderBy(tournamentRounds.roundNumber);
+  }
+
+  async createTournamentRound(data: InsertTournamentRound): Promise<TournamentRound> {
+    const [round] = await db
+      .insert(tournamentRounds)
+      .values(data)
+      .returning();
+    return round;
+  }
+
+  async getTournamentMatches(tournamentId: string, roundId?: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]> {
+    const query = db
+      .select({
+        match: tournamentMatches,
+        player1: users,
+        player2: alias(users, 'player2'),
+        winner: alias(users, 'winner'),
+      })
+      .from(tournamentMatches)
+      .leftJoin(users, eq(tournamentMatches.player1Id, users.id))
+      .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
+      .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
+      .where(
+        and(
+          eq(tournamentMatches.tournamentId, tournamentId),
+          roundId ? eq(tournamentMatches.roundId, roundId) : undefined
+        )
+      )
+      .orderBy(tournamentMatches.bracketPosition);
+
+    const results = await query;
+    return results.map(r => ({
+      ...r.match,
+      player1: r.player1 ?? undefined,
+      player2: r.player2 ?? undefined,
+      winner: r.winner ?? undefined,
+    }));
+  }
+
+  async createTournamentMatch(data: InsertTournamentMatch): Promise<TournamentMatch> {
+    // Validate that players are participants in the tournament
+    if (data.player1Id) {
+      const participant1 = await db
+        .select()
+        .from(tournamentParticipants)
+        .where(
+          and(
+            eq(tournamentParticipants.tournamentId, data.tournamentId),
+            eq(tournamentParticipants.userId, data.player1Id)
+          )
+        );
+      if (participant1.length === 0) {
+        throw new Error('Player 1 is not a participant in this tournament');
+      }
+    }
+    
+    if (data.player2Id) {
+      const participant2 = await db
+        .select()
+        .from(tournamentParticipants)
+        .where(
+          and(
+            eq(tournamentParticipants.tournamentId, data.tournamentId),
+            eq(tournamentParticipants.userId, data.player2Id)
+          )
+        );
+      if (participant2.length === 0) {
+        throw new Error('Player 2 is not a participant in this tournament');
+      }
+    }
+
+    const [match] = await db
+      .insert(tournamentMatches)
+      .values(data)
+      .returning();
+    return match;
+  }
+
+  async updateTournamentMatch(matchId: string, data: Partial<InsertTournamentMatch>): Promise<TournamentMatch> {
+    // Prevent changing critical structural fields
+    const allowedFields = { ...data };
+    delete allowedFields.tournamentId;
+    delete allowedFields.roundId;
+    delete allowedFields.bracketPosition;
+
+    const [match] = await db
+      .update(tournamentMatches)
+      .set(allowedFields)
+      .where(eq(tournamentMatches.id, matchId))
+      .returning();
+    return match;
+  }
+
+  async getMatchResults(matchId: string): Promise<(MatchResult & { winner: User; loser?: User; reportedBy: User; verifiedBy?: User })[]> {
+    const query = db
+      .select({
+        result: matchResults,
+        winner: users,
+        loser: alias(users, 'loser'),
+        reportedBy: alias(users, 'reportedBy'),
+        verifiedBy: alias(users, 'verifiedBy'),
+      })
+      .from(matchResults)
+      .innerJoin(users, eq(matchResults.winnerId, users.id))
+      .leftJoin(alias(users, 'loser'), eq(matchResults.loserId, alias(users, 'loser').id))
+      .innerJoin(alias(users, 'reportedBy'), eq(matchResults.reportedById, alias(users, 'reportedBy').id))
+      .leftJoin(alias(users, 'verifiedBy'), eq(matchResults.verifiedById, alias(users, 'verifiedBy').id))
+      .where(eq(matchResults.matchId, matchId))
+      .orderBy(desc(matchResults.createdAt));
+
+    const results = await query;
+    return results.map(r => ({
+      ...r.result,
+      winner: r.winner,
+      loser: r.loser ?? undefined,
+      reportedBy: r.reportedBy,
+      verifiedBy: r.verifiedBy ?? undefined,
+    }));
+  }
+
+  async createMatchResult(data: InsertMatchResult): Promise<MatchResult> {
+    const [result] = await db
+      .insert(matchResults)
+      .values(data)
+      .returning();
+    return result;
+  }
+
+  async verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult> {
+    return await db.transaction(async (tx) => {
+      // First, check if there's already a verified result for this match
+      const existingResult = await tx
+        .select()
+        .from(matchResults)
+        .where(
+          and(
+            eq(matchResults.id, resultId),
+            eq(matchResults.isVerified, false)
+          )
+        );
+
+      if (existingResult.length === 0) {
+        throw new Error('Result not found or already verified');
+      }
+
+      const matchResult = existingResult[0];
+
+      // Check if there are any other verified results for this match
+      const otherVerifiedResults = await tx
+        .select()
+        .from(matchResults)
+        .where(
+          and(
+            eq(matchResults.matchId, matchResult.matchId),
+            eq(matchResults.isVerified, true)
+          )
+        );
+
+      if (otherVerifiedResults.length > 0) {
+        throw new Error('This match already has a verified result');
+      }
+
+      // Verify the result
+      const [verifiedResult] = await tx
+        .update(matchResults)
+        .set({ 
+          verifiedById: verifierId, 
+          isVerified: true 
+        })
+        .where(eq(matchResults.id, resultId))
+        .returning();
+
+      // Update the tournament match with the verified result
+      await tx
+        .update(tournamentMatches)
+        .set({
+          winnerId: verifiedResult.winnerId,
+          player1Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.winnerScore : verifiedResult.loserScore,
+          player2Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.loserScore : verifiedResult.winnerScore,
+          status: 'completed',
+          endTime: new Date()
+        })
+        .where(eq(tournamentMatches.id, matchResult.matchId));
+
+      return verifiedResult;
+    });
   }
 
   // Forum operations
