@@ -18,11 +18,12 @@ import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
 import type { Tournament, TournamentParticipant, User } from '@shared/schema';
 import { format } from "date-fns";
+import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 
 export default function Tournaments() {
   useDocumentTitle("Tournaments");
   
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const { selectedCommunity, communityTheme } = useCommunity();
   
@@ -137,6 +138,23 @@ export default function Tournaments() {
     };
     return gameFormats[format] || format;
   };
+
+  // Show login prompt for unauthenticated users (after all hooks are called)
+  if (!isLoading && !isAuthenticated) {
+    return <TournamentsLoginPrompt />;
+  }
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading tournaments...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
