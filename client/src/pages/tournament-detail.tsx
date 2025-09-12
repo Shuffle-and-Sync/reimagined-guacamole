@@ -17,15 +17,24 @@ export default function TournamentDetail() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
 
-  // Fetch tournament details
+  // Fetch tournament details with expanded data
   const { data: tournament, isLoading, error } = useQuery<Tournament & { 
     organizer: User; 
     community: any; 
     participants: (TournamentParticipant & { user: User })[];
     rounds?: any[];
     matches?: any[];
+    participantCount?: number;
+    currentParticipants?: number;
   }>({
-    queryKey: ['/api/tournaments', tournamentId],
+    queryKey: ['/api/tournaments', tournamentId, 'details'],
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${tournamentId}/details`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch tournament details');
+      }
+      return response.json();
+    },
     enabled: !!tournamentId && isAuthenticated,
   });
 

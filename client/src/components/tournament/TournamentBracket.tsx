@@ -212,12 +212,47 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
     }
   });
 
+  // Report match result mutation
+  const reportMatchResultMutation = useMutation({
+    mutationFn: async ({ matchId, winnerId, player1Score, player2Score }: {
+      matchId: string;
+      winnerId: string;
+      player1Score?: number;
+      player2Score?: number;
+    }) => {
+      const response = await apiRequest('POST', `/api/tournaments/${tournament.id}/matches/${matchId}/result`, {
+        winnerId,
+        player1Score,
+        player2Score
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Match result recorded!",
+        description: "Winner has been set for this match."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to record match result",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAdvanceMatch = (matchId: string, winnerId: string) => {
-    // In a real implementation, this would report match results
-    // For now, it's a placeholder for the UI structure
-    toast({
-      title: "Match result recorded",
-      description: "Winner has been set for this match.",
+    // Simple score assignment - in a real app, you'd have a score input dialog
+    const player1Score = winnerId === matches.find(m => m.id === matchId)?.player1Id ? 1 : 0;
+    const player2Score = winnerId === matches.find(m => m.id === matchId)?.player2Id ? 1 : 0;
+    
+    reportMatchResultMutation.mutate({ 
+      matchId, 
+      winnerId, 
+      player1Score, 
+      player2Score 
     });
   };
 

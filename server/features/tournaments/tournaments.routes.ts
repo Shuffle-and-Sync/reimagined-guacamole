@@ -127,4 +127,41 @@ router.post('/:id/advance', isAuthenticated, async (req, res) => {
   }
 });
 
+// ======================================
+// MATCH RESULT REPORTING ROUTES
+// ======================================
+
+// Report match result
+router.post('/:id/matches/:matchId/result', isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const userId = authenticatedReq.user.claims.sub;
+    const tournamentId = req.params.id;
+    const matchId = req.params.matchId;
+    const { winnerId, player1Score, player2Score } = req.body;
+    
+    const result = await tournamentsService.reportMatchResult(tournamentId, matchId, winnerId, userId, player1Score, player2Score);
+    res.json(result);
+  } catch (error) {
+    logger.error("Failed to report match result", error, { 
+      userId: authenticatedReq.user.claims.sub, 
+      tournamentId: req.params.id,
+      matchId: req.params.matchId 
+    });
+    res.status(500).json({ message: (error as Error).message || "Failed to report match result" });
+  }
+});
+
+// Get tournament with expanded details (participants, rounds, matches)
+router.get('/:id/details', async (req, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const tournament = await tournamentsService.getTournamentDetails(tournamentId);
+    res.json(tournament);
+  } catch (error) {
+    logger.error("Failed to fetch tournament details", error, { tournamentId: req.params.id });
+    res.status(500).json({ message: "Failed to fetch tournament details" });
+  }
+});
+
 export { router as tournamentsRoutes };

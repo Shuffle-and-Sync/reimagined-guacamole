@@ -361,6 +361,131 @@ export const tournamentsService = {
     }
   },
 
+  /**
+   * Report match result with score
+   */
+  async reportMatchResult(tournamentId: string, matchId: string, winnerId: string, reporterId: string, player1Score?: number, player2Score?: number) {
+    try {
+      logger.info("Reporting match result", { tournamentId, matchId, winnerId, reporterId });
+
+      // Get the tournament and verify permissions
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        throw new Error("Tournament not found");
+      }
+
+      // Get the match
+      const match = await storage.getTournamentMatch(matchId);
+      if (!match) {
+        throw new Error("Match not found");
+      }
+
+      // Verify the reporter is either the organizer or one of the players
+      const isOrganizer = tournament.organizerId === reporterId;
+      const isPlayer = match.player1Id === reporterId || match.player2Id === reporterId;
+      
+      if (!isOrganizer && !isPlayer) {
+        throw new Error("Only organizers or participating players can report match results");
+      }
+
+      // Verify the winner is one of the players
+      if (winnerId !== match.player1Id && winnerId !== match.player2Id) {
+        throw new Error("Winner must be one of the participating players");
+      }
+
+      // Update the match with result
+      const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id;
+      const updatedMatch = await storage.updateTournamentMatch(matchId, {
+        winnerId,
+        player1Score: player1Score || 0,
+        player2Score: player2Score || 0,
+        status: "completed"
+      });
+
+      // Create match result record for verification/tracking
+      const matchResult = await storage.createMatchResult({
+        matchId,
+        winnerId,
+        loserId,
+        reportedById: reporterId,
+        verifiedById: isOrganizer ? reporterId : undefined, // Auto-verify if organizer reports
+        score: player1Score !== undefined && player2Score !== undefined ? `${player1Score}-${player2Score}` : undefined
+      });
+
+      logger.info("Match result reported successfully", { matchId, winnerId, matchResult: matchResult.id });
+      return { match: updatedMatch, result: matchResult };
+    } catch (error) {
+      logger.error("Service error: Failed to report match result", error, { tournamentId, matchId, winnerId, reporterId });
+      throw error;
+    }
+  },
+
+  /**
+   * Get tournament with expanded details including participants, organizer, rounds, and matches
+   */
+  async getTournamentDetails(tournamentId: string) {
+    try {
+      logger.info("Fetching tournament details", { tournamentId });
+
+      // Get base tournament
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        throw new Error("Tournament not found");
+      }
+
+      // Get organizer details
+      const organizer = await storage.getUser(tournament.organizerId);
+      if (!organizer) {
+        throw new Error("Tournament organizer not found");
+      }
+
+      // Get participants with user details
+      const participantRecords = await storage.getTournamentParticipants(tournamentId);
+      const participants = await Promise.all(
+        participantRecords.map(async (participant) => {
+          const user = await storage.getUser(participant.userId);
+          return {
+            ...participant,
+            user: user || { id: participant.userId, username: 'Unknown User' }
+          };
+        })
+      );
+
+      // Get rounds
+      const rounds = await storage.getTournamentRounds(tournamentId);
+
+      // Get matches with player details
+      const allMatches = await storage.getTournamentMatchesByTournament(tournamentId);
+      const matches = await Promise.all(
+        allMatches.map(async (match) => {
+          const player1 = match.player1Id ? await storage.getUser(match.player1Id) : null;
+          const player2 = match.player2Id ? await storage.getUser(match.player2Id) : null;
+          const winner = match.winnerId ? await storage.getUser(match.winnerId) : null;
+          
+          return {
+            ...match,
+            player1: player1 || undefined,
+            player2: player2 || undefined,
+            winner: winner || undefined
+          };
+        })
+      );
+
+      return {
+        ...tournament,
+        organizer,
+        participants,
+        rounds,
+        matches,
+        participantCount: participants.length,
+        currentParticipants: participants.length
+      };
+    } catch (error) {
+      logger.error("Service error: Failed to get tournament details", error, { tournamentId });
+      throw error;
+    }
+  },
+
   // ======================================
   // HELPER METHODS FOR TOURNAMENT ENGINE
   // ======================================
