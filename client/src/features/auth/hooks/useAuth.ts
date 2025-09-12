@@ -10,6 +10,8 @@ export function useAuth() {
   const { 
     data: user, 
     isLoading, 
+    isError,
+    error,
     smartInvalidate,
     backgroundSync 
   } = useOptimizedQuery<User & { communities?: any[] }>({
@@ -17,8 +19,24 @@ export function useAuth() {
     retry: false,
     backgroundRefetch: true,
     warmCache: true,
-    errorRecovery: true,
+    errorRecovery: false, // Disable error recovery for auth - we want it to fail fast
   });
+
+  // Debug logging - moved to avoid hooks order violations
+  if (import.meta.env.DEV) {
+    // Simple console log without useEffect to avoid hooks issues
+    const authState = { 
+      isLoading, 
+      isAuthenticated: !!user, 
+      hasUser: !!user,
+      isError,
+      errorStatus: error?.message?.includes('401') ? '401' : error?.message 
+    };
+    // Log only when state changes to avoid spam
+    if (Math.random() < 0.1) {
+      console.log('🔐 Auth State:', authState);
+    }
+  }
 
   // Prefetch user-related data when user is loaded
   const prefetchUserData = useCallback(async () => {
