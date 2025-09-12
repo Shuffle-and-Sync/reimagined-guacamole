@@ -18,6 +18,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get tournament formats (must be before /:id route to avoid shadowing)
+router.get('/formats', async (req, res) => {
+  try {
+    const formats = await tournamentsService.getTournamentFormats();
+    res.json(formats);
+  } catch (error) {
+    logger.error("Failed to fetch tournament formats", error);
+    res.status(500).json({ message: "Failed to fetch tournament formats" });
+  }
+});
+
 // Get specific tournament
 router.get('/:id', async (req, res) => {
   try {
@@ -38,7 +49,14 @@ router.post('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = authenticatedReq.user.claims.sub;
-    const tournamentData = { ...req.body, organizerId: userId };
+    
+    // Convert startDate string to Date object
+    const tournamentData = { 
+      ...req.body, 
+      organizerId: userId,
+      startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+      endDate: req.body.endDate ? new Date(req.body.endDate) : null
+    };
     
     const tournament = await tournamentsService.createTournament(tournamentData);
     res.json(tournament);
@@ -86,16 +104,6 @@ router.delete('/:id/leave', isAuthenticated, async (req, res) => {
 // ADVANCED TOURNAMENT ENGINE ROUTES
 // ======================================
 
-// Get tournament formats
-router.get('/formats', async (req, res) => {
-  try {
-    const formats = await tournamentsService.getTournamentFormats();
-    res.json(formats);
-  } catch (error) {
-    logger.error("Failed to fetch tournament formats", error);
-    res.status(500).json({ message: "Failed to fetch tournament formats" });
-  }
-});
 
 // Start tournament
 router.post('/:id/start', isAuthenticated, async (req, res) => {

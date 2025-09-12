@@ -180,6 +180,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         description: "Brackets have been generated and the tournament is now active."
       });
       queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
     },
     onError: (error: any) => {
       toast({
@@ -202,6 +203,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         description: "Tournament has been advanced to the next round."
       });
       queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
     },
     onError: (error: any) => {
       toast({
