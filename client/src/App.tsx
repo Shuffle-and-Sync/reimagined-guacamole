@@ -29,6 +29,7 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/tablesync" component={TableSyncLanding} />
       <Route path="/calendar" component={Calendar} />
+      <Route path="/tournaments" component={Tournaments} />
       <Route path="/help-center" component={HelpCenter} />
       <Route path="/getting-started" component={GettingStarted} />
       <Route path="/faq" component={FAQ} />
@@ -60,11 +61,6 @@ function Router() {
       <Route path="/matchmaking">
         <RequireAuth redirectTo="/">
           <Matchmaking />
-        </RequireAuth>
-      </Route>
-      <Route path="/tournaments">
-        <RequireAuth redirectTo="/">
-          <Tournaments />
         </RequireAuth>
       </Route>
       <Route path="/profile">
