@@ -10,7 +10,7 @@ export default function TableSyncLanding() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   
   const handleGetStarted = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/api/auth/login";
   };
 
   const handleWatchDemo = () => {
