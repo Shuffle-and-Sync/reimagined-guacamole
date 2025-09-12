@@ -8,6 +8,8 @@ import { communitiesRoutes, userCommunitiesRouter, themePreferencesRouter } from
 import { eventsRoutes, userEventsRouter, calendarEventsRouter } from "./features/events/events.routes";
 import { usersRoutes, friendsRouter, friendRequestsRouter, matchmakingRouter } from "./features/users/users.routes";
 import { notificationsRoutes, messagesRouter, conversationsRouter } from "./features/messaging/messaging.routes";
+import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
+import { gamesRoutes } from "./features/games/games.routes";
 
 // Import shared middleware
 import { errorHandler, requestLogger, corsHandler, securityHeaders } from "./shared/middleware";
@@ -33,8 +35,7 @@ app.use(express.urlencoded({ extended: false }));
   app.use('/api/user/communities', userCommunitiesRouter);
   app.use('/api/user/theme-preferences', themePreferencesRouter);
   app.use('/api/events', eventsRoutes);
-  // Game sessions are mounted under events since they're event-related
-  app.use('/api', eventsRoutes);
+  app.use('/api', gamesRoutes);
   app.use('/api/user/events', userEventsRouter);
   app.use('/api/calendar/events', calendarEventsRouter);
   app.use('/api/user', usersRoutes);
@@ -44,6 +45,7 @@ app.use(express.urlencoded({ extended: false }));
   app.use('/api/notifications', notificationsRoutes);
   app.use('/api/messages', messagesRouter);
   app.use('/api/conversations', conversationsRouter);
+  app.use('/api/tournaments', tournamentsRoutes);
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
