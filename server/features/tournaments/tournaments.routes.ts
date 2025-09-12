@@ -82,4 +82,49 @@ router.delete('/:id/leave', isAuthenticated, async (req, res) => {
   }
 });
 
+// ======================================
+// ADVANCED TOURNAMENT ENGINE ROUTES
+// ======================================
+
+// Get tournament formats
+router.get('/formats', async (req, res) => {
+  try {
+    const formats = await tournamentsService.getTournamentFormats();
+    res.json(formats);
+  } catch (error) {
+    logger.error("Failed to fetch tournament formats", error);
+    res.status(500).json({ message: "Failed to fetch tournament formats" });
+  }
+});
+
+// Start tournament
+router.post('/:id/start', isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const userId = authenticatedReq.user.claims.sub;
+    const tournamentId = req.params.id;
+    
+    const tournament = await tournamentsService.startTournament(tournamentId, userId);
+    res.json(tournament);
+  } catch (error) {
+    logger.error("Failed to start tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    res.status(500).json({ message: (error as Error).message || "Failed to start tournament" });
+  }
+});
+
+// Advance tournament round
+router.post('/:id/advance', isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const userId = authenticatedReq.user.claims.sub;
+    const tournamentId = req.params.id;
+    
+    const tournament = await tournamentsService.advanceRound(tournamentId, userId);
+    res.json(tournament);
+  } catch (error) {
+    logger.error("Failed to advance tournament round", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    res.status(500).json({ message: (error as Error).message || "Failed to advance tournament round" });
+  }
+});
+
 export { router as tournamentsRoutes };

@@ -182,6 +182,7 @@ export interface IStorage {
   getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
   getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined>;
   createTournament(data: InsertTournament): Promise<Tournament>;
+  updateTournament(tournamentId: string, data: Partial<InsertTournament>): Promise<Tournament>;
   joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
   leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
   
@@ -190,6 +191,7 @@ export interface IStorage {
   createTournamentFormat(data: InsertTournamentFormat): Promise<TournamentFormat>;
   getTournamentRounds(tournamentId: string): Promise<TournamentRound[]>;
   createTournamentRound(data: InsertTournamentRound): Promise<TournamentRound>;
+  updateTournamentRound(roundId: string, data: Partial<InsertTournamentRound>): Promise<TournamentRound>;
   getTournamentMatches(tournamentId: string, roundId?: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]>;
   createTournamentMatch(data: InsertTournamentMatch): Promise<TournamentMatch>;
   updateTournamentMatch(matchId: string, data: Partial<InsertTournamentMatch>): Promise<TournamentMatch>;
@@ -1499,6 +1501,18 @@ export class DatabaseStorage implements IStorage {
     return tournament;
   }
 
+  async updateTournament(tournamentId: string, data: Partial<InsertTournament>): Promise<Tournament> {
+    const [tournament] = await db
+      .update(tournaments)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(tournaments.id, tournamentId))
+      .returning();
+    return tournament;
+  }
+
   async joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant> {
     const [participant] = await db
       .insert(tournamentParticipants)
@@ -1548,6 +1562,18 @@ export class DatabaseStorage implements IStorage {
     const [round] = await db
       .insert(tournamentRounds)
       .values(data)
+      .returning();
+    return round;
+  }
+
+  async updateTournamentRound(roundId: string, data: Partial<InsertTournamentRound>): Promise<TournamentRound> {
+    const [round] = await db
+      .update(tournamentRounds)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(tournamentRounds.id, roundId))
       .returning();
     return round;
   }
