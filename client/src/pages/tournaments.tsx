@@ -40,9 +40,10 @@ export default function Tournaments() {
     rules: ""
   });
 
-  // Fetch tournaments
+  // Fetch tournaments - only for authenticated users
   const { data: tournaments = [], isLoading: tournamentsLoading } = useQuery<Tournament[]>({
     queryKey: ['/api/tournaments', selectedCommunity?.id],
+    enabled: isAuthenticated && !!selectedCommunity, // Only fetch when authenticated and community selected
   });
 
   // Create tournament mutation
