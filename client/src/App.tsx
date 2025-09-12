@@ -31,6 +31,7 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/tablesync" component={TableSyncLanding} />
+          <Route path="/calendar" component={Calendar} />
           {/* Footer pages accessible to all users */}
           <Route path="/help-center" component={HelpCenter} />
           <Route path="/getting-started" component={GettingStarted} />

@@ -1,0 +1,422 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+/~:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+/~:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+/~:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+_app-15d0a4123d573315.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-15d0a4123d573315.js:38 [LaunchDarkly] LaunchDarkly client initialized
+/~:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+hook.js:608 WARN: A component changed from uncontrolled to controlled.
+overrideMethod @ hook.js:608
+hook.js:608 WARN: A component changed from controlled to uncontrolled.
+overrideMethod @ hook.js:608
+_app-15d0a4123d573315.js:38 Adding extension: Prettier - Code Formatter Object
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'battery'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-6afeca4065aa5449.js:1
+framework-6afeca4065aa5449.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-6afeca4065aa5449.js:1
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'ambient-light-sensor'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'battery'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'battery'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'execution-while-not-rendered'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'layout-animations'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'layout-animations'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'legacy-image-formats'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'legacy-image-formats'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'navigation-override'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'navigation-override'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'oversized-images'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'oversized-images'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'publickey-credentials'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'publickey-credentials'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'speaker-selection'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'speaker-selection'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'unoptimized-images'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'unoptimized-images'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'unsized-media'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Unrecognized feature: 'unsized-media'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Allow attribute will take precedence over 'allowfullscreen'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arvc%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+user:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ ca3cb761-f2c0-4861-b…da/3.2.3/eruda.js:2
+apply @ ca3cb761-f2c0-4861-b…ols/injected.js:278
+(anonymous) @ ca3cb761-f2c0-4861-b…b/queryClient.ts:19
+fetchFn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1097
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:795
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:820
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1449
+refetch @ @tanstack_react-query.js?v=c4e1daf1:1439
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:998
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2654
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2653
+batch @ @tanstack_react-query.js?v=c4e1daf1:624
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:2652
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:390
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:389
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:376
+listener @ @tanstack_react-query.js?v=c4e1daf1:347
+  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ ca3cb761-f2c0-4861-b…da/3.2.3/eruda.js:2
+apply @ ca3cb761-f2c0-4861-b…ols/injected.js:278
+(anonymous) @ ca3cb761-f2c0-4861-b…b/queryClient.ts:19
+fetchFn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1097
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:795
+start @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:838
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1144
+executeFetch_fn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1639
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1449
+refetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1439
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:998
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2654
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2653
+batch @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:624
+onFocus @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2652
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:390
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:389
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:376
+listener @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:347
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1449
+refetch @ @tanstack_react-query.js?v=c4e1daf1:1439
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:998
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2654
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2653
+batch @ @tanstack_react-query.js?v=c4e1daf1:624
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:2652
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:390
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:389
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:376
+listener @ @tanstack_react-query.js?v=c4e1daf1:347
+  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ ca3cb761-f2c0-4861-b…da/3.2.3/eruda.js:2
+apply @ ca3cb761-f2c0-4861-b…ols/injected.js:278
+(anonymous) @ ca3cb761-f2c0-4861-b…b/queryClient.ts:19
+fetchFn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1097
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:795
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:816
+Promise.catch
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:799
+start @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:838
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1144
+executeFetch_fn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1639
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1449
+refetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1439
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:998
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2654
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2653
+batch @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:624
+onFocus @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2652
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:390
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:389
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:376
+listener @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:347
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1449
+refetch @ @tanstack_react-query.js?v=c4e1daf1:1439
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:998
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2654
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2653
+batch @ @tanstack_react-query.js?v=c4e1daf1:624
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:2652
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:390
+onFocus @ @tanstack_react-query.js?v=c4e1daf1:389
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:376
+listener @ @tanstack_react-query.js?v=c4e1daf1:347
+  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ ca3cb761-f2c0-4861-b…da/3.2.3/eruda.js:2
+apply @ ca3cb761-f2c0-4861-b…ols/injected.js:278
+(anonymous) @ ca3cb761-f2c0-4861-b…b/queryClient.ts:19
+fetchFn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1097
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:795
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:816
+Promise.catch
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:799
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:816
+Promise.catch
+run @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:799
+start @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:838
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1144
+executeFetch_fn @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1639
+fetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1449
+refetch @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:1439
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:998
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2654
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2653
+batch @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:624
+onFocus @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2652
+(anonymous) @ ca3cb761-f2c0-4861-b….js?v=c4e1daf1:2692
+await in (anonymous)
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:390
+onFocus @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:389
+(anonymous) @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:376
+listener @ ca3cb761-f2c0-4861-b…y.js?v=c4e1daf1:347
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+onSubscribe @ @tanstack_react-query.js?v=c4e1daf1:1335
+subscribe @ @tanstack_react-query.js?v=c4e1daf1:24
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:3239
+subscribeToStore @ chunk-RPCDYKBN.js?v=c4e1daf1:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c4e1daf1:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c4e1daf1:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c4e1daf1:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c4e1daf1:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c4e1daf1:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19432
+commitRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=c4e1daf1:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18718
+workLoop @ chunk-RPCDYKBN.js?v=c4e1daf1:197
+flushWork @ chunk-RPCDYKBN.js?v=c4e1daf1:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=c4e1daf1:384
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+onSubscribe @ @tanstack_react-query.js?v=c4e1daf1:1335
+subscribe @ @tanstack_react-query.js?v=c4e1daf1:24
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:3239
+subscribeToStore @ chunk-RPCDYKBN.js?v=c4e1daf1:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c4e1daf1:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c4e1daf1:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c4e1daf1:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c4e1daf1:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c4e1daf1:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19432
+commitRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=c4e1daf1:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18718
+workLoop @ chunk-RPCDYKBN.js?v=c4e1daf1:197
+flushWork @ chunk-RPCDYKBN.js?v=c4e1daf1:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=c4e1daf1:384
+injected.js:278  GET https://ca3cb761-f2c0-4861-b5cf-257b1abb8a37-00-2ci3clca3kxzn.picard.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:278
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c4e1daf1:1097
+run @ @tanstack_react-query.js?v=c4e1daf1:795
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:820
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:816
+Promise.catch
+run @ @tanstack_react-query.js?v=c4e1daf1:799
+start @ @tanstack_react-query.js?v=c4e1daf1:838
+fetch @ @tanstack_react-query.js?v=c4e1daf1:1144
+executeFetch_fn @ @tanstack_react-query.js?v=c4e1daf1:1639
+onSubscribe @ @tanstack_react-query.js?v=c4e1daf1:1335
+subscribe @ @tanstack_react-query.js?v=c4e1daf1:24
+(anonymous) @ @tanstack_react-query.js?v=c4e1daf1:3239
+subscribeToStore @ chunk-RPCDYKBN.js?v=c4e1daf1:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c4e1daf1:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c4e1daf1:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c4e1daf1:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c4e1daf1:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c4e1daf1:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c4e1daf1:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=c4e1daf1:19432
+commitRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=c4e1daf1:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=c4e1daf1:18718
+workLoop @ chunk-RPCDYKBN.js?v=c4e1daf1:197
+flushWork @ chunk-RPCDYKBN.js?v=c4e1daf1:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=c4e1daf1:384

@@ -15,6 +15,7 @@ import { Header } from "@/shared/components";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
 import type { Event, Community } from "@shared/schema";
 
 const EVENT_TYPES = [
@@ -35,7 +36,7 @@ type ExtendedEvent = Event & {
 export default function Calendar() {
   useDocumentTitle("Calendar");
   
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -78,9 +79,10 @@ export default function Calendar() {
     enabled: !!selectedCommunity, // Allow viewing events without authentication
   });
 
-  // Fetch communities
+  // Fetch communities - only for authenticated users
   const { data: communities = [] } = useQuery<Community[]>({
     queryKey: ['/api/communities'],
+    enabled: isAuthenticated, // Only fetch when authenticated
   });
 
   // Create event mutation
@@ -265,6 +267,23 @@ export default function Calendar() {
 
   const todaysEvents = events.filter(event => event.date === new Date().toISOString().split('T')[0]);
   const upcomingEvents = events.filter(event => event.date > new Date().toISOString().split('T')[0]).slice(0, 5);
+
+  // Show login prompt for unauthenticated users (after all hooks are called)
+  if (!isLoading && !isAuthenticated) {
+    return <CalendarLoginPrompt />;
+  }
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
