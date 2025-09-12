@@ -383,9 +383,9 @@ export default function TableSyncLanding() {
 
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:border-white/40 transition-all duration-300 relative">
               <div className="absolute top-4 right-4 z-10">
-                <Badge className="bg-yellow-500/80 text-yellow-900 font-bold">Coming Soon</Badge>
+                <Badge className="bg-green-500/80 text-green-900 font-bold">Live Now</Badge>
               </div>
-              <CardContent className="p-8 opacity-75">
+              <CardContent className="p-8">
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fas fa-comments text-white text-2xl"></i>
@@ -400,16 +400,16 @@ export default function TableSyncLanding() {
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
+                    <i className="fas fa-check-circle text-green-400"></i>
                     <span className="text-sm text-gray-300">Voice & text chat</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
-                    <span className="text-sm text-gray-300">Card sharing tools</span>
+                    <i className="fas fa-check-circle text-green-400"></i>
+                    <span className="text-sm text-gray-300">WebRTC video calls</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
-                    <span className="text-sm text-gray-300">Rule reference system</span>
+                    <i className="fas fa-check-circle text-green-400"></i>
+                    <span className="text-sm text-gray-300">Real-time messaging</span>
                   </div>
                 </div>
               </CardContent>
