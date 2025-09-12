@@ -60,7 +60,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
   }
 
   return (
-    <Card className={`w-64 ${getMatchStatusColor(match.status)} border-2`} data-testid={`match-card-${match.id}`}>
+    <Card className={`w-64 ${getMatchStatusColor(match.status)} border-2`} data-testid={`match-card-${match.id || 'unknown'}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <Badge variant="outline" className="text-xs">
@@ -83,7 +83,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate" data-testid={`player1-name-${match.id}`}>
+            <p className="font-medium text-sm truncate" data-testid={`player1-name-${match.id || 'unknown'}`}>
               {formatPlayerName(match.player1)}
             </p>
             {match.status === 'completed' && (
@@ -115,7 +115,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate" data-testid={`player2-name-${match.id}`}>
+            <p className="font-medium text-sm truncate" data-testid={`player2-name-${match.id || 'unknown'}`}>
               {formatPlayerName(match.player2)}
             </p>
             {match.status === 'completed' && (
@@ -141,7 +141,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
               className="w-full"
               onClick={() => onPlayMatch?.(match.id)}
               disabled={!match.player1Id || !match.player2Id}
-              data-testid={`button-play-match-${match.id}`}
+              data-testid={`button-play-match-${match.id || 'unknown'}`}
             >
               <i className="fas fa-play mr-2"></i>
               Play Match
@@ -155,7 +155,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
               variant="outline"
               className="w-full"
               onClick={() => window.location.href = `/app/room/${match.gameSessionId}`}
-              data-testid={`button-join-game-${match.id}`}
+              data-testid={`button-join-game-${match.id || 'unknown'}`}
             >
               <i className="fas fa-door-open mr-2"></i>
               Join Game Room
@@ -171,7 +171,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
                 className="flex-1"
                 onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
                 disabled={!match.player1Id || !match.player2Id}
-                data-testid={`button-player1-wins-${match.id}`}
+                data-testid={`button-player1-wins-${match.id || 'unknown'}`}
               >
                 P1 Wins
               </Button>
@@ -181,7 +181,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
                 className="flex-1"
                 onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
                 disabled={!match.player1Id || !match.player2Id}
-                data-testid={`button-player2-wins-${match.id}`}
+                data-testid={`button-player2-wins-${match.id || 'unknown'}`}
               >
                 P2 Wins
               </Button>
@@ -357,7 +357,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
               </div>
               <div>
                 <span className="text-muted-foreground">Participants:</span>
-                <p className="font-medium">{tournament.participants?.length || tournament.currentParticipants || 0}/{tournament.maxParticipants}</p>
+                <p className="font-medium">{tournament.currentParticipants || 0}/{tournament.maxParticipants}</p>
               </div>
             </div>
             
@@ -365,13 +365,13 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
               <div className="pt-4 border-t">
                 <Button 
                   onClick={() => startTournamentMutation.mutate(tournament.id)}
-                  disabled={startTournamentMutation.isPending || (tournament.participants?.length || tournament.currentParticipants || 0) < 2}
+                  disabled={startTournamentMutation.isPending || (tournament.currentParticipants || 0) < 2}
                   className="w-full"
                   data-testid="button-start-tournament"
                 >
                   {startTournamentMutation.isPending ? "Starting Tournament..." : "Start Tournament"}
                 </Button>
-                {(tournament.participants?.length || tournament.currentParticipants || 0) < 2 && (
+                {(tournament.currentParticipants || 0) < 2 && (
                   <p className="text-sm text-muted-foreground mt-2 text-center">
                     Need at least 2 participants to start
                   </p>
@@ -402,7 +402,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         <CardContent>
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              <span>Participants: {tournament.participants?.length || tournament.currentParticipants || 0}</span>
+              <span>Participants: {tournament.currentParticipants || 0}</span>
               {tournament.status === 'active' && (
                 <span className="ml-4">Current Round: {selectedRound}</span>
               )}
