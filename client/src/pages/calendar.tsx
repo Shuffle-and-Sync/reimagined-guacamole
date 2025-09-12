@@ -76,7 +76,7 @@ export default function Calendar() {
       if (!response.ok) throw new Error('Failed to fetch events');
       return response.json();
     },
-    enabled: !!selectedCommunity, // Allow viewing events without authentication
+    enabled: isAuthenticated && !!selectedCommunity, // Only fetch when authenticated and community selected
   });
 
   // Fetch communities - only for authenticated users
