@@ -7,20 +7,45 @@ import { useOptimizedQuery } from "@/shared/hooks/useOptimizedQuery";
 export function useAuth() {
   const queryClient = useQueryClient();
   
+  // Use standard useQuery for auth with explicit queryFn
   const { 
     data: user, 
     isLoading, 
     isError,
     error,
-    smartInvalidate,
-    backgroundSync 
-  } = useOptimizedQuery<User & { communities?: any[] }>({
+  } = useQuery<User & { communities?: any[] }>({
     queryKey: queryKeys.auth.user(),
-    retry: false,
-    backgroundRefetch: true,
-    warmCache: true,
-    errorRecovery: false, // Disable error recovery for auth - we want it to fail fast
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include',
+      });
+      
+      // Treat 401 as "not authenticated" rather than an error
+      if (response.status === 401) {
+        return null;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Authentication failed: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: false, // No retries for auth
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch on focus for auth
+    refetchOnReconnect: false, // Don't auto-refetch on reconnect
   });
+
+  // Simple smart invalidation function
+  const smartInvalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+  }, [queryClient]);
+
+  const backgroundSync = useCallback(() => {
+    queryClient.prefetchQuery({ queryKey: queryKeys.auth.user() });
+  }, [queryClient]);
 
   // Debug logging - moved to avoid hooks order violations
   if (import.meta.env.DEV) {
