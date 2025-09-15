@@ -28,9 +28,22 @@ export default function Tournaments() {
   const { selectedCommunity, communityTheme } = useCommunity();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   
   // Create tournament form state
   const [tournamentForm, setTournamentForm] = useState({
+    name: "",
+    description: "",
+    gameFormat: "",
+    maxParticipants: 8,
+    startDate: "",
+    prizePool: "",
+    rules: ""
+  });
+
+  // Edit tournament form state
+  const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     gameFormat: "",
@@ -114,6 +127,33 @@ export default function Tournaments() {
     }
   });
 
+  // Edit tournament mutation
+  const editTournamentMutation = useMutation({
+    mutationFn: async ({ tournamentId, updates }: { tournamentId: string; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/tournaments/${tournamentId}`, {
+        ...updates,
+        startDate: updates.startDate ? new Date(updates.startDate).toISOString() : undefined
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tournament updated!",
+        description: "Your tournament has been updated successfully."
+      });
+      setIsEditModalOpen(false);
+      setEditingTournament(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update tournament",
+        description: error.message || "Something went wrong",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateTournament = () => {
     if (!tournamentForm.name || !tournamentForm.gameFormat || !tournamentForm.startDate) {
       toast({
@@ -124,6 +164,52 @@ export default function Tournaments() {
       return;
     }
     createTournamentMutation.mutate(tournamentForm);
+  };
+
+  const openEditModal = (tournament: Tournament) => {
+    setEditingTournament(tournament);
+    const startDate = tournament.startDate ? format(new Date(tournament.startDate), "yyyy-MM-dd'T'HH:mm") : "";
+    setEditForm({
+      name: tournament.name || "",
+      description: tournament.description || "",
+      gameFormat: tournament.gameFormat || "",
+      maxParticipants: tournament.maxParticipants || 8,
+      startDate: startDate,
+      prizePool: tournament.prizePool || "",
+      rules: tournament.rules || ""
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditTournament = () => {
+    if (!editForm.name || !editForm.gameFormat || !editForm.startDate) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!editingTournament) return;
+    
+    // For active tournaments, omit restricted fields from the payload
+    let updates;
+    if (editingTournament.status === 'active') {
+      // Remove fields that can't be changed for active tournaments
+      const { gameFormat, startDate, maxParticipants, ...allowedUpdates } = editForm;
+      updates = allowedUpdates;
+    } else {
+      updates = { ...editForm };
+    }
+    
+    editTournamentMutation.mutate({
+      tournamentId: editingTournament.id,
+      updates
+    });
+  };
+
+  const isOrganizer = (tournament: Tournament) => {
+    return user && tournament.organizerId === user.id;
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -322,6 +408,146 @@ export default function Tournaments() {
                   </div>
                 </DialogContent>
               </Dialog>
+
+              {/* Edit Tournament Modal */}
+              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Tournament</DialogTitle>
+                    <DialogDescription>
+                      Update tournament details. {editingTournament?.status === 'active' ? 'Limited fields can be edited while tournament is active.' : ''}
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-tournament-name">Tournament Name*</Label>
+                        <Input
+                          id="edit-tournament-name"
+                          value={editForm.name}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Weekly Commander Night"
+                          data-testid="input-edit-tournament-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-game-format">Game Format*</Label>
+                        <Select 
+                          value={editForm.gameFormat} 
+                          onValueChange={(value) => setEditForm(prev => ({ ...prev, gameFormat: value }))}
+                          disabled={editingTournament?.status === 'active'}
+                        >
+                          <SelectTrigger data-testid="select-edit-game-format">
+                            <SelectValue placeholder="Select format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="commander">Commander/EDH</SelectItem>
+                            <SelectItem value="standard">Standard</SelectItem>
+                            <SelectItem value="modern">Modern</SelectItem>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="pokemon-standard">Pokemon Standard</SelectItem>
+                            <SelectItem value="lorcana-constructed">Lorcana Constructed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Textarea
+                        id="edit-description"
+                        value={editForm.description}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe your tournament..."
+                        data-testid="textarea-edit-tournament-description"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-max-participants">Max Participants</Label>
+                        <Select 
+                          value={editForm.maxParticipants.toString()} 
+                          onValueChange={(value) => setEditForm(prev => ({ ...prev, maxParticipants: parseInt(value) }))}
+                          disabled={editingTournament?.status === 'active'}
+                        >
+                          <SelectTrigger data-testid="select-edit-max-participants">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="4">4 Players</SelectItem>
+                            <SelectItem value="8">8 Players</SelectItem>
+                            <SelectItem value="16">16 Players</SelectItem>
+                            <SelectItem value="32">32 Players</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-start-date">Start Date*</Label>
+                        <Input
+                          id="edit-start-date"
+                          type="datetime-local"
+                          value={editForm.startDate}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, startDate: e.target.value }))}
+                          disabled={editingTournament?.status === 'active'}
+                          data-testid="input-edit-start-date"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-prize-pool">Prize Pool (Optional)</Label>
+                      <Input
+                        id="edit-prize-pool"
+                        value={editForm.prizePool}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, prizePool: e.target.value }))}
+                        placeholder="$100 store credit, booster packs, etc."
+                        data-testid="input-edit-prize-pool"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-rules">Tournament Rules</Label>
+                      <Textarea
+                        id="edit-rules"
+                        value={editForm.rules}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, rules: e.target.value }))}
+                        placeholder="Special rules, deck restrictions, etc."
+                        data-testid="textarea-edit-tournament-rules"
+                      />
+                    </div>
+                    
+                    {editingTournament?.status === 'active' && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                        <div className="flex items-center">
+                          <i className="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                          <p className="text-sm text-yellow-700">
+                            This tournament is active. Only name, description, rules, and prize pool can be edited.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end space-x-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsEditModalOpen(false)}
+                        data-testid="button-cancel-edit-tournament"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleEditTournament}
+                        disabled={editTournamentMutation.isPending}
+                        data-testid="button-submit-edit-tournament"
+                      >
+                        {editTournamentMutation.isPending ? "Updating..." : "Update Tournament"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {tournamentsLoading ? (
@@ -399,29 +625,60 @@ export default function Tournaments() {
                       )}
                       
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => joinTournamentMutation.mutate(tournament.id)}
-                          disabled={tournament.status !== 'upcoming' || joinTournamentMutation.isPending}
-                          data-testid={`button-join-tournament-${tournament.id}`}
-                        >
-                          <i className="fas fa-plus mr-2"></i>
-                          {tournament.status === 'upcoming' ? 'Join' : 'View'}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = `/tournaments/${tournament.id}`;
-                            link.click();
-                          }}
-                          data-testid={`button-view-tournament-${tournament.id}`}
-                        >
-                          <i className="fas fa-eye mr-2"></i>
-                          Details
-                        </Button>
+                        {isOrganizer(tournament) ? (
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => openEditModal(tournament)}
+                              disabled={tournament.status === 'completed'}
+                              data-testid={`button-edit-tournament-${tournament.id}`}
+                            >
+                              <i className="fas fa-edit mr-2"></i>
+                              {tournament.status === 'completed' ? 'View' : 'Edit'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `/tournaments/${tournament.id}`;
+                                link.click();
+                              }}
+                              data-testid={`button-view-tournament-${tournament.id}`}
+                            >
+                              <i className="fas fa-eye mr-2"></i>
+                              Details
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => joinTournamentMutation.mutate(tournament.id)}
+                              disabled={tournament.status !== 'upcoming' || joinTournamentMutation.isPending}
+                              data-testid={`button-join-tournament-${tournament.id}`}
+                            >
+                              <i className="fas fa-plus mr-2"></i>
+                              {tournament.status === 'upcoming' ? 'Join' : 'View'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `/tournaments/${tournament.id}`;
+                                link.click();
+                              }}
+                              data-testid={`button-view-tournament-${tournament.id}`}
+                            >
+                              <i className="fas fa-eye mr-2"></i>
+                              Details
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
