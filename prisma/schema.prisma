@@ -1,9 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// Prisma schema matching current Drizzle models
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -12,4 +7,575 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Session storage table for authentication
+model Session {
+  sid    String   @id
+  sess   Json
+  expire DateTime
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("sessions")
+}
+
+// User model with comprehensive profile fields
+model User {
+  id                  String    @id @default(cuid())
+  email               String?   @unique
+  firstName           String?   @map("first_name")
+  lastName            String?   @map("last_name")
+  profileImageUrl     String?   @map("profile_image_url")
+  primaryCommunity    String?   @map("primary_community")
+  username            String?
+  bio                 String?
+  location            String?
+  website             String?
+  status              String?   @default("offline")
+  statusMessage       String?   @map("status_message")
+  timezone            String?
+  dateOfBirth         String?   @map("date_of_birth")
+  isPrivate           Boolean   @default(false) @map("is_private")
+  showOnlineStatus    String    @default("everyone") @map("show_online_status")
+  allowDirectMessages String    @default("everyone") @map("allow_direct_messages")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  userCommunities          UserCommunity[]
+  themePreferences         ThemePreference[]
+  createdEvents            Event[]           @relation("CreatedEvents")
+  hostedEvents             Event[]           @relation("HostedEvents")
+  coHostedEvents           Event[]           @relation("CoHostedEvents")
+  eventAttendees           EventAttendee[]
+  notifications            Notification[]
+  sentMessages             Message[]         @relation("SentMessages")
+  receivedMessages         Message[]         @relation("ReceivedMessages")
+  hostedGameSessions       GameSession[]     @relation("HostedGameSessions")
+  coHostedGameSessions     GameSession[]     @relation("CoHostedGameSessions")
+  socialLinks              UserSocialLink[]
+  gamingProfiles           UserGamingProfile[]
+  sentFriendRequests       Friendship[]      @relation("SentFriendRequests")
+  receivedFriendRequests   Friendship[]      @relation("ReceivedFriendRequests")
+  activities               UserActivity[]
+  settings                 UserSettings[]
+  matchmakingPreferences   MatchmakingPreference[]
+  organizedTournaments     Tournament[]      @relation("OrganizedTournaments")
+  tournamentParticipation  TournamentParticipant[]
+  forumPosts               ForumPost[]
+  forumReplies             ForumReply[]
+  forumPostLikes           ForumPostLike[]
+  forumReplyLikes          ForumReplyLike[]
+  tournamentMatchesPlayer1 TournamentMatch[] @relation("Player1Matches")
+  tournamentMatchesPlayer2 TournamentMatch[] @relation("Player2Matches")
+  tournamentMatchWins      TournamentMatch[] @relation("WinnerMatches")
+  matchResultsWins         MatchResult[]     @relation("WinnerResults")
+  matchResultsLosses       MatchResult[]     @relation("LoserResults")
+  matchResultsReported     MatchResult[]     @relation("ReportedResults")
+  matchResultsVerified     MatchResult[]     @relation("VerifiedResults")
+
+  @@map("users")
+}
+
+// Gaming communities
+model Community {
+  id           String    @id
+  name         String
+  displayName  String    @map("display_name")
+  description  String?
+  themeColor   String    @map("theme_color")
+  iconClass    String    @map("icon_class")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  userCommunities  UserCommunity[]
+  themePreferences ThemePreference[]
+  events           Event[]
+  forumPosts       ForumPost[]
+  tournaments      Tournament[]
+
+  @@map("communities")
+}
+
+// User community memberships
+model UserCommunity {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  communityId String    @map("community_id")
+  isPrimary   Boolean   @default(false) @map("is_primary")
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+
+  // Relationships
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@map("user_communities")
+}
+
+// User theme preferences
+model ThemePreference {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  communityId  String?   @map("community_id")
+  themeMode    String    @default("dark") @map("theme_mode")
+  customColors Json?     @map("custom_colors")
+  updatedAt    DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id])
+
+  @@map("theme_preferences")
+}
+
+// Events/Calendar system
+model Event {
+  id                  String    @id @default(cuid())
+  title               String
+  description         String?
+  type                String    // tournament, convention, release, stream, community, personal, game_pod
+  date                String    // YYYY-MM-DD format
+  time                String    // HH:MM format
+  location            String
+  communityId         String?   @map("community_id")
+  creatorId           String    @map("creator_id")
+  hostId              String    @map("host_id")
+  coHostId            String?   @map("co_host_id")
+  maxAttendees        Int?      @map("max_attendees")
+  isPublic            Boolean   @default(true) @map("is_public")
+  status              String    @default("active") // active, cancelled, completed
+  playerSlots         Int       @default(4) @map("player_slots")
+  alternateSlots      Int       @default(2) @map("alternate_slots")
+  gameFormat          String?   @map("game_format")
+  powerLevel          Int?      @map("power_level")
+  isRecurring         Boolean   @default(false) @map("is_recurring")
+  recurrencePattern   String?   @map("recurrence_pattern")
+  recurrenceInterval  Int       @default(1) @map("recurrence_interval")
+  recurrenceEndDate   String?   @map("recurrence_end_date")
+  parentEventId       String?   @map("parent_event_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  community  Community?      @relation(fields: [communityId], references: [id])
+  creator    User            @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+  host       User            @relation("HostedEvents", fields: [hostId], references: [id], onDelete: Cascade)
+  coHost     User?           @relation("CoHostedEvents", fields: [coHostId], references: [id], onDelete: SetNull)
+  attendees  EventAttendee[]
+
+  @@index([creatorId], map: "idx_events_creator_id")
+  @@index([communityId], map: "idx_events_community_id")
+  @@index([date], map: "idx_events_date")
+  @@index([status], map: "idx_events_status")
+  @@map("events")
+}
+
+// Event attendees
+model EventAttendee {
+  id         String    @id @default(cuid())
+  eventId    String    @map("event_id")
+  userId     String    @map("user_id")
+  status     String    @default("attending") // attending, maybe, not_attending
+  role       String    @default("participant") @map("role") // participant, host, co_host, spectator
+  playerType String    @default("main") @map("player_type") // main, alternate
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+
+  // Relationships
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("event_attendees")
+}
+
+// Tournament system
+model Tournament {
+  id                  String    @id @default(cuid())
+  name                String
+  description         String?
+  gameFormat          String    @map("game_format")
+  communityId         String    @map("community_id")
+  organizerId         String    @map("organizer_id")
+  maxParticipants     Int       @default(8) @map("max_participants")
+  currentParticipants Int       @default(0) @map("current_participants")
+  status              String    @default("upcoming") // upcoming, active, completed, cancelled
+  startDate           DateTime? @map("start_date")
+  endDate             DateTime? @map("end_date")
+  bracketData         Json?     @map("bracket_data")
+  prizePool           String?   @map("prize_pool")
+  rules               String?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  community    Community               @relation(fields: [communityId], references: [id])
+  organizer    User                    @relation("OrganizedTournaments", fields: [organizerId], references: [id])
+  participants TournamentParticipant[]
+  rounds       TournamentRound[]
+  matches      TournamentMatch[]
+
+  @@map("tournaments")
+}
+
+model TournamentParticipant {
+  id           String    @id @default(cuid())
+  tournamentId String    @map("tournament_id")
+  userId       String    @map("user_id")
+  seed         Int?
+  status       String    @default("registered") // registered, active, eliminated, winner
+  joinedAt     DateTime  @default(now()) @map("joined_at")
+
+  // Relationships
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tournamentId], map: "idx_tournament_participants_tournament_id")
+  @@index([userId], map: "idx_tournament_participants_user_id")
+  @@map("tournament_participants")
+}
+
+model TournamentFormat {
+  id                      String  @id @default(cuid())
+  name                    String
+  code                    String  @unique
+  description             String?
+  supportsSeeding         Boolean @default(true) @map("supports_seeding")
+  requiresEvenParticipants Boolean @default(false) @map("requires_even_participants")
+  isActive                Boolean @default(true) @map("is_active")
+
+  @@map("tournament_formats")
+}
+
+model TournamentRound {
+  id           String    @id @default(cuid())
+  tournamentId String    @map("tournament_id")
+  roundNumber  Int       @map("round_number")
+  name         String?
+  status       String    @default("pending") // pending, active, completed
+  startTime    DateTime? @map("start_time")
+  endTime      DateTime? @map("end_time")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  tournament Tournament        @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matches    TournamentMatch[]
+
+  @@index([tournamentId], map: "idx_tournament_rounds_tournament_id")
+  @@index([status], map: "idx_tournament_rounds_status")
+  @@map("tournament_rounds")
+}
+
+model TournamentMatch {
+  id              String    @id @default(cuid())
+  tournamentId    String    @map("tournament_id")
+  roundId         String    @map("round_id")
+  player1Id       String?   @map("player1_id")
+  player2Id       String?   @map("player2_id")
+  winnerId        String?   @map("winner_id")
+  status          String    @default("pending") // pending, active, completed, bye
+  gameSessionId   String?   @map("game_session_id")
+  bracketPosition Int?      @map("bracket_position")
+  player1Score    Int       @default(0) @map("player1_score")
+  player2Score    Int       @default(0) @map("player2_score")
+  matchData       Json?     @map("match_data")
+  startTime       DateTime? @map("start_time")
+  endTime         DateTime? @map("end_time")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  tournament Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  round      TournamentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  player1    User?         @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2    User?         @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: Cascade)
+  winner     User?         @relation("WinnerMatches", fields: [winnerId], references: [id])
+  results    MatchResult[]
+
+  @@index([tournamentId], map: "idx_tournament_matches_tournament_id")
+  @@index([roundId], map: "idx_tournament_matches_round_id")
+  @@index([status], map: "idx_tournament_matches_status")
+  @@index([player1Id], map: "idx_tournament_matches_player1_id")
+  @@index([player2Id], map: "idx_tournament_matches_player2_id")
+  @@map("tournament_matches")
+}
+
+model MatchResult {
+  id           String    @id @default(cuid())
+  matchId      String    @map("match_id")
+  winnerId     String    @map("winner_id")
+  loserId      String?   @map("loser_id")
+  winnerScore  Int       @map("winner_score")
+  loserScore   Int       @map("loser_score")
+  gameLength   Int?      @map("game_length")
+  resultType   String    @default("normal") @map("result_type") // normal, forfeit, timeout, disqualification
+  notes        String?
+  reportedById String    @map("reported_by_id")
+  verifiedById String?   @map("verified_by_id")
+  isVerified   Boolean   @default(false) @map("is_verified")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  match      TournamentMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  winner     User            @relation("WinnerResults", fields: [winnerId], references: [id])
+  loser      User?           @relation("LoserResults", fields: [loserId], references: [id])
+  reportedBy User            @relation("ReportedResults", fields: [reportedById], references: [id])
+  verifiedBy User?           @relation("VerifiedResults", fields: [verifiedById], references: [id])
+
+  @@index([matchId], map: "idx_match_results_match_id")
+  @@index([winnerId], map: "idx_match_results_winner_id")
+  @@index([loserId], map: "idx_match_results_loser_id")
+  @@map("match_results")
+}
+
+// Additional tables for comprehensive platform features
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  title     String
+  message   String
+  type      String    // info, warning, error, success
+  isRead    Boolean   @default(false) @map("is_read")
+  actionUrl String?   @map("action_url")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  senderId   String    @map("sender_id")
+  receiverId String    @map("receiver_id")
+  subject    String?
+  content    String
+  isRead     Boolean   @default(false) @map("is_read")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  editedAt   DateTime? @map("edited_at")
+
+  // Relationships
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model GameSession {
+  id           String    @id @default(cuid())
+  name         String
+  gameType     String    @map("game_type")
+  hostId       String    @map("host_id")
+  coHostId     String?   @map("co_host_id")
+  maxPlayers   Int       @default(4) @map("max_players")
+  currentPlayers Int     @default(0) @map("current_players")
+  status       String    @default("waiting") // waiting, active, completed
+  isPrivate    Boolean   @default(false) @map("is_private")
+  gameRoomUrl  String?   @map("game_room_url")
+  settings     Json?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  startedAt    DateTime? @map("started_at")
+  endedAt      DateTime? @map("ended_at")
+
+  // Relationships
+  host   User  @relation("HostedGameSessions", fields: [hostId], references: [id])
+  coHost User? @relation("CoHostedGameSessions", fields: [coHostId], references: [id])
+
+  @@map("game_sessions")
+}
+
+model UserSocialLink {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  platform  String    // twitch, youtube, twitter, discord, etc.
+  url       String
+  username  String?
+  isPublic  Boolean   @default(true) @map("is_public")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_social_links")
+}
+
+model UserGamingProfile {
+  id                    String    @id @default(cuid())
+  userId                String    @map("user_id")
+  platform              String    // arena, mtgo, pokemon_live, etc.
+  username              String
+  skillLevel            String?   @map("skill_level") // beginner, intermediate, advanced, expert
+  preferredFormats      Json?     @map("preferred_formats")
+  achievementBadges     Json?     @map("achievement_badges")
+  statistics            Json?
+  streamingSettings     Json?     @map("streaming_settings")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_gaming_profiles")
+}
+
+model Friendship {
+  id           String    @id @default(cuid())
+  requesterId  String    @map("requester_id")
+  receiverId   String    @map("receiver_id")
+  status       String    @default("pending") // pending, accepted, declined, blocked
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  requester User @relation("SentFriendRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("friendships")
+}
+
+model UserActivity {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  type        String    // login, logout, tournament_join, match_complete, etc.
+  description String
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_activities")
+}
+
+model UserSettings {
+  id                      String    @id @default(cuid())
+  userId                  String    @map("user_id")
+  emailNotifications      Boolean   @default(true) @map("email_notifications")
+  pushNotifications       Boolean   @default(true) @map("push_notifications")
+  profileVisibility       String    @default("public") @map("profile_visibility") // public, friends, private
+  showOnlineStatus        Boolean   @default(true) @map("show_online_status")
+  allowFriendRequests     Boolean   @default(true) @map("allow_friend_requests")
+  allowDirectMessages     Boolean   @default(true) @map("allow_direct_messages")
+  language                String    @default("en") @map("language")
+  timezone                String?
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model MatchmakingPreference {
+  id             String    @id @default(cuid())
+  userId         String    @unique @map("user_id")
+  selectedGames  Json      @default("[\"MTG\"]") @map("selected_games")
+  selectedFormats Json     @default("[\"commander\"]") @map("selected_formats")
+  powerLevelMin  Int       @default(1) @map("power_level_min")
+  powerLevelMax  Int       @default(10) @map("power_level_max")
+  playstyle      String    @default("any") // casual, focused, competitive, any
+  location       String?
+  onlineOnly     Boolean   @default(false) @map("online_only")
+  availability   String    @default("any") // morning, afternoon, evening, night, any
+  language       String    @default("english")
+  maxDistance    Int       @default(50) @map("max_distance")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("matchmaking_preferences")
+}
+
+// Forum system
+model ForumPost {
+  id            String    @id @default(cuid())
+  title         String
+  content       String
+  authorId      String    @map("author_id")
+  communityId   String    @map("community_id")
+  category      String    // strategy, deck-tech, stream-tips, general, collaboration
+  isPinned      Boolean   @default(false) @map("is_pinned")
+  isLocked      Boolean   @default(false) @map("is_locked")
+  viewCount     Int       @default(0) @map("view_count")
+  likeCount     Int       @default(0) @map("like_count")
+  replyCount    Int       @default(0) @map("reply_count")
+  lastReplyAt   DateTime? @map("last_reply_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  replies   ForumReply[]
+  likes     ForumPostLike[]
+
+  @@index([authorId], map: "idx_forum_posts_author_id")
+  @@index([communityId], map: "idx_forum_posts_community_id")
+  @@index([category], map: "idx_forum_posts_category")
+  @@index([createdAt], map: "idx_forum_posts_created_at")
+  @@map("forum_posts")
+}
+
+model ForumReply {
+  id            String    @id @default(cuid())
+  postId        String    @map("post_id")
+  authorId      String    @map("author_id")
+  content       String
+  parentReplyId String?   @map("parent_reply_id")
+  likeCount     Int       @default(0) @map("like_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @map("updated_at")
+
+  // Relationships
+  post        ForumPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       ForumReplyLike[]
+
+  @@index([postId], map: "idx_forum_replies_post_id")
+  @@index([authorId], map: "idx_forum_replies_author_id")
+  @@index([createdAt], map: "idx_forum_replies_created_at")
+  @@map("forum_replies")
+}
+
+model ForumPostLike {
+  id        String    @id @default(cuid())
+  postId    String    @map("post_id")
+  userId    String    @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId], map: "idx_forum_post_likes_post_id")
+  @@index([userId], map: "idx_forum_post_likes_user_id")
+  @@map("forum_post_likes")
+}
+
+model ForumReplyLike {
+  id        String    @id @default(cuid())
+  replyId   String    @map("reply_id")
+  userId    String    @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relationships
+  reply ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([replyId], map: "idx_forum_reply_likes_reply_id")
+  @@index([userId], map: "idx_forum_reply_likes_user_id")
+  @@map("forum_reply_likes")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  isUsed    Boolean   @default(false) @map("is_used")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
 }
