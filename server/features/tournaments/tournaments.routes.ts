@@ -3,6 +3,7 @@ import { isAuthenticated } from "../../replitAuth";
 import { tournamentsService } from "./tournaments.service";
 import { logger } from "../../logger";
 import { AuthenticatedRequest } from "../../types";
+import { updateTournamentSchema } from "@shared/schema";
 
 const router = Router();
 
@@ -193,6 +194,54 @@ router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req,
       matchId: req.params.matchId 
     });
     res.status(500).json({ message: (error as Error).message || "Failed to create match game session" });
+  }
+});
+
+// Update tournament
+router.patch('/:id', isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const userId = authenticatedReq.user.claims.sub;
+    const tournamentId = req.params.id;
+    
+    // Validate request body with UpdateTournament schema
+    const validationResult = updateTournamentSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        message: "Invalid tournament data", 
+        errors: validationResult.error.issues 
+      });
+    }
+    
+    // Convert date strings to Date objects if present
+    const updates = {
+      ...validationResult.data,
+      startDate: validationResult.data.startDate ? new Date(validationResult.data.startDate) : undefined,
+      endDate: validationResult.data.endDate ? new Date(validationResult.data.endDate) : undefined
+    };
+    
+    const updatedTournament = await tournamentsService.updateTournament(tournamentId, updates, userId);
+    res.json(updatedTournament);
+  } catch (error) {
+    logger.error("Failed to update tournament", error, { 
+      tournamentId: req.params.id, 
+      userId: authenticatedReq.user.claims.sub 
+    });
+    
+    // Return specific error messages from service
+    if (error instanceof Error) {
+      if (error.message.includes("not found")) {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error.message.includes("Only the tournament organizer") || 
+          error.message.includes("Cannot edit") ||
+          error.message.includes("Cannot reduce") ||
+          error.message.includes("Cannot change")) {
+        return res.status(403).json({ message: error.message });
+      }
+    }
+    
+    res.status(500).json({ message: "Failed to update tournament" });
   }
 });
 

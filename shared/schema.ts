@@ -913,9 +913,17 @@ export const insertMatchmakingPreferencesSchema = createInsertSchema(matchmaking
 });
 
 export const insertTournamentSchema = createInsertSchema(tournaments).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+  id: true,           // Prevent primary key tampering
+  createdAt: true,    // Prevent timestamp manipulation  
+  updatedAt: true,    // System managed field
+});
+
+export const updateTournamentSchema = insertTournamentSchema.partial().omit({
+  organizerId: true,      // Prevent organizer hijacking
+  communityId: true,      // Prevent community reassignment  
+  status: true,           // Prevent status manipulation
+  currentParticipants: true, // System calculated field
+  bracketData: true,      // System generated tournament data
 });
 
 export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants).omit({
@@ -1015,6 +1023,7 @@ export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type InsertMatchmakingPreferences = z.infer<typeof insertMatchmakingPreferencesSchema>;
 export type InsertTournament = z.infer<typeof insertTournamentSchema>;
+export type UpdateTournament = z.infer<typeof updateTournamentSchema>;
 export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
 export type InsertTournamentFormat = z.infer<typeof insertTournamentFormatSchema>;
 export type InsertTournamentRound = z.infer<typeof insertTournamentRoundSchema>;

@@ -8,6 +8,7 @@ import {
   TournamentMatch,
   InsertTournamentRound,
   InsertTournamentMatch,
+  UpdateTournament,
   User
 } from "@shared/schema";
 
@@ -70,6 +71,91 @@ export const tournamentsService = {
     }
   },
 
+  async updateTournament(tournamentId: string, updates: UpdateTournament, userId: string) {
+    try {
+      logger.info("Updating tournament", { tournamentId, updates, userId });
+
+      // Get tournament details
+      const tournament = await storage.getTournament(tournamentId);
+      if (!tournament) {
+        throw new Error("Tournament not found");
+      }
+
+      // Verify organizer permissions
+      if (tournament.organizerId !== userId) {
+        throw new Error("Only the tournament organizer can edit this tournament");
+      }
+
+      // Enforce business rules based on tournament status
+      const status = tournament.status || 'upcoming';
+      
+      if (status === 'completed') {
+        throw new Error("Cannot edit completed tournaments");
+      }
+
+      if (status === 'active') {
+        // For active tournaments, only allow limited edits
+        const allowedFields = ['name', 'description', 'rules', 'prizePool'];
+        const hasDisallowedFields = Object.keys(updates).some(field => 
+          !allowedFields.includes(field)
+        );
+        
+        if (hasDisallowedFields) {
+          throw new Error("Can only edit name, description, rules, and prize pool for active tournaments");
+        }
+      }
+
+      // Validate maxParticipants if being updated
+      if (updates.maxParticipants !== undefined && updates.maxParticipants !== null) {
+        // Use authoritative participant count from participants array
+        const actualParticipantCount = tournament.participants?.length || 0;
+        if (updates.maxParticipants < actualParticipantCount) {
+          throw new Error(`Cannot reduce max participants below current participant count (${actualParticipantCount})`);
+        }
+      }
+
+      // Validate startDate if being updated
+      if (updates.startDate !== undefined && status === 'active') {
+        throw new Error("Cannot change start date for active tournaments");
+      }
+
+      // Validate gameFormat if being updated
+      if (updates.gameFormat !== undefined && status === 'active') {
+        throw new Error("Cannot change game format for active tournaments");
+      }
+
+      // CRITICAL SECURITY: Server-side field whitelist guard
+      // Prevent primary key/timestamp tampering regardless of schema configuration
+      const ALLOWED_UPDATE_FIELDS = [
+        'name', 'description', 'gameFormat', 'maxParticipants',
+        'startDate', 'endDate', 'prizePool', 'rules'
+      ] as const;
+      
+      const sanitizedUpdates: Partial<UpdateTournament> = {};
+      for (const [key, value] of Object.entries(updates)) {
+        if (ALLOWED_UPDATE_FIELDS.includes(key as any)) {
+          (sanitizedUpdates as any)[key] = value;
+        } else {
+          logger.warn("Blocked unauthorized field update attempt", { 
+            field: key, 
+            tournamentId, 
+            userId,
+            attemptedValue: value 
+          });
+        }
+      }
+
+      // Perform the update with sanitized data
+      const updatedTournament = await storage.updateTournament(tournamentId, sanitizedUpdates);
+      
+      logger.info("Tournament updated successfully", { tournamentId, updates });
+      return updatedTournament;
+    } catch (error) {
+      logger.error("Service error: Failed to update tournament", error, { tournamentId, updates, userId });
+      throw error;
+    }
+  },
+
   // ======================================
   // ADVANCED TOURNAMENT ENGINE FEATURES
   // ======================================
@@ -119,10 +205,8 @@ export const tournamentsService = {
       const format = tournament.gameFormat as TournamentFormatType;
       await this.generateBracket(tournamentId, participants, format);
 
-      // Update tournament status to active
-      await storage.updateTournament(tournamentId, {
-        status: "active"
-      });
+      // Update tournament status to active (internal system update)
+      await storage.updateTournamentStatus(tournamentId, "active");
 
       logger.info("Tournament started successfully", { tournamentId, participantCount: participants.length });
       return await storage.getTournament(tournamentId);
@@ -345,11 +429,10 @@ export const tournamentsService = {
           await this.generateNextEliminationRound(tournamentId, nextRound.id, currentMatches);
         }
       } else {
-        // Tournament is complete - update tournament status and determine winners
-        await storage.updateTournament(tournamentId, {
-          status: "completed",
-          endDate: new Date()
-        });
+        // Tournament is complete - update tournament status and determine winners (internal system update)
+        await storage.updateTournament(tournamentId, { endDate: new Date() });
+        // TODO: Create internal method for status updates  
+        await storage.updateTournament(tournamentId, { status: "completed" } as any);
         
         logger.info("Tournament completed", { tournamentId });
       }

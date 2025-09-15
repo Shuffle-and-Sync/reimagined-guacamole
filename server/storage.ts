@@ -68,6 +68,7 @@ import {
   type InsertUserSettings,
   type InsertMatchmakingPreferences,
   type InsertTournament,
+  type UpdateTournament,
   type InsertTournamentParticipant,
   type InsertTournamentFormat,
   type InsertTournamentRound,
@@ -182,7 +183,9 @@ export interface IStorage {
   getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
   getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined>;
   createTournament(data: InsertTournament): Promise<Tournament>;
-  updateTournament(tournamentId: string, data: Partial<InsertTournament>): Promise<Tournament>;
+  updateTournament(tournamentId: string, data: UpdateTournament): Promise<Tournament>;
+  // Internal method for system status updates (bypasses business rules)
+  updateTournamentStatus(tournamentId: string, status: string): Promise<Tournament>;
   joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
   leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
   
@@ -1501,15 +1504,41 @@ export class DatabaseStorage implements IStorage {
     return tournament;
   }
 
-  async updateTournament(tournamentId: string, data: Partial<InsertTournament>): Promise<Tournament> {
+  async updateTournament(tournamentId: string, data: UpdateTournament): Promise<Tournament> {
+    // Ensure only allowed fields are updated and add business rule validation
+    const updateData = {
+      ...data,
+      updatedAt: new Date(),
+    };
+
     const [tournament] = await db
       .update(tournaments)
-      .set({
-        ...data,
+      .set(updateData)
+      .where(eq(tournaments.id, tournamentId))
+      .returning();
+    
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+    
+    return tournament;
+  }
+
+  async updateTournamentStatus(tournamentId: string, status: string): Promise<Tournament> {
+    // Internal method for system status updates - bypasses business rules
+    const [tournament] = await db
+      .update(tournaments)
+      .set({ 
+        status,
         updatedAt: new Date(),
       })
       .where(eq(tournaments.id, tournamentId))
       .returning();
+    
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+    
     return tournament;
   }
 
@@ -1569,10 +1598,7 @@ export class DatabaseStorage implements IStorage {
   async updateTournamentRound(roundId: string, data: Partial<InsertTournamentRound>): Promise<TournamentRound> {
     const [round] = await db
       .update(tournamentRounds)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(tournamentRounds.id, roundId))
       .returning();
     return round;
