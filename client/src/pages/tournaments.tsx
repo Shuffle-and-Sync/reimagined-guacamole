@@ -42,8 +42,18 @@ export default function Tournaments() {
 
   // Fetch tournaments - only for authenticated users
   const { data: tournaments = [], isLoading: tournamentsLoading } = useQuery<Tournament[]>({
-    queryKey: ['/api/tournaments', selectedCommunity?.id],
-    enabled: isAuthenticated && !!selectedCommunity, // Only fetch when authenticated and community selected
+    queryKey: ['/api/tournaments', { community: selectedCommunity?.id }],
+    queryFn: async () => {
+      const url = selectedCommunity?.id 
+        ? `/api/tournaments?community=${selectedCommunity.id}`
+        : '/api/tournaments';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch tournaments');
+      }
+      return response.json();
+    },
+    enabled: isAuthenticated, // Fetch when authenticated, regardless of community selection
   });
 
   // Create tournament mutation
