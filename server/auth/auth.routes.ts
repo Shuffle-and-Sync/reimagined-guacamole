@@ -13,13 +13,29 @@ router.all("/api/auth/*", async (req, res) => {
       `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const url = `${base}${req.originalUrl}`;
     
-    // Create Auth.js request with proper body handling
+    // Create Auth.js request with proper body handling for form data
+    let body: string | undefined = undefined;
+    if (!["GET", "HEAD"].includes(req.method)) {
+      if (req.body && typeof req.body === 'object') {
+        // Convert Express parsed body back to form data
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(req.body)) {
+          if (typeof value === 'string') {
+            params.append(key, value);
+          }
+        }
+        body = params.toString();
+      }
+    }
+
     const authRequest = new Request(url, {
       method: req.method,
-      headers: req.headers as any,
-      body: ["GET", "HEAD"].includes(req.method) ? undefined : req.rawBody || req.body,
-      duplex: ["GET", "HEAD"].includes(req.method) ? undefined : "half",
-    } as RequestInit);
+      headers: {
+        ...req.headers,
+        'content-type': req.method === 'POST' ? 'application/x-www-form-urlencoded' : req.headers['content-type']
+      } as any,
+      body,
+    });
 
     // Handle the request with Auth.js
     const response = await Auth(authRequest, authConfig);
