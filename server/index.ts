@@ -16,8 +16,12 @@ import { errorHandler, requestLogger, corsHandler, securityHeaders } from "./sha
 
 // Import auth setup
 import { setupAuth } from "./replitAuth";
+import authRouter from "./auth/auth.routes";
 
 const app = express();
+
+// Trust proxy for correct x-forwarded-* headers (required for Auth.js host validation)
+app.set('trust proxy', true);
 
 // Basic middleware
 app.use(express.json());
@@ -29,8 +33,11 @@ app.use(express.urlencoded({ extended: false }));
   // Set up authentication middleware (required for isAuthenticated to work)
   await setupAuth(app);
 
-  // Register feature-based routes
-  app.use('/api/auth', authRoutes);
+  // Auth.js routes (MUST be before Vite middleware)
+  app.use(authRouter);
+
+  // Register feature-based routes (skip /api/auth since it's handled by authRouter)
+  // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
   app.use('/api/communities', communitiesRoutes);
   app.use('/api/user/communities', userCommunitiesRouter);
   app.use('/api/user/theme-preferences', themePreferencesRouter);

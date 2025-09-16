@@ -10,6 +10,7 @@ import { randomBytes } from "crypto";
 import { logger } from "./logger";
 import { AuthenticatedRequest, NotFoundError, ValidationError } from "./types";
 import { healthCheck } from "./health";
+import nextAuthRouter from "./auth/nextauth.routes";
 import { 
   validateRequest, 
   validateParams, 
@@ -42,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auth middleware
   await setupAuth(app);
+
+  // NextAuth.js routes
+  app.use(nextAuthRouter);
 
   // Initialize default communities
   await initializeDefaultCommunities();
