@@ -11,7 +11,8 @@ export interface AuthenticatedUser {
   refreshToken?: string;
 }
 
-export interface AuthenticatedRequest extends Request {
+// Legacy type - use types from server/auth instead
+export interface LegacyAuthenticatedRequest extends Request {
   user: AuthenticatedUser;
 }
 

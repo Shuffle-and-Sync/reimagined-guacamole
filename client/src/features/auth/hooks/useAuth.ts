@@ -1,17 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
 import { queryKeys } from "@/shared/constants/queryKeys";
-
-// Auth.js v5 session type
-export interface AuthSession {
-  user?: {
-    id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-  expires: string;
-}
+import type { AuthSession } from "../types";
 
 export function useAuth() {
   const queryClient = useQueryClient();
@@ -85,9 +75,23 @@ export function useAuth() {
     window.location.href = `/api/auth/signin/${provider}`;
   }, []);
 
-  const signOut = useCallback(() => {
-    window.location.href = '/api/auth/signout';
-  }, []);
+  const signOut = useCallback(async () => {
+    try {
+      // POST to signout immediately instead of GET to confirmation page
+      await fetch('/api/auth/signout', { 
+        method: 'POST', 
+        credentials: 'include' 
+      });
+      
+      // Invalidate auth query and redirect to home
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Fallback to redirect on error
+      window.location.href = '/api/auth/signout';
+    }
+  }, [queryClient]);
 
   return {
     session,

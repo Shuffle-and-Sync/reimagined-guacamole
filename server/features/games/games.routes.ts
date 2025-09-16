@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 import { validateRequest, validateGameSessionSchema } from "../../validation";
 import { storage } from "../../storage";
 
@@ -22,14 +21,15 @@ router.post('/game-sessions', isAuthenticated, validateRequest(validateGameSessi
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const sessionData = { ...req.body, hostId: user.claims.sub };
+    const userId = getAuthUserId(authenticatedReq);
+    const sessionData = { ...req.body, hostId: userId };
     
-    logger.info("Creating game session", { sessionData, userId: user.claims.sub });
+    logger.info("Creating game session", { sessionData, userId });
     
     const session = await storage.createGameSession(sessionData);
     res.json(session);
   } catch (error) {
-    logger.error("Failed to create game session", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to create game session", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to create game session" });
   }
 });

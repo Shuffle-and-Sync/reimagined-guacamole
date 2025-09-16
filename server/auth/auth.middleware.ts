@@ -1,64 +1,129 @@
-// Authentication middleware for NextAuth.js
+// Auth.js v5 middleware for Express.js routes
 import type { Request, Response, NextFunction } from "express";
-import { getToken } from "@auth/core/jwt";
+import { Auth } from "@auth/core";
 import authConfig from "./auth.config";
 
-export interface AuthenticatedRequest extends Omit<Request, 'session'> {
+// Auth.js session type
+export interface AuthSession {
   user?: {
     id: string;
-    email?: string;
-    name?: string;
-    image?: string;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
   };
-  session?: any;
+  expires: string;
 }
 
-// Middleware to check if user is authenticated
-export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+// Module augmentation to extend Express Request without conflicts
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: AuthSession;
+      user?: {
+        id: string;
+        email?: string | null;
+        name?: string | null;
+        image?: string | null;
+        // For backward compatibility with old Replit Auth routes
+        claims?: {
+          sub: string;
+          email?: string | null;
+        };
+      };
+    }
+  }
+}
+
+// Compatibility type during migration
+export type AuthenticatedRequest = Request;
+
+// Middleware to check if user is authenticated (replaces old isAuthenticated)
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = await getToken({ 
-      req: req as any, 
-      secret: process.env.NEXTAUTH_SECRET || process.env.SESSION_SECRET,
-      cookieName: "authjs.session-token"
-    });
+    // Build the session check URL
+    const base = process.env.AUTH_URL || 
+      `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    const sessionUrl = `${base}/api/auth/session`;
     
-    if (!token || !token.sub) {
-      return res.status(401).json({ error: "Authentication required" });
+    // Create Auth.js session request
+    const sessionRequest = new Request(sessionUrl, {
+      method: "GET",
+      headers: {
+        // Forward the cookies to get the session
+        cookie: req.headers.cookie || "",
+      },
+    });
+
+    // Get session from Auth.js
+    const response = await Auth(sessionRequest, authConfig);
+    
+    if (!response.ok) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Add user info to request
-    req.user = {
-      id: token.sub,
-      email: token.email as string,
-      name: token.name as string,
-      image: token.picture as string,
-    };
+    const sessionData = await response.json();
     
+    // Check if user is authenticated
+    if (!sessionData || !sessionData.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Add auth session and user data to request (avoiding session conflicts)
+    req.auth = sessionData;
+    req.user = {
+      id: sessionData.user.id,
+      email: sessionData.user.email,
+      name: sessionData.user.name,
+      image: sessionData.user.image,
+      // For backward compatibility with old Replit Auth routes
+      claims: {
+        sub: sessionData.user.id,
+        email: sessionData.user.email,
+      },
+    };
+
     next();
   } catch (error) {
-    console.error("Authentication middleware error:", error);
-    res.status(500).json({ error: "Authentication error" });
+    console.error("Auth middleware error:", error);
+    return res.status(401).json({ message: "Unauthorized" });
   }
 }
 
 // Middleware to optionally get user session (doesn't require auth)
-export async function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = await getToken({ 
-      req: req as any, 
-      secret: process.env.NEXTAUTH_SECRET || process.env.SESSION_SECRET,
-      cookieName: "authjs.session-token"
-    });
+    // Build the session check URL
+    const base = process.env.AUTH_URL || 
+      `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    const sessionUrl = `${base}/api/auth/session`;
     
-    if (token?.sub) {
+    // Create Auth.js session request
+    const sessionRequest = new Request(sessionUrl, {
+      method: "GET",
+      headers: {
+        cookie: req.headers.cookie || "",
+      },
+    });
+
+    // Get session from Auth.js
+    const response = await Auth(sessionRequest, authConfig);
+    const sessionData = response.ok ? await response.json() : null;
+    
+    // Add auth session data to request (avoiding session conflicts)
+    req.auth = sessionData;
+    if (sessionData?.user) {
       req.user = {
-        id: token.sub,
-        email: token.email as string,
-        name: token.name as string,
-        image: token.picture as string,
+        id: sessionData.user.id,
+        email: sessionData.user.email,
+        name: sessionData.user.name,
+        image: sessionData.user.image,
+        claims: {
+          sub: sessionData.user.id,
+          email: sessionData.user.email,
+        },
       };
     }
-    
+
     next();
   } catch (error) {
     console.error("Optional auth middleware error:", error);
@@ -76,3 +141,7 @@ export function getCurrentUserId(req: AuthenticatedRequest): string | undefined 
 export function isAuthenticated(req: AuthenticatedRequest): boolean {
   return !!req.user?.id;
 }
+
+// Drop-in replacement for the old Replit Auth isAuthenticated middleware
+// This allows existing routes to work without modification
+export const isAuthenticatedCompat = requireAuth;
