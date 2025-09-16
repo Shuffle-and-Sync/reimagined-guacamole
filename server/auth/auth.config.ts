@@ -51,7 +51,7 @@ export const authConfig: AuthConfig = {
     signIn({ user, account, isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);
     },
-    signOut({ session }) {
+    signOut() {
       console.log(`User signed out`);
     },
   },

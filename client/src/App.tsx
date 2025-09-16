@@ -22,6 +22,8 @@ import FAQ from "@/pages/faq";
 import APIDocs from "@/pages/api-docs";
 import CommunityForum from "@/pages/community-forum";
 import Contact from "@/pages/contact";
+import SignIn from "@/pages/auth/signin";
+import AuthError from "@/pages/auth/error";
 
 function Router() {
   return (
@@ -38,6 +40,10 @@ function Router() {
       <Route path="/api-docs" component={APIDocs} />
       <Route path="/community-forum" component={CommunityForum} />
       <Route path="/contact" component={Contact} />
+      
+      {/* Auth routes */}
+      <Route path="/auth/signin" component={SignIn} />
+      <Route path="/auth/error" component={AuthError} />
       
       {/* Protected routes - require authentication */}
       <Route path="/home">
