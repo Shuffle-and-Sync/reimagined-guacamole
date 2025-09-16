@@ -7,6 +7,7 @@ const router = Router();
 
 // Handle all Auth.js routes
 router.all("/api/auth/*", async (req, res) => {
+  console.log(`[Auth] ${req.method} ${req.originalUrl}`);
   try {
     // Use AUTH_URL if available, otherwise build from forwarded headers
     const base = process.env.AUTH_URL || 
@@ -34,10 +35,12 @@ router.all("/api/auth/*", async (req, res) => {
     // Handle the request with Auth.js
     const response = await Auth(authRequest, authConfig);
     
-    // Copy response headers with proper Set-Cookie handling
-    const setCookies = (response.headers as any).getSetCookie?.() ?? [];
-    if (setCookies.length) {
-      res.setHeader('Set-Cookie', setCookies);
+    // Copy response headers with robust Set-Cookie handling
+    const raw = (response.headers as any).raw?.()?.["set-cookie"];
+    const single = response.headers.get("set-cookie");
+    const cookies = raw ?? (single ? single.split(/,(?=[^;]+?=)/g) : []);
+    if (cookies.length) {
+      res.setHeader("Set-Cookie", cookies);
     }
     
     // Copy all other headers (excluding Set-Cookie)
@@ -49,6 +52,7 @@ router.all("/api/auth/*", async (req, res) => {
     
     // Set status and send response
     res.status(response.status);
+    console.log(`[Auth] ${req.method} ${req.originalUrl} -> ${response.status}`);
     
     if (response.body) {
       const buffer = Buffer.from(await response.arrayBuffer());
