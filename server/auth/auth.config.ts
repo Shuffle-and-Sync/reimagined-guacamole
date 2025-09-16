@@ -43,10 +43,11 @@ export const authConfig: AuthConfig = {
       return token;
     },
   },
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
-  },
+  // Temporarily disable custom pages to test baseline functionality
+  // pages: {
+  //   signIn: "/auth/signin", 
+  //   error: "/auth/error",
+  // },
   events: {
     signIn({ user, account, isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);

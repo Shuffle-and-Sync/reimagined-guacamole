@@ -23,6 +23,9 @@ const app = express();
 // Trust proxy for correct x-forwarded-* headers (required for Auth.js host validation)
 app.set('trust proxy', true);
 
+// Set up Auth.js routes BEFORE body parsers to preserve raw request body
+app.use(authRouter);
+
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -32,9 +35,6 @@ app.use(express.urlencoded({ extended: false }));
 (async () => {
   // Set up authentication middleware (required for isAuthenticated to work)
   await setupAuth(app);
-
-  // Auth.js routes (MUST be before Vite middleware)
-  app.use(authRouter);
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
