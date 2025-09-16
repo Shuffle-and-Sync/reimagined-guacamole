@@ -1,23 +1,30 @@
-import type { User } from "@shared/schema";
+// Auth.js v5 types
+export interface AuthUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
 
-export interface AuthUser extends User {
-  communities?: any[];
+export interface AuthSession {
+  user?: AuthUser;
+  expires: string;
 }
 
 export interface AuthState {
+  session: AuthSession | null;
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+// OAuth provider types
+export type OAuthProvider = 'google' | 'github' | 'discord';
 
-export interface RegisterData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
+export interface AuthProviderConfig {
+  id: string;
+  name: string;
+  type: string;
+  signinUrl: string;
+  callbackUrl: string;
 }

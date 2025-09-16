@@ -6,7 +6,7 @@ import { prisma } from "@shared/database";
 
 export const authConfig: AuthConfig = {
   adapter: PrismaAdapter(prisma),
-  trustHost: process.env.AUTH_TRUST_HOST === 'true',
+  trustHost: true, // Temporarily hardcode for Replit development
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,

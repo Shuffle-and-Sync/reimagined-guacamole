@@ -1,35 +1,44 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
-import type { User } from "@shared/schema";
 import { queryKeys } from "@/shared/constants/queryKeys";
-import { useOptimizedQuery } from "@/shared/hooks/useOptimizedQuery";
+
+// Auth.js v5 session type
+export interface AuthSession {
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  expires: string;
+}
 
 export function useAuth() {
   const queryClient = useQueryClient();
   
-  // Use standard useQuery for auth with explicit queryFn
+  // Use Auth.js v5 session endpoint
   const { 
-    data: user, 
+    data: session, 
     isLoading, 
     isError,
     error,
-  } = useQuery<User & { communities?: any[] }>({
+  } = useQuery<AuthSession | null>({
     queryKey: queryKeys.auth.user(),
     queryFn: async () => {
-      const response = await fetch('/api/auth/user', {
+      const response = await fetch('/api/auth/session', {
         credentials: 'include',
       });
       
-      // Treat 401 as "not authenticated" rather than an error
-      if (response.status === 401) {
-        return null;
-      }
-      
+      // Auth.js returns 200 with null for unauthenticated users
       if (!response.ok) {
+        if (response.status === 401) {
+          return null;
+        }
         throw new Error(`Authentication failed: ${response.status}`);
       }
       
-      return response.json();
+      const sessionData = await response.json();
+      return sessionData;
     },
     retry: false, // No retries for auth
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -50,33 +59,45 @@ export function useAuth() {
 
   // Prefetch user-related data when user is loaded
   const prefetchUserData = useCallback(async () => {
-    if (user?.id) {
+    if (session?.user?.id) {
       await Promise.all([
         queryClient.prefetchQuery({ 
-          queryKey: queryKeys.users.profile(user.id),
+          queryKey: queryKeys.users.profile(session.user.id),
           staleTime: 1000 * 60 * 10 // 10 minutes
         }),
         queryClient.prefetchQuery({ 
-          queryKey: queryKeys.messaging.notifications(user.id),
+          queryKey: queryKeys.messaging.notifications(session.user.id),
           staleTime: 1000 * 60 * 2 // 2 minutes
         }),
       ]);
     }
-  }, [user?.id, queryClient]);
+  }, [session?.user?.id, queryClient]);
 
   // Auto-prefetch related data when user changes
   useEffect(() => {
-    if (user?.id && !isLoading) {
+    if (session?.user?.id && !isLoading) {
       prefetchUserData();
     }
-  }, [user?.id, isLoading, prefetchUserData]);
+  }, [session?.user?.id, isLoading, prefetchUserData]);
+
+  // Auth.js v5 login/logout functions
+  const signIn = useCallback((provider = 'google') => {
+    window.location.href = `/api/auth/signin/${provider}`;
+  }, []);
+
+  const signOut = useCallback(() => {
+    window.location.href = '/api/auth/signout';
+  }, []);
 
   return {
-    user,
+    session,
+    user: session?.user || null,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!session?.user,
     smartInvalidate,
     backgroundSync,
     prefetchUserData,
+    signIn,
+    signOut,
   };
 }
