@@ -1,0 +1,22 @@
+_app-f40f2fc041d696a2.js:38 [Report Only] Refused to connect to 'https://sp.replit.com/v1/m' because it violates the following Content Security Policy directive: "connect-src 'none'".
+
+_app-f40f2fc041d696a2.js:38 [Report Only] Refused to connect to 'https://sp.replit.com/v1/m' because it violates the following Content Security Policy directive: "connect-src 'none'".
+
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2Fapi%2Fauth%2Fsignin%3Ferror%3DMissingCSRF&id=%3Arb3b%3A:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_app-f40f2fc041d696a2.js:38 [Report Only] Refused to connect to 'https://replit.com/graphql' because it violates the following Content Security Policy directive: "connect-src 'none'".
+
+_app-f40f2fc041d696a2.js:38 [Report Only] Refused to connect to 'https://replit.com/graphql' because it violates the following Content Security Policy directive: "connect-src 'none'".
+

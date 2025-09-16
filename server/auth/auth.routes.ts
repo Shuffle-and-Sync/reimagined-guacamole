@@ -14,26 +14,20 @@ router.all("/api/auth/*", async (req, res) => {
     const url = `${base}${req.originalUrl}`;
     
     // Create Auth.js request with proper body handling for form data
-    let body: string | undefined = undefined;
-    if (!["GET", "HEAD"].includes(req.method)) {
-      if (req.body && typeof req.body === 'object') {
-        // Convert Express parsed body back to form data
-        const params = new URLSearchParams();
-        for (const [key, value] of Object.entries(req.body)) {
-          if (typeof value === 'string') {
-            params.append(key, value);
-          }
-        }
-        body = params.toString();
-      }
+    let body: URLSearchParams | undefined = undefined;
+    if (!["GET", "HEAD"].includes(req.method) && req.body) {
+      // Convert Express parsed body to URLSearchParams
+      body = new URLSearchParams(req.body as Record<string, string>);
     }
+
+    // Clean headers - remove content-length and transfer-encoding to avoid mismatches
+    const cleanHeaders = { ...req.headers };
+    delete cleanHeaders['content-length'];
+    delete cleanHeaders['transfer-encoding'];
 
     const authRequest = new Request(url, {
       method: req.method,
-      headers: {
-        ...req.headers,
-        'content-type': req.method === 'POST' ? 'application/x-www-form-urlencoded' : req.headers['content-type']
-      } as any,
+      headers: cleanHeaders as any,
       body,
     });
 

@@ -23,12 +23,12 @@ const app = express();
 // Trust proxy for correct x-forwarded-* headers (required for Auth.js host validation)
 app.set('trust proxy', true);
 
-// Set up Auth.js routes BEFORE body parsers to preserve raw request body
-app.use(authRouter);
-
-// Basic middleware
+// Basic middleware - body parsers MUST come before Auth.js routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up Auth.js routes AFTER body parsers so req.body is populated
+app.use(authRouter);
 
 // No custom middleware for now - keep it simple
 
