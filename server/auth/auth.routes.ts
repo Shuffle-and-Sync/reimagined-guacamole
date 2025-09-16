@@ -13,12 +13,13 @@ router.all("/api/auth/*", async (req, res) => {
       `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const url = `${base}${req.originalUrl}`;
     
-    // Create Auth.js request with raw body (not JSON.stringify)
+    // Create Auth.js request with proper body handling
     const authRequest = new Request(url, {
       method: req.method,
       headers: req.headers as any,
-      body: ["GET", "HEAD"].includes(req.method) ? undefined : req as any,
-    });
+      body: ["GET", "HEAD"].includes(req.method) ? undefined : req.rawBody || req.body,
+      duplex: ["GET", "HEAD"].includes(req.method) ? undefined : "half",
+    } as RequestInit);
 
     // Handle the request with Auth.js
     const response = await Auth(authRequest, authConfig);
