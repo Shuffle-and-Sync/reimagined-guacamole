@@ -1,3 +1,4 @@
+import { db, prisma } from "@shared/database";
 import {
   users,
   communities,
@@ -79,7 +80,6 @@ import {
   type InsertForumPostLike,
   type InsertForumReplyLike,
 } from "@shared/schema";
-import { db } from "./db";
 import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
