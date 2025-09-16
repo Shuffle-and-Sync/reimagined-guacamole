@@ -34,13 +34,15 @@ router.all("/api/auth/*", async (req, res) => {
     // Handle the request with Auth.js
     const response = await Auth(authRequest, authConfig);
     
-    // Copy response headers, handling multiple Set-Cookie headers properly
+    // Copy response headers with proper Set-Cookie handling
+    const setCookies = (response.headers as any).getSetCookie?.() ?? [];
+    if (setCookies.length) {
+      res.setHeader('Set-Cookie', setCookies);
+    }
+    
+    // Copy all other headers (excluding Set-Cookie)
     response.headers.forEach((value, key) => {
-      if (key.toLowerCase() === 'set-cookie') {
-        // Handle Set-Cookie specially to preserve multiple values
-        const cookies = response.headers.getSetCookie?.() || [value];
-        res.setHeader('set-cookie', cookies);
-      } else {
+      if (key.toLowerCase() !== 'set-cookie') {
         res.setHeader(key, value);
       }
     });
