@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { communitiesService } from "./communities.service";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 
 const router = Router();
 
@@ -43,7 +42,7 @@ export const userCommunitiesRouter = Router();
 userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const { communityId } = req.params;
     
     const userCommunity = await communitiesService.joinCommunity(userId, communityId);
@@ -54,7 +53,7 @@ userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, re
     }
     
     logger.error("Failed to join community", error, { 
-      userId: authenticatedReq.user.claims.sub, 
+      userId: getAuthUserId(authenticatedReq), 
       communityId: req.params.communityId 
     });
     res.status(500).json({ message: "Failed to join community" });
@@ -65,14 +64,14 @@ userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, re
 userCommunitiesRouter.post('/:communityId/set-primary', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const { communityId } = req.params;
     
     await communitiesService.setPrimaryCommunity(userId, communityId);
     res.json({ success: true });
   } catch (error) {
     logger.error("Failed to set primary community", error, { 
-      userId: authenticatedReq.user.claims.sub, 
+      userId: getAuthUserId(authenticatedReq), 
       communityId: req.params.communityId 
     });
     res.status(500).json({ message: "Failed to set primary community" });
@@ -86,11 +85,11 @@ export const themePreferencesRouter = Router();
 themePreferencesRouter.get('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const preferences = await communitiesService.getUserThemePreferences(userId);
     res.json(preferences);
   } catch (error) {
-    logger.error("Failed to fetch theme preferences", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch theme preferences", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to fetch theme preferences" });
   }
 });
@@ -99,7 +98,7 @@ themePreferencesRouter.get('/', isAuthenticated, async (req, res) => {
 themePreferencesRouter.post('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const { communityId, themeMode, customColors } = req.body;
     
     const preference = await communitiesService.updateThemePreferences(userId, {
@@ -110,7 +109,7 @@ themePreferencesRouter.post('/', isAuthenticated, async (req, res) => {
 
     res.json(preference);
   } catch (error) {
-    logger.error("Failed to update theme preferences", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to update theme preferences", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to update theme preferences" });
   }
 });

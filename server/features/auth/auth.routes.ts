@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { authService } from "./auth.service";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 import { 
   validateRequest, 
   validateEmailSchema,
@@ -19,7 +18,7 @@ const router = Router();
 router.get('/user', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const user = await authService.getCurrentUser(userId);
     
     if (!user) {
@@ -28,7 +27,7 @@ router.get('/user', isAuthenticated, async (req, res) => {
     
     res.json(user);
   } catch (error) {
-    logger.error("Failed to fetch user", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch user", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to fetch user" });
   }
 });

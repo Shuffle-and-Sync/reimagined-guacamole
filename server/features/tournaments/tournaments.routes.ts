@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { tournamentsService } from "./tournaments.service";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 import { updateTournamentSchema } from "@shared/schema";
 
 const router = Router();
@@ -49,7 +48,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     
     // Convert startDate string to Date object
     const tournamentData = { 
@@ -62,7 +61,7 @@ router.post('/', isAuthenticated, async (req, res) => {
     const tournament = await tournamentsService.createTournament(tournamentData);
     res.json(tournament);
   } catch (error) {
-    logger.error("Failed to create tournament", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to create tournament", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to create tournament" });
   }
 });
@@ -71,13 +70,13 @@ router.post('/', isAuthenticated, async (req, res) => {
 router.post('/:id/join', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     
     const participant = await tournamentsService.joinTournament(tournamentId, userId);
     res.json(participant);
   } catch (error) {
-    logger.error("Failed to join tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    logger.error("Failed to join tournament", error, { userId: getAuthUserId(authenticatedReq), tournamentId: req.params.id });
     res.status(500).json({ message: "Failed to join tournament" });
   }
 });
@@ -86,7 +85,7 @@ router.post('/:id/join', isAuthenticated, async (req, res) => {
 router.delete('/:id/leave', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     
     const success = await tournamentsService.leaveTournament(tournamentId, userId);
@@ -96,7 +95,7 @@ router.delete('/:id/leave', isAuthenticated, async (req, res) => {
       res.status(404).json({ message: "Tournament participation not found" });
     }
   } catch (error) {
-    logger.error("Failed to leave tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    logger.error("Failed to leave tournament", error, { userId: getAuthUserId(authenticatedReq), tournamentId: req.params.id });
     res.status(500).json({ message: "Failed to leave tournament" });
   }
 });
@@ -110,13 +109,13 @@ router.delete('/:id/leave', isAuthenticated, async (req, res) => {
 router.post('/:id/start', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     
     const tournament = await tournamentsService.startTournament(tournamentId, userId);
     res.json(tournament);
   } catch (error) {
-    logger.error("Failed to start tournament", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    logger.error("Failed to start tournament", error, { userId: getAuthUserId(authenticatedReq), tournamentId: req.params.id });
     res.status(500).json({ message: (error as Error).message || "Failed to start tournament" });
   }
 });
@@ -125,13 +124,13 @@ router.post('/:id/start', isAuthenticated, async (req, res) => {
 router.post('/:id/advance', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     
     const tournament = await tournamentsService.advanceRound(tournamentId, userId);
     res.json(tournament);
   } catch (error) {
-    logger.error("Failed to advance tournament round", error, { userId: authenticatedReq.user.claims.sub, tournamentId: req.params.id });
+    logger.error("Failed to advance tournament round", error, { userId: getAuthUserId(authenticatedReq), tournamentId: req.params.id });
     res.status(500).json({ message: (error as Error).message || "Failed to advance tournament round" });
   }
 });
@@ -144,7 +143,7 @@ router.post('/:id/advance', isAuthenticated, async (req, res) => {
 router.post('/:id/matches/:matchId/result', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     const matchId = req.params.matchId;
     const { winnerId, player1Score, player2Score } = req.body;
@@ -153,7 +152,7 @@ router.post('/:id/matches/:matchId/result', isAuthenticated, async (req, res) =>
     res.json(result);
   } catch (error) {
     logger.error("Failed to report match result", error, { 
-      userId: authenticatedReq.user.claims.sub, 
+      userId: getAuthUserId(authenticatedReq), 
       tournamentId: req.params.id,
       matchId: req.params.matchId 
     });
@@ -181,7 +180,7 @@ router.get('/:id/details', async (req, res) => {
 router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     const matchId = req.params.matchId;
     
@@ -189,7 +188,7 @@ router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req,
     res.json(session);
   } catch (error) {
     logger.error("Failed to create tournament match game session", error, { 
-      userId: authenticatedReq.user.claims.sub, 
+      userId: getAuthUserId(authenticatedReq), 
       tournamentId: req.params.id,
       matchId: req.params.matchId 
     });
@@ -201,7 +200,7 @@ router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req,
 router.patch('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const tournamentId = req.params.id;
     
     // Validate request body with UpdateTournament schema
@@ -225,7 +224,7 @@ router.patch('/:id', isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error("Failed to update tournament", error, { 
       tournamentId: req.params.id, 
-      userId: authenticatedReq.user.claims.sub 
+      userId: getAuthUserId(authenticatedReq) 
     });
     
     // Return specific error messages from service

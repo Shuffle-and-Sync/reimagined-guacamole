@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { eventsService } from "./events.service";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 import { 
   validateRequest, 
   validateEventSchema
@@ -53,11 +52,11 @@ router.get('/:id', async (req, res) => {
 router.post('/', isAuthenticated, eventCreationRateLimit, validateRequest(validateEventSchema), async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const event = await eventsService.createEvent(userId, req.body);
     res.json(event);
   } catch (error) {
-    logger.error("Failed to create event", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to create event", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to create event" });
   }
 });
@@ -67,7 +66,7 @@ router.put('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     
     const updatedEvent = await eventsService.updateEvent(id, userId, req.body);
     res.json(updatedEvent);
@@ -91,7 +90,7 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     
     await eventsService.deleteEvent(id, userId);
     res.json({ success: true });
@@ -115,7 +114,7 @@ router.post('/:eventId/join', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { eventId } = req.params;
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     
     const attendee = await eventsService.joinEvent(eventId, userId, req.body);
     res.json(attendee);
@@ -134,7 +133,7 @@ router.delete('/:eventId/leave', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { eventId } = req.params;
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     
     await eventsService.leaveEvent(eventId, userId);
     res.json({ success: true });
@@ -160,7 +159,7 @@ router.get('/:eventId/attendees', async (req, res) => {
 router.post('/bulk', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const createdEvents = await eventsService.createBulkEvents(userId, req.body);
     res.status(201).json(createdEvents);
   } catch (error) {
@@ -168,7 +167,7 @@ router.post('/bulk', isAuthenticated, async (req, res) => {
       return res.status(400).json({ message: "Events array is required" });
     }
     
-    logger.error("Failed to create bulk events", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to create bulk events", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -177,11 +176,11 @@ router.post('/bulk', isAuthenticated, async (req, res) => {
 router.post('/recurring', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const createdEvents = await eventsService.createRecurringEvents(userId, req.body);
     res.status(201).json(createdEvents);
   } catch (error) {
-    logger.error("Failed to create recurring events", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to create recurring events", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -195,11 +194,11 @@ export const userEventsRouter = Router();
 userEventsRouter.get('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = authenticatedReq.user.claims.sub;
+    const userId = getAuthUserId(authenticatedReq);
     const attendance = await eventsService.getUserEvents(userId);
     res.json(attendance);
   } catch (error) {
-    logger.error("Failed to fetch user events", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch user events", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: "Failed to fetch user events" });
   }
 });

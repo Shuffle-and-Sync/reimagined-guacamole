@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { isAuthenticated } from "../../replitAuth";
+import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { messagingService } from "./messaging.service";
 import { logger } from "../../logger";
-import { AuthenticatedRequest } from "../../types";
 
 const router = Router();
 
@@ -13,14 +12,15 @@ router.get('/', isAuthenticated, async (req, res) => {
     const user = authenticatedReq.user as any;
     const { unreadOnly, limit } = req.query;
     
-    const notifications = await messagingService.getUserNotifications(user.claims.sub, {
+    const userId = getAuthUserId(authenticatedReq);
+    const notifications = await messagingService.getUserNotifications(userId, {
       unreadOnly: unreadOnly === 'true',
       limit: limit ? parseInt(limit as string) : undefined,
     });
     
     res.json(notifications);
   } catch (error) {
-    logger.error("Failed to fetch notifications", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch notifications", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -29,7 +29,8 @@ router.post('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const notification = await messagingService.createNotification(user.claims.sub, req.body);
+    const userId = getAuthUserId(authenticatedReq);
+    const notification = await messagingService.createNotification(userId, req.body);
     res.status(201).json(notification);
   } catch (error) {
     logger.error("Failed to create notification", error);
@@ -52,10 +53,11 @@ router.patch('/read-all', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    await messagingService.markAllNotificationsAsRead(user.claims.sub);
+    const userId = getAuthUserId(authenticatedReq);
+    await messagingService.markAllNotificationsAsRead(userId);
     res.json({ success: true });
   } catch (error) {
-    logger.error("Failed to mark all notifications as read", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to mark all notifications as read", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -71,7 +73,8 @@ messagesRouter.get('/', isAuthenticated, async (req, res) => {
     const user = authenticatedReq.user as any;
     const { eventId, communityId, limit } = req.query;
     
-    const messages = await messagingService.getUserMessages(user.claims.sub, {
+    const userId = getAuthUserId(authenticatedReq);
+    const messages = await messagingService.getUserMessages(userId, {
       eventId: eventId as string,
       communityId: communityId as string,
       limit: limit ? parseInt(limit as string) : undefined,
@@ -79,7 +82,7 @@ messagesRouter.get('/', isAuthenticated, async (req, res) => {
     
     res.json(messages);
   } catch (error) {
-    logger.error("Failed to fetch messages", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch messages", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -88,10 +91,11 @@ messagesRouter.post('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const message = await messagingService.sendMessage(user.claims.sub, req.body);
+    const userId = getAuthUserId(authenticatedReq);
+    const message = await messagingService.sendMessage(userId, req.body);
     res.status(201).json(message);
   } catch (error) {
-    logger.error("Failed to send message", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to send message", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -105,10 +109,11 @@ conversationsRouter.get('/:userId', isAuthenticated, async (req, res) => {
     const user = authenticatedReq.user as any;
     const { userId } = req.params;
     
-    const conversation = await messagingService.getConversation(user.claims.sub, userId);
+    const currentUserId = getAuthUserId(authenticatedReq);
+    const conversation = await messagingService.getConversation(currentUserId, userId);
     res.json(conversation);
   } catch (error) {
-    logger.error("Failed to fetch conversation", error, { userId: authenticatedReq.user.claims.sub });
+    logger.error("Failed to fetch conversation", error, { userId: getAuthUserId(authenticatedReq) });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
