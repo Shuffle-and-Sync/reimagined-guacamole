@@ -1,5 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from '@tanstack/react-query';
+import { useState } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Header } from "@/shared/components";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth";
 import TournamentBracket from "@/components/tournament/TournamentBracket";
+import TournamentEditor from "@/components/tournament/TournamentEditor";
 import type { Tournament, TournamentParticipant, User } from '@shared/schema';
 import { format } from "date-fns";
 
@@ -16,6 +18,7 @@ export default function TournamentDetail() {
   const { id: tournamentId } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuth();
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Fetch tournament details with expanded data
   const { data: tournament, isLoading, error } = useQuery<Tournament & { 
@@ -66,6 +69,21 @@ export default function TournamentDetail() {
 
   const isOrganizer = user?.id === tournament?.organizerId;
   const isParticipant = tournament?.participants?.some(p => p.userId === user?.id);
+
+  // Show editor if in edit mode
+  if (isEditMode && tournament && isOrganizer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <TournamentEditor 
+            tournament={tournament} 
+            onClose={() => setIsEditMode(false)}
+          />
+        </main>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -176,12 +194,24 @@ export default function TournamentDetail() {
                     {tournament.status}
                   </Badge>
                   {isOrganizer && (
-                    <Badge variant="outline" className="text-xs">
-                      <i className="fas fa-crown mr-1"></i>
-                      Organizer
-                    </Badge>
+                    <div className="flex flex-col space-y-2">
+                      <Badge variant="outline" className="text-xs">
+                        <i className="fas fa-crown mr-1"></i>
+                        Organizer
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setIsEditMode(true)}
+                        data-testid="button-edit-tournament"
+                        className="text-xs"
+                      >
+                        <i className="fas fa-edit mr-2"></i>
+                        Edit Tournament
+                      </Button>
+                    </div>
                   )}
-                  {isParticipant && (
+                  {isParticipant && !isOrganizer && (
                     <Badge variant="outline" className="text-xs">
                       <i className="fas fa-user-check mr-1"></i>
                       Participant
