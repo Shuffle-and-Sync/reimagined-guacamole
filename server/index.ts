@@ -12,7 +12,8 @@ import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
 import { gamesRoutes } from "./features/games/games.routes";
 
 // Import shared middleware
-import { errorHandler, requestLogger, corsHandler, securityHeaders } from "./shared/middleware";
+import { errorHandler, requestLogger, corsHandler } from "./shared/middleware";
+import { securityHeaders } from "./validation";
 
 // Import auth setup
 import { setupAuth } from "./replitAuth";
@@ -30,7 +31,8 @@ app.use(express.urlencoded({ extended: false }));
 // Set up Auth.js routes AFTER body parsers so req.body is populated
 app.use(authRouter);
 
-// No custom middleware for now - keep it simple
+// Apply security headers (including CSP) before other routes
+app.use(securityHeaders);
 
 (async () => {
   // Set up authentication middleware (required for isAuthenticated to work)

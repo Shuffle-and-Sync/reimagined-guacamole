@@ -170,7 +170,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
     "font-src 'self' fonts.gstatic.com",
     "img-src 'self' data: blob: https:",
-    "connect-src 'self' wss: ws:",
+    "connect-src 'self' https: wss: ws:",
     "frame-ancestors 'none'"
   ].join('; ');
   res.setHeader('Content-Security-Policy', csp);

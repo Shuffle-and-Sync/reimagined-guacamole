@@ -7,7 +7,6 @@ const router = Router();
 
 // Handle all Auth.js routes
 router.all("/api/auth/*", async (req, res) => {
-  console.log(`[Auth] ${req.method} ${req.originalUrl}`);
   try {
     // Use AUTH_URL if available, otherwise build from forwarded headers
     const base = process.env.AUTH_URL || 
@@ -52,7 +51,6 @@ router.all("/api/auth/*", async (req, res) => {
     
     // Set status and send response
     res.status(response.status);
-    console.log(`[Auth] ${req.method} ${req.originalUrl} -> ${response.status}`);
     
     if (response.body) {
       const buffer = Buffer.from(await response.arrayBuffer());
