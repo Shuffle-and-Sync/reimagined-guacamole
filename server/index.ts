@@ -15,8 +15,7 @@ import { gamesRoutes } from "./features/games/games.routes";
 import { errorHandler, requestLogger, corsHandler } from "./shared/middleware";
 import { securityHeaders } from "./validation";
 
-// Import auth setup
-import { setupAuth } from "./replitAuth";
+// Import Auth.js routes
 import authRouter from "./auth/auth.routes";
 
 const app = express();
@@ -35,8 +34,6 @@ app.use(authRouter);
 app.use(securityHeaders);
 
 (async () => {
-  // Set up authentication middleware (required for isAuthenticated to work)
-  await setupAuth(app);
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
