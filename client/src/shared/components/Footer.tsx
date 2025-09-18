@@ -92,9 +92,9 @@ export function Footer() {
             © 2024 Shuffle & Sync. All rights reserved.
           </div>
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Code of Conduct</a>
+            <a href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
+            <a href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="/conduct" className="text-muted-foreground hover:text-foreground transition-colors">Code of Conduct</a>
           </div>
         </div>
       </div>
