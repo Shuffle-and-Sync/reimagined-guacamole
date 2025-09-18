@@ -22,6 +22,9 @@ import FAQ from "@/pages/faq";
 import APIDocs from "@/pages/api-docs";
 import CommunityForum from "@/pages/community-forum";
 import Contact from "@/pages/contact";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import Conduct from "@/pages/conduct";
 import SignIn from "@/pages/auth/signin";
 import AuthError from "@/pages/auth/error";
 
@@ -40,6 +43,9 @@ function Router() {
       <Route path="/api-docs" component={APIDocs} />
       <Route path="/community-forum" component={CommunityForum} />
       <Route path="/contact" component={Contact} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/conduct" component={Conduct} />
       
       {/* Auth routes */}
       <Route path="/auth/signin" component={SignIn} />
