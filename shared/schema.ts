@@ -46,6 +46,8 @@ export const users = pgTable("users", {
   isPrivate: boolean("is_private").default(false), // Private profile setting
   showOnlineStatus: varchar("show_online_status").default("everyone"), // "everyone", "friends_only"
   allowDirectMessages: varchar("allow_direct_messages").default("everyone"), // "everyone", "friends_only"
+  // Authentication fields
+  passwordHash: varchar("password_hash"), // For credential-based authentication (null for OAuth users)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
