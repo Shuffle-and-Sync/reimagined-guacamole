@@ -1148,9 +1148,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
       const { unreadOnly, limit } = req.query;
-      const notifications = await storage.getUserNotifications(user.claims.sub, {
+      const notifications = await storage.getUserNotifications(userId, {
         unreadOnly: unreadOnly === 'true',
         limit: limit ? parseInt(limit as string) : undefined,
       });
@@ -1164,8 +1164,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/notifications', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
-      const notificationData = { ...req.body, userId: user.claims.sub };
+      const userId = getAuthUserId(authenticatedReq);
+      const notificationData = { ...req.body, userId: userId };
       const notification = await storage.createNotification(notificationData);
       res.status(201).json(notification);
     } catch (error) {
@@ -1189,8 +1189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
-      await storage.markAllNotificationsAsRead(user.claims.sub);
+      const userId = getAuthUserId(authenticatedReq);
+      await storage.markAllNotificationsAsRead(userId);
       res.json({ success: true });
     } catch (error) {
       logger.error("Failed to mark all notifications as read", error, { userId: getAuthUserId(authenticatedReq) });
@@ -1202,9 +1202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/messages', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
       const { eventId, communityId, limit } = req.query;
-      const messages = await storage.getUserMessages(user.claims.sub, {
+      const messages = await storage.getUserMessages(userId, {
         eventId: eventId as string,
         communityId: communityId as string,
         limit: limit ? parseInt(limit as string) : undefined,
@@ -1219,8 +1219,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/messages', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
-      const messageData = { ...req.body, senderId: user.claims.sub };
+      const userId = getAuthUserId(authenticatedReq);
+      const messageData = { ...req.body, senderId: userId };
       const message = await storage.sendMessage(messageData);
       res.status(201).json(message);
     } catch (error) {
@@ -1232,9 +1232,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/conversations/:userId', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const currentUserId = getAuthUserId(authenticatedReq);
       const { userId } = req.params;
-      const conversation = await storage.getConversation(user.claims.sub, userId);
+      const conversation = await storage.getConversation(currentUserId, userId);
       res.json(conversation);
     } catch (error) {
       logger.error("Failed to fetch conversation", error, { userId: getAuthUserId(authenticatedReq) });
@@ -1329,8 +1329,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/game-sessions', isAuthenticated, validateRequest(validateGameSessionSchema), async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
-      const sessionData = { ...req.body, hostId: user.claims.sub };
+      const userId = getAuthUserId(authenticatedReq);
+      const sessionData = { ...req.body, hostId: userId };
       const gameSession = await storage.createGameSession(sessionData);
       res.status(201).json(gameSession);
     } catch (error) {
@@ -1342,9 +1342,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/game-sessions/:id/join', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
+      const user = authenticatedReq.user;
       const { id } = req.params;
-      await storage.joinGameSession(id, user.claims.sub);
+      await storage.joinGameSession(id, userId);
       
       // Create notification for host when someone joins
       const gameSession = await storage.getGameSessions({ eventId: id });
@@ -1353,8 +1354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'event_join',
           title: 'Player Joined Game',
-          message: `${user.claims.first_name || user.claims.email} joined your game session`,
-          data: { gameSessionId: id, playerId: user.claims.sub },
+          message: `${user?.name || user?.email} joined your game session`,
+          data: { gameSessionId: id, playerId: userId },
         });
       }
       
@@ -1386,9 +1387,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/game-sessions/:id/leave', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
+      const user = authenticatedReq.user;
       const { id } = req.params;
-      await storage.leaveGameSession(id, user.claims.sub);
+      await storage.leaveGameSession(id, userId);
       
       // Create notification for host when someone leaves
       const gameSession = await storage.getGameSessions({ eventId: id });
@@ -1397,8 +1399,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'event_leave',
           title: 'Player Left Game',
-          message: `${user.claims.first_name || user.claims.email} left your game session`,
-          data: { gameSessionId: id, playerId: user.claims.sub },
+          message: `${user?.name || user?.email} left your game session`,
+          data: { gameSessionId: id, playerId: userId },
         });
       }
       
@@ -1412,9 +1414,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/game-sessions/:id/spectate', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
+      const user = authenticatedReq.user;
       const { id } = req.params;
-      await storage.spectateGameSession(id, user.claims.sub);
+      await storage.spectateGameSession(id, userId);
       
       // Create notification for host when someone starts spectating
       const gameSession = await storage.getGameSessions({ eventId: id });
@@ -1423,8 +1426,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'spectator_join',
           title: 'New Spectator',
-          message: `${user.claims.first_name || user.claims.email} is now spectating your game`,
-          data: { gameSessionId: id, spectatorId: user.claims.sub },
+          message: `${user?.name || user?.email} is now spectating your game`,
+          data: { gameSessionId: id, spectatorId: userId },
         });
       }
       
@@ -1438,9 +1441,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/game-sessions/:id/leave-spectating', isAuthenticated, async (req: any, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
+      const userId = getAuthUserId(authenticatedReq);
       const { id } = req.params;
-      await storage.leaveSpectating(id, user.claims.sub);
+      await storage.leaveSpectating(id, userId);
       
       res.json({ success: true });
     } catch (error) {

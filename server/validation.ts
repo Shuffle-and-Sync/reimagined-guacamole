@@ -1,6 +1,16 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
+import { getAuthUserId } from './auth';
+
+// Safe helper to get user ID without throwing error
+function safeGetUserId(req: Request): string | undefined {
+  try {
+    return getAuthUserId(req);
+  } catch {
+    return undefined;
+  }
+}
 
 // Input validation schemas
 export const validateEmailSchema = z.object({
@@ -114,7 +124,7 @@ export function validateRequest(schema: z.ZodSchema) {
           url: req.url, 
           method: req.method, 
           errors,
-          userId: (req as any).user?.claims?.sub 
+          userId: safeGetUserId(req) 
         });
         
         return res.status(400).json({
@@ -144,7 +154,7 @@ export function validateParams(paramName: string, validator: (value: string) => 
         method: req.method, 
         param: paramName, 
         value: paramValue,
-        userId: (req as any).user?.claims?.sub 
+        userId: safeGetUserId(req) 
       });
       
       return res.status(400).json({

@@ -1,6 +1,16 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
 import { logger } from './logger';
+import { getAuthUserId } from './auth';
+
+// Safe helper to get user ID without throwing error
+function safeGetUserId(req: Request): string | undefined {
+  try {
+    return getAuthUserId(req);
+  } catch {
+    return undefined;
+  }
+}
 
 // Helper function to log rate limit events
 const logRateLimit = (req: Request, limitType: string, additionalData?: any) => {
@@ -64,7 +74,7 @@ export const messageRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 20, // Limit each IP to 20 messages per minute
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Message sending', { userId: (req as any).user?.claims?.sub });
+    logRateLimit(req, 'Message sending', { userId: safeGetUserId(req) });
     res.status(429).json({
       error: 'Too many messages sent',
       message: 'You are sending messages too quickly. Please slow down.',
@@ -77,7 +87,7 @@ export const eventCreationRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10, // Limit each IP to 10 event creations per hour
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Event creation', { userId: (req as any).user?.claims?.sub });
+    logRateLimit(req, 'Event creation', { userId: safeGetUserId(req) });
     res.status(429).json({
       error: 'Too many events created',
       message: 'You have created too many events recently. Please try again later.',
