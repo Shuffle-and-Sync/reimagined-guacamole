@@ -76,11 +76,18 @@ export class YouTubeAPIService {
   }
 
   /**
+   * Check if API key is available for read-only operations
+   */
+  isReadOnlyConfigured(): boolean {
+    return !!this.apiKey;
+  }
+
+  /**
    * Get channel information by username or channel ID
    */
   async getChannel(channelId: string): Promise<YouTubeChannel | null> {
-    if (!this.isConfigured()) {
-      console.warn('YouTube API not configured. Please set YOUTUBE_API_KEY, YOUTUBE_CLIENT_ID, and YOUTUBE_CLIENT_SECRET environment variables.');
+    if (!this.isReadOnlyConfigured()) {
+      console.warn('YouTube API not configured. Please set YOUTUBE_API_KEY environment variable.');
       return null;
     }
 
@@ -123,7 +130,7 @@ export class YouTubeAPIService {
    * Get live stream information
    */
   async getLiveStream(channelId: string): Promise<YouTubeStream | null> {
-    if (!this.isConfigured()) {
+    if (!this.isReadOnlyConfigured()) {
       console.warn('YouTube API not configured');
       return null;
     }
@@ -185,7 +192,7 @@ export class YouTubeAPIService {
    * Get channel's recent videos
    */
   async getChannelVideos(channelId: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
-    if (!this.isConfigured()) {
+    if (!this.isReadOnlyConfigured()) {
       console.warn('YouTube API not configured');
       return [];
     }
@@ -243,7 +250,7 @@ export class YouTubeAPIService {
    * Search for videos by query
    */
   async searchVideos(query: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
-    if (!this.isConfigured()) {
+    if (!this.isReadOnlyConfigured()) {
       console.warn('YouTube API not configured');
       return [];
     }
@@ -299,44 +306,295 @@ export class YouTubeAPIService {
 
   /**
    * Create a live broadcast
-   * TODO: Implement with YouTube Live Streaming API
    */
-  async createLiveBroadcast(title: string, description: string, scheduledStartTime: Date): Promise<YouTubeStream | null> {
+  async createLiveBroadcast(
+    title: string, 
+    description: string, 
+    scheduledStartTime: Date, 
+    accessToken: string
+  ): Promise<YouTubeStream | null> {
     if (!this.isConfigured()) {
       console.warn('YouTube API not configured');
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: createLiveBroadcast called');
-    return null;
+    try {
+      const broadcastData = {
+        snippet: {
+          title,
+          description,
+          scheduledStartTime: scheduledStartTime.toISOString(),
+        },
+        status: {
+          privacyStatus: 'public',
+          selfDeclaredMadeForKids: false,
+        },
+      };
+
+      const response = await fetch(
+        'https://www.googleapis.com/youtube/v3/liveBroadcasts?part=snippet,status',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(broadcastData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube Live API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`YouTube Live API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        title: data.snippet.title,
+        description: data.snippet.description,
+        status: 'upcoming',
+        scheduledStartTime: data.snippet.scheduledStartTime,
+        thumbnails: {
+          default: { url: data.snippet.thumbnails?.default?.url || '' },
+          medium: { url: data.snippet.thumbnails?.medium?.url || '' },
+          high: { url: data.snippet.thumbnails?.high?.url || '' },
+        },
+      };
+    } catch (error) {
+      console.error('Error creating YouTube live broadcast:', error);
+      return null;
+    }
   }
 
   /**
    * Update live broadcast
-   * TODO: Implement with YouTube Live Streaming API
    */
-  async updateLiveBroadcast(broadcastId: string, updates: Partial<YouTubeStream>): Promise<YouTubeStream | null> {
+  async updateLiveBroadcast(
+    broadcastId: string, 
+    updates: Partial<YouTubeStream>, 
+    accessToken: string
+  ): Promise<YouTubeStream | null> {
     if (!this.isConfigured()) {
       console.warn('YouTube API not configured');
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: updateLiveBroadcast called for', broadcastId);
-    return null;
+    try {
+      const updateData: any = {
+        id: broadcastId,
+      };
+
+      if (updates.title || updates.description || updates.scheduledStartTime) {
+        updateData.snippet = {};
+        if (updates.title) updateData.snippet.title = updates.title;
+        if (updates.description) updateData.snippet.description = updates.description;
+        if (updates.scheduledStartTime) {
+          updateData.snippet.scheduledStartTime = updates.scheduledStartTime;
+        }
+      }
+
+      const response = await fetch(
+        'https://www.googleapis.com/youtube/v3/liveBroadcasts?part=snippet,status',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube Live API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`YouTube Live API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        title: data.snippet.title,
+        description: data.snippet.description,
+        status: data.status.lifeCycleStatus === 'live' ? 'live' : 
+                data.status.lifeCycleStatus === 'complete' ? 'completed' : 'upcoming',
+        scheduledStartTime: data.snippet.scheduledStartTime,
+        actualStartTime: data.snippet.actualStartTime,
+        actualEndTime: data.snippet.actualEndTime,
+        thumbnails: {
+          default: { url: data.snippet.thumbnails?.default?.url || '' },
+          medium: { url: data.snippet.thumbnails?.medium?.url || '' },
+          high: { url: data.snippet.thumbnails?.high?.url || '' },
+        },
+      };
+    } catch (error) {
+      console.error('Error updating YouTube live broadcast:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create live stream for broadcast
+   */
+  async createLiveStream(
+    title: string,
+    accessToken: string,
+    resolution: '240p' | '360p' | '480p' | '720p' | '1080p' = '720p'
+  ): Promise<{ id: string; streamName: string; ingestionAddress: string } | null> {
+    if (!this.isConfigured()) {
+      console.warn('YouTube API not configured');
+      return null;
+    }
+
+    try {
+      const streamData = {
+        snippet: {
+          title,
+        },
+        cdn: {
+          resolution,
+          frameRate: '30fps',
+          ingestionType: 'rtmp',
+        },
+      };
+
+      const response = await fetch(
+        'https://www.googleapis.com/youtube/v3/liveStreams?part=snippet,cdn',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(streamData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube Live Stream API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`YouTube Live Stream API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        streamName: data.cdn.ingestionInfo.streamName,
+        ingestionAddress: data.cdn.ingestionInfo.ingestionAddress,
+      };
+    } catch (error) {
+      console.error('Error creating YouTube live stream:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Bind broadcast to stream
+   */
+  async bindBroadcastToStream(
+    broadcastId: string,
+    streamId: string,
+    accessToken: string
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      console.warn('YouTube API not configured');
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/liveBroadcasts/bind?id=${broadcastId}&streamId=${streamId}&part=snippet,status`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube Live Bind API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`YouTube Live Bind API error: ${data.error.message}`);
+      }
+      
+      // Validate that binding was successful by checking for expected response structure
+      return response.ok && data.id && data.snippet;
+    } catch (error) {
+      console.error('Error binding YouTube broadcast to stream:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Transition broadcast state (testing -> live -> complete)
+   */
+  async transitionBroadcast(
+    broadcastId: string,
+    broadcastStatus: 'testing' | 'live' | 'complete',
+    accessToken: string
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      console.warn('YouTube API not configured');
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/liveBroadcasts/transition?broadcastStatus=${broadcastStatus}&id=${broadcastId}&part=snippet,status`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube Live Transition API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`YouTube Live Transition API error: ${data.error.message}`);
+      }
+      
+      // Validate transition was successful by checking status matches expected state
+      return response.ok && data.id && data.status?.lifeCycleStatus;
+    } catch (error) {
+      console.error('Error transitioning YouTube broadcast:', error);
+      return false;
+    }
   }
 
   /**
    * Get OAuth authorization URL for YouTube
-   * TODO: Implement OAuth 2.0 flow
    */
-  getAuthorizationUrl(scopes: string[] = ['https://www.googleapis.com/auth/youtube.readonly']): string {
+  getAuthorizationUrl(scopes: string[] = [
+    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/youtube',
+    'https://www.googleapis.com/auth/youtube.force-ssl'
+  ], state?: string): string {
     if (!this.clientId) {
       throw new Error('YouTube Client ID not configured');
     }
 
-    // TODO: Implement proper OAuth URL generation
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -344,15 +602,22 @@ export class YouTubeAPIService {
       scope: scopes.join(' '),
       response_type: 'code',
       access_type: 'offline',
+      prompt: 'consent',
+      ...(state && { state }),
     });
 
     return `${baseUrl}?${params.toString()}`;
   }
 
   /**
-   * Exchange authorization code for access token
+   * Exchange authorization code for access tokens
    */
-  async exchangeCodeForToken(code: string): Promise<{ access_token: string; refresh_token: string } | null> {
+  async exchangeCodeForTokens(code: string): Promise<{ 
+    access_token: string; 
+    refresh_token?: string;
+    expires_in: number;
+    token_type: string;
+  } | null> {
     if (!this.isConfigured()) {
       console.warn('YouTube API not configured');
       return null;
@@ -365,11 +630,11 @@ export class YouTubeAPIService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          code,
           client_id: this.clientId!,
           client_secret: this.clientSecret!,
           redirect_uri: process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5000/auth/youtube/callback',
           grant_type: 'authorization_code',
+          code,
         }),
       });
 
@@ -379,12 +644,66 @@ export class YouTubeAPIService {
 
       const data = await response.json();
       
+      if (data.error) {
+        throw new Error(`OAuth error: ${data.error_description || data.error}`);
+      }
+
       return {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
+        expires_in: data.expires_in || 3600,
+        token_type: data.token_type || 'Bearer',
       };
     } catch (error) {
       console.error('Error exchanging YouTube OAuth code:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(refreshToken: string): Promise<{ 
+    access_token: string; 
+    expires_in: number;
+    token_type: string;
+  } | null> {
+    if (!this.isConfigured()) {
+      console.warn('YouTube API not configured');
+      return null;
+    }
+
+    try {
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: this.clientId!,
+          client_secret: this.clientSecret!,
+          refresh_token: refreshToken,
+          grant_type: 'refresh_token',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Token refresh error: ${data.error_description || data.error}`);
+      }
+
+      return {
+        access_token: data.access_token,
+        expires_in: data.expires_in || 3600,
+        token_type: data.token_type || 'Bearer',
+      };
+    } catch (error) {
+      console.error('Error refreshing YouTube access token:', error);
       return null;
     }
   }
