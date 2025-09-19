@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../auth';
 import { generalRateLimit } from '../rate-limiting';
 import { streamingCoordinator } from '../services/streaming-coordinator';
+import { cacheMiddleware, cacheConfigs } from '../middleware/cache-middleware';
 
 const router = Router();
 
@@ -241,7 +242,7 @@ router.post('/community-metrics', async (req, res) => {
  * Get real-time platform statistics
  * GET /api/analytics/realtime-stats
  */
-router.get('/realtime-stats', async (req, res) => {
+router.get('/realtime-stats', cacheMiddleware(cacheConfigs.shortCache), async (req, res) => {
   try {
     const stats = await analyticsService.getRealTimeStats();
     res.json({ success: true, data: stats });
@@ -255,7 +256,7 @@ router.get('/realtime-stats', async (req, res) => {
  * Generate dashboard data
  * GET /api/analytics/dashboard?timeframe=7d&userId=xxx&communityId=xxx
  */
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', cacheMiddleware(cacheConfigs.analyticsCache), async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {

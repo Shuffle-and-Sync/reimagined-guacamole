@@ -1,6 +1,9 @@
 import { twitchAPI } from './twitch-api';
 import { storage } from '../storage';
 import type { User } from '@shared/schema';
+import { cacheService } from './cache-service';
+import { logger } from '../logger';
+import { notificationDelivery } from './notification-delivery';
 
 // Types for streaming coordination
 export interface StreamingPlatform {
@@ -149,8 +152,17 @@ export class StreamingCoordinator {
 
     this.activeStreamSessions.set(sessionId, newSession);
 
+    // Cache the new session
+    await cacheService.cacheStreamSession(newSession);
+    
+    // Invalidate user sessions cache for host and co-hosts
+    await cacheService.delete(`user_sessions:${newSession.hostUserId}`);
+    for (const coHostId of newSession.coHostUserIds) {
+      await cacheService.delete(`user_sessions:${coHostId}`);
+    }
+
     // TODO: Store in database
-    console.log(`Created stream session: ${sessionId}`, newSession);
+    logger.info(`Created stream session: ${sessionId}`, { sessionId, hostUserId: newSession.hostUserId });
 
     return newSession;
   }
@@ -159,11 +171,25 @@ export class StreamingCoordinator {
    * Get active stream sessions for a user
    */
   async getUserStreamSessions(userId: string): Promise<StreamSession[]> {
+    // Try to get from cache first
+    const cachedSessions = await cacheService.getUserStreamSessions(userId);
+    if (cachedSessions) {
+      logger.debug('Cache hit for user stream sessions', { userId });
+      return cachedSessions;
+    }
+
+    // Get from active sessions
     const sessions = Array.from(this.activeStreamSessions.values());
-    return sessions.filter(session => 
+    const userSessions = sessions.filter(session => 
       session.hostUserId === userId || 
       session.coHostUserIds.includes(userId)
     );
+
+    // Cache the result
+    await cacheService.cacheUserStreamSessions(userId, userSessions);
+    logger.debug('Cached user stream sessions', { userId, count: userSessions.length });
+
+    return userSessions;
   }
 
   /**
