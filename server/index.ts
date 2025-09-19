@@ -19,6 +19,8 @@ import { securityHeaders } from "./validation";
 import authRouter from "./auth/auth.routes";
 import webhooksRouter from "./routes/webhooks";
 import notificationPreferencesRouter from "./routes/notification-preferences";
+import monitoringRouter from "./routes/monitoring";
+import { monitoringService } from "./services/monitoring-service";
 
 const app = express();
 
@@ -60,6 +62,9 @@ app.use(securityHeaders);
   
   // Register notification preferences routes
   app.use('/api/notification-preferences', notificationPreferencesRouter);
+  
+  // Register monitoring and alerting routes
+  app.use('/api/monitoring', monitoringRouter);
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
@@ -97,5 +102,13 @@ app.use(securityHeaders);
   }, () => {
     logger.info(`Server started successfully`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
     log(`serving on port ${port}`); // Keep Vite's log for development
+    
+    // Start monitoring service after server is running
+    try {
+      monitoringService.start();
+      logger.info('Monitoring service started');
+    } catch (error) {
+      logger.error('Failed to start monitoring service', error);
+    }
   });
 })();

@@ -1415,26 +1415,27 @@ export class DatabaseStorage implements IStorage {
     return withQueryTiming('ai_matchmaking', async () => {
       // Pre-filter with indexed query to reduce dataset size
       const userProfiles = await optimizedDb
-      .select({
-        user: users,
-        gamingProfile: userGamingProfiles,
-        preferences: matchmakingPreferences,
-        community: communities,
-      })
-      .from(users)
-      .leftJoin(userGamingProfiles, eq(users.id, userGamingProfiles.userId))
-      .leftJoin(matchmakingPreferences, eq(users.id, matchmakingPreferences.userId))
-      .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
-      .where(
-        and(
-          not(eq(users.id, userId)), // Exclude self
-          eq(users.status, 'online'), // Only online users
-          eq(userGamingProfiles.isVisible, true) // Only visible profiles
+        .select({
+          user: users,
+          gamingProfile: userGamingProfiles,
+          preferences: matchmakingPreferences,
+          community: communities,
+        })
+        .from(users)
+        .leftJoin(userGamingProfiles, eq(users.id, userGamingProfiles.userId))
+        .leftJoin(matchmakingPreferences, eq(users.id, matchmakingPreferences.userId))
+        .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+        .where(
+          and(
+            not(eq(users.id, userId)), // Exclude self
+            eq(users.status, 'online'), // Only online users (indexed)
+            eq(userGamingProfiles.isVisible, true) // Only visible profiles (indexed)
+          )
         )
-      );
+        .limit(100); // Limit candidates for performance optimization
 
-    // Calculate match scores
-    const scoredMatches = userProfiles
+      // Calculate match scores
+      const scoredMatches = userProfiles
       .filter(profile => profile.user && profile.gamingProfile)
       .map(profile => {
         let score = 0;
@@ -1496,7 +1497,8 @@ export class DatabaseStorage implements IStorage {
       .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
       .slice(0, 20); // Limit results
 
-    return scoredMatches;
+      return scoredMatches;
+    });
   }
 
   // Calculate power level based on gaming experience and stats

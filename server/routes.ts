@@ -13,6 +13,7 @@ import analyticsRouter from "./routes/analytics";
 import cacheHealthRouter from "./routes/cache-health";
 import databaseHealthRouter from "./routes/database-health";
 import backupRouter from "./routes/backup";
+import monitoringRouter from "./routes/monitoring";
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -646,6 +647,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Backup and recovery management routes
   app.use('/api/backup', backupRouter);
+  
+  // Monitoring and alerting routes
+  app.use('/api/monitoring', monitoringRouter);
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
