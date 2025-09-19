@@ -60,6 +60,32 @@ export interface FacebookPost {
   };
 }
 
+// Production-ready API result wrapper for Facebook API
+export interface FacebookAPIResult<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    type?: string;
+    subcode?: number;
+  };
+  newAccessToken?: string; // For token refresh scenarios
+}
+
+// Error taxonomy for Facebook API
+export type FacebookAPIError = 
+  | 'NO_CONFIG'           // API not configured
+  | 'NO_AUTH'            // No authentication method
+  | 'INVALID_INPUT'      // Invalid input parameters
+  | 'INVALID_RESPONSE'   // Invalid response from API
+  | 'RATE_LIMITED'       // Rate limit exceeded
+  | 'PERMISSION_DENIED'  // Insufficient permissions
+  | 'SERVER_ERROR'       // Facebook server error
+  | 'NETWORK_ERROR'      // Network connectivity issue
+  | 'TOKEN_EXPIRED'      // Access token expired
+  | 'UNKNOWN_ERROR';     // Fallback error type
+
 /**
  * Facebook Gaming API Service (Stub Implementation)
  * 
@@ -80,7 +106,11 @@ export class FacebookAPIService {
   constructor() {
     this.appId = process.env.FACEBOOK_APP_ID;
     this.appSecret = process.env.FACEBOOK_APP_SECRET;
+    this.webhookVerifyToken = process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || this.generateSecureState();
   }
+
+  // Webhook verification token for security
+  private webhookVerifyToken: string;
 
   /**
    * Check if Facebook API is properly configured
@@ -90,30 +120,174 @@ export class FacebookAPIService {
   }
 
   /**
-   * Get page information
+   * Centralized API request handler with retry logic, error handling, and security
    */
-  async getPage(pageId: string, accessToken: string): Promise<FacebookPage | null> {
-    if (!this.isConfigured()) {
-      console.warn('Facebook API not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables.');
-      return null;
+  private async makeAPIRequest<T>(
+    endpoint: string,
+    options: RequestInit & { accessToken?: string } = {},
+    retries: number = 3
+  ): Promise<FacebookAPIResult<T>> {
+    const { accessToken, ...fetchOptions } = options;
+    
+    // Generate appsecret_proof for enhanced security on server-side calls
+    let appsecret_proof: string | undefined;
+    if (accessToken && this.appSecret) {
+      const crypto = require('crypto');
+      appsecret_proof = crypto.createHmac('sha256', this.appSecret)
+        .update(accessToken)
+        .digest('hex');
+    }
+    
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        // Construct URL properly with security enhancements
+        let finalUrl: string;
+        if (endpoint.startsWith('http')) {
+          finalUrl = endpoint;
+        } else {
+          const url = new URL(endpoint, `https://graph.facebook.com/${this.apiVersion}`);
+          if (accessToken) {
+            url.searchParams.set('access_token', accessToken);
+            // Add appsecret_proof for enhanced security
+            if (appsecret_proof) {
+              url.searchParams.set('appsecret_proof', appsecret_proof);
+            }
+          }
+          finalUrl = url.toString();
+        }
+
+        const response = await fetch(finalUrl, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...fetchOptions.headers as Record<string, string>,
+          },
+          ...fetchOptions,
+        });
+
+        // Handle rate limiting (HTTP 429) and server errors (5xx) with exponential backoff
+        if ((response.status === 429 || response.status >= 500) && attempt < retries - 1) {
+          const retryAfter = response.headers.get('Retry-After');
+          const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+          
+          console.log(`Facebook API ${response.status === 429 ? 'rate limited' : 'server error'}, retrying after ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        const data = await response.json();
+
+        // Handle Facebook API errors
+        if (data.error) {
+          const errorCode = this.mapFacebookErrorToCode(data.error);
+          return {
+            success: false,
+            error: {
+              code: errorCode,
+              message: data.error.message,
+              type: data.error.type,
+              subcode: data.error.code,
+            },
+          };
+        }
+
+        if (!response.ok) {
+          return {
+            success: false,
+            error: {
+              code: 'SERVER_ERROR',
+              message: `HTTP ${response.status}: ${response.statusText}`,
+            },
+          };
+        }
+
+        return { success: true, data };
+      } catch (error) {
+        console.error(`Facebook API request attempt ${attempt + 1} failed:`, error);
+        
+        if (attempt === retries - 1) {
+          return {
+            success: false,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: error instanceof Error ? error.message : 'Unknown network error',
+            },
+          };
+        }
+        
+        // Exponential backoff for network errors
+        const delay = Math.pow(2, attempt) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
 
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/${this.apiVersion}/${pageId}?fields=id,name,about,category,picture,fan_count,followers_count&access_token=${accessToken}`
-      );
+    return {
+      success: false,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        message: 'Max retries exceeded',
+      },
+    };
+  }
 
-      if (!response.ok) {
-        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
-      }
+  /**
+   * Map Facebook API errors to our error taxonomy
+   */
+  private mapFacebookErrorToCode(error: any): FacebookAPIError {
+    const errorCode = error.code || 0;
+    const errorType = error.type || '';
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(`Facebook API error: ${data.error.message}`);
-      }
+    // Rate limiting
+    if (errorCode === 4 || errorCode === 17 || errorCode === 341) {
+      return 'RATE_LIMITED';
+    }
 
-      return {
+    // Authentication/permission errors  
+    if (errorCode === 190 || errorCode === 102 || errorCode === 10) {
+      return 'TOKEN_EXPIRED';
+    }
+    if (errorCode === 200 || errorCode === 201 || errorCode === 220) {
+      return 'PERMISSION_DENIED';
+    }
+
+    // Server errors
+    if (errorCode >= 1 && errorCode <= 2) {
+      return 'SERVER_ERROR';
+    }
+
+    // Input validation errors
+    if (errorCode >= 100 && errorCode < 200) {
+      return 'INVALID_INPUT';
+    }
+
+    // Fallback
+    return 'UNKNOWN_ERROR';
+  }
+
+  /**
+   * Get page information with production error handling
+   */
+  async getPage(pageId: string, accessToken: string): Promise<FacebookAPIResult<FacebookPage>> {
+    if (!this.isConfigured()) {
+      return { success: false, error: { code: 'NO_CONFIG', message: 'Facebook API not configured' } };
+    }
+
+    if (!pageId?.trim()) {
+      return { success: false, error: { code: 'INVALID_INPUT', message: 'Page ID is required' } };
+    }
+
+    const result = await this.makeAPIRequest<any>(
+      `/${encodeURIComponent(pageId)}?fields=id,name,about,category,picture,fan_count,followers_count`,
+      { accessToken }
+    );
+
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    const data = result.data;
+    return {
+      success: true,
+      data: {
         id: data.id,
         name: data.name,
         about: data.about,
@@ -121,53 +295,45 @@ export class FacebookAPIService {
         picture: data.picture || { data: { url: '' } },
         fan_count: data.fan_count,
         followers_count: data.followers_count,
-      };
-    } catch (error) {
-      console.error('Error fetching Facebook page:', error);
-      return null;
-    }
+      },
+    };
   }
 
   /**
-   * Get live videos for a page
+   * Get live videos for a page with production error handling
    */
-  async getLiveVideos(pageId: string, accessToken: string): Promise<FacebookLiveVideo[]> {
+  async getLiveVideos(pageId: string, accessToken: string): Promise<FacebookAPIResult<FacebookLiveVideo[]>> {
     if (!this.isConfigured()) {
-      console.warn('Facebook API not configured');
-      return [];
+      return { success: false, error: { code: 'NO_CONFIG', message: 'Facebook API not configured' } };
     }
 
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/${this.apiVersion}/${pageId}/live_videos?fields=id,title,description,status,live_views,creation_time,planned_start_time,actual_start_time,broadcast_start_time,permalink_url&access_token=${accessToken}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(`Facebook API error: ${data.error.message}`);
-      }
-
-      return data.data?.map((video: any) => ({
-        id: video.id,
-        title: video.title,
-        description: video.description,
-        status: video.status,
-        live_views: video.live_views,
-        creation_time: video.creation_time,
-        planned_start_time: video.planned_start_time,
-        actual_start_time: video.actual_start_time,
-        broadcast_start_time: video.broadcast_start_time,
-        permalink_url: video.permalink_url,
-      })) || [];
-    } catch (error) {
-      console.error('Error fetching Facebook live videos:', error);
-      return [];
+    if (!pageId?.trim()) {
+      return { success: false, error: { code: 'INVALID_INPUT', message: 'Page ID is required' } };
     }
+
+    const result = await this.makeAPIRequest<any>(
+      `/${encodeURIComponent(pageId)}/live_videos?fields=id,title,description,status,live_views,creation_time,planned_start_time,actual_start_time,broadcast_start_time,permalink_url`,
+      { accessToken }
+    );
+
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    const videos: FacebookLiveVideo[] = result.data.data?.map((video: any) => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      status: video.status,
+      live_views: video.live_views,
+      creation_time: video.creation_time,
+      planned_start_time: video.planned_start_time,
+      actual_start_time: video.actual_start_time,
+      broadcast_start_time: video.broadcast_start_time,
+      permalink_url: video.permalink_url,
+    })) || [];
+
+    return { success: true, data: videos };
   }
 
   /**
@@ -557,11 +723,14 @@ export class FacebookAPIService {
    */
   private cleanExpiredStates(): void {
     const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
-    for (const [state, data] of this.oauthStates.entries()) {
+    // Fix TypeScript Map iteration issue
+    const expiredStates: string[] = [];
+    this.oauthStates.forEach((data, state) => {
       if (data.timestamp < tenMinutesAgo) {
-        this.oauthStates.delete(state);
+        expiredStates.push(state);
       }
-    }
+    });
+    expiredStates.forEach(state => this.oauthStates.delete(state));
   }
 
   /**
