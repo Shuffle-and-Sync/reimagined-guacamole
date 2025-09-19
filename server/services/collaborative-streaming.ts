@@ -43,7 +43,6 @@ export class CollaborativeStreamingService {
 
       // Add creator as the primary host
       await this.addCollaborator(event.id, {
-        streamEventId: event.id,
         userId: creatorId,
         role: 'host',
         status: 'accepted',

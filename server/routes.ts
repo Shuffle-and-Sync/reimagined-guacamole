@@ -3,7 +3,16 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "./auth";
-import { insertCommunitySchema, insertEventSchema, insertEventAttendeeSchema, insertGameSessionSchema, type UpsertUser } from "@shared/schema";
+import { 
+  insertCommunitySchema, 
+  insertEventSchema, 
+  insertEventAttendeeSchema, 
+  insertGameSessionSchema, 
+  insertCollaborativeStreamEventSchema,
+  insertStreamCollaboratorSchema,
+  insertStreamCoordinationSessionSchema,
+  type UpsertUser 
+} from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { sendContactEmail } from "./email";
 import { randomBytes } from "crypto";
@@ -15,6 +24,7 @@ import databaseHealthRouter from "./routes/database-health";
 import backupRouter from "./routes/backup";
 import monitoringRouter from "./routes/monitoring";
 import matchingRouter from "./routes/matching";
+import { CollaborativeStreamingService } from "./services/collaborative-streaming";
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -50,6 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize default communities
   await initializeDefaultCommunities();
+
+  // Initialize collaborative streaming service
+  const collaborativeStreaming = CollaborativeStreamingService.getInstance();
 
   // Health check endpoint
   app.get('/api/health', healthCheck);
@@ -654,6 +667,312 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Real-time matching and AI recommendations
   app.use('/api/matching', matchingRouter);
+
+  // ========================================
+  // COLLABORATIVE STREAMING API ROUTES
+  // ========================================
+
+  // Create collaborative stream event
+  app.post('/api/collaborative-streams', 
+    isAuthenticated, 
+    eventCreationRateLimit,
+    validateRequest(insertCollaborativeStreamEventSchema), 
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        
+        const event = await collaborativeStreaming.createCollaborativeEvent(userId, req.body);
+        
+        logger.info('Collaborative stream event created', { 
+          eventId: event.id, 
+          userId, 
+          title: event.title 
+        });
+        res.status(201).json(event);
+      } catch (error) {
+        logger.error('Failed to create collaborative stream event', error, { userId: getAuthUserId(authenticatedReq) });
+        res.status(500).json({ message: 'Failed to create collaborative stream event' });
+      }
+    }
+  );
+
+  // Get user's collaborative stream events
+  app.get('/api/collaborative-streams', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const events = await storage.getUserCollaborativeStreamEvents(userId);
+      res.json(events);
+    } catch (error) {
+      logger.error('Failed to get collaborative stream events', error, { userId: getAuthUserId(authenticatedReq) });
+      res.status(500).json({ message: 'Failed to get collaborative stream events' });
+    }
+  });
+
+  // Get specific collaborative stream event
+  app.get('/api/collaborative-streams/:eventId', isAuthenticated, validateParams('eventId', validateUUID, 'Invalid event ID format'), async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { eventId } = req.params;
+      
+      const event = await storage.getCollaborativeStreamEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: 'Collaborative stream event not found' });
+      }
+      
+      res.json(event);
+    } catch (error) {
+      logger.error('Failed to get collaborative stream event', error, { 
+        eventId: req.params.eventId, 
+        userId: getAuthUserId(authenticatedReq) 
+      });
+      res.status(500).json({ message: 'Failed to get collaborative stream event' });
+    }
+  });
+
+  // Update collaborative stream event
+  app.patch('/api/collaborative-streams/:eventId', 
+    isAuthenticated, 
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    validateRequest(insertCollaborativeStreamEventSchema.partial()),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        
+        // Check if user is the event creator
+        const event = await storage.getCollaborativeStreamEvent(eventId);
+        if (!event) {
+          return res.status(404).json({ message: 'Collaborative stream event not found' });
+        }
+        if (event.creatorId !== userId) {
+          return res.status(403).json({ message: 'Only event creator can update the event' });
+        }
+        
+        const updatedEvent = await storage.updateCollaborativeStreamEvent(eventId, req.body);
+        res.json(updatedEvent);
+      } catch (error) {
+        logger.error('Failed to update collaborative stream event', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to update collaborative stream event' });
+      }
+    }
+  );
+
+  // Delete collaborative stream event
+  app.delete('/api/collaborative-streams/:eventId', 
+    isAuthenticated, 
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        
+        // Check if user is the event creator
+        const event = await storage.getCollaborativeStreamEvent(eventId);
+        if (!event) {
+          return res.status(404).json({ message: 'Collaborative stream event not found' });
+        }
+        if (event.creatorId !== userId) {
+          return res.status(403).json({ message: 'Only event creator can delete the event' });
+        }
+        
+        await storage.deleteCollaborativeStreamEvent(eventId);
+        res.json({ message: 'Collaborative stream event deleted successfully' });
+      } catch (error) {
+        logger.error('Failed to delete collaborative stream event', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to delete collaborative stream event' });
+      }
+    }
+  );
+
+  // Get collaboration suggestions for an event
+  app.get('/api/collaborative-streams/:eventId/suggestions', 
+    isAuthenticated, 
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        
+        const suggestions = await collaborativeStreaming.getCollaborationSuggestions(eventId, userId);
+        res.json(suggestions);
+      } catch (error) {
+        logger.error('Failed to get collaboration suggestions', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to get collaboration suggestions' });
+      }
+    }
+  );
+
+  // Add collaborator to stream event
+  app.post('/api/collaborative-streams/:eventId/collaborators', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    validateRequest(insertStreamCollaboratorSchema),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        
+        const collaborator = await collaborativeStreaming.addCollaborator(eventId, req.body);
+        res.status(201).json(collaborator);
+      } catch (error) {
+        logger.error('Failed to add collaborator', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to add collaborator' });
+      }
+    }
+  );
+
+  // Get collaborators for stream event
+  app.get('/api/collaborative-streams/:eventId/collaborators', 
+    isAuthenticated, 
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const { eventId } = req.params;
+        const collaborators = await storage.getStreamCollaborators(eventId);
+        res.json(collaborators);
+      } catch (error) {
+        logger.error('Failed to get collaborators', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to get collaborators' });
+      }
+    }
+  );
+
+  // Update collaborator status
+  app.patch('/api/collaborative-streams/:eventId/collaborators/:collaboratorId', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    validateRequest(insertStreamCollaboratorSchema.partial()),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId, collaboratorId } = req.params;
+        
+        const collaborator = await storage.updateStreamCollaborator(collaboratorId, req.body);
+        res.json(collaborator);
+      } catch (error) {
+        logger.error('Failed to update collaborator', error, { 
+          eventId: req.params.eventId,
+          collaboratorId: req.params.collaboratorId,
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to update collaborator' });
+      }
+    }
+  );
+
+  // Remove collaborator from stream event
+  app.delete('/api/collaborative-streams/:eventId/collaborators/:collaboratorId', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId, collaboratorId } = req.params;
+        
+        await storage.deleteStreamCollaborator(collaboratorId);
+        res.json({ message: 'Collaborator removed successfully' });
+      } catch (error) {
+        logger.error('Failed to remove collaborator', error, { 
+          eventId: req.params.eventId,
+          collaboratorId: req.params.collaboratorId,
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to remove collaborator' });
+      }
+    }
+  );
+
+  // Start coordination session
+  app.post('/api/collaborative-streams/:eventId/coordination/start', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        
+        const session = await collaborativeStreaming.startCoordinationSession(eventId, userId);
+        res.status(201).json(session);
+      } catch (error) {
+        logger.error('Failed to start coordination session', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to start coordination session' });
+      }
+    }
+  );
+
+  // Update coordination session phase
+  app.patch('/api/collaborative-streams/:eventId/coordination/phase', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { eventId } = req.params;
+        const { phase } = req.body;
+        
+        await collaborativeStreaming.updateCoordinationPhase(eventId, phase, userId);
+        res.json({ message: 'Coordination phase updated successfully' });
+      } catch (error) {
+        logger.error('Failed to update coordination phase', error, { 
+          eventId: req.params.eventId,
+          phase: req.body.phase,
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to update coordination phase' });
+      }
+    }
+  );
+
+  // Get coordination session status
+  app.get('/api/collaborative-streams/:eventId/coordination/status', 
+    isAuthenticated,
+    validateParams('eventId', validateUUID, 'Invalid event ID format'),
+    async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const { eventId } = req.params;
+        
+        const status = await collaborativeStreaming.getCoordinationStatus(eventId);
+        res.json(status);
+      } catch (error) {
+        logger.error('Failed to get coordination status', error, { 
+          eventId: req.params.eventId, 
+          userId: getAuthUserId(authenticatedReq) 
+        });
+        res.status(500).json({ message: 'Failed to get coordination status' });
+      }
+    }
+  );
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
