@@ -25,6 +25,8 @@ import backupRouter from "./routes/backup";
 import monitoringRouter from "./routes/monitoring";
 import matchingRouter from "./routes/matching";
 import { CollaborativeStreamingService } from "./services/collaborative-streaming";
+import { websocketMessageSchema } from '../shared/websocket-schemas';
+// Auth.js session validation will be done via session endpoint
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -1793,12 +1795,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Game room connections: sessionId -> Set of WebSocket connections
   const gameRooms = new Map<string, Set<ExtendedWebSocket>>();
   
-  wss.on('connection', (ws, req) => {
-    logger.info('WebSocket connection established');
+  // Collaborative streaming room connections: eventId -> Set of WebSocket connections
+  const collaborativeStreamRooms = new Map<string, Set<ExtendedWebSocket>>();
+  
+  wss.on('connection', async (ws, req) => {
+    logger.info('WebSocket connection attempt');
+    
+    // Extract and validate Auth.js session from request
+    let authenticatedUserId: string | null = null;
+    let authenticatedUser: any = null;
+    
+    try {
+      // Parse session from Auth.js cookies
+      const cookies = req.headers.cookie;
+      if (!cookies) {
+        logger.warn('WebSocket connection rejected - no cookies');
+        ws.close(1008, 'Authentication required');
+        return;
+      }
+
+      // Validate Origin to prevent CSRF attacks with exact URL parsing
+      const origin = req.headers.origin;
+      const host = req.headers.host;
+      
+      if (!origin) {
+        logger.warn('WebSocket connection rejected - no origin header');
+        ws.close(1008, 'Origin required');
+        return;
+      }
+
+      try {
+        const originUrl = new URL(origin);
+        const allowedOrigins = new Set([
+          process.env.AUTH_URL ? new URL(process.env.AUTH_URL).origin : null,
+          `http://localhost:${process.env.PORT || 5000}`,
+          `https://localhost:${process.env.PORT || 5000}`,
+          `http://${host}`,
+          `https://${host}`
+        ].filter(Boolean));
+
+        if (!allowedOrigins.has(originUrl.origin)) {
+          logger.warn('WebSocket connection rejected - origin not allowed', { 
+            origin: originUrl.origin, 
+            allowedOrigins: Array.from(allowedOrigins) 
+          });
+          ws.close(1008, 'Origin not allowed');
+          return;
+        }
+        
+        logger.info('WebSocket origin validation passed', { origin: originUrl.origin });
+      } catch (error) {
+        logger.warn('WebSocket connection rejected - invalid origin format', { origin, error });
+        ws.close(1008, 'Invalid origin format');
+        return;
+      }
+
+      try {
+        // Use Auth.js session endpoint to get session
+        const response = await fetch(`${process.env.AUTH_URL || `http://localhost:${process.env.PORT || 5000}`}/api/auth/session`, {
+          headers: { cookie: cookies }
+        });
+        
+        if (response.ok) {
+          const session = await response.json();
+          
+          if (session?.user?.id) {
+            authenticatedUserId = session.user.id;
+            authenticatedUser = session.user;
+            logger.info('WebSocket connection authenticated', { 
+              userId: authenticatedUserId,
+              userName: session.user.name || session.user.email 
+            });
+          } else {
+            logger.warn('WebSocket connection rejected - no user in session');
+            ws.close(1008, 'No valid session');
+            return;
+          }
+        } else {
+          logger.warn('WebSocket connection rejected - session endpoint failed', { status: response.status });
+          ws.close(1008, 'Session validation failed');
+          return;
+        }
+      } catch (authError) {
+        logger.error('WebSocket Auth.js session validation failed', authError);
+        ws.close(1008, 'Authentication error');
+        return;
+      }
+    } catch (error) {
+      logger.error('WebSocket authentication error', error);
+      ws.close(1008, 'Authentication error');
+      return;
+    }
+
+    if (!authenticatedUserId) {
+      logger.warn('WebSocket connection rejected - no authenticated user');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+
+    logger.info('WebSocket connection established', { userId: authenticatedUserId });
     
     ws.on('message', async (data) => {
       try {
-        const message = JSON.parse(data.toString());
+        const rawMessage = JSON.parse(data.toString());
+        
+        // Validate WebSocket message with Zod schema
+        const validationResult = websocketMessageSchema.safeParse(rawMessage);
+        if (!validationResult.success) {
+          logger.warn('Invalid WebSocket message received', { 
+            error: validationResult.error,
+            message: rawMessage 
+          });
+          ws.send(JSON.stringify({ 
+            type: 'error', 
+            message: 'Invalid message format',
+            details: validationResult.error.format()
+          }));
+          return;
+        }
+        
+        const message = validationResult.data;
         
         switch (message.type) {
           case 'join_room':
@@ -1960,6 +2076,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
             break;
+            
+          // Collaborative Streaming WebSocket Events
+          case 'join_collab_stream':
+            const { eventId } = message;
+            
+            // Use authenticated user from session (not from client message)
+            if (!authenticatedUserId) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Authentication required' }));
+              break;
+            }
+            
+            // Validate event access and user authorization
+            try {
+              const event = await storage.getCollaborativeStreamEvent(eventId);
+              if (!event) {
+                ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
+                break;
+              }
+              
+              const collaborators = await storage.getStreamCollaborators(eventId);
+              const userCollaborator = collaborators.find(c => c.userId === authenticatedUserId);
+              if (!userCollaborator) {
+                ws.send(JSON.stringify({ type: 'error', message: 'Access denied - not a collaborator' }));
+                break;
+              }
+              
+              // Add authenticated user info to WebSocket (from session, not client)
+              (ws as any).userId = authenticatedUserId;
+              (ws as any).userName = authenticatedUser?.name || authenticatedUser?.email;
+              (ws as any).userRole = userCollaborator.role;
+              (ws as any).eventId = eventId;
+            
+            // Add to collaborative stream room
+            if (!collaborativeStreamRooms.has(eventId)) {
+              collaborativeStreamRooms.set(eventId, new Set());
+            }
+            collaborativeStreamRooms.get(eventId)?.add(ws as ExtendedWebSocket);
+            
+            // Notify other collaborators
+            const activeCollaborators = Array.from(collaborativeStreamRooms.get(eventId) || []).map(client => ({
+              userId: client.userId!,
+              userName: client.userName!,
+              userAvatar: client.userAvatar,
+              status: 'connected'
+            }));
+            
+            // Broadcast to all collaborators in the event
+            collaborativeStreamRooms.get(eventId)?.forEach((client: ExtendedWebSocket) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: 'collaborator_joined',
+                  collaborator: {
+                    userId: collaborator.userId,
+                    userName: collaborator.userName,
+                    userAvatar: collaborator.userAvatar,
+                    role: collaborator.role
+                  },
+                  activeCollaborators
+                }));
+              }
+            });
+            
+            // Handle collaborator join in the service
+            try {
+              await collaborativeStreaming.handleCollaboratorJoin(eventId, collaborator.userId, {
+                connectionId: (ws as any).id,
+                platform: collaborator.platform,
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              logger.error('Failed to handle collaborator join via WebSocket', error);
+            }
+            break;
+            
+          case 'phase_change':
+            const { eventId: phaseEventId, newPhase } = message;
+            const requestingUserId = (ws as ExtendedWebSocket).userId;
+            
+            if (!requestingUserId) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Authentication required' }));
+              break;
+            }
+            
+            // Verify user is authorized to change phases (host/co-host) - SERVER-SIDE RBAC
+            try {
+              const event = await storage.getCollaborativeStreamEvent(phaseEventId);
+              if (!event) {
+                ws.send(JSON.stringify({ 
+                  type: 'phase_change_error', 
+                  eventId: phaseEventId,
+                  error: 'Event not found' 
+                }));
+                break;
+              }
+
+              const collaborators = await storage.getStreamCollaborators(phaseEventId);
+              const userCollaborator = collaborators.find(c => c.userId === requestingUserId);
+              
+              // Explicit role-based authorization check
+              const isHost = event.hostUserId === requestingUserId;
+              const isCoHost = userCollaborator?.role === 'co_host';
+              
+              if (!isHost && !isCoHost) {
+                logger.warn('Unauthorized phase change attempt', { 
+                  userId: requestingUserId, 
+                  eventId: phaseEventId,
+                  userRole: userCollaborator?.role || 'none'
+                });
+                ws.send(JSON.stringify({ 
+                  type: 'phase_change_error', 
+                  eventId: phaseEventId,
+                  error: 'Access denied - only hosts and co-hosts can change phases'
+                }));
+                break;
+              }
+
+              logger.info('Authorized phase change', { 
+                userId: requestingUserId, 
+                eventId: phaseEventId,
+                newPhase,
+                userRole: isHost ? 'host' : 'co_host'
+              });
+              
+              const phaseChangeRoom = collaborativeStreamRooms.get(phaseEventId);
+              if (phaseChangeRoom) {
+                // Update coordination phase via service with authenticated user
+                await collaborativeStreaming.updateCoordinationPhase(phaseEventId, newPhase, requestingUserId);
+                
+                // Broadcast phase change to all collaborators
+                phaseChangeRoom.forEach((client: ExtendedWebSocket) => {
+                  if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                      type: 'phase_updated',
+                      eventId: phaseEventId,
+                      newPhase,
+                      hostUserId,
+                      timestamp: new Date().toISOString()
+                    }));
+                  }
+                });
+              } catch (error) {
+                logger.error('Failed to update coordination phase via WebSocket', error);
+                // Send error back to requesting client
+                if (ws.readyState === WebSocket.OPEN) {
+                  ws.send(JSON.stringify({
+                    type: 'phase_change_error',
+                    eventId: phaseEventId,
+                    error: 'Failed to update coordination phase'
+                  }));
+                }
+              }
+            }
+            break;
+            
+          case 'coordination_event':
+            const { eventId: coordEventId, eventType, eventData } = message;
+            const coordRoom = collaborativeStreamRooms.get(coordEventId);
+            
+            if (coordRoom) {
+              // Broadcast coordination event to all collaborators
+              coordRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'coordination_event_broadcast',
+                    eventId: coordEventId,
+                    eventType,
+                    eventData,
+                    fromUserId: (ws as ExtendedWebSocket).userId,
+                    timestamp: new Date().toISOString()
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'collaborator_status_update':
+            const { eventId: statusEventId, userId, statusUpdate } = message;
+            const statusRoom = collaborativeStreamRooms.get(statusEventId);
+            
+            if (statusRoom) {
+              // Broadcast status update to all collaborators
+              statusRoom.forEach((client: ExtendedWebSocket) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'collaborator_status_changed',
+                    eventId: statusEventId,
+                    userId,
+                    statusUpdate,
+                    timestamp: new Date().toISOString()
+                  }));
+                }
+              });
+            }
+            break;
         }
       } catch (error) {
         logger.error('WebSocket message error', error);
@@ -1967,8 +2277,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     ws.on('close', () => {
-      // Remove from all game rooms
+      // Remove from all game rooms and collaborative streaming rooms
       const wsWithData = ws as ExtendedWebSocket;
+      
+      // Game rooms cleanup
       if (wsWithData.sessionId) {
         const room = gameRooms.get(wsWithData.sessionId);
         if (room) {
@@ -1994,6 +2306,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Clean up empty rooms
           if (room.size === 0) {
             gameRooms.delete(wsWithData.sessionId);
+          }
+        }
+      }
+      
+      // Collaborative streaming rooms cleanup
+      if ((wsWithData as any).eventId) {
+        const eventId = (wsWithData as any).eventId;
+        const collabRoom = collaborativeStreamRooms.get(eventId);
+        if (collabRoom) {
+          collabRoom.delete(ws as ExtendedWebSocket);
+          
+          // Notify other collaborators
+          const remainingCollaborators = Array.from(collabRoom).map(client => ({
+            userId: client.userId!,
+            userName: client.userName!,
+            userAvatar: client.userAvatar,
+            status: 'connected'
+          }));
+          
+          collabRoom.forEach((client: ExtendedWebSocket) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'collaborator_left',
+                collaborator: { userId: wsWithData.userId, userName: wsWithData.userName },
+                activeCollaborators: remainingCollaborators,
+                timestamp: new Date().toISOString()
+              }));
+            }
+          });
+          
+          // Clean up empty collaborative streaming rooms
+          if (collabRoom.size === 0) {
+            collaborativeStreamRooms.delete(eventId);
           }
         }
       }

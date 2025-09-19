@@ -123,7 +123,6 @@ export class CollaborativeStreamingService {
         userId: requesterId,
         games: [event.contentType],
         maxResults: 10,
-        minCompatibilityScore: 70,
         urgency: 'low',
         platforms: event.streamingPlatforms as ('twitch' | 'youtube' | 'facebook')[]
       });
@@ -181,7 +180,7 @@ export class CollaborativeStreamingService {
         title: event.title,
         description: event.description || '',
         game: event.contentType,
-        platforms: event.streamingPlatforms,
+        platforms: event.streamingPlatforms as ('twitch' | 'youtube' | 'facebook')[],
         hostUserId,
         coHostUserIds: [], // Will be populated as collaborators join
         scheduledStartTime: event.scheduledStartTime,

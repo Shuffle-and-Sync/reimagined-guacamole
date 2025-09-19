@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,9 @@ import {
   useStartCoordinationSession, 
   useUpdateCoordinationPhase 
 } from '../hooks/useCollaborativeStreaming';
+import { collaborativeStreamingWS } from '@/lib/websocket-client';
+import { useAuth } from '@/features/auth';
+import { useToast } from '@/hooks/use-toast';
 import type { CoordinationPhase, StreamMetrics } from '../types';
 
 type CoordinationDashboardProps = {
@@ -85,6 +88,8 @@ const PHASE_ICONS = {
 
 export function CoordinationDashboard({ eventId, isHost = false }: CoordinationDashboardProps) {
   const [selectedPhase, setSelectedPhase] = useState<string>('');
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { data: coordinationStatus, isLoading } = useCoordinationStatus(eventId);
   const startSession = useStartCoordinationSession();
   const updatePhase = useUpdateCoordinationPhase();
@@ -97,11 +102,52 @@ export function CoordinationDashboard({ eventId, isHost = false }: CoordinationD
   };
 
   const handlePhaseUpdate = () => {
-    if (selectedPhase) {
-      updatePhase.mutate({ eventId, phase: selectedPhase });
+    if (selectedPhase && user && (isHost || status?.currentHost === user.id)) {
+      // Use WebSocket for real-time phase update (only hosts can change phases)
+      collaborativeStreamingWS.changePhase(eventId, selectedPhase);
       setSelectedPhase('');
+    } else if (selectedPhase && user && !isHost && status?.currentHost !== user.id) {
+      toast({
+        title: "Access Denied",
+        description: "Only hosts can change stream phases",
+        variant: "destructive"
+      });
     }
   };
+
+  // Set up WebSocket listeners for real-time updates
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribePhaseUpdated = collaborativeStreamingWS.onPhaseUpdated((data) => {
+      if (data.eventId === eventId) {
+        toast({
+          title: "Phase Updated",
+          description: `Stream phase changed to ${data.newPhase}`,
+        });
+      }
+    });
+
+    const unsubscribePhaseError = collaborativeStreamingWS.onPhaseChangeError((data) => {
+      if (data.eventId === eventId) {
+        toast({
+          title: "Phase Change Failed",
+          description: data.error,
+          variant: "destructive"
+        });
+      }
+    });
+
+    // Join collaborative stream room (user authentication handled by WebSocket server)
+    collaborativeStreamingWS.joinCollaborativeStream(eventId).catch(error => {
+      console.error('Failed to join collaborative stream:', error);
+    });
+
+    return () => {
+      unsubscribePhaseUpdated();
+      unsubscribePhaseError();
+    };
+  }, [eventId, user, toast]);
 
   const currentPhase = COORDINATION_PHASES.find(p => p.name === status?.currentPhase) || COORDINATION_PHASES[0];
   const allowedTransitions = currentPhase.allowedTransitions;
