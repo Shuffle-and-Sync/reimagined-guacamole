@@ -1003,14 +1003,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (success) {
         logger.info("Account deletion completed", { userId });
         
-        // Clear session and cookies
-        req.session.destroy((err) => {
-          if (err) {
-            logger.error("Failed to destroy session during account deletion", err);
-          }
-        });
+        // Note: Auth.js handles session cleanup automatically when user is deleted
+        // Clear any additional cookies if needed
+        res.clearCookie('authjs.session-token');
+        res.clearCookie('__Secure-authjs.session-token');
         
-        res.clearCookie('connect.sid');
         res.json({ 
           message: "Account deleted successfully"
         });

@@ -11,6 +11,7 @@ import TableSync from "@/pages/tablesync";
 import TableSyncLanding from "@/pages/tablesync-landing";
 import GameRoom from "@/pages/game-room";
 import { Social, Profile } from "@/features/users";
+import { CollaborativeStreamingDashboard } from "@/features/collaborative-streaming";
 import Calendar from "@/pages/calendar";
 import Matchmaking from "@/pages/matchmaking";
 import Tournaments from "@/pages/tournaments";
@@ -85,6 +86,11 @@ function Router() {
       <Route path="/profile/:userId">
         <RequireAuth redirectTo="/">
           <Profile />
+        </RequireAuth>
+      </Route>
+      <Route path="/collaborative-streaming">
+        <RequireAuth redirectTo="/">
+          <CollaborativeStreamingDashboard />
         </RequireAuth>
       </Route>
       
