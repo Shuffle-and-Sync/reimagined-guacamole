@@ -121,7 +121,12 @@ export class AnalyticsService {
         eventCategory: event.eventCategory
       });
     } catch (error) {
-      logger.error('Failed to track user event', { error, event });
+      logger.error('Failed to track user event', { 
+        error, 
+        userId: event.userId,
+        eventName: event.eventName,
+        eventCategory: event.eventCategory 
+      });
       // Add to queue for retry
       this.eventQueue.push(event);
     }
@@ -190,7 +195,12 @@ export class AnalyticsService {
         viewerCount: metrics.viewerCount
       });
     } catch (error) {
-      logger.error('Failed to track stream metrics', { error, metrics });
+      logger.error('Failed to track stream metrics', { 
+        error, 
+        sessionId: metrics.sessionId,
+        platform: metrics.platform,
+        viewerCount: metrics.viewerCount 
+      });
       throw error;
     }
   }
@@ -260,7 +270,12 @@ export class AnalyticsService {
         metricValue: metrics.metricValue
       });
     } catch (error) {
-      logger.error('Failed to record system metrics', { error, metrics });
+      logger.error('Failed to record system metrics', { 
+        error, 
+        metricType: metrics.metricType,
+        metricName: metrics.metricName,
+        metricValue: metrics.metricValue 
+      });
       // Add to queue for retry
       this.metricsQueue.push(metrics);
     }

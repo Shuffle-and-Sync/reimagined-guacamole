@@ -5,6 +5,7 @@ import { logger } from '../logger';
 import { z } from 'zod';
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../auth';
 import { generalRateLimit } from '../rate-limiting';
+import { streamingCoordinator } from '../services/streaming-coordinator';
 
 const router = Router();
 
@@ -51,6 +52,16 @@ router.post('/events', async (req, res) => {
 
     const eventData = eventSchema.parse(req.body);
     
+    // Ensure userId matches authenticated user if provided
+    if (eventData.userId && eventData.userId !== getAuthUserId(authenticatedReq)) {
+      return res.status(403).json({ success: false, error: 'Cannot track events for other users' });
+    }
+    
+    // Auto-set userId to authenticated user if not provided
+    if (!eventData.userId) {
+      eventData.userId = getAuthUserId(authenticatedReq);
+    }
+    
     await analyticsService.trackEvent(eventData);
     
     res.json({ success: true, message: 'Event tracked successfully' });
@@ -68,6 +79,8 @@ router.post('/events', async (req, res) => {
  * POST /api/analytics/funnel
  */
 router.post('/funnel', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     const funnelSchema = z.object({
       funnelName: z.string(),
@@ -81,6 +94,11 @@ router.post('/funnel', async (req, res) => {
     });
 
     const funnelData = funnelSchema.parse(req.body);
+    
+    // Ensure userId matches authenticated user
+    if (funnelData.userId !== getAuthUserId(authenticatedReq)) {
+      return res.status(403).json({ success: false, error: 'Cannot track funnel for other users' });
+    }
     
     await analyticsService.trackFunnelStep(
       funnelData.funnelName,
@@ -108,6 +126,8 @@ router.post('/funnel', async (req, res) => {
  * POST /api/analytics/stream-metrics
  */
 router.post('/stream-metrics', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     const streamMetricsSchema = z.object({
       sessionId: z.string(),
@@ -122,6 +142,18 @@ router.post('/stream-metrics', async (req, res) => {
     });
 
     const metricsData = streamMetricsSchema.parse(req.body);
+    
+    // Validate sessionId ownership - users can only submit metrics for their own streaming sessions
+    const authUserId = getAuthUserId(authenticatedReq);
+    const userSessions = await streamingCoordinator.getUserStreamSessions(authUserId);
+    const hasSessionAccess = userSessions.some(session => session.id === metricsData.sessionId);
+    
+    if (!hasSessionAccess && !(await isAdmin(authUserId))) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Cannot submit metrics for streaming sessions you do not own' 
+      });
+    }
     
     await analyticsService.trackStreamMetrics(metricsData);
     
@@ -224,6 +256,8 @@ router.get('/realtime-stats', async (req, res) => {
  * GET /api/analytics/dashboard?timeframe=7d&userId=xxx&communityId=xxx
  */
 router.get('/dashboard', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     const querySchema = z.object({
       timeframe: z.enum(['24h', '7d', '30d', '90d']).default('7d'),
@@ -232,6 +266,14 @@ router.get('/dashboard', async (req, res) => {
     });
 
     const { timeframe, userId, communityId } = querySchema.parse(req.query);
+    
+    // If userId provided, ensure user can only access their own data unless admin
+    if (userId) {
+      const authUserId = getAuthUserId(authenticatedReq);
+      if (userId !== authUserId && !(await isAdmin(authUserId))) {
+        return res.status(403).json({ success: false, error: 'Cannot access other users dashboard data' });
+      }
+    }
     
     const dashboardData = await analyticsService.generateDashboardData(userId, communityId, timeframe);
     
@@ -250,6 +292,8 @@ router.get('/dashboard', async (req, res) => {
  * GET /api/analytics/user-activity/:userId?days=30
  */
 router.get('/user-activity/:userId', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     const paramsSchema = z.object({
       userId: z.string()
@@ -262,11 +306,17 @@ router.get('/user-activity/:userId', async (req, res) => {
     const { userId } = paramsSchema.parse(req.params);
     const { days } = querySchema.parse(req.query);
     
+    // Users can only access their own analytics unless admin
+    const authUserId = getAuthUserId(authenticatedReq);
+    if (userId !== authUserId && !(await isAdmin(authUserId))) {
+      return res.status(403).json({ success: false, error: 'Cannot access other users analytics' });
+    }
+    
     const activityData = await storage.getUserActivityAnalytics(userId, days);
     
     res.json({ success: true, data: activityData });
   } catch (error) {
-    logger.error('Failed to get user activity analytics', { error, params: req.params, query: req.query });
+    logger.error('Failed to get user activity analytics', { error, userId: getAuthUserId(authenticatedReq) });
     res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get user activity analytics' 
@@ -313,7 +363,14 @@ router.get('/community/:communityId', async (req, res) => {
  * GET /api/analytics/platform-metrics?metricType=xxx&timeWindow=xxx&startDate=xxx&endDate=xxx
  */
 router.get('/platform-metrics', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
+    // Admin-only endpoint
+    const authUserId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(authUserId))) {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
     const querySchema = z.object({
       metricType: z.enum(['performance', 'usage', 'system', 'error', 'business']).optional(),
       timeWindow: z.enum(['1m', '5m', '15m', '1h', '6h', '1d', '7d', '30d']).optional(),
@@ -340,7 +397,15 @@ router.get('/platform-metrics', async (req, res) => {
  * GET /api/analytics/events?eventName=xxx&userId=xxx&startDate=xxx&endDate=xxx
  */
 router.get('/events', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
+    // Admin-only endpoint for viewing all events
+    const authUserId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(authUserId))) {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+    
     const querySchema = z.object({
       eventName: z.string().optional(),
       userId: z.string().optional(),
@@ -354,7 +419,7 @@ router.get('/events', async (req, res) => {
     
     res.json({ success: true, data: eventData });
   } catch (error) {
-    logger.error('Failed to get event tracking data', { error, query: req.query });
+    logger.error('Failed to get event tracking data', { error, userId: getAuthUserId(authenticatedReq) });
     res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get event tracking data' 
@@ -367,7 +432,14 @@ router.get('/events', async (req, res) => {
  * GET /api/analytics/funnel/:funnelName?startDate=xxx&endDate=xxx
  */
 router.get('/funnel/:funnelName', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
+    // Admin-only endpoint
+    const authUserId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(authUserId))) {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
     const paramsSchema = z.object({
       funnelName: z.string()
     });
@@ -397,6 +469,8 @@ router.get('/funnel/:funnelName', async (req, res) => {
  * GET /api/analytics/user-insights/:userId
  */
 router.get('/user-insights/:userId', async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
   try {
     const paramsSchema = z.object({
       userId: z.string()
@@ -404,11 +478,17 @@ router.get('/user-insights/:userId', async (req, res) => {
 
     const { userId } = paramsSchema.parse(req.params);
     
+    // Users can only access their own insights unless admin
+    const authUserId = getAuthUserId(authenticatedReq);
+    if (userId !== authUserId && !(await isAdmin(authUserId))) {
+      return res.status(403).json({ success: false, error: 'Cannot access other users insights' });
+    }
+    
     const insights = await analyticsService.generateUserInsights(userId);
     
     res.json({ success: true, data: insights });
   } catch (error) {
-    logger.error('Failed to get user insights', { error, params: req.params });
+    logger.error('Failed to get user insights', { error, userId: getAuthUserId(authenticatedReq) });
     res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get user insights' 
