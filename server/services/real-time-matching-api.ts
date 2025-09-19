@@ -14,9 +14,9 @@ import { storage } from "../storage";
 export interface RealTimeMatchRequest {
   userId: string;
   preferences?: {
-    urgency: 'immediate' | 'today' | 'this_week';
-    maxResults: number;
-    minCompatibilityScore: number;
+    urgency?: 'immediate' | 'today' | 'this_week';
+    maxResults?: number;
+    minCompatibilityScore?: number;
     requiredGames?: string[];
     preferredTimeSlots?: string[];
     excludeUserIds?: string[];
@@ -145,7 +145,7 @@ export class RealTimeMatchingAPI {
   
   // Real-time subscriptions
   private activeSubscriptions = new Map<string, RealtimeSubscription>();
-  private updateInterval: NodeJS.Timer | null = null;
+  private updateInterval: NodeJS.Timeout | null = null;
   
   private constructor() {
     this.mlModel = new MachineLearningModel();
@@ -176,9 +176,16 @@ export class RealTimeMatchingAPI {
       }
 
       // Get base matches from AI matcher
+      // Map urgency to priority for AI matcher
+      const urgencyMap = {
+        'immediate': 'high' as const,
+        'today': 'medium' as const,
+        'this_week': 'low' as const
+      };
+      
       const baseMatches = await aiStreamingMatcher.findStreamingPartners({
         userId: request.userId,
-        urgency: request.preferences?.urgency || 'medium',
+        urgency: request.preferences?.urgency ? urgencyMap[request.preferences.urgency] : 'medium',
         maxResults: request.preferences?.maxResults || 20,
         games: request.preferences?.requiredGames,
         timeSlots: request.preferences?.preferredTimeSlots,
@@ -262,7 +269,7 @@ export class RealTimeMatchingAPI {
    */
   subscribeToUpdates(
     userId: string,
-    preferences: RealTimeMatchRequest['preferences'],
+    preferences: RealTimeMatchRequest['preferences'] = {},
     callback: (matches: RealTimeMatchResponse) => void
   ): string {
     const subscriptionId = `${userId}-${Date.now()}`;
@@ -524,8 +531,8 @@ export class RealTimeMatchingAPI {
     // Filter by platform
     if (request.preferences?.platformFilter?.length) {
       filtered = filtered.filter(match => 
-        match.candidate.platforms.some(platform => 
-          request.preferences.platformFilter.includes(platform.platform)
+        match.candidate.platforms.some((platform: any) => 
+          request.preferences?.platformFilter?.includes(platform.platform)
         )
       );
     }
@@ -830,7 +837,7 @@ export class RealTimeMatchingAPI {
     // Start update interval for active subscriptions
     this.updateInterval = setInterval(async () => {
       await this.processRealtimeUpdates();
-    }, 30000); // Check every 30 seconds
+    }, 30000) as NodeJS.Timeout; // Check every 30 seconds
     
     logger.info("Real-time update system initialized");
   }

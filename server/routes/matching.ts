@@ -9,7 +9,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { logger } from '../logger';
 import { realtimeMatchingAPI } from '../services/real-time-matching-api';
-import { requireAuth } from '../middleware/auth';
+import { isAuthenticated } from '../auth';
 
 export const matchingRouter = Router();
 
@@ -47,7 +47,7 @@ const collaborationOutcomeSchema = z.object({
  * GET /api/matching/realtime
  * Get real-time streaming match suggestions
  */
-matchingRouter.get('/realtime', requireAuth, async (req, res) => {
+matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -82,8 +82,8 @@ matchingRouter.get('/realtime', requireAuth, async (req, res) => {
 
     const matchRequest = {
       userId,
-      preferences: Object.keys(preferences).length > 0 ? preferences : undefined,
-      context: Object.keys(context).length > 0 ? context : undefined
+      preferences: Object.keys(preferences).some(key => preferences[key] !== undefined) ? preferences : undefined,
+      context: Object.keys(context).some(key => context[key] !== undefined) ? context : undefined
     };
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
@@ -103,7 +103,7 @@ matchingRouter.get('/realtime', requireAuth, async (req, res) => {
     logger.error("Failed to get real-time matches", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to get real-time matches',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -112,7 +112,7 @@ matchingRouter.get('/realtime', requireAuth, async (req, res) => {
  * POST /api/matching/realtime
  * Get real-time matches with detailed request body
  */
-matchingRouter.post('/realtime', requireAuth, async (req, res) => {
+matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -150,7 +150,7 @@ matchingRouter.post('/realtime', requireAuth, async (req, res) => {
     logger.error("Failed to get real-time matches via POST", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to get real-time matches',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -159,7 +159,7 @@ matchingRouter.post('/realtime', requireAuth, async (req, res) => {
  * GET /api/matching/trending
  * Get trending collaboration opportunities
  */
-matchingRouter.get('/trending', requireAuth, async (req, res) => {
+matchingRouter.get('/trending', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -182,7 +182,7 @@ matchingRouter.get('/trending', requireAuth, async (req, res) => {
     logger.error("Failed to get trending opportunities", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to get trending opportunities',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -191,7 +191,7 @@ matchingRouter.get('/trending', requireAuth, async (req, res) => {
  * POST /api/matching/subscribe
  * Subscribe to real-time match updates
  */
-matchingRouter.post('/subscribe', requireAuth, async (req, res) => {
+matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -227,7 +227,7 @@ matchingRouter.post('/subscribe', requireAuth, async (req, res) => {
     logger.error("Failed to create subscription", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to create subscription',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -236,7 +236,7 @@ matchingRouter.post('/subscribe', requireAuth, async (req, res) => {
  * DELETE /api/matching/subscribe/:subscriptionId
  * Unsubscribe from real-time updates
  */
-matchingRouter.delete('/subscribe/:subscriptionId', requireAuth, async (req, res) => {
+matchingRouter.delete('/subscribe/:subscriptionId', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     const subscriptionId = req.params.subscriptionId;
@@ -268,7 +268,7 @@ matchingRouter.delete('/subscribe/:subscriptionId', requireAuth, async (req, res
     });
     res.status(500).json({
       error: 'Failed to remove subscription',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -277,7 +277,7 @@ matchingRouter.delete('/subscribe/:subscriptionId', requireAuth, async (req, res
  * POST /api/matching/outcome
  * Record collaboration outcome for machine learning
  */
-matchingRouter.post('/outcome', requireAuth, async (req, res) => {
+matchingRouter.post('/outcome', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -320,7 +320,7 @@ matchingRouter.post('/outcome', requireAuth, async (req, res) => {
     logger.error("Failed to record collaboration outcome", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to record outcome',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -329,7 +329,7 @@ matchingRouter.post('/outcome', requireAuth, async (req, res) => {
  * GET /api/matching/performance
  * Get matching algorithm performance metrics (admin/debugging)
  */
-matchingRouter.get('/performance', requireAuth, async (req, res) => {
+matchingRouter.get('/performance', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -366,7 +366,7 @@ matchingRouter.get('/performance', requireAuth, async (req, res) => {
     logger.error("Failed to get performance metrics", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to get performance metrics',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });
@@ -375,7 +375,7 @@ matchingRouter.get('/performance', requireAuth, async (req, res) => {
  * POST /api/matching/feedback
  * Submit feedback about match quality
  */
-matchingRouter.post('/feedback', requireAuth, async (req, res) => {
+matchingRouter.post('/feedback', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -408,7 +408,7 @@ matchingRouter.post('/feedback', requireAuth, async (req, res) => {
     logger.error("Failed to record feedback", { error, userId: req.user?.id });
     res.status(500).json({
       error: 'Failed to record feedback',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
   }
 });

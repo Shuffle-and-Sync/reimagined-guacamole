@@ -14,6 +14,7 @@ import cacheHealthRouter from "./routes/cache-health";
 import databaseHealthRouter from "./routes/database-health";
 import backupRouter from "./routes/backup";
 import monitoringRouter from "./routes/monitoring";
+import matchingRouter from "./routes/matching";
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -650,6 +651,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Monitoring and alerting routes
   app.use('/api/monitoring', monitoringRouter);
+  
+  // Real-time matching and AI recommendations
+  app.use('/api/matching', matchingRouter);
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
