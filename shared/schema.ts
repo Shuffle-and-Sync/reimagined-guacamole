@@ -1360,6 +1360,113 @@ export const insertConversionFunnelSchema = createInsertSchema(conversionFunnels
   id: true,
 });
 
+// Collaborative streaming events table - extends regular events for multi-streamer coordination
+export const collaborativeStreamEvents = pgTable("collaborative_stream_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  scheduledStartTime: timestamp("scheduled_start_time", { withTimezone: true }).notNull(),
+  estimatedDuration: integer("estimated_duration").notNull(), // Duration in minutes
+  creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  communityId: varchar("community_id").references(() => communities.id),
+  
+  // Streaming specific fields
+  streamingPlatforms: text("streaming_platforms").array().notNull(), // ['twitch', 'youtube', 'facebook']
+  contentType: varchar("content_type").notNull(), // 'gaming', 'talk_show', 'tutorial', 'tournament'
+  targetAudience: varchar("target_audience").notNull(), // 'beginner', 'intermediate', 'advanced', 'all'
+  maxCollaborators: integer("max_collaborators").default(4), // Maximum number of co-streamers
+  
+  // Coordination settings
+  requiresApproval: boolean("requires_approval").default(true), // Host must approve collaborators
+  allowViewerParticipation: boolean("allow_viewer_participation").default(false),
+  coordinationMode: varchar("coordination_mode").default("host_led"), // 'host_led', 'democratic', 'round_robin'
+  
+  // Stream setup
+  streamKey: varchar("stream_key"), // For synchronized streaming
+  chatCoordination: jsonb("chat_coordination"), // Chat moderation settings
+  
+  // Status and metadata
+  status: varchar("status").default("planning"), // 'planning', 'recruiting', 'scheduled', 'live', 'completed', 'cancelled'
+  aiMatchingData: jsonb("ai_matching_data"), // Data from AI matching system
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_collab_stream_events_creator").on(table.creatorId),
+  index("idx_collab_stream_events_community").on(table.communityId),
+  index("idx_collab_stream_events_start_time").on(table.scheduledStartTime),
+  index("idx_collab_stream_events_status").on(table.status),
+]);
+
+// Stream collaborators table - manages participants in collaborative streaming events  
+export const streamCollaborators = pgTable("stream_collaborators", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamEventId: varchar("stream_event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Collaboration role and status
+  role: varchar("role").notNull(), // 'host', 'co_host', 'guest', 'moderator'
+  status: varchar("status").default("invited"), // 'invited', 'accepted', 'declined', 'removed'
+  invitedByUserId: varchar("invited_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  
+  // Platform specific information
+  platformHandles: jsonb("platform_handles"), // {'twitch': 'username', 'youtube': 'channel_id'}
+  streamingCapabilities: text("streaming_capabilities").array(), // ['host', 'co_stream', 'guest_appear']
+  
+  // Coordination preferences
+  availableTimeSlots: jsonb("available_time_slots"), // When this collaborator is available
+  contentSpecialties: text("content_specialties").array(), // ['deck_building', 'strategy', 'entertainment']
+  technicalSetup: jsonb("technical_setup"), // Stream quality, equipment info
+  
+  // Timestamps
+  invitedAt: timestamp("invited_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  joinedAt: timestamp("joined_at"),
+  
+}, (table) => [
+  index("idx_stream_collaborators_event").on(table.streamEventId),
+  index("idx_stream_collaborators_user").on(table.userId),
+  index("idx_stream_collaborators_status").on(table.status),
+  unique("unique_collaborator_per_event").on(table.streamEventId, table.userId),
+]);
+
+// Stream coordination sessions - real-time coordination during live streaming
+export const streamCoordinationSessions = pgTable("stream_coordination_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamEventId: varchar("stream_event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  
+  // Session details
+  actualStartTime: timestamp("actual_start_time", { withTimezone: true }),
+  actualEndTime: timestamp("actual_end_time", { withTimezone: true }),
+  currentPhase: varchar("current_phase").default("preparation"), // 'preparation', 'live', 'break', 'wrap_up', 'ended'
+  
+  // Real-time coordination data
+  activeCollaborators: text("active_collaborators").array(), // Currently live collaborator user IDs
+  currentHost: varchar("current_host").references(() => users.id), // Who's currently leading
+  platformStatuses: jsonb("platform_statuses"), // Status per platform {'twitch': 'live', 'youtube': 'offline'}
+  
+  // Stream metrics and coordination
+  viewerCounts: jsonb("viewer_counts"), // Viewer counts per platform
+  coordinationEvents: jsonb("coordination_events"), // Log of coordination events
+  chatModerationActive: boolean("chat_moderation_active").default(false),
+  
+  // Technical coordination
+  streamQualitySettings: jsonb("stream_quality_settings"), // Shared quality settings
+  audioCoordination: jsonb("audio_coordination"), // Audio mixing and coordination
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_stream_coord_sessions_event").on(table.streamEventId),
+  index("idx_stream_coord_sessions_phase").on(table.currentPhase),
+  index("idx_stream_coord_sessions_start_time").on(table.actualStartTime),
+]);
+
+// Zod schemas for the collaborative streaming tables
+export const insertCollaborativeStreamEventSchema = createInsertSchema(collaborativeStreamEvents);
+export const insertStreamCollaboratorSchema = createInsertSchema(streamCollaborators);
+export const insertStreamCoordinationSessionSchema = createInsertSchema(streamCoordinationSessions);
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -1398,6 +1505,9 @@ export type CommunityAnalytics = typeof communityAnalytics.$inferSelect;
 export type PlatformMetrics = typeof platformMetrics.$inferSelect;
 export type EventTracking = typeof eventTracking.$inferSelect;
 export type ConversionFunnel = typeof conversionFunnels.$inferSelect;
+export type CollaborativeStreamEvent = typeof collaborativeStreamEvents.$inferSelect;
+export type StreamCollaborator = typeof streamCollaborators.$inferSelect;
+export type StreamCoordinationSession = typeof streamCoordinationSessions.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -1436,3 +1546,6 @@ export type InsertCommunityAnalytics = z.infer<typeof insertCommunityAnalyticsSc
 export type InsertPlatformMetrics = z.infer<typeof insertPlatformMetricsSchema>;
 export type InsertEventTracking = z.infer<typeof insertEventTrackingSchema>;
 export type InsertConversionFunnel = z.infer<typeof insertConversionFunnelSchema>;
+export type InsertCollaborativeStreamEvent = z.infer<typeof insertCollaborativeStreamEventSchema>;
+export type InsertStreamCollaborator = z.infer<typeof insertStreamCollaboratorSchema>;
+export type InsertStreamCoordinationSession = z.infer<typeof insertStreamCoordinationSessionSchema>;

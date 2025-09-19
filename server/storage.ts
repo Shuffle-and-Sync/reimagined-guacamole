@@ -37,6 +37,9 @@ import {
   platformMetrics,
   eventTracking,
   conversionFunnels,
+  collaborativeStreamEvents,
+  streamCollaborators,
+  streamCoordinationSessions,
   type User,
   type UpsertUser,
   type Community,
@@ -102,6 +105,12 @@ import {
   type InsertStreamAnalytics,
   type UserActivityAnalytics,
   type CommunityAnalytics,
+  type CollaborativeStreamEvent,
+  type StreamCollaborator,
+  type StreamCoordinationSession,
+  type InsertCollaborativeStreamEvent,
+  type InsertStreamCollaborator,
+  type InsertStreamCoordinationSession,
   type PlatformMetrics,
   type EventTracking,
   type ConversionFunnel,
@@ -275,6 +284,27 @@ export interface IStorage {
   recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics>;
   getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]>;
   getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }>;
+
+  // Collaborative streaming events
+  createCollaborativeStreamEvent(data: InsertCollaborativeStreamEvent): Promise<CollaborativeStreamEvent>;
+  getCollaborativeStreamEvent(id: string): Promise<CollaborativeStreamEvent | null>;
+  updateCollaborativeStreamEvent(id: string, data: Partial<InsertCollaborativeStreamEvent>): Promise<CollaborativeStreamEvent>;
+  deleteCollaborativeStreamEvent(id: string): Promise<void>;
+  getUserCollaborativeStreamEvents(userId: string): Promise<CollaborativeStreamEvent[]>;
+
+  // Stream collaborators
+  createStreamCollaborator(data: InsertStreamCollaborator): Promise<StreamCollaborator>;
+  getStreamCollaborator(id: string): Promise<StreamCollaborator | null>;
+  updateStreamCollaborator(id: string, data: Partial<InsertStreamCollaborator>): Promise<StreamCollaborator>;
+  deleteStreamCollaborator(id: string): Promise<void>;
+  getStreamCollaborators(streamEventId: string): Promise<StreamCollaborator[]>;
+
+  // Stream coordination sessions
+  createStreamCoordinationSession(data: InsertStreamCoordinationSession): Promise<StreamCoordinationSession>;
+  getStreamCoordinationSession(id: string): Promise<StreamCoordinationSession | null>;
+  updateStreamCoordinationSession(id: string, data: Partial<InsertStreamCoordinationSession>): Promise<StreamCoordinationSession>;
+  deleteStreamCoordinationSession(id: string): Promise<void>;
+  getActiveCoordinationSessions(): Promise<StreamCoordinationSession[]>;
 
   // User activity analytics operations
   recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics>;
@@ -2874,6 +2904,153 @@ export class DatabaseStorage implements IStorage {
         .orderBy(conversionFunnels.timestamp, conversionFunnels.stepOrder);
     } catch (error) {
       console.error('Error getting conversion funnel data:', error);
+      throw error;
+    }
+  }
+
+  // Collaborative streaming events
+  async createCollaborativeStreamEvent(data: InsertCollaborativeStreamEvent): Promise<CollaborativeStreamEvent> {
+    try {
+      const [event] = await db.insert(collaborativeStreamEvents).values(data).returning();
+      return event;
+    } catch (error) {
+      logger.error("Failed to create collaborative stream event", error);
+      throw error;
+    }
+  }
+
+  async getCollaborativeStreamEvent(id: string): Promise<CollaborativeStreamEvent | null> {
+    try {
+      const [event] = await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.id, id));
+      return event || null;
+    } catch (error) {
+      logger.error("Failed to get collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async updateCollaborativeStreamEvent(id: string, data: Partial<InsertCollaborativeStreamEvent>): Promise<CollaborativeStreamEvent> {
+    try {
+      const [event] = await db.update(collaborativeStreamEvents).set(data).where(eq(collaborativeStreamEvents.id, id)).returning();
+      return event;
+    } catch (error) {
+      logger.error("Failed to update collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteCollaborativeStreamEvent(id: string): Promise<void> {
+    try {
+      await db.delete(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.id, id));
+    } catch (error) {
+      logger.error("Failed to delete collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async getUserCollaborativeStreamEvents(userId: string): Promise<CollaborativeStreamEvent[]> {
+    try {
+      return await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.creatorId, userId));
+    } catch (error) {
+      logger.error("Failed to get user collaborative stream events", error, { userId });
+      throw error;
+    }
+  }
+
+  // Stream collaborators
+  async createStreamCollaborator(data: InsertStreamCollaborator): Promise<StreamCollaborator> {
+    try {
+      const [collaborator] = await db.insert(streamCollaborators).values(data).returning();
+      return collaborator;
+    } catch (error) {
+      logger.error("Failed to create stream collaborator", error);
+      throw error;
+    }
+  }
+
+  async getStreamCollaborator(id: string): Promise<StreamCollaborator | null> {
+    try {
+      const [collaborator] = await db.select().from(streamCollaborators).where(eq(streamCollaborators.id, id));
+      return collaborator || null;
+    } catch (error) {
+      logger.error("Failed to get stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async updateStreamCollaborator(id: string, data: Partial<InsertStreamCollaborator>): Promise<StreamCollaborator> {
+    try {
+      const [collaborator] = await db.update(streamCollaborators).set(data).where(eq(streamCollaborators.id, id)).returning();
+      return collaborator;
+    } catch (error) {
+      logger.error("Failed to update stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteStreamCollaborator(id: string): Promise<void> {
+    try {
+      await db.delete(streamCollaborators).where(eq(streamCollaborators.id, id));
+    } catch (error) {
+      logger.error("Failed to delete stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async getStreamCollaborators(streamEventId: string): Promise<StreamCollaborator[]> {
+    try {
+      return await db.select().from(streamCollaborators).where(eq(streamCollaborators.streamEventId, streamEventId));
+    } catch (error) {
+      logger.error("Failed to get stream collaborators", error, { streamEventId });
+      throw error;
+    }
+  }
+
+  // Stream coordination sessions
+  async createStreamCoordinationSession(data: InsertStreamCoordinationSession): Promise<StreamCoordinationSession> {
+    try {
+      const [session] = await db.insert(streamCoordinationSessions).values(data).returning();
+      return session;
+    } catch (error) {
+      logger.error("Failed to create stream coordination session", error);
+      throw error;
+    }
+  }
+
+  async getStreamCoordinationSession(id: string): Promise<StreamCoordinationSession | null> {
+    try {
+      const [session] = await db.select().from(streamCoordinationSessions).where(eq(streamCoordinationSessions.id, id));
+      return session || null;
+    } catch (error) {
+      logger.error("Failed to get stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async updateStreamCoordinationSession(id: string, data: Partial<InsertStreamCoordinationSession>): Promise<StreamCoordinationSession> {
+    try {
+      const [session] = await db.update(streamCoordinationSessions).set(data).where(eq(streamCoordinationSessions.id, id)).returning();
+      return session;
+    } catch (error) {
+      logger.error("Failed to update stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteStreamCoordinationSession(id: string): Promise<void> {
+    try {
+      await db.delete(streamCoordinationSessions).where(eq(streamCoordinationSessions.id, id));
+    } catch (error) {
+      logger.error("Failed to delete stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async getActiveCoordinationSessions(): Promise<StreamCoordinationSession[]> {
+    try {
+      return await db.select().from(streamCoordinationSessions).where(eq(streamCoordinationSessions.currentPhase, 'live'));
+    } catch (error) {
+      logger.error("Failed to get active coordination sessions", error);
       throw error;
     }
   }
