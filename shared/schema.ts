@@ -382,11 +382,35 @@ export const userSettings = pgTable("user_settings", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
   theme: varchar("theme").default("system"), // system, light, dark
   notificationSettings: jsonb("notification_settings").default({
-    email: true,
+    // Delivery channels
     browser: true,
-    eventReminders: true,
-    socialUpdates: false,
-    weeklyDigest: true
+    email: true,
+    push: false,
+    sms: false,
+    webhook: false,
+    
+    // Event types with granular channel preferences
+    streamStarted: { browser: true, email: false, push: true, sms: false },
+    streamEnded: { browser: true, email: false, push: false, sms: false },
+    collaborationInvite: { browser: true, email: true, push: true, sms: false },
+    raidIncoming: { browser: true, email: false, push: true, sms: false },
+    eventReminders: { browser: true, email: true, push: true, sms: false },
+    friendRequests: { browser: true, email: true, push: false, sms: false },
+    socialUpdates: { browser: false, email: false, push: false, sms: false },
+    tournamentUpdates: { browser: true, email: true, push: true, sms: false },
+    systemAnnouncements: { browser: true, email: true, push: false, sms: false },
+    weeklyDigest: { browser: false, email: true, push: false, sms: false },
+    
+    // Frequency settings
+    digestFrequency: "weekly", // daily, weekly, monthly, never
+    quietHours: { enabled: false, start: "22:00", end: "08:00" },
+    timezone: "UTC",
+    
+    // Advanced preferences
+    groupNotifications: true, // Group similar notifications
+    soundEnabled: true,
+    vibrationEnabled: true,
+    showPreview: true // Show content in notification preview
   }),
   privacySettings: jsonb("privacy_settings").default({
     profileVisible: true,

@@ -18,6 +18,7 @@ import { securityHeaders } from "./validation";
 // Import Auth.js routes and webhook routes
 import authRouter from "./auth/auth.routes";
 import webhooksRouter from "./routes/webhooks";
+import notificationPreferencesRouter from "./routes/notification-preferences";
 
 const app = express();
 
@@ -56,6 +57,9 @@ app.use(securityHeaders);
   
   // Register webhook routes  
   app.use('/api/webhooks', webhooksRouter);
+  
+  // Register notification preferences routes
+  app.use('/api/notification-preferences', notificationPreferencesRouter);
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
