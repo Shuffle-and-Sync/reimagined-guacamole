@@ -194,6 +194,125 @@ export const gameSessions = pgTable("game_sessions", {
   index("idx_game_sessions_status").on(table.status),
 ]);
 
+// Stream sessions table for multi-platform streaming coordination
+export const streamSessions = pgTable("stream_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hostUserId: varchar("host_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  scheduledStartTime: timestamp("scheduled_start_time").notNull(),
+  actualStartTime: timestamp("actual_start_time"),
+  endTime: timestamp("end_time"),
+  status: varchar("status").default("scheduled"), // scheduled, live, ended, cancelled
+  category: varchar("category").notNull(),
+  tags: jsonb("tags").default([]), // String array for search/categorization
+  communityId: varchar("community_id").references(() => communities.id),
+  isPublic: boolean("is_public").default(true),
+  autoStartEnabled: boolean("auto_start_enabled").default(false),
+  crossPlatformChat: boolean("cross_platform_chat").default(false),
+  recordingEnabled: boolean("recording_enabled").default(false),
+  multistreaming: boolean("multistreaming").default(false),
+  // Viewer metrics
+  maxViewers: integer("max_viewers").default(0),
+  averageViewers: integer("average_viewers").default(0),
+  peakViewers: integer("peak_viewers").default(0),
+  totalViewTime: integer("total_view_time").default(0), // in minutes
+  // Advanced settings
+  sessionData: jsonb("session_data"), // Additional metadata and settings
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_stream_sessions_host_user_id").on(table.hostUserId),
+  index("idx_stream_sessions_community_id").on(table.communityId),
+  index("idx_stream_sessions_status").on(table.status),
+  index("idx_stream_sessions_scheduled_start").on(table.scheduledStartTime),
+]);
+
+// Stream session co-hosts for multi-host streams
+export const streamSessionCoHosts = pgTable("stream_session_co_hosts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamSessionId: varchar("stream_session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role").default("co_host"), // co_host, moderator, guest
+  permissions: jsonb("permissions").default({
+    canControlStream: false,
+    canManageChat: true,
+    canInviteGuests: false,
+    canEndStream: false
+  }),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  leftAt: timestamp("left_at"),
+}, (table) => [
+  index("idx_stream_session_co_hosts_session_id").on(table.streamSessionId),
+  index("idx_stream_session_co_hosts_user_id").on(table.userId),
+]);
+
+// Connected platforms for each stream session
+export const streamSessionPlatforms = pgTable("stream_session_platforms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamSessionId: varchar("stream_session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  platform: varchar("platform").notNull(), // twitch, youtube, facebook, discord
+  platformUserId: varchar("platform_user_id"), // Platform-specific user ID
+  platformUsername: varchar("platform_username"), // Platform username
+  streamKey: varchar("stream_key"), // Encrypted stream key
+  isActive: boolean("is_active").default(true),
+  isLive: boolean("is_live").default(false),
+  viewerCount: integer("viewer_count").default(0),
+  chatEnabled: boolean("chat_enabled").default(true),
+  platformMetadata: jsonb("platform_metadata"), // Platform-specific data
+  lastStatusCheck: timestamp("last_status_check"),
+  connectedAt: timestamp("connected_at").defaultNow(),
+}, (table) => [
+  index("idx_stream_session_platforms_session_id").on(table.streamSessionId),
+  index("idx_stream_session_platforms_platform").on(table.platform),
+  index("idx_stream_session_platforms_is_live").on(table.isLive),
+]);
+
+// Collaboration requests for stream coordination
+export const collaborationRequests = pgTable("collaboration_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUserId: varchar("from_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  toUserId: varchar("to_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  streamSessionId: varchar("stream_session_id").references(() => streamSessions.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // co_host, raid, host, guest_appearance, collab_stream
+  message: text("message"),
+  scheduledTime: timestamp("scheduled_time"),
+  status: varchar("status").default("pending"), // pending, accepted, declined, expired, cancelled
+  metadata: jsonb("metadata"), // Additional request data
+  responseMessage: text("response_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  respondedAt: timestamp("responded_at"),
+}, (table) => [
+  index("idx_collaboration_requests_from_user_id").on(table.fromUserId),
+  index("idx_collaboration_requests_to_user_id").on(table.toUserId),
+  index("idx_collaboration_requests_stream_session_id").on(table.streamSessionId),
+  index("idx_collaboration_requests_status").on(table.status),
+]);
+
+// Real-time streaming analytics and metrics
+export const streamAnalytics = pgTable("stream_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  streamSessionId: varchar("stream_session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  platform: varchar("platform").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  viewerCount: integer("viewer_count").default(0),
+  chatMessageCount: integer("chat_message_count").default(0),
+  followersGained: integer("followers_gained").default(0),
+  subscriptionsGained: integer("subscriptions_gained").default(0),
+  donationsReceived: jsonb("donations_received"), // Amount and currency data
+  averageChatSentiment: varchar("average_chat_sentiment"), // positive, neutral, negative
+  topChatters: jsonb("top_chatters"), // Most active chat participants
+  streamQuality: varchar("stream_quality"), // 720p, 1080p, etc.
+  frameDrops: integer("frame_drops").default(0),
+  bitrate: integer("bitrate"), // In kbps
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_stream_analytics_session_id").on(table.streamSessionId),
+  index("idx_stream_analytics_platform").on(table.platform),
+  index("idx_stream_analytics_timestamp").on(table.timestamp),
+]);
+
 // Password reset tokens for secure password recovery
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -933,6 +1052,78 @@ export const insertTournamentParticipantSchema = createInsertSchema(tournamentPa
   joinedAt: true,
 });
 
+// Streaming-related insert schemas
+export const insertStreamSessionSchema = createInsertSchema(streamSessions, {
+  title: z.string().min(1, "Title is required").max(200),
+  scheduledStartTime: z.coerce.date(),
+  actualStartTime: z.coerce.date().optional(),
+  endTime: z.coerce.date().optional(),
+  status: z.enum(["scheduled", "live", "ended", "cancelled"]),
+  category: z.string().min(1, "Category is required").max(100),
+  tags: z.array(z.string()).optional(),
+  maxViewers: z.number().int().min(0).optional(),
+  averageViewers: z.number().int().min(0).optional(),
+  peakViewers: z.number().int().min(0).optional(),
+  totalViewTime: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStreamSessionCoHostSchema = createInsertSchema(streamSessionCoHosts, {
+  role: z.enum(["co_host", "moderator", "guest"]),
+  permissions: z.object({
+    canControlStream: z.boolean(),
+    canManageChat: z.boolean(),
+    canInviteGuests: z.boolean(),
+    canEndStream: z.boolean(),
+  }).optional(),
+  leftAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertStreamSessionPlatformSchema = createInsertSchema(streamSessionPlatforms, {
+  platform: z.enum(["twitch", "youtube", "facebook", "discord"]),
+  platformUserId: z.string().optional(),
+  platformUsername: z.string().optional(),
+  streamKey: z.string().optional(),
+  viewerCount: z.number().int().min(0).optional(),
+  lastStatusCheck: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  connectedAt: true,
+});
+
+export const insertCollaborationRequestSchema = createInsertSchema(collaborationRequests, {
+  type: z.enum(["co_host", "raid", "host", "guest_appearance", "collab_stream"]),
+  scheduledTime: z.coerce.date().optional(),
+  status: z.enum(["pending", "accepted", "declined", "expired", "cancelled"]),
+  expiresAt: z.coerce.date().optional(),
+  respondedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStreamAnalyticsSchema = createInsertSchema(streamAnalytics, {
+  platform: z.enum(["twitch", "youtube", "facebook", "discord"]),
+  timestamp: z.coerce.date(),
+  viewerCount: z.number().int().min(0).optional(),
+  chatMessageCount: z.number().int().min(0).optional(),
+  followersGained: z.number().int().min(0).optional(),
+  subscriptionsGained: z.number().int().min(0).optional(),
+  averageChatSentiment: z.enum(["positive", "neutral", "negative"]).optional(),
+  streamQuality: z.string().optional(),
+  frameDrops: z.number().int().min(0).optional(),
+  bitrate: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTournamentFormatSchema = createInsertSchema(tournamentFormats).omit({
   id: true,
 });
@@ -1007,6 +1198,11 @@ export type ForumPost = typeof forumPosts.$inferSelect;
 export type ForumReply = typeof forumReplies.$inferSelect;
 export type ForumPostLike = typeof forumPostLikes.$inferSelect;
 export type ForumReplyLike = typeof forumReplyLikes.$inferSelect;
+export type StreamSession = typeof streamSessions.$inferSelect;
+export type StreamSessionCoHost = typeof streamSessionCoHosts.$inferSelect;
+export type StreamSessionPlatform = typeof streamSessionPlatforms.$inferSelect;
+export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
+export type StreamAnalytics = typeof streamAnalytics.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -1035,3 +1231,8 @@ export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
 export type InsertForumReply = z.infer<typeof insertForumReplySchema>;
 export type InsertForumPostLike = z.infer<typeof insertForumPostLikeSchema>;
 export type InsertForumReplyLike = z.infer<typeof insertForumReplyLikeSchema>;
+export type InsertStreamSession = z.infer<typeof insertStreamSessionSchema>;
+export type InsertStreamSessionCoHost = z.infer<typeof insertStreamSessionCoHostSchema>;
+export type InsertStreamSessionPlatform = z.infer<typeof insertStreamSessionPlatformSchema>;
+export type InsertCollaborationRequest = z.infer<typeof insertCollaborationRequestSchema>;
+export type InsertStreamAnalytics = z.infer<typeof insertStreamAnalyticsSchema>;

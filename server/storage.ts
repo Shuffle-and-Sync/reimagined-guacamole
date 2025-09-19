@@ -26,6 +26,11 @@ import {
   forumReplies,
   forumPostLikes,
   forumReplyLikes,
+  streamSessions,
+  streamSessionCoHosts,
+  streamSessionPlatforms,
+  collaborationRequests,
+  streamAnalytics,
   type User,
   type UpsertUser,
   type Community,
@@ -53,6 +58,11 @@ import {
   type ForumReply,
   type ForumPostLike,
   type ForumReplyLike,
+  type StreamSession,
+  type StreamSessionCoHost,
+  type StreamSessionPlatform,
+  type CollaborationRequest,
+  type StreamAnalytics,
   type InsertCommunity,
   type InsertUserCommunity,
   type InsertThemePreference,
@@ -79,6 +89,11 @@ import {
   type InsertForumReply,
   type InsertForumPostLike,
   type InsertForumReplyLike,
+  type InsertStreamSession,
+  type InsertStreamSessionCoHost,
+  type InsertStreamSessionPlatform,
+  type InsertCollaborationRequest,
+  type InsertStreamAnalytics,
 } from "@shared/schema";
 import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -214,6 +229,36 @@ export interface IStorage {
   createForumReply(data: InsertForumReply): Promise<ForumReply>;
   likeForumReply(replyId: string, userId: string): Promise<void>;
   unlikeForumReply(replyId: string, userId: string): Promise<void>;
+  
+  // Streaming session operations
+  getStreamSessions(filters?: { hostUserId?: string; communityId?: string; status?: string; upcoming?: boolean }): Promise<(StreamSession & { host: User; community?: Community; coHosts: StreamSessionCoHost[]; platforms: StreamSessionPlatform[] })[]>;
+  getStreamSession(id: string): Promise<(StreamSession & { host: User; community?: Community; coHosts: (StreamSessionCoHost & { user: User })[]; platforms: StreamSessionPlatform[] }) | undefined>;
+  createStreamSession(data: InsertStreamSession): Promise<StreamSession>;
+  updateStreamSession(id: string, data: Partial<InsertStreamSession>): Promise<StreamSession>;
+  deleteStreamSession(id: string): Promise<void>;
+  
+  // Stream session co-host operations
+  addStreamCoHost(data: InsertStreamSessionCoHost): Promise<StreamSessionCoHost>;
+  removeStreamCoHost(sessionId: string, userId: string): Promise<void>;
+  updateStreamCoHostPermissions(sessionId: string, userId: string, permissions: { canControlStream: boolean; canManageChat: boolean; canInviteGuests: boolean; canEndStream: boolean }): Promise<StreamSessionCoHost>;
+  
+  // Stream session platform operations
+  addStreamPlatform(data: InsertStreamSessionPlatform): Promise<StreamSessionPlatform>;
+  updateStreamPlatform(id: string, data: Partial<InsertStreamSessionPlatform>): Promise<StreamSessionPlatform>;
+  removeStreamPlatform(id: string): Promise<void>;
+  getStreamPlatforms(sessionId: string): Promise<StreamSessionPlatform[]>;
+  updateStreamStatus(sessionId: string, platform: string, isLive: boolean, viewerCount?: number): Promise<void>;
+  
+  // Collaboration request operations
+  getCollaborationRequests(filters?: { fromUserId?: string; toUserId?: string; status?: string; type?: string }): Promise<(CollaborationRequest & { fromUser: User; toUser: User; streamSession?: StreamSession })[]>;
+  createCollaborationRequest(data: InsertCollaborationRequest): Promise<CollaborationRequest>;
+  respondToCollaborationRequest(id: string, status: 'accepted' | 'declined' | 'cancelled', responseMessage?: string): Promise<CollaborationRequest>;
+  expireCollaborationRequests(): Promise<void>;
+  
+  // Stream analytics operations
+  recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics>;
+  getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]>;
+  getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
