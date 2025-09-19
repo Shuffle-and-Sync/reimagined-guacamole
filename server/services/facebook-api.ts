@@ -31,6 +31,13 @@ export interface FacebookLiveVideo {
   embed_html?: string;
 }
 
+export interface FacebookLiveVideoDetails extends FacebookLiveVideo {
+  stream_url?: string;
+  secure_stream_url?: string;
+  dash_ingest_url?: string;
+  rtmp_preview_url?: string;
+}
+
 export interface FacebookPost {
   id: string;
   message?: string;
@@ -66,6 +73,9 @@ export class FacebookAPIService {
   private appId: string | undefined;
   private appSecret: string | undefined;
   private apiVersion: string = 'v18.0';
+  
+  // Store OAuth states to validate CSRF protection
+  private oauthStates = new Map<string, { timestamp: number; redirectUri: string }>();
 
   constructor() {
     this.appId = process.env.FACEBOOK_APP_ID;
@@ -169,7 +179,7 @@ export class FacebookAPIService {
     title: string,
     description?: string,
     plannedStartTime?: Date
-  ): Promise<FacebookLiveVideo | null> {
+  ): Promise<FacebookLiveVideoDetails | null> {
     if (!this.isConfigured()) {
       console.warn('Facebook API not configured');
       return null;
@@ -178,8 +188,9 @@ export class FacebookAPIService {
     try {
       const body = new URLSearchParams({
         title,
+        status: plannedStartTime ? 'SCHEDULED_UNPUBLISHED' : 'UNPUBLISHED',
         ...(description && { description }),
-        ...(plannedStartTime && { planned_start_time: plannedStartTime.toISOString() }),
+        ...(plannedStartTime && { planned_start_time: Math.floor(plannedStartTime.getTime() / 1000).toString() }),
         access_token: accessToken,
       });
 
@@ -204,7 +215,10 @@ export class FacebookAPIService {
         throw new Error(`Facebook API error: ${data.error.message}`);
       }
 
-      return {
+      // Fetch the created live video to get authoritative details including streaming info
+      const createdVideo = await this.getLiveVideoDetails(data.id, accessToken);
+      
+      return createdVideo || {
         id: data.id,
         title,
         description,
@@ -221,27 +235,130 @@ export class FacebookAPIService {
   }
 
   /**
-   * Update live video
-   * TODO: Implement with Facebook Graph API
+   * Get live video details with streaming information
    */
-  async updateLiveVideo(
-    liveVideoId: string,
-    accessToken: string,
-    updates: Partial<FacebookLiveVideo>
-  ): Promise<FacebookLiveVideo | null> {
+  async getLiveVideoDetails(liveVideoId: string, accessToken: string): Promise<FacebookLiveVideoDetails | null> {
     if (!this.isConfigured()) {
       console.warn('Facebook API not configured');
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: updateLiveVideo called for', liveVideoId);
-    return null;
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${liveVideoId}?fields=id,title,description,status,creation_time,planned_start_time,permalink_url,embed_html,stream_url,secure_stream_url,dash_ingest_url,rtmp_preview_url&access_token=${accessToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        creation_time: data.creation_time,
+        planned_start_time: data.planned_start_time 
+          ? this.parseTimestamp(data.planned_start_time)
+          : undefined,
+        permalink_url: data.permalink_url,
+        embed_html: data.embed_html,
+        stream_url: data.stream_url,
+        secure_stream_url: data.secure_stream_url,
+        dash_ingest_url: data.dash_ingest_url,
+        rtmp_preview_url: data.rtmp_preview_url,
+      };
+    } catch (error) {
+      console.error('Error fetching Facebook live video details:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update live video
+   */
+  async updateLiveVideo(
+    liveVideoId: string,
+    accessToken: string,
+    updates: Partial<FacebookLiveVideo>
+  ): Promise<FacebookLiveVideoDetails | null> {
+    if (!this.isConfigured()) {
+      console.warn('Facebook API not configured');
+      return null;
+    }
+
+    try {
+      const updateData: any = {};
+      
+      if (updates.title) updateData.title = updates.title;
+      if (updates.description) updateData.description = updates.description;
+      if (updates.planned_start_time) {
+        if (typeof updates.planned_start_time === 'string') {
+          // Handle both ISO strings and Unix timestamp strings
+          const numericValue = parseFloat(updates.planned_start_time);
+          if (!isNaN(numericValue) && updates.planned_start_time.match(/^\d+(\.\d+)?$/)) {
+            // It's a numeric string (Unix timestamp)
+            updateData.planned_start_time = Math.floor(numericValue).toString();
+          } else {
+            // It's an ISO string
+            updateData.planned_start_time = Math.floor(new Date(updates.planned_start_time).getTime() / 1000).toString();
+          }
+        } else {
+          updateData.planned_start_time = updates.planned_start_time;
+        }
+      }
+      
+      const body = new URLSearchParams({
+        ...updateData,
+        access_token: accessToken,
+      });
+
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${liveVideoId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: body.toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      // Fetch the updated live video to get authoritative details
+      const updatedVideo = await this.getLiveVideoDetails(liveVideoId, accessToken);
+      
+      return updatedVideo || {
+        id: liveVideoId,
+        title: updates.title || '',
+        description: updates.description || '',
+        status: 'UNPUBLISHED',
+        creation_time: new Date().toISOString(),
+        planned_start_time: updates.planned_start_time,
+      };
+    } catch (error) {
+      console.error('Error updating Facebook live video:', error);
+      return null;
+    }
   }
 
   /**
    * End live video
-   * TODO: Implement with Facebook Graph API
    */
   async endLiveVideo(liveVideoId: string, accessToken: string): Promise<boolean> {
     if (!this.isConfigured()) {
@@ -249,14 +366,40 @@ export class FacebookAPIService {
       return false;
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: endLiveVideo called for', liveVideoId);
-    return false;
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${liveVideoId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            end_live_video: 'true',
+            access_token: accessToken,
+          }).toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return data.success === true || response.ok;
+    } catch (error) {
+      console.error('Error ending Facebook live video:', error);
+      return false;
+    }
   }
 
   /**
    * Get page posts
-   * TODO: Implement with Facebook Graph API
    */
   async getPagePosts(pageId: string, accessToken: string, limit: number = 10): Promise<FacebookPost[]> {
     if (!this.isConfigured()) {
@@ -264,14 +407,50 @@ export class FacebookAPIService {
       return [];
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: getPagePosts called for', pageId);
-    return []; // No mock posts for now
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}/posts?fields=id,message,story,created_time,updated_time,permalink_url,likes.summary(true),comments.summary(true),shares&limit=${limit}&access_token=${accessToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return data.data?.map((post: any) => ({
+        id: post.id,
+        message: post.message,
+        story: post.story,
+        created_time: post.created_time,
+        updated_time: post.updated_time,
+        permalink_url: post.permalink_url,
+        likes: {
+          summary: {
+            total_count: post.likes?.summary?.total_count || 0,
+          },
+        },
+        comments: {
+          summary: {
+            total_count: post.comments?.summary?.total_count || 0,
+          },
+        },
+        shares: {
+          count: post.shares?.count || 0,
+        },
+      })) || [];
+    } catch (error) {
+      console.error('Error fetching Facebook page posts:', error);
+      return [];
+    }
   }
 
   /**
    * Create a post
-   * TODO: Implement with Facebook Graph API
    */
   async createPost(
     pageId: string,
@@ -284,37 +463,141 @@ export class FacebookAPIService {
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: createPost called');
-    return null;
+    try {
+      const postData: any = {
+        message,
+        access_token: accessToken,
+      };
+      
+      if (link) {
+        postData.link = link;
+      }
+
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}/feed`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(postData).toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        message,
+        created_time: new Date().toISOString(),
+        updated_time: new Date().toISOString(),
+        permalink_url: `https://facebook.com/${data.id}`,
+        likes: { summary: { total_count: 0 } },
+        comments: { summary: { total_count: 0 } },
+        shares: { count: 0 },
+      };
+    } catch (error) {
+      console.error('Error creating Facebook post:', error);
+      return null;
+    }
   }
 
   /**
-   * Get OAuth authorization URL for Facebook
-   * TODO: Implement OAuth 2.0 flow
+   * Get OAuth authorization URL for Facebook with CSRF protection
    */
-  getAuthorizationUrl(scopes: string[] = ['pages_manage_posts', 'pages_read_engagement', 'publish_video']): string {
-    if (!this.appId) {
-      throw new Error('Facebook App ID not configured');
+  getAuthorizationUrl(redirectUri: string): { url: string; state: string } {
+    if (!this.isConfigured()) {
+      console.warn('Facebook API not configured');
+      return { url: '', state: '' };
     }
 
-    // TODO: Implement proper OAuth URL generation
-    const baseUrl = 'https://www.facebook.com/v18.0/dialog/oauth';
-    const params = new URLSearchParams({
-      client_id: this.appId,
-      redirect_uri: process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:5000/auth/facebook/callback',
-      scope: scopes.join(','),
-      response_type: 'code',
-      state: Math.random().toString(36).substring(7), // Simple CSRF protection
+    // Generate secure random state for CSRF protection
+    const state = this.generateSecureState();
+    
+    // Store state with timestamp for validation (expires in 10 minutes)
+    this.oauthStates.set(state, {
+      timestamp: Date.now(),
+      redirectUri,
     });
 
-    return `${baseUrl}?${params.toString()}`;
+    // Clean expired states
+    this.cleanExpiredStates();
+    
+    const params = new URLSearchParams({
+      client_id: this.appId!,
+      redirect_uri: redirectUri,
+      scope: 'pages_manage_posts,pages_read_engagement,publish_video,pages_manage_metadata,pages_read_user_content,pages_show_list',
+      response_type: 'code',
+      state: state,
+    });
+
+    return {
+      url: `https://www.facebook.com/v18.0/dialog/oauth?${params.toString()}`,
+      state,
+    };
+  }
+
+  /**
+   * Generate cryptographically secure state token
+   */
+  private generateSecureState(): string {
+    return require('crypto').randomBytes(32).toString('hex');
+  }
+
+  /**
+   * Clean expired OAuth states (older than 10 minutes)
+   */
+  private cleanExpiredStates(): void {
+    const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+    for (const [state, data] of this.oauthStates.entries()) {
+      if (data.timestamp < tenMinutesAgo) {
+        this.oauthStates.delete(state);
+      }
+    }
+  }
+
+  /**
+   * Validate OAuth state for CSRF protection
+   */
+  validateOAuthState(state: string, redirectUri: string): boolean {
+    const stateData = this.oauthStates.get(state);
+    if (!stateData) {
+      console.warn('Invalid OAuth state: not found');
+      return false;
+    }
+
+    // Check if state is expired (10 minutes)
+    const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+    if (stateData.timestamp < tenMinutesAgo) {
+      console.warn('Invalid OAuth state: expired');
+      this.oauthStates.delete(state);
+      return false;
+    }
+
+    // Check if redirect URI matches
+    if (stateData.redirectUri !== redirectUri) {
+      console.warn('Invalid OAuth state: redirect URI mismatch');
+      this.oauthStates.delete(state);
+      return false;
+    }
+
+    // State is valid, remove it to prevent reuse
+    this.oauthStates.delete(state);
+    return true;
   }
 
   /**
    * Exchange authorization code for access token
    */
-  async exchangeCodeForToken(code: string): Promise<{ access_token: string; token_type: string } | null> {
+  async exchangeCodeForToken(code: string, redirectUri: string): Promise<{ access_token: string; token_type: string } | null> {
     if (!this.isConfigured()) {
       console.warn('Facebook API not configured');
       return null;
@@ -324,7 +607,7 @@ export class FacebookAPIService {
       const response = await fetch(
         `https://graph.facebook.com/${this.apiVersion}/oauth/access_token?` +
         `client_id=${this.appId}&` +
-        `redirect_uri=${encodeURIComponent(process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:5000/auth/facebook/callback')}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `client_secret=${this.appSecret}&` +
         `code=${code}`
       );
@@ -381,8 +664,30 @@ export class FacebookAPIService {
   }
 
   /**
+   * Parse timestamp from Facebook API (handles both Unix seconds and ISO strings)
+   */
+  private parseTimestamp(timestamp: string): string {
+    // Check if it's a numeric Unix timestamp
+    if (/^\d+(?:\.\d+)?$/.test(timestamp)) {
+      return new Date(parseInt(timestamp) * 1000).toISOString();
+    }
+    
+    // Try parsing as ISO string
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid timestamp format, returning raw value:', timestamp);
+        return timestamp;
+      }
+      return date.toISOString();
+    } catch (error) {
+      console.warn('Error parsing timestamp, returning raw value:', timestamp);
+      return timestamp;
+    }
+  }
+
+  /**
    * Subscribe to page webhooks
-   * TODO: Implement webhook subscription
    */
   async subscribeToWebhooks(pageId: string, accessToken: string, callbackUrl: string, verifyToken: string): Promise<boolean> {
     if (!this.isConfigured()) {
@@ -390,21 +695,78 @@ export class FacebookAPIService {
       return false;
     }
 
-    // TODO: Implement actual webhook subscription
-    console.log('Facebook API stub: subscribeToWebhooks called');
-    return false;
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}/subscribed_apps`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            subscribed_fields: 'live_videos,feed',
+            access_token: accessToken,
+          }).toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return data.success === true;
+    } catch (error) {
+      console.error('Error subscribing to Facebook webhooks:', error);
+      return false;
+    }
   }
 
   /**
-   * Verify webhook callback
-   * TODO: Implement webhook verification
+   * Verify webhook callback for GET requests (challenge verification)
    */
   verifyWebhookCallback(mode: string, token: string, challenge: string, verifyToken: string): string | null {
-    // TODO: Implement proper webhook verification
     if (mode === 'subscribe' && token === verifyToken) {
       return challenge;
     }
     return null;
+  }
+
+  /**
+   * Verify webhook POST signature with HMAC-SHA256
+   */
+  verifyWebhookSignature(signature: string, body: string): boolean {
+    if (!this.isConfigured()) {
+      console.warn('Facebook API not configured');
+      return false;
+    }
+
+    try {
+      const crypto = require('crypto');
+      
+      // Remove 'sha256=' prefix if present
+      const cleanSignature = signature.replace('sha256=', '');
+      
+      // Calculate expected signature using app secret
+      const expectedSignature = crypto
+        .createHmac('sha256', this.appSecret)
+        .update(body, 'utf8')
+        .digest('hex');
+      
+      // Use constant-time comparison to prevent timing attacks
+      return crypto.timingSafeEqual(
+        Buffer.from(cleanSignature, 'hex'),
+        Buffer.from(expectedSignature, 'hex')
+      );
+    } catch (error) {
+      console.error('Error verifying webhook signature:', error);
+      return false;
+    }
   }
 }
 
