@@ -173,17 +173,39 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Proper Content Security Policy
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-    "font-src 'self' fonts.gstatic.com",
-    "img-src 'self' data: blob: https:",
-    "connect-src 'self' https: wss: ws:",
-    "frame-ancestors 'none'"
-  ].join('; ');
-  res.setHeader('Content-Security-Policy', csp);
+  // Content Security Policy - different policies for dev vs production
+  let csp: string;
+  
+  if (process.env.NODE_ENV === 'development') {
+    // Development CSP - more permissive for debugging
+    csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com",
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com https:",
+      "font-src 'self' fonts.gstatic.com https:",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https: wss: ws: replit.com",
+      "frame-ancestors 'none'"
+    ].join('; ');
+    
+    // Use report-only in development to avoid blocking during development
+    res.setHeader('Content-Security-Policy-Report-Only', csp);
+  } else {
+    // Production CSP - strict but functional security policy
+    csp = [
+      "default-src 'self'",
+      "script-src 'self'", // No unsafe-inline or unsafe-eval in production
+      "style-src 'self' fonts.googleapis.com",
+      "font-src 'self' fonts.gstatic.com",
+      "img-src 'self' data: blob: https:", // Allow HTTPS images for avatars/thumbnails
+      "connect-src 'self' wss: ws: https://api.twitch.tv https://id.twitch.tv", // Specific API endpoints
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "base-uri 'self'"
+    ].join('; ');
+    
+    res.setHeader('Content-Security-Policy', csp);
+  }
   
   // Don't set HSTS in development
   if (process.env.NODE_ENV === 'production') {

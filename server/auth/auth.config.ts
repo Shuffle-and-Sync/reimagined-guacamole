@@ -3,8 +3,18 @@ import Google from "@auth/core/providers/google";
 import Twitch from "@auth/core/providers/twitch";
 import Credentials from "@auth/core/providers/credentials";
 import type { AuthConfig } from "@auth/core/types";
-import { comparePassword } from "./password";
+import { comparePassword, checkAuthRateLimit, recordAuthFailure, clearAuthFailures } from "./password";
 import { storage } from "../storage";
+
+// Validate critical environment variables at startup
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.AUTH_SECRET) {
+    throw new Error('AUTH_SECRET environment variable is required in production');
+  }
+  if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
+    throw new Error('AUTH_URL or NEXTAUTH_URL environment variable is required in production');
+  }
+}
 
 export const authConfig: AuthConfig = {
   // Use JWT sessions instead of database sessions to avoid ORM conflicts
@@ -13,6 +23,19 @@ export const authConfig: AuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: process.env.NODE_ENV === "development", // Only trust host in development
+  
+  // Enhanced cookie settings for production security
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -34,14 +57,24 @@ export const authConfig: AuthConfig = {
         }
 
         try {
+          const email = credentials.email as string;
+          
+          // Apply rate limiting
+          const rateLimitCheck = checkAuthRateLimit(email);
+          if (!rateLimitCheck.allowed) {
+            throw new Error(`Too many failed attempts. Try again in ${rateLimitCheck.retryAfter} seconds.`);
+          }
+
           // Find user by email
-          const user = await storage.getUserByEmail(credentials.email as string);
+          const user = await storage.getUserByEmail(email);
           if (!user) {
-            throw new Error("No user found with this email");
+            recordAuthFailure(email);
+            throw new Error("Invalid email or password");
           }
 
           // Check if user has a password (OAuth users might not)
           if (!user.passwordHash) {
+            recordAuthFailure(email);
             throw new Error("This account uses OAuth authentication. Please sign in with Google or Twitch.");
           }
 
@@ -52,8 +85,12 @@ export const authConfig: AuthConfig = {
           );
 
           if (!isPasswordValid) {
-            throw new Error("Invalid password");
+            recordAuthFailure(email);
+            throw new Error("Invalid email or password");
           }
+
+          // Clear failures on successful login
+          clearAuthFailures(email);
 
           // Return user object for session
           return {
@@ -78,7 +115,8 @@ export const authConfig: AuthConfig = {
           
           if (!existingUser) {
             // Create new user from OAuth profile
-            existingUser = await storage.createUser({
+            existingUser = await storage.upsertUser({
+              id: crypto.randomUUID(),
               email: user.email!,
               firstName: user.name?.split(' ')[0] || '',
               lastName: user.name?.split(' ').slice(1).join(' ') || '',
@@ -100,7 +138,9 @@ export const authConfig: AuthConfig = {
           }
           
           // Update user ID in the user object for JWT
-          user.id = existingUser.id;
+          if (existingUser) {
+            user.id = existingUser.id;
+          }
         }
         
         return true;
@@ -124,8 +164,8 @@ export const authConfig: AuthConfig = {
         try {
           const user = await storage.getUser(token.userId as string);
           if (user) {
-            session.user.email = user.email;
-            session.user.name = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email;
+            session.user.email = user.email || '';
+            session.user.name = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.email || '');
             session.user.image = user.profileImageUrl;
           }
         } catch (error) {

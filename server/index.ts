@@ -15,8 +15,9 @@ import { gamesRoutes } from "./features/games/games.routes";
 import { errorHandler, requestLogger, corsHandler } from "./shared/middleware";
 import { securityHeaders } from "./validation";
 
-// Import Auth.js routes
+// Import Auth.js routes and webhook routes
 import authRouter from "./auth/auth.routes";
+import webhooksRouter from "./routes/webhooks";
 
 const app = express();
 
@@ -52,6 +53,9 @@ app.use(securityHeaders);
   app.use('/api/messages', messagesRouter);
   app.use('/api/conversations', conversationsRouter);
   app.use('/api/tournaments', tournamentsRoutes);
+  
+  // Register webhook routes  
+  app.use('/api/webhooks', webhooksRouter);
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
