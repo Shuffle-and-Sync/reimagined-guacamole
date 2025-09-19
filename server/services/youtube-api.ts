@@ -77,7 +77,6 @@ export class YouTubeAPIService {
 
   /**
    * Get channel information by username or channel ID
-   * TODO: Implement with YouTube Data API v3
    */
   async getChannel(channelId: string): Promise<YouTubeChannel | null> {
     if (!this.isConfigured()) {
@@ -85,28 +84,43 @@ export class YouTubeAPIService {
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: getChannel called for', channelId);
-    
-    // Return mock data for now
-    return {
-      id: channelId,
-      title: 'Sample YouTube Channel',
-      description: 'This is a sample channel description',
-      thumbnails: {
-        default: { url: 'https://via.placeholder.com/88x88' },
-        medium: { url: 'https://via.placeholder.com/240x240' },
-        high: { url: 'https://via.placeholder.com/800x800' },
-      },
-      subscriberCount: 1000,
-      videoCount: 50,
-      viewCount: 100000,
-    };
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${this.apiKey}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const channel = data.items?.[0];
+
+      if (!channel) {
+        return null;
+      }
+
+      return {
+        id: channel.id,
+        title: channel.snippet.title,
+        description: channel.snippet.description,
+        thumbnails: {
+          default: { url: channel.snippet.thumbnails?.default?.url || '' },
+          medium: { url: channel.snippet.thumbnails?.medium?.url || '' },
+          high: { url: channel.snippet.thumbnails?.high?.url || '' },
+        },
+        subscriberCount: parseInt(channel.statistics.subscriberCount || '0'),
+        videoCount: parseInt(channel.statistics.videoCount || '0'),
+        viewCount: parseInt(channel.statistics.viewCount || '0'),
+      };
+    } catch (error) {
+      console.error('Error fetching YouTube channel:', error);
+      return null;
+    }
   }
 
   /**
    * Get live stream information
-   * TODO: Implement with YouTube Live Streaming API
    */
   async getLiveStream(channelId: string): Promise<YouTubeStream | null> {
     if (!this.isConfigured()) {
@@ -114,14 +128,61 @@ export class YouTubeAPIService {
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: getLiveStream called for', channelId);
-    return null; // No mock live stream for now
+    try {
+      // First get live broadcasts for the channel
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&eventType=live&key=${this.apiKey}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`YouTube API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const liveVideo = data.items?.[0];
+
+      if (!liveVideo) {
+        return null;
+      }
+
+      // Get detailed video information
+      const videoResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails,statistics&id=${liveVideo.id.videoId}&key=${this.apiKey}`
+      );
+
+      if (!videoResponse.ok) {
+        return null;
+      }
+
+      const videoData = await videoResponse.json();
+      const video = videoData.items?.[0];
+
+      if (!video) {
+        return null;
+      }
+
+      return {
+        id: video.id,
+        title: video.snippet.title,
+        description: video.snippet.description,
+        status: 'live',
+        scheduledStartTime: video.liveStreamingDetails?.scheduledStartTime,
+        actualStartTime: video.liveStreamingDetails?.actualStartTime,
+        concurrentViewers: parseInt(video.liveStreamingDetails?.concurrentViewers || '0'),
+        thumbnails: {
+          default: { url: video.snippet.thumbnails?.default?.url || '' },
+          medium: { url: video.snippet.thumbnails?.medium?.url || '' },
+          high: { url: video.snippet.thumbnails?.high?.url || '' },
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching YouTube live stream:', error);
+      return null;
+    }
   }
 
   /**
    * Get channel's recent videos
-   * TODO: Implement with YouTube Data API v3
    */
   async getChannelVideos(channelId: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
     if (!this.isConfigured()) {
@@ -129,14 +190,57 @@ export class YouTubeAPIService {
       return [];
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: getChannelVideos called for', channelId);
-    return []; // No mock videos for now
+    try {
+      // Get recent videos from the channel
+      const searchResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=${maxResults}&key=${this.apiKey}`
+      );
+
+      if (!searchResponse.ok) {
+        throw new Error(`YouTube API request failed: ${searchResponse.status} ${searchResponse.statusText}`);
+      }
+
+      const searchData = await searchResponse.json();
+      const videoIds = searchData.items?.map((item: any) => item.id.videoId).join(',');
+
+      if (!videoIds) {
+        return [];
+      }
+
+      // Get detailed video information
+      const videosResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${this.apiKey}`
+      );
+
+      if (!videosResponse.ok) {
+        return [];
+      }
+
+      const videosData = await videosResponse.json();
+      
+      return videosData.items?.map((video: any) => ({
+        id: video.id,
+        title: video.snippet.title,
+        description: video.snippet.description,
+        publishedAt: video.snippet.publishedAt,
+        thumbnails: {
+          default: { url: video.snippet.thumbnails?.default?.url || '' },
+          medium: { url: video.snippet.thumbnails?.medium?.url || '' },
+          high: { url: video.snippet.thumbnails?.high?.url || '' },
+        },
+        duration: video.contentDetails.duration,
+        viewCount: parseInt(video.statistics.viewCount || '0'),
+        likeCount: parseInt(video.statistics.likeCount || '0'),
+        commentCount: parseInt(video.statistics.commentCount || '0'),
+      })) || [];
+    } catch (error) {
+      console.error('Error fetching YouTube channel videos:', error);
+      return [];
+    }
   }
 
   /**
    * Search for videos by query
-   * TODO: Implement with YouTube Data API v3
    */
   async searchVideos(query: string, maxResults: number = 10): Promise<YouTubeVideo[]> {
     if (!this.isConfigured()) {
@@ -144,9 +248,53 @@ export class YouTubeAPIService {
       return [];
     }
 
-    // TODO: Implement actual API call
-    console.log('YouTube API stub: searchVideos called for', query);
-    return []; // No mock search results for now
+    try {
+      // Search for videos
+      const searchResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${this.apiKey}`
+      );
+
+      if (!searchResponse.ok) {
+        throw new Error(`YouTube API request failed: ${searchResponse.status} ${searchResponse.statusText}`);
+      }
+
+      const searchData = await searchResponse.json();
+      const videoIds = searchData.items?.map((item: any) => item.id.videoId).join(',');
+
+      if (!videoIds) {
+        return [];
+      }
+
+      // Get detailed video information
+      const videosResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${this.apiKey}`
+      );
+
+      if (!videosResponse.ok) {
+        return [];
+      }
+
+      const videosData = await videosResponse.json();
+      
+      return videosData.items?.map((video: any) => ({
+        id: video.id,
+        title: video.snippet.title,
+        description: video.snippet.description,
+        publishedAt: video.snippet.publishedAt,
+        thumbnails: {
+          default: { url: video.snippet.thumbnails?.default?.url || '' },
+          medium: { url: video.snippet.thumbnails?.medium?.url || '' },
+          high: { url: video.snippet.thumbnails?.high?.url || '' },
+        },
+        duration: video.contentDetails.duration,
+        viewCount: parseInt(video.statistics.viewCount || '0'),
+        likeCount: parseInt(video.statistics.likeCount || '0'),
+        commentCount: parseInt(video.statistics.commentCount || '0'),
+      })) || [];
+    } catch (error) {
+      console.error('Error searching YouTube videos:', error);
+      return [];
+    }
   }
 
   /**
@@ -203,7 +351,6 @@ export class YouTubeAPIService {
 
   /**
    * Exchange authorization code for access token
-   * TODO: Implement OAuth token exchange
    */
   async exchangeCodeForToken(code: string): Promise<{ access_token: string; refresh_token: string } | null> {
     if (!this.isConfigured()) {
@@ -211,9 +358,35 @@ export class YouTubeAPIService {
       return null;
     }
 
-    // TODO: Implement actual token exchange
-    console.log('YouTube API stub: exchangeCodeForToken called');
-    return null;
+    try {
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          code,
+          client_id: this.clientId!,
+          client_secret: this.clientSecret!,
+          redirect_uri: process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5000/auth/youtube/callback',
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OAuth token exchange failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      };
+    } catch (error) {
+      console.error('Error exchanging YouTube OAuth code:', error);
+      return null;
+    }
   }
 }
 

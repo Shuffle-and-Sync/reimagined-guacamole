@@ -81,7 +81,6 @@ export class FacebookAPIService {
 
   /**
    * Get page information
-   * TODO: Implement with Facebook Graph API
    */
   async getPage(pageId: string, accessToken: string): Promise<FacebookPage | null> {
     if (!this.isConfigured()) {
@@ -89,28 +88,38 @@ export class FacebookAPIService {
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: getPage called for', pageId);
-    
-    // Return mock data for now
-    return {
-      id: pageId,
-      name: 'Sample Gaming Page',
-      about: 'This is a sample gaming page description',
-      category: 'Gaming Video Creator',
-      picture: {
-        data: {
-          url: 'https://via.placeholder.com/200x200',
-        },
-      },
-      fan_count: 5000,
-      followers_count: 5500,
-    };
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}?fields=id,name,about,category,picture,fan_count,followers_count&access_token=${accessToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        name: data.name,
+        about: data.about,
+        category: data.category,
+        picture: data.picture || { data: { url: '' } },
+        fan_count: data.fan_count,
+        followers_count: data.followers_count,
+      };
+    } catch (error) {
+      console.error('Error fetching Facebook page:', error);
+      return null;
+    }
   }
 
   /**
    * Get live videos for a page
-   * TODO: Implement with Facebook Graph API
    */
   async getLiveVideos(pageId: string, accessToken: string): Promise<FacebookLiveVideo[]> {
     if (!this.isConfigured()) {
@@ -118,14 +127,41 @@ export class FacebookAPIService {
       return [];
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: getLiveVideos called for', pageId);
-    return []; // No mock live videos for now
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}/live_videos?fields=id,title,description,status,live_views,creation_time,planned_start_time,actual_start_time,broadcast_start_time,permalink_url&access_token=${accessToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return data.data?.map((video: any) => ({
+        id: video.id,
+        title: video.title,
+        description: video.description,
+        status: video.status,
+        live_views: video.live_views,
+        creation_time: video.creation_time,
+        planned_start_time: video.planned_start_time,
+        actual_start_time: video.actual_start_time,
+        broadcast_start_time: video.broadcast_start_time,
+        permalink_url: video.permalink_url,
+      })) || [];
+    } catch (error) {
+      console.error('Error fetching Facebook live videos:', error);
+      return [];
+    }
   }
 
   /**
    * Create a live video
-   * TODO: Implement with Facebook Graph API
    */
   async createLiveVideo(
     pageId: string,
@@ -139,9 +175,49 @@ export class FacebookAPIService {
       return null;
     }
 
-    // TODO: Implement actual API call
-    console.log('Facebook API stub: createLiveVideo called');
-    return null;
+    try {
+      const body = new URLSearchParams({
+        title,
+        ...(description && { description }),
+        ...(plannedStartTime && { planned_start_time: plannedStartTime.toISOString() }),
+        access_token: accessToken,
+      });
+
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}/live_videos`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: body.toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return {
+        id: data.id,
+        title,
+        description,
+        status: 'UNPUBLISHED',
+        creation_time: new Date().toISOString(),
+        planned_start_time: plannedStartTime?.toISOString(),
+        permalink_url: data.permalink_url,
+        embed_html: data.embed_html,
+      };
+    } catch (error) {
+      console.error('Error creating Facebook live video:', error);
+      return null;
+    }
   }
 
   /**
@@ -237,7 +313,6 @@ export class FacebookAPIService {
 
   /**
    * Exchange authorization code for access token
-   * TODO: Implement OAuth token exchange
    */
   async exchangeCodeForToken(code: string): Promise<{ access_token: string; token_type: string } | null> {
     if (!this.isConfigured()) {
@@ -245,14 +320,37 @@ export class FacebookAPIService {
       return null;
     }
 
-    // TODO: Implement actual token exchange
-    console.log('Facebook API stub: exchangeCodeForToken called');
-    return null;
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/oauth/access_token?` +
+        `client_id=${this.appId}&` +
+        `redirect_uri=${encodeURIComponent(process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:5000/auth/facebook/callback')}&` +
+        `client_secret=${this.appSecret}&` +
+        `code=${code}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook OAuth request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook OAuth error: ${data.error.message}`);
+      }
+
+      return {
+        access_token: data.access_token,
+        token_type: data.token_type || 'bearer',
+      };
+    } catch (error) {
+      console.error('Error exchanging Facebook OAuth code:', error);
+      return null;
+    }
   }
 
   /**
    * Get long-lived page access token
-   * TODO: Implement token exchange for page access
    */
   async getPageAccessToken(pageId: string, userAccessToken: string): Promise<string | null> {
     if (!this.isConfigured()) {
@@ -260,9 +358,26 @@ export class FacebookAPIService {
       return null;
     }
 
-    // TODO: Implement actual page token retrieval
-    console.log('Facebook API stub: getPageAccessToken called for', pageId);
-    return null;
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/${pageId}?fields=access_token&access_token=${userAccessToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Facebook API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`Facebook API error: ${data.error.message}`);
+      }
+
+      return data.access_token || null;
+    } catch (error) {
+      console.error('Error getting Facebook page access token:', error);
+      return null;
+    }
   }
 
   /**
