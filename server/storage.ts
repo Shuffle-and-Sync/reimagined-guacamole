@@ -31,6 +31,11 @@ import {
   streamSessionPlatforms,
   collaborationRequests,
   streamAnalytics,
+  userActivityAnalytics,
+  communityAnalytics,
+  platformMetrics,
+  eventTracking,
+  conversionFunnels,
   type User,
   type UpsertUser,
   type Community,
@@ -94,6 +99,16 @@ import {
   type InsertStreamSessionPlatform,
   type InsertCollaborationRequest,
   type InsertStreamAnalytics,
+  type UserActivityAnalytics,
+  type CommunityAnalytics,
+  type PlatformMetrics,
+  type EventTracking,
+  type ConversionFunnel,
+  type InsertUserActivityAnalytics,
+  type InsertCommunityAnalytics,
+  type InsertPlatformMetrics,
+  type InsertEventTracking,
+  type InsertConversionFunnel,
 } from "@shared/schema";
 import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -259,6 +274,26 @@ export interface IStorage {
   recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics>;
   getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]>;
   getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }>;
+
+  // User activity analytics operations
+  recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics>;
+  getUserActivityAnalytics(userId: string, days?: number): Promise<UserActivityAnalytics[]>;
+
+  // Community analytics operations
+  recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics>;
+  getCommunityAnalytics(communityId: string, startDate: Date, endDate: Date): Promise<CommunityAnalytics[]>;
+
+  // Platform metrics operations
+  recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics>;
+  getPlatformMetrics(metricType?: string, timeWindow?: string, startDate?: Date, endDate?: Date): Promise<PlatformMetrics[]>;
+
+  // Event tracking operations
+  recordEventTracking(data: InsertEventTracking): Promise<EventTracking>;
+  getEventTracking(eventName?: string, userId?: string, startDate?: Date, endDate?: Date): Promise<EventTracking[]>;
+
+  // Conversion funnel operations
+  recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel>;
+  getConversionFunnelData(funnelName: string, startDate?: Date, endDate?: Date): Promise<ConversionFunnel[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2265,6 +2300,576 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error deleting user account:', error);
       return false;
+    }
+  }
+
+  // Streaming session operations
+  async getStreamSessions(filters?: { hostUserId?: string; communityId?: string; status?: string; upcoming?: boolean }): Promise<(StreamSession & { host: User; community?: Community; coHosts: StreamSessionCoHost[]; platforms: StreamSessionPlatform[] })[]> {
+    try {
+      let query = db
+        .select({
+          session: streamSessions,
+          host: users,
+          community: communities,
+        })
+        .from(streamSessions)
+        .leftJoin(users, eq(streamSessions.hostUserId, users.id))
+        .leftJoin(communities, eq(streamSessions.communityId, communities.id));
+
+      if (filters?.hostUserId) {
+        query = query.where(eq(streamSessions.hostUserId, filters.hostUserId));
+      }
+      if (filters?.communityId) {
+        query = query.where(eq(streamSessions.communityId, filters.communityId));
+      }
+      if (filters?.status) {
+        query = query.where(eq(streamSessions.status, filters.status));
+      }
+      if (filters?.upcoming) {
+        query = query.where(gte(streamSessions.scheduledStartTime, new Date()));
+      }
+
+      const results = await query;
+
+      // Get co-hosts and platforms for each session
+      const enrichedResults = await Promise.all(
+        results.map(async (result) => {
+          const [coHosts, platforms] = await Promise.all([
+            db.select().from(streamSessionCoHosts).where(eq(streamSessionCoHosts.streamSessionId, result.session.id)),
+            db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, result.session.id))
+          ]);
+
+          return {
+            ...result.session,
+            host: result.host!,
+            community: result.community,
+            coHosts,
+            platforms
+          };
+        })
+      );
+
+      return enrichedResults;
+    } catch (error) {
+      console.error('Error getting stream sessions:', error);
+      throw error;
+    }
+  }
+
+  async getStreamSession(id: string): Promise<(StreamSession & { host: User; community?: Community; coHosts: (StreamSessionCoHost & { user: User })[]; platforms: StreamSessionPlatform[] }) | undefined> {
+    try {
+      const [sessionResult] = await db
+        .select({
+          session: streamSessions,
+          host: users,
+          community: communities,
+        })
+        .from(streamSessions)
+        .leftJoin(users, eq(streamSessions.hostUserId, users.id))
+        .leftJoin(communities, eq(streamSessions.communityId, communities.id))
+        .where(eq(streamSessions.id, id));
+
+      if (!sessionResult) return undefined;
+
+      const [coHostsData, platforms] = await Promise.all([
+        db
+          .select({
+            coHost: streamSessionCoHosts,
+            user: users,
+          })
+          .from(streamSessionCoHosts)
+          .leftJoin(users, eq(streamSessionCoHosts.userId, users.id))
+          .where(eq(streamSessionCoHosts.streamSessionId, id)),
+        db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, id))
+      ]);
+
+      const coHosts = coHostsData.map(ch => ({
+        ...ch.coHost,
+        user: ch.user!
+      }));
+
+      return {
+        ...sessionResult.session,
+        host: sessionResult.host!,
+        community: sessionResult.community,
+        coHosts,
+        platforms
+      };
+    } catch (error) {
+      console.error('Error getting stream session:', error);
+      throw error;
+    }
+  }
+
+  async createStreamSession(data: InsertStreamSession): Promise<StreamSession> {
+    try {
+      const [session] = await db.insert(streamSessions).values(data).returning();
+      return session;
+    } catch (error) {
+      console.error('Error creating stream session:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamSession(id: string, data: Partial<InsertStreamSession>): Promise<StreamSession> {
+    try {
+      const [session] = await db
+        .update(streamSessions)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(streamSessions.id, id))
+        .returning();
+      return session;
+    } catch (error) {
+      console.error('Error updating stream session:', error);
+      throw error;
+    }
+  }
+
+  async deleteStreamSession(id: string): Promise<void> {
+    try {
+      await db.delete(streamSessions).where(eq(streamSessions.id, id));
+    } catch (error) {
+      console.error('Error deleting stream session:', error);
+      throw error;
+    }
+  }
+
+  // Stream session co-host operations
+  async addStreamCoHost(data: InsertStreamSessionCoHost): Promise<StreamSessionCoHost> {
+    try {
+      const [coHost] = await db.insert(streamSessionCoHosts).values(data).returning();
+      return coHost;
+    } catch (error) {
+      console.error('Error adding stream co-host:', error);
+      throw error;
+    }
+  }
+
+  async removeStreamCoHost(sessionId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .delete(streamSessionCoHosts)
+        .where(
+          and(
+            eq(streamSessionCoHosts.streamSessionId, sessionId),
+            eq(streamSessionCoHosts.userId, userId)
+          )
+        );
+    } catch (error) {
+      console.error('Error removing stream co-host:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamCoHostPermissions(sessionId: string, userId: string, permissions: { canControlStream: boolean; canManageChat: boolean; canInviteGuests: boolean; canEndStream: boolean }): Promise<StreamSessionCoHost> {
+    try {
+      const [coHost] = await db
+        .update(streamSessionCoHosts)
+        .set({ permissions })
+        .where(
+          and(
+            eq(streamSessionCoHosts.streamSessionId, sessionId),
+            eq(streamSessionCoHosts.userId, userId)
+          )
+        )
+        .returning();
+      return coHost;
+    } catch (error) {
+      console.error('Error updating stream co-host permissions:', error);
+      throw error;
+    }
+  }
+
+  // Stream session platform operations
+  async addStreamPlatform(data: InsertStreamSessionPlatform): Promise<StreamSessionPlatform> {
+    try {
+      const [platform] = await db.insert(streamSessionPlatforms).values(data).returning();
+      return platform;
+    } catch (error) {
+      console.error('Error adding stream platform:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamPlatform(id: string, data: Partial<InsertStreamSessionPlatform>): Promise<StreamSessionPlatform> {
+    try {
+      const [platform] = await db
+        .update(streamSessionPlatforms)
+        .set(data)
+        .where(eq(streamSessionPlatforms.id, id))
+        .returning();
+      return platform;
+    } catch (error) {
+      console.error('Error updating stream platform:', error);
+      throw error;
+    }
+  }
+
+  async removeStreamPlatform(id: string): Promise<void> {
+    try {
+      await db.delete(streamSessionPlatforms).where(eq(streamSessionPlatforms.id, id));
+    } catch (error) {
+      console.error('Error removing stream platform:', error);
+      throw error;
+    }
+  }
+
+  async getStreamPlatforms(sessionId: string): Promise<StreamSessionPlatform[]> {
+    try {
+      return await db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, sessionId));
+    } catch (error) {
+      console.error('Error getting stream platforms:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamStatus(sessionId: string, platform: string, isLive: boolean, viewerCount?: number): Promise<void> {
+    try {
+      await db
+        .update(streamSessionPlatforms)
+        .set({ 
+          isLive, 
+          viewerCount: viewerCount || 0,
+          lastStatusCheck: new Date()
+        })
+        .where(
+          and(
+            eq(streamSessionPlatforms.streamSessionId, sessionId),
+            eq(streamSessionPlatforms.platform, platform)
+          )
+        );
+    } catch (error) {
+      console.error('Error updating stream status:', error);
+      throw error;
+    }
+  }
+
+  // Collaboration request operations
+  async getCollaborationRequests(filters?: { fromUserId?: string; toUserId?: string; status?: string; type?: string }): Promise<(CollaborationRequest & { fromUser: User; toUser: User; streamSession?: StreamSession })[]> {
+    try {
+      let query = db
+        .select({
+          request: collaborationRequests,
+          fromUser: alias(users, 'fromUser'),
+          toUser: alias(users, 'toUser'),
+          streamSession: streamSessions,
+        })
+        .from(collaborationRequests)
+        .leftJoin(alias(users, 'fromUser'), eq(collaborationRequests.fromUserId, alias(users, 'fromUser').id))
+        .leftJoin(alias(users, 'toUser'), eq(collaborationRequests.toUserId, alias(users, 'toUser').id))
+        .leftJoin(streamSessions, eq(collaborationRequests.streamSessionId, streamSessions.id));
+
+      if (filters?.fromUserId) {
+        query = query.where(eq(collaborationRequests.fromUserId, filters.fromUserId));
+      }
+      if (filters?.toUserId) {
+        query = query.where(eq(collaborationRequests.toUserId, filters.toUserId));
+      }
+      if (filters?.status) {
+        query = query.where(eq(collaborationRequests.status, filters.status));
+      }
+      if (filters?.type) {
+        query = query.where(eq(collaborationRequests.type, filters.type));
+      }
+
+      const results = await query;
+      return results.map(r => ({
+        ...r.request,
+        fromUser: r.fromUser!,
+        toUser: r.toUser!,
+        streamSession: r.streamSession
+      }));
+    } catch (error) {
+      console.error('Error getting collaboration requests:', error);
+      throw error;
+    }
+  }
+
+  async createCollaborationRequest(data: InsertCollaborationRequest): Promise<CollaborationRequest> {
+    try {
+      const [request] = await db.insert(collaborationRequests).values(data).returning();
+      return request;
+    } catch (error) {
+      console.error('Error creating collaboration request:', error);
+      throw error;
+    }
+  }
+
+  async respondToCollaborationRequest(id: string, status: 'accepted' | 'declined' | 'cancelled', responseMessage?: string): Promise<CollaborationRequest> {
+    try {
+      const [request] = await db
+        .update(collaborationRequests)
+        .set({ 
+          status, 
+          responseMessage,
+          respondedAt: new Date()
+        })
+        .where(eq(collaborationRequests.id, id))
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error responding to collaboration request:', error);
+      throw error;
+    }
+  }
+
+  async expireCollaborationRequests(): Promise<void> {
+    try {
+      await db
+        .update(collaborationRequests)
+        .set({ status: 'expired' })
+        .where(
+          and(
+            eq(collaborationRequests.status, 'pending'),
+            sql`expires_at < NOW()`
+          )
+        );
+    } catch (error) {
+      console.error('Error expiring collaboration requests:', error);
+      throw error;
+    }
+  }
+
+  // Stream analytics operations
+  async recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics> {
+    try {
+      const [analytics] = await db.insert(streamAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording stream analytics:', error);
+      throw error;
+    }
+  }
+
+  async getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]> {
+    try {
+      let query = db.select().from(streamAnalytics).where(eq(streamAnalytics.streamSessionId, sessionId));
+      
+      if (platform) {
+        query = query.where(eq(streamAnalytics.platform, platform));
+      }
+
+      return await query.orderBy(streamAnalytics.timestamp);
+    } catch (error) {
+      console.error('Error getting stream analytics:', error);
+      throw error;
+    }
+  }
+
+  async getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }> {
+    try {
+      const analytics = await db
+        .select({
+          maxViewers: sql<number>`MAX(${streamAnalytics.viewerCount})`,
+          avgViewers: sql<number>`AVG(${streamAnalytics.viewerCount})`,
+          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessageCount})`,
+          platforms: sql<string[]>`ARRAY_AGG(DISTINCT ${streamAnalytics.platform})`,
+        })
+        .from(streamAnalytics)
+        .where(eq(streamAnalytics.streamSessionId, sessionId));
+
+      const result = analytics[0];
+      return {
+        totalViewers: result?.maxViewers || 0,
+        peakViewers: result?.maxViewers || 0,
+        averageViewers: Math.round(result?.avgViewers || 0),
+        totalChatMessages: result?.totalMessages || 0,
+        platforms: result?.platforms || []
+      };
+    } catch (error) {
+      console.error('Error getting stream analytics summary:', error);
+      throw error;
+    }
+  }
+
+  // User activity analytics operations
+  async recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics> {
+    try {
+      const [analytics] = await db.insert(userActivityAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording user activity analytics:', error);
+      throw error;
+    }
+  }
+
+  async getUserActivityAnalytics(userId: string, days: number = 30): Promise<UserActivityAnalytics[]> {
+    try {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      return await db
+        .select()
+        .from(userActivityAnalytics)
+        .where(
+          and(
+            eq(userActivityAnalytics.userId, userId),
+            gte(userActivityAnalytics.timestamp, startDate)
+          )
+        )
+        .orderBy(userActivityAnalytics.timestamp);
+    } catch (error) {
+      console.error('Error getting user activity analytics:', error);
+      throw error;
+    }
+  }
+
+  // Community analytics operations
+  async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
+    try {
+      const [analytics] = await db.insert(communityAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording community analytics:', error);
+      throw error;
+    }
+  }
+
+  async getCommunityAnalytics(communityId: string, startDate: Date, endDate: Date): Promise<CommunityAnalytics[]> {
+    try {
+      return await db
+        .select()
+        .from(communityAnalytics)
+        .where(
+          and(
+            eq(communityAnalytics.communityId, communityId),
+            gte(sql`DATE(${communityAnalytics.date})`, startDate.toISOString().split('T')[0]),
+            sql`DATE(${communityAnalytics.date}) <= ${endDate.toISOString().split('T')[0]}`
+          )
+        )
+        .orderBy(communityAnalytics.date, communityAnalytics.hour);
+    } catch (error) {
+      console.error('Error getting community analytics:', error);
+      throw error;
+    }
+  }
+
+  // Platform metrics operations
+  async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
+    try {
+      const [metrics] = await db.insert(platformMetrics).values(data).returning();
+      return metrics;
+    } catch (error) {
+      console.error('Error recording platform metrics:', error);
+      throw error;
+    }
+  }
+
+  async getPlatformMetrics(
+    metricType?: string,
+    timeWindow?: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<PlatformMetrics[]> {
+    try {
+      let query = db.select().from(platformMetrics);
+
+      const conditions = [];
+      if (metricType) {
+        conditions.push(eq(platformMetrics.metricType, metricType));
+      }
+      if (timeWindow) {
+        conditions.push(eq(platformMetrics.timeWindow, timeWindow));
+      }
+      if (startDate) {
+        conditions.push(gte(platformMetrics.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${platformMetrics.timestamp} <= ${endDate}`);
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      return await query.orderBy(platformMetrics.timestamp);
+    } catch (error) {
+      console.error('Error getting platform metrics:', error);
+      throw error;
+    }
+  }
+
+  // Event tracking operations
+  async recordEventTracking(data: InsertEventTracking): Promise<EventTracking> {
+    try {
+      const [event] = await db.insert(eventTracking).values(data).returning();
+      return event;
+    } catch (error) {
+      console.error('Error recording event tracking:', error);
+      throw error;
+    }
+  }
+
+  async getEventTracking(
+    eventName?: string,
+    userId?: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<EventTracking[]> {
+    try {
+      let query = db.select().from(eventTracking);
+
+      const conditions = [];
+      if (eventName) {
+        conditions.push(eq(eventTracking.eventName, eventName));
+      }
+      if (userId) {
+        conditions.push(eq(eventTracking.userId, userId));
+      }
+      if (startDate) {
+        conditions.push(gte(eventTracking.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${eventTracking.timestamp} <= ${endDate}`);
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      return await query.orderBy(eventTracking.timestamp);
+    } catch (error) {
+      console.error('Error getting event tracking:', error);
+      throw error;
+    }
+  }
+
+  // Conversion funnel operations
+  async recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel> {
+    try {
+      const [funnel] = await db.insert(conversionFunnels).values(data).returning();
+      return funnel;
+    } catch (error) {
+      console.error('Error recording conversion funnel:', error);
+      throw error;
+    }
+  }
+
+  async getConversionFunnelData(
+    funnelName: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<ConversionFunnel[]> {
+    try {
+      let query = db
+        .select()
+        .from(conversionFunnels)
+        .where(eq(conversionFunnels.funnelName, funnelName));
+
+      const conditions = [eq(conversionFunnels.funnelName, funnelName)];
+      if (startDate) {
+        conditions.push(gte(conversionFunnels.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${conversionFunnels.timestamp} <= ${endDate}`);
+      }
+
+      return await query
+        .where(and(...conditions))
+        .orderBy(conversionFunnels.timestamp, conversionFunnels.stepOrder);
+    } catch (error) {
+      console.error('Error getting conversion funnel data:', error);
+      throw error;
     }
   }
 }

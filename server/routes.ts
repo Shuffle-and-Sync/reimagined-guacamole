@@ -9,6 +9,7 @@ import { sendContactEmail } from "./email";
 import { randomBytes } from "crypto";
 import { logger } from "./logger";
 import { NotFoundError, ValidationError } from "./types";
+import analyticsRouter from "./routes/analytics";
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -631,20 +632,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics routes
-  app.get('/api/analytics', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      
-      // Get analytics data for the current user
-      const analytics = await storage.getAnalyticsData(userId);
-      res.json(analytics);
-    } catch (error) {
-      logger.error("Failed to fetch analytics", error, { userId: getAuthUserId(authenticatedReq) });
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
+  // Analytics routes - comprehensive analytics system
+  app.use('/api/analytics', analyticsRouter);
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {

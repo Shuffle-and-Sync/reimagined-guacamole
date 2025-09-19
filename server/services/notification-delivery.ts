@@ -79,36 +79,52 @@ export class NotificationDeliveryService {
       // Determine which channels to use
       const channels = forceChannels || this.getChannelsForNotificationType(notification.type, preferences);
       
-      const deliveryPromises: Promise<DeliveryResult>[] = [];
+      // Track channels and promises together to avoid index misalignment
+      const deliveryTasks: Array<{ channel: keyof NotificationChannels; promise: Promise<DeliveryResult> }> = [];
 
       // Browser notification (real-time WebSocket)
       if (channels.browser) {
-        deliveryPromises.push(this.deliverBrowserNotification(userId, notification));
+        deliveryTasks.push({
+          channel: 'browser',
+          promise: this.deliverBrowserNotification(userId, notification)
+        });
       }
 
       // Email notification
       if (channels.email) {
-        deliveryPromises.push(this.deliverEmailNotification(user, notification));
+        deliveryTasks.push({
+          channel: 'email',
+          promise: this.deliverEmailNotification(user, notification)
+        });
       }
 
       // Push notification
       if (channels.push) {
-        deliveryPromises.push(this.deliverPushNotification(userId, notification));
+        deliveryTasks.push({
+          channel: 'push',
+          promise: this.deliverPushNotification(userId, notification)
+        });
       }
 
       // SMS notification
       if (channels.sms) {
-        deliveryPromises.push(this.deliverSMSNotification(user, notification));
+        deliveryTasks.push({
+          channel: 'sms',
+          promise: this.deliverSMSNotification(user, notification)
+        });
       }
 
       // Webhook notification
       if (channels.webhook) {
-        deliveryPromises.push(this.deliverWebhookNotification(user, notification));
+        deliveryTasks.push({
+          channel: 'webhook',
+          promise: this.deliverWebhookNotification(user, notification)
+        });
       }
 
-      const results = await Promise.allSettled(deliveryPromises);
+      const results = await Promise.allSettled(deliveryTasks.map(task => task.promise));
       const deliveryResults: DeliveryResult[] = results.map((result, index) => {
-        const channel = Object.keys(channels)[index] as keyof NotificationChannels;
+        const channel = deliveryTasks[index].channel;
         if (result.status === 'fulfilled') {
           return result.value;
         } else {

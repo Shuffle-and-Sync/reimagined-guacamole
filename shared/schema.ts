@@ -8,6 +8,9 @@ import {
   text,
   integer,
   boolean,
+  date,
+  decimal,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -311,6 +314,114 @@ export const streamAnalytics = pgTable("stream_analytics", {
   index("idx_stream_analytics_session_id").on(table.streamSessionId),
   index("idx_stream_analytics_platform").on(table.platform),
   index("idx_stream_analytics_timestamp").on(table.timestamp),
+]);
+
+// User activity and behavior analytics
+export const userActivityAnalytics = pgTable("user_activity_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: varchar("session_id"), // Browser/app session identifier
+  eventType: varchar("event_type").notNull(), // page_view, feature_usage, interaction, etc.
+  eventCategory: varchar("event_category").notNull(), // navigation, streaming, social, tournament, etc.
+  eventAction: varchar("event_action").notNull(), // click, scroll, submit, create, join, etc.
+  eventLabel: varchar("event_label"), // Specific element or feature name
+  eventValue: integer("event_value"), // Numeric value associated with event
+  pageUrl: varchar("page_url"), // Current page/route
+  referrerUrl: varchar("referrer_url"), // Previous page/external referrer
+  userAgent: varchar("user_agent"), // Browser/app info
+  ipAddress: varchar("ip_address"), // For geographic analytics
+  metadata: jsonb("metadata"), // Additional event-specific data
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+}, (table) => [
+  index("idx_user_activity_analytics_user_id").on(table.userId),
+  index("idx_user_activity_analytics_event_type").on(table.eventType),
+  index("idx_user_activity_analytics_event_category").on(table.eventCategory),
+  index("idx_user_activity_analytics_timestamp").on(table.timestamp),
+  index("idx_user_activity_analytics_session_id").on(table.sessionId),
+]);
+
+// Community engagement and growth analytics
+export const communityAnalytics = pgTable("community_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
+  date: date("date").notNull(), // Daily aggregation
+  hour: integer("hour"), // Hour of day (0-23) for hourly aggregations
+  activeUsers: integer("active_users").default(0), // Daily/hourly active users
+  newMembers: integer("new_members").default(0), // New community joins
+  totalMembers: integer("total_members").default(0), // Running total
+  streamsStarted: integer("streams_started").default(0), // Streams initiated
+  totalStreamTime: integer("total_stream_time").default(0), // Total streaming minutes
+  collaborationsCreated: integer("collaborations_created").default(0), // New collaboration requests
+  tournamentsCreated: integer("tournaments_created").default(0), // New tournaments
+  forumPosts: integer("forum_posts").default(0), // Forum activity
+  forumReplies: integer("forum_replies").default(0), // Forum engagement
+  avgSessionDuration: integer("avg_session_duration").default(0), // Average user session length (minutes)
+  retentionRate: decimal("retention_rate"), // Daily/weekly retention percentage
+  engagementScore: decimal("engagement_score"), // Computed engagement metric
+  metadata: jsonb("metadata"), // Additional community-specific metrics
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_community_analytics_community_id").on(table.communityId),
+  index("idx_community_analytics_date").on(table.date),
+  index("idx_community_analytics_hour").on(table.hour),
+  unique("unique_community_date_hour").on(table.communityId, table.date, table.hour),
+]);
+
+// Platform-wide performance and system metrics  
+export const platformMetrics = pgTable("platform_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  metricType: varchar("metric_type").notNull(), // performance, usage, system, error, etc.
+  metricName: varchar("metric_name").notNull(), // response_time, memory_usage, active_connections, etc.
+  metricValue: decimal("metric_value").notNull(), // Numeric value
+  metricUnit: varchar("metric_unit"), // ms, mb, percent, count, etc.
+  aggregationType: varchar("aggregation_type").notNull(), // avg, sum, max, min, count
+  timeWindow: varchar("time_window").notNull(), // 1m, 5m, 1h, 1d for aggregation period
+  tags: jsonb("tags"), // Additional dimensions (server, region, service, etc.)
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+}, (table) => [
+  index("idx_platform_metrics_metric_type").on(table.metricType),
+  index("idx_platform_metrics_metric_name").on(table.metricName),
+  index("idx_platform_metrics_timestamp").on(table.timestamp),
+  index("idx_platform_metrics_time_window").on(table.timeWindow),
+]);
+
+// Generic event tracking for user behavior analysis
+export const eventTracking = pgTable("event_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  anonymousId: varchar("anonymous_id"), // For tracking non-logged-in users
+  eventName: varchar("event_name").notNull(), // button_click, form_submit, feature_discovery, etc.
+  eventSource: varchar("event_source").notNull(), // web, mobile, api, system
+  properties: jsonb("properties"), // Event-specific properties and context
+  traits: jsonb("traits"), // User traits at time of event
+  context: jsonb("context"), // Device, browser, location context
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+}, (table) => [
+  index("idx_event_tracking_user_id").on(table.userId),
+  index("idx_event_tracking_anonymous_id").on(table.anonymousId),
+  index("idx_event_tracking_event_name").on(table.eventName),
+  index("idx_event_tracking_event_source").on(table.eventSource),
+  index("idx_event_tracking_timestamp").on(table.timestamp),
+]);
+
+// Funnel and conversion analytics
+export const conversionFunnels = pgTable("conversion_funnels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  funnelName: varchar("funnel_name").notNull(), // signup_flow, stream_creation, tournament_join, etc.
+  stepName: varchar("step_name").notNull(), // step1_land, step2_signup, step3_verify, etc.
+  stepOrder: integer("step_order").notNull(), // Sequential step number
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  sessionId: varchar("session_id").notNull(), // Track user journey across sessions
+  completed: boolean("completed").default(false), // Whether user completed this step
+  timeSpent: integer("time_spent"), // Time spent on this step (seconds)
+  metadata: jsonb("metadata"), // Step-specific data
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+}, (table) => [
+  index("idx_conversion_funnels_funnel_name").on(table.funnelName),
+  index("idx_conversion_funnels_step_name").on(table.stepName),
+  index("idx_conversion_funnels_user_id").on(table.userId),
+  index("idx_conversion_funnels_session_id").on(table.sessionId),
+  index("idx_conversion_funnels_timestamp").on(table.timestamp),
 ]);
 
 // Password reset tokens for secure password recovery
@@ -1194,6 +1305,61 @@ export const insertForumReplyLikeSchema = createInsertSchema(forumReplyLikes).om
   createdAt: true,
 });
 
+// Analytics insert schemas
+export const insertUserActivityAnalyticsSchema = createInsertSchema(userActivityAnalytics, {
+  eventType: z.enum(["page_view", "feature_usage", "interaction", "navigation", "form_submit"]),
+  eventCategory: z.enum(["navigation", "streaming", "social", "tournament", "community", "profile", "settings"]),
+  eventAction: z.enum(["click", "scroll", "submit", "create", "join", "leave", "share", "like", "comment"]),
+  eventValue: z.number().int().min(0).optional(),
+  timestamp: z.coerce.date().optional(),
+}).omit({
+  id: true,
+});
+
+export const insertCommunityAnalyticsSchema = createInsertSchema(communityAnalytics, {
+  date: z.coerce.date(),
+  hour: z.number().int().min(0).max(23).optional(),
+  activeUsers: z.number().int().min(0).optional(),
+  newMembers: z.number().int().min(0).optional(),
+  totalMembers: z.number().int().min(0).optional(),
+  streamsStarted: z.number().int().min(0).optional(),
+  totalStreamTime: z.number().int().min(0).optional(),
+  collaborationsCreated: z.number().int().min(0).optional(),
+  tournamentsCreated: z.number().int().min(0).optional(),
+  forumPosts: z.number().int().min(0).optional(),
+  forumReplies: z.number().int().min(0).optional(),
+  avgSessionDuration: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPlatformMetricsSchema = createInsertSchema(platformMetrics, {
+  metricType: z.enum(["performance", "usage", "system", "error", "business"]),
+  metricValue: z.coerce.number(),
+  aggregationType: z.enum(["avg", "sum", "max", "min", "count", "percentile"]),
+  timeWindow: z.enum(["1m", "5m", "15m", "1h", "6h", "1d", "7d", "30d"]),
+  timestamp: z.coerce.date().optional(),
+}).omit({
+  id: true,
+});
+
+export const insertEventTrackingSchema = createInsertSchema(eventTracking, {
+  eventSource: z.enum(["web", "mobile", "api", "system", "webhook"]),
+  timestamp: z.coerce.date().optional(),
+}).omit({
+  id: true,
+});
+
+export const insertConversionFunnelSchema = createInsertSchema(conversionFunnels, {
+  stepOrder: z.number().int().min(1),
+  completed: z.boolean().optional(),
+  timeSpent: z.number().int().min(0).optional(),
+  timestamp: z.coerce.date().optional(),
+}).omit({
+  id: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -1227,6 +1393,11 @@ export type StreamSessionCoHost = typeof streamSessionCoHosts.$inferSelect;
 export type StreamSessionPlatform = typeof streamSessionPlatforms.$inferSelect;
 export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
 export type StreamAnalytics = typeof streamAnalytics.$inferSelect;
+export type UserActivityAnalytics = typeof userActivityAnalytics.$inferSelect;
+export type CommunityAnalytics = typeof communityAnalytics.$inferSelect;
+export type PlatformMetrics = typeof platformMetrics.$inferSelect;
+export type EventTracking = typeof eventTracking.$inferSelect;
+export type ConversionFunnel = typeof conversionFunnels.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
@@ -1260,3 +1431,8 @@ export type InsertStreamSessionCoHost = z.infer<typeof insertStreamSessionCoHost
 export type InsertStreamSessionPlatform = z.infer<typeof insertStreamSessionPlatformSchema>;
 export type InsertCollaborationRequest = z.infer<typeof insertCollaborationRequestSchema>;
 export type InsertStreamAnalytics = z.infer<typeof insertStreamAnalyticsSchema>;
+export type InsertUserActivityAnalytics = z.infer<typeof insertUserActivityAnalyticsSchema>;
+export type InsertCommunityAnalytics = z.infer<typeof insertCommunityAnalyticsSchema>;
+export type InsertPlatformMetrics = z.infer<typeof insertPlatformMetricsSchema>;
+export type InsertEventTracking = z.infer<typeof insertEventTrackingSchema>;
+export type InsertConversionFunnel = z.infer<typeof insertConversionFunnelSchema>;
