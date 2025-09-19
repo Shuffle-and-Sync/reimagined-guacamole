@@ -20,6 +20,7 @@ import authRouter from "./auth/auth.routes";
 import webhooksRouter from "./routes/webhooks";
 import notificationPreferencesRouter from "./routes/notification-preferences";
 import monitoringRouter from "./routes/monitoring";
+import infrastructureTestsRouter from "./routes/infrastructure-tests";
 import { monitoringService } from "./services/monitoring-service";
 
 const app = express();
@@ -65,6 +66,9 @@ app.use(securityHeaders);
   
   // Register monitoring and alerting routes
   app.use('/api/monitoring', monitoringRouter);
+  
+  // Register infrastructure testing routes
+  app.use('/api/tests', infrastructureTestsRouter);
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
