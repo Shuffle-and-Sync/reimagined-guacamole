@@ -1,4 +1,5 @@
 import { db, prisma } from "@shared/database";
+import { database as optimizedDb, withQueryTiming } from "./db-optimized";
 import {
   users,
   communities,
@@ -1410,8 +1411,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]> {
-    // AI Matchmaking Algorithm
-    const userProfiles = await db
+    // Optimized AI Matchmaking Algorithm with performance monitoring
+    return withQueryTiming('ai_matchmaking', async () => {
+      // Pre-filter with indexed query to reduce dataset size
+      const userProfiles = await optimizedDb
       .select({
         user: users,
         gamingProfile: userGamingProfiles,

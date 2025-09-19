@@ -11,6 +11,7 @@ import { logger } from "./logger";
 import { NotFoundError, ValidationError } from "./types";
 import analyticsRouter from "./routes/analytics";
 import cacheHealthRouter from "./routes/cache-health";
+import databaseHealthRouter from "./routes/database-health";
 import { healthCheck } from "./health";
 import { 
   validateRequest, 
@@ -638,6 +639,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Cache health and management routes
   app.use('/api/cache', cacheHealthRouter);
+  
+  // Database health and monitoring routes
+  app.use('/api/database', databaseHealthRouter);
 
   // Data export route
   app.get('/api/user/export-data', isAuthenticated, async (req, res) => {
