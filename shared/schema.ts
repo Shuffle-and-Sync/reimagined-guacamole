@@ -67,7 +67,7 @@ export const userPlatformAccounts = pgTable("user_platform_accounts", {
   accessToken: text("access_token"), // OAuth access token (encrypted in storage)
   refreshToken: text("refresh_token"), // OAuth refresh token (encrypted in storage)
   tokenExpiresAt: timestamp("token_expires_at"), // Token expiration timestamp
-  scopes: text("scopes"), // JSON array of granted permissions
+  scopes: jsonb("scopes").default([]), // JSON array of granted permissions
   isActive: boolean("is_active").default(true), // Account is active and usable
   lastVerified: timestamp("last_verified"), // Last successful API verification
   createdAt: timestamp("created_at").defaultNow(),
@@ -1501,6 +1501,7 @@ export type User = typeof users.$inferSelect;
 export type Community = typeof communities.$inferSelect;
 export type UserCommunity = typeof userCommunities.$inferSelect;
 export type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
+export type SafeUserPlatformAccount = Omit<UserPlatformAccount, 'accessToken' | 'refreshToken'>;
 export type ThemePreference = typeof themePreferences.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventAttendee = typeof eventAttendees.$inferSelect;

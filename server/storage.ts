@@ -122,6 +122,7 @@ import {
   type InsertPlatformMetrics,
   type InsertEventTracking,
   type InsertConversionFunnel,
+  SafeUserPlatformAccount,
 } from "@shared/schema";
 import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -146,10 +147,18 @@ export interface IStorage {
   setPrimaryCommunity(userId: string, communityId: string): Promise<void>;
   
   // Platform account operations for cross-platform streaming
-  getUserPlatformAccounts(userId: string): Promise<UserPlatformAccount[]>;
-  getUserPlatformAccount(userId: string, platform: string): Promise<UserPlatformAccount | undefined>;
-  createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<UserPlatformAccount>;
-  updateUserPlatformAccount(id: string, data: Partial<InsertUserPlatformAccount>): Promise<UserPlatformAccount>;
+  getUserPlatformAccounts(userId: string): Promise<SafeUserPlatformAccount[]>;
+  getUserPlatformAccount(userId: string, platform: string): Promise<SafeUserPlatformAccount | undefined>;
+  createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<SafeUserPlatformAccount>;
+  updateUserPlatformAccount(id: string, data: {
+    handle?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: Date;
+    scopes?: unknown;
+    isActive?: boolean;
+    lastVerified?: Date;
+  }): Promise<SafeUserPlatformAccount>;
   deleteUserPlatformAccount(id: string): Promise<void>;
   getUserPlatformHandle(userId: string, platform: string): Promise<string | null>;
   getUserPlatformToken(userId: string, platform: string): Promise<string | null>;
@@ -456,6 +465,157 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+  }
+
+  // Platform account operations for cross-platform streaming
+  async getUserPlatformAccounts(userId: string): Promise<SafeUserPlatformAccount[]> {
+    return await db
+      .select({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      })
+      .from(userPlatformAccounts)
+      .where(eq(userPlatformAccounts.userId, userId))
+      .orderBy(userPlatformAccounts.platform);
+  }
+
+  async getUserPlatformAccount(userId: string, platform: string): Promise<SafeUserPlatformAccount | undefined> {
+    const result = await db
+      .select({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      })
+      .from(userPlatformAccounts)
+      .where(and(
+        eq(userPlatformAccounts.userId, userId),
+        eq(userPlatformAccounts.platform, platform)
+      ))
+      .limit(1);
+    return result[0];
+  }
+
+  async createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<SafeUserPlatformAccount> {
+    const result = await db
+      .insert(userPlatformAccounts)
+      .values({
+        ...data,
+        updatedAt: new Date()
+      })
+      .returning({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      });
+    return result[0];
+  }
+
+  async updateUserPlatformAccount(
+    id: string, 
+    data: {
+      handle?: string;
+      accessToken?: string;
+      refreshToken?: string;
+      tokenExpiresAt?: Date;
+      scopes?: unknown;
+      isActive?: boolean;
+      lastVerified?: Date;
+    }
+  ): Promise<SafeUserPlatformAccount> {
+    const result = await db
+      .update(userPlatformAccounts)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(userPlatformAccounts.id, id))
+      .returning({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      });
+    return result[0];
+  }
+
+  async deleteUserPlatformAccount(id: string): Promise<void> {
+    await db
+      .delete(userPlatformAccounts)
+      .where(eq(userPlatformAccounts.id, id));
+  }
+
+  async getUserPlatformHandle(userId: string, platform: string): Promise<string | null> {
+    const account = await this.getUserPlatformAccount(userId, platform);
+    return account?.handle || null;
+  }
+
+  async getUserPlatformToken(userId: string, platform: string): Promise<string | null> {
+    // Security: Only fetch the token field, never expose tokens in broader queries
+    const result = await db
+      .select({ 
+        accessToken: userPlatformAccounts.accessToken,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt
+      })
+      .from(userPlatformAccounts)
+      .where(and(
+        eq(userPlatformAccounts.userId, userId),
+        eq(userPlatformAccounts.platform, platform),
+        eq(userPlatformAccounts.isActive, true)
+      ))
+      .limit(1);
+    
+    const account = result[0];
+    if (!account?.accessToken) {
+      return null;
+    }
+    
+    // Check token expiry - return null for expired tokens
+    if (account.tokenExpiresAt && account.tokenExpiresAt <= new Date()) {
+      return null;
+    }
+    
+    // TODO: Implement token decryption here when encryption is added
+    return account.accessToken;
   }
 
   // Theme preference operations
