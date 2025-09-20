@@ -55,6 +55,28 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User platform accounts for cross-platform streaming coordination
+export const userPlatformAccounts = pgTable("user_platform_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  platform: varchar("platform").notNull(), // 'youtube', 'twitch', 'facebook'
+  handle: varchar("handle").notNull(), // Username/channel name for display
+  platformUserId: varchar("platform_user_id"), // Platform-specific user ID
+  channelId: varchar("channel_id"), // YouTube channel ID or equivalent
+  pageId: varchar("page_id"), // Facebook page ID
+  accessToken: text("access_token"), // OAuth access token (encrypted in storage)
+  refreshToken: text("refresh_token"), // OAuth refresh token (encrypted in storage)
+  tokenExpiresAt: timestamp("token_expires_at"), // Token expiration timestamp
+  scopes: text("scopes"), // JSON array of granted permissions
+  isActive: boolean("is_active").default(true), // Account is active and usable
+  lastVerified: timestamp("last_verified"), // Last successful API verification
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.userId, table.platform), // One account per platform per user
+  index("idx_user_platform_active").on(table.userId, table.isActive),
+]);
+
 // Communities table for the 6 gaming communities
 export const communities = pgTable("communities", {
   id: varchar("id").primaryKey(),
@@ -1079,6 +1101,12 @@ export const insertUserCommunitySchema = createInsertSchema(userCommunities).omi
   joinedAt: true,
 });
 
+export const insertUserPlatformAccountSchema = createInsertSchema(userPlatformAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertThemePreferenceSchema = createInsertSchema(themePreferences).omit({
   id: true,
   updatedAt: true,
@@ -1472,6 +1500,7 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type Community = typeof communities.$inferSelect;
 export type UserCommunity = typeof userCommunities.$inferSelect;
+export type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
 export type ThemePreference = typeof themePreferences.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventAttendee = typeof eventAttendees.$inferSelect;
@@ -1512,6 +1541,7 @@ export type StreamCoordinationSession = typeof streamCoordinationSessions.$infer
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
+export type InsertUserPlatformAccount = z.infer<typeof insertUserPlatformAccountSchema>;
 export type InsertThemePreference = z.infer<typeof insertThemePreferenceSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertEventAttendee = z.infer<typeof insertEventAttendeeSchema>;

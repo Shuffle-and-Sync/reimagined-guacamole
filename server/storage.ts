@@ -4,6 +4,7 @@ import {
   users,
   communities,
   userCommunities,
+  userPlatformAccounts,
   themePreferences,
   events,
   eventAttendees,
@@ -44,6 +45,7 @@ import {
   type UpsertUser,
   type Community,
   type UserCommunity,
+  type UserPlatformAccount,
   type ThemePreference,
   type Event,
   type EventAttendee,
@@ -74,6 +76,7 @@ import {
   type StreamAnalytics,
   type InsertCommunity,
   type InsertUserCommunity,
+  type InsertUserPlatformAccount,
   type InsertThemePreference,
   type InsertEvent,
   type InsertEventAttendee,
@@ -141,6 +144,15 @@ export interface IStorage {
   getUserCommunities(userId: string): Promise<(UserCommunity & { community: Community })[]>;
   joinCommunity(data: InsertUserCommunity): Promise<UserCommunity>;
   setPrimaryCommunity(userId: string, communityId: string): Promise<void>;
+  
+  // Platform account operations for cross-platform streaming
+  getUserPlatformAccounts(userId: string): Promise<UserPlatformAccount[]>;
+  getUserPlatformAccount(userId: string, platform: string): Promise<UserPlatformAccount | undefined>;
+  createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<UserPlatformAccount>;
+  updateUserPlatformAccount(id: string, data: Partial<InsertUserPlatformAccount>): Promise<UserPlatformAccount>;
+  deleteUserPlatformAccount(id: string): Promise<void>;
+  getUserPlatformHandle(userId: string, platform: string): Promise<string | null>;
+  getUserPlatformToken(userId: string, platform: string): Promise<string | null>;
   
   // Theme preference operations
   getUserThemePreferences(userId: string): Promise<ThemePreference[]>;
