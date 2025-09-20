@@ -52,6 +52,11 @@ function Router() {
       <Route path="/auth/signin" component={SignIn} />
       <Route path="/auth/error" component={AuthError} />
       
+      {/* Redirect /login to /auth/signin for compatibility */}
+      <Route path="/login">
+        <SignIn />
+      </Route>
+      
       {/* Protected routes - require authentication */}
       <Route path="/home">
         <RequireAuth redirectTo="/">

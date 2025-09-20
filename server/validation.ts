@@ -196,7 +196,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "default-src 'self'",
       "script-src 'self' https://replit.com", // Allow Replit dev banner
       "style-src 'self' fonts.googleapis.com https://cdnjs.cloudflare.com", // Allow Font Awesome
-      "font-src 'self' fonts.gstatic.com",
+      "font-src 'self' fonts.gstatic.com https://cdnjs.cloudflare.com", // Allow Font Awesome fonts
       "img-src 'self' data: blob: https:", // Allow HTTPS images for avatars/thumbnails
       "connect-src 'self' wss: ws: https://api.twitch.tv https://id.twitch.tv", // Specific API endpoints
       "frame-ancestors 'none'",
