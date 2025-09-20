@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";
+import { initializePrisma } from "@shared/database";
 
 // Import feature-based routes
 import { authRoutes } from "./features/auth/auth.routes";
@@ -39,6 +40,14 @@ app.use(authRouter);
 app.use(securityHeaders);
 
 (async () => {
+  // Initialize Prisma on server startup
+  try {
+    await initializePrisma();
+    logger.info('Prisma client initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize Prisma client', error);
+    process.exit(1);
+  }
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js

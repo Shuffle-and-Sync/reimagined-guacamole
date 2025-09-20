@@ -1,7 +1,6 @@
 // Dual database configuration for Drizzle + Prisma transition
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { PrismaClient } from "../generated/prisma/index.js";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
@@ -12,18 +11,45 @@ if (!process.env.DATABASE_URL) {
 const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql, { schema });
 
-// Prisma configuration (new system for advanced features)
+// Prisma configuration (new system for advanced features) - using dynamic import
 declare global {
-  var __prisma: PrismaClient | undefined;
+  var __prisma: any | undefined;
 }
 
-export const prisma = global.__prisma || new PrismaClient({
-  log: ['error'],
-  datasourceUrl: process.env.DATABASE_URL,
+let _prisma: any = null;
+
+export const prisma = new Proxy({}, {
+  get: function(target, prop) {
+    if (_prisma === null) {
+      throw new Error('Prisma not initialized. Call initializePrisma() first.');
+    }
+    return _prisma[prop];
+  }
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  global.__prisma = prisma;
+// Initialize Prisma with dynamic import
+export async function initializePrisma() {
+  if (global.__prisma) {
+    _prisma = global.__prisma;
+    return _prisma;
+  }
+
+  try {
+    const { PrismaClient } = await import("../generated/prisma/index.js");
+    _prisma = new PrismaClient({
+      log: ['error'],
+      datasourceUrl: process.env.DATABASE_URL,
+    });
+    
+    if (process.env.NODE_ENV !== 'production') {
+      global.__prisma = _prisma;
+    }
+    
+    return _prisma;
+  } catch (error) {
+    console.error('Failed to initialize Prisma:', error);
+    throw error;
+  }
 }
 
 // Database health check utility
@@ -33,7 +59,10 @@ export async function checkDatabaseHealth() {
     await sql`SELECT 1`;
     
     // Test Prisma connection
-    await prisma.$queryRaw`SELECT 1`;
+    if (_prisma === null) {
+      await initializePrisma();
+    }
+    await _prisma.$queryRaw`SELECT 1`;
     
     return { status: 'healthy', drizzle: true, prisma: true };
   } catch (error) {
@@ -45,13 +74,11 @@ export async function checkDatabaseHealth() {
 // Graceful shutdown
 export async function closeDatabaseConnections() {
   try {
-    await prisma.$disconnect();
+    if (_prisma) {
+      await _prisma.$disconnect();
+    }
     console.log('Database connections closed gracefully');
   } catch (error) {
     console.error('Error closing database connections:', error);
   }
 }
-
-// Export types for TypeScript
-export type { PrismaClient } from "../generated/prisma/index.js";
-export * from "../generated/prisma/index.js";
