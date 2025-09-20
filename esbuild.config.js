@@ -36,6 +36,7 @@ const config = {
   platform: 'node',
   format: 'esm',
   outdir: 'dist',
+  packages: 'external',
   plugins: [externalizeNodeModulesPlugin],
   // Use esbuild's built-in alias feature for project aliases
   alias: {
@@ -64,7 +65,23 @@ global.__dirname = __dirname;
   // Minimize only external references
   minify: false,
   // Keep names for better debugging
-  keepNames: true
+  keepNames: true,
+  // Target Node.js
+  target: 'node18',
+  // Ignore these patterns when bundling
+  external: [
+    'node:*',
+    '@prisma/client/runtime/library',
+    '@prisma/client/runtime/query_engine*',
+    '@prisma/engines',
+    '@prisma/engines-version',
+    'prisma/libquery_engine*'
+  ]
 };
 
 export default config;
+
+// Run the build if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  esbuild.build(config).catch(() => process.exit(1));
+}
