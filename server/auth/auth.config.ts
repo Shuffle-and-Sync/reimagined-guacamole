@@ -22,7 +22,7 @@ export const authConfig: AuthConfig = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  trustHost: process.env.NODE_ENV === "development", // Only trust host in development
+  trustHost: true, // Trust host for both development and production deployment
   
   // Enhanced cookie settings for production security
   cookies: {
