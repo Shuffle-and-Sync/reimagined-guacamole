@@ -23,11 +23,11 @@ export function Header() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSignIn = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/api/auth/signin";
   };
 
   const handleSignOut = () => {
-    window.location.href = "/api/logout";
+    window.location.href = "/api/auth/signout";
   };
   
   const handleProfile = () => {

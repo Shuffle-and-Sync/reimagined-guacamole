@@ -40,7 +40,7 @@ export default function Home() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/api/auth/signin";
       }, 500);
       return;
     }
@@ -62,7 +62,7 @@ export default function Home() {
   }
 
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    window.location.href = "/api/auth/signout";
   };
 
   const getUserInitials = () => {

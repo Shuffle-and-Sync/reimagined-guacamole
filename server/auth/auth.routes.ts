@@ -8,9 +8,11 @@ const router = Router();
 // Handle all Auth.js routes
 router.all("/api/auth/*", async (req, res) => {
   try {
-    // Use AUTH_URL if available, otherwise build from forwarded headers
-    const base = process.env.AUTH_URL || 
-      `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    // In development, ignore AUTH_URL to allow dynamic host detection for testing
+    const shouldUseDynamicHost = process.env.NODE_ENV === 'development';
+    const dynamicBase = `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    const base = shouldUseDynamicHost ? dynamicBase : (process.env.AUTH_URL || dynamicBase);
+    console.log(`[DEBUG] Auth route - NODE_ENV: ${process.env.NODE_ENV}, AUTH_URL: ${process.env.AUTH_URL}, dynamic base: ${dynamicBase}, final base: ${base}`);
     const url = `${base}${req.originalUrl}`;
     
     // Create Auth.js request with proper body handling for form data

@@ -183,11 +183,6 @@ export const authConfig: AuthConfig = {
       return `${baseUrl}/home`; // Default redirect to home for authenticated users
     },
   },
-  // Configure custom pages for proper redirects
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
-  },
   events: {
     signIn({ user, account, isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);
