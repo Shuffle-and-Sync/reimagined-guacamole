@@ -28,6 +28,7 @@ import { CollaborativeStreamingService } from "./services/collaborative-streamin
 import { websocketMessageSchema } from '../shared/websocket-schemas';
 // Auth.js session validation will be done via session endpoint
 import { healthCheck } from "./health";
+import { generatePlatformOAuthURL, handlePlatformOAuthCallback } from "./services/platform-oauth";
 import { 
   validateRequest, 
   validateParams, 
@@ -68,6 +69,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint
   app.get('/api/health', healthCheck);
+
+  // Platform OAuth routes for account linking
+  app.get('/api/platforms/:platform/oauth/initiate', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { platform } = req.params;
+      
+      if (!['twitch', 'youtube', 'facebook'].includes(platform)) {
+        return res.status(400).json({ message: 'Unsupported platform' });
+      }
+      
+      // Generate OAuth authorization URL
+      const authUrl = await generatePlatformOAuthURL(platform, userId);
+      res.json({ authUrl });
+    } catch (error) {
+      logger.error('Platform OAuth initiation error:', error);
+      res.status(500).json({ message: 'Failed to initiate OAuth flow' });
+    }
+  });
+
+  app.get('/api/platforms/:platform/oauth/callback', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { platform } = req.params;
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.status(400).json({ message: 'Missing OAuth parameters' });
+      }
+      
+      // Exchange code for tokens and save to storage
+      const account = await handlePlatformOAuthCallback(platform, code as string, state as string, userId);
+      res.json({ success: true, platform: account.platform, handle: account.handle });
+    } catch (error) {
+      logger.error('Platform OAuth callback error:', error);
+      res.status(500).json({ message: 'Failed to complete OAuth flow' });
+    }
+  });
+
+  app.get('/api/platforms/accounts', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const accounts = await storage.getUserPlatformAccounts(userId);
+      res.json(accounts);
+    } catch (error) {
+      logger.error('Get platform accounts error:', error);
+      res.status(500).json({ message: 'Failed to fetch platform accounts' });
+    }
+  });
+
+  app.delete('/api/platforms/accounts/:id', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { id } = req.params;
+      
+      // Verify ownership before deletion
+      const account = await storage.getUserPlatformAccounts(userId);
+      const targetAccount = account.find(acc => acc.id === id);
+      
+      if (!targetAccount) {
+        return res.status(404).json({ message: 'Platform account not found' });
+      }
+      
+      await storage.deleteUserPlatformAccount(id);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error('Delete platform account error:', error);
+      res.status(500).json({ message: 'Failed to delete platform account' });
+    }
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req, res) => {
