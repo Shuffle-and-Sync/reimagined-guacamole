@@ -120,10 +120,31 @@ export async function refreshPlatformToken(userId: string, platform: string): Pr
   // For now, platform refresh methods will need to handle token retrieval internally
   // This is a limitation that needs to be addressed with a dedicated storage method
   
-  // TODO: Add secure refresh token accessor to storage interface
-  // For now, refresh is limited by inability to securely access refresh tokens
-  logger.warn(`Token refresh requested for ${platform} user ${userId} but refresh token access not yet implemented`);
-  return null;
+  try {
+    // Get all platform accounts to access refresh token
+    const allAccounts = await storage.getUserPlatformAccounts(userId);
+    const fullAccount = allAccounts.find(acc => acc.platform === platform);
+    
+    if (!fullAccount?.refreshToken) {
+      logger.warn(`No refresh token available for ${platform} user ${userId}`);
+      return null;
+    }
+    
+    // Call platform-specific refresh with the refresh token
+    switch (platform) {
+      case 'twitch':
+        return await refreshTwitchToken(fullAccount.refreshToken, userId);
+      case 'youtube':
+        return await refreshYouTubeToken(fullAccount.refreshToken, userId);
+      case 'facebook':
+        return await refreshFacebookToken(fullAccount.refreshToken, userId);
+      default:
+        throw new Error(`Token refresh not supported for platform: ${platform}`);
+    }
+  } catch (error) {
+    logger.error(`Failed to refresh ${platform} token for user ${userId}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -248,9 +269,54 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
     throw new Error('Missing PKCE code verifier for YouTube OAuth');
   }
   
-  // YouTube OAuth is currently stubbed - needs full implementation
-  // TODO: Implement complete YouTube OAuth flow when API credentials are available
-  throw new Error('YouTube OAuth not fully implemented - API credentials and PKCE flow require completion');
+  try {
+    // Import YouTube API service safely
+    const { YouTubeAPIService } = await import('./youtube-api');
+    const youtubeService = new YouTubeAPIService();
+    
+    // Exchange code for tokens with PKCE code verifier
+    const tokenData = await youtubeService.exchangeCodeForTokens(
+      code, 
+      `${process.env.AUTH_URL}/api/platforms/youtube/oauth/callback`,
+      codeVerifier
+    );
+    
+    // Get channel info using the access token
+    const channelData = await youtubeService.getMyChannel(tokenData.access_token);
+    
+    if (!channelData) {
+      throw new Error('Failed to fetch YouTube channel info');
+    }
+    
+    // Calculate token expiry
+    const expiresAt = tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null;
+    
+    // Store account with tokens securely
+    const account = await storage.createUserPlatformAccount({
+      userId,
+      platform: 'youtube',
+      handle: channelData.title,
+      platformUserId: channelData.id,
+      channelId: channelData.id,
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      tokenExpiresAt: expiresAt,
+      scopes: tokenData.scope?.split(' ') || [],
+      isActive: true,
+    });
+    
+    logger.info('YouTube OAuth completed successfully', { 
+      userId, 
+      channelId: channelData.id, 
+      channelTitle: channelData.title,
+      scopes: tokenData.scope 
+    });
+    
+    return account;
+  } catch (error) {
+    logger.error('YouTube OAuth callback failed', error, { userId, codeVerifier: !!codeVerifier });
+    throw error;
+  }
 }
 
 /**
@@ -309,7 +375,7 @@ async function refreshTwitchToken(refreshToken: string, userId: string): Promise
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
     
     // Update stored tokens
-    const account = await storage.getUserPlatformAccount(userId, 'twitch');
+    const account = await storage.getUserPlatformAccount(userId, 'youtube');
     if (account) {
       await storage.updateUserPlatformAccount(account.id, {
         accessToken: tokenData.access_token,
