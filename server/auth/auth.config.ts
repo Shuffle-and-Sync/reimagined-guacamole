@@ -174,12 +174,20 @@ export const authConfig: AuthConfig = {
       }
       return session;
     },
+    // Add redirect callback to control where users go after authentication
+    async redirect({ url, baseUrl }) {
+      console.log(`Auth.js redirect: url=${url}, baseUrl=${baseUrl}`);
+      // Redirect to home page after successful sign in
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return `${baseUrl}/home`; // Default redirect to home for authenticated users
+    },
   },
-  // Temporarily disable custom pages to test baseline functionality
-  // pages: {
-  //   signIn: "/auth/signin", 
-  //   error: "/auth/error",
-  // },
+  // Configure custom pages for proper redirects
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
   events: {
     signIn({ user, account, isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);
