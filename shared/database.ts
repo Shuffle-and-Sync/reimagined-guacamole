@@ -1,6 +1,8 @@
 // Dual database configuration for Drizzle + Prisma transition
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
+import { pathToFileURL } from "url";
+import { resolve } from "path";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
@@ -35,9 +37,42 @@ export async function initializePrisma() {
   }
 
   try {
-    const { PrismaClient } = await import("../generated/prisma/index.js");
+    // Try multiple import paths for better production compatibility
+    let PrismaClient;
+    let lastError: Error | null = null;
+    
+    // Strategy 1: Use proper file URL for generated client
+    try {
+      const prismaPath = resolve(process.cwd(), "generated/prisma/index.js");
+      const prismaFileUrl = pathToFileURL(prismaPath).href;
+      const prismaModule = await import(prismaFileUrl);
+      PrismaClient = prismaModule.PrismaClient;
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Strategy 2: Fallback to relative path (development)
+      try {
+        const prismaModule = await import("../generated/prisma/index.js");
+        PrismaClient = prismaModule.PrismaClient;
+      } catch (relativeError) {
+        lastError = relativeError as Error;
+        
+        // Strategy 3: Final fallback to node_modules (if available)
+        try {
+          const prismaModule = await import("@prisma/client");
+          PrismaClient = prismaModule.PrismaClient;
+        } catch (nodeModulesError) {
+          lastError = nodeModulesError as Error;
+        }
+      }
+    }
+    
+    if (!PrismaClient) {
+      throw new Error(`Failed to import Prisma client from any path. Last error: ${lastError?.message}`);
+    }
+    
     _prisma = new PrismaClient({
-      log: ['error'],
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       datasourceUrl: process.env.DATABASE_URL,
     });
     
@@ -48,6 +83,7 @@ export async function initializePrisma() {
     return _prisma;
   } catch (error) {
     console.error('Failed to initialize Prisma:', error);
+    console.error('Make sure the Prisma client is generated and the generated/prisma directory is available');
     throw error;
   }
 }

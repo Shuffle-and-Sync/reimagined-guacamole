@@ -71,11 +71,14 @@ global.__dirname = __dirname;
   // Ignore these patterns when bundling
   external: [
     'node:*',
+    '@prisma/client',
+    '@prisma/client/*',
     '@prisma/client/runtime/library',
     '@prisma/client/runtime/query_engine*',
     '@prisma/engines',
     '@prisma/engines-version',
-    'prisma/libquery_engine*'
+    'prisma/libquery_engine*',
+    'generated/prisma/**'
   ]
 };
 
