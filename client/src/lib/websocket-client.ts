@@ -29,8 +29,9 @@ class WebSocketClient {
 
     this.connectionPromise = new Promise((resolve, reject) => {
       try {
-        // Use wss:// for production, ws:// for development
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        // Always use wss:// in production, ws:// only for local development
+        const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.startsWith('127.');
+        const protocol = (window.location.protocol === 'https:' || isProduction) ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws`;
         
         this.ws = new WebSocket(wsUrl);
