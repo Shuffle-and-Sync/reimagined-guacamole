@@ -21,6 +21,7 @@ import { StreamEventForm } from '../components/StreamEventForm';
 import { CollaboratorManagement } from '../components/CollaboratorManagement';
 import { CoordinationDashboard } from '../components/CoordinationDashboard';
 import { SessionMonitor } from '../components/SessionMonitor';
+import { PlatformAccountManager } from '../components/PlatformAccountManager';
 import type { CollaborativeStreamEvent } from '../types';
 
 export default function CollaborativeStreamingDashboard() {
@@ -107,6 +108,10 @@ export default function CollaborativeStreamingDashboard() {
           <TabsTrigger value="events" data-testid="tab-events">
             <Calendar className="h-4 w-4 mr-2" />
             My Events
+          </TabsTrigger>
+          <TabsTrigger value="platforms" data-testid="tab-platforms">
+            <Settings className="h-4 w-4 mr-2" />
+            Platform Accounts
           </TabsTrigger>
           <TabsTrigger value="coordination" disabled={!selectedEventId} data-testid="tab-coordination">
             <Activity className="h-4 w-4 mr-2" />
@@ -198,6 +203,10 @@ export default function CollaborativeStreamingDashboard() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="platforms" className="space-y-6">
+          <PlatformAccountManager />
         </TabsContent>
 
         <TabsContent value="coordination" className="space-y-6">

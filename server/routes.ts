@@ -144,6 +144,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/platforms/status', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const accounts = await storage.getUserPlatformAccounts(userId);
+      
+      const status: Record<string, any> = {};
+      
+      for (const account of accounts) {
+        const now = new Date();
+        const isExpired = account.tokenExpiresAt && account.tokenExpiresAt < now;
+        
+        status[account.platform] = {
+          isConnected: account.isActive && !isExpired,
+          isExpired: !!isExpired,
+          expiryDate: account.tokenExpiresAt?.toISOString(),
+          lastChecked: now.toISOString(),
+        };
+      }
+      
+      res.json(status);
+    } catch (error) {
+      logger.error('Get platform status error:', error);
+      res.status(500).json({ message: 'Failed to fetch platform status' });
+    }
+  });
+
+  app.post('/api/platforms/:platform/refresh', isAuthenticated, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { platform } = req.params;
+      
+      // Import refresh function
+      const { refreshPlatformToken } = await import('./services/platform-oauth');
+      
+      const newToken = await refreshPlatformToken(userId, platform);
+      
+      if (!newToken) {
+        return res.status(400).json({ message: 'Failed to refresh token' });
+      }
+      
+      res.json({ success: true, message: 'Token refreshed successfully' });
+    } catch (error) {
+      logger.error('Refresh platform token error:', error);
+      res.status(500).json({ message: 'Failed to refresh platform token' });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
