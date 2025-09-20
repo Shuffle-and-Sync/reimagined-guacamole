@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import type { User } from '@shared/schema';
 import { cacheService } from './cache-service';
 import { logger } from '../logger';
-import { notificationDelivery } from './notification-delivery';
+// import { notificationDelivery } from './notification-delivery'; // Commented out for now
 
 // Types for streaming coordination
 export interface StreamingPlatform {
