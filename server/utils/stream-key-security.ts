@@ -19,7 +19,7 @@ export function encryptStreamKey(streamKey: string): string {
   if (!streamKey) return '';
   
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
+  const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
   cipher.setAutoPadding(true);
   
   let encrypted = cipher.update(streamKey, 'utf8', 'hex');
@@ -44,7 +44,7 @@ export function decryptStreamKey(encryptedKey: string): string {
     const iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
     
-    const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
     decipher.setAutoPadding(true);
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
