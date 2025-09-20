@@ -9,27 +9,53 @@ class RedisClientService {
   private isConnected = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private redisAvailable = false;
 
   constructor() {
-    this.initializeClient();
+    // Check if Redis is configured before attempting connection
+    this.redisAvailable = this.checkRedisConfiguration();
+    if (this.redisAvailable) {
+      this.initializeClient();
+    } else {
+      logger.info('Redis not configured - running without caching');
+    }
+  }
+
+  private checkRedisConfiguration(): boolean {
+    // Redis is considered available if explicitly configured
+    const hasRedisConfig = process.env.REDIS_HOST || process.env.REDIS_URL;
+    
+    // Only attempt Redis connection if explicitly configured
+    // This prevents connection attempts when Redis is not provisioned
+    return !!hasRedisConfig;
   }
 
   private async initializeClient(): Promise<void> {
     try {
       // Redis configuration for Replit environment
-      this.client = createClient({
-        socket: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
-          connectTimeout: 10000
-        },
-        password: process.env.REDIS_PASSWORD,
-        database: parseInt(process.env.REDIS_DB || '0')
-      });
+      // Support both REDIS_URL (managed Redis) and individual config vars
+      const redisConfig = process.env.REDIS_URL 
+        ? {
+            url: process.env.REDIS_URL,
+            socket: { connectTimeout: 10000 }
+          }
+        : {
+            socket: {
+              host: process.env.REDIS_HOST || 'localhost',
+              port: parseInt(process.env.REDIS_PORT || '6379'),
+              connectTimeout: 10000
+            },
+            password: process.env.REDIS_PASSWORD,
+            database: parseInt(process.env.REDIS_DB || '0')
+          };
 
-      // Error handling
+      this.client = createClient(redisConfig);
+
+      // Error handling - only log errors if Redis is expected to be available
       this.client.on('error', (error) => {
-        logger.error('Redis client error', { error: error.message });
+        if (this.reconnectAttempts <= 3) {
+          logger.warn('Redis connection issue', { error: error.message, attempts: this.reconnectAttempts });
+        }
         this.isConnected = false;
       });
 
@@ -46,13 +72,17 @@ class RedisClientService {
 
       this.client.on('reconnecting', () => {
         this.reconnectAttempts++;
-        logger.info('Redis client reconnecting', { attempts: this.reconnectAttempts });
+        if (this.reconnectAttempts <= 3) {
+          logger.info('Redis client reconnecting', { attempts: this.reconnectAttempts });
+        }
       });
 
       // Connect to Redis
       await this.client.connect();
     } catch (error) {
-      logger.error('Failed to initialize Redis client', { error });
+      if (this.reconnectAttempts <= 3) {
+        logger.warn('Failed to initialize Redis client', { error, attempts: this.reconnectAttempts });
+      }
       this.handleConnectionFailure();
     }
   }
@@ -63,7 +93,7 @@ class RedisClientService {
         this.initializeClient();
       }, Math.pow(2, this.reconnectAttempts) * 1000); // Exponential backoff
     } else {
-      logger.error('Max Redis reconnection attempts reached');
+      logger.warn('Max Redis reconnection attempts reached - caching disabled');
     }
   }
 
