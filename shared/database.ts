@@ -1,7 +1,7 @@
 // Dual database configuration for Drizzle + Prisma transition
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "../generated/prisma/index.js";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
@@ -53,5 +53,5 @@ export async function closeDatabaseConnections() {
 }
 
 // Export types for TypeScript
-export type { PrismaClient } from "../generated/prisma";
-export * from "../generated/prisma";
+export type { PrismaClient } from "../generated/prisma/index.js";
+export * from "../generated/prisma/index.js";

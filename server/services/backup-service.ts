@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { promisify } from 'util';
+import crypto from 'crypto';
 
 export interface BackupMetadata {
   id: string;
@@ -512,7 +513,6 @@ class BackupService {
   }
 
   private async calculateChecksum(filePath: string): Promise<string> {
-    const crypto = await import('crypto');
     const fileBuffer = await fs.readFile(filePath);
     return crypto.createHash('sha256').update(fileBuffer).digest('hex');
   }
