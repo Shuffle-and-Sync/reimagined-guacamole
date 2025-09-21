@@ -461,7 +461,7 @@ router.post('/users/:userId/actions',
       }
 
       // Create moderation action record
-      const { isPublic, duration, ...actionData } = validation.data;
+      const { isPublic, ...actionData } = validation.data;
       
       // Calculate expiration time only for valid positive durations
       const expiresAt = duration && duration > 0 ? new Date(Date.now() + duration * 60 * 60 * 1000) : undefined;
