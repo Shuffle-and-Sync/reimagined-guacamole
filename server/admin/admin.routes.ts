@@ -14,12 +14,12 @@ import {
 
 const router = Router();
 
+// Apply comprehensive audit logging FIRST to capture ALL responses including 401/429
+router.use(comprehensiveAuditLogging);
+
 // Apply general middleware
 router.use(isAuthenticated);
 router.use(generalRateLimit);
-
-// Apply comprehensive audit logging to all admin routes
-router.use(comprehensiveAuditLogging);
 
 // Require admin role for all routes in this router
 router.use(requireAdmin);
