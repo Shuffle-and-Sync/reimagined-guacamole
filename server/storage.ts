@@ -156,7 +156,7 @@ import {
   type InsertAdminAuditLog,
   SafeUserPlatformAccount,
 } from "@shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -481,7 +481,28 @@ export class DatabaseStorage implements IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
 
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    // Return safe user data without sensitive fields like passwordHash
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      profileImageUrl: users.profileImageUrl,
+      primaryCommunity: users.primaryCommunity,
+      bio: users.bio,
+      location: users.location,
+      website: users.website,
+      status: users.status,
+      statusMessage: users.statusMessage,
+      timezone: users.timezone,
+      dateOfBirth: users.dateOfBirth,
+      isPrivate: users.isPrivate,
+      showOnlineStatus: users.showOnlineStatus,
+      allowDirectMessages: users.allowDirectMessages,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users).where(eq(users.id, id));
     return user;
   }
 
@@ -504,58 +525,82 @@ export class DatabaseStorage implements IStorage {
       order = 'desc'
     } = filters || {};
 
-    // Build query with joins for roles if needed
+    // Select safe user fields (exclude sensitive data like passwordHash)
     let query = db.select({
       id: users.id,
       email: users.email,
-      name: users.name,
-      avatar: users.avatar,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      profileImageUrl: users.profileImageUrl,
+      primaryCommunity: users.primaryCommunity,
+      bio: users.bio,
+      location: users.location,
+      website: users.website,
+      status: users.status,
+      statusMessage: users.statusMessage,
+      timezone: users.timezone,
+      dateOfBirth: users.dateOfBirth,
+      isPrivate: users.isPrivate,
+      showOnlineStatus: users.showOnlineStatus,
+      allowDirectMessages: users.allowDirectMessages,
       createdAt: users.createdAt,
-      updatedAt: users.updatedAt,
-      last_login: users.last_login,
-      verified: users.verified,
-      banned: users.banned,
-      banned_reason: users.banned_reason,
-      banned_until: users.banned_until
+      updatedAt: users.updatedAt
     }).from(users);
+
+    // Build conditions
+    const conditions = [];
 
     // Add search filter
     if (search) {
-      query = query.where(or(
-        ilike(users.name, `%${search}%`),
-        ilike(users.email, `%${search}%`)
+      conditions.push(or(
+        ilike(users.username, `%${search}%`),
+        ilike(users.email, `%${search}%`),
+        ilike(users.firstName, `%${search}%`),
+        ilike(users.lastName, `%${search}%`)
       ));
     }
 
     // Add status filter
-    if (status === 'active') {
-      query = query.where(eq(users.banned, false));
-    } else if (status === 'banned') {
-      query = query.where(eq(users.banned, true));
+    if (status && status !== 'all') {
+      conditions.push(eq(users.status, status));
+    }
+
+    // Add role filter (requires join with userRoles)
+    if (role) {
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId));
+      conditions.push(eq(userRoles.role, role));
+    }
+
+    // Apply conditions
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
 
     // Add sorting
-    const sortColumn = users[sortBy as keyof typeof users] || users.createdAt;
-    if (order === 'asc') {
-      query = query.orderBy(asc(sortColumn));
+    const validSortColumns = ['createdAt', 'updatedAt', 'username', 'email', 'firstName', 'lastName'];
+    if (validSortColumns.includes(sortBy)) {
+      const sortColumn = users[sortBy as keyof typeof users];
+      if (sortColumn) {
+        if (order === 'asc') {
+          query = query.orderBy(asc(sortColumn));
+        } else {
+          query = query.orderBy(desc(sortColumn));
+        }
+      }
     } else {
-      query = query.orderBy(desc(sortColumn));
+      // Default sort
+      query = query.orderBy(desc(users.createdAt));
     }
 
-    // Get total count for pagination
-    const countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
-    if (search) {
-      countQuery.where(or(
-        ilike(users.name, `%${search}%`),
-        ilike(users.email, `%${search}%`)
-      ));
+    // Get total count with same filters
+    let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+    if (role) {
+      countQuery = countQuery.leftJoin(userRoles, eq(users.id, userRoles.userId));
     }
-    if (status === 'active') {
-      countQuery.where(eq(users.banned, false));
-    } else if (status === 'banned') {
-      countQuery.where(eq(users.banned, true));
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
     }
-
     const [{ count: total }] = await countQuery;
 
     // Add pagination
@@ -586,6 +631,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
+    // Update user and return safe projection (excluding passwordHash)
     const [user] = await db
       .update(users)
       .set({
@@ -593,7 +639,27 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
-      .returning();
+      .returning({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        profileImageUrl: users.profileImageUrl,
+        primaryCommunity: users.primaryCommunity,
+        bio: users.bio,
+        location: users.location,
+        website: users.website,
+        status: users.status,
+        statusMessage: users.statusMessage,
+        timezone: users.timezone,
+        dateOfBirth: users.dateOfBirth,
+        isPrivate: users.isPrivate,
+        showOnlineStatus: users.showOnlineStatus,
+        allowDirectMessages: users.allowDirectMessages,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      });
     return user;
   }
 

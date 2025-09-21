@@ -62,18 +62,23 @@ const userFiltersSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   search: z.string().optional(),
   role: z.string().optional(),
-  status: z.enum(['active', 'banned', 'all']).optional(),
-  sortBy: z.enum(['createdAt', 'name', 'email', 'last_login']).optional(),
+  status: z.enum(['online', 'offline', 'away', 'busy', 'gaming', 'all']).optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'username', 'email', 'firstName', 'lastName']).optional(),
   order: z.enum(['asc', 'desc']).optional()
 });
 
 const userUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  username: z.string().min(1).optional(),
   email: z.string().email().optional(),
-  verified: z.boolean().optional(),
-  banned: z.boolean().optional(),
-  banned_reason: z.string().optional(),
-  banned_until: z.string().datetime().optional()
+  bio: z.string().optional(),
+  location: z.string().optional(),
+  website: z.string().url().optional(),
+  timezone: z.string().optional(),
+  isPrivate: z.boolean().optional(),
+  showOnlineStatus: z.enum(['everyone', 'friends_only']).optional(),
+  allowDirectMessages: z.enum(['everyone', 'friends_only']).optional()
 });
 
 const roleAssignSchema = z.object({
@@ -83,14 +88,10 @@ const roleAssignSchema = z.object({
   notes: z.string().optional()
 });
 
-const moderationNotesSchema = z.object({
-  notes: z.string().min(1, 'Notes cannot be empty')
-});
-
 const userActionSchema = z.object({
-  action: z.enum(['ban', 'unban', 'shadowban', 'unshadowban', 'verify', 'unverify']),
+  action: z.enum(['mute', 'unmute', 'warn', 'restrict']),
   reason: z.string().min(1, 'Reason is required'),
-  duration: z.string().optional(), // For temporary bans
+  duration: z.string().optional(), // For temporary restrictions
   notes: z.string().optional()
 });
 
@@ -291,9 +292,52 @@ router.delete('/users/:userId/roles/:roleId',
   }
 );
 
+// ===== USER PROFILE MANAGEMENT =====
+
+// Get user detailed information
+router.get('/users/:userId/details',
+  requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
+  auditAdminAction('user_details_viewed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get additional user data
+      const [roles, reputation, socialLinks, gamingProfiles] = await Promise.all([
+        storage.getUserRoles(userId),
+        storage.getUserReputation(userId),
+        storage.getUserSocialLinks(userId),
+        storage.getUserGamingProfiles(userId)
+      ]);
+      
+      res.json({ 
+        user,
+        roles,
+        reputation,
+        socialLinks,
+        gamingProfiles,
+        stats: {
+          totalRoles: roles.length,
+          reputationScore: reputation?.score || 0,
+          socialLinksCount: socialLinks.length,
+          gamingProfilesCount: gamingProfiles.length
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ message: 'Failed to fetch user details' });
+    }
+  }
+);
+
 // ===== USER MODERATION NOTES =====
 
-// Get user moderation notes
+// Get user moderation notes (stored as special moderation actions)
 router.get('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_notes_viewed'),
@@ -306,10 +350,25 @@ router.get('/users/:userId/notes',
         return res.status(404).json({ message: 'User not found' });
       }
       
+      // Get notes from moderation actions with action type 'note'
+      const notes = await storage.getModerationActions({ 
+        targetUserId: userId, 
+        action: 'note' 
+      });
+      
       res.json({ 
         userId,
-        notes: user.moderationNotes || '',
-        lastUpdated: user.updatedAt
+        notes: notes.map(note => ({
+          id: note.id,
+          content: note.notes,
+          moderatorId: note.moderatorId,
+          moderatorName: note.moderator?.firstName && note.moderator?.lastName 
+            ? `${note.moderator.firstName} ${note.moderator.lastName}`
+            : note.moderator?.username || 'Unknown',
+          createdAt: note.createdAt,
+          updatedAt: note.updatedAt
+        })),
+        total: notes.length
       });
     } catch (error) {
       console.error('Error fetching user notes:', error);
@@ -318,41 +377,53 @@ router.get('/users/:userId/notes',
   }
 );
 
-// Update user moderation notes
-router.patch('/users/:userId/notes',
+// Add moderation note to user
+router.post('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
-  auditAdminAction('user_notes_updated'),
+  auditAdminAction('user_note_added'),
   async (req, res) => {
     try {
       const { userId } = req.params;
+      const { content } = req.body;
       
-      const validation = moderationNotesSchema.safeParse(req.body);
-      if (!validation.success) {
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
         return res.status(400).json({ 
-          message: 'Invalid notes data',
-          errors: validation.error.errors
+          message: 'Note content is required',
+          errors: [{ message: 'Content must be a non-empty string' }]
         });
       }
 
-      const { notes } = validation.data;
-      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
       
-      const updatedUser = await storage.updateUser(userId, { 
-        moderationNotes: notes 
+      const adminUserId = getAuthUserId(req);
+      
+      // Create moderation action with action type 'note'
+      const moderationAction = await storage.createModerationAction({
+        moderatorId: adminUserId,
+        targetUserId: userId,
+        action: 'note',
+        reason: 'Moderation note',
+        notes: content.trim(),
+        isActive: false
       });
       
-      res.json({ 
-        userId,
-        notes: updatedUser.moderationNotes,
-        lastUpdated: updatedUser.updatedAt
+      const adminUser = await storage.getUser(adminUserId);
+      
+      res.status(201).json({ 
+        id: moderationAction.id,
+        content: moderationAction.notes,
+        moderatorId: adminUserId,
+        moderatorName: adminUser?.firstName && adminUser?.lastName 
+          ? `${adminUser.firstName} ${adminUser.lastName}`
+          : adminUser?.username || 'Unknown',
+        createdAt: moderationAction.createdAt
       });
     } catch (error) {
-      console.error('Error updating user notes:', error);
-      res.status(500).json({ message: 'Failed to update user notes' });
+      console.error('Error adding user note:', error);
+      res.status(500).json({ message: 'Failed to add user note' });
     }
   }
 );
@@ -383,56 +454,15 @@ router.post('/users/:userId/actions',
         return res.status(404).json({ message: 'User not found' });
       }
 
-      let userUpdates: any = {};
-      let actionType = action;
-
-      switch (action) {
-        case 'ban':
-          userUpdates.banned = true;
-          userUpdates.banned_reason = reason;
-          if (duration) {
-            const banUntil = new Date();
-            banUntil.setDate(banUntil.getDate() + parseInt(duration));
-            userUpdates.banned_until = banUntil;
-          }
-          actionType = 'ban';
-          break;
-        case 'unban':
-          userUpdates.banned = false;
-          userUpdates.banned_reason = null;
-          userUpdates.banned_until = null;
-          actionType = 'unban';
-          break;
-        case 'shadowban':
-          // Shadow ban logic would be implemented here
-          actionType = 'shadow_ban';
-          break;
-        case 'unshadowban':
-          actionType = 'unshadow_ban';
-          break;
-        case 'verify':
-          userUpdates.verified = true;
-          actionType = 'verify';
-          break;
-        case 'unverify':
-          userUpdates.verified = false;
-          actionType = 'unverify';
-          break;
-      }
-
-      // Update user if there are changes
-      if (Object.keys(userUpdates).length > 0) {
-        await storage.updateUser(userId, userUpdates);
-      }
-
       // Create moderation action record
       const moderationAction = await storage.createModerationAction({
         moderatorId: adminUserId,
         targetUserId: userId,
-        action: actionType,
+        action,
         reason,
         notes,
-        isActive: ['ban', 'shadow_ban', 'unverify'].includes(action)
+        isActive: ['mute', 'restrict'].includes(action),
+        duration: duration ? parseInt(duration) : undefined
       });
 
       res.json({
@@ -473,7 +503,7 @@ router.get('/users/:userId/activity',
         roles,
         stats: {
           totalModerationActions: moderationActions.length,
-          activeBans: moderationActions.filter(a => a.action === 'ban' && a.isActive).length,
+          activeRestrictions: moderationActions.filter(a => ['mute', 'restrict'].includes(a.action) && a.isActive).length,
           totalAppeals: appeals.length,
           activeRoles: roles.filter(r => !r.expiresAt || r.expiresAt > new Date()).length
         }
