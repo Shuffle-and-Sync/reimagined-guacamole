@@ -41,6 +41,17 @@ import {
   collaborativeStreamEvents,
   streamCollaborators,
   streamCoordinationSessions,
+  // Admin & Moderation tables
+  userRoles,
+  userReputation,
+  contentReports,
+  moderationActions,
+  moderationQueue,
+  cmsContent,
+  banEvasionTracking,
+  userAppeals,
+  moderationTemplates,
+  adminAuditLog,
   type User,
   type UpsertUser,
   type Community,
@@ -122,6 +133,27 @@ import {
   type InsertPlatformMetrics,
   type InsertEventTracking,
   type InsertConversionFunnel,
+  // Admin & Moderation types
+  type UserRole,
+  type UserReputation,
+  type ContentReport,
+  type ModerationAction,
+  type ModerationQueue,
+  type CmsContent,
+  type BanEvasionTracking,
+  type UserAppeal,
+  type ModerationTemplate,
+  type AdminAuditLog,
+  type InsertUserRole,
+  type InsertUserReputation,
+  type InsertContentReport,
+  type InsertModerationAction,
+  type InsertModerationQueue,
+  type InsertCmsContent,
+  type InsertBanEvasionTracking,
+  type InsertUserAppeal,
+  type InsertModerationTemplate,
+  type InsertAdminAuditLog,
   SafeUserPlatformAccount,
 } from "@shared/schema";
 import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
@@ -346,6 +378,81 @@ export interface IStorage {
   // Conversion funnel operations
   recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel>;
   getConversionFunnelData(funnelName: string, startDate?: Date, endDate?: Date): Promise<ConversionFunnel[]>;
+
+  // Admin & Moderation operations
+  
+  // User role operations (RBAC)
+  getUserRoles(userId: string): Promise<UserRole[]>;
+  createUserRole(data: InsertUserRole): Promise<UserRole>;
+  updateUserRole(id: string, data: Partial<InsertUserRole>): Promise<UserRole>;
+  deleteUserRole(id: string): Promise<void>;
+  checkUserPermission(userId: string, permission: string): Promise<boolean>;
+  getUsersByRole(role: string): Promise<(UserRole & { user: User })[]>;
+  
+  // User reputation operations
+  getUserReputation(userId: string): Promise<UserReputation | undefined>;
+  updateUserReputation(userId: string, data: Partial<InsertUserReputation>): Promise<UserReputation>;
+  calculateReputationScore(userId: string): Promise<number>;
+  getUsersByReputationRange(minScore: number, maxScore: number): Promise<(UserReputation & { user: User })[]>;
+  
+  // Content report operations
+  createContentReport(data: InsertContentReport): Promise<ContentReport>;
+  getContentReports(filters?: { status?: string; priority?: string; reporterUserId?: string; assignedModerator?: string }): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User })[]>;
+  getContentReport(id: string): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User }) | undefined>;
+  updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport>;
+  assignContentReport(reportId: string, moderatorId: string): Promise<ContentReport>;
+  resolveContentReport(reportId: string, resolution: string, actionTaken?: string, moderatorId?: string): Promise<ContentReport>;
+  
+  // Moderation action operations
+  createModerationAction(data: InsertModerationAction): Promise<ModerationAction>;
+  getModerationActions(filters?: { targetUserId?: string; moderatorId?: string; action?: string; isActive?: boolean }): Promise<(ModerationAction & { moderator: User; targetUser: User })[]>;
+  getModerationAction(id: string): Promise<(ModerationAction & { moderator: User; targetUser: User }) | undefined>;
+  updateModerationAction(id: string, data: Partial<InsertModerationAction>): Promise<ModerationAction>;
+  reverseModerationAction(id: string, reversedBy: string, reason: string): Promise<ModerationAction>;
+  getUserActiveModerationActions(userId: string): Promise<ModerationAction[]>;
+  
+  // Moderation queue operations
+  addToModerationQueue(data: InsertModerationQueue): Promise<ModerationQueue>;
+  getModerationQueue(filters?: { status?: string; assignedModerator?: string; priority?: string }): Promise<(ModerationQueue & { assignedMod?: User })[]>;
+  getModerationQueueItem(id: string): Promise<(ModerationQueue & { assignedMod?: User }) | undefined>;
+  assignModerationQueueItem(id: string, moderatorId: string): Promise<ModerationQueue>;
+  completeModerationQueueItem(id: string, resolution: string, actionTaken?: string): Promise<ModerationQueue>;
+  updateModerationQueuePriority(id: string, priority: string): Promise<ModerationQueue>;
+  
+  // CMS content operations
+  getCmsContent(type?: string, isPublished?: boolean): Promise<CmsContent[]>;
+  getCmsContentById(id: string): Promise<(CmsContent & { author: User; lastEditor: User; approver?: User }) | undefined>;
+  createCmsContent(data: InsertCmsContent): Promise<CmsContent>;
+  updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent>;
+  publishCmsContent(id: string, publisherId: string): Promise<CmsContent>;
+  deleteCmsContent(id: string): Promise<void>;
+  getCmsContentVersions(type: string): Promise<CmsContent[]>;
+  
+  // Ban evasion tracking operations
+  createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking>;
+  getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]>;
+  checkBanEvasion(userId: string, ipAddress: string, deviceFingerprint?: string): Promise<BanEvasionTracking[]>;
+  updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking>;
+  
+  // User appeal operations
+  createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal>;
+  getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]>;
+  getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined>;
+  updateUserAppeal(id: string, data: Partial<InsertUserAppeal>): Promise<UserAppeal>;
+  assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal>;
+  resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal>;
+  
+  // Moderation template operations
+  getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]>;
+  getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined>;
+  createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate>;
+  updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate>;
+  deleteModerationTemplate(id: string): Promise<void>;
+  
+  // Admin audit log operations
+  createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog>;
+  getAuditLogs(filters?: { adminUserId?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<(AdminAuditLog & { admin: User })[]>;
+  getAuditLog(id: string): Promise<(AdminAuditLog & { admin: User }) | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3225,6 +3332,858 @@ export class DatabaseStorage implements IStorage {
       logger.error("Failed to get active coordination sessions", error);
       throw error;
     }
+  }
+
+  // ===== ADMIN & MODERATION OPERATIONS =====
+
+  // User role operations (RBAC)
+  async getUserRoles(userId: string): Promise<UserRole[]> {
+    return await db.select().from(userRoles).where(eq(userRoles.userId, userId));
+  }
+
+  async createUserRole(data: InsertUserRole): Promise<UserRole> {
+    const [role] = await db.insert(userRoles).values(data).returning();
+    
+    // Create audit log
+    await this.createAuditLog({
+      adminUserId: data.assignedBy || 'system',
+      action: 'user_role_created',
+      targetUserId: data.userId,
+      details: { role: data.role, permissions: data.permissions },
+      ipAddress: '', // Will be filled by middleware
+    });
+    
+    return role;
+  }
+
+  async updateUserRole(id: string, data: Partial<InsertUserRole>): Promise<UserRole> {
+    const [role] = await db.update(userRoles).set(data).where(eq(userRoles.id, id)).returning();
+    
+    if (data.assignedBy) {
+      await this.createAuditLog({
+        adminUserId: data.assignedBy,
+        action: 'user_role_updated',
+        targetUserId: role.userId,
+        details: { roleId: id, updates: data },
+        ipAddress: '',
+      });
+    }
+    
+    return role;
+  }
+
+  async deleteUserRole(id: string): Promise<void> {
+    await db.delete(userRoles).where(eq(userRoles.id, id));
+  }
+
+  async checkUserPermission(userId: string, permission: string): Promise<boolean> {
+    const roles = await this.getUserRoles(userId);
+    
+    for (const role of roles) {
+      if (role.isActive && role.permissions) {
+        const permissions = typeof role.permissions === 'string' 
+          ? JSON.parse(role.permissions) 
+          : role.permissions;
+        
+        if (Array.isArray(permissions) && permissions.includes(permission)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  async getUsersByRole(role: string): Promise<(UserRole & { user: User })[]> {
+    return await db.select({
+      id: userRoles.id,
+      userId: userRoles.userId,
+      role: userRoles.role,
+      permissions: userRoles.permissions,
+      isActive: userRoles.isActive,
+      assignedBy: userRoles.assignedBy,
+      assignedAt: userRoles.assignedAt,
+      expiresAt: userRoles.expiresAt,
+      notes: userRoles.notes,
+      createdAt: userRoles.createdAt,
+      user: users
+    })
+    .from(userRoles)
+    .innerJoin(users, eq(userRoles.userId, users.id))
+    .where(and(eq(userRoles.role, role), eq(userRoles.isActive, true)));
+  }
+
+  // User reputation operations
+  async getUserReputation(userId: string): Promise<UserReputation | undefined> {
+    const [reputation] = await db.select().from(userReputation).where(eq(userReputation.userId, userId));
+    return reputation;
+  }
+
+  async updateUserReputation(userId: string, data: Partial<InsertUserReputation>): Promise<UserReputation> {
+    // Check if reputation record exists
+    const existing = await this.getUserReputation(userId);
+    
+    if (existing) {
+      const [updated] = await db.update(userReputation)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(userReputation.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(userReputation)
+        .values({ userId, ...data } as InsertUserReputation)
+        .returning();
+      return created;
+    }
+  }
+
+  async calculateReputationScore(userId: string): Promise<number> {
+    // Get user's reputation record
+    const reputation = await this.getUserReputation(userId);
+    if (!reputation) return 0;
+
+    // Calculate score based on various factors
+    let score = reputation.baseScore || 0;
+    score += (reputation.positiveActions || 0) * 2;
+    score -= (reputation.negativeActions || 0) * 5;
+    score -= (reputation.violationCount || 0) * 10;
+    score += (reputation.contributionScore || 0);
+    
+    // Apply decay factor for account age
+    const accountAgeMonths = reputation.createdAt 
+      ? Math.floor((Date.now() - reputation.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30))
+      : 0;
+    const decayFactor = Math.max(0.1, 1 - (accountAgeMonths * 0.01));
+    
+    const finalScore = Math.max(0, Math.floor(score * decayFactor));
+    
+    // Update the calculated score
+    await this.updateUserReputation(userId, { 
+      currentScore: finalScore,
+      lastCalculated: new Date()
+    });
+    
+    return finalScore;
+  }
+
+  async getUsersByReputationRange(minScore: number, maxScore: number): Promise<(UserReputation & { user: User })[]> {
+    return await db.select({
+      id: userReputation.id,
+      userId: userReputation.userId,
+      currentScore: userReputation.currentScore,
+      baseScore: userReputation.baseScore,
+      positiveActions: userReputation.positiveActions,
+      negativeActions: userReputation.negativeActions,
+      violationCount: userReputation.violationCount,
+      contributionScore: userReputation.contributionScore,
+      lastCalculated: userReputation.lastCalculated,
+      notes: userReputation.notes,
+      createdAt: userReputation.createdAt,
+      updatedAt: userReputation.updatedAt,
+      user: users
+    })
+    .from(userReputation)
+    .innerJoin(users, eq(userReputation.userId, users.id))
+    .where(and(
+      gte(userReputation.currentScore, minScore),
+      sql`${userReputation.currentScore} <= ${maxScore}`
+    ));
+  }
+
+  // Content report operations
+  async createContentReport(data: InsertContentReport): Promise<ContentReport> {
+    const [report] = await db.insert(contentReports).values(data).returning();
+    
+    // Add to moderation queue if auto-flagged or high priority
+    if (data.reportSource === 'auto_flagged' || data.priority === 'high' || data.priority === 'critical') {
+      await this.addToModerationQueue({
+        itemType: 'content_report',
+        itemId: report.id,
+        priority: data.priority || 'medium',
+        description: `${data.reason}: ${data.contentType} reported`,
+        metadata: { contentType: data.contentType, contentId: data.contentId }
+      });
+    }
+    
+    return report;
+  }
+
+  async getContentReports(filters?: { status?: string; priority?: string; reporterUserId?: string; assignedModerator?: string }): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User })[]> {
+    let query = db.select({
+      id: contentReports.id,
+      reporterUserId: contentReports.reporterUserId,
+      reportedUserId: contentReports.reportedUserId,
+      contentType: contentReports.contentType,
+      contentId: contentReports.contentId,
+      reason: contentReports.reason,
+      description: contentReports.description,
+      status: contentReports.status,
+      priority: contentReports.priority,
+      reportSource: contentReports.reportSource,
+      assignedModerator: contentReports.assignedModerator,
+      evidence: contentReports.evidence,
+      metadata: contentReports.metadata,
+      mlConfidenceScore: contentReports.mlConfidenceScore,
+      resolution: contentReports.resolution,
+      actionTaken: contentReports.actionTaken,
+      createdAt: contentReports.createdAt,
+      resolvedAt: contentReports.resolvedAt,
+      reporter: alias(users, 'reporter'),
+      reportedUser: alias(users, 'reportedUser'),
+      assignedMod: alias(users, 'assignedMod')
+    })
+    .from(contentReports)
+    .leftJoin(alias(users, 'reporter'), eq(contentReports.reporterUserId, alias(users, 'reporter').id))
+    .leftJoin(alias(users, 'reportedUser'), eq(contentReports.reportedUserId, alias(users, 'reportedUser').id))
+    .leftJoin(alias(users, 'assignedMod'), eq(contentReports.assignedModerator, alias(users, 'assignedMod').id));
+
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(contentReports.status, filters.status));
+    if (filters?.priority) conditions.push(eq(contentReports.priority, filters.priority));
+    if (filters?.reporterUserId) conditions.push(eq(contentReports.reporterUserId, filters.reporterUserId));
+    if (filters?.assignedModerator) conditions.push(eq(contentReports.assignedModerator, filters.assignedModerator));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(contentReports.createdAt));
+  }
+
+  async getContentReport(id: string): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User }) | undefined> {
+    const reports = await this.getContentReports();
+    return reports.find(report => report.id === id);
+  }
+
+  async updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport> {
+    const [updated] = await db.update(contentReports)
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
+      .where(eq(contentReports.id, id))
+      .returning();
+    return updated;
+  }
+
+  async assignContentReport(reportId: string, moderatorId: string): Promise<ContentReport> {
+    return await this.updateContentReport(reportId, { assignedModerator: moderatorId });
+  }
+
+  async resolveContentReport(reportId: string, resolution: string, actionTaken?: string, moderatorId?: string): Promise<ContentReport> {
+    const updateData: Partial<InsertContentReport> = {
+      status: 'resolved',
+      resolution,
+      actionTaken,
+      resolvedAt: new Date()
+    };
+
+    if (moderatorId) {
+      await this.createAuditLog({
+        adminUserId: moderatorId,
+        action: 'content_report_resolved',
+        targetUserId: '',
+        details: { reportId, resolution, actionTaken },
+        ipAddress: ''
+      });
+    }
+
+    return await this.updateContentReport(reportId, updateData);
+  }
+
+  // Moderation action operations
+  async createModerationAction(data: InsertModerationAction): Promise<ModerationAction> {
+    const [action] = await db.insert(moderationActions).values(data).returning();
+    
+    // Create audit log
+    await this.createAuditLog({
+      adminUserId: data.moderatorId,
+      action: 'moderation_action_created',
+      targetUserId: data.targetUserId,
+      details: { 
+        actionType: data.action, 
+        reason: data.reason,
+        duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
+      },
+      ipAddress: ''
+    });
+    
+    return action;
+  }
+
+  async getModerationActions(filters?: { targetUserId?: string; moderatorId?: string; action?: string; isActive?: boolean }): Promise<(ModerationAction & { moderator: User; targetUser: User })[]> {
+    let query = db.select({
+      id: moderationActions.id,
+      moderatorId: moderationActions.moderatorId,
+      targetUserId: moderationActions.targetUserId,
+      action: moderationActions.action,
+      reason: moderationActions.reason,
+      details: moderationActions.details,
+      isActive: moderationActions.isActive,
+      severity: moderationActions.severity,
+      publicReason: moderationActions.publicReason,
+      internalNotes: moderationActions.internalNotes,
+      appealable: moderationActions.appealable,
+      relatedContentType: moderationActions.relatedContentType,
+      relatedContentId: moderationActions.relatedContentId,
+      evidence: moderationActions.evidence,
+      metadata: moderationActions.metadata,
+      reversedBy: moderationActions.reversedBy,
+      reversedAt: moderationActions.reversedAt,
+      reversalReason: moderationActions.reversalReason,
+      expiresAt: moderationActions.expiresAt,
+      createdAt: moderationActions.createdAt,
+      moderator: alias(users, 'moderator'),
+      targetUser: alias(users, 'targetUser')
+    })
+    .from(moderationActions)
+    .innerJoin(alias(users, 'moderator'), eq(moderationActions.moderatorId, alias(users, 'moderator').id))
+    .innerJoin(alias(users, 'targetUser'), eq(moderationActions.targetUserId, alias(users, 'targetUser').id));
+
+    const conditions = [];
+    if (filters?.targetUserId) conditions.push(eq(moderationActions.targetUserId, filters.targetUserId));
+    if (filters?.moderatorId) conditions.push(eq(moderationActions.moderatorId, filters.moderatorId));
+    if (filters?.action) conditions.push(eq(moderationActions.action, filters.action));
+    if (filters?.isActive !== undefined) conditions.push(eq(moderationActions.isActive, filters.isActive));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(moderationActions.createdAt));
+  }
+
+  async getModerationAction(id: string): Promise<(ModerationAction & { moderator: User; targetUser: User }) | undefined> {
+    const actions = await this.getModerationActions();
+    return actions.find(action => action.id === id);
+  }
+
+  async updateModerationAction(id: string, data: Partial<InsertModerationAction>): Promise<ModerationAction> {
+    const [updated] = await db.update(moderationActions).set(data).where(eq(moderationActions.id, id)).returning();
+    return updated;
+  }
+
+  async reverseModerationAction(id: string, reversedBy: string, reason: string): Promise<ModerationAction> {
+    const [reversed] = await db.update(moderationActions)
+      .set({
+        isActive: false,
+        reversedBy,
+        reversedAt: new Date(),
+        reversalReason: reason
+      })
+      .where(eq(moderationActions.id, id))
+      .returning();
+
+    await this.createAuditLog({
+      adminUserId: reversedBy,
+      action: 'moderation_action_reversed',
+      targetUserId: reversed.targetUserId,
+      details: { moderationActionId: id, reason },
+      ipAddress: ''
+    });
+
+    return reversed;
+  }
+
+  async getUserActiveModerationActions(userId: string): Promise<ModerationAction[]> {
+    return await db.select().from(moderationActions)
+      .where(and(
+        eq(moderationActions.targetUserId, userId),
+        eq(moderationActions.isActive, true),
+        or(
+          sql`${moderationActions.expiresAt} IS NULL`,
+          sql`${moderationActions.expiresAt} > NOW()`
+        )
+      ));
+  }
+
+  // Moderation queue operations
+  async addToModerationQueue(data: InsertModerationQueue): Promise<ModerationQueue> {
+    const [item] = await db.insert(moderationQueue).values(data).returning();
+    return item;
+  }
+
+  async getModerationQueue(filters?: { status?: string; assignedModerator?: string; priority?: string }): Promise<(ModerationQueue & { assignedMod?: User })[]> {
+    let query = db.select({
+      id: moderationQueue.id,
+      itemType: moderationQueue.itemType,
+      itemId: moderationQueue.itemId,
+      priority: moderationQueue.priority,
+      status: moderationQueue.status,
+      assignedModerator: moderationQueue.assignedModerator,
+      description: moderationQueue.description,
+      metadata: moderationQueue.metadata,
+      autoGenerated: moderationQueue.autoGenerated,
+      mlPriority: moderationQueue.mlPriority,
+      userReports: moderationQueue.userReports,
+      escalationLevel: moderationQueue.escalationLevel,
+      resolution: moderationQueue.resolution,
+      estimatedTimeMinutes: moderationQueue.estimatedTimeMinutes,
+      createdAt: moderationQueue.createdAt,
+      completedAt: moderationQueue.completedAt,
+      assignedMod: users
+    })
+    .from(moderationQueue)
+    .leftJoin(users, eq(moderationQueue.assignedModerator, users.id));
+
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(moderationQueue.status, filters.status));
+    if (filters?.assignedModerator) conditions.push(eq(moderationQueue.assignedModerator, filters.assignedModerator));
+    if (filters?.priority) conditions.push(eq(moderationQueue.priority, filters.priority));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(moderationQueue.priority), desc(moderationQueue.createdAt));
+  }
+
+  async getModerationQueueItem(id: string): Promise<(ModerationQueue & { assignedMod?: User }) | undefined> {
+    const items = await this.getModerationQueue();
+    return items.find(item => item.id === id);
+  }
+
+  async assignModerationQueueItem(id: string, moderatorId: string): Promise<ModerationQueue> {
+    const [updated] = await db.update(moderationQueue)
+      .set({ assignedModerator: moderatorId, status: 'assigned' })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return updated;
+  }
+
+  async completeModerationQueueItem(id: string, resolution: string, actionTaken?: string): Promise<ModerationQueue> {
+    const [completed] = await db.update(moderationQueue)
+      .set({ 
+        status: 'completed', 
+        resolution, 
+        completedAt: new Date() 
+      })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return completed;
+  }
+
+  async updateModerationQueuePriority(id: string, priority: string): Promise<ModerationQueue> {
+    const [updated] = await db.update(moderationQueue)
+      .set({ priority })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return updated;
+  }
+
+  // CMS content operations
+  async getCmsContent(type?: string, isPublished?: boolean): Promise<CmsContent[]> {
+    let query = db.select().from(cmsContent);
+    
+    const conditions = [];
+    if (type) conditions.push(eq(cmsContent.type, type));
+    if (isPublished !== undefined) conditions.push(eq(cmsContent.isPublished, isPublished));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(cmsContent.version));
+  }
+
+  async getCmsContentById(id: string): Promise<(CmsContent & { author: User; lastEditor: User; approver?: User }) | undefined> {
+    const [content] = await db.select({
+      id: cmsContent.id,
+      type: cmsContent.type,
+      title: cmsContent.title,
+      content: cmsContent.content,
+      version: cmsContent.version,
+      isPublished: cmsContent.isPublished,
+      publishedAt: cmsContent.publishedAt,
+      scheduledPublishAt: cmsContent.scheduledPublishAt,
+      authorId: cmsContent.authorId,
+      lastEditedBy: cmsContent.lastEditedBy,
+      approvedBy: cmsContent.approvedBy,
+      approvedAt: cmsContent.approvedAt,
+      changeLog: cmsContent.changeLog,
+      previousVersionId: cmsContent.previousVersionId,
+      metaDescription: cmsContent.metaDescription,
+      metaKeywords: cmsContent.metaKeywords,
+      slug: cmsContent.slug,
+      createdAt: cmsContent.createdAt,
+      updatedAt: cmsContent.updatedAt,
+      author: alias(users, 'author'),
+      lastEditor: alias(users, 'lastEditor'),
+      approver: alias(users, 'approver')
+    })
+    .from(cmsContent)
+    .innerJoin(alias(users, 'author'), eq(cmsContent.authorId, alias(users, 'author').id))
+    .innerJoin(alias(users, 'lastEditor'), eq(cmsContent.lastEditedBy, alias(users, 'lastEditor').id))
+    .leftJoin(alias(users, 'approver'), eq(cmsContent.approvedBy, alias(users, 'approver').id))
+    .where(eq(cmsContent.id, id));
+
+    return content;
+  }
+
+  async createCmsContent(data: InsertCmsContent): Promise<CmsContent> {
+    const [content] = await db.insert(cmsContent).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.authorId,
+      action: 'cms_content_created',
+      targetUserId: '',
+      details: { contentType: data.type, title: data.title },
+      ipAddress: ''
+    });
+    
+    return content;
+  }
+
+  async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
+    const [updated] = await db.update(cmsContent)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(cmsContent.id, id))
+      .returning();
+    
+    if (data.lastEditedBy) {
+      await this.createAuditLog({
+        adminUserId: data.lastEditedBy,
+        action: 'cms_content_updated',
+        targetUserId: '',
+        details: { contentId: id, changes: data },
+        ipAddress: ''
+      });
+    }
+    
+    return updated;
+  }
+
+  async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
+    const [published] = await db.update(cmsContent)
+      .set({ 
+        isPublished: true, 
+        publishedAt: new Date(),
+        approvedBy: publisherId,
+        approvedAt: new Date()
+      })
+      .where(eq(cmsContent.id, id))
+      .returning();
+    
+    await this.createAuditLog({
+      adminUserId: publisherId,
+      action: 'cms_content_published',
+      targetUserId: '',
+      details: { contentId: id, title: published.title },
+      ipAddress: ''
+    });
+    
+    return published;
+  }
+
+  async deleteCmsContent(id: string): Promise<void> {
+    await db.delete(cmsContent).where(eq(cmsContent.id, id));
+  }
+
+  async getCmsContentVersions(type: string): Promise<CmsContent[]> {
+    return await db.select().from(cmsContent)
+      .where(eq(cmsContent.type, type))
+      .orderBy(desc(cmsContent.version));
+  }
+
+  // Admin audit log operations (placed early since used by other methods)
+  async createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog> {
+    const [log] = await db.insert(adminAuditLog).values(data).returning();
+    return log;
+  }
+
+  async getAuditLogs(filters?: { adminUserId?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<(AdminAuditLog & { admin: User })[]> {
+    let query = db.select({
+      id: adminAuditLog.id,
+      adminUserId: adminAuditLog.adminUserId,
+      action: adminAuditLog.action,
+      targetUserId: adminAuditLog.targetUserId,
+      details: adminAuditLog.details,
+      ipAddress: adminAuditLog.ipAddress,
+      userAgent: adminAuditLog.userAgent,
+      createdAt: adminAuditLog.createdAt,
+      admin: users
+    })
+    .from(adminAuditLog)
+    .innerJoin(users, eq(adminAuditLog.adminUserId, users.id));
+
+    const conditions = [];
+    if (filters?.adminUserId) conditions.push(eq(adminAuditLog.adminUserId, filters.adminUserId));
+    if (filters?.action) conditions.push(eq(adminAuditLog.action, filters.action));
+    if (filters?.startDate) conditions.push(gte(adminAuditLog.createdAt, filters.startDate));
+    if (filters?.endDate) conditions.push(sql`${adminAuditLog.createdAt} <= ${filters.endDate}`);
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(adminAuditLog.createdAt));
+  }
+
+  async getAuditLog(id: string): Promise<(AdminAuditLog & { admin: User }) | undefined> {
+    const logs = await this.getAuditLogs();
+    return logs.find(log => log.id === id);
+  }
+
+  // Ban evasion tracking operations
+  async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
+    const [record] = await db.insert(banEvasionTracking).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.detectedBy || 'system',
+      action: 'ban_evasion_detected',
+      targetUserId: data.userId,
+      details: { 
+        suspiciousActivity: data.suspiciousActivity,
+        confidenceScore: data.confidenceScore 
+      },
+      ipAddress: data.ipAddress || ''
+    });
+    
+    return record;
+  }
+
+  async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
+    let query = db.select({
+      id: banEvasionTracking.id,
+      userId: banEvasionTracking.userId,
+      bannedUserId: banEvasionTracking.bannedUserId,
+      ipAddress: banEvasionTracking.ipAddress,
+      deviceFingerprint: banEvasionTracking.deviceFingerprint,
+      suspiciousActivity: banEvasionTracking.suspiciousActivity,
+      confidenceScore: banEvasionTracking.confidenceScore,
+      status: banEvasionTracking.status,
+      detectedBy: banEvasionTracking.detectedBy,
+      reviewedBy: banEvasionTracking.reviewedBy,
+      reviewedAt: banEvasionTracking.reviewedAt,
+      reviewNotes: banEvasionTracking.reviewNotes,
+      actionTaken: banEvasionTracking.actionTaken,
+      metadata: banEvasionTracking.metadata,
+      evidence: banEvasionTracking.evidence,
+      relatedAccounts: banEvasionTracking.relatedAccounts,
+      detectionMethod: banEvasionTracking.detectionMethod,
+      createdAt: banEvasionTracking.createdAt,
+      user: alias(users, 'user'),
+      bannedUser: alias(users, 'bannedUser')
+    })
+    .from(banEvasionTracking)
+    .innerJoin(alias(users, 'user'), eq(banEvasionTracking.userId, alias(users, 'user').id))
+    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.bannedUserId, alias(users, 'bannedUser').id));
+
+    const conditions = [];
+    if (userId) conditions.push(eq(banEvasionTracking.userId, userId));
+    if (suspiciousActivity !== undefined) conditions.push(eq(banEvasionTracking.suspiciousActivity, suspiciousActivity));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(banEvasionTracking.createdAt));
+  }
+
+  async checkBanEvasion(userId: string, ipAddress: string, deviceFingerprint?: string): Promise<BanEvasionTracking[]> {
+    const conditions = [eq(banEvasionTracking.userId, userId)];
+    
+    if (ipAddress) {
+      conditions.push(eq(banEvasionTracking.ipAddress, ipAddress));
+    }
+    
+    if (deviceFingerprint) {
+      conditions.push(eq(banEvasionTracking.deviceFingerprint, deviceFingerprint));
+    }
+
+    return await db.select().from(banEvasionTracking)
+      .where(or(...conditions))
+      .orderBy(desc(banEvasionTracking.createdAt));
+  }
+
+  async updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking> {
+    const updateData: Partial<InsertBanEvasionTracking> = {
+      status,
+      reviewedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      
+      await this.createAuditLog({
+        adminUserId: reviewedBy,
+        action: 'ban_evasion_reviewed',
+        targetUserId: '',
+        details: { banEvasionId: id, newStatus: status },
+        ipAddress: ''
+      });
+    }
+
+    const [updated] = await db.update(banEvasionTracking)
+      .set(updateData)
+      .where(eq(banEvasionTracking.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  // User appeal operations
+  async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
+    const [appeal] = await db.insert(userAppeals).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: 'system',
+      action: 'user_appeal_created',
+      targetUserId: data.userId,
+      details: { appealType: data.appealType, reason: data.reason },
+      ipAddress: ''
+    });
+    
+    return appeal;
+  }
+
+  async getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]> {
+    let query = db.select({
+      id: userAppeals.id,
+      userId: userAppeals.userId,
+      moderationActionId: userAppeals.moderationActionId,
+      appealType: userAppeals.appealType,
+      reason: userAppeals.reason,
+      description: userAppeals.description,
+      status: userAppeals.status,
+      priority: userAppeals.priority,
+      assignedReviewer: userAppeals.assignedReviewer,
+      evidence: userAppeals.evidence,
+      userStatement: userAppeals.userStatement,
+      reviewerNotes: userAppeals.reviewerNotes,
+      decision: userAppeals.decision,
+      decisionReason: userAppeals.decisionReason,
+      actionReversed: userAppeals.actionReversed,
+      escalated: userAppeals.escalated,
+      escalationReason: userAppeals.escalationReason,
+      createdAt: userAppeals.createdAt,
+      resolvedAt: userAppeals.resolvedAt,
+      user: alias(users, 'user'),
+      moderationAction: moderationActions,
+      assignedRev: alias(users, 'assignedRev')
+    })
+    .from(userAppeals)
+    .innerJoin(alias(users, 'user'), eq(userAppeals.userId, alias(users, 'user').id))
+    .leftJoin(moderationActions, eq(userAppeals.moderationActionId, moderationActions.id))
+    .leftJoin(alias(users, 'assignedRev'), eq(userAppeals.assignedReviewer, alias(users, 'assignedRev').id));
+
+    const conditions = [];
+    if (filters?.userId) conditions.push(eq(userAppeals.userId, filters.userId));
+    if (filters?.status) conditions.push(eq(userAppeals.status, filters.status));
+    if (filters?.assignedReviewer) conditions.push(eq(userAppeals.assignedReviewer, filters.assignedReviewer));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(userAppeals.createdAt));
+  }
+
+  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined> {
+    const appeals = await this.getUserAppeals();
+    return appeals.find(appeal => appeal.id === id);
+  }
+
+  async updateUserAppeal(id: string, data: Partial<InsertUserAppeal>): Promise<UserAppeal> {
+    const [updated] = await db.update(userAppeals)
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
+      .where(eq(userAppeals.id, id))
+      .returning();
+    return updated;
+  }
+
+  async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
+    return await this.updateUserAppeal(appealId, { 
+      assignedReviewer: reviewerId, 
+      status: 'under_review' 
+    });
+  }
+
+  async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
+    const updateData: Partial<InsertUserAppeal> = {
+      status: 'resolved',
+      decision,
+      reviewerNotes,
+      resolvedAt: new Date()
+    };
+
+    if (reviewerId) {
+      await this.createAuditLog({
+        adminUserId: reviewerId,
+        action: 'user_appeal_resolved',
+        targetUserId: '',
+        details: { appealId, decision, reviewerNotes },
+        ipAddress: ''
+      });
+    }
+
+    return await this.updateUserAppeal(appealId, updateData);
+  }
+
+  // Moderation template operations
+  async getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]> {
+    let query = db.select({
+      id: moderationTemplates.id,
+      name: moderationTemplates.name,
+      category: moderationTemplates.category,
+      title: moderationTemplates.title,
+      content: moderationTemplates.content,
+      variables: moderationTemplates.variables,
+      isActive: moderationTemplates.isActive,
+      usage: moderationTemplates.usage,
+      tags: moderationTemplates.tags,
+      createdBy: moderationTemplates.createdBy,
+      createdAt: moderationTemplates.createdAt,
+      updatedAt: moderationTemplates.updatedAt,
+      createdByUser: users
+    })
+    .from(moderationTemplates)
+    .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
+
+    if (category) {
+      query = query.where(eq(moderationTemplates.category, category));
+    }
+
+    return await query.orderBy(moderationTemplates.name);
+  }
+
+  async getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined> {
+    const templates = await this.getModerationTemplates();
+    return templates.find(template => template.id === id);
+  }
+
+  async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
+    const [template] = await db.insert(moderationTemplates).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.createdBy,
+      action: 'moderation_template_created',
+      targetUserId: '',
+      details: { templateName: data.name, category: data.category },
+      ipAddress: ''
+    });
+    
+    return template;
+  }
+
+  async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
+    const [updated] = await db.update(moderationTemplates)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(moderationTemplates.id, id))
+      .returning();
+    
+    if (data.createdBy) {
+      await this.createAuditLog({
+        adminUserId: data.createdBy,
+        action: 'moderation_template_updated',
+        targetUserId: '',
+        details: { templateId: id, changes: data },
+        ipAddress: ''
+      });
+    }
+    
+    return updated;
+  }
+
+  async deleteModerationTemplate(id: string): Promise<void> {
+    await db.delete(moderationTemplates).where(eq(moderationTemplates.id, id));
   }
 }
 
