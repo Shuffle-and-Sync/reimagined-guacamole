@@ -57,6 +57,43 @@ const escalateSchema = z.object({
   thresholdHours: z.number().positive().optional()
 });
 
+const userFiltersSchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  search: z.string().optional(),
+  role: z.string().optional(),
+  status: z.enum(['active', 'banned', 'all']).optional(),
+  sortBy: z.enum(['createdAt', 'name', 'email', 'last_login']).optional(),
+  order: z.enum(['asc', 'desc']).optional()
+});
+
+const userUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  verified: z.boolean().optional(),
+  banned: z.boolean().optional(),
+  banned_reason: z.string().optional(),
+  banned_until: z.string().datetime().optional()
+});
+
+const roleAssignSchema = z.object({
+  role: z.enum(['admin', 'moderator', 'trust_safety', 'community_manager']),
+  permissions: z.array(z.string()).optional(),
+  expiresAt: z.string().datetime().optional(),
+  notes: z.string().optional()
+});
+
+const moderationNotesSchema = z.object({
+  notes: z.string().min(1, 'Notes cannot be empty')
+});
+
+const userActionSchema = z.object({
+  action: z.enum(['ban', 'unban', 'shadowban', 'unshadowban', 'verify', 'unverify']),
+  reason: z.string().min(1, 'Reason is required'),
+  duration: z.string().optional(), // For temporary bans
+  notes: z.string().optional()
+});
+
 // ===== USER MANAGEMENT ROUTES =====
 
 // Get users (with filtering and pagination)
@@ -65,27 +102,33 @@ router.get('/users',
   auditAdminAction('users_list_viewed'),
   async (req, res) => {
     try {
-      const { 
-        page = 1, 
-        limit = 50, 
-        search, 
-        role, 
-        status,
-        sortBy = 'createdAt',
-        order = 'desc'
-      } = req.query;
+      const validation = userFiltersSchema.safeParse(req.query);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid query parameters',
+          errors: validation.error.errors
+        });
+      }
 
-      // TODO: Implement advanced user search with filters
-      // For now, return placeholder data - need to implement getAllUsers in storage
-      const users: any[] = [];
+      const { page, limit, search, role, status, sortBy, order } = validation.data;
+      
+      const result = await storage.getAllUsers({
+        page,
+        limit,
+        search,
+        role,
+        status,
+        sortBy,
+        order
+      });
       
       const data = {
-        users: users.slice((Number(page) - 1) * Number(limit), Number(page) * Number(limit)),
+        users: result.users,
         pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: users.length,
-          totalPages: Math.ceil(users.length / Number(limit))
+          page: page || 1,
+          limit: limit || 50,
+          total: result.total,
+          totalPages: Math.ceil(result.total / (limit || 50))
         }
       };
 
@@ -140,7 +183,22 @@ router.patch('/users/:userId',
   async (req, res) => {
     try {
       const { userId } = req.params;
-      const updates = req.body;
+      
+      const validation = userUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid user data',
+          errors: validation.error.errors
+        });
+      }
+
+      const updates = validation.data;
+      
+      // Check if user exists
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
       
       const updatedUser = await storage.updateUser(userId, updates);
       
@@ -178,8 +236,23 @@ router.post('/users/:userId/roles',
   async (req, res) => {
     try {
       const { userId } = req.params;
-      const { role, permissions, expiresAt, notes } = req.body;
+      
+      const validation = roleAssignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid role data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { role, permissions, expiresAt, notes } = validation.data;
       const adminUserId = getAuthUserId(req);
+
+      // Check if user exists
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
 
       const roleData = {
         userId,
@@ -214,6 +287,202 @@ router.delete('/users/:userId/roles/:roleId',
     } catch (error) {
       console.error('Error revoking role:', error);
       res.status(500).json({ message: 'Failed to revoke role' });
+    }
+  }
+);
+
+// ===== USER MODERATION NOTES =====
+
+// Get user moderation notes
+router.get('/users/:userId/notes',
+  requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
+  auditAdminAction('user_notes_viewed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json({ 
+        userId,
+        notes: user.moderationNotes || '',
+        lastUpdated: user.updatedAt
+      });
+    } catch (error) {
+      console.error('Error fetching user notes:', error);
+      res.status(500).json({ message: 'Failed to fetch user notes' });
+    }
+  }
+);
+
+// Update user moderation notes
+router.patch('/users/:userId/notes',
+  requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
+  auditAdminAction('user_notes_updated'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const validation = moderationNotesSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid notes data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { notes } = validation.data;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { 
+        moderationNotes: notes 
+      });
+      
+      res.json({ 
+        userId,
+        notes: updatedUser.moderationNotes,
+        lastUpdated: updatedUser.updatedAt
+      });
+    } catch (error) {
+      console.error('Error updating user notes:', error);
+      res.status(500).json({ message: 'Failed to update user notes' });
+    }
+  }
+);
+
+// ===== USER ACTIONS =====
+
+// Perform moderation action on user
+router.post('/users/:userId/actions',
+  requirePermission(ADMIN_PERMISSIONS.USER_MODERATE),
+  auditAdminAction('user_action_performed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const validation = userActionSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid action data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { action, reason, duration, notes } = validation.data;
+      const adminUserId = getAuthUserId(req);
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      let userUpdates: any = {};
+      let actionType = action;
+
+      switch (action) {
+        case 'ban':
+          userUpdates.banned = true;
+          userUpdates.banned_reason = reason;
+          if (duration) {
+            const banUntil = new Date();
+            banUntil.setDate(banUntil.getDate() + parseInt(duration));
+            userUpdates.banned_until = banUntil;
+          }
+          actionType = 'ban';
+          break;
+        case 'unban':
+          userUpdates.banned = false;
+          userUpdates.banned_reason = null;
+          userUpdates.banned_until = null;
+          actionType = 'unban';
+          break;
+        case 'shadowban':
+          // Shadow ban logic would be implemented here
+          actionType = 'shadow_ban';
+          break;
+        case 'unshadowban':
+          actionType = 'unshadow_ban';
+          break;
+        case 'verify':
+          userUpdates.verified = true;
+          actionType = 'verify';
+          break;
+        case 'unverify':
+          userUpdates.verified = false;
+          actionType = 'unverify';
+          break;
+      }
+
+      // Update user if there are changes
+      if (Object.keys(userUpdates).length > 0) {
+        await storage.updateUser(userId, userUpdates);
+      }
+
+      // Create moderation action record
+      const moderationAction = await storage.createModerationAction({
+        moderatorId: adminUserId,
+        targetUserId: userId,
+        action: actionType,
+        reason,
+        notes,
+        isActive: ['ban', 'shadow_ban', 'unverify'].includes(action)
+      });
+
+      res.json({
+        message: `User ${action} completed successfully`,
+        action: moderationAction,
+        user: await storage.getUser(userId)
+      });
+    } catch (error) {
+      console.error('Error performing user action:', error);
+      res.status(500).json({ message: 'Failed to perform user action' });
+    }
+  }
+);
+
+// Get user activity history
+router.get('/users/:userId/activity',
+  requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
+  auditAdminAction('user_activity_viewed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const [moderationActions, appeals, roles] = await Promise.all([
+        storage.getModerationActions({ targetUserId: userId }),
+        storage.getUserAppeals({ userId }),
+        storage.getUserRoles(userId)
+      ]);
+
+      const activity = {
+        user,
+        moderationHistory: moderationActions,
+        appeals,
+        roles,
+        stats: {
+          totalModerationActions: moderationActions.length,
+          activeBans: moderationActions.filter(a => a.action === 'ban' && a.isActive).length,
+          totalAppeals: appeals.length,
+          activeRoles: roles.filter(r => !r.expiresAt || r.expiresAt > new Date()).length
+        }
+      };
+
+      res.json(activity);
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      res.status(500).json({ message: 'Failed to fetch user activity' });
     }
   }
 );

@@ -165,6 +165,15 @@ export interface IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getAllUsers(filters?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    role?: string; 
+    status?: string; 
+    sortBy?: string; 
+    order?: 'asc' | 'desc' 
+  }): Promise<{ users: User[], total: number }>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
   
@@ -474,6 +483,86 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
+  }
+
+  async getAllUsers(filters?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    role?: string; 
+    status?: string; 
+    sortBy?: string; 
+    order?: 'asc' | 'desc' 
+  }): Promise<{ users: User[], total: number }> {
+    const {
+      page = 1,
+      limit = 50,
+      search,
+      role,
+      status,
+      sortBy = 'createdAt',
+      order = 'desc'
+    } = filters || {};
+
+    // Build query with joins for roles if needed
+    let query = db.select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      avatar: users.avatar,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      last_login: users.last_login,
+      verified: users.verified,
+      banned: users.banned,
+      banned_reason: users.banned_reason,
+      banned_until: users.banned_until
+    }).from(users);
+
+    // Add search filter
+    if (search) {
+      query = query.where(or(
+        ilike(users.name, `%${search}%`),
+        ilike(users.email, `%${search}%`)
+      ));
+    }
+
+    // Add status filter
+    if (status === 'active') {
+      query = query.where(eq(users.banned, false));
+    } else if (status === 'banned') {
+      query = query.where(eq(users.banned, true));
+    }
+
+    // Add sorting
+    const sortColumn = users[sortBy as keyof typeof users] || users.createdAt;
+    if (order === 'asc') {
+      query = query.orderBy(asc(sortColumn));
+    } else {
+      query = query.orderBy(desc(sortColumn));
+    }
+
+    // Get total count for pagination
+    const countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+    if (search) {
+      countQuery.where(or(
+        ilike(users.name, `%${search}%`),
+        ilike(users.email, `%${search}%`)
+      ));
+    }
+    if (status === 'active') {
+      countQuery.where(eq(users.banned, false));
+    } else if (status === 'banned') {
+      countQuery.where(eq(users.banned, true));
+    }
+
+    const [{ count: total }] = await countQuery;
+
+    // Add pagination
+    const offset = (page - 1) * limit;
+    const usersList = await query.limit(limit).offset(offset);
+
+    return { users: usersList, total };
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
