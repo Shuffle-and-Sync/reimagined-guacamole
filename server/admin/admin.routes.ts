@@ -11,6 +11,7 @@ import {
   comprehensiveAuditLogging,
   ADMIN_PERMISSIONS
 } from './admin.middleware';
+import { z } from 'zod';
 
 const router = Router();
 
@@ -23,6 +24,38 @@ router.use(generalRateLimit);
 
 // Require admin role for all routes in this router
 router.use(requireAdmin);
+
+// ===== VALIDATION SCHEMAS =====
+
+const queueFiltersSchema = z.object({
+  status: z.enum(['open', 'assigned', 'in_progress', 'completed', 'skipped']).optional(),
+  assignedModerator: z.string().optional(),
+  priority: z.coerce.number().int().min(1).max(10).optional(),
+  itemType: z.enum(['report', 'auto_flag', 'appeal', 'ban_evasion']).optional(),
+  overdue: z.enum(['true', 'false']).transform(v => v === 'true').optional()
+});
+
+const bulkAssignSchema = z.object({
+  itemIds: z.array(z.string().min(1)),
+  moderatorId: z.string().min(1)
+});
+
+const autoAssignSchema = z.object({
+  itemType: z.enum(['report', 'auto_flag', 'appeal', 'ban_evasion']).optional()
+});
+
+const completeQueueItemSchema = z.object({
+  resolution: z.string().min(1),
+  actionTaken: z.string().optional()
+});
+
+const priorityUpdateSchema = z.object({
+  priority: z.number().int().min(1).max(10)
+});
+
+const escalateSchema = z.object({
+  thresholdHours: z.number().positive().optional()
+});
 
 // ===== USER MANAGEMENT ROUTES =====
 
@@ -343,18 +376,28 @@ router.patch('/moderation-actions/:actionId/reverse',
 
 // ===== MODERATION QUEUE ROUTES =====
 
-// Get moderation queue
+// Get moderation queue with enhanced filtering
 router.get('/moderation-queue',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('moderation_queue_viewed'),
   async (req, res) => {
     try {
-      const { status, assignedModerator, priority } = req.query;
+      const validation = queueFiltersSchema.safeParse(req.query);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid query parameters',
+          errors: validation.error.errors
+        });
+      }
+
+      const { status, assignedModerator, priority, itemType, overdue } = validation.data;
       
       const queue = await storage.getModerationQueue({
-        status: status as string,
-        assignedModerator: assignedModerator as string,
-        priority: priority as string
+        status,
+        assignedModerator,
+        priority,
+        itemType,
+        overdue
       });
       
       res.json(queue);
@@ -391,16 +434,164 @@ router.patch('/moderation-queue/:itemId/complete',
   auditAdminAction('queue_item_completed'),
   async (req, res) => {
     try {
+      const validation = completeQueueItemSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request data',
+          errors: validation.error.errors
+        });
+      }
+
       const { itemId } = req.params;
-      const { resolution, actionTaken } = req.body;
+      const { resolution, actionTaken } = validation.data;
       
       const item = await storage.completeModerationQueueItem(itemId, resolution, actionTaken);
       
-
       res.json(item);
     } catch (error) {
       console.error('Error completing queue item:', error);
       res.status(500).json({ message: 'Failed to complete queue item' });
+    }
+  }
+);
+
+// Get queue statistics
+router.get('/moderation-queue/stats',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
+  auditAdminAction('queue_stats_viewed'),
+  async (req, res) => {
+    try {
+      const stats = await storage.getModerationQueueStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching queue stats:', error);
+      res.status(500).json({ message: 'Failed to fetch queue statistics' });
+    }
+  }
+);
+
+// Auto-assign queue items
+router.post('/moderation-queue/auto-assign',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
+  auditAdminAction('queue_auto_assigned'),
+  async (req, res) => {
+    try {
+      const validation = autoAssignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { itemType } = validation.data;
+      const result = await storage.autoAssignModerationQueue(itemType);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error auto-assigning queue items:', error);
+      res.status(500).json({ message: 'Failed to auto-assign queue items' });
+    }
+  }
+);
+
+// Bulk assign queue items
+router.post('/moderation-queue/bulk-assign',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
+  auditAdminAction('queue_bulk_assigned'),
+  async (req, res) => {
+    try {
+      const validation = bulkAssignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request data',
+          errors: validation.error.errors
+        });
+      }
+      
+      const { itemIds, moderatorId } = validation.data;
+      const assignedItems = await storage.bulkAssignModerationQueue(itemIds, moderatorId);
+      
+      res.json({ 
+        assigned: assignedItems.length,
+        items: assignedItems
+      });
+    } catch (error) {
+      console.error('Error bulk assigning queue items:', error);
+      res.status(500).json({ message: 'Failed to bulk assign queue items' });
+    }
+  }
+);
+
+// Get moderator workload analytics
+router.get('/moderation-queue/workload',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
+  auditAdminAction('moderator_workload_viewed'),
+  async (req, res) => {
+    try {
+      const { moderatorId } = req.query;
+      
+      const workloads = await storage.getModeratorWorkload(moderatorId as string);
+      
+      res.json(workloads);
+    } catch (error) {
+      console.error('Error fetching moderator workload:', error);
+      res.status(500).json({ message: 'Failed to fetch moderator workload' });
+    }
+  }
+);
+
+// Escalate overdue items
+router.post('/moderation-queue/escalate',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
+  auditAdminAction('queue_items_escalated'),
+  async (req, res) => {
+    try {
+      const validation = escalateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { thresholdHours = 24 } = validation.data;
+      const escalatedItems = await storage.escalateOverdueItems(thresholdHours);
+      
+      res.json({
+        escalated: escalatedItems.length,
+        items: escalatedItems
+      });
+    } catch (error) {
+      console.error('Error escalating overdue items:', error);
+      res.status(500).json({ message: 'Failed to escalate overdue items' });
+    }
+  }
+);
+
+// Update queue item priority
+router.patch('/moderation-queue/:itemId/priority',
+  requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
+  auditAdminAction('queue_priority_updated'),
+  async (req, res) => {
+    try {
+      const validation = priorityUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { itemId } = req.params;
+      const { priority } = validation.data;
+      
+      const item = await storage.updateModerationQueuePriority(itemId, priority);
+      
+      res.json(item);
+    } catch (error) {
+      console.error('Error updating queue priority:', error);
+      res.status(500).json({ message: 'Failed to update queue priority' });
     }
   }
 );
