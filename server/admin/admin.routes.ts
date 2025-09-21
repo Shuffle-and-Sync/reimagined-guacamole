@@ -89,9 +89,15 @@ const roleAssignSchema = z.object({
 });
 
 const userActionSchema = z.object({
-  action: z.enum(['mute', 'unmute', 'warn', 'restrict']),
+  action: z.enum(['mute', 'unmute', 'warn', 'restrict', 'ban', 'unban', 'shadowban', 'account_suspend', 'note']),
   reason: z.string().min(1, 'Reason is required'),
-  duration: z.string().optional(), // For temporary restrictions
+  duration: z.coerce.number().int().positive().optional(), // For temporary restrictions (in hours)
+  notes: z.string().optional(),
+  isPublic: z.boolean().optional() // Whether the action is visible to other users
+});
+
+const reverseModerationActionSchema = z.object({
+  reason: z.string().min(1, 'Reason for reversal is required'),
   notes: z.string().optional()
 });
 
@@ -455,14 +461,19 @@ router.post('/users/:userId/actions',
       }
 
       // Create moderation action record
+      const { isPublic, duration, ...actionData } = validation.data;
+      
+      // Calculate expiration time only for valid positive durations
+      const expiresAt = duration && duration > 0 ? new Date(Date.now() + duration * 60 * 60 * 1000) : undefined;
+      
       const moderationAction = await storage.createModerationAction({
         moderatorId: adminUserId,
         targetUserId: userId,
-        action,
-        reason,
-        notes,
-        isActive: ['mute', 'restrict'].includes(action),
-        duration: duration ? parseInt(duration) : undefined
+        ...actionData,
+        isActive: !['unmute', 'unban', 'warn', 'note'].includes(action),
+        isPublic: isPublic !== false, // Default to public unless explicitly set to false
+        duration: duration || undefined,
+        expiresAt
       });
 
       res.json({
@@ -669,6 +680,188 @@ router.patch('/moderation-actions/:actionId/reverse',
     } catch (error) {
       console.error('Error reversing moderation action:', error);
       res.status(500).json({ message: 'Failed to reverse moderation action' });
+    }
+  }
+);
+
+// Get user's active moderation actions
+router.get('/users/:userId/moderation-actions/active',
+  requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
+  auditAdminAction('user_active_moderation_actions_viewed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const activeModerationActions = await storage.getUserActiveModerationActions(userId);
+      
+      res.json({
+        userId,
+        activeActions: activeModerationActions.map(action => ({
+          id: action.id,
+          action: action.action,
+          reason: action.reason,
+          notes: action.notes,
+          moderatorId: action.moderatorId,
+          moderatorName: action.moderator?.firstName && action.moderator?.lastName 
+            ? `${action.moderator.firstName} ${action.moderator.lastName}`
+            : action.moderator?.username || 'System',
+          isActive: action.isActive,
+          isPublic: action.isPublic,
+          duration: action.duration,
+          expiresAt: action.expiresAt,
+          createdAt: action.createdAt
+        })),
+        total: activeModerationActions.length
+      });
+    } catch (error) {
+      console.error('Error fetching active moderation actions:', error);
+      res.status(500).json({ message: 'Failed to fetch active moderation actions' });
+    }
+  }
+);
+
+// Get user's moderation action history
+router.get('/users/:userId/moderation-actions/history',
+  requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
+  auditAdminAction('user_moderation_history_viewed'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const moderationHistory = await storage.getModerationActions({ targetUserId: userId });
+      
+      res.json({
+        userId,
+        history: moderationHistory.map(action => ({
+          id: action.id,
+          action: action.action,
+          reason: action.reason,
+          notes: action.notes,
+          moderatorId: action.moderatorId,
+          moderatorName: action.moderator?.firstName && action.moderator?.lastName 
+            ? `${action.moderator.firstName} ${action.moderator.lastName}`
+            : action.moderator?.username || 'System',
+          isActive: action.isActive,
+          isPublic: action.isPublic,
+          duration: action.duration,
+          expiresAt: action.expiresAt,
+          reversedAt: action.reversedAt,
+          reversedBy: action.reversedBy,
+          createdAt: action.createdAt,
+          updatedAt: action.updatedAt
+        })),
+        total: moderationHistory.length
+      });
+    } catch (error) {
+      console.error('Error fetching moderation history:', error);
+      res.status(500).json({ message: 'Failed to fetch moderation history' });
+    }
+  }
+);
+
+// Reverse a moderation action
+router.post('/moderation-actions/:actionId/reverse',
+  requirePermission(ADMIN_PERMISSIONS.MODERATION_REVERSE_ACTION),
+  auditAdminAction('moderation_action_reversed'),
+  async (req, res) => {
+    try {
+      const { actionId } = req.params;
+      
+      const validation = reverseModerationActionSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid reversal data',
+          errors: validation.error.errors
+        });
+      }
+
+      const { reason, notes } = validation.data;
+      const adminUserId = getAuthUserId(req);
+      
+      const action = await storage.getModerationAction(actionId);
+      if (!action) {
+        return res.status(404).json({ message: 'Moderation action not found' });
+      }
+
+      if (!action.isActive) {
+        return res.status(400).json({ message: 'Action is already inactive' });
+      }
+
+      if (!action.isReversible) {
+        return res.status(400).json({ message: 'This action cannot be reversed' });
+      }
+
+      const reversedAction = await storage.reverseModerationAction(actionId, adminUserId, reason);
+      
+      res.json({
+        message: 'Moderation action reversed successfully',
+        action: {
+          id: reversedAction.id,
+          action: reversedAction.action,
+          reason: reversedAction.reason,
+          notes: reversedAction.notes,
+          isActive: reversedAction.isActive,
+          reversedAt: reversedAction.reversedAt,
+          reversedBy: reversedAction.reversedBy
+        }
+      });
+    } catch (error) {
+      console.error('Error reversing moderation action:', error);
+      res.status(500).json({ message: 'Failed to reverse moderation action' });
+    }
+  }
+);
+
+// Get moderation action details
+router.get('/moderation-actions/:actionId',
+  requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
+  auditAdminAction('moderation_action_viewed'),
+  async (req, res) => {
+    try {
+      const { actionId } = req.params;
+      
+      const action = await storage.getModerationAction(actionId);
+      if (!action) {
+        return res.status(404).json({ message: 'Moderation action not found' });
+      }
+
+      res.json({
+        id: action.id,
+        action: action.action,
+        reason: action.reason,
+        notes: action.notes,
+        targetUserId: action.targetUserId,
+        targetUserName: action.targetUser?.firstName && action.targetUser?.lastName 
+          ? `${action.targetUser.firstName} ${action.targetUser.lastName}`
+          : action.targetUser?.username || 'Unknown',
+        moderatorId: action.moderatorId,
+        moderatorName: action.moderator?.firstName && action.moderator?.lastName 
+          ? `${action.moderator.firstName} ${action.moderator.lastName}`
+          : action.moderator?.username || 'System',
+        isActive: action.isActive,
+        isPublic: action.isPublic,
+        isReversible: action.isReversible,
+        duration: action.duration,
+        expiresAt: action.expiresAt,
+        reversedAt: action.reversedAt,
+        reversedBy: action.reversedBy,
+        metadata: action.metadata,
+        createdAt: action.createdAt,
+        updatedAt: action.updatedAt
+      });
+    } catch (error) {
+      console.error('Error fetching moderation action:', error);
+      res.status(500).json({ message: 'Failed to fetch moderation action' });
     }
   }
 );
