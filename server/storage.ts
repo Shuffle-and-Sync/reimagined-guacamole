@@ -156,7 +156,7 @@ import {
   type InsertAdminAuditLog,
   SafeUserPlatformAccount,
 } from "@shared/schema";
-import { eq, and, gte, count, sql, or, desc, not } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -394,6 +394,10 @@ export interface IStorage {
   updateUserReputation(userId: string, data: Partial<InsertUserReputation>): Promise<UserReputation>;
   calculateReputationScore(userId: string): Promise<number>;
   getUsersByReputationRange(minScore: number, maxScore: number): Promise<(UserReputation & { user: User })[]>;
+  recordPositiveAction(userId: string, actionType: string, metadata?: any): Promise<void>;
+  recordNegativeAction(userId: string, actionType: string, severity: 'minor' | 'moderate' | 'severe', metadata?: any): Promise<void>;
+  recordReportSubmission(userId: string, reportId: string, isAccurate?: boolean): Promise<void>;
+  batchRecalculateReputationScores(userIds?: string[]): Promise<void>;
   
   // Content report operations
   createContentReport(data: InsertContentReport): Promise<ContentReport>;
@@ -543,6 +547,14 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .onConflictDoNothing()
       .returning();
+    
+    // Record positive action for community engagement
+    if (userCommunity) {
+      await this.recordPositiveAction(data.userId, 'community_joined', {
+        communityId: data.communityId
+      });
+    }
+    
     return userCommunity;
   }
 
@@ -3438,28 +3450,113 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateReputationScore(userId: string): Promise<number> {
-    // Get user's reputation record
-    const reputation = await this.getUserReputation(userId);
-    if (!reputation) return 0;
+    // Get or create user's reputation record
+    let reputation = await this.getUserReputation(userId);
+    if (!reputation) {
+      reputation = await this.updateUserReputation(userId, { score: 100 });
+    }
 
-    // Calculate score based on various factors
-    let score = reputation.baseScore || 0;
-    score += (reputation.positiveActions || 0) * 2;
-    score -= (reputation.negativeActions || 0) * 5;
-    score -= (reputation.violationCount || 0) * 10;
-    score += (reputation.contributionScore || 0);
-    
-    // Apply decay factor for account age
-    const accountAgeMonths = reputation.createdAt 
-      ? Math.floor((Date.now() - reputation.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30))
+    // Get user account age for experience factor
+    const user = await this.getUser(userId);
+    const accountAgeMonths = user?.createdAt 
+      ? Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30))
       : 0;
-    const decayFactor = Math.max(0.1, 1 - (accountAgeMonths * 0.01));
+
+    // Get recent user activity analytics (last 30 days)
+    const activityData = await this.getUserActivityAnalytics(userId, 30);
     
-    const finalScore = Math.max(0, Math.floor(score * decayFactor));
+    // Get moderation actions against this user
+    const moderationActions = await this.getUserActiveModerationActions(userId);
     
-    // Update the calculated score
+    // Get user's community involvement
+    const userCommunities = await this.getUserCommunities(userId);
+    
+    // Get report accuracy data
+    const reportsAccuracyRate = (reputation.reportsMade || 0) > 0 
+      ? (reputation.reportsAccurate || 0) / (reputation.reportsMade || 1) 
+      : 0;
+
+    // === BASE SCORE CALCULATION ===
+    let calculatedScore = 100; // Starting base score
+
+    // === POSITIVE FACTORS ===
+    
+    // 1. Account longevity bonus (up to +50 points)
+    const longevityBonus = Math.min(50, accountAgeMonths * 2);
+    calculatedScore += longevityBonus;
+
+    // 2. Positive actions multiplier (up to +100 points)
+    const positiveActionsBonus = Math.min(100, (reputation.positiveActions || 0) * 3);
+    calculatedScore += positiveActionsBonus;
+
+    // 3. Community engagement (up to +75 points)
+    const communityEngagement = Math.min(75, userCommunities.length * 15);
+    calculatedScore += communityEngagement;
+
+    // 4. Activity consistency bonus (up to +50 points)
+    const uniqueEventDays = new Set(activityData.map(activity => 
+      activity.timestamp.toISOString().split('T')[0]
+    )).size;
+    const consistencyBonus = Math.min(50, uniqueEventDays * 2);
+    calculatedScore += consistencyBonus;
+
+    // 5. Report accuracy bonus (up to +40 points)
+    const reportAccuracyBonus = Math.min(40, reportsAccuracyRate * 40);
+    calculatedScore += reportAccuracyBonus;
+
+    // === NEGATIVE FACTORS ===
+    
+    // 1. Negative actions penalty
+    const negativeActionsPenalty = (reputation.negativeActions || 0) * 8;
+    calculatedScore -= negativeActionsPenalty;
+
+    // 2. Active moderation actions penalty
+    const activeModerationPenalty = moderationActions.length * 25;
+    calculatedScore -= activeModerationPenalty;
+
+    // 3. Recent violation penalty (more severe for recent violations)
+    const moderationHistory = Array.isArray(reputation.moderationHistory) 
+      ? reputation.moderationHistory as any[]
+      : [];
+    
+    let recentViolationPenalty = 0;
+    const now = Date.now();
+    moderationHistory.forEach((action: any) => {
+      const actionDate = new Date(action.timestamp || action.createdAt).getTime();
+      const daysSince = (now - actionDate) / (1000 * 60 * 60 * 24);
+      
+      if (daysSince <= 30) {
+        // Recent violations (last 30 days) - high penalty
+        recentViolationPenalty += 50;
+      } else if (daysSince <= 90) {
+        // Medium-term violations - moderate penalty
+        recentViolationPenalty += 20;
+      } else if (daysSince <= 365) {
+        // Older violations - small penalty
+        recentViolationPenalty += 5;
+      }
+    });
+    calculatedScore -= recentViolationPenalty;
+
+    // === LEVEL DETERMINATION ===
+    let newLevel = "new";
+    if (calculatedScore >= 300 && accountAgeMonths >= 6) {
+      newLevel = "veteran";
+    } else if (calculatedScore >= 200 && accountAgeMonths >= 2) {
+      newLevel = "trusted";
+    } else if (calculatedScore < 50 || activeModerationPenalty > 50) {
+      newLevel = "flagged";
+    } else if (calculatedScore < 25 || activeModerationPenalty > 100) {
+      newLevel = "restricted";
+    }
+
+    // Ensure minimum score of 0
+    const finalScore = Math.max(0, Math.floor(calculatedScore));
+    
+    // Update the calculated score and level
     await this.updateUserReputation(userId, { 
-      currentScore: finalScore,
+      score: finalScore,
+      level: newLevel,
       lastCalculated: new Date()
     });
     
@@ -3470,14 +3567,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select({
       id: userReputation.id,
       userId: userReputation.userId,
-      currentScore: userReputation.currentScore,
-      baseScore: userReputation.baseScore,
+      score: userReputation.score,
+      level: userReputation.level,
       positiveActions: userReputation.positiveActions,
       negativeActions: userReputation.negativeActions,
-      violationCount: userReputation.violationCount,
-      contributionScore: userReputation.contributionScore,
+      reportsMade: userReputation.reportsMade,
+      reportsAccurate: userReputation.reportsAccurate,
+      moderationHistory: userReputation.moderationHistory,
       lastCalculated: userReputation.lastCalculated,
-      notes: userReputation.notes,
       createdAt: userReputation.createdAt,
       updatedAt: userReputation.updatedAt,
       user: users
@@ -3485,14 +3582,121 @@ export class DatabaseStorage implements IStorage {
     .from(userReputation)
     .innerJoin(users, eq(userReputation.userId, users.id))
     .where(and(
-      gte(userReputation.currentScore, minScore),
-      sql`${userReputation.currentScore} <= ${maxScore}`
+      gte(userReputation.score, minScore),
+      lte(userReputation.score, maxScore)
     ));
+  }
+
+  // Additional reputation management methods
+  async recordPositiveAction(userId: string, actionType: string, metadata?: any): Promise<void> {
+    // Get current reputation
+    const reputation = await this.getUserReputation(userId);
+    const currentPositiveActions = reputation?.positiveActions || 0;
+
+    // Update positive actions count
+    await this.updateUserReputation(userId, {
+      positiveActions: currentPositiveActions + 1
+    });
+
+    // Record in moderation history
+    const moderationHistory = Array.isArray(reputation?.moderationHistory) 
+      ? reputation.moderationHistory as any[] 
+      : [];
+    
+    moderationHistory.push({
+      type: 'positive_action',
+      action: actionType,
+      timestamp: new Date().toISOString(),
+      metadata
+    });
+
+    await this.updateUserReputation(userId, {
+      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+    });
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async recordNegativeAction(userId: string, actionType: string, severity: 'minor' | 'moderate' | 'severe', metadata?: any): Promise<void> {
+    // Get current reputation
+    const reputation = await this.getUserReputation(userId);
+    const currentNegativeActions = reputation?.negativeActions || 0;
+
+    // Update negative actions count
+    await this.updateUserReputation(userId, {
+      negativeActions: currentNegativeActions + 1
+    });
+
+    // Record in moderation history with severity
+    const moderationHistory = Array.isArray(reputation?.moderationHistory) 
+      ? reputation.moderationHistory as any[] 
+      : [];
+    
+    moderationHistory.push({
+      type: 'negative_action',
+      action: actionType,
+      severity,
+      timestamp: new Date().toISOString(),
+      metadata
+    });
+
+    await this.updateUserReputation(userId, {
+      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+    });
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async recordReportSubmission(userId: string, reportId: string, isAccurate?: boolean): Promise<void> {
+    const reputation = await this.getUserReputation(userId);
+    const currentReportsMade = reputation?.reportsMade || 0;
+    const currentReportsAccurate = reputation?.reportsAccurate || 0;
+
+    const updates: Partial<InsertUserReputation> = {
+      reportsMade: currentReportsMade + 1
+    };
+
+    // If we know if the report was accurate, update that too
+    if (isAccurate === true) {
+      updates.reportsAccurate = currentReportsAccurate + 1;
+    }
+
+    await this.updateUserReputation(userId, updates);
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async batchRecalculateReputationScores(userIds?: string[]): Promise<void> {
+    if (userIds && userIds.length > 0) {
+      // Recalculate for specific users
+      for (const userId of userIds) {
+        await this.calculateReputationScore(userId);
+      }
+    } else {
+      // Recalculate for all users with reputation records
+      const allReputations = await db.select({ userId: userReputation.userId }).from(userReputation);
+      
+      for (const rep of allReputations) {
+        await this.calculateReputationScore(rep.userId);
+      }
+    }
   }
 
   // Content report operations
   async createContentReport(data: InsertContentReport): Promise<ContentReport> {
     const [report] = await db.insert(contentReports).values(data).returning();
+    
+    // Record positive action for user who submitted the report
+    if (data.reporterUserId) {
+      await this.recordPositiveAction(data.reporterUserId, 'content_report_submitted', {
+        reportId: report.id,
+        contentType: data.contentType,
+        reason: data.reason
+      });
+    }
     
     // Add to moderation queue if auto-flagged or high priority
     if (data.reportSource === 'auto_flagged' || data.priority === 'high' || data.priority === 'critical') {
@@ -3568,12 +3772,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async resolveContentReport(reportId: string, resolution: string, actionTaken?: string, moderatorId?: string): Promise<ContentReport> {
+    // Get the original report to access reporter info
+    const originalReport = await this.getContentReport(reportId);
+    
     const updateData: Partial<InsertContentReport> = {
       status: 'resolved',
       resolution,
       actionTaken,
       resolvedAt: new Date()
     };
+
+    // Update report accuracy tracking for the reporter
+    if (originalReport?.reporterUserId) {
+      const isAccurate = resolution === 'valid' || resolution === 'action_taken';
+      await this.recordReportSubmission(originalReport.reporterUserId, reportId, isAccurate);
+    }
 
     if (moderatorId) {
       await this.createAuditLog({
@@ -3591,6 +3804,26 @@ export class DatabaseStorage implements IStorage {
   // Moderation action operations
   async createModerationAction(data: InsertModerationAction): Promise<ModerationAction> {
     const [action] = await db.insert(moderationActions).values(data).returning();
+    
+    // Record negative action for the target user based on severity
+    if (data.targetUserId) {
+      let severity: 'minor' | 'moderate' | 'severe' = 'moderate';
+      
+      // Determine severity based on action type
+      if (data.action === 'warning' || data.action === 'content_removal') {
+        severity = 'minor';
+      } else if (data.action === 'temporary_ban' || data.action === 'mute') {
+        severity = 'moderate';
+      } else if (data.action === 'permanent_ban' || data.action === 'shadowban') {
+        severity = 'severe';
+      }
+      
+      await this.recordNegativeAction(data.targetUserId, data.action, severity, {
+        moderationActionId: action.id,
+        reason: data.reason,
+        moderatorId: data.moderatorId
+      });
+    }
     
     // Create audit log
     await this.createAuditLog({
