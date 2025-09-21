@@ -1388,6 +1388,334 @@ export const insertConversionFunnelSchema = createInsertSchema(conversionFunnels
   id: true,
 });
 
+// =============================================================================
+// ADMIN & MODERATION PLATFORM TABLES
+// =============================================================================
+
+// User roles for admin platform - supports hierarchical role-based access control
+export const userRoles = pgTable("user_roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role").notNull(), // admin, moderator, trust_safety, community_manager
+  permissions: jsonb("permissions").notNull().default([]), // Array of permission strings
+  communityId: varchar("community_id").references(() => communities.id), // Null for global roles
+  assignedBy: varchar("assigned_by").notNull().references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"), // Optional role expiration
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_roles_user_id").on(table.userId),
+  index("idx_user_roles_role").on(table.role),
+  index("idx_user_roles_community").on(table.communityId),
+  unique("unique_user_role_community").on(table.userId, table.role, table.communityId),
+]);
+
+// User reputation system - tracks user trustworthiness and behavior
+export const userReputation = pgTable("user_reputation", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  score: integer("score").default(100), // Base score of 100, can go up or down
+  level: varchar("level").default("new"), // new, trusted, veteran, flagged, restricted
+  positiveActions: integer("positive_actions").default(0), // Count of positive behaviors
+  negativeActions: integer("negative_actions").default(0), // Count of violations
+  reportsMade: integer("reports_made").default(0), // User-submitted reports
+  reportsAccurate: integer("reports_accurate").default(0), // How many were valid
+  moderationHistory: jsonb("moderation_history").default([]), // Array of past actions
+  lastCalculated: timestamp("last_calculated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_reputation_user_id").on(table.userId),
+  index("idx_user_reputation_score").on(table.score),
+  index("idx_user_reputation_level").on(table.level),
+]);
+
+// Content reports - user and system generated reports for moderation
+export const contentReports = pgTable("content_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reporterUserId: varchar("reporter_user_id").references(() => users.id, { onDelete: "set null" }), // Null for system reports
+  reportedUserId: varchar("reported_user_id").references(() => users.id, { onDelete: "cascade" }),
+  contentType: varchar("content_type").notNull(), // forum_post, forum_reply, message, profile, stream
+  contentId: varchar("content_id").notNull(), // ID of the reported content
+  reason: varchar("reason").notNull(), // hate_speech, harassment, spam, inappropriate_content, etc.
+  description: text("description"), // Additional details from reporter
+  evidence: jsonb("evidence"), // Screenshots, links, etc.
+  
+  // System detection data
+  isSystemGenerated: boolean("is_system_generated").default(false),
+  automatedFlags: jsonb("automated_flags"), // ML/NLP detection results
+  confidenceScore: decimal("confidence_score"), // AI confidence (0-1)
+  
+  // Moderation workflow
+  status: varchar("status").default("pending"), // pending, investigating, resolved, dismissed
+  priority: varchar("priority").default("medium"), // low, medium, high, urgent
+  assignedModerator: varchar("assigned_moderator").references(() => users.id),
+  moderationNotes: text("moderation_notes"), // Private notes for moderation team
+  resolution: varchar("resolution"), // action_taken, false_positive, duplicate, etc.
+  actionTaken: text("action_taken"), // Description of what was done
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+}, (table) => [
+  index("idx_content_reports_reporter").on(table.reporterUserId),
+  index("idx_content_reports_reported").on(table.reportedUserId),
+  index("idx_content_reports_status").on(table.status),
+  index("idx_content_reports_priority").on(table.priority),
+  index("idx_content_reports_assigned").on(table.assignedModerator),
+  index("idx_content_reports_content").on(table.contentType, table.contentId),
+  // Composite indexes for critical query paths
+  index("idx_content_reports_status_type_created").on(table.status, table.contentType, table.createdAt),
+]);
+
+// Moderation actions - comprehensive log of all moderation activities
+export const moderationActions = pgTable("moderation_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  moderatorId: varchar("moderator_id").notNull().references(() => users.id),
+  targetUserId: varchar("target_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  action: varchar("action").notNull(), // warn, mute, restrict, shadowban, ban, unban, etc.
+  reason: text("reason").notNull(), // Required reason for transparency
+  duration: integer("duration"), // Duration in hours for temporary actions
+  
+  // Content context
+  relatedContentType: varchar("related_content_type"), // What content triggered this
+  relatedContentId: varchar("related_content_id"),
+  relatedReportId: varchar("related_report_id").references(() => contentReports.id),
+  
+  // Action details
+  isReversible: boolean("is_reversible").default(true),
+  isPublic: boolean("is_public").default(false), // Whether action is visible to community
+  metadata: jsonb("metadata"), // Additional action-specific data
+  
+  // Audit trail
+  ipAddress: varchar("ip_address"), // For ban evasion tracking
+  userAgent: varchar("user_agent"),
+  adminNotes: text("admin_notes"), // Internal notes
+  
+  // Lifecycle
+  isActive: boolean("is_active").default(true),
+  reversedBy: varchar("reversed_by").references(() => users.id),
+  reversedAt: timestamp("reversed_at"),
+  reversalReason: text("reversal_reason"),
+  expiresAt: timestamp("expires_at"), // For temporary actions
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_moderation_actions_moderator").on(table.moderatorId),
+  index("idx_moderation_actions_target").on(table.targetUserId),
+  index("idx_moderation_actions_action").on(table.action),
+  index("idx_moderation_actions_active").on(table.isActive),
+  index("idx_moderation_actions_expires").on(table.expiresAt),
+  index("idx_moderation_actions_created").on(table.createdAt),
+  // Composite indexes for critical query paths
+  index("idx_moderation_actions_target_action_active").on(table.targetUserId, table.action, table.isActive),
+]);
+
+// Moderation queue - centralized queue for all moderation tasks
+export const moderationQueue = pgTable("moderation_queue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  itemType: varchar("item_type").notNull(), // report, auto_flag, appeal, ban_evasion
+  itemId: varchar("item_id").notNull(), // ID of the item (report, flag, etc.)
+  priority: integer("priority").default(5), // 1-10, higher = more urgent
+  
+  // Assignment and workflow
+  status: varchar("status").default("open"), // open, assigned, in_progress, completed, skipped
+  assignedModerator: varchar("assigned_moderator").references(() => users.id),
+  assignedAt: timestamp("assigned_at"),
+  
+  // Auto-prioritization data
+  riskScore: decimal("risk_score"), // Computed risk score for prioritization
+  userReputationScore: integer("user_reputation_score"), // Target user's reputation
+  reporterReputationScore: integer("reporter_reputation_score"), // Reporter's reputation
+  
+  // Metadata
+  summary: text("summary"), // Brief description for queue display
+  tags: text("tags").array().default([]), // Categorization tags
+  estimatedTimeMinutes: integer("estimated_time_minutes"), // Estimated resolution time
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (table) => [
+  index("idx_moderation_queue_status").on(table.status),
+  index("idx_moderation_queue_priority").on(table.priority),
+  index("idx_moderation_queue_assigned").on(table.assignedModerator),
+  index("idx_moderation_queue_created").on(table.createdAt),
+  index("idx_moderation_queue_item").on(table.itemType, table.itemId),
+  // Composite indexes for critical query paths
+  index("idx_moderation_queue_status_priority_created").on(table.status, table.priority, table.createdAt),
+]);
+
+// CMS content management - for Terms of Service, Privacy Policy, etc.
+export const cmsContent = pgTable("cms_content", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: varchar("type").notNull(), // terms_of_service, privacy_policy, community_guidelines, etc.
+  title: varchar("title").notNull(),
+  content: text("content").notNull(), // HTML content from WYSIWYG editor
+  
+  // Versioning
+  version: integer("version").notNull().default(1),
+  isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  scheduledPublishAt: timestamp("scheduled_publish_at"), // For scheduled publishing
+  
+  // Authorship and workflow
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  lastEditedBy: varchar("last_edited_by").notNull().references(() => users.id),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  
+  // Change tracking
+  changeLog: text("change_log"), // Summary of what changed in this version
+  previousVersionId: varchar("previous_version_id"),
+  
+  // SEO and metadata
+  metaDescription: text("meta_description"),
+  metaKeywords: text("meta_keywords"),
+  slug: varchar("slug").unique(), // URL-friendly identifier
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_cms_content_type").on(table.type),
+  index("idx_cms_content_published").on(table.isPublished),
+  index("idx_cms_content_author").on(table.authorId),
+  index("idx_cms_content_scheduled").on(table.scheduledPublishAt),
+  index("idx_cms_content_version").on(table.type, table.version),
+]);
+
+// Ban evasion detection - tracks IP addresses and device fingerprints
+export const banEvasionTracking = pgTable("ban_evasion_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Network and device fingerprinting
+  ipAddress: varchar("ip_address").notNull(),
+  hashedFingerprint: varchar("hashed_fingerprint"), // Hashed device fingerprint
+  userAgent: text("user_agent"),
+  screenResolution: varchar("screen_resolution"),
+  timezone: varchar("timezone"),
+  language: varchar("language"),
+  
+  // Behavioral patterns
+  loginPatterns: jsonb("login_patterns"), // Times, frequency, etc.
+  activitySignature: jsonb("activity_signature"), // Behavioral fingerprint
+  
+  // Detection metadata
+  detectionMethod: varchar("detection_method"), // ip_match, fingerprint_match, behavioral
+  confidenceScore: decimal("confidence_score"), // 0-1 confidence in evasion
+  relatedBannedUser: varchar("related_banned_user").references(() => users.id),
+  
+  // Investigation status
+  status: varchar("status").default("flagged"), // flagged, investigating, confirmed, false_positive
+  investigatedBy: varchar("investigated_by").references(() => users.id),
+  investigatedAt: timestamp("investigated_at"),
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ban_evasion_user").on(table.userId),
+  index("idx_ban_evasion_ip").on(table.ipAddress),
+  index("idx_ban_evasion_fingerprint").on(table.hashedFingerprint),
+  index("idx_ban_evasion_status").on(table.status),
+  index("idx_ban_evasion_confidence").on(table.confidenceScore),
+]);
+
+// User appeals - system for users to appeal moderation actions
+export const userAppeals = pgTable("user_appeals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moderationActionId: varchar("moderation_action_id").notNull().references(() => moderationActions.id),
+  
+  // Appeal content
+  reason: text("reason").notNull(), // User's explanation for appeal
+  evidence: jsonb("evidence"), // User-provided evidence (links, explanations)
+  additionalInfo: text("additional_info"), // Any other relevant information
+  
+  // Workflow
+  status: varchar("status").default("pending"), // pending, under_review, approved, denied, withdrawn
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"), // Internal notes from reviewer
+  decision: varchar("decision"), // approve, deny, partial_approve
+  decisionReason: text("decision_reason"), // Explanation of decision
+  
+  // Communication
+  responseToUser: text("response_to_user"), // Public response sent to user
+  isUserNotified: boolean("is_user_notified").default(false),
+  
+  // Lifecycle
+  canReappeal: boolean("can_reappeal").default(false),
+  reappealCooldownUntil: timestamp("reappeal_cooldown_until"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_appeals_user").on(table.userId),
+  index("idx_user_appeals_action").on(table.moderationActionId),
+  index("idx_user_appeals_status").on(table.status),
+  index("idx_user_appeals_reviewer").on(table.reviewedBy),
+  index("idx_user_appeals_created").on(table.createdAt),
+]);
+
+// Saved moderation templates - for consistent communication
+export const moderationTemplates = pgTable("moderation_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // Template name for easy identification
+  category: varchar("category").notNull(), // warning, ban_notice, appeal_response, etc.
+  subject: varchar("subject"), // Email/message subject line
+  content: text("content").notNull(), // Template content with placeholders
+  variables: jsonb("variables").default([]), // Array of available placeholder variables
+  
+  // Usage and management
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  lastModifiedBy: varchar("last_modified_by").notNull().references(() => users.id),
+  usageCount: integer("usage_count").default(0), // How often it's been used
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_moderation_templates_category").on(table.category),
+  index("idx_moderation_templates_active").on(table.isActive),
+  index("idx_moderation_templates_creator").on(table.createdBy),
+]);
+
+// Admin audit log - comprehensive logging of all admin actions
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminUserId: varchar("admin_user_id").notNull().references(() => users.id),
+  action: varchar("action").notNull(), // login, role_assign, user_ban, content_delete, etc.
+  category: varchar("category").notNull(), // authentication, user_management, content_moderation, system_config
+  
+  // Target and context
+  targetType: varchar("target_type"), // user, content, role, setting, etc.
+  targetId: varchar("target_id"), // ID of the affected object
+  targetIdentifier: varchar("target_identifier"), // Human-readable identifier (username, email, etc.)
+  
+  // Action details
+  oldValues: jsonb("old_values"), // Previous state (for updates)
+  newValues: jsonb("new_values"), // New state (for updates)
+  parameters: jsonb("parameters"), // Action parameters and context
+  
+  // Technical details
+  ipAddress: varchar("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  sessionId: varchar("session_id"),
+  
+  // Impact and results
+  success: boolean("success").default(true),
+  errorMessage: text("error_message"), // If action failed
+  impactAssessment: varchar("impact_assessment"), // low, medium, high, critical
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_admin_audit_log_admin").on(table.adminUserId),
+  index("idx_admin_audit_log_action").on(table.action),
+  index("idx_admin_audit_log_category").on(table.category),
+  index("idx_admin_audit_log_target").on(table.targetType, table.targetId),
+  index("idx_admin_audit_log_created").on(table.createdAt),
+  index("idx_admin_audit_log_ip").on(table.ipAddress),
+]);
+
 // Collaborative streaming events table - extends regular events for multi-streamer coordination
 export const collaborativeStreamEvents = pgTable("collaborative_stream_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1495,6 +1823,138 @@ export const insertCollaborativeStreamEventSchema = createInsertSchema(collabora
 export const insertStreamCollaboratorSchema = createInsertSchema(streamCollaborators);
 export const insertStreamCoordinationSessionSchema = createInsertSchema(streamCoordinationSessions);
 
+// Admin & Moderation Platform Insert Schemas
+export const insertUserRoleSchema = createInsertSchema(userRoles, {
+  role: z.enum(["admin", "moderator", "trust_safety", "community_manager"]),
+  permissions: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  expiresAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserReputationSchema = createInsertSchema(userReputation, {
+  score: z.number().int().min(0).max(1000).optional(),
+  level: z.enum(["new", "trusted", "veteran", "flagged", "restricted"]).optional(),
+  positiveActions: z.number().int().min(0).optional(),
+  negativeActions: z.number().int().min(0).optional(),
+  reportsMade: z.number().int().min(0).optional(),
+  reportsAccurate: z.number().int().min(0).optional(),
+  moderationHistory: z.array(z.any()).optional(),
+  lastCalculated: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContentReportSchema = createInsertSchema(contentReports, {
+  contentType: z.enum(["forum_post", "forum_reply", "message", "profile", "stream", "event", "user_bio"]),
+  reason: z.enum(["hate_speech", "harassment", "spam", "inappropriate_content", "misinformation", "violence", "sexual_content", "copyright", "other"]),
+  evidence: z.any().optional(),
+  isSystemGenerated: z.boolean().optional(),
+  automatedFlags: z.any().optional(),
+  confidenceScore: z.coerce.number().min(0).max(1).optional(),
+  status: z.enum(["pending", "investigating", "resolved", "dismissed"]).optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+  resolvedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertModerationActionSchema = createInsertSchema(moderationActions, {
+  action: z.enum(["warn", "mute", "restrict", "shadowban", "ban", "unban", "content_remove", "account_suspend"]),
+  duration: z.number().int().min(1).optional(), // Duration in hours
+  isReversible: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  metadata: z.any().optional(),
+  isActive: z.boolean().optional(),
+  expiresAt: z.coerce.date().optional(),
+  reversedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertModerationQueueSchema = createInsertSchema(moderationQueue, {
+  itemType: z.enum(["report", "auto_flag", "appeal", "ban_evasion"]),
+  priority: z.number().int().min(1).max(10).optional(),
+  status: z.enum(["open", "assigned", "in_progress", "completed", "skipped"]).optional(),
+  assignedAt: z.coerce.date().optional(),
+  riskScore: z.coerce.number().min(0).max(1).optional(),
+  tags: z.array(z.string()).optional(),
+  estimatedTimeMinutes: z.number().int().min(1).optional(),
+  completedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCmsContentSchema = createInsertSchema(cmsContent, {
+  type: z.enum(["terms_of_service", "privacy_policy", "community_guidelines", "faq", "help_article", "announcement"]),
+  version: z.number().int().min(1).optional(),
+  isPublished: z.boolean().optional(),
+  publishedAt: z.coerce.date().optional(),
+  scheduledPublishAt: z.coerce.date().optional(),
+  approvedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBanEvasionTrackingSchema = createInsertSchema(banEvasionTracking, {
+  detectionMethod: z.enum(["ip_match", "fingerprint_match", "behavioral", "manual"]).optional(),
+  confidenceScore: z.coerce.number().min(0).max(1).optional(),
+  status: z.enum(["flagged", "investigating", "confirmed", "false_positive"]).optional(),
+  loginPatterns: z.any().optional(),
+  activitySignature: z.any().optional(),
+  investigatedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserAppealSchema = createInsertSchema(userAppeals, {
+  evidence: z.any().optional(),
+  status: z.enum(["pending", "under_review", "approved", "denied", "withdrawn"]).optional(),
+  decision: z.enum(["approve", "deny", "partial_approve"]).optional(),
+  reviewedAt: z.coerce.date().optional(),
+  isUserNotified: z.boolean().optional(),
+  canReappeal: z.boolean().optional(),
+  reappealCooldownUntil: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertModerationTemplateSchema = createInsertSchema(moderationTemplates, {
+  category: z.enum(["warning", "ban_notice", "appeal_response", "content_removal", "account_action", "general"]),
+  variables: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  usageCount: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog, {
+  category: z.enum(["authentication", "user_management", "content_moderation", "system_config", "role_assignment", "data_access"]),
+  oldValues: z.any().optional(),
+  newValues: z.any().optional(),
+  parameters: z.any().optional(),
+  success: z.boolean().optional(),
+  impactAssessment: z.enum(["low", "medium", "high", "critical"]).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -1539,6 +1999,18 @@ export type CollaborativeStreamEvent = typeof collaborativeStreamEvents.$inferSe
 export type StreamCollaborator = typeof streamCollaborators.$inferSelect;
 export type StreamCoordinationSession = typeof streamCoordinationSessions.$inferSelect;
 
+// Admin & Moderation Platform Types
+export type UserRole = typeof userRoles.$inferSelect;
+export type UserReputation = typeof userReputation.$inferSelect;
+export type ContentReport = typeof contentReports.$inferSelect;
+export type ModerationAction = typeof moderationActions.$inferSelect;
+export type ModerationQueue = typeof moderationQueue.$inferSelect;
+export type CmsContent = typeof cmsContent.$inferSelect;
+export type BanEvasionTracking = typeof banEvasionTracking.$inferSelect;
+export type UserAppeal = typeof userAppeals.$inferSelect;
+export type ModerationTemplate = typeof moderationTemplates.$inferSelect;
+export type AdminAuditLog = typeof adminAuditLog.$inferSelect;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
@@ -1580,3 +2052,15 @@ export type InsertConversionFunnel = z.infer<typeof insertConversionFunnelSchema
 export type InsertCollaborativeStreamEvent = z.infer<typeof insertCollaborativeStreamEventSchema>;
 export type InsertStreamCollaborator = z.infer<typeof insertStreamCollaboratorSchema>;
 export type InsertStreamCoordinationSession = z.infer<typeof insertStreamCoordinationSessionSchema>;
+
+// Admin & Moderation Platform Insert Types
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+export type InsertUserReputation = z.infer<typeof insertUserReputationSchema>;
+export type InsertContentReport = z.infer<typeof insertContentReportSchema>;
+export type InsertModerationAction = z.infer<typeof insertModerationActionSchema>;
+export type InsertModerationQueue = z.infer<typeof insertModerationQueueSchema>;
+export type InsertCmsContent = z.infer<typeof insertCmsContentSchema>;
+export type InsertBanEvasionTracking = z.infer<typeof insertBanEvasionTrackingSchema>;
+export type InsertUserAppeal = z.infer<typeof insertUserAppealSchema>;
+export type InsertModerationTemplate = z.infer<typeof insertModerationTemplateSchema>;
+export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
