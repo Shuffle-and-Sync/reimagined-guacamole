@@ -114,7 +114,7 @@ export const authConfig: AuthConfig = {
           let existingUser = await storage.getUserByEmail(user.email!);
           
           if (!existingUser) {
-            // Create new user from OAuth profile
+            // Create new user from OAuth profile  
             existingUser = await storage.upsertUser({
               id: crypto.randomUUID(),
               email: user.email!,
@@ -146,8 +146,8 @@ export const authConfig: AuthConfig = {
         return true;
       } catch (error) {
         console.error("Sign-in callback error:", {
-          error: error.message,
-          stack: error.stack,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
           user: user.email,
           account: account?.provider,
         });
