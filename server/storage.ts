@@ -12,6 +12,7 @@ import {
   messages,
   gameSessions,
   passwordResetTokens,
+  emailVerificationTokens,
   userSocialLinks,
   userGamingProfiles,
   friendships,
@@ -64,6 +65,7 @@ import {
   type Message,
   type GameSession,
   type PasswordResetToken,
+  type EmailVerificationToken,
   type UserSocialLink,
   type UserGamingProfile,
   type Friendship,
@@ -95,6 +97,7 @@ import {
   type InsertMessage,
   type InsertGameSession,
   type InsertPasswordResetToken,
+  type InsertEmailVerificationToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
   type InsertFriendship,
@@ -230,6 +233,14 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markTokenAsUsed(token: string): Promise<void>;
   cleanupExpiredTokens(): Promise<void>;
+  
+  // Email verification operations
+  createEmailVerificationToken(data: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
+  getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined>;
+  markEmailVerificationTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredEmailVerificationTokens(): Promise<void>;
+  getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined>;
+  invalidateUserEmailVerificationTokens(userId: string): Promise<void>;
   
   // Notification operations
   getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
@@ -1381,6 +1392,71 @@ export class DatabaseStorage implements IStorage {
       .delete(passwordResetTokens)
       .where(
         sql`${passwordResetTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  // Email verification operations
+  async createEmailVerificationToken(data: InsertEmailVerificationToken): Promise<EmailVerificationToken> {
+    const [token] = await db
+      .insert(emailVerificationTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined> {
+    const [verificationToken] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(
+        and(
+          eq(emailVerificationTokens.token, token),
+          eq(emailVerificationTokens.isUsed, false),
+          gte(emailVerificationTokens.expiresAt, new Date())
+        )
+      );
+    return verificationToken;
+  }
+
+  async markEmailVerificationTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(emailVerificationTokens)
+      .set({ isUsed: true })
+      .where(eq(emailVerificationTokens.token, token));
+  }
+
+  async cleanupExpiredEmailVerificationTokens(): Promise<void> {
+    await db
+      .delete(emailVerificationTokens)
+      .where(
+        sql`${emailVerificationTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined> {
+    const [verificationToken] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(
+        and(
+          eq(emailVerificationTokens.userId, userId),
+          eq(emailVerificationTokens.isUsed, false),
+          gte(emailVerificationTokens.expiresAt, new Date())
+        )
+      )
+      .orderBy(sql`${emailVerificationTokens.createdAt} DESC`);
+    return verificationToken;
+  }
+
+  async invalidateUserEmailVerificationTokens(userId: string): Promise<void> {
+    await db
+      .update(emailVerificationTokens)
+      .set({ isUsed: true })
+      .where(
+        and(
+          eq(emailVerificationTokens.userId, userId),
+          eq(emailVerificationTokens.isUsed, false)
+        )
       );
   }
 

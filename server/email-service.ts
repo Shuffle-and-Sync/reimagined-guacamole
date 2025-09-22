@@ -103,3 +103,168 @@ The Shuffle & Sync Team
 
   return await sendEmail(emailParams);
 }
+
+/**
+ * Send email verification email to user
+ */
+export async function sendEmailVerificationEmail(
+  email: string,
+  verificationToken: string,
+  baseUrl: string,
+  userName?: string
+): Promise<boolean> {
+  const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  const displayName = userName || 'there';
+  
+  const emailParams: EmailParams = {
+    to: email,
+    from: 'noreply@shuffleandsync.com',
+    subject: 'Verify Your Email - Shuffle & Sync',
+    text: `
+Hello ${displayName},
+
+Welcome to Shuffle & Sync! Please verify your email address to complete your account setup.
+
+Click the link below to verify your email:
+${verificationUrl}
+
+This link will expire in 24 hours.
+
+If you didn't create this account, please ignore this email.
+
+Best regards,
+The Shuffle & Sync Team
+    `,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Verify Your Email</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+    .button:hover { background: #218838; }
+    .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎮 Shuffle & Sync</h1>
+      <p style="margin: 0; font-size: 18px;">Trading Card Game Community</p>
+    </div>
+    <div class="content">
+      <h2>Welcome, ${displayName}!</h2>
+      <p>Thank you for joining Shuffle & Sync, the premier platform for trading card game streamers and content creators.</p>
+      <p>To complete your account setup and start connecting with the TCG community, please verify your email address:</p>
+      <div style="text-align: center;">
+        <a href="${verificationUrl}" class="button">Verify Email Address</a>
+      </div>
+      <div class="warning">
+        <strong>⏰ Important:</strong> This verification link will expire in 24 hours.
+      </div>
+      <p>Once verified, you'll be able to:</p>
+      <ul>
+        <li>🃏 Join your favorite TCG communities (MTG, Pokemon, Lorcana, Yu-Gi-Oh, and more)</li>
+        <li>📺 Coordinate collaborative streams with other creators</li>
+        <li>🎯 Participate in tournaments and community events</li>
+        <li>💬 Connect with fellow streamers and content creators</li>
+      </ul>
+      <p>If you didn't create this account, please ignore this email.</p>
+      <div class="footer">
+        <p>Best regards,<br>The Shuffle & Sync Team</p>
+        <p><small>If the button doesn't work, copy and paste this link into your browser:<br>${verificationUrl}</small></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `
+  };
+
+  return await sendEmail(emailParams);
+}
+
+/**
+ * Send email verification reminder (for users who haven't verified after some time)
+ */
+export async function sendEmailVerificationReminder(
+  email: string,
+  verificationToken: string,
+  baseUrl: string,
+  userName?: string
+): Promise<boolean> {
+  const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  const displayName = userName || 'there';
+  
+  const emailParams: EmailParams = {
+    to: email,
+    from: 'noreply@shuffleandsync.com',
+    subject: 'Reminder: Verify Your Email - Shuffle & Sync',
+    text: `
+Hello ${displayName},
+
+This is a friendly reminder to verify your email address for your Shuffle & Sync account.
+
+Click the link below to verify your email:
+${verificationUrl}
+
+This link will expire in 24 hours.
+
+If you're having trouble or didn't create this account, please contact our support team.
+
+Best regards,
+The Shuffle & Sync Team
+    `,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Email Verification Reminder</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; background: #ffc107; color: #212529; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+    .button:hover { background: #e0a800; }
+    .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    .reminder { background: #d4edda; padding: 15px; border-left: 4px solid #28a745; margin: 20px 0; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎮 Shuffle & Sync</h1>
+      <p style="margin: 0; font-size: 18px;">Trading Card Game Community</p>
+    </div>
+    <div class="content">
+      <h2>👋 Hey ${displayName}!</h2>
+      <div class="reminder">
+        <strong>🔔 Friendly Reminder:</strong> Your email address is still waiting to be verified.
+      </div>
+      <p>We're excited to have you join our trading card game community! To unlock all features and start connecting with fellow streamers, please verify your email address:</p>
+      <div style="text-align: center;">
+        <a href="${verificationUrl}" class="button">Verify Email Now</a>
+      </div>
+      <p>Once verified, you'll gain full access to our platform features and the TCG streaming community.</p>
+      <p>If you're having trouble or need assistance, feel free to reach out to our support team.</p>
+      <div class="footer">
+        <p>Best regards,<br>The Shuffle & Sync Team</p>
+        <p><small>If the button doesn't work, copy and paste this link into your browser:<br>${verificationUrl}</small></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `
+  };
+
+  return await sendEmail(emailParams);
+}
