@@ -55,6 +55,7 @@ import {
   adminAuditLog,
   userMfaSettings,
   refreshTokens,
+  authAuditLog,
   type User,
   type UpsertUser,
   type Community,
@@ -164,6 +165,8 @@ import {
   type InsertUserMfaSettings,
   type RefreshToken,
   type InsertRefreshToken,
+  type AuthAuditLog,
+  type InsertAuthAuditLog,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -174,6 +177,8 @@ export interface IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: UpsertUser): Promise<User>;
   getAllUsers(filters?: { 
     page?: number; 
     limit?: number; 
@@ -267,6 +272,10 @@ export interface IStorage {
   revokeAllUserRefreshTokens(userId: string): Promise<void>;
   cleanupExpiredRefreshTokens(): Promise<void>;
   getUserActiveRefreshTokens(userId: string): Promise<RefreshToken[]>;
+  
+  // Auth audit log operations
+  createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog>;
+  getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]>;
   
   // Notification operations
   getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
@@ -649,6 +658,16 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -1685,6 +1704,39 @@ export class DatabaseStorage implements IStorage {
         gte(refreshTokens.expiresAt, new Date())
       ))
       .orderBy(desc(refreshTokens.lastUsed));
+  }
+
+  // Auth audit log operations implementation
+  async createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog> {
+    const [auditLog] = await db
+      .insert(authAuditLog)
+      .values(data)
+      .returning();
+    return auditLog;
+  }
+
+  async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]> {
+    let query = db.select().from(authAuditLog);
+    
+    const conditions = [];
+    if (userId) {
+      conditions.push(eq(authAuditLog.userId, userId));
+    }
+    if (filters?.eventType) {
+      conditions.push(eq(authAuditLog.eventType, filters.eventType));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    query = query.orderBy(desc(authAuditLog.createdAt));
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    return await query;
   }
 
   // Notification operations

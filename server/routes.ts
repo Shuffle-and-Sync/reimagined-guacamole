@@ -73,6 +73,18 @@ const refreshTokenSchema = z.object({
 const revokeTokenSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required")
 });
+
+// Registration validation schema
+const registrationSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(12, "Password must be at least 12 characters long"),
+  firstName: z.string().min(1, "First name is required").max(50, "First name is too long"),
+  lastName: z.string().min(1, "Last name is required").max(50, "Last name is too long"),
+  username: z.string().min(3, "Username must be at least 3 characters").max(30, "Username is too long")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+  primaryCommunity: z.string().optional(),
+  acceptTerms: z.boolean().refine(val => val === true, "You must accept the terms and conditions")
+});
 import { 
   generalRateLimit, 
   authRateLimit, 
@@ -1823,11 +1835,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log security incident to audit trail
         await storage.createAuthAuditLog({
           userId: payload.userId,
-          action: 'refresh_token_reuse_detected',
+          eventType: 'logout', // Closest equivalent to forced logout due to security
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] || 'unknown',
-          success: false,
-          details: JSON.stringify({ tokenId: payload.tokenId, revokedAllTokens: true })
+          isSuccessful: false,
+          failureReason: 'refresh_token_reuse_detected',
+          details: { tokenId: payload.tokenId, revokedAllTokens: true }
         });
         return res.status(401).json({ message: "Security violation detected - all tokens revoked" });
       }
@@ -1867,11 +1880,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log successful token refresh to audit trail
         await storage.createAuthAuditLog({
           userId: user.id,
-          action: 'refresh_token_rotated',
+          eventType: 'login_success', // Token refresh is maintaining session
           ipAddress: req.ip || 'unknown', 
           userAgent: req.headers['user-agent'] || 'unknown',
-          success: true,
-          details: JSON.stringify({ oldTokenId: payload.tokenId, newTokenId: newRefreshTokenId })
+          isSuccessful: true,
+          details: { oldTokenId: payload.tokenId, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' }
         });
         
         logger.info('Refresh token rotation completed successfully', {
@@ -2017,6 +2030,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: getAuthUserId(req as AuthenticatedRequest)
       });
       res.status(500).json({ message: "Failed to fetch active tokens" });
+    }
+  });
+
+  // Registration endpoint
+  app.post('/api/auth/register', authRateLimit, validateRequest(registrationSchema), async (req, res) => {
+    try {
+      const { email, password, firstName, lastName, username, primaryCommunity } = req.body;
+      
+      // Validate password strength
+      const passwordValidation = validatePasswordStrength(password);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({ 
+          message: "Password does not meet security requirements",
+          errors: passwordValidation.errors
+        });
+      }
+      
+      // Normalize email and username for consistency
+      const normalizedEmail = email.toLowerCase().trim();
+      const normalizedUsername = username.toLowerCase().trim();
+      
+      // Check if user already exists by email
+      const existingUserByEmail = await storage.getUserByEmail(normalizedEmail);
+      if (existingUserByEmail) {
+        logger.warn('Registration attempted with existing email', { email: normalizedEmail, ip: req.ip });
+        return res.status(409).json({ message: "An account with this email already exists" });
+      }
+      
+      // Check if username is already taken
+      const existingUserByUsername = await storage.getUserByUsername(normalizedUsername);
+      if (existingUserByUsername) {
+        logger.warn('Registration attempted with existing username', { username: normalizedUsername, ip: req.ip });
+        return res.status(409).json({ message: "This username is already taken" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+      
+      // Generate unique user ID
+      const userId = `user_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+      
+      // Prepare user data with normalized values (correct schema field names)
+      const userData = {
+        id: userId,
+        email: normalizedEmail,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: normalizedUsername,
+        primaryCommunity: primaryCommunity || 'general',
+        passwordHash: hashedPassword, // Correct schema field name
+        isEmailVerified: false,
+        status: 'offline' as const,
+        showOnlineStatus: 'everyone' as const,
+        allowDirectMessages: 'everyone' as const,
+        isPrivate: false,
+        mfaEnabled: false // Correct schema field name
+      };
+      
+      // TRANSACTIONAL REGISTRATION PROCESS
+      let newUser;
+      let verificationToken;
+      let emailSent = false;
+      
+      try {
+        // Create the user
+        newUser = await storage.createUser(userData);
+        
+        // Generate email verification token
+        verificationToken = await generateEmailVerificationJWT(userId, normalizedEmail);
+        
+        // Create email verification record
+        await storage.createEmailVerificationToken({
+          userId: userId,
+          email: normalizedEmail,
+          token: verificationToken,
+          expiresAt: new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION * 1000)
+        });
+        
+        // Send verification email
+        emailSent = await sendEmailVerificationEmail(normalizedEmail, verificationToken);
+        
+        if (!emailSent) {
+          logger.error('Failed to send verification email during registration', { 
+            userId, 
+            email: normalizedEmail, 
+            ip: req.ip 
+          });
+          // Don't fail registration if email fails, user can resend later
+        }
+        
+      } catch (transactionError) {
+        logger.error('Registration transaction failed', transactionError, {
+          email: normalizedEmail,
+          username: normalizedUsername,
+          ip: req.ip
+        });
+        
+        // Log failed registration attempt
+        try {
+          await storage.createAuthAuditLog({
+            userId: null,
+            eventType: 'registration',
+            ipAddress: req.ip || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown',
+            isSuccessful: false,
+            failureReason: 'transaction_error',
+            details: { 
+              email: normalizedEmail, 
+              username: normalizedUsername,
+              error: transactionError instanceof Error ? transactionError.message : 'Unknown error' 
+            }
+          });
+        } catch (auditError) {
+          logger.error('Failed to log registration failure', auditError);
+        }
+        
+        return res.status(500).json({ message: "Registration failed. Please try again." });
+      }
+      
+      if (!emailSent) {
+        logger.error('Failed to send verification email during registration', { 
+          userId, 
+          email: normalizedEmail, 
+          ip: req.ip 
+        });
+        
+        // Log email sending failure
+        await storage.createAuthAuditLog({
+          userId: userId,
+          eventType: 'email_verification',
+          ipAddress: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+          isSuccessful: false,
+          failureReason: 'email_send_failed',
+          details: { 
+            email: normalizedEmail,
+            reason: 'email_service_error'
+          }
+        });
+        // Don't fail registration if email fails, user can resend later
+      } else {
+        // Log successful email verification sent
+        await storage.createAuthAuditLog({
+          userId: userId,
+          eventType: 'email_verification',
+          ipAddress: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+          isSuccessful: true,
+          details: { 
+            email: normalizedEmail,
+            action: 'verification_email_sent'
+          }
+        });
+      }
+      
+      // Log successful registration with complete audit trail
+      await storage.createAuthAuditLog({
+        userId: userId,
+        eventType: 'registration',
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+        isSuccessful: true,
+        details: { 
+          email: normalizedEmail, 
+          username: normalizedUsername,
+          emailSent,
+          userAgent: req.headers['user-agent'],
+          registrationMethod: 'email_password'
+        }
+      });
+      
+      logger.info('User registered successfully', {
+        userId,
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+        ip: req.ip,
+        emailSent
+      });
+      
+      // Return success response (don't include sensitive data)
+      res.status(201).json({
+        message: "Registration successful! Please check your email to verify your account.",
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          username: newUser.username,
+          isEmailVerified: newUser.isEmailVerified
+        },
+        emailSent
+      });
+      
+    } catch (error) {
+      logger.error('Registration failed', error, {
+        email: req.body?.email,
+        username: req.body?.username,
+        ip: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      // Log failed registration attempt
+      if (req.body?.email) {
+        try {
+          await storage.createAuthAuditLog({
+            userId: null,
+            eventType: 'registration',
+            ipAddress: req.ip || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown',
+            isSuccessful: false,
+            failureReason: 'registration_error',
+            details: { 
+              email: req.body.email, 
+              error: error instanceof Error ? error.message : 'Unknown error' 
+            }
+          });
+        } catch (auditError) {
+          logger.error('Failed to log registration failure', auditError);
+        }
+      }
+      
+      res.status(500).json({ message: "Registration failed. Please try again." });
     }
   });
 
