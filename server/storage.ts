@@ -158,6 +158,8 @@ import {
   type InsertModerationTemplate,
   type InsertAdminAuditLog,
   SafeUserPlatformAccount,
+  type UserMfaSettings,
+  type InsertUserMfaSettings,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -242,6 +244,15 @@ export interface IStorage {
   cleanupExpiredEmailVerificationTokens(): Promise<void>;
   getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined>;
   invalidateUserEmailVerificationTokens(userId: string): Promise<void>;
+  
+  // MFA operations
+  getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined>;
+  createUserMfaSettings(data: InsertUserMfaSettings): Promise<UserMfaSettings>;
+  updateUserMfaSettings(userId: string, data: Partial<InsertUserMfaSettings>): Promise<void>;
+  enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void>;
+  disableUserMfa(userId: string): Promise<void>;
+  updateUserMfaLastVerified(userId: string): Promise<void>;
+  markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void>;
   
   // Notification operations
   getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
@@ -1475,6 +1486,114 @@ export class DatabaseStorage implements IStorage {
           eq(emailVerificationTokens.isUsed, false)
         )
       );
+  }
+
+  // MFA operations implementation
+  async getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined> {
+    const [mfaSettings] = await db
+      .select()
+      .from(userMfaSettings)
+      .where(eq(userMfaSettings.userId, userId));
+    return mfaSettings;
+  }
+
+  async createUserMfaSettings(data: InsertUserMfaSettings): Promise<UserMfaSettings> {
+    const [mfaSettings] = await db
+      .insert(userMfaSettings)
+      .values(data)
+      .returning();
+    return mfaSettings;
+  }
+
+  async updateUserMfaSettings(userId: string, data: Partial<InsertUserMfaSettings>): Promise<void> {
+    await db
+      .update(userMfaSettings)
+      .set(data)
+      .where(eq(userMfaSettings.userId, userId));
+  }
+
+  async enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void> {
+    const now = new Date();
+    
+    // Update or create MFA settings
+    const existingSettings = await this.getUserMfaSettings(userId);
+    
+    if (existingSettings) {
+      await db
+        .update(userMfaSettings)
+        .set({
+          isEnabled: true,
+          totpSecret,
+          backupCodes,
+          enabledAt: now,
+        })
+        .where(eq(userMfaSettings.userId, userId));
+    } else {
+      await db
+        .insert(userMfaSettings)
+        .values({
+          userId,
+          isEnabled: true,
+          totpSecret,
+          backupCodes,
+          enabledAt: now,
+        });
+    }
+    
+    // Update user's MFA flag
+    await db
+      .update(users)
+      .set({
+        mfaEnabled: true,
+        mfaEnabledAt: now,
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async disableUserMfa(userId: string): Promise<void> {
+    // Disable MFA settings
+    await db
+      .update(userMfaSettings)
+      .set({
+        isEnabled: false,
+        totpSecret: null,
+        backupCodes: [],
+        enabledAt: null,
+      })
+      .where(eq(userMfaSettings.userId, userId));
+    
+    // Update user's MFA flag
+    await db
+      .update(users)
+      .set({
+        mfaEnabled: false,
+        mfaEnabledAt: null,
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserMfaLastVerified(userId: string): Promise<void> {
+    await db
+      .update(userMfaSettings)
+      .set({ lastVerifiedAt: new Date() })
+      .where(eq(userMfaSettings.userId, userId));
+  }
+
+  async markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void> {
+    const settings = await this.getUserMfaSettings(userId);
+    if (!settings || !settings.backupCodes) return;
+    
+    // Remove the used backup code from the array
+    const updatedCodes = [...settings.backupCodes];
+    updatedCodes.splice(codeIndex, 1);
+    
+    await db
+      .update(userMfaSettings)
+      .set({ 
+        backupCodes: updatedCodes,
+        lastVerifiedAt: new Date()
+      })
+      .where(eq(userMfaSettings.userId, userId));
   }
 
   // Notification operations
