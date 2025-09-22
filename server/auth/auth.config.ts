@@ -51,17 +51,34 @@ export const authConfig: AuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
 
         try {
           const email = credentials.email as string;
+          // Extract security context (Auth.js may not always provide req)
+          const ipAddress = 'unknown'; // TODO: Extract from Auth.js context when available
+          const userAgent = 'unknown'; // TODO: Extract from Auth.js context when available
           
           // Apply rate limiting
           const rateLimitCheck = checkAuthRateLimit(email);
           if (!rateLimitCheck.allowed) {
+            // Log rate limit hit
+            await storage.createAuthAuditLog({
+              userId: null,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'rate_limited',
+              details: { 
+                email: email.toLowerCase(),
+                retryAfter: rateLimitCheck.retryAfter,
+                reason: 'too_many_attempts'
+              }
+            });
             throw new Error(`Too many failed attempts. Try again in ${rateLimitCheck.retryAfter} seconds.`);
           }
 
@@ -69,12 +86,73 @@ export const authConfig: AuthConfig = {
           const user = await storage.getUserByEmail(email);
           if (!user) {
             recordAuthFailure(email);
+            // Log failed login attempt
+            await storage.createAuthAuditLog({
+              userId: null,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'invalid_password',
+              details: { 
+                email: email.toLowerCase(),
+                reason: 'user_not_found'
+              }
+            });
             throw new Error("Invalid email or password");
+          }
+
+          // Check if account is locked
+          if (user.accountLockedUntil && new Date() < user.accountLockedUntil) {
+            const lockTimeRemaining = Math.ceil((user.accountLockedUntil.getTime() - Date.now()) / 1000);
+            await storage.createAuthAuditLog({
+              userId: user.id,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'account_locked',
+              details: { 
+                email: email.toLowerCase(),
+                lockTimeRemaining,
+                reason: 'account_temporarily_locked'
+              }
+            });
+            throw new Error(`Account is temporarily locked. Try again in ${Math.ceil(lockTimeRemaining / 60)} minutes.`);
+          }
+
+          // Check if email is verified
+          if (!user.isEmailVerified) {
+            await storage.createAuthAuditLog({
+              userId: user.id,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'email_not_verified',
+              details: { 
+                email: email.toLowerCase(),
+                reason: 'email_verification_required'
+              }
+            });
+            throw new Error("Please verify your email address before signing in. Check your inbox for the verification link.");
           }
 
           // Check if user has a password (OAuth users might not)
           if (!user.passwordHash) {
             recordAuthFailure(email);
+            await storage.createAuthAuditLog({
+              userId: user.id,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'invalid_password',
+              details: { 
+                email: email.toLowerCase(),
+                reason: 'oauth_account_attempted_password_login'
+              }
+            });
             throw new Error("This account uses OAuth authentication. Please sign in with Google or Twitch.");
           }
 
@@ -86,11 +164,96 @@ export const authConfig: AuthConfig = {
 
           if (!isPasswordValid) {
             recordAuthFailure(email);
+            
+            // Increment failed login attempts
+            const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+            const shouldLockAccount = newFailedAttempts >= 5; // Lock after 5 failed attempts
+            const lockUntil = shouldLockAccount ? new Date(Date.now() + 30 * 60 * 1000) : null; // 30 minute lockout
+            
+            // Update user with failed attempt info
+            await storage.updateUser(user.id, {
+              failedLoginAttempts: newFailedAttempts,
+              lastFailedLogin: new Date(),
+              ...(shouldLockAccount && { accountLockedUntil: lockUntil })
+            });
+            
+            await storage.createAuthAuditLog({
+              userId: user.id,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'invalid_password',
+              details: { 
+                email: email.toLowerCase(),
+                failedAttempts: newFailedAttempts,
+                accountLocked: shouldLockAccount,
+                reason: 'invalid_password_provided'
+              }
+            });
+            
+            if (shouldLockAccount) {
+              throw new Error(`Account locked due to too many failed attempts. Try again in 30 minutes.`);
+            }
+            
             throw new Error("Invalid email or password");
+          }
+
+          // CRITICAL SECURITY: Check if MFA is enabled and BLOCK login until verified
+          if (user.mfaEnabled) {
+            // For MFA users, we MUST NOT allow login without MFA verification
+            // Clear failed attempts since password was correct
+            await storage.updateUser(user.id, {
+              failedLoginAttempts: 0,
+              lastFailedLogin: null,
+              accountLockedUntil: null
+            });
+            
+            // Log MFA requirement - this is NOT a successful login yet
+            await storage.createAuthAuditLog({
+              userId: user.id,
+              eventType: 'login_failure',
+              ipAddress,
+              userAgent,
+              isSuccessful: false,
+              failureReason: 'mfa_required',
+              details: { 
+                email: email.toLowerCase(),
+                mfaRequired: true,
+                loginMethod: 'credentials',
+                reason: 'password_verified_but_mfa_required'
+              }
+            });
+            
+            // SECURITY: Do NOT return user object - this prevents session creation
+            // Frontend must handle MFA verification through dedicated endpoint
+            throw new Error("MFA_REQUIRED: Please complete multi-factor authentication. Check your authenticator app for the verification code.");
           }
 
           // Clear failures on successful login
           clearAuthFailures(email);
+          
+          // Clear database lockout fields
+          await storage.updateUser(user.id, {
+            failedLoginAttempts: 0,
+            lastFailedLogin: null,
+            accountLockedUntil: null
+          });
+
+          // Log successful login
+          await storage.createAuthAuditLog({
+            userId: user.id,
+            eventType: 'login_success',
+            ipAddress,
+            userAgent,
+            isSuccessful: true,
+            details: { 
+              email: email.toLowerCase(),
+              mfaEnabled: user.mfaEnabled || false,
+              loginMethod: 'credentials',
+              reason: 'password_verified_successfully'
+            }
+          });
 
           // Return user object for session
           return {
@@ -116,7 +279,7 @@ export const authConfig: AuthConfig = {
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
-          console.log("Processing OAuth provider:", account.provider);
+          console.log("Processing OAuth provider:", account?.provider);
           console.log("Checking for existing user with email:", user.email);
           let existingUser = await storage.getUserByEmail(user.email!);
           console.log("Existing user found:", existingUser ? "YES" : "NO");
