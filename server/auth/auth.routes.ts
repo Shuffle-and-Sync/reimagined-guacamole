@@ -8,10 +8,9 @@ const router = Router();
 // Handle all Auth.js routes
 router.all("/api/auth/*", async (req, res) => {
   try {
-    // In development, ignore AUTH_URL to allow dynamic host detection for testing
-    const shouldUseDynamicHost = process.env.NODE_ENV === 'development';
+    // Use AUTH_URL when explicitly set to avoid CSRF domain mismatch issues
     const dynamicBase = `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
-    const base = shouldUseDynamicHost ? dynamicBase : (process.env.AUTH_URL || dynamicBase);
+    const base = process.env.AUTH_URL || dynamicBase;
     console.log(`[DEBUG] Auth route - NODE_ENV: ${process.env.NODE_ENV}, AUTH_URL: ${process.env.AUTH_URL}, dynamic base: ${dynamicBase}, final base: ${base}`);
     const url = `${base}${req.originalUrl}`;
     
