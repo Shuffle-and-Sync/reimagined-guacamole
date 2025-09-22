@@ -51,6 +51,23 @@ export const users = pgTable("users", {
   allowDirectMessages: varchar("allow_direct_messages").default("everyone"), // "everyone", "friends_only"
   // Authentication fields
   passwordHash: varchar("password_hash"), // For credential-based authentication (null for OAuth users)
+  isEmailVerified: boolean("is_email_verified").default(false), // Email verification status
+  emailVerifiedAt: timestamp("email_verified_at"), // When email was verified
+  
+  // Account security and lockout
+  failedLoginAttempts: integer("failed_login_attempts").default(0),
+  lastFailedLogin: timestamp("last_failed_login"),
+  accountLockedUntil: timestamp("account_locked_until"), // Account lockout timestamp
+  passwordChangedAt: timestamp("password_changed_at"), // Track password changes
+  
+  // Multi-factor authentication flags
+  mfaEnabled: boolean("mfa_enabled").default(false),
+  mfaEnabledAt: timestamp("mfa_enabled_at"),
+  
+  // Last activity tracking
+  lastLoginAt: timestamp("last_login_at"),
+  lastActiveAt: timestamp("last_active_at"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -455,6 +472,93 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   isUsed: boolean("is_used").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Email verification tokens for secure email verification
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  email: varchar("email").notNull(),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_email_verification_token").on(table.token),
+  index("idx_email_verification_user_id").on(table.userId),
+  index("idx_email_verification_email").on(table.email),
+]);
+
+// Refresh tokens for JWT session management
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  userAgent: varchar("user_agent"),
+  ipAddress: varchar("ip_address"),
+  expiresAt: timestamp("expires_at").notNull(),
+  isRevoked: boolean("is_revoked").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastUsed: timestamp("last_used").defaultNow(),
+}, (table) => [
+  index("idx_refresh_tokens_user_id").on(table.userId),
+  index("idx_refresh_tokens_token").on(table.token),
+  index("idx_refresh_tokens_expires_at").on(table.expiresAt),
+]);
+
+// Multi-Factor Authentication settings and secrets
+export const userMfaSettings = pgTable("user_mfa_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  isEnabled: boolean("is_enabled").default(false),
+  totpSecret: varchar("totp_secret"), // Encrypted TOTP secret key
+  backupCodes: text("backup_codes").array(), // Array of encrypted backup codes
+  lastUsedBackupCode: varchar("last_used_backup_code"),
+  createdAt: timestamp("created_at").defaultNow(),
+  enabledAt: timestamp("enabled_at"),
+  lastVerifiedAt: timestamp("last_verified_at"),
+}, (table) => [
+  index("idx_user_mfa_settings_user_id").on(table.userId),
+  index("idx_user_mfa_settings_enabled").on(table.isEnabled),
+]);
+
+// WebAuthn/FIDO2 authenticator registrations  
+export const webauthnCredentials = pgTable("webauthn_credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: varchar("credential_id").notNull().unique(),
+  publicKey: text("public_key").notNull(),
+  counter: integer("counter").default(0),
+  deviceType: varchar("device_type"), // 'platform' (TouchID/FaceID) or 'cross-platform' (YubiKey)
+  name: varchar("name"), // User-friendly name for the authenticator
+  isActive: boolean("is_active").default(true),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_webauthn_credentials_user_id").on(table.userId),
+  index("idx_webauthn_credentials_credential_id").on(table.credentialId),
+  index("idx_webauthn_credentials_active").on(table.isActive),
+]);
+
+// Authentication audit log for security monitoring
+export const authAuditLog = pgTable("auth_audit_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "set null" }),
+  eventType: varchar("event_type").notNull(), // login_success, login_failure, password_change, mfa_enabled, etc.
+  details: jsonb("details"), // Additional event-specific data
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  location: varchar("location"), // Estimated geographic location
+  riskScore: decimal("risk_score"), // Computed risk score for the event
+  isSuccessful: boolean("is_successful").default(true),
+  failureReason: varchar("failure_reason"), // invalid_password, account_locked, mfa_required, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_auth_audit_log_user_id").on(table.userId),
+  index("idx_auth_audit_log_event_type").on(table.eventType),
+  index("idx_auth_audit_log_created_at").on(table.createdAt),
+  index("idx_auth_audit_log_ip_address").on(table.ipAddress),
+  index("idx_auth_audit_log_successful").on(table.isSuccessful),
+]);
 
 // User social links (Discord, Twitch, Twitter, etc.)
 export const userSocialLinks = pgTable("user_social_links", {
@@ -1159,6 +1263,58 @@ export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
   id: true,
   isUsed: true,
+  createdAt: true,
+});
+
+export const insertEmailVerificationTokenSchema = createInsertSchema(emailVerificationTokens).omit({
+  id: true,
+  isUsed: true,
+  createdAt: true,
+});
+
+export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
+  id: true,
+  isRevoked: true,
+  createdAt: true,
+  lastUsed: true,
+});
+
+export const insertUserMfaSettingsSchema = createInsertSchema(userMfaSettings, {
+  isEnabled: z.boolean().optional(),
+  totpSecret: z.string().optional(),
+  backupCodes: z.array(z.string()).optional(),
+  enabledAt: z.coerce.date().optional(),
+  lastVerifiedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWebauthnCredentialSchema = createInsertSchema(webauthnCredentials, {
+  deviceType: z.enum(["platform", "cross-platform"]).optional(),
+  isActive: z.boolean().optional(),
+  counter: z.number().int().min(0).optional(),
+  lastUsed: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuthAuditLogSchema = createInsertSchema(authAuditLog, {
+  eventType: z.enum([
+    "login_success", "login_failure", "password_change", "password_reset", 
+    "email_verification", "mfa_enabled", "mfa_disabled", "mfa_verified",
+    "account_locked", "account_unlocked", "registration", "logout"
+  ]),
+  details: z.any().optional(),
+  riskScore: z.coerce.number().min(0).max(1).optional(),
+  isSuccessful: z.boolean().optional(),
+  failureReason: z.enum([
+    "invalid_password", "account_locked", "mfa_required", "invalid_mfa_code",
+    "email_not_verified", "account_disabled", "rate_limited", "invalid_token"
+  ]).optional(),
+}).omit({
+  id: true,
   createdAt: true,
 });
 
@@ -1969,6 +2125,11 @@ export type Notification = typeof notifications.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type GameSession = typeof gameSessions.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
+export type WebauthnCredential = typeof webauthnCredentials.$inferSelect;
+export type AuthAuditLog = typeof authAuditLog.$inferSelect;
 export type UserSocialLink = typeof userSocialLinks.$inferSelect;
 export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
 export type Friendship = typeof friendships.$inferSelect;
@@ -2022,6 +2183,11 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertGameSession = z.infer<typeof insertGameSessionSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
+export type InsertUserMfaSettings = z.infer<typeof insertUserMfaSettingsSchema>;
+export type InsertWebauthnCredential = z.infer<typeof insertWebauthnCredentialSchema>;
+export type InsertAuthAuditLog = z.infer<typeof insertAuthAuditLogSchema>;
 export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
 export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSchema>;
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
