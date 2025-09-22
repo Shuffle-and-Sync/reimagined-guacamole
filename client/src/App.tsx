@@ -27,6 +27,11 @@ import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import Conduct from "@/pages/conduct";
 import SignIn from "@/pages/auth/signin";
+import Register from "@/pages/auth/register";
+import VerifyEmail from "@/pages/auth/verify-email";
+import ForgotPassword from "@/pages/auth/forgot-password";
+import MfaVerify from "@/pages/auth/mfa-verify";
+import AccountSettings from "@/pages/auth/account-settings";
 import AuthError from "@/pages/auth/error";
 
 function Router() {
@@ -50,6 +55,10 @@ function Router() {
       
       {/* Auth routes */}
       <Route path="/auth/signin" component={SignIn} />
+      <Route path="/auth/register" component={Register} />
+      <Route path="/auth/verify-email" component={VerifyEmail} />
+      <Route path="/auth/forgot-password" component={ForgotPassword} />
+      <Route path="/auth/mfa-verify" component={MfaVerify} />
       <Route path="/auth/error" component={AuthError} />
       
       {/* Redirect /login to /auth/signin for compatibility */}
@@ -91,6 +100,11 @@ function Router() {
       <Route path="/profile/:userId">
         <RequireAuth redirectTo="/">
           <Profile />
+        </RequireAuth>
+      </Route>
+      <Route path="/account/settings">
+        <RequireAuth redirectTo="/auth/signin">
+          <AccountSettings />
         </RequireAuth>
       </Route>
       <Route path="/collaborative-streaming">

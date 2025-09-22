@@ -58,40 +58,54 @@ export default function SignIn() {
     setError('');
     
     try {
-      // Use Auth.js credentials provider
-      const result = await fetch('/api/auth/callback/credentials', {
+      // Use Auth.js v5 credentials signin
+      const formData = new FormData();
+      formData.append('email', values.email);
+      formData.append('password', values.password);
+      formData.append('redirect', 'false');
+      formData.append('callbackUrl', '/home');
+      
+      const response = await fetch('/api/auth/signin/credentials', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-          redirect: 'false',
-        }),
+        body: formData,
       });
 
-      if (result.ok) {
-        // Success - redirect to home
-        toast({
-          title: "Welcome back!",
-          description: "You have been signed in successfully.",
-        });
-        window.location.href = '/home';
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.url) {
+          // Success - redirect to provided URL
+          toast({
+            title: "Welcome back!",
+            description: "You have been signed in successfully.",
+          });
+          window.location.href = data.url;
+        } else {
+          // Session created successfully
+          window.location.href = '/home';
+        }
       } else {
-        const errorData = await result.json();
+        const errorText = await response.text();
         
         // Handle specific error cases
-        if (errorData.error === 'MFA_REQUIRED') {
-          setError('Multi-factor authentication is required. Please check your authenticator app.');
+        if (errorText.includes('MFA_REQUIRED')) {
+          // Store email for MFA verification and redirect
+          sessionStorage.setItem('mfa_email', values.email);
           toast({
             title: "MFA Required",
             description: "Please complete multi-factor authentication.",
             variant: "default",
           });
-          // TODO: Redirect to MFA verification page
+          // Redirect to MFA verification page
+          window.location.href = '/auth/mfa-verify';
+        } else if (errorText.includes('CredentialsSignin')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else if (errorText.includes('too many failed attempts')) {
+          setError('Account temporarily locked due to too many failed attempts.');
+        } else if (errorText.includes('email verification')) {
+          setError('Please verify your email address before signing in.');
         } else {
-          setError(errorData.error || 'Invalid email or password. Please try again.');
+          setError('Sign in failed. Please check your credentials and try again.');
         }
       }
     } catch (err) {
