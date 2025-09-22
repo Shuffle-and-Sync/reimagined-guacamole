@@ -108,10 +108,18 @@ export const authConfig: AuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log("=== AUTH.JS SIGNIN CALLBACK TRIGGERED ===");
+      console.log("User:", user.email, user.name);
+      console.log("Account:", account?.provider, account?.type);
+      console.log("Profile:", profile ? "present" : "missing");
+      
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
+          console.log("Processing OAuth provider:", account.provider);
+          console.log("Checking for existing user with email:", user.email);
           let existingUser = await storage.getUserByEmail(user.email!);
+          console.log("Existing user found:", existingUser ? "YES" : "NO");
           
           if (!existingUser) {
             // Create new user from OAuth profile  
