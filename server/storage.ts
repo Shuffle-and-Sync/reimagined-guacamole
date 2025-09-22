@@ -53,6 +53,8 @@ import {
   userAppeals,
   moderationTemplates,
   adminAuditLog,
+  userMfaSettings,
+  refreshTokens,
   type User,
   type UpsertUser,
   type Community,
@@ -160,6 +162,8 @@ import {
   SafeUserPlatformAccount,
   type UserMfaSettings,
   type InsertUserMfaSettings,
+  type RefreshToken,
+  type InsertRefreshToken,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -253,6 +257,16 @@ export interface IStorage {
   disableUserMfa(userId: string): Promise<void>;
   updateUserMfaLastVerified(userId: string): Promise<void>;
   markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void>;
+  
+  // Refresh token operations
+  createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken>;
+  getRefreshToken(tokenId: string): Promise<RefreshToken | undefined>;
+  getRefreshTokenByJWT(jwt: string): Promise<RefreshToken | undefined>;
+  updateRefreshTokenLastUsed(tokenId: string): Promise<void>;
+  revokeRefreshToken(tokenId: string): Promise<void>;
+  revokeAllUserRefreshTokens(userId: string): Promise<void>;
+  cleanupExpiredRefreshTokens(): Promise<void>;
+  getUserActiveRefreshTokens(userId: string): Promise<RefreshToken[]>;
   
   // Notification operations
   getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
@@ -1594,6 +1608,83 @@ export class DatabaseStorage implements IStorage {
         lastVerifiedAt: new Date()
       })
       .where(eq(userMfaSettings.userId, userId));
+  }
+
+  // Refresh token operations implementation
+  async createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken> {
+    const [refreshToken] = await db
+      .insert(refreshTokens)
+      .values(data)
+      .returning();
+    return refreshToken;
+  }
+
+  async getRefreshToken(tokenId: string): Promise<RefreshToken | undefined> {
+    const [refreshToken] = await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.id, tokenId),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ));
+    return refreshToken;
+  }
+
+  async getRefreshTokenByJWT(jwt: string): Promise<RefreshToken | undefined> {
+    const [refreshToken] = await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.token, jwt),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ));
+    return refreshToken;
+  }
+
+  async updateRefreshTokenLastUsed(tokenId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ lastUsed: new Date() })
+      .where(eq(refreshTokens.id, tokenId));
+  }
+
+  async revokeRefreshToken(tokenId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ isRevoked: true })
+      .where(eq(refreshTokens.id, tokenId));
+  }
+
+  async revokeAllUserRefreshTokens(userId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ isRevoked: true })
+      .where(eq(refreshTokens.userId, userId));
+  }
+
+  async cleanupExpiredRefreshTokens(): Promise<void> {
+    await db
+      .delete(refreshTokens)
+      .where(
+        or(
+          eq(refreshTokens.isRevoked, true),
+          lte(refreshTokens.expiresAt, new Date())
+        )
+      );
+  }
+
+  async getUserActiveRefreshTokens(userId: string): Promise<RefreshToken[]> {
+    return await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.userId, userId),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ))
+      .orderBy(desc(refreshTokens.lastUsed));
   }
 
   // Notification operations

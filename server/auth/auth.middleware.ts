@@ -2,6 +2,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
 import authConfig from "./auth.config";
+import { verifyAccessTokenJWT } from "./tokens";
+import { logger } from "../logger";
+import { storage } from "../storage";
 
 // Auth.js session type
 export interface AuthSession {
@@ -30,6 +33,18 @@ declare global {
           email?: string | null;
         };
       };
+      // JWT-specific data
+      jwtPayload?: {
+        userId: string;
+        email: string;
+        type: 'access';
+        sessionId?: string;
+        iat: number;
+        exp: number;
+        iss: string;
+        aud: string;
+      };
+      isJWTAuth?: boolean;
     }
   }
 }
@@ -145,3 +160,115 @@ export function isAuthenticated(req: AuthenticatedRequest): boolean {
 // Drop-in replacement for the old Replit Auth isAuthenticated middleware
 // This allows existing routes to work without modification
 export const isAuthenticatedCompat = requireAuth;
+
+/**
+ * JWT Authentication Middleware
+ * Authenticates requests using JWT access tokens from Authorization header
+ */
+export async function requireJWTAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ message: "Authorization header with Bearer token required" });
+      return;
+    }
+    
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify the JWT access token
+    const { valid, payload, error } = await verifyAccessTokenJWT(token);
+    
+    if (!valid || !payload) {
+      logger.warn('Invalid JWT token attempted', { error, ip: req.ip, userAgent: req.headers['user-agent'] });
+      res.status(401).json({ message: "Invalid or expired access token" });
+      return;
+    }
+    
+    // Get user from database to ensure they still exist and are active
+    const user = await storage.getUser(payload.userId);
+    if (!user) {
+      logger.warn('JWT token for non-existent user', { userId: payload.userId, ip: req.ip });
+      res.status(401).json({ message: "User not found" });
+      return;
+    }
+    
+    // Attach user and JWT info to request object
+    req.user = {
+      id: user.id,
+      email: user.email || payload.email,
+      name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
+    };
+    
+    req.jwtPayload = payload;
+    req.isJWTAuth = true;
+    
+    logger.debug('JWT authentication successful', {
+      userId: user.id,
+      sessionId: payload.sessionId,
+      ip: req.ip
+    });
+    
+    next();
+    
+  } catch (error) {
+    logger.error('JWT authentication error', error, { ip: req.ip, userAgent: req.headers['user-agent'] });
+    res.status(500).json({ message: "Authentication failed" });
+  }
+}
+
+/**
+ * Hybrid Authentication Middleware
+ * Supports both session-based and JWT-based authentication
+ * Tries JWT first, then falls back to session
+ */
+export async function requireHybridAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  // Check for JWT first
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    // Use JWT authentication
+    await requireJWTAuth(req, res, next);
+    return;
+  }
+  
+  // Fall back to session authentication
+  await requireAuth(req, res, next);
+}
+
+/**
+ * Optional JWT Authentication Middleware
+ * Attempts JWT authentication but doesn't fail if no token provided
+ */
+export async function optionalJWTAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // No JWT token provided, continue without authentication
+    return next();
+  }
+  
+  try {
+    const token = authHeader.substring(7);
+    const { valid, payload } = await verifyAccessTokenJWT(token);
+    
+    if (valid && payload) {
+      // Get user from database
+      const user = await storage.getUser(payload.userId);
+      if (user) {
+        req.user = {
+          id: user.id,
+          email: user.email || payload.email,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
+        };
+        req.jwtPayload = payload;
+        req.isJWTAuth = true;
+      }
+    }
+  } catch (error) {
+    logger.warn('Optional JWT auth failed', { error: error instanceof Error ? error.message : 'Unknown error', ip: req.ip });
+    // Continue without authentication on error
+  }
+  
+  next();
+}

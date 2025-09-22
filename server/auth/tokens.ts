@@ -1,5 +1,6 @@
 import { randomBytes, createHash } from 'crypto';
 import { SignJWT, jwtVerify } from 'jose';
+import { z } from 'zod';
 
 /**
  * JWT secret for email verification tokens
@@ -20,6 +21,8 @@ export const TOKEN_EXPIRY = {
   EMAIL_VERIFICATION: 24 * 60 * 60, // 24 hours in seconds
   PASSWORD_RESET: 60 * 60,          // 1 hour in seconds
   MFA_SETUP: 10 * 60,               // 10 minutes in seconds
+  ACCESS_TOKEN: 15 * 60,            // 15 minutes in seconds
+  REFRESH_TOKEN: 7 * 24 * 60 * 60,  // 7 days in seconds
 } as const;
 
 /**
@@ -185,4 +188,134 @@ export function generateMFABackupCodes(count: number = 10): string[] {
     codes.push(generateMFABackupCode());
   }
   return codes;
+}
+
+// JWT Session Management Types and Schemas
+const AccessTokenJWTPayloadSchema = z.object({
+  userId: z.string(),
+  email: z.string().email(),
+  type: z.literal('access'),
+  sessionId: z.string().optional(),
+  iat: z.number(),
+  exp: z.number(),
+  iss: z.string(),
+  aud: z.string(),
+});
+
+const RefreshTokenJWTPayloadSchema = z.object({
+  userId: z.string(),
+  tokenId: z.string(), // Reference to refresh token in database
+  type: z.literal('refresh'),
+  iat: z.number(),
+  exp: z.number(),
+  iss: z.string(),
+  aud: z.string(),
+});
+
+export type AccessTokenJWTPayload = z.infer<typeof AccessTokenJWTPayloadSchema>;
+export type RefreshTokenJWTPayload = z.infer<typeof RefreshTokenJWTPayloadSchema>;
+
+/**
+ * Generate a secure JWT access token for API authentication
+ */
+export async function generateAccessTokenJWT(
+  userId: string,
+  email: string,
+  sessionId?: string,
+  expirySeconds: number = TOKEN_EXPIRY.ACCESS_TOKEN
+): Promise<string> {
+  const token = await new SignJWT({
+    userId,
+    email,
+    type: 'access' as const,
+    sessionId,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer('shuffle-and-sync')
+    .setAudience('api-access')
+    .setExpirationTime(Math.floor(Date.now() / 1000) + expirySeconds)
+    .sign(JWT_SECRET);
+    
+  return token;
+}
+
+/**
+ * Generate a secure JWT refresh token
+ */
+export async function generateRefreshTokenJWT(
+  userId: string,
+  tokenId: string,
+  expirySeconds: number = TOKEN_EXPIRY.REFRESH_TOKEN
+): Promise<string> {
+  const token = await new SignJWT({
+    userId,
+    tokenId,
+    type: 'refresh' as const,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setIssuer('shuffle-and-sync')
+    .setAudience('token-refresh')
+    .setExpirationTime(Math.floor(Date.now() / 1000) + expirySeconds)
+    .sign(JWT_SECRET);
+    
+  return token;
+}
+
+/**
+ * Verify and decode an access token JWT
+ */
+export async function verifyAccessTokenJWT(token: string): Promise<{
+  valid: boolean;
+  payload?: AccessTokenJWTPayload;
+  error?: string;
+}> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET, {
+      issuer: 'shuffle-and-sync',
+      audience: 'api-access',
+    });
+    
+    const validatedPayload = AccessTokenJWTPayloadSchema.parse(payload);
+    return {
+      valid: true,
+      payload: validatedPayload,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
+    return { valid: false, error: errorMessage };
+  }
+}
+
+/**
+ * Verify and decode a refresh token JWT
+ */
+export async function verifyRefreshTokenJWT(token: string): Promise<{
+  valid: boolean;
+  payload?: RefreshTokenJWTPayload;
+  error?: string;
+}> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET, {
+      issuer: 'shuffle-and-sync',
+      audience: 'token-refresh',
+    });
+    
+    const validatedPayload = RefreshTokenJWTPayloadSchema.parse(payload);
+    return {
+      valid: true,
+      payload: validatedPayload,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
+    return { valid: false, error: errorMessage };
+  }
+}
+
+/**
+ * Generate a secure random refresh token ID
+ */
+export function generateRefreshTokenId(): string {
+  return randomBytes(32).toString('hex');
 }

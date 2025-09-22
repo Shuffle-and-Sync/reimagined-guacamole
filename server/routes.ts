@@ -21,7 +21,11 @@ import {
   verifyEmailVerificationJWT,
   generatePasswordResetJWT,
   verifyPasswordResetJWT,
-  TOKEN_EXPIRY 
+  TOKEN_EXPIRY,
+  generateAccessTokenJWT,
+  generateRefreshTokenJWT,
+  verifyRefreshTokenJWT,
+  generateRefreshTokenId
 } from "./auth/tokens";
 import { 
   generateTOTPSetup, 
@@ -59,6 +63,16 @@ import {
   validateGameSessionSchema,
   validateUUID 
 } from "./validation";
+import { z } from "zod";
+
+// JWT request validation schemas
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required")
+});
+
+const revokeTokenSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required")
+});
 import { 
   generalRateLimit, 
   authRateLimit, 
@@ -1768,6 +1782,241 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error('MFA status check failed', { error: error instanceof Error ? error.message : 'Unknown error', userId: getAuthUserId(req as AuthenticatedRequest) });
       res.status(500).json({ message: "Failed to get MFA status" });
+    }
+  });
+
+  // JWT Session Management endpoints  
+  app.post('/api/auth/refresh', authRateLimit, validateRequest(refreshTokenSchema), async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+      
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token is required" });
+      }
+      
+      // Verify the refresh token JWT
+      const { valid, payload, error } = await verifyRefreshTokenJWT(refreshToken);
+      if (!valid || !payload) {
+        logger.warn('Invalid refresh token attempted', { error, ip: req.ip });
+        return res.status(401).json({ message: "Invalid or expired refresh token" });
+      }
+      
+      // Check if refresh token exists in database and is not revoked
+      const tokenRecord = await storage.getRefreshToken(payload.tokenId);
+      if (!tokenRecord) {
+        logger.warn('Refresh token not found in database', { tokenId: payload.tokenId, ip: req.ip });
+        return res.status(401).json({ message: "Invalid refresh token" });
+      }
+      
+      // CRITICAL SECURITY: Check if token was already revoked (reuse detection)
+      if (tokenRecord.isRevoked) {
+        logger.error('SECURITY ALERT: Refresh token reuse detected - revoking all user tokens', {
+          userId: payload.userId,
+          tokenId: payload.tokenId,
+          ip: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+        
+        // Revoke ALL user's refresh tokens immediately
+        await storage.revokeAllUserRefreshTokens(payload.userId);
+        
+        // Log security incident to audit trail
+        await storage.createAuthAuditLog({
+          userId: payload.userId,
+          action: 'refresh_token_reuse_detected',
+          ipAddress: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+          success: false,
+          details: JSON.stringify({ tokenId: payload.tokenId, revokedAllTokens: true })
+        });
+        return res.status(401).json({ message: "Security violation detected - all tokens revoked" });
+      }
+      
+      // Get user details
+      const user = await storage.getUser(payload.userId);
+      if (!user) {
+        logger.warn('User not found for refresh token', { userId: payload.userId, ip: req.ip });
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // CRITICAL SECURITY: Implement refresh token rotation
+      // 1. Generate new refresh token ID and JWT
+      const newRefreshTokenId = generateRefreshTokenId();
+      const newRefreshTokenJWT = await generateRefreshTokenJWT(user.id, newRefreshTokenId);
+      
+      // 2. Generate new access token
+      const newAccessToken = await generateAccessTokenJWT(user.id, user.email);
+      
+      // 3. Atomic operation: Create new refresh token and revoke old one
+      try {
+        // Create new refresh token record
+        const newRefreshTokenData = {
+          id: newRefreshTokenId,
+          userId: user.id,
+          token: newRefreshTokenJWT,
+          userAgent: req.headers['user-agent'] || null,
+          ipAddress: req.ip || null,
+          expiresAt: new Date(Date.now() + TOKEN_EXPIRY.REFRESH_TOKEN * 1000),
+        };
+        
+        await storage.createRefreshToken(newRefreshTokenData);
+        
+        // Revoke the old refresh token
+        await storage.revokeRefreshToken(payload.tokenId);
+        
+        // Log successful token refresh to audit trail
+        await storage.createAuthAuditLog({
+          userId: user.id,
+          action: 'refresh_token_rotated',
+          ipAddress: req.ip || 'unknown', 
+          userAgent: req.headers['user-agent'] || 'unknown',
+          success: true,
+          details: JSON.stringify({ oldTokenId: payload.tokenId, newTokenId: newRefreshTokenId })
+        });
+        
+        logger.info('Refresh token rotation completed successfully', {
+          userId: user.id,
+          oldTokenId: payload.tokenId,
+          newTokenId: newRefreshTokenId,
+          ip: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+        
+        // Return both new access token and new refresh token
+        res.json({
+          accessToken: newAccessToken,
+          refreshToken: newRefreshTokenJWT,
+          expiresIn: TOKEN_EXPIRY.ACCESS_TOKEN,
+          tokenType: 'Bearer'
+        });
+        
+      } catch (rotationError) {
+        logger.error('Refresh token rotation failed', rotationError, {
+          userId: user.id,
+          tokenId: payload.tokenId,
+          ip: req.ip
+        });
+        
+        // If rotation fails, revoke the old token for security
+        await storage.revokeRefreshToken(payload.tokenId);
+        return res.status(500).json({ message: "Token rotation failed - please login again" });
+      }
+      
+    } catch (error) {
+      logger.error('Token refresh failed', error, {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      });
+      res.status(500).json({ message: "Failed to refresh token" });
+    }
+  });
+  
+  app.post('/api/auth/revoke', requireHybridAuth, authRateLimit, validateRequest(revokeTokenSchema), async (req, res) => {
+    try {
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = getAuthUserId(authenticatedReq);
+      const { refreshToken } = req.body;
+      
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token is required" });
+      }
+      
+      // Verify and get refresh token payload
+      const { valid, payload } = await verifyRefreshTokenJWT(refreshToken);
+      if (!valid || !payload) {
+        return res.status(400).json({ message: "Invalid refresh token" });
+      }
+      
+      // Ensure user can only revoke their own tokens
+      if (payload.userId !== userId) {
+        return res.status(403).json({ message: "Cannot revoke another user's token" });
+      }
+      
+      // Revoke the refresh token
+      await storage.revokeRefreshToken(payload.tokenId);
+      
+      logger.info('Refresh token revoked successfully', {
+        userId,
+        tokenId: payload.tokenId,
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      });
+      
+      res.json({ message: "Token revoked successfully" });
+      
+    } catch (error) {
+      logger.error('Token revocation failed', error, {
+        userId: getAuthUserId(req as AuthenticatedRequest),
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      });
+      res.status(500).json({ message: "Failed to revoke token" });
+    }
+  });
+  
+  app.post('/api/auth/revoke-all', requireHybridAuth, authRateLimit, async (req, res) => {
+    try {
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = getAuthUserId(authenticatedReq);
+      
+      // Get count of active tokens before revoking
+      const activeTokens = await storage.getUserActiveRefreshTokens(userId);
+      const tokenCount = activeTokens.length;
+      
+      // Revoke all user's refresh tokens
+      await storage.revokeAllUserRefreshTokens(userId);
+      
+      logger.info('All refresh tokens revoked for user', {
+        userId,
+        revokedTokenCount: tokenCount,
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      });
+      
+      res.json({ 
+        message: "All tokens revoked successfully",
+        revokedTokenCount: tokenCount
+      });
+      
+    } catch (error) {
+      logger.error('All tokens revocation failed', error, {
+        userId: getAuthUserId(req as AuthenticatedRequest),
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      });
+      res.status(500).json({ message: "Failed to revoke all tokens" });
+    }
+  });
+  
+  app.get('/api/auth/tokens', requireHybridAuth, async (req, res) => {
+    try {
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = getAuthUserId(authenticatedReq);
+      
+      // Get user's active refresh tokens
+      const activeTokens = await storage.getUserActiveRefreshTokens(userId);
+      
+      // Format tokens for response (hide sensitive data)
+      const tokenList = activeTokens.map(token => ({
+        id: token.id,
+        userAgent: token.userAgent,
+        ipAddress: token.ipAddress,
+        createdAt: token.createdAt,
+        lastUsed: token.lastUsed,
+        expiresAt: token.expiresAt,
+        isCurrentSession: req.headers['user-agent'] === token.userAgent // Basic heuristic
+      }));
+      
+      res.json({
+        tokens: tokenList,
+        totalActive: tokenList.length
+      });
+      
+    } catch (error) {
+      logger.error('Failed to fetch user tokens', error, {
+        userId: getAuthUserId(req as AuthenticatedRequest)
+      });
+      res.status(500).json({ message: "Failed to fetch active tokens" });
     }
   });
 

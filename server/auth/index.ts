@@ -55,3 +55,6 @@ export type { AuthenticatedRequest };
 
 // Re-export everything from middleware for convenience
 export * from './auth.middleware';
+
+// Export JWT-specific middleware for direct usage  
+export { requireJWTAuth, requireHybridAuth, optionalJWTAuth } from './auth.middleware';
