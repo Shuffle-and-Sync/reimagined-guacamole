@@ -8,7 +8,12 @@ export class CommunitiesService {
     try {
       return await storage.getCommunities();
     } catch (error) {
-      logger.error("Failed to fetch communities in CommunitiesService", error);
+      logger.error("Failed to fetch communities in CommunitiesService", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        errorType: error?.constructor?.name,
+        stringified: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      });
       throw error;
     }
   }

@@ -1,6 +1,6 @@
 // Dual database configuration for Drizzle + Prisma transition
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { pathToFileURL } from "url";
 import { resolve } from "path";
 import * as schema from "./schema";
@@ -9,9 +9,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required");
 }
 
-// Drizzle configuration (existing system)
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
+// Drizzle configuration (existing system) - using node-postgres driver with Pool
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
 
 // Prisma configuration (new system for advanced features) - using dynamic import
 declare global {
@@ -92,7 +92,7 @@ export async function initializePrisma() {
 export async function checkDatabaseHealth() {
   try {
     // Test Drizzle connection
-    await sql`SELECT 1`;
+    await pool.query('SELECT 1');
     
     // Test Prisma connection
     if (_prisma === null) {
