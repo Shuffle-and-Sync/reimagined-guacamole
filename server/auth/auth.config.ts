@@ -145,7 +145,12 @@ export const authConfig: AuthConfig = {
         
         return true;
       } catch (error) {
-        console.error("Sign-in callback error:", error);
+        console.error("Sign-in callback error:", {
+          error: error.message,
+          stack: error.stack,
+          user: user.email,
+          account: account?.provider,
+        });
         return false;
       }
     },
