@@ -16,8 +16,9 @@ import { gamesRoutes } from "./features/games/games.routes";
 import { errorHandler, requestLogger, corsHandler } from "./shared/middleware";
 import { securityHeaders } from "./validation";
 
-// Import Auth.js routes and webhook routes
-import authRouter from "./auth/auth.routes";
+// Import Auth.js configuration and webhook routes
+import { ExpressAuth } from "@auth/express";
+import authConfig from "./auth/auth.config";
 import webhooksRouter from "./routes/webhooks";
 import notificationPreferencesRouter from "./routes/notification-preferences";
 import monitoringRouter from "./routes/monitoring";
@@ -34,8 +35,9 @@ app.set('trust proxy', true);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Set up Auth.js routes AFTER body parsers so req.body is populated
-app.use(authRouter);
+// Set up Auth.js routes AFTER body parsers so req.body is populated  
+// AUTH_URL and AUTH_TRUST_HOST environment variables handle domain configuration
+app.use("/api/auth/*", ExpressAuth(authConfig));
 
 // Apply security headers (including CSP) before other routes
 app.use(securityHeaders);

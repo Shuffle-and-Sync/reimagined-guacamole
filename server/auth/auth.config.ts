@@ -193,7 +193,7 @@ export const authConfig: AuthConfig = {
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.AUTH_SECRET,
-  basePath: "/api/auth",
+  // basePath auto-detected from AUTH_URL environment variable
 };
 
 export default authConfig;
