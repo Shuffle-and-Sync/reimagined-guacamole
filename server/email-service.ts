@@ -40,16 +40,18 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 export async function sendPasswordResetEmail(
   email: string,
   resetToken: string,
-  baseUrl: string
+  baseUrl: string,
+  firstName?: string
 ): Promise<boolean> {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  const displayName = firstName || 'there';
   
   const emailParams: EmailParams = {
     to: email,
     from: 'noreply@shuffleandsync.com', // Replace with your verified sender
     subject: 'Reset Your Password - Shuffle & Sync',
     text: `
-Hello,
+Hello ${displayName},
 
 You requested a password reset for your Shuffle & Sync account.
 
@@ -84,8 +86,8 @@ The Shuffle & Sync Team
       <h1>🎮 Shuffle & Sync</h1>
     </div>
     <div class="content">
-      <h2>Reset Your Password</h2>
-      <p>Hello,</p>
+      <h2>👋 Hey ${displayName}!</h2>
+      <h3>Reset Your Password</h3>
       <p>You requested a password reset for your Shuffle & Sync account.</p>
       <p>Click the button below to reset your password:</p>
       <a href="${resetUrl}" class="button">Reset Password</a>

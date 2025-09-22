@@ -233,6 +233,7 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markTokenAsUsed(token: string): Promise<void>;
   cleanupExpiredTokens(): Promise<void>;
+  invalidateUserPasswordResetTokens(userId: string): Promise<void>;
   
   // Email verification operations
   createEmailVerificationToken(data: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
@@ -1392,6 +1393,22 @@ export class DatabaseStorage implements IStorage {
       .delete(passwordResetTokens)
       .where(
         sql`${passwordResetTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async invalidateUserPasswordResetTokens(userId: string): Promise<void> {
+    // First get the user's email to find their tokens
+    const user = await this.getUserById(userId);
+    if (!user?.email) return;
+    
+    await db
+      .update(passwordResetTokens)
+      .set({ isUsed: true })
+      .where(
+        and(
+          eq(passwordResetTokens.email, user.email),
+          eq(passwordResetTokens.isUsed, false)
+        )
       );
   }
 

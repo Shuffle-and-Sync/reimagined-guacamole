@@ -15,10 +15,12 @@ import {
 } from "@shared/schema";
 import { sendPasswordResetEmail, sendEmailVerificationEmail } from "./email-service";
 import { sendContactEmail } from "./email";
-import { randomBytes } from "crypto";
+import { validatePasswordStrength, hashPassword } from "./auth/password";
 import { 
   generateEmailVerificationJWT, 
   verifyEmailVerificationJWT,
+  generatePasswordResetJWT,
+  verifyPasswordResetJWT,
   TOKEN_EXPIRY 
 } from "./auth/tokens";
 import { logger } from "./logger";
@@ -1163,26 +1165,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user exists (we check this for security but don't reveal it)
       const userExists = await storage.getUserByEmail(email);
       
-      // Always return success to prevent email enumeration attacks
-      const token = randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-      const baseUrl = req.protocol + '://' + req.get('host');
-
       if (userExists) {
-        // Create password reset token
+        // Invalidate any existing reset tokens for this user
+        await storage.invalidateUserPasswordResetTokens(userExists.id);
+        
+        // Generate secure JWT token for password reset
+        const resetToken = await generatePasswordResetJWT(
+          userExists.id,
+          email,
+          TOKEN_EXPIRY.PASSWORD_RESET
+        );
+        
+        // Store token in database
+        const expiresAt = new Date(Date.now() + TOKEN_EXPIRY.PASSWORD_RESET * 1000);
         await storage.createPasswordResetToken({
           email,
-          token,
+          token: resetToken,
           expiresAt,
         });
 
-        // Send email
-        await sendPasswordResetEmail(email, token, baseUrl);
+        // Send email with trusted base URL
+        const baseUrl = process.env.AUTH_URL || process.env.PUBLIC_WEB_URL || 'https://shuffleandsync.org';
+        await sendPasswordResetEmail(email, resetToken, baseUrl, userExists.firstName || undefined);
       }
 
       res.json({ message: "If an account with that email exists, a password reset link has been sent." });
     } catch (error) {
-      logger.error("Failed to process forgot password request", error, { email: req.body.email });
+      logger.error('Password reset request failed', { email: req.body.email });
       res.status(500).json({ message: "Failed to process password reset request" });
     }
   });
@@ -1204,7 +1213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/reset-password', authRateLimit, validateRequest(validatePasswordResetSchema), async (req, res) => {
+  app.post('/api/auth/reset-password', passwordResetRateLimit, validateRequest(validatePasswordResetSchema), async (req, res) => {
     try {
       const { token, newPassword } = req.body;
       
@@ -1212,25 +1221,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Token and new password are required" });
       }
 
-      if (newPassword.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      // Validate password strength with enhanced security rules
+      const validation = validatePasswordStrength(newPassword);
+      if (!validation.valid) {
+        return res.status(400).json({ 
+          message: "Password does not meet security requirements",
+          details: validation.errors
+        });
       }
 
-      const resetToken = await storage.getPasswordResetToken(token);
+      // Verify JWT token
+      const jwtResult = await verifyPasswordResetJWT(token);
+      if (!jwtResult.valid) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
       
+      // Check token in database
+      const resetToken = await storage.getPasswordResetToken(token);
       if (!resetToken) {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
-
+      
+      // Find user by email from token
+      const user = await storage.getUserByEmail(resetToken.email);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid reset request" });
+      }
+      
+      // Hash new password with Argon2
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update user password
+      await storage.updateUser(user.id, { password: hashedPassword });
+      
       // Mark token as used
       await storage.markTokenAsUsed(token);
-
-      // Password updates are handled by Replit Auth system
-      // Token cleanup ensures one-time use security
       
-      res.json({ message: "Password reset successful" });
+      // Log successful password reset (without sensitive data)
+      logger.info('Password reset completed successfully', { userId: user.id, email: user.email });
+      
+      res.json({ message: "Password has been reset successfully" });
     } catch (error) {
-      logger.error("Failed to reset password", error, { token: req.body.token });
+      logger.error('Password reset failed', { error: error instanceof Error ? error.message : 'Unknown error' });
       res.status(500).json({ message: "Failed to reset password" });
     }
   });
