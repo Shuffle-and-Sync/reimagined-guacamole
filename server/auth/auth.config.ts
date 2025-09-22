@@ -177,10 +177,15 @@ export const authConfig: AuthConfig = {
     // Add redirect callback to control where users go after authentication
     async redirect({ url, baseUrl }) {
       console.log(`Auth.js redirect: url=${url}, baseUrl=${baseUrl}`);
+      // Prefer AUTH_URL over dynamic baseUrl to ensure consistent redirects to custom domain
+      const preferredBase = process.env.AUTH_URL || baseUrl;
+      console.log(`Using preferredBase: ${preferredBase} (AUTH_URL: ${process.env.AUTH_URL})`);
+      
       // Redirect to home page after successful sign in
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      if (url.startsWith(baseUrl)) return url;
-      return `${baseUrl}/home`; // Default redirect to home for authenticated users
+      if (url.startsWith('/')) return `${preferredBase}${url}`;
+      if (url.startsWith(preferredBase)) return url;
+      if (url.startsWith(baseUrl)) return url.replace(baseUrl, preferredBase);
+      return `${preferredBase}/home`; // Default redirect to home for authenticated users
     },
   },
   events: {
