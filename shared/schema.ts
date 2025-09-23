@@ -488,6 +488,39 @@ export const emailVerificationTokens = pgTable("email_verification_tokens", {
   index("idx_email_verification_email").on(table.email),
 ]);
 
+// Email change requests for secure email address updates
+export const emailChangeRequests = pgTable("email_change_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  currentEmail: varchar("current_email").notNull(), // User's current email
+  newEmail: varchar("new_email").notNull(), // Requested new email
+  status: varchar("status").notNull().default("pending"), // pending, verified, expired, cancelled
+  initiatedAt: timestamp("initiated_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+  expiresAt: timestamp("expires_at").notNull(), // Request expires in 24 hours
+}, (table) => [
+  index("idx_email_change_user_id").on(table.userId),
+  index("idx_email_change_status").on(table.status),
+  index("idx_email_change_new_email").on(table.newEmail),
+  index("idx_email_change_expires_at").on(table.expiresAt),
+]);
+
+// Email change verification tokens for secure email change confirmation
+export const emailChangeTokens = pgTable("email_change_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  emailChangeRequestId: varchar("email_change_request_id").notNull().references(() => emailChangeRequests.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  newEmail: varchar("new_email").notNull(),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_email_change_token").on(table.token),
+  index("idx_email_change_token_user_id").on(table.userId),
+  index("idx_email_change_token_request_id").on(table.emailChangeRequestId),
+]);
+
 // Refresh tokens for JWT session management
 export const refreshTokens = pgTable("refresh_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1394,6 +1427,18 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
 });
 
 export const insertEmailVerificationTokenSchema = createInsertSchema(emailVerificationTokens).omit({
+  id: true,
+  isUsed: true,
+  createdAt: true,
+});
+
+export const insertEmailChangeRequestSchema = createInsertSchema(emailChangeRequests).omit({
+  id: true,
+  initiatedAt: true,
+  completedAt: true,
+});
+
+export const insertEmailChangeTokenSchema = createInsertSchema(emailChangeTokens).omit({
   id: true,
   isUsed: true,
   createdAt: true,
@@ -2328,6 +2373,8 @@ export type Message = typeof messages.$inferSelect;
 export type GameSession = typeof gameSessions.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type EmailChangeRequest = typeof emailChangeRequests.$inferSelect;
+export type EmailChangeToken = typeof emailChangeTokens.$inferSelect;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
 export type UserMfaAttempts = typeof userMfaAttempts.$inferSelect;
@@ -2390,6 +2437,8 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertGameSession = z.infer<typeof insertGameSessionSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
+export type InsertEmailChangeRequest = z.infer<typeof insertEmailChangeRequestSchema>;
+export type InsertEmailChangeToken = z.infer<typeof insertEmailChangeTokenSchema>;
 export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 export type InsertUserMfaSettings = z.infer<typeof insertUserMfaSettingsSchema>;
 export type InsertUserMfaAttempts = z.infer<typeof insertUserMfaAttemptsSchema>;

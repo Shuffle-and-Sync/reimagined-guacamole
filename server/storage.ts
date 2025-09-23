@@ -13,6 +13,8 @@ import {
   gameSessions,
   passwordResetTokens,
   emailVerificationTokens,
+  emailChangeRequests,
+  emailChangeTokens,
   userSocialLinks,
   userGamingProfiles,
   friendships,
@@ -73,6 +75,8 @@ import {
   type Message,
   type GameSession,
   type PasswordResetToken,
+  type EmailChangeRequest,
+  type EmailChangeToken,
   type EmailVerificationToken,
   type UserSocialLink,
   type UserGamingProfile,
@@ -106,6 +110,8 @@ import {
   type InsertGameSession,
   type InsertPasswordResetToken,
   type InsertEmailVerificationToken,
+  type InsertEmailChangeRequest,
+  type InsertEmailChangeToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
   type InsertFriendship,
@@ -268,6 +274,17 @@ export interface IStorage {
   cleanupExpiredEmailVerificationTokens(): Promise<void>;
   getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined>;
   invalidateUserEmailVerificationTokens(userId: string): Promise<void>;
+  
+  // Email change operations
+  createEmailChangeRequest(data: InsertEmailChangeRequest): Promise<EmailChangeRequest>;
+  getEmailChangeRequest(id: string): Promise<EmailChangeRequest | undefined>;
+  getUserEmailChangeRequest(userId: string): Promise<EmailChangeRequest | undefined>;
+  updateEmailChangeRequest(id: string, data: Partial<InsertEmailChangeRequest>): Promise<EmailChangeRequest>;
+  createEmailChangeToken(data: InsertEmailChangeToken): Promise<EmailChangeToken>;
+  getEmailChangeToken(token: string): Promise<EmailChangeToken | undefined>;
+  markEmailChangeTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredEmailChangeTokens(): Promise<void>;
+  cancelEmailChangeRequest(userId: string): Promise<void>;
   
   // MFA operations
   getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined>;
@@ -1586,6 +1603,96 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(emailVerificationTokens.userId, userId),
           eq(emailVerificationTokens.isUsed, false)
+        )
+      );
+  }
+
+  // Email change operations implementation
+  async createEmailChangeRequest(data: InsertEmailChangeRequest): Promise<EmailChangeRequest> {
+    const [request] = await db
+      .insert(emailChangeRequests)
+      .values(data)
+      .returning();
+    return request;
+  }
+
+  async getEmailChangeRequest(id: string): Promise<EmailChangeRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(eq(emailChangeRequests.id, id));
+    return request;
+  }
+
+  async getUserEmailChangeRequest(userId: string): Promise<EmailChangeRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending"),
+          gte(emailChangeRequests.expiresAt, new Date())
+        )
+      )
+      .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);
+    return request;
+  }
+
+  async updateEmailChangeRequest(id: string, data: Partial<InsertEmailChangeRequest>): Promise<EmailChangeRequest> {
+    const [request] = await db
+      .update(emailChangeRequests)
+      .set(data)
+      .where(eq(emailChangeRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  async createEmailChangeToken(data: InsertEmailChangeToken): Promise<EmailChangeToken> {
+    const [token] = await db
+      .insert(emailChangeTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getEmailChangeToken(token: string): Promise<EmailChangeToken | undefined> {
+    const [changeToken] = await db
+      .select()
+      .from(emailChangeTokens)
+      .where(
+        and(
+          eq(emailChangeTokens.token, token),
+          eq(emailChangeTokens.isUsed, false),
+          gte(emailChangeTokens.expiresAt, new Date())
+        )
+      );
+    return changeToken;
+  }
+
+  async markEmailChangeTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(emailChangeTokens)
+      .set({ isUsed: true })
+      .where(eq(emailChangeTokens.token, token));
+  }
+
+  async cleanupExpiredEmailChangeTokens(): Promise<void> {
+    await db
+      .delete(emailChangeTokens)
+      .where(
+        sql`${emailChangeTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async cancelEmailChangeRequest(userId: string): Promise<void> {
+    await db
+      .update(emailChangeRequests)
+      .set({ status: "cancelled" })
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending")
         )
       );
   }

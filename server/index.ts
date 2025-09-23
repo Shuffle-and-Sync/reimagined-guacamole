@@ -33,6 +33,7 @@ import { sendEmailVerificationEmail } from "./email-service";
 import { generateEmailVerificationJWT, verifyEmailVerificationJWT, TOKEN_EXPIRY } from "./auth/tokens";
 import { storage } from "./storage";
 import { getAuthUserId } from "./auth";
+import { z } from "zod";
 
 const app = express();
 
@@ -255,6 +256,172 @@ app.use(securityHeaders);
     } catch (error) {
       logger.error("Failed to resend verification email", error);
       res.status(500).json({ message: "Failed to resend verification email" });
+    }
+  });
+
+  // Email change endpoints (Phase 2)
+  app.post('/api/email/initiate-email-change', authRateLimit, async (req, res) => {
+    try {
+      // Require authenticated user
+      let userId;
+      try {
+        userId = getAuthUserId(req);
+      } catch (authError) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Validate request body with Zod
+      const emailChangeSchema = z.object({
+        newEmail: z.string().email("Please enter a valid email address"),
+      });
+      
+      const validation = emailChangeSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: validation.error.errors[0]?.message || "Invalid email address" 
+        });
+      }
+      
+      const { newEmail } = validation.data;
+
+      // Get current user
+      const user = await storage.getUser(userId);
+      if (!user || !user.email) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if new email is same as current
+      if (user.email === newEmail) {
+        return res.status(400).json({ message: "New email address must be different from current email" });
+      }
+
+      // Check if new email is already taken by another user
+      const existingUser = await storage.getUserByEmail(newEmail);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(409).json({ message: "Email address is already in use by another account" });
+      }
+
+      // Check for existing pending email change request
+      const existingRequest = await storage.getUserEmailChangeRequest(userId);
+      if (existingRequest) {
+        return res.status(429).json({ 
+          message: "An email change request is already pending. Please complete or cancel the existing request first." 
+        });
+      }
+
+      // Create email change request
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      const emailChangeRequest = await storage.createEmailChangeRequest({
+        userId,
+        currentEmail: user.email,
+        newEmail,
+        status: "pending",
+        expiresAt,
+      });
+
+      // Generate JWT token for email change verification
+      const verificationToken = await generateEmailVerificationJWT(
+        userId, 
+        newEmail, 
+        TOKEN_EXPIRY.EMAIL_VERIFICATION
+      );
+      
+      // Store email change token
+      const tokenExpiresAt = new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION * 1000);
+      await storage.createEmailChangeToken({
+        emailChangeRequestId: emailChangeRequest.id,
+        userId,
+        newEmail,
+        token: verificationToken,
+        expiresAt: tokenExpiresAt,
+      });
+
+      // Send verification email to new email address
+      const baseUrl = process.env.AUTH_URL || process.env.PUBLIC_WEB_URL || 'https://shuffleandsync.org';
+      await sendEmailVerificationEmail(newEmail, verificationToken, baseUrl, user.firstName || undefined);
+
+      res.json({ 
+        message: "Email change verification sent to your new email address. Please check your inbox and click the verification link.",
+        expiresAt: expiresAt.toISOString()
+      });
+    } catch (error) {
+      logger.error("Failed to initiate email change", error);
+      res.status(500).json({ message: "Failed to initiate email change" });
+    }
+  });
+
+  app.get('/api/email/confirm-email-change', authRateLimit, async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Email change verification token is required" });
+      }
+
+      // Verify JWT token
+      const jwtResult = await verifyEmailVerificationJWT(token);
+      
+      if (!jwtResult.valid) {
+        return res.status(400).json({ message: "Invalid or expired verification token" });
+      }
+
+      // Check token in database
+      const dbToken = await storage.getEmailChangeToken(token);
+      
+      if (!dbToken) {
+        return res.status(400).json({ message: "Invalid or expired verification token" });
+      }
+
+      // Get the email change request
+      const emailChangeRequest = await storage.getEmailChangeRequest(dbToken.emailChangeRequestId);
+      
+      if (!emailChangeRequest || emailChangeRequest.status !== "pending") {
+        return res.status(400).json({ message: "Invalid or expired email change request" });
+      }
+
+      // Mark token as used
+      await storage.markEmailChangeTokenAsUsed(token);
+
+      // Update email change request status
+      await storage.updateEmailChangeRequest(emailChangeRequest.id, { 
+        status: "verified",
+        completedAt: new Date(),
+      });
+
+      // Update user's email address
+      await storage.updateUser(emailChangeRequest.userId, { 
+        email: emailChangeRequest.newEmail,
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
+      });
+
+      res.json({ 
+        message: "Email address updated successfully",
+        redirectUrl: "/dashboard" 
+      });
+    } catch (error) {
+      logger.error("Failed to confirm email change", error);
+      res.status(500).json({ message: "Failed to confirm email change" });
+    }
+  });
+
+  app.post('/api/email/cancel-email-change', authRateLimit, async (req, res) => {
+    try {
+      // Require authenticated user
+      let userId;
+      try {
+        userId = getAuthUserId(req);
+      } catch (authError) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Cancel any pending email change request
+      await storage.cancelEmailChangeRequest(userId);
+
+      res.json({ message: "Email change request cancelled successfully" });
+    } catch (error) {
+      logger.error("Failed to cancel email change", error);
+      res.status(500).json({ message: "Failed to cancel email change" });
     }
   });
 
