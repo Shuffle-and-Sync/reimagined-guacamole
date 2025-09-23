@@ -258,6 +258,13 @@ export interface IStorage {
   getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined>;
   createUserMfaSettings(data: InsertUserMfaSettings): Promise<UserMfaSettings>;
   updateUserMfaSettings(userId: string, data: Partial<InsertUserMfaSettings>): Promise<void>;
+  
+  /**
+   * Enable MFA for a user with TOTP secret and backup codes
+   * SECURITY: backupCodes must be ALREADY HASHED using Argon2id before calling this method
+   * The caller (routes layer) is responsible for hashing raw codes before storage
+   * This prevents plaintext backup codes from being stored in the database
+   */
   enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void>;
   disableUserMfa(userId: string): Promise<void>;
   updateUserMfaLastVerified(userId: string): Promise<void>;
@@ -1548,6 +1555,9 @@ export class DatabaseStorage implements IStorage {
   async enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void> {
     const now = new Date();
     
+    // SECURITY: backupCodes are already hashed by caller (routes layer) using Argon2id
+    // No additional hashing needed here to prevent double-hashing
+    
     // Update or create MFA settings
     const existingSettings = await this.getUserMfaSettings(userId);
     
@@ -1557,7 +1567,7 @@ export class DatabaseStorage implements IStorage {
         .set({
           isEnabled: true,
           totpSecret,
-          backupCodes,
+          backupCodes, // Already hashed by caller
           enabledAt: now,
         })
         .where(eq(userMfaSettings.userId, userId));
@@ -1568,7 +1578,7 @@ export class DatabaseStorage implements IStorage {
           userId,
           isEnabled: true,
           totpSecret,
-          backupCodes,
+          backupCodes, // Already hashed by caller
           enabledAt: now,
         });
     }
