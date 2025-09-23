@@ -100,19 +100,24 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       },
     };
 
-    // ENTERPRISE SESSION SECURITY VALIDATION
+    // ENTERPRISE SESSION SECURITY VALIDATION - Skip for JWT sessions
     try {
-      const sessionSecurityValidation = await enhancedSessionManager.validateSessionSecurity(
-        sessionData.user.id,
-        sessionData.sessionToken || 'session_unknown',
-        {
-          headers: req.headers,
-          ip: req.ip || req.connection.remoteAddress || 'unknown'
-        }
-      );
+      let sessionSecurityValidation = null;
+      
+      // JWT sessions don't expose sessionToken, so skip enhanced validation to prevent spurious failures
+      if (sessionData.sessionToken) {
+        sessionSecurityValidation = await enhancedSessionManager.validateSessionSecurity(
+          sessionData.user.id,
+          sessionData.sessionToken,
+          {
+            headers: req.headers,
+            ip: req.ip || req.connection.remoteAddress || 'unknown'
+          }
+        );
+      }
 
-      // Handle security assessment results
-      if (!sessionSecurityValidation.isValid) {
+      // Handle security assessment results only if validation was performed
+      if (sessionSecurityValidation && !sessionSecurityValidation.isValid) {
         logger.warn('Session terminated due to security assessment', {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
@@ -127,8 +132,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         });
       }
 
-      // Log successful security validation with warnings if any
-      if (sessionSecurityValidation.assessment.securityWarnings?.length) {
+      // Log successful security validation with warnings if any (only if validation was performed)
+      if (sessionSecurityValidation?.assessment.securityWarnings?.length) {
         logger.warn('Session security warnings detected', {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
@@ -137,13 +142,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         });
       }
 
-      // Proceed with normal authentication flow
-      logger.debug('Session security validation passed', {
-        userId: sessionData.user.id,
-        riskLevel: sessionSecurityValidation.assessment.riskLevel,
-        trustScore: sessionSecurityValidation.assessment.trustScore,
-        actionsExecuted: sessionSecurityValidation.actions
-      });
+      // Proceed with normal authentication flow (log only if validation was performed)
+      if (sessionSecurityValidation) {
+        logger.debug('Session security validation passed', {
+          userId: sessionData.user.id,
+          riskLevel: sessionSecurityValidation.assessment.riskLevel,
+          trustScore: sessionSecurityValidation.assessment.trustScore,
+          actionsExecuted: sessionSecurityValidation.actions
+        });
+      } else {
+        logger.debug('JWT session - skipped enhanced security validation', {
+          userId: sessionData.user.id
+        });
+      }
 
     } catch (error) {
       logger.error('Session security validation failed', {

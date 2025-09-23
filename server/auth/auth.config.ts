@@ -39,19 +39,17 @@ function getBaseUrl(): string {
 }
 
 export const authConfig: AuthConfig = {
-  // Dynamic base URL for correct CSRF and callback handling  
-  // basePath removed - router handles this to prevent redundancy warnings
-  
-  // CRITICAL: Override AUTH_URL in development to fix URL mismatch
+  // CRITICAL: Use dynamic URL and disable AUTH_URL in development to fix URL conflicts
   ...(process.env.NODE_ENV === 'development' && { 
     useSecureCookies: false,
     // Force Auth.js to use the actual server URL, not AUTH_URL
     url: getBaseUrl(),
-    // Additional overrides to force correct URL usage
-    secret: process.env.AUTH_SECRET,
-    // Debug configuration
-    debug: true
+    // Disable debug to reduce noise
+    debug: false
   }),
+  
+  // Secret configuration
+  secret: process.env.AUTH_SECRET,
   
   // Use JWT sessions instead of database sessions to avoid ORM conflicts
   session: {
@@ -59,6 +57,26 @@ export const authConfig: AuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: true, // Trust host for both development and production deployment
+
+  // CRITICAL: Add session callbacks to set user.id for profile lookups
+  callbacks: {
+    // JWT callback - persist user ID into token for session access
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+      }
+      return token;
+    },
+    // Session callback - add user ID to session object
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = String(token.id);
+        session.user.email = token.email;
+      }
+      return session;
+    },
+  },
   
   
   // Enhanced cookie settings for production security
