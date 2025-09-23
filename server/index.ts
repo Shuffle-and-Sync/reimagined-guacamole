@@ -2,6 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";
 import { initializePrisma } from "@shared/database";
+import { validateAndLogEnvironment, getEnvironmentStatus } from "./env-validation";
+import { startTimer, endTimer, setupGracefulShutdown, logMemoryConfiguration, warmupCriticalPaths } from "./startup-optimization";
+import { sql } from "drizzle-orm";
 
 // Import feature-based routes
 import { authRoutes } from "./features/auth/auth.routes";
@@ -53,14 +56,36 @@ app.use("/api/auth", ExpressAuth(authConfig));
 app.use(securityHeaders);
 
 (async () => {
+  // Log memory configuration recommendations
+  logMemoryConfiguration();
+  
+  startTimer('total-startup');
+  
+  // Validate environment variables early in startup
+  startTimer('env-validation');
+  try {
+    validateAndLogEnvironment();
+    endTimer('env-validation');
+  } catch (error) {
+    endTimer('env-validation');
+    logger.error('Environment validation failed during startup', error);
+    process.exit(1);
+  }
+
   // Initialize Prisma on server startup
+  startTimer('database-init');
   try {
     await initializePrisma();
+    endTimer('database-init');
     logger.info('Prisma client initialized successfully');
   } catch (error) {
+    endTimer('database-init');
     logger.error('Failed to initialize Prisma client', error);
     process.exit(1);
   }
+
+  // Warm up critical paths for faster initial requests
+  await warmupCriticalPaths();
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
@@ -424,9 +449,41 @@ app.use(securityHeaders);
     }
   });
 
-  // Health check route (keep this simple route here)
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  // Enhanced health check route with environment status and database connectivity
+  const startupTime = new Date();
+  app.get('/api/health', async (_req, res) => {
+    const envStatus = getEnvironmentStatus();
+    const uptime = Date.now() - startupTime.getTime();
+    
+    // Check database connectivity
+    let dbStatus = 'connected';
+    try {
+      const { db } = await import("@shared/database");
+      // Simple connectivity check using raw SQL
+      await db.execute(sql`SELECT 1`);
+    } catch (error) {
+      dbStatus = 'disconnected';
+      logger.warn('Database health check failed', error);
+    }
+    
+    const overallStatus = envStatus.valid && dbStatus === 'connected' ? 'ok' : 'degraded';
+    
+    res.json({ 
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(uptime / 1000), // seconds
+      environment: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        valid: envStatus.valid,
+        requiredVars: envStatus.requiredCount,
+        missingRequired: envStatus.missingRequired,
+        missingRecommended: envStatus.missingRecommended
+      },
+      services: {
+        database: dbStatus,
+        port: process.env.PORT || 'default',
+      }
+    });
   });
 
   // Create server for the remaining setup
@@ -449,17 +506,26 @@ app.use(securityHeaders);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Cloud Run and other platforms set PORT. In production, require PORT to be set.
+  // In development, default to 5000 for local testing.
+  const port = parseInt(
+    process.env.PORT ?? 
+    (app.get('env') === 'development' ? '5000' : (() => {
+      throw new Error("PORT environment variable must be set in production");
+    })())
+  , 10);
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
+    endTimer('total-startup');
     logger.info(`Server started successfully`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
     log(`serving on port ${port}`); // Keep Vite's log for development
+    
+    // Setup graceful shutdown handlers with server and database references
+    const { db, prisma } = await import("@shared/database");
+    setupGracefulShutdown(server, { drizzle: db, prisma });
     
     // Start monitoring service after server is running
     try {
