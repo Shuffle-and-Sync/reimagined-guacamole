@@ -39,14 +39,11 @@ export default function VerifyEmail() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
+      const response = await fetch(`/api/email/verify-email?token=${encodeURIComponent(verificationToken)}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token: verificationToken,
-        }),
       });
 
       if (response.ok) {
@@ -89,7 +86,7 @@ export default function VerifyEmail() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/resend-verification', {
+      const response = await fetch('/api/email/resend-verification-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

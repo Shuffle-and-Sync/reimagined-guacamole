@@ -2,6 +2,7 @@ import { MailService } from '@sendgrid/mail';
 import { logger } from './logger';
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const SENDGRID_SENDER = process.env.SENDGRID_SENDER || 'noreply@shuffleandsync.com';
 
 if (!SENDGRID_API_KEY) {
   throw new Error("SENDGRID_API_KEY environment variable must be set");
@@ -48,7 +49,7 @@ export async function sendPasswordResetEmail(
   
   const emailParams: EmailParams = {
     to: email,
-    from: 'noreply@shuffleandsync.com', // Replace with your verified sender
+    from: SENDGRID_SENDER,
     subject: 'Reset Your Password - Shuffle & Sync',
     text: `
 Hello ${displayName},
@@ -115,12 +116,12 @@ export async function sendEmailVerificationEmail(
   baseUrl: string,
   userName?: string
 ): Promise<boolean> {
-  const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
   const displayName = userName || 'there';
   
   const emailParams: EmailParams = {
     to: email,
-    from: 'noreply@shuffleandsync.com',
+    from: SENDGRID_SENDER,
     subject: 'Verify Your Email - Shuffle & Sync',
     text: `
 Hello ${displayName},
@@ -201,12 +202,12 @@ export async function sendEmailVerificationReminder(
   baseUrl: string,
   userName?: string
 ): Promise<boolean> {
-  const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
   const displayName = userName || 'there';
   
   const emailParams: EmailParams = {
     to: email,
-    from: 'noreply@shuffleandsync.com',
+    from: SENDGRID_SENDER,
     subject: 'Reminder: Verify Your Email - Shuffle & Sync',
     text: `
 Hello ${displayName},

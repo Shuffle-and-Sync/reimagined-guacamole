@@ -26,10 +26,19 @@ import infrastructureTestsRouter from "./routes/infrastructure-tests";
 import adminRoutes from "./admin/admin.routes";
 import { monitoringService } from "./services/monitoring-service";
 
+// Import email verification route dependencies
+import { validateEmailSchema, validateRequest } from "./validation";
+import { authRateLimit } from "./rate-limiting";
+import { sendEmailVerificationEmail } from "./email-service";
+import { generateEmailVerificationJWT, verifyEmailVerificationJWT, TOKEN_EXPIRY } from "./auth/tokens";
+import { storage } from "./storage";
+import { getAuthUserId } from "./auth";
+
 const app = express();
 
 // Trust proxy for correct x-forwarded-* headers (required for Auth.js host validation)
-app.set('trust proxy', true);
+// Use "1" to trust only the first proxy (safer than "true" for rate limiting)
+app.set('trust proxy', 1);
 
 // Basic middleware - body parsers MUST come before Auth.js routes
 app.use(express.json());
@@ -84,6 +93,170 @@ app.use(securityHeaders);
 
   // Register admin routes
   app.use('/api/admin', adminRoutes);
+
+  // Email verification endpoints (moved from routes.ts to avoid Auth.js conflicts)
+  app.post('/api/email/send-verification-email', authRateLimit, validateRequest(validateEmailSchema), async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal if email exists to prevent enumeration attacks
+        return res.json({ message: "If an account with that email exists, a verification email has been sent." });
+      }
+
+      // Check if email is already verified - but don't reveal this to prevent enumeration
+      if (user.isEmailVerified) {
+        return res.json({ message: "If an account with that email exists, a verification email has been sent." });
+      }
+
+      // Invalidate any existing verification tokens for this user
+      await storage.invalidateUserEmailVerificationTokens(user.id);
+      
+      // Generate JWT token for email verification
+      const verificationToken = await generateEmailVerificationJWT(
+        user.id, 
+        email, 
+        TOKEN_EXPIRY.EMAIL_VERIFICATION
+      );
+      
+      // Store token in database
+      const expiresAt = new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION * 1000);
+      await storage.createEmailVerificationToken({
+        userId: user.id,
+        email,
+        token: verificationToken,
+        expiresAt,
+      });
+
+      // Send verification email with trusted base URL
+      const baseUrl = process.env.AUTH_URL || process.env.PUBLIC_WEB_URL || 'https://shuffleandsync.org';
+      await sendEmailVerificationEmail(email, verificationToken, baseUrl, user.firstName || undefined);
+
+      res.json({ message: "If an account with that email exists, a verification email has been sent." });
+    } catch (error) {
+      logger.error("Failed to send verification email", error);
+      res.status(500).json({ message: "Failed to send verification email" });
+    }
+  });
+
+  app.get('/api/email/verify-email', async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Verification token is required" });
+      }
+
+      // Verify JWT token
+      const jwtResult = await verifyEmailVerificationJWT(token);
+      
+      if (!jwtResult.valid) {
+        return res.status(400).json({ message: "Invalid or expired verification token" });
+      }
+
+      // Check token in database
+      const dbToken = await storage.getEmailVerificationToken(token);
+      
+      if (!dbToken) {
+        return res.status(400).json({ message: "Invalid or expired verification token" });
+      }
+
+      // Mark token as used
+      await storage.markEmailVerificationTokenAsUsed(token);
+
+      // Update user's email verification status
+      await storage.updateUser(dbToken.userId, { 
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
+      });
+
+      res.json({ 
+        message: "Email verified successfully",
+        redirectUrl: "/dashboard" 
+      });
+    } catch (error) {
+      logger.error("Failed to verify email", error);
+      res.status(500).json({ message: "Failed to verify email" });
+    }
+  });
+
+  app.post('/api/email/resend-verification-email', authRateLimit, async (req, res) => {
+    try {
+      // Get user from session or request body
+      let userId;
+      try {
+        userId = getAuthUserId(req);
+      } catch {
+        // No session, use email from body
+      }
+      
+      const { email } = req.body;
+      
+      if (!userId && !email) {
+        return res.status(400).json({ message: "User session or email is required" });
+      }
+
+      let user;
+      if (userId) {
+        user = await storage.getUser(userId);
+      } else if (email) {
+        user = await storage.getUserByEmail(email);
+      }
+      
+      if (!user) {
+        // Don't reveal if user exists to prevent enumeration attacks
+        return res.json({ message: "If an account exists, a verification email has been sent." });
+      }
+
+      // Check if email is already verified - but don't reveal this to prevent enumeration
+      if (user.isEmailVerified) {
+        return res.json({ message: "If an account exists, a verification email has been sent." });
+      }
+
+      // Check for existing unexpired token
+      const existingToken = await storage.getEmailVerificationTokenByUserId(user.id);
+      if (existingToken) {
+        return res.status(429).json({ 
+          message: "A verification email was already sent recently. Please check your email or wait before requesting another." 
+        });
+      }
+
+      // Invalidate any existing verification tokens for this user
+      await storage.invalidateUserEmailVerificationTokens(user.id);
+      
+      // Generate new JWT token
+      const verificationToken = await generateEmailVerificationJWT(
+        user.id, 
+        user.email!, 
+        TOKEN_EXPIRY.EMAIL_VERIFICATION
+      );
+      
+      // Store token in database
+      const expiresAt = new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION * 1000);
+      await storage.createEmailVerificationToken({
+        userId: user.id,
+        email: user.email!,
+        token: verificationToken,
+        expiresAt,
+      });
+
+      // Send verification email with trusted base URL
+      const baseUrl = process.env.AUTH_URL || process.env.PUBLIC_WEB_URL || 'https://shuffleandsync.org';
+      await sendEmailVerificationEmail(user.email!, verificationToken, baseUrl, user.firstName || undefined);
+
+      res.json({ message: "If an account exists, a verification email has been sent." });
+    } catch (error) {
+      logger.error("Failed to resend verification email", error);
+      res.status(500).json({ message: "Failed to resend verification email" });
+    }
+  });
 
   // Health check route (keep this simple route here)
   app.get('/api/health', (_req, res) => {
