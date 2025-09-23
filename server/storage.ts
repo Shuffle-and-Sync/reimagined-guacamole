@@ -54,6 +54,7 @@ import {
   moderationTemplates,
   adminAuditLog,
   userMfaSettings,
+  userMfaAttempts,
   refreshTokens,
   authAuditLog,
   type User,
@@ -163,12 +164,14 @@ import {
   SafeUserPlatformAccount,
   type UserMfaSettings,
   type InsertUserMfaSettings,
+  type UserMfaAttempts,
+  type InsertUserMfaAttempts,
   type RefreshToken,
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
 } from "@shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -269,6 +272,13 @@ export interface IStorage {
   disableUserMfa(userId: string): Promise<void>;
   updateUserMfaLastVerified(userId: string): Promise<void>;
   markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void>;
+  
+  // MFA attempt tracking for throttling and lockout
+  getUserMfaAttempts(userId: string): Promise<UserMfaAttempts | undefined>;
+  recordMfaFailure(userId: string): Promise<void>;
+  resetMfaAttempts(userId: string): Promise<void>;
+  checkMfaLockout(userId: string): Promise<{ isLocked: boolean; lockoutEndsAt?: Date; failedAttempts: number }>;
+  cleanupExpiredMfaLockouts(): Promise<void>;
   
   // Refresh token operations
   createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken>;
@@ -1637,6 +1647,139 @@ export class DatabaseStorage implements IStorage {
         lastVerifiedAt: new Date()
       })
       .where(eq(userMfaSettings.userId, userId));
+  }
+
+  // MFA attempt tracking implementation for throttling and lockout
+  async getUserMfaAttempts(userId: string): Promise<UserMfaAttempts | undefined> {
+    const [attempts] = await db
+      .select()
+      .from(userMfaAttempts)
+      .where(eq(userMfaAttempts.userId, userId));
+    return attempts;
+  }
+
+  async recordMfaFailure(userId: string): Promise<void> {
+    const windowDurationMs = 15 * 60 * 1000; // 15 minutes failure window
+    
+    // Single atomic operation with proper SQL parameterization
+    await db
+      .insert(userMfaAttempts)
+      .values({
+        userId,
+        failedAttempts: 1,
+        lastFailedAt: sql`now()`,
+        lockedUntil: null,
+        windowStartedAt: sql`now()`,
+      })
+      .onConflictDoUpdate({
+        target: userMfaAttempts.userId,
+        set: {
+          // Compute new failure count once to avoid redundant calculations
+          failedAttempts: sql`
+            CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
+              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
+              ELSE ${userMfaAttempts.failedAttempts} + 1
+            END
+          `,
+          // Reset window if expired
+          windowStartedAt: sql`
+            CASE 
+              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN now()
+              ELSE ${userMfaAttempts.windowStartedAt}
+            END
+          `,
+          // Calculate lockout based on the new failure count (CTE wrapped in parentheses for PostgreSQL)
+          lockedUntil: sql`(
+            WITH new_count AS (
+              SELECT CASE 
+                WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
+                WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
+                ELSE ${userMfaAttempts.failedAttempts} + 1
+              END as count
+            )
+            SELECT CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lockedUntil}
+              WHEN new_count.count >= 5 THEN now() + interval '30 minutes'
+              WHEN new_count.count = 4 THEN now() + interval '8 minutes'
+              WHEN new_count.count = 3 THEN now() + interval '2 minutes'
+              WHEN new_count.count = 2 THEN now() + interval '30 seconds'
+              ELSE NULL
+            END
+            FROM new_count
+          )`,
+          // Always update lastFailedAt when processing a failure (except when locked)
+          lastFailedAt: sql`
+            CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lastFailedAt}
+              ELSE now()
+            END
+          `,
+          updatedAt: sql`now()`,
+        },
+      });
+  }
+
+  async resetMfaAttempts(userId: string): Promise<void> {
+    await db
+      .update(userMfaAttempts)
+      .set({
+        failedAttempts: 0,
+        lastFailedAt: null,
+        lockedUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(userMfaAttempts.userId, userId));
+  }
+
+  async checkMfaLockout(userId: string): Promise<{ isLocked: boolean; lockoutEndsAt?: Date; failedAttempts: number }> {
+    const attempts = await this.getUserMfaAttempts(userId);
+    
+    if (!attempts) {
+      return { isLocked: false, failedAttempts: 0 };
+    }
+    
+    const now = new Date();
+    const isLocked = attempts.lockedUntil && attempts.lockedUntil > now;
+    
+    return {
+      isLocked: !!isLocked,
+      lockoutEndsAt: isLocked ? attempts.lockedUntil : undefined,
+      failedAttempts: attempts.failedAttempts,
+    };
+  }
+
+  async cleanupExpiredMfaLockouts(): Promise<void> {
+    const now = new Date();
+    await db
+      .update(userMfaAttempts)
+      .set({
+        failedAttempts: 0,
+        lastFailedAt: null,
+        lockedUntil: null,
+        updatedAt: now,
+      })
+      .where(and(
+        isNotNull(userMfaAttempts.lockedUntil),
+        lte(userMfaAttempts.lockedUntil, now)
+      ));
+  }
+
+  /**
+   * Calculate lockout duration using exponential backoff
+   * 0-1 failures: No lockout
+   * 2 failures: 30 seconds
+   * 3 failures: 2 minutes  
+   * 4 failures: 8 minutes
+   * 5+ failures: 30 minutes
+   */
+  private calculateLockoutSeconds(failedAttempts: number): number {
+    if (failedAttempts < 2) return 0;
+    if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
+    
+    // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
+    const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
+    return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
   }
 
   // Refresh token operations implementation

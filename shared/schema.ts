@@ -521,6 +521,22 @@ export const userMfaSettings = pgTable("user_mfa_settings", {
   index("idx_user_mfa_settings_enabled").on(table.isEnabled),
 ]);
 
+// MFA attempt tracking for per-user throttling and lockout protection
+export const userMfaAttempts = pgTable("user_mfa_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  failedAttempts: integer("failed_attempts").default(0),
+  lastFailedAt: timestamp("last_failed_at"),
+  lockedUntil: timestamp("locked_until"), // When current lockout expires (null = not locked)
+  windowStartedAt: timestamp("window_started_at").defaultNow(), // Start of current failure tracking window
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_mfa_attempts_user_id").on(table.userId),
+  index("idx_user_mfa_attempts_locked_until").on(table.lockedUntil),
+  index("idx_user_mfa_attempts_last_failed").on(table.lastFailedAt),
+]);
+
 // WebAuthn/FIDO2 authenticator registrations  
 export const webauthnCredentials = pgTable("webauthn_credentials", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1288,6 +1304,17 @@ export const insertUserMfaSettingsSchema = createInsertSchema(userMfaSettings, {
 }).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertUserMfaAttemptsSchema = createInsertSchema(userMfaAttempts, {
+  failedAttempts: z.number().int().min(0).optional(),
+  lastFailedAt: z.coerce.date().optional(),
+  lockedUntil: z.coerce.date().optional(),
+  windowStartedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertWebauthnCredentialSchema = createInsertSchema(webauthnCredentials, {
@@ -2128,6 +2155,7 @@ export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
+export type UserMfaAttempts = typeof userMfaAttempts.$inferSelect;
 export type WebauthnCredential = typeof webauthnCredentials.$inferSelect;
 export type AuthAuditLog = typeof authAuditLog.$inferSelect;
 export type UserSocialLink = typeof userSocialLinks.$inferSelect;
@@ -2186,6 +2214,7 @@ export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSc
 export type InsertEmailVerificationToken = z.infer<typeof insertEmailVerificationTokenSchema>;
 export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 export type InsertUserMfaSettings = z.infer<typeof insertUserMfaSettingsSchema>;
+export type InsertUserMfaAttempts = z.infer<typeof insertUserMfaAttemptsSchema>;
 export type InsertWebauthnCredential = z.infer<typeof insertWebauthnCredentialSchema>;
 export type InsertAuthAuditLog = z.infer<typeof insertAuthAuditLogSchema>;
 export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
