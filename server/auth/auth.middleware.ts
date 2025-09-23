@@ -57,9 +57,10 @@ export type AuthenticatedRequest = Request;
 // Middleware to check if user is authenticated (replaces old isAuthenticated)
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    // Build the session check URL
-    const base = process.env.AUTH_URL || 
-      `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    // Build the session check URL - ignore AUTH_URL in development to use actual request host
+    const base = process.env.NODE_ENV === 'production' 
+      ? (process.env.AUTH_URL || process.env.NEXTAUTH_URL || `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`)
+      : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const sessionUrl = `${base}/api/auth/session`;
     
     // Create Auth.js session request
@@ -167,9 +168,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 // Middleware to optionally get user session (doesn't require auth)
 export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    // Build the session check URL
-    const base = process.env.AUTH_URL || 
-      `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    // Build the session check URL - ignore AUTH_URL in development to use actual request host
+    const base = process.env.NODE_ENV === 'production' 
+      ? (process.env.AUTH_URL || process.env.NEXTAUTH_URL || `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`)
+      : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const sessionUrl = `${base}/api/auth/session`;
     
     // Create Auth.js session request
