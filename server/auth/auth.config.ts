@@ -44,8 +44,6 @@ export const authConfig: AuthConfig = {
     useSecureCookies: false,
     // Force Auth.js to use the actual server URL, not AUTH_URL
     url: getBaseUrl(),
-    // Disable debug to reduce noise
-    debug: false
   }),
   
   // Secret configuration
@@ -57,26 +55,6 @@ export const authConfig: AuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: true, // Trust host for both development and production deployment
-
-  // CRITICAL: Add session callbacks to set user.id for profile lookups
-  callbacks: {
-    // JWT callback - persist user ID into token for session access
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-      }
-      return token;
-    },
-    // Session callback - add user ID to session object
-    async session({ session, token }) {
-      if (token?.id) {
-        session.user.id = String(token.id);
-        session.user.email = token.email;
-      }
-      return session;
-    },
-  },
   
   
   // Enhanced cookie settings for production security
@@ -340,20 +318,30 @@ export const authConfig: AuthConfig = {
       }
     })
   ],
+  
+  // CONSOLIDATED: All callbacks in one section to fix duplicate property errors
   callbacks: {
+    // JWT callback - persist user ID into token for session access
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+      }
+      return token;
+    },
+    // Session callback - add user ID to session object
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = String(token.id);
+        session.user.email = String(token.email || ''); // Fix type error
+      }
+      return session;
+    },
     async signIn({ user, account, profile }) {
-      console.log("=== AUTH.JS SIGNIN CALLBACK TRIGGERED ===");
-      console.log("User:", user.email, user.name);
-      console.log("Account:", account?.provider, account?.type);
-      console.log("Profile:", profile ? "present" : "missing");
-      
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
-          console.log("Processing OAuth provider:", account?.provider);
-          console.log("Checking for existing user with email:", user.email);
           let existingUser = await storage.getUserByEmail(user.email!);
-          console.log("Existing user found:", existingUser ? "YES" : "NO");
           
           if (!existingUser) {
             // Create new user from OAuth profile  
@@ -387,50 +375,16 @@ export const authConfig: AuthConfig = {
         
         return true;
       } catch (error) {
-        console.error("Sign-in callback error:", {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          user: user.email,
-          account: account?.provider,
-        });
+        console.error("Sign-in callback error:", error);
         return false;
       }
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.userId = user.id;
-        token.email = user.email;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token?.userId) {
-        session.user.id = token.userId as string;
-        
-        // Fetch fresh user data from storage for each session
-        try {
-          const user = await storage.getUser(token.userId as string);
-          if (user) {
-            session.user.email = user.email || '';
-            session.user.name = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.email || '');
-            session.user.image = user.profileImageUrl;
-          }
-        } catch (error) {
-          console.error("Session callback error:", error);
-        }
-      }
-      return session;
-    },
     // Add redirect callback to control where users go after authentication
     async redirect({ url, baseUrl }) {
-      console.log(`Auth.js redirect: url=${url}, baseUrl=${baseUrl}`);
-      
       // CRITICAL FIX: In development, ignore AUTH_URL and use actual server baseUrl
       const preferredBase = process.env.NODE_ENV === 'development' 
         ? baseUrl  // Use actual server URL in development
         : (process.env.AUTH_URL || baseUrl); // Use AUTH_URL in production
-      
-      console.log(`Using preferredBase: ${preferredBase} (NODE_ENV: ${process.env.NODE_ENV}, AUTH_URL: ${process.env.AUTH_URL})`);
       
       // Redirect to home page after successful sign in
       if (url.startsWith('/')) return `${preferredBase}${url}`;
@@ -439,6 +393,7 @@ export const authConfig: AuthConfig = {
       return `${preferredBase}/home`; // Default redirect to home for authenticated users
     },
   },
+  
   events: {
     signIn({ user, account, isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);
@@ -447,9 +402,6 @@ export const authConfig: AuthConfig = {
       console.log(`User signed out`);
     },
   },
+  
   debug: process.env.NODE_ENV === "development",
-  secret: process.env.AUTH_SECRET,
-  // basePath auto-detected from AUTH_URL environment variable
 };
-
-export default authConfig;
