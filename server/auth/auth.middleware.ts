@@ -2,10 +2,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
 import authConfig from "./auth.config";
-import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload } from "./tokens";
+import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload, revokeTokenByJTI } from "./tokens";
 import { extractDeviceContext } from "./device-fingerprinting";
 import { logger } from "../logger";
 import { storage } from "../storage";
+import { enhancedSessionManager } from "./session-security";
 
 // Auth.js session type
 export interface AuthSession {
@@ -97,6 +98,64 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         email: sessionData.user.email,
       },
     };
+
+    // ENTERPRISE SESSION SECURITY VALIDATION
+    try {
+      const sessionSecurityValidation = await enhancedSessionManager.validateSessionSecurity(
+        sessionData.user.id,
+        sessionData.sessionToken || 'session_unknown',
+        {
+          headers: req.headers,
+          ip: req.ip || req.connection.remoteAddress || 'unknown'
+        }
+      );
+
+      // Handle security assessment results
+      if (!sessionSecurityValidation.isValid) {
+        logger.warn('Session terminated due to security assessment', {
+          userId: sessionData.user.id,
+          riskLevel: sessionSecurityValidation.assessment.riskLevel,
+          riskScore: sessionSecurityValidation.assessment.riskScore,
+          actions: sessionSecurityValidation.actions,
+          ip: req.ip
+        });
+        
+        return res.status(401).json({ 
+          message: "Session terminated for security reasons",
+          securityLevel: sessionSecurityValidation.assessment.riskLevel
+        });
+      }
+
+      // Log successful security validation with warnings if any
+      if (sessionSecurityValidation.assessment.securityWarnings?.length) {
+        logger.warn('Session security warnings detected', {
+          userId: sessionData.user.id,
+          riskLevel: sessionSecurityValidation.assessment.riskLevel,
+          securityWarnings: sessionSecurityValidation.assessment.securityWarnings,
+          ip: req.ip
+        });
+      }
+
+      // Proceed with normal authentication flow
+      logger.debug('Session security validation passed', {
+        userId: sessionData.user.id,
+        riskLevel: sessionSecurityValidation.assessment.riskLevel,
+        trustScore: sessionSecurityValidation.assessment.trustScore,
+        actionsExecuted: sessionSecurityValidation.actions
+      });
+
+    } catch (error) {
+      logger.error('Session security validation failed', {
+        userId: sessionData.user.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        ip: req.ip
+      });
+      
+      // Fail-safe: deny access on security validation failure
+      return res.status(500).json({ 
+        message: "Session security validation failed" 
+      });
+    }
 
     next();
   } catch (error) {

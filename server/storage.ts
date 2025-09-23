@@ -338,7 +338,8 @@ export interface IStorage {
   
   // Auth audit log operations
   createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog>;
-  getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]>;
+  getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number; hours?: number }): Promise<AuthAuditLog[]>;
+  getRecentAuthFailures(userId: string, hours: number): Promise<AuthAuditLog[]>;
   
   // JWT token revocation (enterprise security)
   revokeJWT(jti: string, userId: string, tokenType: string, reason: string, expiresAt: Date, originalExpiry?: Date, ipAddress?: string, userAgent?: string): Promise<void>;
@@ -2278,7 +2279,7 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount || 0;
   }
 
-  async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]> {
+  async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number; hours?: number }): Promise<AuthAuditLog[]> {
     let query = db.select().from(authAuditLog);
     
     const conditions = [];
@@ -2287,6 +2288,12 @@ export class DatabaseStorage implements IStorage {
     }
     if (filters?.eventType) {
       conditions.push(eq(authAuditLog.eventType, filters.eventType));
+    }
+    
+    // Add time filter if hours is specified
+    if (filters?.hours) {
+      const hoursAgo = new Date(Date.now() - filters.hours * 60 * 60 * 1000);
+      conditions.push(gte(authAuditLog.createdAt, hoursAgo));
     }
     
     if (conditions.length > 0) {
@@ -2300,6 +2307,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query;
+  }
+
+  async getRecentAuthFailures(userId: string, hours: number): Promise<AuthAuditLog[]> {
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
+    
+    return await db
+      .select()
+      .from(authAuditLog)
+      .where(and(
+        eq(authAuditLog.userId, userId),
+        eq(authAuditLog.isSuccessful, false),
+        gte(authAuditLog.createdAt, hoursAgo)
+      ))
+      .orderBy(desc(authAuditLog.createdAt));
   }
 
   // Notification operations

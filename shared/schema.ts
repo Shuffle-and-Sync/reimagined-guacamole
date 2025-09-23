@@ -1504,14 +1504,16 @@ export const insertAuthAuditLogSchema = createInsertSchema(authAuditLog, {
   eventType: z.enum([
     "login_success", "login_failure", "password_change", "password_reset", 
     "email_verification", "mfa_enabled", "mfa_disabled", "mfa_verified",
-    "account_locked", "account_unlocked", "registration", "logout"
+    "account_locked", "account_unlocked", "registration", "logout",
+    "security_assessment", "session_terminated", "device_verification_requested"
   ]),
   details: z.any().optional(),
   riskScore: z.coerce.number().min(0).max(1).optional(),
   isSuccessful: z.boolean().optional(),
   failureReason: z.enum([
     "invalid_password", "account_locked", "mfa_required", "invalid_mfa_code",
-    "email_not_verified", "account_disabled", "rate_limited", "invalid_token"
+    "email_not_verified", "account_disabled", "rate_limited", "invalid_token",
+    "high_risk_detected", "security_policy"
   ]).optional(),
 }).omit({
   id: true,
