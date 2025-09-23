@@ -39,8 +39,8 @@ function getBaseUrl(): string {
 }
 
 export const authConfig: AuthConfig = {
-  // Dynamic base URL for correct CSRF and callback handling
-  basePath: "/api/auth",
+  // Dynamic base URL for correct CSRF and callback handling  
+  // basePath removed - router handles this to prevent redundancy warnings
   
   // CRITICAL: Override AUTH_URL in development to fix URL mismatch
   ...(process.env.NODE_ENV === 'development' && { 
