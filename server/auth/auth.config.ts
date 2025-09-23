@@ -16,13 +16,37 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+// Dynamic base URL configuration for development vs production
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+  }
+  
+  // Development mode: use Replit development domain
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  
+  // Fallback for local development
+  return 'http://localhost:5000';
+};
+
+// Override AUTH_URL for development to prevent domain mismatch
+if (process.env.NODE_ENV === 'development' && process.env.REPLIT_DEV_DOMAIN) {
+  process.env.AUTH_URL = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+}
+
 export const authConfig: AuthConfig = {
+  // Dynamic base URL for correct CSRF and callback handling
+  basePath: "/api/auth",
+  
   // Use JWT sessions instead of database sessions to avoid ORM conflicts
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: true, // Trust host for both development and production deployment
+  
   
   // Enhanced cookie settings for production security
   cookies: {
