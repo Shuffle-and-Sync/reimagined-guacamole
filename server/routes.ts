@@ -35,6 +35,7 @@ import {
   validateMFASetupRequirements,
   generateBackupCodes 
 } from "./auth/mfa";
+import { generateDeviceFingerprint, extractDeviceContext } from "./auth/device-fingerprinting";
 import { logger } from "./logger";
 import { NotFoundError, ValidationError } from "./types";
 import analyticsRouter from "./routes/analytics";
@@ -1639,6 +1640,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!code) {
         return res.status(400).json({ message: "Verification code is required" });
       }
+
+      // Extract device context for security validation
+      const deviceContext = extractDeviceContext(req.headers, req.ip || req.connection.remoteAddress || 'unknown');
+      const deviceFingerprint = generateDeviceFingerprint(deviceContext);
+      
+      // Calculate device risk score
+      const riskAssessment = await storage.calculateDeviceRiskScore(userId, {
+        userAgent: deviceContext.userAgent,
+        ipAddress: deviceContext.ipAddress,
+        location: deviceContext.location,
+        timezone: deviceContext.timezone
+      });
+
+      // Validate device context and get trust score  
+      const deviceValidation = await storage.validateDeviceContext(userId, deviceFingerprint.hash);
       
       // Get user MFA settings
       const mfaSettings = await storage.getUserMfaSettings(userId);
@@ -1669,9 +1685,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isValid) {
         // Update last verified timestamp
         await storage.updateUserMfaLastVerified(userId);
+
+        // Store MFA security context for this verification
+        await storage.createMfaSecurityContext({
+          userId,
+          deviceFingerprintId: deviceValidation.deviceFingerprint?.id || null,
+          verificationMethod: isBackupCode ? 'backup_code' : 'totp',
+          riskScore: riskAssessment.riskScore,
+          trustScore: deviceValidation.trustScore,
+          ipAddress: deviceContext.ipAddress,
+          location: deviceContext.location || null,
+          riskFactors: riskAssessment.riskFactors.length > 0 ? riskAssessment.riskFactors : null,
+          isSuccessful: true,
+          newDevice: !deviceValidation.deviceFingerprint,
+          newLocation: riskAssessment.riskFactors.includes('location_change'),
+          newIpRange: riskAssessment.riskFactors.includes('ip_change'),
+          suspiciousActivity: riskAssessment.riskScore > 0.8
+        });
+
+        // Update device fingerprint with successful verification
+        if (deviceValidation.deviceFingerprint) {
+          await storage.updateDeviceLastSeen(deviceFingerprint.hash);
+          // Increment successful verifications via updateDeviceFingerprint
+          await storage.updateDeviceFingerprint(deviceValidation.deviceFingerprint.id, {
+            successfulMfaAttempts: (deviceValidation.deviceFingerprint.successfulMfaAttempts || 0) + 1,
+            totalSessions: (deviceValidation.deviceFingerprint.totalSessions || 0) + 1,
+            lastSeenAt: new Date()
+          });
+        }
         
         // Log successful MFA verification with audit trail
-        logger.info('MFA verification successful', { userId, isBackupCode });
+        logger.info('MFA verification successful', { 
+          userId, 
+          isBackupCode,
+          deviceTrustScore: deviceValidation.trustScore,
+          riskScore: riskAssessment.riskScore,
+          riskFactorsDetected: riskAssessment.riskFactors.length
+        });
         
         // Create audit log entry
         await storage.createAuditLog({
@@ -1679,13 +1729,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eventType: 'mfa_verified',
           details: { 
             method: isBackupCode ? 'backup_code' : 'totp',
-            userAgent: req.get('User-Agent') || 'Unknown'
+            userAgent: req.get('User-Agent') || 'Unknown',
+            deviceTrustScore: deviceValidation.trustScore,
+            riskScore: riskAssessment.riskScore
           },
           ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
           isSuccessful: true
         });
         
-        res.json({ message: "MFA verification successful" });
+        res.json({ 
+          message: "MFA verification successful",
+          securityContext: {
+            trustScore: deviceValidation.trustScore,
+            riskScore: riskAssessment.riskScore,
+            deviceTrusted: deviceValidation.trustScore > 0.7
+          }
+        });
       } else {
         // Log failed MFA verification with audit trail
         logger.warn('MFA verification failed', { userId, isBackupCode });

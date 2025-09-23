@@ -55,6 +55,9 @@ import {
   adminAuditLog,
   userMfaSettings,
   userMfaAttempts,
+  deviceFingerprints,
+  mfaSecurityContext,
+  trustedDevices,
   refreshTokens,
   authAuditLog,
   type User,
@@ -166,6 +169,12 @@ import {
   type InsertUserMfaSettings,
   type UserMfaAttempts,
   type InsertUserMfaAttempts,
+  type DeviceFingerprint,
+  type InsertDeviceFingerprint,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
+  type TrustedDevice,
+  type InsertTrustedDevice,
   type RefreshToken,
   type InsertRefreshToken,
   type AuthAuditLog,
@@ -279,6 +288,40 @@ export interface IStorage {
   resetMfaAttempts(userId: string): Promise<void>;
   checkMfaLockout(userId: string): Promise<{ isLocked: boolean; lockoutEndsAt?: Date; failedAttempts: number }>;
   cleanupExpiredMfaLockouts(): Promise<void>;
+  
+  // Device fingerprinting for enhanced MFA security
+  getDeviceFingerprint(fingerprintHash: string): Promise<DeviceFingerprint | undefined>;
+  getUserDeviceFingerprints(userId: string): Promise<DeviceFingerprint[]>;
+  createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint>;
+  updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void>;
+  deleteDeviceFingerprint(id: string): Promise<void>;
+  updateDeviceLastSeen(fingerprintHash: string): Promise<void>;
+  
+  // MFA security context tracking
+  createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext>;
+  getMfaSecurityContext(userId: string, options?: { limit?: number; onlyFailures?: boolean }): Promise<MfaSecurityContext[]>;
+  updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void>;
+  
+  // Trusted device management
+  getUserTrustedDevices(userId: string): Promise<(TrustedDevice & { deviceFingerprint: DeviceFingerprint })[]>;
+  createTrustedDevice(data: InsertTrustedDevice): Promise<TrustedDevice>;
+  updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void>;
+  revokeTrustedDevice(id: string, reason: string): Promise<void>;
+  cleanupExpiredTrustedDevices(): Promise<void>;
+  
+  // Device security validation
+  calculateDeviceRiskScore(userId: string, context: {
+    userAgent: string;
+    ipAddress: string;
+    location?: string;
+    timezone?: string;
+  }): Promise<{ riskScore: number; riskFactors: string[] }>;
+  validateDeviceContext(userId: string, fingerprintHash: string): Promise<{
+    isValid: boolean;
+    trustScore: number;
+    requiresAdditionalVerification: boolean;
+    deviceFingerprint?: DeviceFingerprint;
+  }>;
   
   // Refresh token operations
   createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken>;
@@ -1763,6 +1806,333 @@ export class DatabaseStorage implements IStorage {
         isNotNull(userMfaAttempts.lockedUntil),
         lte(userMfaAttempts.lockedUntil, now)
       ));
+  }
+
+  // Device fingerprinting implementation for enhanced MFA security
+  async getDeviceFingerprint(fingerprintHash: string): Promise<DeviceFingerprint | undefined> {
+    const [fingerprint] = await db
+      .select()
+      .from(deviceFingerprints)
+      .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash))
+      .limit(1);
+    return fingerprint;
+  }
+
+  async getUserDeviceFingerprints(userId: string): Promise<DeviceFingerprint[]> {
+    return await db
+      .select()
+      .from(deviceFingerprints)
+      .where(and(
+        eq(deviceFingerprints.userId, userId),
+        eq(deviceFingerprints.isActive, true)
+      ))
+      .orderBy(desc(deviceFingerprints.lastSeenAt));
+  }
+
+  async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
+    const [fingerprint] = await db
+      .insert(deviceFingerprints)
+      .values(data)
+      .returning();
+    return fingerprint;
+  }
+
+  async updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void> {
+    await db
+      .update(deviceFingerprints)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(deviceFingerprints.id, id));
+  }
+
+  async deleteDeviceFingerprint(id: string): Promise<void> {
+    await db
+      .update(deviceFingerprints)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(deviceFingerprints.id, id));
+  }
+
+  async updateDeviceLastSeen(fingerprintHash: string): Promise<void> {
+    const now = new Date();
+    await db
+      .update(deviceFingerprints)
+      .set({
+        lastSeenAt: now,
+        updatedAt: now,
+      })
+      .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash));
+  }
+
+  // MFA security context implementation
+  async createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext> {
+    const [context] = await db
+      .insert(mfaSecurityContext)
+      .values(data)
+      .returning();
+    return context;
+  }
+
+  async getMfaSecurityContext(userId: string, options?: { limit?: number; onlyFailures?: boolean }): Promise<MfaSecurityContext[]> {
+    const { limit = 50, onlyFailures = false } = options || {};
+    
+    let query = db
+      .select()
+      .from(mfaSecurityContext)
+      .where(eq(mfaSecurityContext.userId, userId));
+      
+    if (onlyFailures) {
+      query = query.where(eq(mfaSecurityContext.isSuccessful, false));
+    }
+    
+    return await query
+      .orderBy(desc(mfaSecurityContext.createdAt))
+      .limit(limit);
+  }
+
+  async updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void> {
+    await db
+      .update(mfaSecurityContext)
+      .set(data)
+      .where(eq(mfaSecurityContext.id, id));
+  }
+
+  // Trusted device management implementation
+  async getUserTrustedDevices(userId: string): Promise<(TrustedDevice & { deviceFingerprint: DeviceFingerprint })[]> {
+    return await db
+      .select({
+        id: trustedDevices.id,
+        userId: trustedDevices.userId,
+        deviceFingerprintId: trustedDevices.deviceFingerprintId,
+        name: trustedDevices.name,
+        description: trustedDevices.description,
+        trustLevel: trustedDevices.trustLevel,
+        autoTrustMfa: trustedDevices.autoTrustMfa,
+        trustDurationDays: trustedDevices.trustDurationDays,
+        lastUsedAt: trustedDevices.lastUsedAt,
+        totalLogins: trustedDevices.totalLogins,
+        isActive: trustedDevices.isActive,
+        revokedAt: trustedDevices.revokedAt,
+        revokedReason: trustedDevices.revokedReason,
+        expiresAt: trustedDevices.expiresAt,
+        verifiedAt: trustedDevices.verifiedAt,
+        verificationMethod: trustedDevices.verificationMethod,
+        createdAt: trustedDevices.createdAt,
+        updatedAt: trustedDevices.updatedAt,
+        deviceFingerprint: deviceFingerprints,
+      })
+      .from(trustedDevices)
+      .innerJoin(deviceFingerprints, eq(trustedDevices.deviceFingerprintId, deviceFingerprints.id))
+      .where(and(
+        eq(trustedDevices.userId, userId),
+        eq(trustedDevices.isActive, true),
+        or(
+          eq(trustedDevices.expiresAt, sql`NULL`),
+          gte(trustedDevices.expiresAt, new Date())
+        )
+      ))
+      .orderBy(desc(trustedDevices.lastUsedAt));
+  }
+
+  async createTrustedDevice(data: InsertTrustedDevice): Promise<TrustedDevice> {
+    const [trustedDevice] = await db
+      .insert(trustedDevices)
+      .values(data)
+      .returning();
+    return trustedDevice;
+  }
+
+  async updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void> {
+    await db
+      .update(trustedDevices)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(trustedDevices.id, id));
+  }
+
+  async revokeTrustedDevice(id: string, reason: string): Promise<void> {
+    const now = new Date();
+    await db
+      .update(trustedDevices)
+      .set({
+        isActive: false,
+        revokedAt: now,
+        revokedReason: reason,
+        updatedAt: now,
+      })
+      .where(eq(trustedDevices.id, id));
+  }
+
+  async cleanupExpiredTrustedDevices(): Promise<void> {
+    const now = new Date();
+    await db
+      .update(trustedDevices)
+      .set({
+        isActive: false,
+        revokedReason: "expired",
+        updatedAt: now,
+      })
+      .where(and(
+        eq(trustedDevices.isActive, true),
+        isNotNull(trustedDevices.expiresAt),
+        lte(trustedDevices.expiresAt, now)
+      ));
+  }
+
+  // Device security validation implementation
+  async calculateDeviceRiskScore(userId: string, context: {
+    userAgent: string;
+    ipAddress: string;
+    location?: string;
+    timezone?: string;
+  }): Promise<{ riskScore: number; riskFactors: string[] }> {
+    const riskFactors: string[] = [];
+    let riskScore = 0.1; // Base risk score
+
+    // Get user's historical device patterns
+    const userDevices = await this.getUserDeviceFingerprints(userId);
+    const recentContexts = await this.getMfaSecurityContext(userId, { limit: 20 });
+
+    // Check for new user agent
+    const hasSeenUserAgent = userDevices.some(device => 
+      device.userAgent === context.userAgent
+    );
+    if (!hasSeenUserAgent) {
+      riskScore += 0.3;
+      riskFactors.push("new_user_agent");
+    }
+
+    // Check for new IP range (simplified check - first 3 octets)
+    const currentIpPrefix = context.ipAddress.split('.').slice(0, 3).join('.');
+    const hasSeenIpRange = recentContexts.some(ctx => 
+      ctx.ipAddress && ctx.ipAddress.split('.').slice(0, 3).join('.') === currentIpPrefix
+    );
+    if (!hasSeenIpRange) {
+      riskScore += 0.2;
+      riskFactors.push("new_ip_range");
+    }
+
+    // Check for new location
+    if (context.location) {
+      const hasSeenLocation = recentContexts.some(ctx => 
+        ctx.location === context.location
+      );
+      if (!hasSeenLocation) {
+        riskScore += 0.2;
+        riskFactors.push("new_location");
+      }
+    }
+
+    // Check for recent failed attempts
+    const recentFailures = recentContexts.filter(ctx => 
+      !ctx.isSuccessful && 
+      ctx.createdAt && 
+      (new Date().getTime() - ctx.createdAt.getTime()) < 24 * 60 * 60 * 1000 // 24 hours
+    );
+    if (recentFailures.length > 3) {
+      riskScore += 0.3;
+      riskFactors.push("recent_failed_attempts");
+    }
+
+    // Check for suspicious timing patterns (multiple attempts in short period)
+    const recentAttempts = recentContexts.filter(ctx =>
+      ctx.createdAt && 
+      (new Date().getTime() - ctx.createdAt.getTime()) < 60 * 60 * 1000 // 1 hour
+    );
+    if (recentAttempts.length > 5) {
+      riskScore += 0.2;
+      riskFactors.push("rapid_attempts");
+    }
+
+    // Cap risk score at 1.0
+    riskScore = Math.min(riskScore, 1.0);
+
+    return { riskScore, riskFactors };
+  }
+
+  async validateDeviceContext(userId: string, fingerprintHash: string): Promise<{
+    isValid: boolean;
+    trustScore: number;
+    requiresAdditionalVerification: boolean;
+    deviceFingerprint?: DeviceFingerprint;
+  }> {
+    // Get or create device fingerprint
+    let deviceFingerprint = await this.getDeviceFingerprint(fingerprintHash);
+    
+    if (!deviceFingerprint) {
+      // New device - low trust score, requires additional verification
+      return {
+        isValid: false,
+        trustScore: 0.1,
+        requiresAdditionalVerification: true,
+      };
+    }
+
+    // Check if device belongs to this user
+    if (deviceFingerprint.userId !== userId) {
+      return {
+        isValid: false,
+        trustScore: 0.0,
+        requiresAdditionalVerification: true,
+        deviceFingerprint,
+      };
+    }
+
+    // Check if device is active
+    if (!deviceFingerprint.isActive) {
+      return {
+        isValid: false,
+        trustScore: 0.0,
+        requiresAdditionalVerification: true,
+        deviceFingerprint,
+      };
+    }
+
+    // Calculate trust score based on device history
+    let trustScore = 0.5; // Base trust score
+
+    // Factor in device age (older devices with good history = higher trust)
+    const deviceAgeMs = new Date().getTime() - deviceFingerprint.firstSeenAt.getTime();
+    const deviceAgeDays = deviceAgeMs / (24 * 60 * 60 * 1000);
+    if (deviceAgeDays > 30) trustScore += 0.2;
+    else if (deviceAgeDays > 7) trustScore += 0.1;
+
+    // Factor in successful MFA attempts
+    const successRate = deviceFingerprint.successfulMfaAttempts / 
+      Math.max(1, deviceFingerprint.successfulMfaAttempts + deviceFingerprint.failedMfaAttempts);
+    trustScore += successRate * 0.3;
+
+    // Factor in user trust marking
+    if (deviceFingerprint.isTrusted) {
+      trustScore += 0.2;
+    }
+
+    // Factor in total sessions (more usage = higher trust)
+    if (deviceFingerprint.totalSessions > 50) trustScore += 0.1;
+    else if (deviceFingerprint.totalSessions > 10) trustScore += 0.05;
+
+    // Apply risk score modifier (handle decimal as string in Drizzle)
+    const currentRiskScore = Number(deviceFingerprint.riskScore) || 0.5;
+    trustScore = trustScore * (1 - currentRiskScore);
+
+    // Cap trust score
+    trustScore = Math.min(Math.max(trustScore, 0.0), 1.0);
+
+    // Determine if additional verification is required
+    const requiresAdditionalVerification = trustScore < 0.6 || currentRiskScore > 0.7;
+
+    return {
+      isValid: true,
+      trustScore,
+      requiresAdditionalVerification,
+      deviceFingerprint,
+    };
   }
 
   /**

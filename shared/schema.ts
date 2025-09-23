@@ -576,6 +576,117 @@ export const authAuditLog = pgTable("auth_audit_log", {
   index("idx_auth_audit_log_successful").on(table.isSuccessful),
 ]);
 
+// Device fingerprinting for enhanced MFA security
+export const deviceFingerprints = pgTable("device_fingerprints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  fingerprintHash: varchar("fingerprint_hash").notNull(), // SHA-256 hash of device characteristics
+  deviceName: varchar("device_name"), // User-friendly device name (e.g., "iPhone 15", "Chrome on MacBook")
+  // Core device characteristics (stored for analysis - fingerprint hash provides privacy)
+  userAgent: varchar("user_agent"), // Browser/app user agent
+  screenResolution: varchar("screen_resolution"), // Screen dimensions
+  timezone: varchar("timezone"), // Device timezone
+  language: varchar("language"), // Device/browser language
+  platform: varchar("platform"), // OS platform (iOS, Android, Windows, etc.)
+  // Security and trust metrics
+  trustLevel: varchar("trust_level").default("unknown"), // unknown, low, medium, high, trusted
+  riskScore: decimal("risk_score").default("0.5"), // 0.0 (safe) to 1.0 (high risk)
+  isActive: boolean("is_active").default(true),
+  isTrusted: boolean("is_trusted").default(false), // User has marked this device as trusted
+  // Usage tracking
+  firstSeenAt: timestamp("first_seen_at").defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").defaultNow(),
+  totalSessions: integer("total_sessions").default(1),
+  successfulMfaAttempts: integer("successful_mfa_attempts").default(0),
+  failedMfaAttempts: integer("failed_mfa_attempts").default(0),
+  // Geographic and network context
+  lastKnownIp: varchar("last_known_ip"),
+  lastKnownLocation: varchar("last_known_location"), // City, Country
+  // Device capability flags
+  supportsWebauthn: boolean("supports_webauthn").default(false),
+  supportsBiometrics: boolean("supports_biometrics").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Composite unique constraint allows same device fingerprint for different users (shared computers)
+  unique("unique_user_fingerprint").on(table.userId, table.fingerprintHash),
+  index("idx_device_fingerprints_user_id").on(table.userId),
+  index("idx_device_fingerprints_hash").on(table.fingerprintHash),
+  index("idx_device_fingerprints_trust_level").on(table.trustLevel),
+  index("idx_device_fingerprints_active").on(table.isActive),
+  index("idx_device_fingerprints_last_seen").on(table.lastSeenAt),
+]);
+
+// MFA security context for each verification attempt
+export const mfaSecurityContext = pgTable("mfa_security_context", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  deviceFingerprintId: varchar("device_fingerprint_id").references(() => deviceFingerprints.id, { onDelete: "set null" }),
+  sessionId: varchar("session_id"), // Associated session identifier
+  // Context at time of MFA attempt
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  location: varchar("location"), // Estimated geographic location
+  timezone: varchar("timezone"),
+  // Security assessment
+  riskScore: decimal("risk_score").notNull(), // Computed risk score (0.0-1.0)
+  riskFactors: jsonb("risk_factors"), // Array of identified risk factors
+  trustScore: decimal("trust_score").notNull(), // Device trust score (0.0-1.0)
+  // Verification details
+  verificationMethod: varchar("verification_method").notNull(), // totp, backup_code, webauthn
+  isSuccessful: boolean("is_successful").notNull(),
+  failureReason: varchar("failure_reason"), // invalid_code, device_untrusted, rate_limited, etc.
+  // Anomaly detection flags
+  newDevice: boolean("new_device").default(false),
+  newLocation: boolean("new_location").default(false),
+  newIpRange: boolean("new_ip_range").default(false),
+  suspiciousActivity: boolean("suspicious_activity").default(false),
+  // Response actions taken
+  requiresAdditionalVerification: boolean("requires_additional_verification").default(false),
+  additionalVerificationCompleted: boolean("additional_verification_completed").default(false),
+  deviceTrustedAfterVerification: boolean("device_trusted_after_verification").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_mfa_security_context_user_id").on(table.userId),
+  index("idx_mfa_security_context_device_id").on(table.deviceFingerprintId),
+  index("idx_mfa_security_context_successful").on(table.isSuccessful),
+  index("idx_mfa_security_context_risk_score").on(table.riskScore),
+  index("idx_mfa_security_context_created_at").on(table.createdAt),
+  index("idx_mfa_security_context_ip_address").on(table.ipAddress),
+]);
+
+// Trusted device management for users
+export const trustedDevices = pgTable("trusted_devices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  deviceFingerprintId: varchar("device_fingerprint_id").notNull().references(() => deviceFingerprints.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // User-assigned device name
+  description: text("description"), // Optional device description
+  // Trust settings
+  trustLevel: varchar("trust_level").default("medium"), // low, medium, high, full
+  autoTrustMfa: boolean("auto_trust_mfa").default(false), // Skip MFA on this device
+  trustDurationDays: integer("trust_duration_days").default(30), // How long to trust this device
+  // Usage and security
+  lastUsedAt: timestamp("last_used_at"),
+  totalLogins: integer("total_logins").default(0),
+  isActive: boolean("is_active").default(true),
+  // Revocation and expiry
+  revokedAt: timestamp("revoked_at"),
+  revokedReason: varchar("revoked_reason"), // user_revoked, security_breach, expired, suspicious_activity
+  expiresAt: timestamp("expires_at"), // When this trust expires
+  // Verification details
+  verifiedAt: timestamp("verified_at").defaultNow(),
+  verificationMethod: varchar("verification_method"), // mfa_success, admin_approval, email_confirmation
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_trusted_devices_user_id").on(table.userId),
+  index("idx_trusted_devices_device_id").on(table.deviceFingerprintId),
+  index("idx_trusted_devices_active").on(table.isActive),
+  index("idx_trusted_devices_expires_at").on(table.expiresAt),
+  index("idx_trusted_devices_last_used").on(table.lastUsedAt),
+]);
+
 // User social links (Discord, Twitch, Twitter, etc.)
 export const userSocialLinks = pgTable("user_social_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1325,6 +1436,68 @@ export const insertWebauthnCredentialSchema = createInsertSchema(webauthnCredent
 }).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertDeviceFingerprintSchema = createInsertSchema(deviceFingerprints, {
+  trustLevel: z.enum(["unknown", "low", "medium", "high", "trusted"]).optional(),
+  riskScore: z.coerce.number().min(0).max(1).optional(),
+  isActive: z.boolean().optional(),
+  isTrusted: z.boolean().optional(),
+  totalSessions: z.number().int().min(0).optional(),
+  successfulMfaAttempts: z.number().int().min(0).optional(),
+  failedMfaAttempts: z.number().int().min(0).optional(),
+  supportsWebauthn: z.boolean().optional(),
+  supportsBiometrics: z.boolean().optional(),
+  firstSeenAt: z.coerce.date().optional(),
+  lastSeenAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMfaSecurityContextSchema = createInsertSchema(mfaSecurityContext, {
+  riskScore: z.coerce.number().min(0).max(1),
+  trustScore: z.coerce.number().min(0).max(1),
+  verificationMethod: z.enum(["totp", "backup_code", "webauthn"]),
+  isSuccessful: z.boolean(),
+  failureReason: z.enum([
+    "invalid_code", "device_untrusted", "rate_limited", "expired_code",
+    "lockout_active", "suspicious_activity", "unknown_device"
+  ]).optional(),
+  riskFactors: z.array(z.string()).optional(),
+  newDevice: z.boolean().optional(),
+  newLocation: z.boolean().optional(),
+  newIpRange: z.boolean().optional(),
+  suspiciousActivity: z.boolean().optional(),
+  requiresAdditionalVerification: z.boolean().optional(),
+  additionalVerificationCompleted: z.boolean().optional(),
+  deviceTrustedAfterVerification: z.boolean().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTrustedDeviceSchema = createInsertSchema(trustedDevices, {
+  trustLevel: z.enum(["low", "medium", "high", "full"]).optional(),
+  autoTrustMfa: z.boolean().optional(),
+  trustDurationDays: z.number().int().min(1).max(365).optional(),
+  totalLogins: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+  revokedReason: z.enum([
+    "user_revoked", "security_breach", "expired", "suspicious_activity"
+  ]).optional(),
+  verificationMethod: z.enum([
+    "mfa_success", "admin_approval", "email_confirmation"
+  ]).optional(),
+  lastUsedAt: z.coerce.date().optional(),
+  revokedAt: z.coerce.date().optional(),
+  expiresAt: z.coerce.date().optional(),
+  verifiedAt: z.coerce.date().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertAuthAuditLogSchema = createInsertSchema(authAuditLog, {
@@ -2157,6 +2330,9 @@ export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
 export type UserMfaAttempts = typeof userMfaAttempts.$inferSelect;
 export type WebauthnCredential = typeof webauthnCredentials.$inferSelect;
+export type DeviceFingerprint = typeof deviceFingerprints.$inferSelect;
+export type MfaSecurityContext = typeof mfaSecurityContext.$inferSelect;
+export type TrustedDevice = typeof trustedDevices.$inferSelect;
 export type AuthAuditLog = typeof authAuditLog.$inferSelect;
 export type UserSocialLink = typeof userSocialLinks.$inferSelect;
 export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
@@ -2216,6 +2392,9 @@ export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 export type InsertUserMfaSettings = z.infer<typeof insertUserMfaSettingsSchema>;
 export type InsertUserMfaAttempts = z.infer<typeof insertUserMfaAttemptsSchema>;
 export type InsertWebauthnCredential = z.infer<typeof insertWebauthnCredentialSchema>;
+export type InsertDeviceFingerprint = z.infer<typeof insertDeviceFingerprintSchema>;
+export type InsertMfaSecurityContext = z.infer<typeof insertMfaSecurityContextSchema>;
+export type InsertTrustedDevice = z.infer<typeof insertTrustedDeviceSchema>;
 export type InsertAuthAuditLog = z.infer<typeof insertAuthAuditLogSchema>;
 export type InsertUserSocialLink = z.infer<typeof insertUserSocialLinkSchema>;
 export type InsertUserGamingProfile = z.infer<typeof insertUserGamingProfileSchema>;
