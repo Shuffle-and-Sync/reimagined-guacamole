@@ -16,25 +16,7 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-// Dynamic base URL configuration for development vs production
-const getBaseUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
-    return process.env.AUTH_URL || process.env.NEXTAUTH_URL;
-  }
-  
-  // Development mode: use Replit development domain
-  if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-  }
-  
-  // Fallback for local development
-  return 'http://localhost:5000';
-};
-
-// Override AUTH_URL for development to prevent domain mismatch
-if (process.env.NODE_ENV === 'development' && process.env.REPLIT_DEV_DOMAIN) {
-  process.env.AUTH_URL = `https://${process.env.REPLIT_DEV_DOMAIN}`;
-}
+// Use production domain for Auth.js configuration
 
 export const authConfig: AuthConfig = {
   // Dynamic base URL for correct CSRF and callback handling

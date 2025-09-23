@@ -18,23 +18,15 @@ export async function hashPassword(password: string): Promise<string> {
 
 /**
  * Verify a plain text password against an Argon2 hash
- * Also supports backwards compatibility with bcrypt hashes
  */
 export async function verifyPassword(password: string, passwordHash: string): Promise<boolean> {
   try {
-    // Check if it's an Argon2 hash (starts with $argon2)
+    // Only support Argon2 hashes (starts with $argon2)
     if (passwordHash.startsWith('$argon2')) {
       return await verify(passwordHash, password);
     }
     
-    // Legacy bcrypt support for existing users
-    if (passwordHash.startsWith('$2')) {
-      const bcryptModule = await import('bcryptjs');
-      // Handle both CommonJS and ESM module exports
-      const bcrypt = (bcryptModule.default ?? bcryptModule) as typeof import('bcryptjs');
-      return bcrypt.compare(password, passwordHash);
-    }
-    
+    console.error('Invalid password hash format. Only Argon2 hashes are supported.');
     return false;
   } catch (error) {
     console.error('Password verification error:', error);
