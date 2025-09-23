@@ -29,6 +29,7 @@ import Conduct from "@/pages/conduct";
 import SignIn from "@/pages/auth/signin";
 import Register from "@/pages/auth/register";
 import VerifyEmail from "@/pages/auth/verify-email";
+import ChangeEmail from "@/pages/auth/change-email";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import MfaVerify from "@/pages/auth/mfa-verify";
 import AccountSettings from "@/pages/auth/account-settings";
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/auth/signin" component={SignIn} />
       <Route path="/auth/register" component={Register} />
       <Route path="/auth/verify-email" component={VerifyEmail} />
+      <Route path="/auth/change-email" component={ChangeEmail} />
       <Route path="/auth/forgot-password" component={ForgotPassword} />
       <Route path="/auth/mfa-verify" component={MfaVerify} />
       <Route path="/auth/error" component={AuthError} />
