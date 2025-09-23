@@ -2438,3 +2438,34 @@ export type InsertBanEvasionTracking = z.infer<typeof insertBanEvasionTrackingSc
 export type InsertUserAppeal = z.infer<typeof insertUserAppealSchema>;
 export type InsertModerationTemplate = z.infer<typeof insertModerationTemplateSchema>;
 export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+
+// JWT Token revocation for enterprise security
+export const revokedJwtTokens = pgTable("revoked_jwt_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jti: varchar("jti").notNull().unique(), // JWT ID from token
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenType: varchar("token_type").notNull(), // access, refresh, etc.
+  reason: varchar("reason").notNull(), // user_request, security_breach, etc.
+  revokedAt: timestamp("revoked_at").defaultNow(),
+  revokedBy: varchar("revoked_by"), // System, user, admin, etc.
+  expiresAt: timestamp("expires_at").notNull(), // TTL for cleanup
+  originalExpiry: timestamp("original_expiry"), // Original token expiry
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_revoked_jwt_jti").on(table.jti),
+  index("idx_revoked_jwt_user").on(table.userId),
+  index("idx_revoked_jwt_expires").on(table.expiresAt),
+  index("idx_revoked_jwt_type").on(table.tokenType),
+]);
+
+export const insertRevokedJwtTokenSchema = createInsertSchema(revokedJwtTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const selectRevokedJwtTokenSchema = revokedJwtTokens;
+
+export type InsertRevokedJwtToken = z.infer<typeof insertRevokedJwtTokenSchema>;
+export type RevokedJwtToken = typeof revokedJwtTokens.$inferSelect;

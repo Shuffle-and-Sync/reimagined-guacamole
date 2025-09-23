@@ -2,7 +2,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
 import authConfig from "./auth.config";
-import { verifyAccessTokenJWT } from "./tokens";
+import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload } from "./tokens";
+import { extractDeviceContext } from "./device-fingerprinting";
 import { logger } from "../logger";
 import { storage } from "../storage";
 
@@ -176,13 +177,43 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
-    // Verify the JWT access token
-    const { valid, payload, error } = await verifyAccessTokenJWT(token);
+    // Extract device context for enhanced security validation
+    const deviceContext = extractDeviceContext(req.headers, req.ip || req.connection.remoteAddress || 'unknown');
+    
+    // Verify the JWT access token with enhanced security
+    const { valid, payload, error, securityWarnings } = await verifyAccessTokenJWT(token, {
+      deviceFingerprint: deviceContext.userAgent, // Use userAgent as device identifier
+      ipAddress: deviceContext.ipAddress
+    });
     
     if (!valid || !payload) {
-      logger.warn('Invalid JWT token attempted', { error, ip: req.ip, userAgent: req.headers['user-agent'] });
+      logger.warn('Invalid JWT token attempted', { 
+        error, 
+        ip: req.ip, 
+        userAgent: req.headers['user-agent'],
+        deviceFingerprint: deviceContext.userAgent
+      });
       res.status(401).json({ message: "Invalid or expired access token" });
       return;
+    }
+
+    // Enhanced security validation
+    if (payload.jti) {
+      const securityValidation = await validateTokenSecurity(payload.jti, payload);
+      
+      if (!securityValidation.valid) {
+        logger.warn('JWT token failed security validation', { 
+          userId: payload.userId,
+          jti: payload.jti,
+          securityIssues: securityValidation.securityIssues,
+          ip: req.ip
+        });
+        res.status(401).json({ 
+          message: "Token security validation failed",
+          securityIssues: securityValidation.securityIssues
+        });
+        return;
+      }
     }
     
     // Get user from database to ensure they still exist and are active
@@ -203,9 +234,22 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     req.jwtPayload = payload;
     req.isJWTAuth = true;
     
+    // Log security warnings if present
+    if (securityWarnings && securityWarnings.length > 0) {
+      logger.warn('JWT token security warnings', {
+        userId: user.id,
+        jti: payload.jti,
+        securityWarnings,
+        ip: req.ip
+      });
+    }
+    
     logger.debug('JWT authentication successful', {
       userId: user.id,
       sessionId: payload.sessionId,
+      securityLevel: payload.securityLevel,
+      mfaVerified: payload.mfaVerified,
+      deviceBound: !!payload.deviceFingerprint,
       ip: req.ip
     });
     

@@ -60,6 +60,7 @@ import {
   trustedDevices,
   refreshTokens,
   authAuditLog,
+  revokedJwtTokens,
   type User,
   type UpsertUser,
   type Community,
@@ -179,6 +180,8 @@ import {
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
+  type InsertRevokedJwtToken,
+  type RevokedJwtToken,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -336,6 +339,11 @@ export interface IStorage {
   // Auth audit log operations
   createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog>;
   getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]>;
+  
+  // JWT token revocation (enterprise security)
+  revokeJWT(jti: string, userId: string, tokenType: string, reason: string, expiresAt: Date, originalExpiry?: Date, ipAddress?: string, userAgent?: string): Promise<void>;
+  isJWTRevoked(jti: string): Promise<boolean>;
+  cleanupExpiredRevokedTokens(): Promise<number>;
   
   // Notification operations
   getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
@@ -2236,6 +2244,38 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return auditLog;
+  }
+
+  // JWT token revocation implementation (enterprise security)
+  async revokeJWT(jti: string, userId: string, tokenType: string, reason: string, expiresAt: Date, originalExpiry?: Date, ipAddress?: string, userAgent?: string): Promise<void> {
+    await db.insert(revokedJwtTokens).values({
+      jti,
+      userId,
+      tokenType,
+      reason,
+      expiresAt,
+      originalExpiry,
+      ipAddress,
+      userAgent,
+      revokedBy: 'system',
+    });
+    console.log(`[JWT_REVOCATION] Token ${jti} persisted to database for user ${userId}`);
+  }
+
+  async isJWTRevoked(jti: string): Promise<boolean> {
+    const [result] = await db
+      .select({ id: revokedJwtTokens.id })
+      .from(revokedJwtTokens)
+      .where(eq(revokedJwtTokens.jti, jti))
+      .limit(1);
+    return !!result;
+  }
+
+  async cleanupExpiredRevokedTokens(): Promise<number> {
+    const result = await db
+      .delete(revokedJwtTokens)
+      .where(lte(revokedJwtTokens.expiresAt, new Date()));
+    return result.rowCount || 0;
   }
 
   async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number }): Promise<AuthAuditLog[]> {
