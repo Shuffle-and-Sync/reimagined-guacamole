@@ -7,20 +7,51 @@ import { comparePassword, checkAuthRateLimit, recordAuthFailure, clearAuthFailur
 import { storage } from "../storage";
 
 // Validate critical environment variables at startup
+if (!process.env.AUTH_SECRET) {
+  throw new Error('AUTH_SECRET environment variable is required');
+}
+
+// In production, require AUTH_URL or NEXTAUTH_URL
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.AUTH_SECRET) {
-    throw new Error('AUTH_SECRET environment variable is required in production');
-  }
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
     throw new Error('AUTH_URL or NEXTAUTH_URL environment variable is required in production');
   }
 }
 
-// Use production domain for Auth.js configuration
+// Dynamic URL configuration for Auth.js
+function getBaseUrl(): string {
+  // In development, always use the actual Replit server URL, not AUTH_URL
+  if (process.env.NODE_ENV === 'development') {
+    const replitDomains = process.env.REPLIT_DOMAINS;
+    if (replitDomains) {
+      const computedUrl = `https://${replitDomains}`;
+      console.log(`[AUTH] getBaseUrl() returning: ${computedUrl}`);
+      return computedUrl;
+    }
+    console.log(`[AUTH] getBaseUrl() returning: http://localhost:5000`);
+    return 'http://localhost:5000';
+  }
+  
+  // In production, use AUTH_URL if available, otherwise construct from Replit domains
+  const prodUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || `https://${process.env.REPLIT_DOMAINS}`;
+  console.log(`[AUTH] getBaseUrl() production returning: ${prodUrl}`);
+  return prodUrl;
+}
 
 export const authConfig: AuthConfig = {
   // Dynamic base URL for correct CSRF and callback handling
   basePath: "/api/auth",
+  
+  // CRITICAL: Override AUTH_URL in development to fix URL mismatch
+  ...(process.env.NODE_ENV === 'development' && { 
+    useSecureCookies: false,
+    // Force Auth.js to use the actual server URL, not AUTH_URL
+    url: getBaseUrl(),
+    // Additional overrides to force correct URL usage
+    secret: process.env.AUTH_SECRET,
+    // Debug configuration
+    debug: true
+  }),
   
   // Use JWT sessions instead of database sessions to avoid ORM conflicts
   session: {
@@ -43,14 +74,20 @@ export const authConfig: AuthConfig = {
     },
   },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    Twitch({
-      clientId: process.env.TWITCH_CLIENT_ID!,
-      clientSecret: process.env.TWITCH_CLIENT_SECRET!,
-    }),
+    // Only include OAuth providers if properly configured
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      Google({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : []),
+    
+    ...(process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET ? [
+      Twitch({
+        clientId: process.env.TWITCH_CLIENT_ID,
+        clientSecret: process.env.TWITCH_CLIENT_SECRET,
+      })
+    ] : []),
     Credentials({
       name: "credentials",
       credentials: {
