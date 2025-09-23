@@ -128,20 +128,24 @@ export async function generateEmailVerificationJWT(
   email: string,
   expiresInSeconds: number = TOKEN_EXPIRY.EMAIL_VERIFICATION
 ): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  
-  return new SignJWT({
+  return await signToken({
     type: 'email_verification',
     userId,
     email,
-  })
-    .setProtectedHeader({ alg: 'HS256', kid: 'primary-2025' })
-    .setIssuedAt(now)
-    .setExpirationTime(now + expiresInSeconds)
-    .setIssuer('shuffle-and-sync')
-    .setAudience('email-verification')
-    .sign(JWT_SECRET);
+  }, {
+    audience: 'email-verification',
+    expirySeconds: expiresInSeconds,
+  });
 }
+
+// Token payload schemas for validation
+const EmailVerificationSchema = z.object({
+  type: z.literal('email_verification'),
+  userId: z.string(),
+  email: z.string().email(),
+  jti: z.string().optional(),
+  nbf: z.number().optional(),
+});
 
 /**
  * Verify and decode an email verification JWT
@@ -151,33 +155,10 @@ export async function verifyEmailVerificationJWT(token: string): Promise<{
   payload?: { userId: string; email: string; type: string };
   error?: string;
 }> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
-      issuer: 'shuffle-and-sync',
-      audience: 'email-verification',
-    });
-    
-    // Validate payload structure
-    if (
-      typeof payload.userId === 'string' &&
-      typeof payload.email === 'string' &&
-      payload.type === 'email_verification'
-    ) {
-      return {
-        valid: true,
-        payload: {
-          userId: payload.userId,
-          email: payload.email,
-          type: payload.type,
-        },
-      };
-    }
-    
-    return { valid: false, error: 'Invalid token payload structure' };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
-    return { valid: false, error: errorMessage };
-  }
+  return await verifyToken(token, {
+    audience: 'email-verification',
+    schema: EmailVerificationSchema,
+  });
 }
 
 /**
@@ -188,20 +169,23 @@ export async function generatePasswordResetJWT(
   email: string,
   expiresInSeconds: number = TOKEN_EXPIRY.PASSWORD_RESET
 ): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  
-  return new SignJWT({
+  return await signToken({
     type: 'password_reset',
     userId,
     email,
-  })
-    .setProtectedHeader({ alg: 'HS256', kid: 'primary-2025' })
-    .setIssuedAt(now)
-    .setExpirationTime(now + expiresInSeconds)
-    .setIssuer('shuffle-and-sync')
-    .setAudience('password-reset')
-    .sign(JWT_SECRET);
+  }, {
+    audience: 'password-reset',
+    expirySeconds: expiresInSeconds,
+  });
 }
+
+const PasswordResetSchema = z.object({
+  type: z.literal('password_reset'),
+  userId: z.string(),
+  email: z.string().email(),
+  jti: z.string().optional(),
+  nbf: z.number().optional(),
+});
 
 /**
  * Verify and decode a password reset JWT
@@ -211,44 +195,22 @@ export async function verifyPasswordResetJWT(token: string): Promise<{
   payload?: { userId: string; email: string; type: string };
   error?: string;
 }> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
-      issuer: 'shuffle-and-sync',
-      audience: 'password-reset',
-    });
-    
-    // Validate payload structure
-    if (
-      typeof payload.userId === 'string' &&
-      typeof payload.email === 'string' &&
-      payload.type === 'password_reset'
-    ) {
-      return {
-        valid: true,
-        payload: {
-          userId: payload.userId,
-          email: payload.email,
-          type: payload.type,
-        },
-      };
-    }
-    
-    return { valid: false, error: 'Invalid token payload structure' };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
-    return { valid: false, error: errorMessage };
-  }
+  return await verifyToken(token, {
+    audience: 'password-reset',
+    schema: PasswordResetSchema,
+  });
 }
 
 /**
- * Generate a secure random code for MFA backup codes
+ * Generate a secure random code for MFA backup codes - FIXED: crypto secure
  */
 export function generateMFABackupCode(): string {
-  // Generate 8-character alphanumeric backup code
+  // FIXED: Use crypto.randomBytes for cryptographically secure codes (not Math.random)
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = randomBytes(8); // Cryptographically secure random bytes
   let result = '';
   for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars[bytes[i] % chars.length];
   }
   return result;
 }
@@ -695,6 +657,84 @@ export function generateRefreshTokenId(): string {
 
 // Token revocation with persistent storage (production-ready)
 const REVOKED_TOKENS = new Set<string>(); // In-memory cache for performance
+
+/**
+ * Centralized signing helper using active key rotation
+ */
+async function signToken(payload: Record<string, any>, options: {
+  audience: string;
+  issuer?: string;
+  expirySeconds?: number;
+}): Promise<string> {
+  const activeKey = getActiveSigningKey();
+  const now = Math.floor(Date.now() / 1000);
+  const expiry = options.expirySeconds || 3600;
+
+  // Add required claims if enabled in config
+  const enhancedPayload = {
+    ...payload,
+    ...(JWT_SECURITY_CONFIG.REQUIRE_JTI && { jti: randomBytes(16).toString('hex') }),
+    ...(JWT_SECURITY_CONFIG.REQUIRE_NBF && { nbf: now })
+  };
+
+  return await new SignJWT(enhancedPayload)
+    .setProtectedHeader({ 
+      alg: activeKey.algorithm, 
+      kid: activeKey.keyId 
+    })
+    .setIssuedAt(now)
+    .setExpirationTime(now + expiry)
+    .setIssuer(options.issuer || 'shuffle-and-sync')
+    .setAudience(options.audience)
+    .sign(activeKey.secret);
+}
+
+/**
+ * Centralized verification helper with key rotation and revocation checking
+ */
+async function verifyToken(token: string, options: {
+  audience: string;
+  issuer?: string;
+  schema?: any;
+}): Promise<{ valid: boolean; payload?: any; error?: string }> {
+  try {
+    // Decode protected header to get key ID
+    const [headerB64] = token.split('.');
+    const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString());
+    
+    // Get verification key by ID
+    const verificationKey = getVerificationKey(header.kid);
+    
+    // Enforce algorithm allow-list
+    if (!JWT_SECURITY_CONFIG.ALGORITHM_PREFERENCES.includes(header.alg)) {
+      return { valid: false, error: `Algorithm ${header.alg} not allowed` };
+    }
+
+    // Verify token with strict settings
+    const { payload } = await jwtVerify(token, verificationKey.secret, {
+      algorithms: [verificationKey.algorithm],
+      clockTolerance: JWT_SECURITY_CONFIG.MAX_CLOCK_TOLERANCE,
+      issuer: options.issuer || 'shuffle-and-sync',
+      audience: options.audience,
+    });
+
+    // Validate schema if provided
+    if (options.schema) {
+      const validatedPayload = options.schema.parse(payload);
+      
+      // Check revocation if jti exists
+      if (validatedPayload.jti && await isTokenRevokedAsync(validatedPayload.jti)) {
+        return { valid: false, error: 'Token has been revoked' };
+      }
+      
+      return { valid: true, payload: validatedPayload };
+    }
+
+    return { valid: true, payload };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
 
 /**
  * Immediately revoke a token by its JTI with persistent storage

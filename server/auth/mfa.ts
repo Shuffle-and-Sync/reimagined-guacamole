@@ -103,9 +103,9 @@ export function generateBackupCodes(count: number = 10): string[] {
  * Format: XXXX-XXXX-XXXX (12 chars + dashes = ~62 bits entropy)
  */
 function generateBackupCode(): string {
-  // Use crypto.randomBytes for cryptographically secure codes
+  // FIXED: Use crypto.randomBytes for cryptographically secure codes (not Math.random)
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = randomBytes(12); // Increased from 8 to 12 for higher entropy
+  const bytes = randomBytes(12); // Cryptographically secure random bytes
   let result = '';
   
   for (let i = 0; i < 12; i++) {
