@@ -205,7 +205,7 @@ export async function hasPermission(userId: string, permission: string): Promise
       // Find matching admin role definition
       const roleDefinition = Object.values(ADMIN_ROLES).find(adminRole => adminRole.name === userRole.role);
       
-      if (roleDefinition && roleDefinition.permissions.includes(permission)) {
+      if (roleDefinition && (roleDefinition.permissions as readonly string[]).includes(permission)) {
         return true;
       }
       
@@ -496,7 +496,7 @@ function logResponseForAudit(req: Request, res: Response, responseData: any) {
   storage.createAuditLog({
     adminUserId: userId,
     action,
-    category: statusCode >= 400 ? 'admin_error' : 'admin_action',
+    category: statusCode >= 400 ? 'system_config' : 'user_management',
     targetType: 'api_response',
     targetId: req.path,
     parameters: {
