@@ -72,6 +72,16 @@ export const authConfig: AuthConfig = {
         secure: process.env.NODE_ENV === 'production',
       },
     },
+    // CRITICAL FIX: Explicit CSRF token cookie configuration
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Host-authjs.csrf-token' : 'authjs.csrf-token',
+      options: {
+        httpOnly: false, // Must be readable by JavaScript for double-submit pattern
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   providers: [
     // Only include OAuth providers if properly configured
@@ -396,9 +406,13 @@ export const authConfig: AuthConfig = {
     // Add redirect callback to control where users go after authentication
     async redirect({ url, baseUrl }) {
       console.log(`Auth.js redirect: url=${url}, baseUrl=${baseUrl}`);
-      // Prefer AUTH_URL over dynamic baseUrl to ensure consistent redirects to custom domain
-      const preferredBase = process.env.AUTH_URL || baseUrl;
-      console.log(`Using preferredBase: ${preferredBase} (AUTH_URL: ${process.env.AUTH_URL})`);
+      
+      // CRITICAL FIX: In development, ignore AUTH_URL and use actual server baseUrl
+      const preferredBase = process.env.NODE_ENV === 'development' 
+        ? baseUrl  // Use actual server URL in development
+        : (process.env.AUTH_URL || baseUrl); // Use AUTH_URL in production
+      
+      console.log(`Using preferredBase: ${preferredBase} (NODE_ENV: ${process.env.NODE_ENV}, AUTH_URL: ${process.env.AUTH_URL})`);
       
       // Redirect to home page after successful sign in
       if (url.startsWith('/')) return `${preferredBase}${url}`;
