@@ -58,10 +58,15 @@ export default function SignIn() {
     setError('');
     
     try {
-      // Use Auth.js v5 credentials signin
+      // Get CSRF token first
+      const csrfResponse = await fetch('/api/auth/csrf');
+      const { csrfToken } = await csrfResponse.json();
+      
+      // Use Auth.js v5 credentials signin with CSRF token
       const formData = new FormData();
       formData.append('email', values.email);
       formData.append('password', values.password);
+      formData.append('csrfToken', csrfToken);
       formData.append('redirect', 'false');
       formData.append('callbackUrl', '/home');
       

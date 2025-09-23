@@ -385,7 +385,6 @@ app.use(securityHeaders);
       // Update email change request status
       await storage.updateEmailChangeRequest(emailChangeRequest.id, { 
         status: "verified",
-        completedAt: new Date(),
       });
 
       // Update user's email address
