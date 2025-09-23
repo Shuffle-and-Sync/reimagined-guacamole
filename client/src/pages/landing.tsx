@@ -21,7 +21,7 @@ export default function Landing() {
   });
 
   const handleGetStarted = () => {
-    window.location.href = "/api/auth/signin";
+    window.location.href = "/auth/register";
   };
 
   const handleWatchDemo = () => {
