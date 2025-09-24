@@ -5883,17 +5883,23 @@ export class DatabaseStorage implements IStorage {
 
   async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
     return await this.updateUserAppeal(appealId, { 
-      assignedReviewer: reviewerId, 
+      reviewedBy: reviewerId, 
       status: 'under_review' 
     });
   }
 
   async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
+    // Validate decision value
+    const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
+    if (!validDecisions.includes(decision as any)) {
+      throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
+    }
+
     const updateData: Partial<InsertUserAppeal> = {
-      status: 'resolved',
-      decision,
-      reviewerNotes,
-      resolvedAt: new Date()
+      status: decision === 'approve' ? 'approved' : 'denied',
+      decision: decision as 'approve' | 'deny' | 'partial_approve',
+      reviewNotes: reviewerNotes,
+      reviewedAt: new Date()
     };
 
     if (reviewerId) {
@@ -5912,7 +5918,7 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation template operations
   async getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -5930,10 +5936,12 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
     if (category) {
-      query = query.where(eq(moderationTemplates.category, category));
+      return await baseQuery
+        .where(eq(moderationTemplates.category, category))
+        .orderBy(moderationTemplates.name);
     }
 
-    return await query.orderBy(moderationTemplates.name);
+    return await baseQuery.orderBy(moderationTemplates.name);
   }
 
   async getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined> {
