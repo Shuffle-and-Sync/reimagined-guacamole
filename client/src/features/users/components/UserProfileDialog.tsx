@@ -91,7 +91,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center justify-center">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user?.profileImageUrl} />
+              <AvatarImage src={user?.profileImageUrl || undefined} />
               <AvatarFallback className="text-lg">
                 {getUserInitials()}
               </AvatarFallback>

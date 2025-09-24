@@ -192,19 +192,21 @@ export const webSocketClient = new WebSocketClient();
 export class CollaborativeStreamingWebSocket {
   constructor(private client: WebSocketClient) {}
 
-  async joinCollaborativeStream(eventId: string): Promise<void> {
+  async joinCollaborativeStream(eventId: string, collaborator?: any): Promise<void> {
     await this.client.connect();
     this.client.send({
       type: 'join_collab_stream',
-      eventId
+      eventId,
+      collaborator: collaborator || {}
     });
   }
 
-  changePhase(eventId: string, newPhase: string): void {
+  changePhase(eventId: string, newPhase: string, hostUserId?: string): void {
     this.client.send({
       type: 'phase_change',
       eventId,
-      newPhase
+      newPhase,
+      hostUserId: hostUserId || 'unknown'
     });
   }
 
@@ -217,10 +219,11 @@ export class CollaborativeStreamingWebSocket {
     });
   }
 
-  updateCollaboratorStatus(eventId: string, statusUpdate: any): void {
+  updateCollaboratorStatus(eventId: string, userId: string, statusUpdate: any): void {
     this.client.send({
       type: 'collaborator_status_update',
       eventId,
+      userId,
       statusUpdate
     });
   }
