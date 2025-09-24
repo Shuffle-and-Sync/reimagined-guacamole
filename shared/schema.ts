@@ -97,7 +97,7 @@ export const userPlatformAccounts = pgTable("user_platform_accounts", {
 // Communities table for the 6 gaming communities
 export const communities = pgTable("communities", {
   id: varchar("id").primaryKey(),
-  name: varchar("name").notNull(),
+  name: varchar("name").notNull().unique(), // Ensure unique community names
   displayName: varchar("display_name").notNull(),
   description: text("description"),
   themeColor: varchar("theme_color").notNull(),
@@ -113,7 +113,13 @@ export const userCommunities = pgTable("user_communities", {
   communityId: varchar("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
   isPrimary: boolean("is_primary").default(false),
   joinedAt: timestamp("joined_at").defaultNow(),
-});
+}, (table) => [
+  // Unique constraint to prevent duplicate user-community pairs
+  unique("unique_user_community").on(table.userId, table.communityId),
+  // Performance indexes for faster lookups
+  index("idx_user_communities_user_id").on(table.userId),
+  index("idx_user_communities_community_id").on(table.communityId),
+]);
 
 // User theme preferences
 export const themePreferences = pgTable("theme_preferences", {
@@ -159,6 +165,10 @@ export const events = pgTable("events", {
   index("idx_events_community_id").on(table.communityId),
   index("idx_events_date").on(table.date),
   index("idx_events_status").on(table.status),
+  // Performance optimization: composite index for scheduled time queries
+  index("idx_events_scheduled_at").on(table.date, table.time),
+  // Optimize queries by community and scheduled time
+  index("idx_events_community_scheduled").on(table.communityId, table.date, table.time),
 ]);
 
 // Event attendees table for tracking who's attending which events
@@ -212,6 +222,11 @@ export const messages = pgTable("messages", {
   index("idx_messages_recipient_id").on(table.recipientId),
   index("idx_messages_created_at").on(table.createdAt),
   index("idx_messages_conversation").on(table.senderId, table.recipientId),
+  // Performance optimization: indexes for userId and communityId queries
+  index("idx_messages_community_id").on(table.communityId),
+  // Composite indexes for message retrieval optimization
+  index("idx_messages_community_created").on(table.communityId, table.createdAt),
+  index("idx_messages_sender_created").on(table.senderId, table.createdAt),
 ]);
 
 // Game sessions table for real-time game coordination
