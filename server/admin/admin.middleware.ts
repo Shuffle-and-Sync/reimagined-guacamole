@@ -258,7 +258,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     next();
   } catch (error) {
     console.error('Admin role check error:', error);
-    res.status(500).json({ message: 'Permission check failed' });
+    return res.status(500).json({ message: 'Permission check failed' });
   }
 }
 
