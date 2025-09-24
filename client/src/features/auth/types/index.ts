@@ -4,6 +4,9 @@ export interface AuthUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  // Additional fields for compatibility with existing components
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 export interface AuthSession {
@@ -27,4 +30,18 @@ export interface AuthProviderConfig {
   type: string;
   signinUrl: string;
   callbackUrl: string;
+}
+
+// Form types for authentication
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
 }
