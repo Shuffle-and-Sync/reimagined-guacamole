@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { requireAuth } from '../../auth/auth.middleware';
 import { ValidationError, NotFoundError } from '../../shared/types';
 import { gameStatsService } from './game-stats.service';
-import { validateRequest } from '../../middleware/validation';
+import { validateRequest } from '../../validation';
 
 const router = Router();
 
