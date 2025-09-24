@@ -17,6 +17,7 @@ import {
   GameStats,
   GameResult,
   GameStatsResponse,
+  GameStatsFilters,
   CreateGameResultData,
   GameStatsQuery,
   gameResultSchema,

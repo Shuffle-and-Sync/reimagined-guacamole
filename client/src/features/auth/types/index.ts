@@ -7,6 +7,10 @@ export interface AuthUser {
   // Additional fields for compatibility with existing components
   firstName?: string | null;
   lastName?: string | null;
+  username?: string | null;
+  profileImageUrl?: string | null;
+  primaryCommunity?: string | null;
+  communities?: any[] | null;
 }
 
 export interface AuthSession {

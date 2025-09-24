@@ -162,7 +162,7 @@ export default function GameStatsExample() {
       className="min-h-screen bg-background"
       style={{ 
         background: communityTheme ? 
-          `linear-gradient(135deg, ${communityTheme.primaryColor}20 0%, ${communityTheme.secondaryColor}20 100%)` :
+          `linear-gradient(135deg, ${communityTheme.colors.primary}20 0%, ${communityTheme.colors.secondary}20 100%)` :
           undefined 
       }}
     >
@@ -425,7 +425,7 @@ export default function GameStatsExample() {
                   </div>
                 ) : leaderboard?.leaderboard ? (
                   <div className="space-y-2">
-                    {leaderboard.leaderboard.slice(0, 10).map((player) => (
+                    {leaderboard.leaderboard.slice(0, 10).map((player: any) => (
                       <div 
                         key={player.userId}
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
