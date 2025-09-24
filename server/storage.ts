@@ -613,7 +613,7 @@ export class DatabaseStorage implements IStorage {
   // (IMPORTANT) these user operations are mandatory for Replit Auth.
 
   async getUser(id: string): Promise<User | undefined> {
-    // Return safe user data without sensitive fields like passwordHash
+    // Return user data including all required fields, but with sensitive fields as null for security
     const [user] = await db.select({
       id: users.id,
       email: users.email,
@@ -632,6 +632,18 @@ export class DatabaseStorage implements IStorage {
       isPrivate: users.isPrivate,
       showOnlineStatus: users.showOnlineStatus,
       allowDirectMessages: users.allowDirectMessages,
+      // Sensitive fields - these will be returned as null for security
+      passwordHash: sql<string | null>`NULL`,
+      isEmailVerified: users.isEmailVerified,
+      emailVerifiedAt: users.emailVerifiedAt,
+      failedLoginAttempts: users.failedLoginAttempts,
+      lastFailedLogin: users.lastFailedLogin,
+      accountLockedUntil: users.accountLockedUntil,
+      passwordChangedAt: users.passwordChangedAt,
+      mfaEnabled: users.mfaEnabled,
+      mfaEnabledAt: users.mfaEnabledAt,
+      lastLoginAt: users.lastLoginAt,
+      lastActiveAt: users.lastActiveAt,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
     }).from(users).where(eq(users.id, id));
