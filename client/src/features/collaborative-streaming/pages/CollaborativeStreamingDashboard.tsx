@@ -41,8 +41,9 @@ export default function CollaborativeStreamingDashboard() {
 
   const selectedEvent = events.find((event: CollaborativeStreamEvent) => event.id === selectedEventId);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: string | Date) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -50,7 +51,7 @@ export default function CollaborativeStreamingDashboard() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     const colors = {
       planning: 'bg-blue-100 text-blue-800 border-blue-200',
       scheduled: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -58,7 +59,7 @@ export default function CollaborativeStreamingDashboard() {
       completed: 'bg-gray-100 text-gray-800 border-gray-200',
       cancelled: 'bg-red-100 text-red-800 border-red-200',
     };
-    return colors[status as keyof typeof colors] || colors.planning;
+    return colors[(status as keyof typeof colors) || 'planning'] || colors.planning;
   };
 
   if (isLoading) {

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
 import { getCommunityTheme } from "../../utils/communityThemes";
+import { GamePodCalendar } from "../GamePodCalendar";
 interface User {
   id: string;
   firstName?: string;

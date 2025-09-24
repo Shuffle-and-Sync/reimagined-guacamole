@@ -9,7 +9,12 @@ export interface AuthenticatedRequest extends Request {
       email: string;
       [key: string]: any;
     };
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
   };
+  session?: any;
 }
 
 export interface ApiResponse<T = any> {

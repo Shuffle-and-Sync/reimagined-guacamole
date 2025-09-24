@@ -133,11 +133,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       }
 
       // Log successful security validation with warnings if any (only if validation was performed)
-      if (sessionSecurityValidation?.assessment.securityWarnings?.length) {
-        logger.warn('Session security warnings detected', {
+      if (sessionSecurityValidation?.assessment.riskFactors?.length) {
+        logger.warn('Session security risk factors detected', {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
-          securityWarnings: sessionSecurityValidation.assessment.securityWarnings,
+          riskFactors: sessionSecurityValidation.assessment.riskFactors,
           ip: req.ip
         });
       }
