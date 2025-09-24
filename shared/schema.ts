@@ -2269,7 +2269,7 @@ export const insertContentReportSchema = createInsertSchema(contentReports, {
 });
 
 export const insertModerationActionSchema = createInsertSchema(moderationActions, {
-  action: z.enum(["warn", "mute", "restrict", "shadowban", "ban", "unban", "content_remove", "account_suspend", "note"]),
+  action: z.enum(["warn", "mute", "restrict", "shadowban", "ban", "unban", "content_remove", "account_suspend", "note", "unmute"]),
   duration: z.number().int().min(1).optional(), // Duration in hours
   isReversible: z.boolean().optional(),
   isPublic: z.boolean().optional(),
