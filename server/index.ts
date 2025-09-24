@@ -1,3 +1,8 @@
+// Load environment variables from .env.local for development
+import { config } from "dotenv";
+import { resolve } from "path";
+config({ path: resolve(process.cwd(), '.env.local') });
+
 import express, { type Request, Response, NextFunction } from "express";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";
