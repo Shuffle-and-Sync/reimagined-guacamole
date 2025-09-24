@@ -5664,10 +5664,19 @@ export class DatabaseStorage implements IStorage {
       id: adminAuditLog.id,
       adminUserId: adminAuditLog.adminUserId,
       action: adminAuditLog.action,
-      targetUserId: adminAuditLog.targetUserId,
-      details: adminAuditLog.details,
+      category: adminAuditLog.category,
+      targetType: adminAuditLog.targetType,
+      targetId: adminAuditLog.targetId,
+      targetIdentifier: adminAuditLog.targetIdentifier,
+      oldValues: adminAuditLog.oldValues,
+      newValues: adminAuditLog.newValues,
+      parameters: adminAuditLog.parameters,
       ipAddress: adminAuditLog.ipAddress,
       userAgent: adminAuditLog.userAgent,
+      sessionId: adminAuditLog.sessionId,
+      success: adminAuditLog.success,
+      errorMessage: adminAuditLog.errorMessage,
+      impactAssessment: adminAuditLog.impactAssessment,
       createdAt: adminAuditLog.createdAt,
       admin: users
     })
@@ -5879,8 +5888,9 @@ export class DatabaseStorage implements IStorage {
       await this.createAuditLog({
         adminUserId: reviewerId,
         action: 'user_appeal_resolved',
-        targetUserId: '',
-        details: { appealId, decision, reviewerNotes },
+        category: 'user_management',
+        targetId: '',
+        parameters: { appealId, decision, reviewerNotes },
         ipAddress: ''
       });
     }
@@ -5894,16 +5904,15 @@ export class DatabaseStorage implements IStorage {
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
-      title: moderationTemplates.title,
+      subject: moderationTemplates.subject,
       content: moderationTemplates.content,
       variables: moderationTemplates.variables,
       isActive: moderationTemplates.isActive,
-      usage: moderationTemplates.usage,
-      tags: moderationTemplates.tags,
-      createdBy: moderationTemplates.createdBy,
+      createdBy: users, // This is the User object
+      lastModifiedBy: moderationTemplates.lastModifiedBy,
+      usageCount: moderationTemplates.usageCount,
       createdAt: moderationTemplates.createdAt,
-      updatedAt: moderationTemplates.updatedAt,
-      createdByUser: users
+      updatedAt: moderationTemplates.updatedAt
     })
     .from(moderationTemplates)
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
@@ -5926,8 +5935,9 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.createdBy,
       action: 'moderation_template_created',
-      targetUserId: '',
-      details: { templateName: data.name, category: data.category },
+      category: 'content_moderation',
+      targetId: '',
+      parameters: { templateName: data.name, category: data.category },
       ipAddress: ''
     });
     
@@ -5944,8 +5954,9 @@ export class DatabaseStorage implements IStorage {
       await this.createAuditLog({
         adminUserId: data.createdBy,
         action: 'moderation_template_updated',
-        targetUserId: '',
-        details: { templateId: id, changes: data },
+        category: 'content_moderation',
+        targetId: '',
+        parameters: { templateId: id, changes: data },
         ipAddress: ''
       });
     }
