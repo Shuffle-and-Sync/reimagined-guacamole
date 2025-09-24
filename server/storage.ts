@@ -1,5 +1,6 @@
 import { db, prisma } from "@shared/database";
 import { database as optimizedDb, withQueryTiming } from "./db-optimized";
+import { logger } from "./logger";
 import {
   users,
   communities,
@@ -189,7 +190,7 @@ import {
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
 } from "@shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -596,8 +597,8 @@ export interface IStorage {
   resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal>;
   
   // Moderation template operations
-  getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]>;
-  getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined>;
+  getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>>;
+  getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined>;
   createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate>;
   updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate>;
   deleteModerationTemplate(id: string): Promise<void>;
@@ -5917,7 +5918,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Moderation template operations
-  async getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]> {
+  async getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>> {
     const baseQuery = db.select({
       id: moderationTemplates.id,
       name: moderationTemplates.name,
@@ -5944,7 +5945,7 @@ export class DatabaseStorage implements IStorage {
     return await baseQuery.orderBy(moderationTemplates.name);
   }
 
-  async getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined> {
+  async getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined> {
     const templates = await this.getModerationTemplates();
     return templates.find(template => template.id === id);
   }

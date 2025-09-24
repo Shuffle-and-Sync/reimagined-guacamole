@@ -479,12 +479,15 @@ router.post('/users/:userId/actions',
       }
 
       // Create moderation action record for all other actions
-      const { isPublic, ...actionData } = validation.data;
+      const { isPublic, action: rawAction, ...actionData } = validation.data;
       
       // Ensure action is valid for database schema (exclude unmute as it's handled above)
-      if (action === 'unmute') {
+      if (rawAction === 'unmute') {
         return res.status(500).json({ message: 'Unmute action should have been handled above' });
       }
+      
+      // Now we can safely cast the action since unmute is excluded
+      const validAction = rawAction as 'restrict' | 'warn' | 'mute' | 'shadowban' | 'ban' | 'unban' | 'account_suspend' | 'note';
       
       // Calculate expiration time only for valid positive durations
       const expiresAt = duration && duration > 0 ? new Date(Date.now() + duration * 60 * 60 * 1000) : undefined;
@@ -492,8 +495,9 @@ router.post('/users/:userId/actions',
       const moderationAction = await storage.createModerationAction({
         moderatorId: adminUserId,
         targetUserId: userId,
+        action: validAction,
         ...actionData,
-        isActive: !['unban', 'warn', 'note'].includes(action),
+        isActive: !['unban', 'warn', 'note'].includes(validAction),
         isPublic: isPublic !== false, // Default to public unless explicitly set to false
         duration: duration || undefined,
         expiresAt
