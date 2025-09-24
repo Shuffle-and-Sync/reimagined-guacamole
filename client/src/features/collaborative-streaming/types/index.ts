@@ -64,6 +64,7 @@ export interface CoordinationStatus {
   currentPhase: 'preparation' | 'live' | 'break' | 'wrap_up' | 'ended';
   actualStartTime?: string;
   activeCollaborators?: string[];
+  currentHost?: string;
   streamMetrics?: {
     totalViewers: number;
     platformViewers: Record<string, number>;
