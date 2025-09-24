@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 /**
  * Secure stream key management utility
@@ -12,6 +12,8 @@ if (ENCRYPTION_KEY.length !== 32) {
   throw new Error('STREAM_KEY_ENCRYPTION_KEY must be exactly 32 characters long');
 }
 
+const ENCRYPTION_KEY_BUFFER = Buffer.from(ENCRYPTION_KEY, 'utf8');
+
 /**
  * Encrypt a stream key for secure storage
  */
@@ -19,7 +21,7 @@ export function encryptStreamKey(streamKey: string): string {
   if (!streamKey) return '';
   
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY_BUFFER, iv);
   cipher.setAutoPadding(true);
   
   let encrypted = cipher.update(streamKey, 'utf8', 'hex');
@@ -44,7 +46,7 @@ export function decryptStreamKey(encryptedKey: string): string {
     const iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
     
-    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY_BUFFER, iv);
     decipher.setAutoPadding(true);
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');

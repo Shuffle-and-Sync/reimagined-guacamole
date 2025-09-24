@@ -1541,7 +1541,7 @@ export class DatabaseStorage implements IStorage {
 
   async invalidateUserPasswordResetTokens(userId: string): Promise<void> {
     // First get the user's email to find their tokens
-    const user = await this.getUserById(userId);
+    const user = await this.getUser(userId);
     if (!user?.email) return;
     
     await db
