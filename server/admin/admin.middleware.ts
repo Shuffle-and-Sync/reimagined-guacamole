@@ -229,7 +229,7 @@ export async function hasPermission(userId: string, permission: string): Promise
 }
 
 // Middleware to require actual admin role (not just a specific permission)
-export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const userId = getAuthUserId(req);
     
@@ -264,7 +264,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
 
 // Middleware to require specific permission
 export function requirePermission(permission: string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthUserId(req);
       
@@ -305,7 +305,7 @@ export function requirePermission(permission: string) {
 
 // Middleware to require multiple permissions (all must be present)
 export function requireAllPermissions(permissions: string[]) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthUserId(req);
       
@@ -348,7 +348,7 @@ export function requireAllPermissions(permissions: string[]) {
 
 // Middleware to require any of the specified permissions
 export function requireAnyPermission(permissions: string[]) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthUserId(req);
       

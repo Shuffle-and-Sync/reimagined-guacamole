@@ -107,7 +107,7 @@ const reverseModerationActionSchema = z.object({
 router.get('/users', 
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('users_list_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = userFiltersSchema.safeParse(req.query);
       if (!validation.success) {
@@ -151,7 +151,7 @@ router.get('/users',
 router.get('/users/:userId',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_details_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -187,7 +187,7 @@ router.get('/users/:userId',
 router.patch('/users/:userId',
   requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
   auditAdminAction('user_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -223,7 +223,7 @@ router.patch('/users/:userId',
 router.get('/users/:userId/roles',
   requirePermission(ADMIN_PERMISSIONS.ROLE_VIEW),
   auditAdminAction('user_roles_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       const roles = await storage.getUserRoles(userId);
@@ -240,7 +240,7 @@ router.get('/users/:userId/roles',
 router.post('/users/:userId/roles',
   requirePermission(ADMIN_PERMISSIONS.ROLE_ASSIGN),
   auditAdminAction('role_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -284,7 +284,7 @@ router.post('/users/:userId/roles',
 router.delete('/users/:userId/roles/:roleId',
   requirePermission(ADMIN_PERMISSIONS.ROLE_REVOKE),
   auditAdminAction('role_revoked'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { roleId } = req.params;
       
@@ -304,7 +304,7 @@ router.delete('/users/:userId/roles/:roleId',
 router.get('/users/:userId/details',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_details_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -347,7 +347,7 @@ router.get('/users/:userId/details',
 router.get('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_notes_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -385,7 +385,7 @@ router.get('/users/:userId/notes',
 router.post('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
   auditAdminAction('user_note_added'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       const { content } = req.body;
@@ -438,7 +438,7 @@ router.post('/users/:userId/notes',
 router.post('/users/:userId/actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_CREATE_ACTION),
   auditAdminAction('user_action_performed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -490,7 +490,7 @@ router.post('/users/:userId/actions',
 router.get('/users/:userId/activity',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_activity_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -532,7 +532,7 @@ router.get('/users/:userId/activity',
 router.get('/content-reports',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_VIEW_REPORTS),
   auditAdminAction('content_reports_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { status, priority, assignedModerator } = req.query;
       
@@ -554,7 +554,7 @@ router.get('/content-reports',
 router.get('/content-reports/:reportId',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_VIEW_REPORTS),
   auditAdminAction('content_report_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       
@@ -576,7 +576,7 @@ router.get('/content-reports/:reportId',
 router.patch('/content-reports/:reportId/assign',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_MODERATE),
   auditAdminAction('content_report_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       const { moderatorId } = req.body;
@@ -596,7 +596,7 @@ router.patch('/content-reports/:reportId/assign',
 router.patch('/content-reports/:reportId/resolve',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_MODERATE),
   auditAdminAction('content_report_resolved'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       const { resolution, actionTaken } = req.body;
@@ -619,7 +619,7 @@ router.patch('/content-reports/:reportId/resolve',
 router.get('/moderation-actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('moderation_actions_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { targetUserId, moderatorId, action, isActive } = req.query;
       
@@ -642,7 +642,7 @@ router.get('/moderation-actions',
 router.post('/moderation-actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_CREATE_ACTION),
   auditAdminAction('moderation_action_created'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const moderatorId = getAuthUserId(req);
       const actionData = {
@@ -665,7 +665,7 @@ router.post('/moderation-actions',
 router.patch('/moderation-actions/:actionId/reverse',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_REVERSE_ACTION),
   auditAdminAction('moderation_action_reversed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       const { reason } = req.body;
@@ -686,7 +686,7 @@ router.patch('/moderation-actions/:actionId/reverse',
 router.get('/users/:userId/moderation-actions/active',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('user_active_moderation_actions_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -725,7 +725,7 @@ router.get('/users/:userId/moderation-actions/active',
 router.get('/users/:userId/moderation-actions/history',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('user_moderation_history_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -767,7 +767,7 @@ router.get('/users/:userId/moderation-actions/history',
 router.post('/moderation-actions/:actionId/reverse',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_REVERSE_ACTION),
   auditAdminAction('moderation_action_reversed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       
@@ -820,7 +820,7 @@ router.post('/moderation-actions/:actionId/reverse',
 router.get('/moderation-actions/:actionId',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('moderation_action_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       
@@ -862,7 +862,7 @@ router.get('/moderation-actions/:actionId',
 router.get('/moderation-queue',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('moderation_queue_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = queueFiltersSchema.safeParse(req.query);
       if (!validation.success) {
@@ -894,7 +894,7 @@ router.get('/moderation-queue',
 router.patch('/moderation-queue/:itemId/assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_item_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { itemId } = req.params;
       const moderatorId = getAuthUserId(req);
@@ -914,7 +914,7 @@ router.patch('/moderation-queue/:itemId/assign',
 router.patch('/moderation-queue/:itemId/complete',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_COMPLETE),
   auditAdminAction('queue_item_completed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = completeQueueItemSchema.safeParse(req.body);
       if (!validation.success) {
@@ -941,7 +941,7 @@ router.patch('/moderation-queue/:itemId/complete',
 router.get('/moderation-queue/stats',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('queue_stats_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const stats = await storage.getModerationQueueStats();
       res.json(stats);
@@ -956,7 +956,7 @@ router.get('/moderation-queue/stats',
 router.post('/moderation-queue/auto-assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_auto_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = autoAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -981,7 +981,7 @@ router.post('/moderation-queue/auto-assign',
 router.post('/moderation-queue/bulk-assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_bulk_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = bulkAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1009,7 +1009,7 @@ router.post('/moderation-queue/bulk-assign',
 router.get('/moderation-queue/workload',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('moderator_workload_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { moderatorId } = req.query;
       
@@ -1027,7 +1027,7 @@ router.get('/moderation-queue/workload',
 router.post('/moderation-queue/escalate',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
   auditAdminAction('queue_items_escalated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = escalateSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1055,7 +1055,7 @@ router.post('/moderation-queue/escalate',
 router.patch('/moderation-queue/:itemId/priority',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
   auditAdminAction('queue_priority_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = priorityUpdateSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1084,7 +1084,7 @@ router.patch('/moderation-queue/:itemId/priority',
 router.get('/appeals',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_VIEW),
   auditAdminAction('appeals_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId, status, assignedReviewer } = req.query;
       
@@ -1106,7 +1106,7 @@ router.get('/appeals',
 router.patch('/appeals/:appealId/assign',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_ASSIGN),
   auditAdminAction('appeal_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { appealId } = req.params;
       const reviewerId = getAuthUserId(req);
@@ -1126,7 +1126,7 @@ router.patch('/appeals/:appealId/assign',
 router.patch('/appeals/:appealId/resolve',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_DECIDE),
   auditAdminAction('appeal_resolved'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { appealId } = req.params;
       const { decision, reviewerNotes } = req.body;
@@ -1149,7 +1149,7 @@ router.patch('/appeals/:appealId/resolve',
 router.get('/audit-logs',
   requirePermission(ADMIN_PERMISSIONS.AUDIT_VIEW),
   auditAdminAction('audit_logs_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { adminUserId, action, startDate, endDate } = req.query;
       
@@ -1174,7 +1174,7 @@ router.get('/audit-logs',
 router.get('/cms-content',
   requirePermission(ADMIN_PERMISSIONS.CMS_VIEW),
   auditAdminAction('cms_content_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { type, isPublished } = req.query;
       
@@ -1196,7 +1196,7 @@ router.get('/cms-content',
 router.post('/cms-content',
   requirePermission(ADMIN_PERMISSIONS.CMS_CREATE),
   auditAdminAction('cms_content_created'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const authorId = getAuthUserId(req);
       const contentData = {
@@ -1220,7 +1220,7 @@ router.post('/cms-content',
 router.patch('/cms-content/:contentId',
   requirePermission(ADMIN_PERMISSIONS.CMS_EDIT),
   auditAdminAction('cms_content_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { contentId } = req.params;
       const lastEditedBy = getAuthUserId(req);
@@ -1244,7 +1244,7 @@ router.patch('/cms-content/:contentId',
 router.patch('/cms-content/:contentId/publish',
   requirePermission(ADMIN_PERMISSIONS.CMS_PUBLISH),
   auditAdminAction('cms_content_published'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { contentId } = req.params;
       const publisherId = getAuthUserId(req);
@@ -1266,7 +1266,7 @@ router.patch('/cms-content/:contentId/publish',
 router.get('/dashboard/stats',
   requirePermission(ADMIN_PERMISSIONS.ANALYTICS_VIEW),
   auditAdminAction('admin_dashboard_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       // TODO: Implement comprehensive dashboard statistics
       const stats = {
