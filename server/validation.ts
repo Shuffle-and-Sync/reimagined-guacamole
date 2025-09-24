@@ -138,7 +138,7 @@ export function validateRequest(schema: z.ZodSchema) {
       next();
     } catch (error) {
       logger.error('Validation middleware error', error, { url: req.url, method: req.method });
-      res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
   };
 }
