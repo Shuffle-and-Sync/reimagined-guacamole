@@ -1,6 +1,7 @@
 import { Request } from "express";
 
 export interface AuthenticatedUser {
+  id: string; // Added id field for compatibility
   claims: {
     sub: string;
     email?: string;
