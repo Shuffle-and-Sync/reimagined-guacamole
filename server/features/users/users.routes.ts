@@ -139,14 +139,11 @@ router.delete('/account', isAuthenticated, async (req, res) => {
     const success = await usersService.deleteUserAccount(userId);
     
     if (success) {
-      // Clear session and cookies
-      req.session.destroy((err) => {
-        if (err) {
-          logger.error("Failed to destroy session during account deletion", err);
-        }
-      });
+      // Clear authentication cookies
+      res.clearCookie('authjs.session-token');
+      res.clearCookie('authjs.callback-url');
+      res.clearCookie('authjs.csrf-token');
       
-      res.clearCookie('connect.sid');
       res.json({ message: "Account deleted successfully" });
     } else {
       res.status(404).json({ message: "User account not found" });
