@@ -3199,6 +3199,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } catch (error) {
               logger.error('Failed to handle collaborator join via WebSocket', error);
             }
+            
+            } catch (error) {
+              logger.error('Failed to handle collab stream join', error);
+              ws.send(JSON.stringify({ type: 'error', message: 'Failed to join collaborative stream' }));
+            }
             break;
             
           case 'phase_change':
@@ -3267,7 +3272,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     }));
                   }
                 });
-              } catch (error) {
+              }
+            } catch (error) {
                 logger.error('Failed to update coordination phase via WebSocket', error);
                 // Send error back to requesting client
                 if (ws.readyState === WebSocket.OPEN) {
@@ -3277,7 +3283,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     error: 'Failed to update coordination phase'
                   }));
                 }
-              }
             }
             break;
             
