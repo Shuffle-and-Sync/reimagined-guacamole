@@ -1,8 +1,12 @@
 // Dual database configuration for Drizzle + Prisma transition
+// Load environment variables from .env.local for development
+import { config } from "dotenv";
+import { resolve } from "path";
+config({ path: resolve(process.cwd(), '.env.local') });
+
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { pathToFileURL } from "url";
-import { resolve } from "path";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
