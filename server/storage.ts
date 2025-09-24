@@ -189,8 +189,9 @@ import {
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
 } from "@shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { logger } from "./logger";
 
 // Interface for storage operations
 export interface IStorage {
@@ -5826,40 +5827,39 @@ export class DatabaseStorage implements IStorage {
     return appeal;
   }
 
-  async getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]> {
+  async getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]> {
     let query = db.select({
       id: userAppeals.id,
       userId: userAppeals.userId,
       moderationActionId: userAppeals.moderationActionId,
-      appealType: userAppeals.appealType,
       reason: userAppeals.reason,
-      description: userAppeals.description,
-      status: userAppeals.status,
-      priority: userAppeals.priority,
-      assignedReviewer: userAppeals.assignedReviewer,
       evidence: userAppeals.evidence,
-      userStatement: userAppeals.userStatement,
-      reviewerNotes: userAppeals.reviewerNotes,
+      additionalInfo: userAppeals.additionalInfo,
+      status: userAppeals.status,
+      reviewedBy: userAppeals.reviewedBy,
+      reviewedAt: userAppeals.reviewedAt,
+      reviewNotes: userAppeals.reviewNotes,
       decision: userAppeals.decision,
       decisionReason: userAppeals.decisionReason,
-      actionReversed: userAppeals.actionReversed,
-      escalated: userAppeals.escalated,
-      escalationReason: userAppeals.escalationReason,
+      responseToUser: userAppeals.responseToUser,
+      isUserNotified: userAppeals.isUserNotified,
+      canReappeal: userAppeals.canReappeal,
+      reappealCooldownUntil: userAppeals.reappealCooldownUntil,
       createdAt: userAppeals.createdAt,
-      resolvedAt: userAppeals.resolvedAt,
+      updatedAt: userAppeals.updatedAt,
       user: alias(users, 'user'),
       moderationAction: moderationActions,
-      assignedRev: alias(users, 'assignedRev')
+      reviewer: alias(users, 'reviewer')
     })
     .from(userAppeals)
     .innerJoin(alias(users, 'user'), eq(userAppeals.userId, alias(users, 'user').id))
     .leftJoin(moderationActions, eq(userAppeals.moderationActionId, moderationActions.id))
-    .leftJoin(alias(users, 'assignedRev'), eq(userAppeals.assignedReviewer, alias(users, 'assignedRev').id));
+    .leftJoin(alias(users, 'reviewer'), eq(userAppeals.reviewedBy, alias(users, 'reviewer').id));
 
     const conditions = [];
     if (filters?.userId) conditions.push(eq(userAppeals.userId, filters.userId));
     if (filters?.status) conditions.push(eq(userAppeals.status, filters.status));
-    if (filters?.assignedReviewer) conditions.push(eq(userAppeals.assignedReviewer, filters.assignedReviewer));
+    if (filters?.reviewedBy) conditions.push(eq(userAppeals.reviewedBy, filters.reviewedBy));
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -5868,7 +5868,7 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(userAppeals.createdAt));
   }
 
-  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined> {
+  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User }) | undefined> {
     const appeals = await this.getUserAppeals();
     return appeals.find(appeal => appeal.id === id);
   }
@@ -5882,18 +5882,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
-    return await this.updateUserAppeal(appealId, { 
-      assignedReviewer: reviewerId, 
-      status: 'under_review' 
-    });
+    const updateData: Partial<InsertUserAppeal> = { 
+      reviewedBy: reviewerId, 
+      status: 'under_review' as const
+    };
+    return await this.updateUserAppeal(appealId, updateData);
   }
 
   async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
+    // Validate decision value
+    const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
+    const validatedDecision = validDecisions.includes(decision as any) ? decision as typeof validDecisions[number] : 'deny';
+    
     const updateData: Partial<InsertUserAppeal> = {
-      status: 'resolved',
-      decision,
-      reviewerNotes,
-      resolvedAt: new Date()
+      status: validatedDecision === 'approve' ? 'approved' as const : 'denied' as const,
+      decision: validatedDecision,
+      reviewNotes: reviewerNotes,
+      reviewedAt: new Date()
     };
 
     if (reviewerId) {
@@ -5912,7 +5917,7 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation template operations
   async getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]> {
-    let query = db.select({
+    let queryBuilder = db.select({
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -5930,10 +5935,10 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
     if (category) {
-      query = query.where(eq(moderationTemplates.category, category));
+      queryBuilder = queryBuilder.where(eq(moderationTemplates.category, category));
     }
 
-    return await query.orderBy(moderationTemplates.name);
+    return await queryBuilder.orderBy(moderationTemplates.name);
   }
 
   async getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined> {
