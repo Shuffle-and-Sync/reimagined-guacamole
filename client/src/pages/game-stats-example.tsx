@@ -88,10 +88,6 @@ export default function GameStatsExample() {
     refetchStats,
   } = useGameStats({
     gameType: selectedGameType || undefined,
-    page: 1,
-    limit: 10,
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
   });
 
   const {
