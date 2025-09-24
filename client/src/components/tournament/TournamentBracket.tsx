@@ -31,7 +31,7 @@ interface MatchComponentProps {
 }
 
 const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, onAdvanceMatch, onPlayMatch }: MatchComponentProps) => {
-  const getMatchStatusColor = (status: string) => {
+  const getMatchStatusColor = (status: string | null) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
       case 'active': return 'bg-blue-100 border-blue-300 text-blue-800';

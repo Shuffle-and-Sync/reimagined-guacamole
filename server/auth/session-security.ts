@@ -334,7 +334,7 @@ export class SessionSecurityService {
       if (recentActivity.length > 0) {
         // Check for rapid successive attempts
         const recentAttempts = recentActivity.filter(
-          attempt => (currentTime.getTime() - new Date(attempt.createdAt).getTime()) < 60000 // 1 minute
+          attempt => attempt.createdAt && (currentTime.getTime() - new Date(attempt.createdAt).getTime()) < 60000 // 1 minute
         );
         
         if (recentAttempts.length > 3) {
@@ -349,7 +349,8 @@ export class SessionSecurityService {
         if (unusualHours) {
           // Check if this is normal for the user
           const userUsualHours = recentActivity
-            .map(activity => new Date(activity.createdAt).getHours())
+            .filter(activity => activity.createdAt)
+            .map(activity => new Date(activity.createdAt!).getHours())
             .filter(activityHour => Math.abs(activityHour - hour) <= 2);
           
           if (userUsualHours.length === 0) {
@@ -425,7 +426,7 @@ export class SessionSecurityService {
         // Check for multiple devices active simultaneously
         const recentDevices = new Set(
           recentActivity
-            .filter(activity => (Date.now() - new Date(activity.createdAt).getTime()) < 3600000) // 1 hour
+            .filter(activity => activity.createdAt && (Date.now() - new Date(activity.createdAt).getTime()) < 3600000) // 1 hour
             .filter(activity => activity.details && typeof activity.details === 'object')
             .map(activity => (activity.details as any)?.deviceFingerprint)
             .filter(Boolean)
@@ -490,7 +491,7 @@ export class SessionSecurityService {
       let trustScore = 0.5; // Start with neutral trust
       
       // Get device information
-      const device = await storage.getDeviceFingerprintByHash(userId, deviceHash);
+      const device = await storage.getDeviceFingerprint(userId, deviceHash);
       
       if (device) {
         // Trust increases with device age and successful usage
@@ -647,7 +648,7 @@ export class SessionSecurityService {
     try {
       // Get user account information
       const user = await storage.getUser(userId);
-      const accountAge = user ? Date.now() - new Date(user.createdAt).getTime() : 0;
+      const accountAge = user && user.createdAt ? Date.now() - new Date(user.createdAt).getTime() : 0;
       
       // Get MFA status
       const mfaSettings = await storage.getUserMfaSettings(userId);

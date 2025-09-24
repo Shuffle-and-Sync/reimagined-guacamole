@@ -46,7 +46,7 @@ export function withLazyLoading<P extends Record<string, any>>(
   return function WrappedComponent(props: P) {
     return (
       <LazyLoadWrapper fallback={fallback}>
-        <LazyComponent {...props} />
+        <LazyComponent {...(props as any)} />
       </LazyLoadWrapper>
     );
   };

@@ -248,7 +248,7 @@ export function PlatformAccountManager() {
               )}
               
               <div className="flex flex-wrap gap-1">
-                {account.scopes.map((scope) => (
+                {Array.isArray(account.scopes) && account.scopes.map((scope: string) => (
                   <Badge key={scope} variant="secondary" className="text-xs">
                     {scope}
                   </Badge>
