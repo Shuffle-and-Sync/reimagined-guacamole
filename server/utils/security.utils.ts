@@ -85,10 +85,22 @@ export function isSecureToken(token: string): boolean {
   const weakPatterns = [
     /^(demo|test|example|dev)/i,
     /\d{10,}/,  // Long sequences of digits (like timestamps)
-    /(.)\1{4,}/, // Repeated characters
-    /^[a-z]+$/,  // Only lowercase letters
-    /^[0-9]+$/   // Only numbers
+    /(.)\1{4,}/, // Repeated characters (5 or more in a row)
   ];
+  
+  // For hex tokens (from crypto.randomBytes), accept them if they're long enough and don't have weak patterns
+  if (/^[a-f0-9]+$/.test(token) && token.length >= 32) {
+    return !weakPatterns.some(pattern => pattern.test(token));
+  }
+  
+  // For other tokens, require mixed case, numbers, etc.
+  const hasUppercase = /[A-Z]/.test(token);
+  const hasLowercase = /[a-z]/.test(token);
+  const hasNumbers = /\d/.test(token);
+  
+  // Must have at least 2 character types
+  const complexity = [hasUppercase, hasLowercase, hasNumbers].filter(Boolean).length;
+  if (complexity < 2) return false;
   
   return !weakPatterns.some(pattern => pattern.test(token));
 }

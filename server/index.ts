@@ -43,6 +43,7 @@ import { generateEmailVerificationJWT, verifyEmailVerificationJWT, TOKEN_EXPIRY 
 import { storage } from "./storage";
 import { getAuthUserId } from "./auth";
 import { z } from "zod";
+import { auditSecurityConfiguration } from "./utils/security.utils";
 
 const app = express();
 
@@ -77,6 +78,29 @@ app.use(securityHeaders);
     endTimer('env-validation');
     logger.error('Environment validation failed during startup', error);
     process.exit(1);
+  }
+  
+  // Run security audit
+  startTimer('security-audit');
+  try {
+    const securityAudit = auditSecurityConfiguration();
+    endTimer('security-audit');
+    
+    if (!securityAudit.passed) {
+      logger.warn('Security audit found issues', { issues: securityAudit.issues });
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('Security audit failed in production - stopping server', { issues: securityAudit.issues });
+        process.exit(1);
+      }
+    } else {
+      logger.info('Security audit passed');
+    }
+  } catch (error) {
+    endTimer('security-audit');
+    logger.error('Security audit failed during startup', error);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 
   // Initialize Prisma on server startup
