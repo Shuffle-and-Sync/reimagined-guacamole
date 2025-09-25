@@ -61,11 +61,77 @@ export interface AlgorithmWeights {
   adaptiveBonus: number;
 }
 
+export interface GamePreferences {
+  preferredGenres: string[];
+  preferredFormats: string[];
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  competitiveLevel: 'casual' | 'competitive' | 'professional';
+}
+
+export interface AudienceData {
+  size: number;
+  demographics: {
+    ageGroups: Record<string, number>;
+  };
+  regions: Record<string, number>;
+  interests: string[];
+  engagementMetrics: {
+    averageViewTime: number;
+    chatActivity: number;
+    followRate: number;
+  };
+}
+
+export interface StreamingMetrics {
+  averageViewers: number;
+  peakViewers: number;
+  streamDuration: number;
+  followersGained: number;
+  subscriptionConversions: number;
+}
+
+export interface ScheduleData {
+  timeZone: string;
+  regularHours: {
+    day: string;
+    startTime: string;
+    endTime: string;
+  }[];
+  availability: {
+    flexibleHours: boolean;
+    advanceNotice: number; // hours
+    maxCollabHours: number; // per week
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  streamingPlatforms: string[];
+  gamePreferences: string[];
+  schedulingPreferences: {
+    timeZone: string;
+    availableHours: number[];
+    preferredDays: string[];
+  };
+  audienceSize: number;
+  engagementRate: number;
+  reputation: number;
+}
+
+export interface MatchData {
+  matchId: string;
+  participants: string[];
+  outcome: 'successful' | 'failed' | 'cancelled';
+  rating: number;
+  feedback?: string;
+  timestamp: Date;
+}
+
 export interface AdvancedMatchingCriteria {
   userId: string;
   candidateId: string;
-  userProfile: any;
-  candidateProfile: any;
+  userProfile: UserProfile;
+  candidateProfile: UserProfile;
   contextualFactors?: {
     seasonality?: string;
     trendingGames?: string[];
@@ -73,9 +139,9 @@ export interface AdvancedMatchingCriteria {
     platformPromotions?: string[];
   };
   learningFactors?: {
-    previousMatches?: any[];
-    successPatterns?: any[];
-    userFeedback?: any[];
+    previousMatches?: MatchData[];
+    successPatterns?: MatchData[];
+    userFeedback?: MatchData[];
   };
 }
 
@@ -145,8 +211,8 @@ export class AIAlgorithmEngine {
   async analyzeGameCompatibility(
     userGames: string[],
     candidateGames: string[],
-    userPreferences?: any,
-    candidatePreferences?: any
+    userPreferences?: GamePreferences,
+    candidatePreferences?: GamePreferences
   ): Promise<GameCompatibilityResult> {
     try {
       // Direct game matches
@@ -204,10 +270,10 @@ export class AIAlgorithmEngine {
    * Advanced audience overlap analysis with demographic modeling
    */
   async analyzeAudienceOverlap(
-    userAudience: any,
-    candidateAudience: any,
-    userMetrics?: any,
-    candidateMetrics?: any
+    userAudience: AudienceData,
+    candidateAudience: AudienceData,
+    userMetrics?: StreamingMetrics,
+    candidateMetrics?: StreamingMetrics
   ): Promise<AudienceOverlapAnalysis> {
     try {
       // Demographic overlap analysis
@@ -270,8 +336,8 @@ export class AIAlgorithmEngine {
    * Advanced timezone coordination with global scheduling optimization
    */
   async analyzeTimezoneCoordination(
-    userSchedule: any,
-    candidateSchedule: any,
+    userSchedule: ScheduleData,
+    candidateSchedule: ScheduleData,
     userTimezone: string = 'UTC',
     candidateTimezone: string = 'UTC'
   ): Promise<TimeZoneCoordination> {
@@ -442,7 +508,7 @@ export class AIAlgorithmEngine {
   }
 
   private identifyCrossGenreOpportunities(userGenres: string[], candidateGenres: string[]): string[] {
-    const synergisticPairs = [
+    const synergisticPairs: [string, string][] = [
       ['Strategy', 'Roguelike'],
       ['Strategy', 'Puzzle'],
       ['Roguelike', 'Puzzle']
