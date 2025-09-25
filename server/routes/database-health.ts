@@ -5,7 +5,7 @@ import {
   checkDatabaseHealth, 
   DatabaseMonitor, 
   pool 
-} from '../db-optimized';
+} from '@shared/database-unified';
 import { logger } from '../logger';
 
 const router = Router();

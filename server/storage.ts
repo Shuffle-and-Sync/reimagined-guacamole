@@ -1,5 +1,4 @@
-import { db, prisma } from "@shared/database";
-import { database as optimizedDb, withQueryTiming } from "./db-optimized";
+import { db, withQueryTiming } from "@shared/database-unified";
 import { logger } from "./logger";
 import {
   users,
@@ -2958,7 +2957,7 @@ export class DatabaseStorage implements IStorage {
     // Optimized AI Matchmaking Algorithm with performance monitoring
     return withQueryTiming('ai_matchmaking', async () => {
       // Pre-filter with indexed query to reduce dataset size
-      const userProfiles = await optimizedDb
+      const userProfiles = await db
         .select({
           user: users,
           gamingProfile: userGamingProfiles,

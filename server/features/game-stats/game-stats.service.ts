@@ -12,7 +12,7 @@
  */
 
 import { eq, and, gte, lte, desc, asc, count, sql } from 'drizzle-orm';
-import { db } from '@shared/database';
+import { db } from '@shared/database-unified';
 import { users } from '@shared/schema';
 import { NotFoundError, ValidationError } from '../../shared/types';
 
