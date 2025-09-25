@@ -107,7 +107,7 @@ const reverseModerationActionSchema = z.object({
 router.get('/users', 
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('users_list_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = userFiltersSchema.safeParse(req.query);
       if (!validation.success) {
@@ -142,7 +142,7 @@ router.get('/users',
       res.json(data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      res.status(500).json({ message: 'Failed to fetch users' });
+      return res.status(500).json({ message: 'Failed to fetch users' });
     }
   }
 );
@@ -151,7 +151,7 @@ router.get('/users',
 router.get('/users/:userId',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_details_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -178,7 +178,7 @@ router.get('/users/:userId',
       res.json(data);
     } catch (error) {
       console.error('Error fetching user details:', error);
-      res.status(500).json({ message: 'Failed to fetch user details' });
+      return res.status(500).json({ message: 'Failed to fetch user details' });
     }
   }
 );
@@ -187,7 +187,7 @@ router.get('/users/:userId',
 router.patch('/users/:userId',
   requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
   auditAdminAction('user_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -212,7 +212,7 @@ router.patch('/users/:userId',
       res.json(updatedUser);
     } catch (error) {
       console.error('Error updating user:', error);
-      res.status(500).json({ message: 'Failed to update user' });
+      return res.status(500).json({ message: 'Failed to update user' });
     }
   }
 );
@@ -223,7 +223,7 @@ router.patch('/users/:userId',
 router.get('/users/:userId/roles',
   requirePermission(ADMIN_PERMISSIONS.ROLE_VIEW),
   auditAdminAction('user_roles_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       const roles = await storage.getUserRoles(userId);
@@ -231,7 +231,7 @@ router.get('/users/:userId/roles',
       res.json(roles);
     } catch (error) {
       console.error('Error fetching user roles:', error);
-      res.status(500).json({ message: 'Failed to fetch user roles' });
+      return res.status(500).json({ message: 'Failed to fetch user roles' });
     }
   }
 );
@@ -240,7 +240,7 @@ router.get('/users/:userId/roles',
 router.post('/users/:userId/roles',
   requirePermission(ADMIN_PERMISSIONS.ROLE_ASSIGN),
   auditAdminAction('role_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -272,10 +272,10 @@ router.post('/users/:userId/roles',
 
       const newRole = await storage.createUserRole(roleData);
       
-      res.status(201).json(newRole);
+      return res.status(201).json(newRole);
     } catch (error) {
       console.error('Error assigning role:', error);
-      res.status(500).json({ message: 'Failed to assign role' });
+      return res.status(500).json({ message: 'Failed to assign role' });
     }
   }
 );
@@ -284,7 +284,7 @@ router.post('/users/:userId/roles',
 router.delete('/users/:userId/roles/:roleId',
   requirePermission(ADMIN_PERMISSIONS.ROLE_REVOKE),
   auditAdminAction('role_revoked'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { roleId } = req.params;
       
@@ -293,7 +293,7 @@ router.delete('/users/:userId/roles/:roleId',
       res.json({ message: 'Role revoked successfully' });
     } catch (error) {
       console.error('Error revoking role:', error);
-      res.status(500).json({ message: 'Failed to revoke role' });
+      return res.status(500).json({ message: 'Failed to revoke role' });
     }
   }
 );
@@ -304,7 +304,7 @@ router.delete('/users/:userId/roles/:roleId',
 router.get('/users/:userId/details',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_details_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -336,7 +336,7 @@ router.get('/users/:userId/details',
       });
     } catch (error) {
       console.error('Error fetching user details:', error);
-      res.status(500).json({ message: 'Failed to fetch user details' });
+      return res.status(500).json({ message: 'Failed to fetch user details' });
     }
   }
 );
@@ -347,7 +347,7 @@ router.get('/users/:userId/details',
 router.get('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_notes_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -376,7 +376,7 @@ router.get('/users/:userId/notes',
       });
     } catch (error) {
       console.error('Error fetching user notes:', error);
-      res.status(500).json({ message: 'Failed to fetch user notes' });
+      return res.status(500).json({ message: 'Failed to fetch user notes' });
     }
   }
 );
@@ -385,7 +385,7 @@ router.get('/users/:userId/notes',
 router.post('/users/:userId/notes',
   requirePermission(ADMIN_PERMISSIONS.USER_EDIT),
   auditAdminAction('user_note_added'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       const { content } = req.body;
@@ -416,7 +416,7 @@ router.post('/users/:userId/notes',
       
       const adminUser = await storage.getUser(adminUserId);
       
-      res.status(201).json({ 
+      return res.status(201).json({ 
         id: moderationAction.id,
         content: moderationAction.adminNotes,
         moderatorId: adminUserId,
@@ -427,7 +427,7 @@ router.post('/users/:userId/notes',
       });
     } catch (error) {
       console.error('Error adding user note:', error);
-      res.status(500).json({ message: 'Failed to add user note' });
+      return res.status(500).json({ message: 'Failed to add user note' });
     }
   }
 );
@@ -438,7 +438,7 @@ router.post('/users/:userId/notes',
 router.post('/users/:userId/actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_CREATE_ACTION),
   auditAdminAction('user_action_performed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -510,7 +510,7 @@ router.post('/users/:userId/actions',
       });
     } catch (error) {
       console.error('Error performing user action:', error);
-      res.status(500).json({ message: 'Failed to perform user action' });
+      return res.status(500).json({ message: 'Failed to perform user action' });
     }
   }
 );
@@ -519,7 +519,7 @@ router.post('/users/:userId/actions',
 router.get('/users/:userId/activity',
   requirePermission(ADMIN_PERMISSIONS.USER_VIEW),
   auditAdminAction('user_activity_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -550,7 +550,7 @@ router.get('/users/:userId/activity',
       res.json(activity);
     } catch (error) {
       console.error('Error fetching user activity:', error);
-      res.status(500).json({ message: 'Failed to fetch user activity' });
+      return res.status(500).json({ message: 'Failed to fetch user activity' });
     }
   }
 );
@@ -561,7 +561,7 @@ router.get('/users/:userId/activity',
 router.get('/content-reports',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_VIEW_REPORTS),
   auditAdminAction('content_reports_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { status, priority, assignedModerator } = req.query;
       
@@ -574,7 +574,7 @@ router.get('/content-reports',
       res.json(reports);
     } catch (error) {
       console.error('Error fetching content reports:', error);
-      res.status(500).json({ message: 'Failed to fetch content reports' });
+      return res.status(500).json({ message: 'Failed to fetch content reports' });
     }
   }
 );
@@ -583,7 +583,7 @@ router.get('/content-reports',
 router.get('/content-reports/:reportId',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_VIEW_REPORTS),
   auditAdminAction('content_report_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       
@@ -596,7 +596,7 @@ router.get('/content-reports/:reportId',
       res.json(report);
     } catch (error) {
       console.error('Error fetching content report:', error);
-      res.status(500).json({ message: 'Failed to fetch content report' });
+      return res.status(500).json({ message: 'Failed to fetch content report' });
     }
   }
 );
@@ -605,7 +605,7 @@ router.get('/content-reports/:reportId',
 router.patch('/content-reports/:reportId/assign',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_MODERATE),
   auditAdminAction('content_report_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       const { moderatorId } = req.body;
@@ -616,7 +616,7 @@ router.patch('/content-reports/:reportId/assign',
       res.json(report);
     } catch (error) {
       console.error('Error assigning content report:', error);
-      res.status(500).json({ message: 'Failed to assign content report' });
+      return res.status(500).json({ message: 'Failed to assign content report' });
     }
   }
 );
@@ -625,7 +625,7 @@ router.patch('/content-reports/:reportId/assign',
 router.patch('/content-reports/:reportId/resolve',
   requirePermission(ADMIN_PERMISSIONS.CONTENT_MODERATE),
   auditAdminAction('content_report_resolved'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { reportId } = req.params;
       const { resolution, actionTaken } = req.body;
@@ -637,7 +637,7 @@ router.patch('/content-reports/:reportId/resolve',
       res.json(report);
     } catch (error) {
       console.error('Error resolving content report:', error);
-      res.status(500).json({ message: 'Failed to resolve content report' });
+      return res.status(500).json({ message: 'Failed to resolve content report' });
     }
   }
 );
@@ -648,7 +648,7 @@ router.patch('/content-reports/:reportId/resolve',
 router.get('/moderation-actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('moderation_actions_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { targetUserId, moderatorId, action, isActive } = req.query;
       
@@ -662,7 +662,7 @@ router.get('/moderation-actions',
       res.json(actions);
     } catch (error) {
       console.error('Error fetching moderation actions:', error);
-      res.status(500).json({ message: 'Failed to fetch moderation actions' });
+      return res.status(500).json({ message: 'Failed to fetch moderation actions' });
     }
   }
 );
@@ -671,7 +671,7 @@ router.get('/moderation-actions',
 router.post('/moderation-actions',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_CREATE_ACTION),
   auditAdminAction('moderation_action_created'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const moderatorId = getAuthUserId(req);
       const actionData = {
@@ -682,10 +682,10 @@ router.post('/moderation-actions',
       const action = await storage.createModerationAction(actionData);
       
 
-      res.status(201).json(action);
+      return res.status(201).json(action);
     } catch (error) {
       console.error('Error creating moderation action:', error);
-      res.status(500).json({ message: 'Failed to create moderation action' });
+      return res.status(500).json({ message: 'Failed to create moderation action' });
     }
   }
 );
@@ -694,7 +694,7 @@ router.post('/moderation-actions',
 router.patch('/moderation-actions/:actionId/reverse',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_REVERSE_ACTION),
   auditAdminAction('moderation_action_reversed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       const { reason } = req.body;
@@ -706,7 +706,7 @@ router.patch('/moderation-actions/:actionId/reverse',
       res.json(action);
     } catch (error) {
       console.error('Error reversing moderation action:', error);
-      res.status(500).json({ message: 'Failed to reverse moderation action' });
+      return res.status(500).json({ message: 'Failed to reverse moderation action' });
     }
   }
 );
@@ -715,7 +715,7 @@ router.patch('/moderation-actions/:actionId/reverse',
 router.get('/users/:userId/moderation-actions/active',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('user_active_moderation_actions_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -745,7 +745,7 @@ router.get('/users/:userId/moderation-actions/active',
       });
     } catch (error) {
       console.error('Error fetching active moderation actions:', error);
-      res.status(500).json({ message: 'Failed to fetch active moderation actions' });
+      return res.status(500).json({ message: 'Failed to fetch active moderation actions' });
     }
   }
 );
@@ -754,7 +754,7 @@ router.get('/users/:userId/moderation-actions/active',
 router.get('/users/:userId/moderation-actions/history',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('user_moderation_history_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
       
@@ -787,7 +787,7 @@ router.get('/users/:userId/moderation-actions/history',
       });
     } catch (error) {
       console.error('Error fetching moderation history:', error);
-      res.status(500).json({ message: 'Failed to fetch moderation history' });
+      return res.status(500).json({ message: 'Failed to fetch moderation history' });
     }
   }
 );
@@ -796,7 +796,7 @@ router.get('/users/:userId/moderation-actions/history',
 router.post('/moderation-actions/:actionId/reverse',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_REVERSE_ACTION),
   auditAdminAction('moderation_action_reversed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       
@@ -840,7 +840,7 @@ router.post('/moderation-actions/:actionId/reverse',
       });
     } catch (error) {
       console.error('Error reversing moderation action:', error);
-      res.status(500).json({ message: 'Failed to reverse moderation action' });
+      return res.status(500).json({ message: 'Failed to reverse moderation action' });
     }
   }
 );
@@ -849,7 +849,7 @@ router.post('/moderation-actions/:actionId/reverse',
 router.get('/moderation-actions/:actionId',
   requirePermission(ADMIN_PERMISSIONS.MODERATION_VIEW_ACTIONS),
   auditAdminAction('moderation_action_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { actionId } = req.params;
       
@@ -880,7 +880,7 @@ router.get('/moderation-actions/:actionId',
       });
     } catch (error) {
       console.error('Error fetching moderation action:', error);
-      res.status(500).json({ message: 'Failed to fetch moderation action' });
+      return res.status(500).json({ message: 'Failed to fetch moderation action' });
     }
   }
 );
@@ -891,7 +891,7 @@ router.get('/moderation-actions/:actionId',
 router.get('/moderation-queue',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('moderation_queue_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = queueFiltersSchema.safeParse(req.query);
       if (!validation.success) {
@@ -914,7 +914,7 @@ router.get('/moderation-queue',
       res.json(queue);
     } catch (error) {
       console.error('Error fetching moderation queue:', error);
-      res.status(500).json({ message: 'Failed to fetch moderation queue' });
+      return res.status(500).json({ message: 'Failed to fetch moderation queue' });
     }
   }
 );
@@ -923,7 +923,7 @@ router.get('/moderation-queue',
 router.patch('/moderation-queue/:itemId/assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_item_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { itemId } = req.params;
       const moderatorId = getAuthUserId(req);
@@ -934,7 +934,7 @@ router.patch('/moderation-queue/:itemId/assign',
       res.json(item);
     } catch (error) {
       console.error('Error assigning queue item:', error);
-      res.status(500).json({ message: 'Failed to assign queue item' });
+      return res.status(500).json({ message: 'Failed to assign queue item' });
     }
   }
 );
@@ -943,7 +943,7 @@ router.patch('/moderation-queue/:itemId/assign',
 router.patch('/moderation-queue/:itemId/complete',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_COMPLETE),
   auditAdminAction('queue_item_completed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = completeQueueItemSchema.safeParse(req.body);
       if (!validation.success) {
@@ -961,7 +961,7 @@ router.patch('/moderation-queue/:itemId/complete',
       res.json(item);
     } catch (error) {
       console.error('Error completing queue item:', error);
-      res.status(500).json({ message: 'Failed to complete queue item' });
+      return res.status(500).json({ message: 'Failed to complete queue item' });
     }
   }
 );
@@ -970,13 +970,13 @@ router.patch('/moderation-queue/:itemId/complete',
 router.get('/moderation-queue/stats',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('queue_stats_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const stats = await storage.getModerationQueueStats();
       res.json(stats);
     } catch (error) {
       console.error('Error fetching queue stats:', error);
-      res.status(500).json({ message: 'Failed to fetch queue statistics' });
+      return res.status(500).json({ message: 'Failed to fetch queue statistics' });
     }
   }
 );
@@ -985,7 +985,7 @@ router.get('/moderation-queue/stats',
 router.post('/moderation-queue/auto-assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_auto_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = autoAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1001,7 +1001,7 @@ router.post('/moderation-queue/auto-assign',
       res.json(result);
     } catch (error) {
       console.error('Error auto-assigning queue items:', error);
-      res.status(500).json({ message: 'Failed to auto-assign queue items' });
+      return res.status(500).json({ message: 'Failed to auto-assign queue items' });
     }
   }
 );
@@ -1010,7 +1010,7 @@ router.post('/moderation-queue/auto-assign',
 router.post('/moderation-queue/bulk-assign',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_ASSIGN),
   auditAdminAction('queue_bulk_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = bulkAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1029,7 +1029,7 @@ router.post('/moderation-queue/bulk-assign',
       });
     } catch (error) {
       console.error('Error bulk assigning queue items:', error);
-      res.status(500).json({ message: 'Failed to bulk assign queue items' });
+      return res.status(500).json({ message: 'Failed to bulk assign queue items' });
     }
   }
 );
@@ -1038,7 +1038,7 @@ router.post('/moderation-queue/bulk-assign',
 router.get('/moderation-queue/workload',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_VIEW),
   auditAdminAction('moderator_workload_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { moderatorId } = req.query;
       
@@ -1047,7 +1047,7 @@ router.get('/moderation-queue/workload',
       res.json(workloads);
     } catch (error) {
       console.error('Error fetching moderator workload:', error);
-      res.status(500).json({ message: 'Failed to fetch moderator workload' });
+      return res.status(500).json({ message: 'Failed to fetch moderator workload' });
     }
   }
 );
@@ -1056,7 +1056,7 @@ router.get('/moderation-queue/workload',
 router.post('/moderation-queue/escalate',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
   auditAdminAction('queue_items_escalated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = escalateSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1075,7 +1075,7 @@ router.post('/moderation-queue/escalate',
       });
     } catch (error) {
       console.error('Error escalating overdue items:', error);
-      res.status(500).json({ message: 'Failed to escalate overdue items' });
+      return res.status(500).json({ message: 'Failed to escalate overdue items' });
     }
   }
 );
@@ -1084,7 +1084,7 @@ router.post('/moderation-queue/escalate',
 router.patch('/moderation-queue/:itemId/priority',
   requirePermission(ADMIN_PERMISSIONS.QUEUE_PRIORITIZE),
   auditAdminAction('queue_priority_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const validation = priorityUpdateSchema.safeParse(req.body);
       if (!validation.success) {
@@ -1102,7 +1102,7 @@ router.patch('/moderation-queue/:itemId/priority',
       res.json(item);
     } catch (error) {
       console.error('Error updating queue priority:', error);
-      res.status(500).json({ message: 'Failed to update queue priority' });
+      return res.status(500).json({ message: 'Failed to update queue priority' });
     }
   }
 );
@@ -1113,7 +1113,7 @@ router.patch('/moderation-queue/:itemId/priority',
 router.get('/appeals',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_VIEW),
   auditAdminAction('appeals_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { userId, status, assignedReviewer } = req.query;
       
@@ -1126,7 +1126,7 @@ router.get('/appeals',
       res.json(appeals);
     } catch (error) {
       console.error('Error fetching appeals:', error);
-      res.status(500).json({ message: 'Failed to fetch appeals' });
+      return res.status(500).json({ message: 'Failed to fetch appeals' });
     }
   }
 );
@@ -1135,7 +1135,7 @@ router.get('/appeals',
 router.patch('/appeals/:appealId/assign',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_ASSIGN),
   auditAdminAction('appeal_assigned'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { appealId } = req.params;
       const reviewerId = getAuthUserId(req);
@@ -1146,7 +1146,7 @@ router.patch('/appeals/:appealId/assign',
       res.json(appeal);
     } catch (error) {
       console.error('Error assigning appeal:', error);
-      res.status(500).json({ message: 'Failed to assign appeal' });
+      return res.status(500).json({ message: 'Failed to assign appeal' });
     }
   }
 );
@@ -1155,7 +1155,7 @@ router.patch('/appeals/:appealId/assign',
 router.patch('/appeals/:appealId/resolve',
   requirePermission(ADMIN_PERMISSIONS.APPEAL_DECIDE),
   auditAdminAction('appeal_resolved'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { appealId } = req.params;
       const { decision, reviewerNotes } = req.body;
@@ -1167,7 +1167,7 @@ router.patch('/appeals/:appealId/resolve',
       res.json(appeal);
     } catch (error) {
       console.error('Error resolving appeal:', error);
-      res.status(500).json({ message: 'Failed to resolve appeal' });
+      return res.status(500).json({ message: 'Failed to resolve appeal' });
     }
   }
 );
@@ -1178,7 +1178,7 @@ router.patch('/appeals/:appealId/resolve',
 router.get('/audit-logs',
   requirePermission(ADMIN_PERMISSIONS.AUDIT_VIEW),
   auditAdminAction('audit_logs_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { adminUserId, action, startDate, endDate } = req.query;
       
@@ -1192,7 +1192,7 @@ router.get('/audit-logs',
       res.json(logs);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      res.status(500).json({ message: 'Failed to fetch audit logs' });
+      return res.status(500).json({ message: 'Failed to fetch audit logs' });
     }
   }
 );
@@ -1203,7 +1203,7 @@ router.get('/audit-logs',
 router.get('/cms-content',
   requirePermission(ADMIN_PERMISSIONS.CMS_VIEW),
   auditAdminAction('cms_content_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { type, isPublished } = req.query;
       
@@ -1216,7 +1216,7 @@ router.get('/cms-content',
       res.json(content);
     } catch (error) {
       console.error('Error fetching CMS content:', error);
-      res.status(500).json({ message: 'Failed to fetch CMS content' });
+      return res.status(500).json({ message: 'Failed to fetch CMS content' });
     }
   }
 );
@@ -1225,7 +1225,7 @@ router.get('/cms-content',
 router.post('/cms-content',
   requirePermission(ADMIN_PERMISSIONS.CMS_CREATE),
   auditAdminAction('cms_content_created'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const authorId = getAuthUserId(req);
       const contentData = {
@@ -1237,10 +1237,10 @@ router.post('/cms-content',
       const content = await storage.createCmsContent(contentData);
       
 
-      res.status(201).json(content);
+      return res.status(201).json(content);
     } catch (error) {
       console.error('Error creating CMS content:', error);
-      res.status(500).json({ message: 'Failed to create CMS content' });
+      return res.status(500).json({ message: 'Failed to create CMS content' });
     }
   }
 );
@@ -1249,7 +1249,7 @@ router.post('/cms-content',
 router.patch('/cms-content/:contentId',
   requirePermission(ADMIN_PERMISSIONS.CMS_EDIT),
   auditAdminAction('cms_content_updated'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { contentId } = req.params;
       const lastEditedBy = getAuthUserId(req);
@@ -1264,7 +1264,7 @@ router.patch('/cms-content/:contentId',
       res.json(content);
     } catch (error) {
       console.error('Error updating CMS content:', error);
-      res.status(500).json({ message: 'Failed to update CMS content' });
+      return res.status(500).json({ message: 'Failed to update CMS content' });
     }
   }
 );
@@ -1273,7 +1273,7 @@ router.patch('/cms-content/:contentId',
 router.patch('/cms-content/:contentId/publish',
   requirePermission(ADMIN_PERMISSIONS.CMS_PUBLISH),
   auditAdminAction('cms_content_published'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const { contentId } = req.params;
       const publisherId = getAuthUserId(req);
@@ -1284,7 +1284,7 @@ router.patch('/cms-content/:contentId/publish',
       res.json(content);
     } catch (error) {
       console.error('Error publishing CMS content:', error);
-      res.status(500).json({ message: 'Failed to publish CMS content' });
+      return res.status(500).json({ message: 'Failed to publish CMS content' });
     }
   }
 );
@@ -1295,7 +1295,7 @@ router.patch('/cms-content/:contentId/publish',
 router.get('/dashboard/stats',
   requirePermission(ADMIN_PERMISSIONS.ANALYTICS_VIEW),
   auditAdminAction('admin_dashboard_viewed'),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       // TODO: Implement comprehensive dashboard statistics
       const stats = {
@@ -1324,7 +1324,7 @@ router.get('/dashboard/stats',
       res.json(stats);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+      return res.status(500).json({ message: 'Failed to fetch dashboard stats' });
     }
   }
 );
