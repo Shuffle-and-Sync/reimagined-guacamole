@@ -104,6 +104,69 @@ STREAM_KEY_ENCRYPTION_KEY=your-32-character-key  # Optional
 - Look for "Server started successfully" for port confirmation
 - Monitor "Startup timing" logs for performance insights
 
+## NGINX Reverse Proxy Configuration
+
+For production deployments, an NGINX reverse proxy is recommended to handle load balancing, SSL termination, and static asset serving.
+
+### Quick Setup
+
+NGINX configuration files are available in `deployment/nginx/`:
+- **`sites-available-default`** - Drop-in replacement for `/etc/nginx/sites-available/default`
+- **`shuffle-and-sync.conf`** - Standalone site configuration
+- **`complete-nginx.conf`** - Complete NGINX configuration file
+
+### Features Included
+
+✅ **HTTP (Port 80) & HTTPS (Port 443)** listening
+✅ **Reverse proxy** to Express application
+✅ **WebSocket support** for real-time features (TableSync, messaging)
+✅ **SSL/TLS configuration** with modern security settings
+✅ **Security headers** (HSTS, XSS protection, content-type options)
+✅ **Performance optimization** (gzip, buffering, connection pooling)
+✅ **Health check endpoint** special handling
+✅ **Auth.js OAuth flow** compatibility
+
+### Deployment Commands
+
+```bash
+# Navigate to NGINX config directory
+cd deployment/nginx
+
+# Validate configuration
+./validate.sh
+
+# Deploy (requires sudo)
+sudo ./deploy.sh
+
+# Or manual deployment:
+sudo cp sites-available-default /etc/nginx/sites-available/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Express App Integration
+
+The NGINX configuration is optimized for the Shuffle & Sync Express application:
+- **Proxy headers** properly configured for `app.set('trust proxy', 1)`
+- **Health check** endpoint at `/api/health` with no caching
+- **Auth.js routes** at `/api/auth/*` for OAuth flows
+- **WebSocket support** for real-time coordination features
+
+### Verification
+
+After deployment, verify NGINX is running and consuming the correct ports:
+```bash
+# Check NGINX status
+sudo systemctl status nginx
+
+# Verify ports 80 and 443 are listening
+sudo netstat -tlnp | grep nginx
+
+# Test HTTP and HTTPS endpoints
+curl -I http://localhost/api/health
+curl -I https://localhost/api/health  # If SSL configured
+```
+
 ## Additional Optimizations
 
 While the core deployment issues have been addressed, further optimizations could include:
@@ -111,3 +174,4 @@ While the core deployment issues have been addressed, further optimizations coul
 - Database connection pooling optimization
 - CDN configuration for static assets
 - Monitoring and alerting setup
+- NGINX caching layer for static assets
