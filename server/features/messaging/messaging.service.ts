@@ -12,10 +12,24 @@ export class MessagingService {
   // Notification Management
   async getUserNotifications(userId: string, filters: NotificationFilters) {
     try {
-      return await storage.getUserNotifications(userId, {
-        unreadOnly: filters.unreadOnly,
-        limit: filters.limit,
-      });
+      // Use cursor-based pagination if cursor is provided, otherwise use offset pagination
+      if (filters.pagination?.cursor) {
+        return await storage.getUserNotificationsWithCursor(userId, {
+          unreadOnly: filters.unreadOnly,
+          cursor: filters.pagination.cursor,
+          limit: filters.pagination.limit || 50,
+          sortField: filters.sort?.field || 'createdAt',
+          sortDirection: filters.sort?.direction || 'desc',
+        });
+      } else {
+        return await storage.getUserNotifications(userId, {
+          unreadOnly: filters.unreadOnly,
+          page: filters.pagination?.page || 1,
+          limit: filters.pagination?.limit || 50,
+          sortField: filters.sort?.field || 'createdAt',
+          sortDirection: filters.sort?.direction || 'desc',
+        });
+      }
     } catch (error) {
       logger.error("Failed to fetch notifications in MessagingService", error, { userId, filters });
       throw error;
@@ -64,11 +78,30 @@ export class MessagingService {
   // Message Management
   async getUserMessages(userId: string, filters: MessageFilters) {
     try {
-      return await storage.getUserMessages(userId, {
-        eventId: filters.eventId,
-        communityId: filters.communityId,
-        limit: filters.limit,
-      });
+      // Use cursor-based pagination if cursor is provided, otherwise use offset pagination
+      if (filters.pagination?.cursor) {
+        return await storage.getUserMessagesWithCursor(userId, {
+          eventId: filters.eventId,
+          communityId: filters.communityId,
+          conversationId: filters.conversationId,
+          unreadOnly: filters.unreadOnly,
+          cursor: filters.pagination.cursor,
+          limit: filters.pagination.limit || 50,
+          sortField: filters.sort?.field || 'createdAt', 
+          sortDirection: filters.sort?.direction || 'desc',
+        });
+      } else {
+        return await storage.getUserMessages(userId, {
+          eventId: filters.eventId,
+          communityId: filters.communityId,  
+          conversationId: filters.conversationId,
+          unreadOnly: filters.unreadOnly,
+          page: filters.pagination?.page || 1,
+          limit: filters.pagination?.limit || 50,
+          sortField: filters.sort?.field || 'createdAt',
+          sortDirection: filters.sort?.direction || 'desc',
+        });
+      }
     } catch (error) {
       logger.error("Failed to fetch messages in MessagingService", error, { userId, filters });
       throw error;

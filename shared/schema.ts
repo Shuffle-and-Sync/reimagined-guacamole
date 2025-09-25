@@ -84,8 +84,17 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  // Index for user activity tracking
-  index("idx_users_last_active").on(table.lastActiveAt),
+  // Critical performance indexes for frequently queried columns
+  index("idx_users_email").on(table.email), // Email lookups during authentication
+  index("idx_users_username").on(table.username), // Username searches and lookups
+  index("idx_users_status").on(table.status), // Filter by user status (active/inactive)
+  index("idx_users_primary_community").on(table.primaryCommunity), // Community-based queries
+  index("idx_users_created_at").on(table.createdAt), // Sorting by registration date
+  index("idx_users_last_active").on(table.lastActiveAt), // Activity tracking
+  index("idx_users_last_login").on(table.lastLoginAt), // Login analytics
+  // Composite indexes for common query patterns
+  index("idx_users_status_last_active").on(table.status, table.lastActiveAt), // Active users by last activity
+  index("idx_users_community_status").on(table.primaryCommunity, table.status), // Community active users
 ]);
 
 // User platform accounts for cross-platform streaming coordination

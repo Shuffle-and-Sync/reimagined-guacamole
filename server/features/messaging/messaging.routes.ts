@@ -2,6 +2,7 @@ import { Router } from "express";
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { messagingService } from "./messaging.service";
 import { logger } from "../../logger";
+import { dbUtils } from "../../utils/database.utils";
 
 const router = Router();
 
@@ -10,12 +11,16 @@ router.get('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const { unreadOnly, limit } = req.query;
-    
     const userId = getAuthUserId(authenticatedReq);
+    
+    // Parse pagination and filter parameters
+    const { page, limit, cursor, sort } = dbUtils.parsePaginationQuery(req.query);
+    const { unreadOnly } = req.query;
+    
     const notifications = await messagingService.getUserNotifications(userId, {
       unreadOnly: unreadOnly === 'true',
-      limit: limit ? parseInt(limit as string) : undefined,
+      pagination: { page, limit, cursor },
+      sort,
     });
     
     res.json(notifications);
@@ -71,13 +76,19 @@ messagesRouter.get('/', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const { eventId, communityId, limit } = req.query;
-    
     const userId = getAuthUserId(authenticatedReq);
+    
+    // Parse pagination and filter parameters
+    const { page, limit, cursor, sort } = dbUtils.parsePaginationQuery(req.query);
+    const { eventId, communityId, conversationId, unreadOnly } = req.query;
+    
     const messages = await messagingService.getUserMessages(userId, {
       eventId: eventId as string,
       communityId: communityId as string,
-      limit: limit ? parseInt(limit as string) : undefined,
+      conversationId: conversationId as string,
+      unreadOnly: unreadOnly === 'true',
+      pagination: { page, limit, cursor },
+      sort,
     });
     
     res.json(messages);
