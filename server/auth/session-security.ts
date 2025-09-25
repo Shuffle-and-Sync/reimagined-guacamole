@@ -501,6 +501,9 @@ export class SessionSecurityService {
         if ((device.successfulMfaAttempts || 0) > 10) trustScore += 0.2;
         
         // Trust based on overall success rate
+        const totalAttempts = (device.successfulMfaAttempts || 0) + (device.failedMfaAttempts || 0);
+        if (totalAttempts > 0) {
+          const successRate = (device.successfulMfaAttempts || 0) / totalAttempts;
           trustScore += successRate * 0.1;
         }
         

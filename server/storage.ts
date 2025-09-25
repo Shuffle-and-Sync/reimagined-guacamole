@@ -5883,13 +5883,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
-
+    const updateData = {
+      reviewerId,
+      status: 'under_review' as const,
+      reviewedAt: new Date()
+    };
+    
+    return await this.updateUserAppeal(appealId, updateData);
   }
 
   async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
     // Validate decision value
     const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
+    if (!validDecisions.includes(decision as any)) {
+      throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
+    }
 
+    const updateData = {
+      status: 'resolved' as const,
+      decision,
       reviewNotes: reviewerNotes,
       reviewedAt: new Date()
     };
@@ -5899,7 +5911,7 @@ export class DatabaseStorage implements IStorage {
         adminUserId: reviewerId,
         action: 'user_appeal_resolved',
         category: 'user_management',
-        targetId: '',
+        targetId: appealId,
         parameters: { appealId, decision, reviewerNotes },
         ipAddress: ''
       });
@@ -5909,7 +5921,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Moderation template operations
-
+  async getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>> {
+    let query = db.select({
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -5927,7 +5940,10 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
     if (category) {
+      query = query.where(eq(moderationTemplates.category, category));
+    }
 
+    return await query;
   }
 
   async getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined> {
