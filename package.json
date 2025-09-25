@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package",
   "name": "rest-express",
   "version": "1.0.0",
   "type": "module",
