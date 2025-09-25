@@ -192,6 +192,7 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { logger } from "./logger";
 
 // Interface for storage operations
 export interface IStorage {
@@ -1541,7 +1542,7 @@ export class DatabaseStorage implements IStorage {
 
   async invalidateUserPasswordResetTokens(userId: string): Promise<void> {
     // First get the user's email to find their tokens
-    const user = await this.getUserById(userId);
+    const user = await this.getUser(userId);
     if (!user?.email) return;
     
     await db
@@ -5827,40 +5828,39 @@ export class DatabaseStorage implements IStorage {
     return appeal;
   }
 
-  async getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]> {
+  async getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]> {
     let query = db.select({
       id: userAppeals.id,
       userId: userAppeals.userId,
       moderationActionId: userAppeals.moderationActionId,
-      appealType: userAppeals.appealType,
       reason: userAppeals.reason,
-      description: userAppeals.description,
-      status: userAppeals.status,
-      priority: userAppeals.priority,
-      assignedReviewer: userAppeals.assignedReviewer,
       evidence: userAppeals.evidence,
-      userStatement: userAppeals.userStatement,
-      reviewerNotes: userAppeals.reviewerNotes,
+      additionalInfo: userAppeals.additionalInfo,
+      status: userAppeals.status,
+      reviewedBy: userAppeals.reviewedBy,
+      reviewedAt: userAppeals.reviewedAt,
+      reviewNotes: userAppeals.reviewNotes,
       decision: userAppeals.decision,
       decisionReason: userAppeals.decisionReason,
-      actionReversed: userAppeals.actionReversed,
-      escalated: userAppeals.escalated,
-      escalationReason: userAppeals.escalationReason,
+      responseToUser: userAppeals.responseToUser,
+      isUserNotified: userAppeals.isUserNotified,
+      canReappeal: userAppeals.canReappeal,
+      reappealCooldownUntil: userAppeals.reappealCooldownUntil,
       createdAt: userAppeals.createdAt,
-      resolvedAt: userAppeals.resolvedAt,
+      updatedAt: userAppeals.updatedAt,
       user: alias(users, 'user'),
       moderationAction: moderationActions,
-      assignedRev: alias(users, 'assignedRev')
+      reviewer: alias(users, 'reviewer')
     })
     .from(userAppeals)
     .innerJoin(alias(users, 'user'), eq(userAppeals.userId, alias(users, 'user').id))
     .leftJoin(moderationActions, eq(userAppeals.moderationActionId, moderationActions.id))
-    .leftJoin(alias(users, 'assignedRev'), eq(userAppeals.assignedReviewer, alias(users, 'assignedRev').id));
+    .leftJoin(alias(users, 'reviewer'), eq(userAppeals.reviewedBy, alias(users, 'reviewer').id));
 
     const conditions = [];
     if (filters?.userId) conditions.push(eq(userAppeals.userId, filters.userId));
     if (filters?.status) conditions.push(eq(userAppeals.status, filters.status));
-    if (filters?.assignedReviewer) conditions.push(eq(userAppeals.assignedReviewer, filters.assignedReviewer));
+    if (filters?.reviewedBy) conditions.push(eq(userAppeals.reviewedBy, filters.reviewedBy));
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -5869,7 +5869,7 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(userAppeals.createdAt));
   }
 
-  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined> {
+  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User }) | undefined> {
     const appeals = await this.getUserAppeals();
     return appeals.find(appeal => appeal.id === id);
   }
@@ -5883,22 +5883,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
-    return await this.updateUserAppeal(appealId, { 
-      reviewedBy: reviewerId, 
-      status: 'under_review' 
-    });
+
   }
 
   async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
     // Validate decision value
     const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
-    if (!validDecisions.includes(decision as any)) {
-      throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
-    }
 
-    const updateData: Partial<InsertUserAppeal> = {
-      status: decision === 'approve' ? 'approved' : 'denied',
-      decision: decision as 'approve' | 'deny' | 'partial_approve',
       reviewNotes: reviewerNotes,
       reviewedAt: new Date()
     };
@@ -5918,8 +5909,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Moderation template operations
-  async getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>> {
-    const baseQuery = db.select({
+
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -5937,12 +5927,7 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
     if (category) {
-      return await baseQuery
-        .where(eq(moderationTemplates.category, category))
-        .orderBy(moderationTemplates.name);
-    }
 
-    return await baseQuery.orderBy(moderationTemplates.name);
   }
 
   async getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined> {
