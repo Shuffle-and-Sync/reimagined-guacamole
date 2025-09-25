@@ -1,6 +1,18 @@
+export interface PaginationOptions {
+  page?: number;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface SortOptions {
+  field?: string;
+  direction?: 'asc' | 'desc';
+}
+
 export interface NotificationFilters {
   unreadOnly?: boolean;
-  limit?: number;
+  pagination?: PaginationOptions;
+  sort?: SortOptions;
 }
 
 export interface NotificationData {
@@ -21,7 +33,10 @@ export interface CreateNotificationRequest {
 export interface MessageFilters {
   eventId?: string;
   communityId?: string;
-  limit?: number;
+  conversationId?: string;
+  unreadOnly?: boolean;
+  pagination?: PaginationOptions;
+  sort?: SortOptions;
 }
 
 export interface SendMessageRequest {

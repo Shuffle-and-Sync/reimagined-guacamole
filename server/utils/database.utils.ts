@@ -384,6 +384,71 @@ export const validators = {
 };
 
 /**
+ * Advanced pagination options with cursor support
+ */
+export interface CursorPaginationOptions {
+  limit: number;
+  cursor?: string; // Base64 encoded cursor for efficient pagination
+  direction?: 'forward' | 'backward';
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
+
+/**
+ * Parse cursor-based pagination parameters
+ */
+export function parsePaginationQuery(query: any): {
+  page?: number;
+  limit?: number;
+  cursor?: string;
+  sort?: { field: string; direction: 'asc' | 'desc' };
+} {
+  const page = query.page ? Math.max(1, parseInt(query.page)) : undefined;
+  const limit = query.limit ? Math.min(Math.max(1, parseInt(query.limit)), 100) : undefined;
+  const cursor = query.cursor || undefined;
+  
+  let sort: { field: string; direction: 'asc' | 'desc' } | undefined;
+  if (query.sort) {
+    const [field, direction = 'asc'] = query.sort.split(':');
+    sort = { 
+      field, 
+      direction: direction.toLowerCase() === 'desc' ? 'desc' : 'asc' 
+    };
+  }
+  
+  return { page, limit, cursor, sort };
+}
+
+/**
+ * Generate cursor for next page in cursor-based pagination
+ */
+export function generateCursor(lastItem: any, sortField: string): string {
+  if (!lastItem || !lastItem[sortField]) {
+    return '';
+  }
+  
+  const cursorData = {
+    field: sortField,
+    value: lastItem[sortField],
+    id: lastItem.id // Include ID for tie-breaking
+  };
+  
+  return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+}
+
+/**
+ * Parse cursor data
+ */
+export function parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+  try {
+    const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Database utility functions collection
  */
 export const dbUtils = {
@@ -392,6 +457,9 @@ export const dbUtils = {
   buildOrderBy,
   calculatePagination,
   buildPaginationMeta,
+  parsePaginationQuery,
+  generateCursor,
+  parseCursor,
   sanitizeDatabaseInput,
   isValidUUID,
   isValidEmail,

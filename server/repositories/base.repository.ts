@@ -7,7 +7,7 @@
 
 import { PgDatabase } from 'drizzle-orm/pg-core';
 import { PgTableWithColumns, TableConfig } from 'drizzle-orm/pg-core';
-import { eq, and, or, SQL, sql, asc, desc, count } from 'drizzle-orm';
+import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from 'drizzle-orm';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
 import { withQueryTiming } from '@shared/database-unified';
@@ -375,6 +375,115 @@ export abstract class BaseRepository<
         throw new DatabaseError(`Failed to count ${this.tableName} records`);
       }
     });
+  }
+
+  /**
+   * Find entities with cursor-based pagination for better performance
+   * Especially useful for large datasets where OFFSET becomes slow
+   */
+  async findWithCursor(options: {
+    cursor?: string;
+    limit?: number;
+    sortField?: string;
+    sortDirection?: 'asc' | 'desc';
+    filters?: FilterOptions;
+  } = {}): Promise<{
+    data: TEntity[];
+    nextCursor?: string;
+    hasMore: boolean;
+  }> {
+    return withQueryTiming(`${this.tableName}:findWithCursor`, async () => {
+      try {
+        const { cursor, limit = 50, sortField = 'createdAt', sortDirection = 'desc', filters } = options;
+        const maxLimit = Math.min(limit, 100);
+        
+        // Build base query
+        let query = this.db.select().from(this.table);
+        
+        // Apply filters
+        const conditions = [];
+        if (filters && Object.keys(filters).length > 0) {
+          const whereConditions = this.buildWhereConditions(filters);
+          conditions.push(...whereConditions);
+        }
+        
+        // Apply cursor condition for pagination
+        if (cursor) {
+          const cursorData = this.parseCursor(cursor);
+          if (cursorData && cursorData.field === sortField) {
+            const column = (this.table as any)[sortField];
+            if (column) {
+              const cursorCondition = sortDirection === 'desc' 
+                ? lt(column, cursorData.value)
+                : gt(column, cursorData.value);
+              conditions.push(cursorCondition);
+            }
+          }
+        }
+        
+        // Apply all conditions
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
+        
+        // Apply sorting
+        const sortColumn = (this.table as any)[sortField];
+        if (sortColumn) {
+          query = query.orderBy(sortDirection === 'desc' ? desc(sortColumn) : asc(sortColumn));
+        }
+        
+        // Fetch one extra item to check if there's more data
+        const data = await query.limit(maxLimit + 1);
+        
+        const hasMore = data.length > maxLimit;
+        const results = hasMore ? data.slice(0, maxLimit) : data;
+        
+        // Generate next cursor if there's more data
+        let nextCursor: string | undefined;
+        if (hasMore && results.length > 0) {
+          const lastItem = results[results.length - 1];
+          nextCursor = this.generateCursor(lastItem, sortField);
+        }
+        
+        return {
+          data: results,
+          nextCursor,
+          hasMore
+        };
+      } catch (error) {
+        logger.error(`Failed to find ${this.tableName} with cursor`, error, { options });
+        throw new DatabaseError(`Failed to find ${this.tableName} records`);
+      }
+    });
+  }
+
+  /**
+   * Generate cursor for pagination
+   */
+  private generateCursor(item: any, sortField: string): string {
+    if (!item || !item[sortField]) {
+      return '';
+    }
+    
+    const cursorData = {
+      field: sortField,
+      value: item[sortField],
+      id: item.id
+    };
+    
+    return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+  }
+
+  /**
+   * Parse cursor data
+   */
+  private parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+    try {
+      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch {
+      return null;
+    }
   }
 
   /**
