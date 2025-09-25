@@ -2,9 +2,9 @@
 
 Backend Copilot Agent Analysis Summary:
 - Files analyzed: 90
-- Total issues: 523
+- Total issues: 522
   - Errors: 5
-  - Warnings: 313
+  - Warnings: 312
   - Info: 205
 
 Issues by category:
@@ -12,7 +12,7 @@ Issues by category:
   - express: 11
   - performance: 38
   - drizzle: 98
-  - security: 32
+  - security: 31
 
 
 ## Recommendations
@@ -735,9 +735,6 @@ Issues by category:
 
 ℹ️ **Line 3438**: Non-null assertion operator usage
    💡 *Consider using optional chaining or proper null checks*
-
-⚠️ **Line 2884**: HTTP URL detected (should use HTTPS)
-   💡 *Use HTTPS URLs for production endpoints*
 
 ### server/services/ai-algorithm-engine.ts
 
