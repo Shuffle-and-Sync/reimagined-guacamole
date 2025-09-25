@@ -732,7 +732,6 @@ async function verifyToken(token: string, options: {
 
     return { valid: true, payload };
   } catch (error) {
-    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
