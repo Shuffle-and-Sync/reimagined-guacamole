@@ -1,5 +1,6 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
+import { withTransaction } from "@shared/database-unified";
 import { 
   Tournament, 
   TournamentParticipant, 
@@ -37,6 +38,39 @@ export const tournamentsService = {
       return await storage.getTournament(tournamentId);
     } catch (error) {
       logger.error("Service error: Failed to fetch tournament", error, { tournamentId });
+      throw error;
+    }
+  },
+
+  /**
+   * Get tournament with participants using optimized batch loading
+   */
+  async getTournamentWithParticipants(tournamentId: string) {
+    try {
+      // Use transaction for consistent data retrieval
+      return await withTransaction(async (tx) => {
+        const tournament = await storage.getTournamentWithTransaction(tx, tournamentId);
+        if (!tournament) {
+          throw new Error("Tournament not found");
+        }
+
+        // Get participants, rounds, and matches in parallel to optimize performance
+        const [participants, rounds, matches] = await Promise.all([
+          storage.getTournamentParticipantsWithTransaction(tx, tournamentId),
+          storage.getTournamentRoundsWithTransaction(tx, tournamentId), 
+          storage.getTournamentMatchesWithTransaction(tx, tournamentId)
+        ]);
+
+        return {
+          ...tournament,
+          participants,
+          rounds,
+          matches,
+          participantCount: participants.length
+        };
+      }, 'get-tournament-with-details');
+    } catch (error) {
+      logger.error("Service error: Failed to fetch tournament with participants", error, { tournamentId });
       throw error;
     }
   },

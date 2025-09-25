@@ -1,5 +1,7 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
+import { withTransaction } from "@shared/database-unified";
+import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { insertEventSchema } from "@shared/schema";
 import type { Event, EventAttendee, User } from "@shared/schema";
 import type { 
@@ -18,6 +20,43 @@ export class EventsService {
       return await storage.getEvents(filters);
     } catch (error) {
       logger.error("Failed to fetch events in EventsService", error, { filters });
+      throw error;
+    }
+  }
+
+  /**
+   * Get events with attendees using optimized batch loading to prevent N+1 queries
+   */
+  async getEventsWithAttendees(filters: EventFilters) {
+    try {
+      // First, get the events
+      const events = await storage.getEvents(filters);
+      
+      if (events.data.length === 0) {
+        return events;
+      }
+
+      // Use batch query optimization to load all attendees at once
+      const attendeesMap = await BatchQueryOptimizer.batchQuery(
+        events.data,
+        (event: Event) => event.id,
+        (eventIds: string[]) => storage.getEventAttendeesByEventIds(eventIds),
+        (attendee: EventAttendee) => attendee.eventId
+      );
+
+      // Attach attendees to each event
+      const eventsWithAttendees = events.data.map(event => ({
+        ...event,
+        attendees: attendeesMap.get(event.id) || [],
+        attendeeCount: attendeesMap.get(event.id)?.length || 0
+      }));
+
+      return {
+        ...events,
+        data: eventsWithAttendees
+      };
+    } catch (error) {
+      logger.error("Failed to fetch events with attendees in EventsService", error, { filters });
       throw error;
     }
   }
@@ -91,26 +130,57 @@ export class EventsService {
 
   async joinEvent(eventId: string, userId: string, joinData: JoinEventRequest): Promise<EventAttendee> {
     try {
-      // Verify event exists
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        throw new Error("Event not found");
-      }
-      
-      const { status = 'attending', role = 'participant', playerType = 'main' } = joinData;
-      
-      const attendee = await storage.joinEvent({
-        eventId,
-        userId,
-        status: status as 'attending' | 'maybe' | 'not_attending',
-        role: role as 'participant' | 'host' | 'co_host' | 'spectator',
-        playerType: playerType as 'main' | 'alternate',
-      });
+      // Use transaction to ensure event joining and notifications are created atomically
+      const result = await withTransaction(async (tx) => {
+        // Verify event exists
+        const event = await storage.getEventWithTransaction(tx, eventId);
+        if (!event) {
+          throw new Error("Event not found");
+        }
+        
+        const { status = 'attending', role = 'participant', playerType = 'main' } = joinData;
+        
+        // Create the event attendee record
+        const attendee = await storage.joinEventWithTransaction(tx, {
+          eventId,
+          userId,
+          status: status as 'attending' | 'maybe' | 'not_attending',
+          role: role as 'participant' | 'host' | 'co_host' | 'spectator',
+          playerType: playerType as 'main' | 'alternate',
+        });
 
-      logger.info("User joined event", { eventId, userId, status, role, playerType });
-      return attendee;
+        // Create notification for the event host (if different from joiner)
+        if (event.hostId && event.hostId !== userId && status === 'attending') {
+          await storage.createNotificationWithTransaction(tx, {
+            userId: event.hostId,
+            type: 'event_join',
+            title: 'New Event Participant',
+            message: `A user joined your event: ${event.title}`,
+            data: {
+              eventId: event.id,
+              participantId: userId,
+              eventTitle: event.title,
+              participantRole: role,
+            },
+            priority: 'normal',
+            communityId: event.communityId,
+          });
+        }
+
+        return attendee;
+      }, 'join-event-with-notification');
+
+      logger.info("User joined event with notification", { 
+        eventId, 
+        userId, 
+        status: joinData.status, 
+        role: joinData.role, 
+        playerType: joinData.playerType 
+      });
+      
+      return result;
     } catch (error) {
-      logger.error("Failed to join event in EventsService", error, { eventId, userId });
+      logger.error("Failed to join event in EventsService", error, { eventId, userId, joinData });
       throw error;
     }
   }

@@ -116,7 +116,14 @@ export const userPlatformAccounts = pgTable("user_platform_accounts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   unique().on(table.userId, table.platform), // One account per platform per user
+  // Enhanced performance indexes for streaming coordination
+  index("idx_user_platform_user_id").on(table.userId),
+  index("idx_user_platform_platform").on(table.platform),
   index("idx_user_platform_active").on(table.userId, table.isActive),
+  index("idx_user_platform_platform_active").on(table.platform, table.isActive),
+  index("idx_user_platform_handle").on(table.handle),
+  // Index for token expiration checks
+  index("idx_user_platform_token_expires").on(table.tokenExpiresAt),
 ]);
 
 // Communities table for the 6 gaming communities
@@ -919,7 +926,19 @@ export const tournaments = pgTable("tournaments", {
   rules: text("rules"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  // Critical performance indexes for tournaments
+  index("idx_tournaments_community_id").on(table.communityId),
+  index("idx_tournaments_organizer_id").on(table.organizerId),
+  index("idx_tournaments_status").on(table.status),
+  index("idx_tournaments_game_format").on(table.gameFormat),
+  index("idx_tournaments_start_date").on(table.startDate),
+  index("idx_tournaments_created_at").on(table.createdAt),
+  // Composite indexes for common query patterns
+  index("idx_tournaments_community_status").on(table.communityId, table.status),
+  index("idx_tournaments_status_start_date").on(table.status, table.startDate),
+  index("idx_tournaments_community_game_format").on(table.communityId, table.gameFormat),
+]);
 
 export const tournamentParticipants = pgTable("tournament_participants", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
