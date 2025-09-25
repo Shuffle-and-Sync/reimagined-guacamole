@@ -1,5 +1,6 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
+import { withTransaction } from "@shared/database-unified";
 import type { Notification, Message } from "@shared/schema";
 import type { 
   NotificationFilters, 
@@ -110,19 +111,43 @@ export class MessagingService {
 
   async sendMessage(userId: string, messageData: SendMessageRequest): Promise<Message> {
     try {
-      const message = await storage.sendMessage({
-        ...messageData,
-        senderId: userId,
-      });
+      // Use transaction to ensure message and notification are created atomically
+      const result = await withTransaction(async (tx) => {
+        // First, create the message
+        const message = await storage.sendMessageWithTransaction(tx, {
+          ...messageData,
+          senderId: userId,
+        });
+
+        // Then, create a notification for the recipient (if different from sender)
+        if (messageData.recipientId && messageData.recipientId !== userId) {
+          await storage.createNotificationWithTransaction(tx, {
+            userId: messageData.recipientId,
+            type: 'message',
+            title: 'New Message',
+            message: `You received a new message from a user`,
+            data: {
+              messageId: message.id,
+              senderId: userId,
+              messageType: messageData.messageType,
+              conversationId: `${userId}-${messageData.recipientId}`,
+            },
+            priority: 'normal',
+          });
+        }
+
+        return message;
+      }, 'send-message-with-notification');
       
-      logger.info("Message sent", { 
+      logger.info("Message sent with notification", { 
         senderId: userId, 
         recipientId: messageData.recipientId,
-        messageId: message.id 
+        messageId: result.id 
       });
-      return message;
+      
+      return result;
     } catch (error) {
-      logger.error("Failed to send message in MessagingService", error, { userId });
+      logger.error("Failed to send message in MessagingService", error, { userId, messageData });
       throw error;
     }
   }

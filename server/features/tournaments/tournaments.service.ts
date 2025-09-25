@@ -42,6 +42,39 @@ export const tournamentsService = {
     }
   },
 
+  /**
+   * Get tournament with participants using optimized batch loading
+   */
+  async getTournamentWithParticipants(tournamentId: string) {
+    try {
+      // Use transaction for consistent data retrieval
+      return await withTransaction(async (tx) => {
+        const tournament = await storage.getTournamentWithTransaction(tx, tournamentId);
+        if (!tournament) {
+          throw new Error("Tournament not found");
+        }
+
+        // Get participants, rounds, and matches in parallel to optimize performance
+        const [participants, rounds, matches] = await Promise.all([
+          storage.getTournamentParticipantsWithTransaction(tx, tournamentId),
+          storage.getTournamentRoundsWithTransaction(tx, tournamentId), 
+          storage.getTournamentMatchesWithTransaction(tx, tournamentId)
+        ]);
+
+        return {
+          ...tournament,
+          participants,
+          rounds,
+          matches,
+          participantCount: participants.length
+        };
+      }, 'get-tournament-with-details');
+    } catch (error) {
+      logger.error("Service error: Failed to fetch tournament with participants", error, { tournamentId });
+      throw error;
+    }
+  },
+
   async createTournament(tournamentData: any) {
     try {
       logger.info("Creating tournament", { tournamentData });

@@ -1,5 +1,6 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
+import { CursorPagination } from "../../utils/database.utils";
 import type { User, UpsertUser } from "@shared/schema";
 import type { 
   UpdateProfileRequest, 
@@ -263,11 +264,61 @@ export class UsersService {
 
   async findPlayers(userId: string, searchCriteria: FindPlayersRequest) {
     try {
-      const players = await storage.findMatchingPlayers(userId, searchCriteria);
-      logger.info("Player search completed", { userId, criteria: searchCriteria });
+      // Enhanced player search with cursor-based pagination for better performance
+      const enhancedCriteria = {
+        ...searchCriteria,
+        // Ensure pagination limits are applied to prevent large result sets
+        pagination: {
+          limit: Math.min(searchCriteria.pagination?.limit || 20, 50), // Max 50 players per request
+          cursor: searchCriteria.pagination?.cursor,
+          page: searchCriteria.pagination?.page
+        }
+      };
+
+      const players = await storage.findMatchingPlayers(userId, enhancedCriteria);
+      
+      logger.info("Player search completed with pagination", { 
+        userId, 
+        resultCount: players.data?.length || 0,
+        hasMore: players.hasMore,
+        criteria: enhancedCriteria 
+      });
+      
       return players;
     } catch (error) {
-      logger.error("Failed to find players in UsersService", error, { userId });
+      logger.error("Failed to find players in UsersService", error, { userId, searchCriteria });
+      throw error;
+    }
+  }
+
+  /**
+   * Get active users for a community with optimized pagination
+   */
+  async getCommunityActiveUsers(communityId: string, options: {
+    limit?: number;
+    cursor?: string;
+    includeOffline?: boolean;
+  } = {}) {
+    try {
+      const { limit = 20, cursor, includeOffline = false } = options;
+      
+      const activeUsers = await storage.getCommunityActiveUsers(communityId, {
+        limit: Math.min(limit, 100), // Enforce max limit
+        cursor,
+        includeOffline,
+        sortBy: 'lastActiveAt',
+        sortDirection: 'desc'
+      });
+
+      logger.info("Community active users retrieved", { 
+        communityId, 
+        resultCount: activeUsers.data?.length || 0,
+        includeOffline 
+      });
+
+      return activeUsers;
+    } catch (error) {
+      logger.error("Failed to get community active users", error, { communityId, options });
       throw error;
     }
   }
