@@ -98,6 +98,36 @@ export const validateGameSessionSchema = z.object({
   }).optional(),
 });
 
+// Common parameter validation schemas
+export const uuidParamSchema = z.object({
+  id: z.string().uuid('Invalid UUID format')
+});
+
+export const eventParamSchema = z.object({
+  eventId: z.string().uuid('Invalid event ID format')
+});
+
+export const userParamSchema = z.object({
+  userId: z.string().uuid('Invalid user ID format')
+});
+
+export const communityParamSchema = z.object({
+  communityId: z.string().uuid('Invalid community ID format')
+});
+
+// Common query parameter schemas
+export const paginationQuerySchema = z.object({
+  page: z.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: z.string().optional().transform((val) => val ? Math.min(parseInt(val, 10), 100) : 20),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc')
+});
+
+export const searchQuerySchema = z.object({
+  q: z.string().min(1, 'Search query is required').max(100, 'Search query too long'),
+  ...paginationQuerySchema.shape
+});
+
 // Rate limiting and sanitization utilities
 export function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '');
@@ -115,23 +145,8 @@ export function validateRequest(schema: z.ZodSchema) {
       const result = schema.safeParse(req.body);
       
       if (!result.success) {
-        const errors = result.error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-        
-        logger.warn('Input validation failed', { 
-          url: req.url, 
-          method: req.method, 
-          errors,
-          userId: safeGetUserId(req) 
-        });
-        
-        res.status(400).json({
-          message: 'Invalid input',
-          errors,
-        });
-        return;
+        const validationError = new z.ZodError(result.error.errors);
+        return next(validationError);
       }
       
       // Replace req.body with validated and sanitized data
@@ -139,7 +154,28 @@ export function validateRequest(schema: z.ZodSchema) {
       next();
     } catch (error) {
       logger.error('Validation middleware error', error, { url: req.url, method: req.method });
-      res.status(500).json({ message: 'Internal server error' });
+      next(error);
+    }
+  };
+}
+
+// Query parameter validation middleware
+export function validateQuery(schema: z.ZodSchema) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const result = schema.safeParse(req.query);
+      
+      if (!result.success) {
+        const validationError = new z.ZodError(result.error.errors);
+        return next(validationError);
+      }
+      
+      // Replace req.query with validated and sanitized data
+      req.query = result.data;
+      next();
+    } catch (error) {
+      logger.error('Query validation middleware error', error, { url: req.url, method: req.method });
+      next(error);
     }
   };
 }
@@ -158,13 +194,38 @@ export function validateParams(paramName: string, validator: (value: string) => 
         userId: safeGetUserId(req) 
       });
       
-      res.status(400).json({
-        message: errorMessage,
-      });
-      return;
+      const validationError = new z.ZodError([
+        {
+          code: 'custom',
+          path: [paramName],
+          message: errorMessage
+        }
+      ]);
+      return next(validationError);
     }
     
     next();
+  };
+}
+
+// Enhanced parameter validation with Zod schema
+export function validateParamsWithSchema(schema: z.ZodSchema) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const result = schema.safeParse(req.params);
+      
+      if (!result.success) {
+        const validationError = new z.ZodError(result.error.errors);
+        return next(validationError);
+      }
+      
+      // Replace req.params with validated data
+      req.params = result.data;
+      next();
+    } catch (error) {
+      logger.error('Parameter validation middleware error', error, { url: req.url, method: req.method });
+      next(error);
+    }
   };
 }
 
