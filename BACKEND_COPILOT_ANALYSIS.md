@@ -2,13 +2,13 @@
 
 Backend Copilot Agent Analysis Summary:
 - Files analyzed: 90
-- Total issues: 511
+- Total issues: 510
   - Errors: 5
-  - Warnings: 299
+  - Warnings: 298
   - Info: 207
 
 Issues by category:
-  - typescript: 332
+  - typescript: 331
   - express: 11
   - performance: 39
   - drizzle: 98
@@ -570,70 +570,67 @@ Issues by category:
 
 ### server/repositories/base.repository.ts
 
-⚠️ **Line 28**: Usage of "any" type reduces type safety
+⚠️ **Line 29**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 59**: Usage of "any" type reduces type safety
+⚠️ **Line 60**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 63**: Usage of "any" type reduces type safety
+⚠️ **Line 64**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 463**: Usage of "any" type reduces type safety
+⚠️ **Line 464**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 480**: Usage of "any" type reduces type safety
+⚠️ **Line 481**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 500**: Usage of "any" type reduces type safety
+⚠️ **Line 501**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 560**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-ℹ️ **Line 78**: Query may benefit from database indexing
+ℹ️ **Line 79**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 100**: Query may benefit from database indexing
+ℹ️ **Line 101**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 120**: Query result missing type annotation
+ℹ️ **Line 121**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 126**: Query may benefit from database indexing
+ℹ️ **Line 127**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 146**: Query may benefit from database indexing
+ℹ️ **Line 147**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 189**: Query may benefit from database indexing
+ℹ️ **Line 190**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 251**: Query may benefit from database indexing
+ℹ️ **Line 252**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 277**: Query may benefit from database indexing
+ℹ️ **Line 278**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 299**: Query may benefit from database indexing
+ℹ️ **Line 300**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 306**: Query may benefit from database indexing
+ℹ️ **Line 307**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 337**: Query may benefit from database indexing
+ℹ️ **Line 338**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 344**: Query may benefit from database indexing
+ℹ️ **Line 345**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 367**: Query may benefit from database indexing
+ℹ️ **Line 368**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 401**: Query result missing type annotation
+ℹ️ **Line 402**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 426**: Query may benefit from database indexing
+ℹ️ **Line 427**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
 ### server/routes/database-health.ts
