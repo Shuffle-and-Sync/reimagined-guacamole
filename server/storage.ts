@@ -1,5 +1,6 @@
 import { db, prisma } from "@shared/database";
 import { database as optimizedDb, withQueryTiming } from "./db-optimized";
+import { logger } from "./logger";
 import {
   users,
   communities,
@@ -597,8 +598,8 @@ export interface IStorage {
   resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal>;
   
   // Moderation template operations
-  getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]>;
-  getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined>;
+  getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>>;
+  getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined>;
   createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate>;
   updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate>;
   deleteModerationTemplate(id: string): Promise<void>;
@@ -5882,21 +5883,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
-    const updateData: Partial<InsertUserAppeal> = { 
-      reviewedBy: reviewerId, 
-      status: 'under_review' as const
-    };
-    return await this.updateUserAppeal(appealId, updateData);
+
   }
 
   async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
     // Validate decision value
     const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
-    const validatedDecision = validDecisions.includes(decision as any) ? decision as typeof validDecisions[number] : 'deny';
-    
-    const updateData: Partial<InsertUserAppeal> = {
-      status: validatedDecision === 'approve' ? 'approved' as const : 'denied' as const,
-      decision: validatedDecision,
+
       reviewNotes: reviewerNotes,
       reviewedAt: new Date()
     };
@@ -5916,8 +5909,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Moderation template operations
-  async getModerationTemplates(category?: string): Promise<(ModerationTemplate & { createdBy: User })[]> {
-    let queryBuilder = db.select({
+
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -5935,13 +5927,10 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
     if (category) {
-      queryBuilder = queryBuilder.where(eq(moderationTemplates.category, category));
-    }
 
-    return await queryBuilder.orderBy(moderationTemplates.name);
   }
 
-  async getModerationTemplate(id: string): Promise<(ModerationTemplate & { createdBy: User }) | undefined> {
+  async getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined> {
     const templates = await this.getModerationTemplates();
     return templates.find(template => template.id === id);
   }

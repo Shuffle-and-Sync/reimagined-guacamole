@@ -157,6 +157,11 @@ export class EventsService {
         creatorId: userId,
         hostId: userId,
         type: event.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
+        // Validate recurrencePattern if provided
+        recurrencePattern: event.recurrencePattern && 
+          ['daily', 'weekly', 'monthly'].includes(event.recurrencePattern)
+          ? event.recurrencePattern as 'daily' | 'weekly' | 'monthly'
+          : undefined,
       }));
 
       const createdEvents = await storage.createBulkEvents(eventData);
@@ -170,15 +175,26 @@ export class EventsService {
 
   async createRecurringEvents(userId: string, recurringRequest: RecurringEventRequest): Promise<Event[]> {
     try {
+      // Validate recurrencePattern
+      const validPatterns = ['daily', 'weekly', 'monthly'] as const;
+      const recurrencePattern = validPatterns.includes(recurringRequest.recurrencePattern as any)
+        ? recurringRequest.recurrencePattern as 'daily' | 'weekly' | 'monthly'
+        : undefined;
+
+      if (!recurrencePattern) {
+        throw new Error(`Invalid recurrence pattern: ${recurringRequest.recurrencePattern}. Must be one of: ${validPatterns.join(', ')}`);
+      }
+
       const eventData = {
         ...recurringRequest,
         creatorId: userId,
         hostId: userId,
         type: recurringRequest.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
+        recurrencePattern,
       };
 
       const createdEvents = await storage.createRecurringEvents(eventData, recurringRequest.recurrenceEndDate);
-      logger.info("Recurring events created", { userId, count: createdEvents.length, pattern: recurringRequest.recurrencePattern });
+      logger.info("Recurring events created", { userId, count: createdEvents.length, pattern: recurrencePattern });
       return createdEvents;
     } catch (error) {
       logger.error("Failed to create recurring events in EventsService", error, { userId });
