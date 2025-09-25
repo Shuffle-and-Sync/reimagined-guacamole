@@ -87,7 +87,7 @@ export async function warmupCriticalPaths(): Promise<void> {
 /**
  * Setup graceful shutdown handlers for Cloud Run
  */
-export function setupGracefulShutdown(server: any, clients?: { drizzle?: any; prisma?: any }): void {
+export function setupGracefulShutdown(server: any, clients?: { drizzle?: any; closeDatabaseConnections?: () => Promise<void> }): void {
   const gracefulShutdown = async (signal: string) => {
     logger.info(`Received ${signal}, starting graceful shutdown`);
     
@@ -97,12 +97,12 @@ export function setupGracefulShutdown(server: any, clients?: { drizzle?: any; pr
         logger.info('HTTP server closed');
         
         // Disconnect from database clients
-        if (clients?.prisma) {
+        if (clients?.closeDatabaseConnections) {
           try {
-            await clients.prisma.$disconnect();
-            logger.info('Prisma client disconnected');
+            await clients.closeDatabaseConnections();
+            logger.info('Database connections closed');
           } catch (error) {
-            logger.warn('Error disconnecting Prisma client', error);
+            logger.warn('Error closing database connections', error);
           }
         }
         

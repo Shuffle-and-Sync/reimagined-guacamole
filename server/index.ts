@@ -6,7 +6,7 @@ config({ path: resolve(process.cwd(), '.env.local') });
 import express, { type Request, Response, NextFunction } from "express";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";
-import { initializePrisma } from "@shared/database";
+import { db, initializeDatabase } from "@shared/database-unified";
 import { validateAndLogEnvironment, getEnvironmentStatus } from "./env-validation";
 import { startTimer, endTimer, setupGracefulShutdown, logMemoryConfiguration, warmupCriticalPaths } from "./startup-optimization";
 import { sql } from "drizzle-orm";
@@ -465,9 +465,9 @@ app.use(securityHeaders);
     // Check database connectivity
     let dbStatus = 'connected';
     try {
-      const { db } = await import("@shared/database");
+      const dbInstance = db;
       // Simple connectivity check using raw SQL
-      await db.execute(sql`SELECT 1`);
+      await dbInstance.execute(sql`SELECT 1`);
     } catch (error) {
       dbStatus = 'disconnected';
       logger.warn('Database health check failed', error);
@@ -531,8 +531,8 @@ app.use(securityHeaders);
     log(`serving on port ${port}`); // Keep Vite's log for development
     
     // Setup graceful shutdown handlers with server and database references
-    const { db, prisma } = await import("@shared/database");
-    setupGracefulShutdown(server, { drizzle: db, prisma });
+    const { closeDatabaseConnections } = await import("@shared/database-unified");
+    setupGracefulShutdown(server, { drizzle: db, closeDatabaseConnections });
     
     // Start monitoring service after server is running
     try {
