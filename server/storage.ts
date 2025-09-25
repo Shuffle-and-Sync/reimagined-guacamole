@@ -2380,7 +2380,7 @@ export class DatabaseStorage implements IStorage {
       userAgent,
       revokedBy: 'system',
     });
-    console.log(`[JWT_REVOCATION] Token ${jti} persisted to database for user ${userId}`);
+    logger.info(`JWT token revoked for user`, { userId, hasJti: !!jti });
   }
 
   async isJWTRevoked(jti: string): Promise<boolean> {

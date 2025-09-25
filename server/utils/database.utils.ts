@@ -213,14 +213,36 @@ export function buildPaginationMeta(
 }
 
 /**
- * Validate and sanitize database input
+ * Validate and sanitize database input with enhanced SQL injection protection
  */
 export function sanitizeDatabaseInput(input: any): any {
   if (typeof input === 'string') {
-    // Remove potential SQL injection patterns
+    // Check for SQL injection patterns
+    const suspiciousPatterns = [
+      /(\b(union|select|insert|update|delete|drop|alter|create|exec|execute|sp_|xp_)\b)/gi,
+      /(--|\/\*|\*\/|;|'|"|`)/g,
+      /(\bor\b|\band\b).*[=<>]/gi,
+      /(\bwhere\b|\bhaving\b).*[=<>]/gi
+    ];
+    
+    // If any suspicious pattern is found, log it and return sanitized version
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(input)) {
+        logger.warn('Potential SQL injection attempt detected', { 
+          input: input.substring(0, 100), // Only log first 100 chars
+          pattern: pattern.source 
+        });
+        // Sanitize aggressively
+        input = input.replace(pattern, '');
+      }
+    }
+    
+    // Remove potential XSS and other malicious patterns
     return input
       .replace(/[<>]/g, '') // Remove HTML tags
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/data:/gi, '') // Remove data: protocol
       .trim();
   }
   
