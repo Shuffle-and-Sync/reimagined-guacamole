@@ -110,7 +110,7 @@ export function validateUUID(id: string): boolean {
 
 // Middleware factory for input validation
 export function validateRequest(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.body);
       
@@ -127,10 +127,11 @@ export function validateRequest(schema: z.ZodSchema) {
           userId: safeGetUserId(req) 
         });
         
-        return res.status(400).json({
+        res.status(400).json({
           message: 'Invalid input',
           errors,
         });
+        return;
       }
       
       // Replace req.body with validated and sanitized data
@@ -138,14 +139,14 @@ export function validateRequest(schema: z.ZodSchema) {
       next();
     } catch (error) {
       logger.error('Validation middleware error', error, { url: req.url, method: req.method });
-      return res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({ message: 'Internal server error' });
     }
   };
 }
 
 // Parameter validation middleware
 export function validateParams(paramName: string, validator: (value: string) => boolean, errorMessage: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const paramValue = req.params[paramName];
     
     if (!paramValue || !validator(paramValue)) {
@@ -157,9 +158,10 @@ export function validateParams(paramName: string, validator: (value: string) => 
         userId: safeGetUserId(req) 
       });
       
-      return res.status(400).json({
+      res.status(400).json({
         message: errorMessage,
       });
+      return;
     }
     
     next();
