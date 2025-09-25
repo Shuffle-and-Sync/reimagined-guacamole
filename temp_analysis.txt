@@ -1,0 +1,33 @@
+
+> rest-express@1.0.0 copilot:analyze
+> tsx scripts/backend-copilot-cli.ts
+
+🤖 Starting Backend Copilot Agent Analysis...
+
+Backend Copilot Agent Analysis Summary:
+- Files analyzed: 90
+- Total issues: 511
+  - Errors: 5
+  - Warnings: 299
+  - Info: 207
+
+Issues by category:
+  - typescript: 332
+  - express: 11
+  - performance: 39
+  - drizzle: 98
+  - security: 31
+
+
+📊 Recommendations:
+  🔧 Fix TypeScript errors to improve type safety and prevent runtime issues
+  🚀 Improve Express.js patterns: add error handling, input validation, and proper separation of concerns
+  🗄️ Optimize Drizzle ORM usage: use transactions, proper indexing, and efficient query patterns
+  ⚡ Improve performance: add database indexing, implement pagination, optimize queries
+  🔒 Address security vulnerabilities: remove hardcoded credentials, prevent SQL injection
+
+📄 Detailed report generated: /home/runner/work/reimagined-guacamole/reimagined-guacamole/BACKEND_COPILOT_ANALYSIS.md
+
+💡 Run with --fix flag to apply automated fixes
+
+❌ Found 5 errors that need to be fixed.

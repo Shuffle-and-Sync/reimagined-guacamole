@@ -1236,28 +1236,28 @@ Issues by category:
 ⚠️ **Line 2617**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3048**: Usage of "any" type reduces type safety
+⚠️ **Line 3050**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3663**: Usage of "any" type reduces type safety
+⚠️ **Line 3665**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3776**: Usage of "any" type reduces type safety
+⚠️ **Line 3778**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3809**: Usage of "any" type reduces type safety
+⚠️ **Line 3811**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4746**: Usage of "any" type reduces type safety
+⚠️ **Line 4748**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4813**: Usage of "any" type reduces type safety
+⚠️ **Line 4815**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4843**: Usage of "any" type reduces type safety
+⚠️ **Line 4845**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 5442**: Usage of "any" type reduces type safety
+⚠️ **Line 5444**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ℹ️ **Line 618**: Consider using eager loading for related data
@@ -1323,184 +1323,184 @@ Issues by category:
 ℹ️ **Line 2600**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 3886**: Consider using eager loading for related data
+ℹ️ **Line 3888**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 3887**: Consider using eager loading for related data
+ℹ️ **Line 3889**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 3931**: Consider using eager loading for related data
+ℹ️ **Line 3933**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4067**: Consider using eager loading for related data
+ℹ️ **Line 4069**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4194**: Consider using eager loading for related data
+ℹ️ **Line 4196**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4194**: Query result missing type annotation
+ℹ️ **Line 4196**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4313**: Consider using eager loading for related data
+ℹ️ **Line 4315**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4313**: Query result missing type annotation
+ℹ️ **Line 4315**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4358**: Consider using eager loading for related data
+ℹ️ **Line 4360**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4358**: Query result missing type annotation
+ℹ️ **Line 4360**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4437**: Consider using eager loading for related data
+ℹ️ **Line 4439**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4437**: Query result missing type annotation
+ℹ️ **Line 4439**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4466**: Consider using eager loading for related data
+ℹ️ **Line 4468**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4486**: Consider using eager loading for related data
+ℹ️ **Line 4488**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4486**: Query result missing type annotation
+ℹ️ **Line 4488**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4515**: Consider using eager loading for related data
+ℹ️ **Line 4517**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4535**: Consider using eager loading for related data
+ℹ️ **Line 4537**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4535**: Query result missing type annotation
+ℹ️ **Line 4537**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4564**: Consider using eager loading for related data
+ℹ️ **Line 4566**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4575**: Consider using eager loading for related data
+ℹ️ **Line 4577**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4632**: Consider using eager loading for related data
+ℹ️ **Line 4634**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4652**: Consider using eager loading for related data
+ℹ️ **Line 4654**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4652**: Query result missing type annotation
+ℹ️ **Line 4654**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4789**: Consider using eager loading for related data
+ℹ️ **Line 4791**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-🚨 **Line 4897**: Potential N+1 query problem detected
+🚨 **Line 4899**: Potential N+1 query problem detected
    💡 *Use joins or batch queries instead of queries inside loops*
 
-ℹ️ **Line 4902**: Consider using eager loading for related data
+ℹ️ **Line 4904**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4938**: Consider using eager loading for related data
+ℹ️ **Line 4940**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4938**: Query result missing type annotation
+ℹ️ **Line 4940**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5067**: Consider using eager loading for related data
+ℹ️ **Line 5069**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5067**: Query result missing type annotation
+ℹ️ **Line 5069**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5141**: Consider using eager loading for related data
+ℹ️ **Line 5143**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5193**: Consider using eager loading for related data
+ℹ️ **Line 5195**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5193**: Query result missing type annotation
+ℹ️ **Line 5195**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5344**: Consider using eager loading for related data
+ℹ️ **Line 5346**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-🚨 **Line 5350**: Potential N+1 query problem detected
+🚨 **Line 5352**: Potential N+1 query problem detected
    💡 *Use joins or batch queries instead of queries inside loops*
 
-ℹ️ **Line 5354**: Consider using eager loading for related data
+ℹ️ **Line 5356**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5364**: Consider using eager loading for related data
+ℹ️ **Line 5366**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5364**: Query result missing type annotation
+ℹ️ **Line 5366**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5391**: Consider using eager loading for related data
+ℹ️ **Line 5393**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5411**: Consider using eager loading for related data
+ℹ️ **Line 5413**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5411**: Query result missing type annotation
+ℹ️ **Line 5413**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5482**: Consider using eager loading for related data
+ℹ️ **Line 5484**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5482**: Query result missing type annotation
+ℹ️ **Line 5484**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5514**: Consider using eager loading for related data
+ℹ️ **Line 5516**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5514**: Query result missing type annotation
+ℹ️ **Line 5516**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5540**: Consider using eager loading for related data
+ℹ️ **Line 5542**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5557**: Consider using eager loading for related data
+ℹ️ **Line 5559**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5557**: Query result missing type annotation
+ℹ️ **Line 5559**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5571**: Consider using eager loading for related data
+ℹ️ **Line 5573**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5571**: Query result missing type annotation
+ℹ️ **Line 5573**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5664**: Consider using eager loading for related data
+ℹ️ **Line 5670**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5676**: Consider using eager loading for related data
+ℹ️ **Line 5682**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5676**: Query result missing type annotation
+ℹ️ **Line 5682**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5736**: Consider using eager loading for related data
+ℹ️ **Line 5744**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5736**: Query result missing type annotation
+ℹ️ **Line 5744**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5784**: Consider using eager loading for related data
+ℹ️ **Line 5792**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5831**: Consider using eager loading for related data
+ℹ️ **Line 5841**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5831**: Query result missing type annotation
+ℹ️ **Line 5841**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5924**: Consider using eager loading for related data
+ℹ️ **Line 5934**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5924**: Query result missing type annotation
+ℹ️ **Line 5934**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
 ⚠️ **Line 2383**: Console.log usage detected
