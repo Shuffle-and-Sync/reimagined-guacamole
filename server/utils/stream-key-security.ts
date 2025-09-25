@@ -39,7 +39,7 @@ export function decryptStreamKey(encryptedKey: string): string {
   
   try {
     const parts = encryptedKey.split(':');
-    if (parts.length !== 2) {
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
       throw new Error('Invalid encrypted key format');
     }
     
@@ -88,7 +88,9 @@ export function isValidStreamKey(encryptedKey: string): boolean {
   if (!encryptedKey) return false;
   
   const parts = encryptedKey.split(':');
-  return parts.length === 2 && parts[0].length === 32 && parts[1].length > 0;
+  return parts.length === 2 && 
+         parts[0] !== undefined && parts[0].length === 32 && 
+         parts[1] !== undefined && parts[1].length > 0;
 }
 
 /**
