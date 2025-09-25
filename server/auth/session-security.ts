@@ -495,19 +495,11 @@ export class SessionSecurityService {
       
       if (device) {
         // Trust increases with device age and successful usage
-        const deviceAge = Date.now() - new Date(device.createdAt || new Date()).getTime();
-        const ageInDays = deviceAge / (1000 * 60 * 60 * 24);
-        
-        if (ageInDays > 30) trustScore += 0.2; // Device used for over 30 days
-        if (ageInDays > 90) trustScore += 0.1; // Device used for over 90 days
-        
+      
         // Trust based on successful MFA history
         if ((device.successfulMfaAttempts || 0) > 10) trustScore += 0.2;
         
         // Trust based on overall success rate
-        const totalAttempts = (device.successfulMfaAttempts || 0) + (device.failedMfaAttempts || 0);
-        if (totalAttempts > 0) {
-          const successRate = (device.successfulMfaAttempts || 0) / totalAttempts;
           trustScore += successRate * 0.1;
         }
         
