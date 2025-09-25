@@ -1,6 +1,6 @@
 import { db, prisma } from "@shared/database";
-import { database as optimizedDb, withQueryTiming } from "./db-optimized";
-import { logger } from "./logger";
+import { database as optimizedDb, withQueryTiming } from "../db-optimized";
+import { logger } from "../logger";
 import {
   users,
   communities,
@@ -192,7 +192,7 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { logger } from "./logger";
+import { logger } from "../logger";
 
 // Interface for storage operations
 export interface IStorage {
