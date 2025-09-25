@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { getAuthUserId } from '../auth';
+import { logger } from '../logger';
 
 // Permission constants for admin operations
 export const ADMIN_PERMISSIONS = {
@@ -182,7 +183,10 @@ export async function hasAdminRole(userId: string): Promise<boolean> {
       )
     );
   } catch (error) {
-    console.error('Error checking admin role:', error);
+    logger.error('Error checking admin role', error, { 
+        userId,
+        operation: 'checking_admin_role'
+      });
     return false;
   }
 }
@@ -223,7 +227,10 @@ export async function hasPermission(userId: string, permission: string): Promise
     
     return false;
   } catch (error) {
-    console.error('Error checking permission:', error);
+    logger.error('Error checking permission', error, { 
+        userId,
+        operation: 'checking_permission'
+      });
     return false;
   }
 }
@@ -259,7 +266,10 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
 
     next();
   } catch (error) {
-    console.error('Admin role check error:', error);
+    logger.error('Admin role check error', error, { 
+        userId: getAuthUserId(req),
+        operation: 'admin_role_check_error'
+      });
     res.status(500).json({ message: 'Permission check failed' });
     return;
   }
@@ -299,7 +309,10 @@ export function requirePermission(permission: string) {
 
       next();
     } catch (error) {
-      console.error('Admin permission check error:', error);
+      logger.error('Admin permission check error', error, { 
+        userId: getAuthUserId(req),
+        operation: 'admin_permission_check_error'
+      });
       res.status(500).json({ 
         message: 'Permission check failed',
         code: 'INTERNAL_ERROR'
@@ -345,7 +358,10 @@ export function requireAllPermissions(permissions: string[]) {
 
       next();
     } catch (error) {
-      console.error('Admin permissions check error:', error);
+      logger.error('Admin permissions check error', error, { 
+        userId: getAuthUserId(req),
+        operation: 'admin_permissions_check_error'
+      });
       res.status(500).json({ 
         message: 'Permissions check failed',
         code: 'INTERNAL_ERROR'
@@ -395,7 +411,10 @@ export function requireAnyPermission(permissions: string[]) {
 
       next();
     } catch (error) {
-      console.error('Admin permissions check error:', error);
+      logger.error('Admin permissions check error', error, { 
+        userId: getAuthUserId(req),
+        operation: 'admin_permissions_check_error'
+      });
       res.status(500).json({ 
         message: 'Permissions check failed',
         code: 'INTERNAL_ERROR'
@@ -423,7 +442,10 @@ export function auditAdminAction(action: string) {
 
       next();
     } catch (error) {
-      console.error('Audit middleware error:', error);
+      logger.error('Audit middleware error', error, { 
+        userId: getAuthUserId(req),
+        operation: 'audit_middleware_error'
+      });
       next(); // Continue even if audit setup fails
     }
   };

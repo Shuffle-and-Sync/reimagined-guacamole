@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import { logger } from '../logger';
 
 /**
  * Secure stream key management utility
@@ -54,7 +55,9 @@ export function decryptStreamKey(encryptedKey: string): string {
     
     return decrypted;
   } catch (error) {
-    console.error('Failed to decrypt stream key:', error);
+    logger.error('Failed to decrypt stream key', error, { 
+      operation: 'decrypt_stream_key'
+    });
     return '';
   }
 }
