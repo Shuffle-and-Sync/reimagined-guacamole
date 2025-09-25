@@ -265,8 +265,8 @@ export default function Calendar() {
     return true;
   });
 
-  const todaysEvents = events.filter(event => event.date === new Date().toISOString().split('T')[0]);
-  const upcomingEvents = events.filter(event => event.date > new Date().toISOString().split('T')[0]).slice(0, 5);
+  const todaysEvents = events.filter(event => event.date && event.date === new Date().toISOString().split('T')[0]);
+  const upcomingEvents = events.filter(event => event.date && event.date > new Date().toISOString().split('T')[0]).slice(0, 5);
 
   // Show login prompt for unauthenticated users (after all hooks are called)
   if (!isLoading && !isAuthenticated) {
