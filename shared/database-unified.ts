@@ -128,6 +128,70 @@ export async function checkDatabaseHealth(): Promise<{
   }
 }
 
+// Prepared statement cache for commonly used queries
+export class PreparedStatementCache {
+  private static instance: PreparedStatementCache;
+  private statements = new Map<string, any>();
+  
+  public static getInstance(): PreparedStatementCache {
+    if (!PreparedStatementCache.instance) {
+      PreparedStatementCache.instance = new PreparedStatementCache();
+    }
+    return PreparedStatementCache.instance;
+  }
+
+  public getOrPrepare<T = any>(key: string, queryBuilder: () => any): any {
+    if (!this.statements.has(key)) {
+      const prepared = queryBuilder().prepare();
+      this.statements.set(key, prepared);
+    }
+    return this.statements.get(key)!;
+  }
+
+  public clear(): void {
+    this.statements.clear();
+  }
+}
+
+// Enhanced transaction wrapper with better error handling and retry logic
+export async function withTransaction<T>(
+  operation: (tx: Parameters<typeof db.transaction>[0]) => Promise<T>,
+  operationName: string = 'transaction',
+  maxRetries: number = 3
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await withQueryTiming(`${operationName}:attempt_${attempt}`, async () => {
+        return await db.transaction(operation);
+      });
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Log the error
+      console.error(`Transaction attempt ${attempt} failed for ${operationName}:`, error);
+      
+      // Check if error is retryable (connection issues, deadlocks, etc.)
+      const isRetryable = error instanceof Error && (
+        error.message.includes('connection') ||
+        error.message.includes('deadlock') ||
+        error.message.includes('timeout')
+      );
+      
+      if (!isRetryable || attempt === maxRetries) {
+        break;
+      }
+      
+      // Exponential backoff delay
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw new Error(`Transaction failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+}
+
 // Connection lifecycle management
 export async function initializeDatabase(): Promise<void> {
   try {

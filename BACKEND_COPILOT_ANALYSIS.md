@@ -2,15 +2,15 @@
 
 Backend Copilot Agent Analysis Summary:
 - Files analyzed: 90
-- Total issues: 522
+- Total issues: 510
   - Errors: 5
-  - Warnings: 312
-  - Info: 205
+  - Warnings: 298
+  - Info: 207
 
 Issues by category:
-  - typescript: 344
+  - typescript: 331
   - express: 11
-  - performance: 38
+  - performance: 39
   - drizzle: 98
   - security: 31
 
@@ -27,37 +27,37 @@ Issues by category:
 
 ### server/admin/admin.middleware.ts
 
-⚠️ **Line 427**: Usage of "any" type reduces type safety
+⚠️ **Line 439**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 433**: Usage of "any" type reduces type safety
+⚠️ **Line 445**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 449**: Usage of "any" type reduces type safety
+⚠️ **Line 461**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 456**: Usage of "any" type reduces type safety
+⚠️ **Line 468**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 463**: Usage of "any" type reduces type safety
+⚠️ **Line 475**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 483**: Usage of "any" type reduces type safety
+⚠️ **Line 495**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 528**: Usage of "any" type reduces type safety
+⚠️ **Line 540**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 529**: Usage of "any" type reduces type safety
+⚠️ **Line 541**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 401**: Request body used without validation
+⚠️ **Line 413**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 408**: Request body used without validation
+⚠️ **Line 420**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 493**: Request body used without validation
+⚠️ **Line 505**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
 ### server/agents/backend-copilot-agent.ts
@@ -461,11 +461,6 @@ Issues by category:
 ⚠️ **Line 330**: Console.log usage detected
    💡 *Use structured logging instead of console.log*
 
-### server/features/messaging/messaging.types.ts
-
-⚠️ **Line 10**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
 ### server/features/tournaments/tournaments.service.ts
 
 ⚠️ **Line 44**: Usage of "any" type reduces type safety
@@ -575,58 +570,67 @@ Issues by category:
 
 ### server/repositories/base.repository.ts
 
-⚠️ **Line 28**: Usage of "any" type reduces type safety
+⚠️ **Line 29**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 59**: Usage of "any" type reduces type safety
+⚠️ **Line 60**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 63**: Usage of "any" type reduces type safety
+⚠️ **Line 64**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 391**: Usage of "any" type reduces type safety
+⚠️ **Line 464**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 451**: Usage of "any" type reduces type safety
+⚠️ **Line 481**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-ℹ️ **Line 78**: Query may benefit from database indexing
+⚠️ **Line 501**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+ℹ️ **Line 79**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 100**: Query may benefit from database indexing
+ℹ️ **Line 101**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 120**: Query result missing type annotation
+ℹ️ **Line 121**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 126**: Query may benefit from database indexing
+ℹ️ **Line 127**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 146**: Query may benefit from database indexing
+ℹ️ **Line 147**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 189**: Query may benefit from database indexing
+ℹ️ **Line 190**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 251**: Query may benefit from database indexing
+ℹ️ **Line 252**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 277**: Query may benefit from database indexing
+ℹ️ **Line 278**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 299**: Query may benefit from database indexing
+ℹ️ **Line 300**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 306**: Query may benefit from database indexing
+ℹ️ **Line 307**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 337**: Query may benefit from database indexing
+ℹ️ **Line 338**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 344**: Query may benefit from database indexing
+ℹ️ **Line 345**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
-ℹ️ **Line 367**: Query may benefit from database indexing
+ℹ️ **Line 368**: Query may benefit from database indexing
+   💡 *Consider adding database indexes for frequently queried columns*
+
+ℹ️ **Line 402**: Query result missing type annotation
+   💡 *Add explicit type annotation for query results to improve type safety*
+
+ℹ️ **Line 427**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
 ### server/routes/database-health.ts
@@ -655,213 +659,174 @@ Issues by category:
 
 ### server/routes.ts
 
-ℹ️ **Line 2116**: Non-null assertion operator usage
+ℹ️ **Line 2168**: Non-null assertion operator usage
    💡 *Consider using optional chaining or proper null checks*
-
-⚠️ **Line 2210**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 2235**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 2250**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 2262**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2319**: Usage of "any" type reduces type safety
+⚠️ **Line 2287**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2337**: Usage of "any" type reduces type safety
+⚠️ **Line 2302**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2362**: Usage of "any" type reduces type safety
+⚠️ **Line 2314**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2386**: Usage of "any" type reduces type safety
+⚠️ **Line 2371**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2468**: Usage of "any" type reduces type safety
+⚠️ **Line 2389**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2512**: Usage of "any" type reduces type safety
+⚠️ **Line 2414**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2526**: Usage of "any" type reduces type safety
+⚠️ **Line 2438**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2542**: Usage of "any" type reduces type safety
+⚠️ **Line 2520**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2555**: Usage of "any" type reduces type safety
+⚠️ **Line 2564**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2567**: Usage of "any" type reduces type safety
+⚠️ **Line 2578**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2597**: Usage of "any" type reduces type safety
+⚠️ **Line 2594**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2624**: Usage of "any" type reduces type safety
+⚠️ **Line 2607**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2635**: Usage of "any" type reduces type safety
+⚠️ **Line 2619**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 2649**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2707**: Usage of "any" type reduces type safety
+⚠️ **Line 2676**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2720**: Usage of "any" type reduces type safety
+⚠️ **Line 2687**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2748**: Usage of "any" type reduces type safety
+⚠️ **Line 2701**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2765**: Usage of "any" type reduces type safety
+⚠️ **Line 2759**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2792**: Usage of "any" type reduces type safety
+⚠️ **Line 2772**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2819**: Usage of "any" type reduces type safety
+⚠️ **Line 2800**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2857**: Usage of "any" type reduces type safety
+⚠️ **Line 2817**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-ℹ️ **Line 3438**: Non-null assertion operator usage
+⚠️ **Line 2844**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 2871**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 2909**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+ℹ️ **Line 3494**: Non-null assertion operator usage
    💡 *Consider using optional chaining or proper null checks*
 
 ### server/services/ai-algorithm-engine.ts
 
-⚠️ **Line 67**: Usage of "any" type reduces type safety
+⚠️ **Line 423**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 68**: Usage of "any" type reduces type safety
+⚠️ **Line 424**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 76**: Usage of "any" type reduces type safety
+⚠️ **Line 425**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 77**: Usage of "any" type reduces type safety
+⚠️ **Line 426**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 78**: Usage of "any" type reduces type safety
+⚠️ **Line 590**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 148**: Usage of "any" type reduces type safety
+⚠️ **Line 604**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 149**: Usage of "any" type reduces type safety
+⚠️ **Line 621**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 207**: Usage of "any" type reduces type safety
+⚠️ **Line 649**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 208**: Usage of "any" type reduces type safety
+⚠️ **Line 660**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 209**: Usage of "any" type reduces type safety
+⚠️ **Line 672**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 210**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 273**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 274**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 357**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 358**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 359**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 360**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 524**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 538**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 555**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 583**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 594**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 606**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 619**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 632**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 648**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 670**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 697**: Usage of "any" type reduces type safety
+⚠️ **Line 685**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 698**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 729**: Usage of "any" type reduces type safety
+⚠️ **Line 714**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 730**: Usage of "any" type reduces type safety
+⚠️ **Line 736**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 746**: Usage of "any" type reduces type safety
+⚠️ **Line 763**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 777**: Usage of "any" type reduces type safety
+⚠️ **Line 764**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 778**: Usage of "any" type reduces type safety
+⚠️ **Line 795**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 796**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 812**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 827**: Usage of "any" type reduces type safety
+⚠️ **Line 843**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 841**: Usage of "any" type reduces type safety
+⚠️ **Line 844**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 855**: Usage of "any" type reduces type safety
+⚠️ **Line 878**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 864**: Usage of "any" type reduces type safety
+⚠️ **Line 893**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 885**: Usage of "any" type reduces type safety
+⚠️ **Line 907**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 902**: Usage of "any" type reduces type safety
+⚠️ **Line 921**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 1023**: Usage of "any" type reduces type safety
+⚠️ **Line 930**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 951**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 968**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 1089**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/services/ai-streaming-matcher.ts
@@ -925,20 +890,6 @@ Issues by category:
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 544**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-### server/services/cache-service.ts
-
-⚠️ **Line 32**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 144**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 169**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 195**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/services/collaborative-streaming.ts
@@ -1282,28 +1233,28 @@ Issues by category:
 ⚠️ **Line 2617**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3048**: Usage of "any" type reduces type safety
+⚠️ **Line 3050**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3663**: Usage of "any" type reduces type safety
+⚠️ **Line 3665**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3776**: Usage of "any" type reduces type safety
+⚠️ **Line 3778**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 3809**: Usage of "any" type reduces type safety
+⚠️ **Line 3811**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4746**: Usage of "any" type reduces type safety
+⚠️ **Line 4748**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4813**: Usage of "any" type reduces type safety
+⚠️ **Line 4815**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 4843**: Usage of "any" type reduces type safety
+⚠️ **Line 4845**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 5442**: Usage of "any" type reduces type safety
+⚠️ **Line 5444**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ℹ️ **Line 618**: Consider using eager loading for related data
@@ -1369,184 +1320,184 @@ Issues by category:
 ℹ️ **Line 2600**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 3886**: Consider using eager loading for related data
+ℹ️ **Line 3888**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 3887**: Consider using eager loading for related data
+ℹ️ **Line 3889**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 3931**: Consider using eager loading for related data
+ℹ️ **Line 3933**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4067**: Consider using eager loading for related data
+ℹ️ **Line 4069**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4194**: Consider using eager loading for related data
+ℹ️ **Line 4196**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4194**: Query result missing type annotation
+ℹ️ **Line 4196**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4313**: Consider using eager loading for related data
+ℹ️ **Line 4315**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4313**: Query result missing type annotation
+ℹ️ **Line 4315**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4358**: Consider using eager loading for related data
+ℹ️ **Line 4360**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4358**: Query result missing type annotation
+ℹ️ **Line 4360**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4437**: Consider using eager loading for related data
+ℹ️ **Line 4439**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4437**: Query result missing type annotation
+ℹ️ **Line 4439**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4466**: Consider using eager loading for related data
+ℹ️ **Line 4468**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4486**: Consider using eager loading for related data
+ℹ️ **Line 4488**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4486**: Query result missing type annotation
+ℹ️ **Line 4488**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4515**: Consider using eager loading for related data
+ℹ️ **Line 4517**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4535**: Consider using eager loading for related data
+ℹ️ **Line 4537**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4535**: Query result missing type annotation
+ℹ️ **Line 4537**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4564**: Consider using eager loading for related data
+ℹ️ **Line 4566**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4575**: Consider using eager loading for related data
+ℹ️ **Line 4577**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4632**: Consider using eager loading for related data
+ℹ️ **Line 4634**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4652**: Consider using eager loading for related data
+ℹ️ **Line 4654**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4652**: Query result missing type annotation
+ℹ️ **Line 4654**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 4789**: Consider using eager loading for related data
+ℹ️ **Line 4791**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-🚨 **Line 4897**: Potential N+1 query problem detected
+🚨 **Line 4899**: Potential N+1 query problem detected
    💡 *Use joins or batch queries instead of queries inside loops*
 
-ℹ️ **Line 4902**: Consider using eager loading for related data
+ℹ️ **Line 4904**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4938**: Consider using eager loading for related data
+ℹ️ **Line 4940**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 4938**: Query result missing type annotation
+ℹ️ **Line 4940**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5067**: Consider using eager loading for related data
+ℹ️ **Line 5069**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5067**: Query result missing type annotation
+ℹ️ **Line 5069**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5141**: Consider using eager loading for related data
+ℹ️ **Line 5143**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5193**: Consider using eager loading for related data
+ℹ️ **Line 5195**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5193**: Query result missing type annotation
+ℹ️ **Line 5195**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5344**: Consider using eager loading for related data
+ℹ️ **Line 5346**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-🚨 **Line 5350**: Potential N+1 query problem detected
+🚨 **Line 5352**: Potential N+1 query problem detected
    💡 *Use joins or batch queries instead of queries inside loops*
 
-ℹ️ **Line 5354**: Consider using eager loading for related data
+ℹ️ **Line 5356**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5364**: Consider using eager loading for related data
+ℹ️ **Line 5366**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5364**: Query result missing type annotation
+ℹ️ **Line 5366**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5391**: Consider using eager loading for related data
+ℹ️ **Line 5393**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5411**: Consider using eager loading for related data
+ℹ️ **Line 5413**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5411**: Query result missing type annotation
+ℹ️ **Line 5413**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5482**: Consider using eager loading for related data
+ℹ️ **Line 5484**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5482**: Query result missing type annotation
+ℹ️ **Line 5484**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5514**: Consider using eager loading for related data
+ℹ️ **Line 5516**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5514**: Query result missing type annotation
+ℹ️ **Line 5516**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5540**: Consider using eager loading for related data
+ℹ️ **Line 5542**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5557**: Consider using eager loading for related data
+ℹ️ **Line 5559**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5557**: Query result missing type annotation
+ℹ️ **Line 5559**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5571**: Consider using eager loading for related data
+ℹ️ **Line 5573**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5571**: Query result missing type annotation
+ℹ️ **Line 5573**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5664**: Consider using eager loading for related data
+ℹ️ **Line 5670**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5676**: Consider using eager loading for related data
+ℹ️ **Line 5682**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5676**: Query result missing type annotation
+ℹ️ **Line 5682**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5736**: Consider using eager loading for related data
+ℹ️ **Line 5744**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5736**: Query result missing type annotation
+ℹ️ **Line 5744**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5784**: Consider using eager loading for related data
+ℹ️ **Line 5792**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5831**: Consider using eager loading for related data
+ℹ️ **Line 5841**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5831**: Query result missing type annotation
+ℹ️ **Line 5841**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-ℹ️ **Line 5924**: Consider using eager loading for related data
+ℹ️ **Line 5934**: Consider using eager loading for related data
    💡 *Use "with" clause to eagerly load related data and avoid N+1 queries*
 
-ℹ️ **Line 5924**: Query result missing type annotation
+ℹ️ **Line 5934**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
 ⚠️ **Line 2383**: Console.log usage detected
@@ -1589,6 +1540,15 @@ Issues by category:
 ⚠️ **Line 343**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
+⚠️ **Line 400**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 425**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 442**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
 ### server/features/communities/communities.routes.ts
 
 ⚠️ **Line 102**: Request body used without validation
@@ -1596,10 +1556,10 @@ Issues by category:
 
 ### server/features/messaging/messaging.routes.ts
 
-⚠️ **Line 33**: Request body used without validation
+⚠️ **Line 38**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 95**: Request body used without validation
+⚠️ **Line 106**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
 ### server/features/tournaments/tournaments.routes.ts

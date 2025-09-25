@@ -236,6 +236,10 @@ export const notifications = pgTable("notifications", {
   index("idx_notifications_created_at").on(table.createdAt),
   // Composite index for unread notifications
   index("idx_notifications_user_unread").on(table.userId, table.createdAt),
+  // Additional performance indexes
+  index("idx_notifications_user_read_created").on(table.userId, table.isRead, table.createdAt),
+  index("idx_notifications_community_created").on(table.communityId, table.createdAt),
+  index("idx_notifications_priority_created").on(table.priority, table.createdAt),
 ]);
 
 // Messages table for user-to-user communication
@@ -260,6 +264,10 @@ export const messages = pgTable("messages", {
   // Composite indexes for message retrieval optimization
   index("idx_messages_community_created").on(table.communityId, table.createdAt),
   index("idx_messages_sender_created").on(table.senderId, table.createdAt),
+  // Additional composite indexes for better performance
+  index("idx_messages_recipient_created").on(table.recipientId, table.createdAt),
+  index("idx_messages_event_created").on(table.eventId, table.createdAt),
+  index("idx_messages_type_created").on(table.messageType, table.createdAt),
 ]);
 
 // Game sessions table for real-time game coordination

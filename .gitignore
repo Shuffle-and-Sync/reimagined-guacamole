@@ -48,3 +48,4 @@ temp/
 .cache/
 .npm/
 .yarn/
+temp_*.txt

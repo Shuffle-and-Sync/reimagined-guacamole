@@ -87,6 +87,38 @@ export const preparedStatements = {
     SELECT COUNT(*) as count
     FROM notifications
     WHERE user_id = $1 AND is_read = false
+  `,
+
+  // User social links for profile updates (optimized for transaction operations)
+  getUserSocialLinks: `
+    SELECT id, platform, url, display_name, is_verified, is_primary
+    FROM user_social_links
+    WHERE user_id = $1
+    ORDER BY is_primary DESC, platform ASC
+  `,
+
+  // Batch insert user social links (for transaction optimization)
+  batchInsertSocialLinks: `
+    INSERT INTO user_social_links (user_id, platform, url, display_name, is_verified, is_primary)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (user_id, platform) 
+    DO UPDATE SET url = EXCLUDED.url, display_name = EXCLUDED.display_name, is_verified = EXCLUDED.is_verified
+  `,
+
+  // Audit log creation (for transaction operations)
+  createAuditLogEntry: `
+    INSERT INTO admin_audit_log (admin_user_id, action, category, target_user_id, target_id, details, ip_address)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id, created_at
+  `,
+
+  // Get user appeal with moderation context
+  getUserAppealWithContext: `
+    SELECT ua.*, u.username, u.email, ma.action as moderation_action, ma.reason as moderation_reason
+    FROM user_appeals ua
+    INNER JOIN users u ON ua.user_id = u.id
+    LEFT JOIN moderation_actions ma ON ua.moderation_action_id = ma.id
+    WHERE ua.id = $1
   `
 };
 
