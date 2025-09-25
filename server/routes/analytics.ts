@@ -7,6 +7,24 @@ import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../au
 import { generalRateLimit } from '../rate-limiting';
 import { streamingCoordinator } from '../services/streaming-coordinator';
 import { cacheMiddleware, cacheConfigs } from '../middleware/cache-middleware';
+import { 
+  errorHandlingMiddleware,
+  errors
+} from '../middleware/error-handling.middleware';
+import {
+  validateRequest,
+  validateQuery,
+  validateParamsWithSchema,
+  userParamSchema,
+  paginationQuerySchema
+} from '../validation';
+
+const { asyncHandler } = errorHandlingMiddleware;
+const { 
+  NotFoundError,
+  AuthorizationError,
+  ValidationError
+} = errors;
 
 const router = Router();
 
@@ -31,31 +49,32 @@ const isAdmin = async (userId: string): Promise<boolean> => {
  * Track user activity events
  * POST /api/analytics/events
  */
-router.post('/events', async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const eventSchema = z.object({
-      userId: z.string().optional(),
-      sessionId: z.string().optional(),
-      eventName: z.string(),
-      eventCategory: z.enum(['navigation', 'streaming', 'social', 'tournament', 'community', 'profile', 'settings']),
-      eventAction: z.enum(['click', 'scroll', 'submit', 'create', 'join', 'leave', 'share', 'like', 'comment']),
-      eventLabel: z.string().optional(),
-      eventValue: z.number().optional(),
-      properties: z.record(z.any()).optional(),
-      context: z.object({
-        userAgent: z.string().optional(),
-        ipAddress: z.string().optional(),
-        pageUrl: z.string().optional(),
-        referrerUrl: z.string().optional()
-      }).optional()
-    });
+const eventTrackingSchema = z.object({
+  userId: z.string().optional(),
+  sessionId: z.string().optional(),
+  eventName: z.string().min(1, 'Event name is required'),
+  eventCategory: z.enum(['navigation', 'streaming', 'social', 'tournament', 'community', 'profile', 'settings']),
+  eventAction: z.enum(['click', 'scroll', 'submit', 'create', 'join', 'leave', 'share', 'like', 'comment']),
+  eventLabel: z.string().optional(),
+  eventValue: z.number().optional(),
+  properties: z.record(z.any()).optional(),
+  context: z.object({
+    userAgent: z.string().optional(),
+    ipAddress: z.string().optional(),
+    pageUrl: z.string().optional(),
+    referrerUrl: z.string().optional()
+  }).optional()
+});
 
-    const eventData = eventSchema.parse(req.body);
+router.post('/events', 
+  validateRequest(eventTrackingSchema),
+  asyncHandler(async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    const eventData = req.body;
     
     // Ensure userId matches authenticated user if provided
     if (eventData.userId && eventData.userId !== getAuthUserId(authenticatedReq)) {
-      return res.status(403).json({ success: false, error: 'Cannot track events for other users' });
+      throw new AuthorizationError('Cannot track events for other users');
     }
     
     // Auto-set userId to authenticated user if not provided
@@ -65,15 +84,12 @@ router.post('/events', async (req, res) => {
     
     await analyticsService.trackEvent(eventData);
     
-    res.json({ success: true, message: 'Event tracked successfully' });
-  } catch (error) {
-    logger.error('Failed to track event', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
-      success: false, 
-      error: error instanceof z.ZodError ? error.errors : 'Failed to track event' 
+    res.json({ 
+      success: true, 
+      message: 'Event tracked successfully' 
     });
-  }
-});
+  })
+);
 
 /**
  * Track funnel progression
