@@ -2,15 +2,15 @@
 
 Backend Copilot Agent Analysis Summary:
 - Files analyzed: 90
-- Total issues: 522
+- Total issues: 511
   - Errors: 5
-  - Warnings: 312
-  - Info: 205
+  - Warnings: 299
+  - Info: 207
 
 Issues by category:
-  - typescript: 344
+  - typescript: 332
   - express: 11
-  - performance: 38
+  - performance: 39
   - drizzle: 98
   - security: 31
 
@@ -27,37 +27,37 @@ Issues by category:
 
 ### server/admin/admin.middleware.ts
 
-⚠️ **Line 427**: Usage of "any" type reduces type safety
+⚠️ **Line 439**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 433**: Usage of "any" type reduces type safety
+⚠️ **Line 445**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 449**: Usage of "any" type reduces type safety
+⚠️ **Line 461**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 456**: Usage of "any" type reduces type safety
+⚠️ **Line 468**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 463**: Usage of "any" type reduces type safety
+⚠️ **Line 475**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 483**: Usage of "any" type reduces type safety
+⚠️ **Line 495**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 528**: Usage of "any" type reduces type safety
+⚠️ **Line 540**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 529**: Usage of "any" type reduces type safety
+⚠️ **Line 541**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 401**: Request body used without validation
+⚠️ **Line 413**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 408**: Request body used without validation
+⚠️ **Line 420**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 493**: Request body used without validation
+⚠️ **Line 505**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
 ### server/agents/backend-copilot-agent.ts
@@ -461,11 +461,6 @@ Issues by category:
 ⚠️ **Line 330**: Console.log usage detected
    💡 *Use structured logging instead of console.log*
 
-### server/features/messaging/messaging.types.ts
-
-⚠️ **Line 10**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
 ### server/features/tournaments/tournaments.service.ts
 
 ⚠️ **Line 44**: Usage of "any" type reduces type safety
@@ -584,10 +579,16 @@ Issues by category:
 ⚠️ **Line 63**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 391**: Usage of "any" type reduces type safety
+⚠️ **Line 463**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 451**: Usage of "any" type reduces type safety
+⚠️ **Line 480**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 500**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 560**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ℹ️ **Line 78**: Query may benefit from database indexing
@@ -629,6 +630,12 @@ Issues by category:
 ℹ️ **Line 367**: Query may benefit from database indexing
    💡 *Consider adding database indexes for frequently queried columns*
 
+ℹ️ **Line 401**: Query result missing type annotation
+   💡 *Add explicit type annotation for query results to improve type safety*
+
+ℹ️ **Line 426**: Query may benefit from database indexing
+   💡 *Consider adding database indexes for frequently queried columns*
+
 ### server/routes/database-health.ts
 
 ⚠️ **Line 89**: Usage of "any" type reduces type safety
@@ -655,213 +662,174 @@ Issues by category:
 
 ### server/routes.ts
 
-ℹ️ **Line 2116**: Non-null assertion operator usage
+ℹ️ **Line 2168**: Non-null assertion operator usage
    💡 *Consider using optional chaining or proper null checks*
-
-⚠️ **Line 2210**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 2235**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 2250**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 2262**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2319**: Usage of "any" type reduces type safety
+⚠️ **Line 2287**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2337**: Usage of "any" type reduces type safety
+⚠️ **Line 2302**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2362**: Usage of "any" type reduces type safety
+⚠️ **Line 2314**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2386**: Usage of "any" type reduces type safety
+⚠️ **Line 2371**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2468**: Usage of "any" type reduces type safety
+⚠️ **Line 2389**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2512**: Usage of "any" type reduces type safety
+⚠️ **Line 2414**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2526**: Usage of "any" type reduces type safety
+⚠️ **Line 2438**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2542**: Usage of "any" type reduces type safety
+⚠️ **Line 2520**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2555**: Usage of "any" type reduces type safety
+⚠️ **Line 2564**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2567**: Usage of "any" type reduces type safety
+⚠️ **Line 2578**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2597**: Usage of "any" type reduces type safety
+⚠️ **Line 2594**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2624**: Usage of "any" type reduces type safety
+⚠️ **Line 2607**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2635**: Usage of "any" type reduces type safety
+⚠️ **Line 2619**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 2649**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2707**: Usage of "any" type reduces type safety
+⚠️ **Line 2676**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2720**: Usage of "any" type reduces type safety
+⚠️ **Line 2687**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2748**: Usage of "any" type reduces type safety
+⚠️ **Line 2701**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2765**: Usage of "any" type reduces type safety
+⚠️ **Line 2759**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2792**: Usage of "any" type reduces type safety
+⚠️ **Line 2772**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2819**: Usage of "any" type reduces type safety
+⚠️ **Line 2800**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 2857**: Usage of "any" type reduces type safety
+⚠️ **Line 2817**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-ℹ️ **Line 3438**: Non-null assertion operator usage
+⚠️ **Line 2844**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 2871**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 2909**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+ℹ️ **Line 3494**: Non-null assertion operator usage
    💡 *Consider using optional chaining or proper null checks*
 
 ### server/services/ai-algorithm-engine.ts
 
-⚠️ **Line 67**: Usage of "any" type reduces type safety
+⚠️ **Line 423**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 68**: Usage of "any" type reduces type safety
+⚠️ **Line 424**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 76**: Usage of "any" type reduces type safety
+⚠️ **Line 425**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 77**: Usage of "any" type reduces type safety
+⚠️ **Line 426**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 78**: Usage of "any" type reduces type safety
+⚠️ **Line 590**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 148**: Usage of "any" type reduces type safety
+⚠️ **Line 604**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 149**: Usage of "any" type reduces type safety
+⚠️ **Line 621**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 207**: Usage of "any" type reduces type safety
+⚠️ **Line 649**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 208**: Usage of "any" type reduces type safety
+⚠️ **Line 660**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 209**: Usage of "any" type reduces type safety
+⚠️ **Line 672**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 210**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 273**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 274**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 357**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 358**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 359**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 360**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 524**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 538**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 555**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 583**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 594**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 606**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 619**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 632**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 648**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 670**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 697**: Usage of "any" type reduces type safety
+⚠️ **Line 685**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 698**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 729**: Usage of "any" type reduces type safety
+⚠️ **Line 714**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 730**: Usage of "any" type reduces type safety
+⚠️ **Line 736**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 746**: Usage of "any" type reduces type safety
+⚠️ **Line 763**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 777**: Usage of "any" type reduces type safety
+⚠️ **Line 764**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 778**: Usage of "any" type reduces type safety
+⚠️ **Line 795**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 796**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 812**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 827**: Usage of "any" type reduces type safety
+⚠️ **Line 843**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 841**: Usage of "any" type reduces type safety
+⚠️ **Line 844**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 855**: Usage of "any" type reduces type safety
+⚠️ **Line 878**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 864**: Usage of "any" type reduces type safety
+⚠️ **Line 893**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 885**: Usage of "any" type reduces type safety
+⚠️ **Line 907**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 902**: Usage of "any" type reduces type safety
+⚠️ **Line 921**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 1023**: Usage of "any" type reduces type safety
+⚠️ **Line 930**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 951**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 968**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 1089**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/services/ai-streaming-matcher.ts
@@ -925,20 +893,6 @@ Issues by category:
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 544**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-### server/services/cache-service.ts
-
-⚠️ **Line 32**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 144**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 169**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 195**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/services/collaborative-streaming.ts
@@ -1589,6 +1543,15 @@ Issues by category:
 ⚠️ **Line 343**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
+⚠️ **Line 400**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 425**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 442**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
 ### server/features/communities/communities.routes.ts
 
 ⚠️ **Line 102**: Request body used without validation
@@ -1596,10 +1559,10 @@ Issues by category:
 
 ### server/features/messaging/messaging.routes.ts
 
-⚠️ **Line 33**: Request body used without validation
+⚠️ **Line 38**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 95**: Request body used without validation
+⚠️ **Line 106**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
 ### server/features/tournaments/tournaments.routes.ts
