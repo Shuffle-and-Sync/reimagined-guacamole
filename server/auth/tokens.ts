@@ -1,911 +1,5974 @@
-import { randomBytes, createHash } from 'crypto';
-import { SignJWT, jwtVerify } from 'jose';
-import { z } from 'zod';
-import { storage } from '../storage';
+import { db, prisma } from "@shared/database";
+import { database as optimizedDb, withQueryTiming } from "./db-optimized";
+import { logger } from "./logger";
+import {
+  users,
+  communities,
+  userCommunities,
+  userPlatformAccounts,
+  themePreferences,
+  events,
+  eventAttendees,
+  notifications,
+  messages,
+  gameSessions,
+  passwordResetTokens,
+  emailVerificationTokens,
+  emailChangeRequests,
+  emailChangeTokens,
+  userSocialLinks,
+  userGamingProfiles,
+  friendships,
+  userActivities,
+  userSettings,
+  matchmakingPreferences,
+  tournaments,
+  tournamentParticipants,
+  tournamentFormats,
+  tournamentRounds,
+  tournamentMatches,
+  matchResults,
+  forumPosts,
+  forumReplies,
+  forumPostLikes,
+  forumReplyLikes,
+  streamSessions,
+  streamSessionCoHosts,
+  streamSessionPlatforms,
+  collaborationRequests,
+  streamAnalytics,
+  userActivityAnalytics,
+  communityAnalytics,
+  platformMetrics,
+  eventTracking,
+  conversionFunnels,
+  collaborativeStreamEvents,
+  streamCollaborators,
+  streamCoordinationSessions,
+  // Admin & Moderation tables
+  userRoles,
+  userReputation,
+  contentReports,
+  moderationActions,
+  moderationQueue,
+  cmsContent,
+  banEvasionTracking,
+  userAppeals,
+  moderationTemplates,
+  adminAuditLog,
+  userMfaSettings,
+  userMfaAttempts,
+  deviceFingerprints,
+  mfaSecurityContext,
+  trustedDevices,
+  refreshTokens,
+  authAuditLog,
+  revokedJwtTokens,
+  type User,
+  type UpsertUser,
+  type Community,
+  type UserCommunity,
+  type UserPlatformAccount,
+  type ThemePreference,
+  type Event,
+  type EventAttendee,
+  type Notification,
+  type Message,
+  type GameSession,
+  type PasswordResetToken,
+  type EmailChangeRequest,
+  type EmailChangeToken,
+  type EmailVerificationToken,
+  type UserSocialLink,
+  type UserGamingProfile,
+  type Friendship,
+  type UserActivity,
+  type UserSettings,
+  type MatchmakingPreferences,
+  type Tournament,
+  type TournamentParticipant,
+  type TournamentFormat,
+  type TournamentRound,
+  type TournamentMatch,
+  type MatchResult,
+  type ForumPost,
+  type ForumReply,
+  type ForumPostLike,
+  type ForumReplyLike,
+  type StreamSession,
+  type StreamSessionCoHost,
+  type StreamSessionPlatform,
+  type CollaborationRequest,
+  type StreamAnalytics,
+  type InsertCommunity,
+  type InsertUserCommunity,
+  type InsertUserPlatformAccount,
+  type InsertThemePreference,
+  type InsertEvent,
+  type InsertEventAttendee,
+  type InsertNotification,
+  type InsertMessage,
+  type InsertGameSession,
+  type InsertPasswordResetToken,
+  type InsertEmailVerificationToken,
+  type InsertEmailChangeRequest,
+  type InsertEmailChangeToken,
+  type InsertUserSocialLink,
+  type InsertUserGamingProfile,
+  type InsertFriendship,
+  type InsertUserActivity,
+  type InsertUserSettings,
+  type InsertMatchmakingPreferences,
+  type InsertTournament,
+  type UpdateTournament,
+  type InsertTournamentParticipant,
+  type InsertTournamentFormat,
+  type InsertTournamentRound,
+  type InsertTournamentMatch,
+  type InsertMatchResult,
+  type InsertForumPost,
+  type InsertForumReply,
+  type InsertForumPostLike,
+  type InsertForumReplyLike,
+  type InsertStreamSession,
+  type InsertStreamSessionCoHost,
+  type InsertStreamSessionPlatform,
+  type InsertCollaborationRequest,
+  type InsertStreamAnalytics,
+  type UserActivityAnalytics,
+  type CommunityAnalytics,
+  type CollaborativeStreamEvent,
+  type StreamCollaborator,
+  type StreamCoordinationSession,
+  type InsertCollaborativeStreamEvent,
+  type InsertStreamCollaborator,
+  type InsertStreamCoordinationSession,
+  type PlatformMetrics,
+  type EventTracking,
+  type ConversionFunnel,
+  type InsertUserActivityAnalytics,
+  type InsertCommunityAnalytics,
+  type InsertPlatformMetrics,
+  type InsertEventTracking,
+  type InsertConversionFunnel,
+  // Admin & Moderation types
+  type UserRole,
+  type UserReputation,
+  type ContentReport,
+  type ModerationAction,
+  type ModerationQueue,
+  type CmsContent,
+  type BanEvasionTracking,
+  type UserAppeal,
+  type ModerationTemplate,
+  type AdminAuditLog,
+  type InsertUserRole,
+  type InsertUserReputation,
+  type InsertContentReport,
+  type InsertModerationAction,
+  type InsertModerationQueue,
+  type InsertCmsContent,
+  type InsertBanEvasionTracking,
+  type InsertUserAppeal,
+  type InsertModerationTemplate,
+  type InsertAdminAuditLog,
+  SafeUserPlatformAccount,
+  type UserMfaSettings,
+  type InsertUserMfaSettings,
+  type UserMfaAttempts,
+  type InsertUserMfaAttempts,
+  type DeviceFingerprint,
+  type InsertDeviceFingerprint,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
+  type TrustedDevice,
+  type InsertTrustedDevice,
+  type RefreshToken,
+  type InsertRefreshToken,
+  type AuthAuditLog,
+  type InsertAuthAuditLog,
+  type InsertRevokedJwtToken,
+  type RevokedJwtToken,
+} from "@shared/schema";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { logger } from "./logger";
 
-/**
- * Enhanced JWT Security Configuration
- * Implements enterprise-grade security with key rotation and algorithm validation
- */
+// Interface for storage operations
+export interface IStorage {
+  // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: UpsertUser): Promise<User>;
+  getAllUsers(filters?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    role?: string; 
+    status?: string; 
+    sortBy?: string; 
+    order?: 'asc' | 'desc' 
+  }): Promise<{ users: User[], total: number }>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
+  
+  // Community operations
+  getCommunities(): Promise<Community[]>;
+  getCommunity(id: string): Promise<Community | undefined>;
+  createCommunity(community: InsertCommunity): Promise<Community>;
+  
+  // User community operations
+  getUserCommunities(userId: string): Promise<(UserCommunity & { community: Community })[]>;
+  joinCommunity(data: InsertUserCommunity): Promise<UserCommunity>;
+  setPrimaryCommunity(userId: string, communityId: string): Promise<void>;
+  
+  // Platform account operations for cross-platform streaming
+  getUserPlatformAccounts(userId: string): Promise<SafeUserPlatformAccount[]>;
+  getUserPlatformAccount(userId: string, platform: string): Promise<SafeUserPlatformAccount | undefined>;
+  createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<SafeUserPlatformAccount>;
+  updateUserPlatformAccount(id: string, data: {
+    handle?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: Date;
+    scopes?: unknown;
+    isActive?: boolean;
+    lastVerified?: Date;
+  }): Promise<SafeUserPlatformAccount>;
+  deleteUserPlatformAccount(id: string): Promise<void>;
+  getUserPlatformHandle(userId: string, platform: string): Promise<string | null>;
+  getUserPlatformToken(userId: string, platform: string): Promise<string | null>;
+  
+  // Theme preference operations
+  getUserThemePreferences(userId: string): Promise<ThemePreference[]>;
+  upsertThemePreference(data: InsertThemePreference): Promise<ThemePreference>;
+  
+  // Event operations
+  getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]>;
+  getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined>;
+  createEvent(data: InsertEvent): Promise<Event>;
+  updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
+  // Bulk calendar operations for game pods
+  createBulkEvents(data: InsertEvent[]): Promise<Event[]>;
+  createRecurringEvents(data: InsertEvent, endDate: string): Promise<Event[]>;
+  getCalendarEvents(filters: { communityId?: string; startDate: string; endDate: string; type?: string }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[]>;
+  
+  // Event attendee operations
+  joinEvent(data: InsertEventAttendee): Promise<EventAttendee>;
+  leaveEvent(eventId: string, userId: string): Promise<void>;
+  getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]>;
+  getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]>;
+  
+  // Password reset operations
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredTokens(): Promise<void>;
+  invalidateUserPasswordResetTokens(userId: string): Promise<void>;
+  
+  // Email verification operations
+  createEmailVerificationToken(data: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
+  getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined>;
+  markEmailVerificationTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredEmailVerificationTokens(): Promise<void>;
+  getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined>;
+  invalidateUserEmailVerificationTokens(userId: string): Promise<void>;
+  
+  // Email change operations
+  createEmailChangeRequest(data: InsertEmailChangeRequest): Promise<EmailChangeRequest>;
+  getEmailChangeRequest(id: string): Promise<EmailChangeRequest | undefined>;
+  getUserEmailChangeRequest(userId: string): Promise<EmailChangeRequest | undefined>;
+  updateEmailChangeRequest(id: string, data: Partial<InsertEmailChangeRequest>): Promise<EmailChangeRequest>;
+  createEmailChangeToken(data: InsertEmailChangeToken): Promise<EmailChangeToken>;
+  getEmailChangeToken(token: string): Promise<EmailChangeToken | undefined>;
+  markEmailChangeTokenAsUsed(token: string): Promise<void>;
+  cleanupExpiredEmailChangeTokens(): Promise<void>;
+  cancelEmailChangeRequest(userId: string): Promise<void>;
+  
+  // MFA operations
+  getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined>;
+  createUserMfaSettings(data: InsertUserMfaSettings): Promise<UserMfaSettings>;
+  updateUserMfaSettings(userId: string, data: Partial<InsertUserMfaSettings>): Promise<void>;
+  
+  /**
+   * Enable MFA for a user with TOTP secret and backup codes
+   * SECURITY: backupCodes must be ALREADY HASHED using Argon2id before calling this method
+   * The caller (routes layer) is responsible for hashing raw codes before storage
+   * This prevents plaintext backup codes from being stored in the database
+   */
+  enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void>;
+  disableUserMfa(userId: string): Promise<void>;
+  updateUserMfaLastVerified(userId: string): Promise<void>;
+  markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void>;
+  
+  // MFA attempt tracking for throttling and lockout
+  getUserMfaAttempts(userId: string): Promise<UserMfaAttempts | undefined>;
+  recordMfaFailure(userId: string): Promise<void>;
+  resetMfaAttempts(userId: string): Promise<void>;
+  checkMfaLockout(userId: string): Promise<{ isLocked: boolean; lockoutEndsAt?: Date; failedAttempts: number }>;
+  cleanupExpiredMfaLockouts(): Promise<void>;
+  
+  // Device fingerprinting for enhanced MFA security
+  getDeviceFingerprint(fingerprintHash: string): Promise<DeviceFingerprint | undefined>;
+  getUserDeviceFingerprints(userId: string): Promise<DeviceFingerprint[]>;
+  createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint>;
+  updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void>;
+  deleteDeviceFingerprint(id: string): Promise<void>;
+  updateDeviceLastSeen(fingerprintHash: string): Promise<void>;
+  
+  // MFA security context tracking
+  createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext>;
+  getMfaSecurityContext(userId: string, options?: { limit?: number; onlyFailures?: boolean }): Promise<MfaSecurityContext[]>;
+  updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void>;
+  
+  // Trusted device management
+  getUserTrustedDevices(userId: string): Promise<(TrustedDevice & { deviceFingerprint: DeviceFingerprint })[]>;
+  createTrustedDevice(data: InsertTrustedDevice): Promise<TrustedDevice>;
+  updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void>;
+  revokeTrustedDevice(id: string, reason: string): Promise<void>;
+  cleanupExpiredTrustedDevices(): Promise<void>;
+  
+  // Device security validation
+  calculateDeviceRiskScore(userId: string, context: {
+    userAgent: string;
+    ipAddress: string;
+    location?: string;
+    timezone?: string;
+  }): Promise<{ riskScore: number; riskFactors: string[] }>;
+  validateDeviceContext(userId: string, fingerprintHash: string): Promise<{
+    isValid: boolean;
+    trustScore: number;
+    requiresAdditionalVerification: boolean;
+    deviceFingerprint?: DeviceFingerprint;
+  }>;
+  
+  // Refresh token operations
+  createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken>;
+  getRefreshToken(tokenId: string): Promise<RefreshToken | undefined>;
+  getRefreshTokenByJWT(jwt: string): Promise<RefreshToken | undefined>;
+  updateRefreshTokenLastUsed(tokenId: string): Promise<void>;
+  revokeRefreshToken(tokenId: string): Promise<void>;
+  revokeAllUserRefreshTokens(userId: string): Promise<void>;
+  cleanupExpiredRefreshTokens(): Promise<void>;
+  getUserActiveRefreshTokens(userId: string): Promise<RefreshToken[]>;
+  
+  // Auth audit log operations
+  createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog>;
+  getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number; hours?: number }): Promise<AuthAuditLog[]>;
+  getRecentAuthFailures(userId: string, hours: number): Promise<AuthAuditLog[]>;
+  
+  // JWT token revocation (enterprise security)
+  revokeJWT(jti: string, userId: string, tokenType: string, reason: string, expiresAt: Date, originalExpiry?: Date, ipAddress?: string, userAgent?: string): Promise<void>;
+  isJWTRevoked(jti: string): Promise<boolean>;
+  cleanupExpiredRevokedTokens(): Promise<number>;
+  
+  // Notification operations
+  getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]>;
+  createNotification(data: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  deleteNotification(notificationId: string): Promise<void>;
+  
+  // Message operations
+  getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]>;
+  sendMessage(data: InsertMessage): Promise<Message>;
+  markMessageAsRead(messageId: string): Promise<void>;
+  getConversation(userId1: string, userId2: string): Promise<(Message & { sender: User; recipient?: User })[]>;
+  
+  // Game session operations
+  getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]>;
+  getGameSessionById(id: string): Promise<(GameSession & { host: User; coHost?: User; event: Event }) | null>;
+  createGameSession(data: InsertGameSession): Promise<GameSession>;
+  updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession>;
+  joinGameSession(sessionId: string, userId: string): Promise<void>;
+  leaveGameSession(sessionId: string, userId: string): Promise<void>;
+  
+  // Social link operations
+  getUserSocialLinks(userId: string): Promise<UserSocialLink[]>;
+  updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]>;
+  
+  // Gaming profile operations
+  getUserGamingProfiles(userId: string): Promise<(UserGamingProfile & { community: Community })[]>;
+  upsertUserGamingProfile(data: InsertUserGamingProfile): Promise<UserGamingProfile>;
+  
+  // Friendship operations
+  getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]>;
+  getFriendRequests(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]>;
+  getFriendCount(userId: string): Promise<number>;
+  sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship>;
+  respondToFriendRequest(friendshipId: string, status: 'accepted' | 'declined' | 'blocked'): Promise<Friendship>;
+  checkFriendshipStatus(userId1: string, userId2: string): Promise<Friendship | undefined>;
+  
+  // User activity operations
+  getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]>;
+  createUserActivity(data: InsertUserActivity): Promise<UserActivity>;
+  
+  // User settings operations
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  upsertUserSettings(data: InsertUserSettings): Promise<UserSettings>;
+  
+  // Matchmaking operations
+  getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined>;
+  upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences>;
+  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]>;
+  
+  // Tournament operations
+  getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
+  getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined>;
+  createTournament(data: InsertTournament): Promise<Tournament>;
+  updateTournament(tournamentId: string, data: UpdateTournament): Promise<Tournament>;
+  // Internal method for system status updates (bypasses business rules)
+  updateTournamentStatus(tournamentId: string, status: string): Promise<Tournament>;
+  joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant>;
+  leaveTournament(tournamentId: string, userId: string): Promise<boolean>;
+  
+  // Advanced tournament operations
+  getTournamentFormats(): Promise<TournamentFormat[]>;
+  createTournamentFormat(data: InsertTournamentFormat): Promise<TournamentFormat>;
+  getTournamentRounds(tournamentId: string): Promise<TournamentRound[]>;
+  createTournamentRound(data: InsertTournamentRound): Promise<TournamentRound>;
+  updateTournamentRound(roundId: string, data: Partial<InsertTournamentRound>): Promise<TournamentRound>;
+  getTournamentMatches(tournamentId: string, roundId?: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]>;
+  createTournamentMatch(data: InsertTournamentMatch): Promise<TournamentMatch>;
+  updateTournamentMatch(matchId: string, data: Partial<InsertTournamentMatch>): Promise<TournamentMatch>;
+  getMatchResults(matchId: string): Promise<(MatchResult & { winner: User; loser?: User; reportedBy: User; verifiedBy?: User })[]>;
+  createMatchResult(data: InsertMatchResult): Promise<MatchResult>;
+  verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult>;
+  
+  // Forum operations
+  getForumPosts(communityId: string, options?: { category?: string; limit?: number; offset?: number }): Promise<(ForumPost & { author: User; community: Community; replyCount: number; likeCount: number; isLiked?: boolean })[]>;
+  getForumPost(id: string, userId?: string): Promise<(ForumPost & { author: User; community: Community; isLiked: boolean }) | undefined>;
+  createForumPost(data: InsertForumPost): Promise<ForumPost>;
+  updateForumPost(id: string, data: Partial<InsertForumPost>): Promise<ForumPost>;
+  deleteForumPost(id: string): Promise<void>;
+  likeForumPost(postId: string, userId: string): Promise<void>;
+  unlikeForumPost(postId: string, userId: string): Promise<void>;
+  getForumReplies(postId: string, userId?: string): Promise<(ForumReply & { author: User; isLiked?: boolean; childReplies?: ForumReply[] })[]>;
+  createForumReply(data: InsertForumReply): Promise<ForumReply>;
+  likeForumReply(replyId: string, userId: string): Promise<void>;
+  unlikeForumReply(replyId: string, userId: string): Promise<void>;
+  
+  // Streaming session operations
+  getStreamSessions(filters?: { hostUserId?: string; communityId?: string; status?: string; upcoming?: boolean }): Promise<(StreamSession & { host: User; community?: Community; coHosts: StreamSessionCoHost[]; platforms: StreamSessionPlatform[] })[]>;
+  getStreamSession(id: string): Promise<(StreamSession & { host: User; community?: Community; coHosts: (StreamSessionCoHost & { user: User })[]; platforms: StreamSessionPlatform[] }) | undefined>;
+  createStreamSession(data: InsertStreamSession): Promise<StreamSession>;
+  updateStreamSession(id: string, data: Partial<InsertStreamSession>): Promise<StreamSession>;
+  deleteStreamSession(id: string): Promise<void>;
+  
+  // Stream session co-host operations
+  addStreamCoHost(data: InsertStreamSessionCoHost): Promise<StreamSessionCoHost>;
+  removeStreamCoHost(sessionId: string, userId: string): Promise<void>;
+  updateStreamCoHostPermissions(sessionId: string, userId: string, permissions: { canControlStream: boolean; canManageChat: boolean; canInviteGuests: boolean; canEndStream: boolean }): Promise<StreamSessionCoHost>;
+  
+  // Stream session platform operations
+  addStreamPlatform(data: InsertStreamSessionPlatform): Promise<StreamSessionPlatform>;
+  updateStreamPlatform(id: string, data: Partial<InsertStreamSessionPlatform>): Promise<StreamSessionPlatform>;
+  removeStreamPlatform(id: string): Promise<void>;
+  getStreamPlatforms(sessionId: string): Promise<StreamSessionPlatform[]>;
+  updateStreamStatus(sessionId: string, platform: string, isLive: boolean, viewerCount?: number): Promise<void>;
+  
+  // Collaboration request operations
+  getCollaborationRequests(filters?: { fromUserId?: string; toUserId?: string; status?: string; type?: string }): Promise<(CollaborationRequest & { fromUser: User; toUser: User; streamSession?: StreamSession })[]>;
+  createCollaborationRequest(data: InsertCollaborationRequest): Promise<CollaborationRequest>;
+  respondToCollaborationRequest(id: string, status: 'accepted' | 'declined' | 'cancelled', responseMessage?: string): Promise<CollaborationRequest>;
+  expireCollaborationRequests(): Promise<void>;
+  
+  // Stream analytics operations
+  recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics>;
+  getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]>;
+  getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }>;
 
-// Primary JWT secret for HMAC algorithms
-const JWT_SECRET_VALUE = process.env.AUTH_SECRET;
-const JWT_KEY_ROTATION_SECRET = process.env.JWT_KEY_ROTATION_SECRET || process.env.AUTH_SECRET;
+  // Collaborative streaming events
+  createCollaborativeStreamEvent(data: InsertCollaborativeStreamEvent): Promise<CollaborativeStreamEvent>;
+  getCollaborativeStreamEvent(id: string): Promise<CollaborativeStreamEvent | null>;
+  updateCollaborativeStreamEvent(id: string, data: Partial<InsertCollaborativeStreamEvent>): Promise<CollaborativeStreamEvent>;
+  deleteCollaborativeStreamEvent(id: string): Promise<void>;
+  getUserCollaborativeStreamEvents(userId: string): Promise<CollaborativeStreamEvent[]>;
 
-if (!JWT_SECRET_VALUE) {
-  throw new Error('AUTH_SECRET environment variable is required for JWT token security');
+  // Stream collaborators
+  createStreamCollaborator(data: InsertStreamCollaborator): Promise<StreamCollaborator>;
+  getStreamCollaborator(id: string): Promise<StreamCollaborator | null>;
+  updateStreamCollaborator(id: string, data: Partial<InsertStreamCollaborator>): Promise<StreamCollaborator>;
+  deleteStreamCollaborator(id: string): Promise<void>;
+  getStreamCollaborators(streamEventId: string): Promise<StreamCollaborator[]>;
+
+  // Stream coordination sessions
+  createStreamCoordinationSession(data: InsertStreamCoordinationSession): Promise<StreamCoordinationSession>;
+  getStreamCoordinationSession(id: string): Promise<StreamCoordinationSession | null>;
+  updateStreamCoordinationSession(id: string, data: Partial<InsertStreamCoordinationSession>): Promise<StreamCoordinationSession>;
+  deleteStreamCoordinationSession(id: string): Promise<void>;
+  getActiveCoordinationSessions(): Promise<StreamCoordinationSession[]>;
+
+  // User activity analytics operations
+  recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics>;
+  getUserActivityAnalytics(userId: string, days?: number): Promise<UserActivityAnalytics[]>;
+
+  // Community analytics operations
+  recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics>;
+  getCommunityAnalytics(communityId: string, startDate: Date, endDate: Date): Promise<CommunityAnalytics[]>;
+
+  // Platform metrics operations
+  recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics>;
+  getPlatformMetrics(metricType?: string, timeWindow?: string, startDate?: Date, endDate?: Date): Promise<PlatformMetrics[]>;
+
+  // Event tracking operations
+  recordEventTracking(data: InsertEventTracking): Promise<EventTracking>;
+  getEventTracking(eventName?: string, userId?: string, startDate?: Date, endDate?: Date): Promise<EventTracking[]>;
+
+  // Conversion funnel operations
+  recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel>;
+  getConversionFunnelData(funnelName: string, startDate?: Date, endDate?: Date): Promise<ConversionFunnel[]>;
+
+  // Admin & Moderation operations
+  
+  // User role operations (RBAC)
+  getUserRoles(userId: string): Promise<UserRole[]>;
+  createUserRole(data: InsertUserRole): Promise<UserRole>;
+  updateUserRole(id: string, data: Partial<InsertUserRole>): Promise<UserRole>;
+  deleteUserRole(id: string): Promise<void>;
+  checkUserPermission(userId: string, permission: string): Promise<boolean>;
+  getUsersByRole(role: string): Promise<(UserRole & { user: User })[]>;
+  
+  // User reputation operations
+  getUserReputation(userId: string): Promise<UserReputation | undefined>;
+  updateUserReputation(userId: string, data: Partial<InsertUserReputation>): Promise<UserReputation>;
+  calculateReputationScore(userId: string): Promise<number>;
+  getUsersByReputationRange(minScore: number, maxScore: number): Promise<(UserReputation & { user: User })[]>;
+  recordPositiveAction(userId: string, actionType: string, metadata?: any): Promise<void>;
+  recordNegativeAction(userId: string, actionType: string, severity: 'minor' | 'moderate' | 'severe', metadata?: any): Promise<void>;
+  recordReportSubmission(userId: string, reportId: string, isAccurate?: boolean): Promise<void>;
+  batchRecalculateReputationScores(userIds?: string[]): Promise<void>;
+  
+  // Content report operations
+  createContentReport(data: InsertContentReport): Promise<ContentReport>;
+  getContentReports(filters?: { status?: string; priority?: string; reporterUserId?: string; assignedModerator?: string }): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User })[]>;
+  getContentReport(id: string): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User }) | undefined>;
+  updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport>;
+  assignContentReport(reportId: string, moderatorId: string): Promise<ContentReport>;
+  resolveContentReport(reportId: string, resolution: string, actionTaken?: string, moderatorId?: string): Promise<ContentReport>;
+  
+  // Moderation action operations
+  createModerationAction(data: InsertModerationAction): Promise<ModerationAction>;
+  getModerationActions(filters?: { targetUserId?: string; moderatorId?: string; action?: string; isActive?: boolean }): Promise<(ModerationAction & { moderator: User; targetUser: User })[]>;
+  getModerationAction(id: string): Promise<(ModerationAction & { moderator: User; targetUser: User }) | undefined>;
+  updateModerationAction(id: string, data: Partial<InsertModerationAction>): Promise<ModerationAction>;
+  reverseModerationAction(id: string, reversedBy: string, reason: string): Promise<ModerationAction>;
+  getUserActiveModerationActions(userId: string): Promise<ModerationAction[]>;
+  
+  // Moderation queue operations
+  addToModerationQueue(data: InsertModerationQueue): Promise<ModerationQueue>;
+  getModerationQueue(filters?: { status?: string; assignedModerator?: string; priority?: number; itemType?: string; overdue?: boolean }): Promise<(ModerationQueue & { assignedMod?: User })[]>;
+  getModerationQueueItem(id: string): Promise<(ModerationQueue & { assignedMod?: User }) | undefined>;
+  assignModerationQueueItem(id: string, moderatorId: string): Promise<ModerationQueue>;
+  completeModerationQueueItem(id: string, resolution: string, actionTaken?: string): Promise<ModerationQueue>;
+  updateModerationQueuePriority(id: string, priority: number): Promise<ModerationQueue>;
+  
+  // Enhanced moderation queue operations
+  autoAssignModerationQueue(itemType?: string): Promise<{ assigned: number; skipped: number }>;
+  bulkAssignModerationQueue(itemIds: string[], moderatorId: string): Promise<ModerationQueue[]>;
+  getModeratorWorkload(moderatorId?: string): Promise<{ moderatorId: string; activeTasks: number; avgCompletionTime: number; lastActivity: Date | null }[]>;
+  escalateOverdueItems(thresholdHours?: number): Promise<ModerationQueue[]>;
+  calculateAutoPriority(itemType: string, metadata?: any): Promise<number>;
+  getModerationQueueStats(): Promise<{ totalOpen: number; totalAssigned: number; totalCompleted: number; avgCompletionTime: number; overdueCount: number }>;
+  
+  // CMS content operations
+  getCmsContent(type?: string, isPublished?: boolean): Promise<CmsContent[]>;
+  getCmsContentById(id: string): Promise<(CmsContent & { author: User; lastEditor: User; approver?: User }) | undefined>;
+  createCmsContent(data: InsertCmsContent): Promise<CmsContent>;
+  updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent>;
+  publishCmsContent(id: string, publisherId: string): Promise<CmsContent>;
+  deleteCmsContent(id: string): Promise<void>;
+  getCmsContentVersions(type: string): Promise<CmsContent[]>;
+  
+  // Ban evasion tracking operations
+  createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking>;
+  getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]>;
+  checkBanEvasion(userId: string, ipAddress: string, deviceFingerprint?: string): Promise<BanEvasionTracking[]>;
+  updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking>;
+  
+  // User appeal operations
+  createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal>;
+  getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]>;
+  getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined>;
+  updateUserAppeal(id: string, data: Partial<InsertUserAppeal>): Promise<UserAppeal>;
+  assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal>;
+  resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal>;
+  
+  // Moderation template operations
+  getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>>;
+  getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined>;
+  createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate>;
+  updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate>;
+  deleteModerationTemplate(id: string): Promise<void>;
+  
+  // Admin audit log operations
+  createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog>;
+  getAuditLogs(filters?: { adminUserId?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<(AdminAuditLog & { admin: User })[]>;
+  getAuditLog(id: string): Promise<(AdminAuditLog & { admin: User }) | undefined>;
 }
 
-// Support for multiple signing keys for key rotation
-const PRIMARY_JWT_SECRET = new TextEncoder().encode(JWT_SECRET_VALUE);
-const ROTATION_JWT_SECRET = new TextEncoder().encode(JWT_KEY_ROTATION_SECRET);
+export class DatabaseStorage implements IStorage {
+  // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
 
-// Key rotation tracking
-interface JWTKeyConfig {
-  keyId: string;
-  secret: Uint8Array;
-  algorithm: 'HS256' | 'HS384' | 'HS512';
-  isActive: boolean;
-  createdAt: Date;
-  expiresAt?: Date;
-}
+  async getUser(id: string): Promise<User | undefined> {
+    // Return user data including all required fields, but with sensitive fields as null for security
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      profileImageUrl: users.profileImageUrl,
+      primaryCommunity: users.primaryCommunity,
+      bio: users.bio,
+      location: users.location,
+      website: users.website,
+      status: users.status,
+      statusMessage: users.statusMessage,
+      timezone: users.timezone,
+      dateOfBirth: users.dateOfBirth,
+      isPrivate: users.isPrivate,
+      showOnlineStatus: users.showOnlineStatus,
+      allowDirectMessages: users.allowDirectMessages,
+      // Sensitive fields - these will be returned as null for security
+      passwordHash: sql<string | null>`NULL`,
+      isEmailVerified: users.isEmailVerified,
+      emailVerifiedAt: users.emailVerifiedAt,
+      failedLoginAttempts: users.failedLoginAttempts,
+      lastFailedLogin: users.lastFailedLogin,
+      accountLockedUntil: users.accountLockedUntil,
+      passwordChangedAt: users.passwordChangedAt,
+      mfaEnabled: users.mfaEnabled,
+      mfaEnabledAt: users.mfaEnabledAt,
+      lastLoginAt: users.lastLoginAt,
+      lastActiveAt: users.lastActiveAt,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users).where(eq(users.id, id));
+    return user;
+  }
 
-const JWT_KEYS: Map<string, JWTKeyConfig> = new Map([
-  ['primary-2025', {
-    keyId: 'primary-2025',
-    secret: PRIMARY_JWT_SECRET,
-    algorithm: 'HS256',
-    isActive: true,
-    createdAt: new Date('2025-01-01'),
-  }],
-  ['rotation-2025', {
-    keyId: 'rotation-2025', 
-    secret: ROTATION_JWT_SECRET,
-    algorithm: 'HS256',
-    isActive: false, // Activated during rotation
-    createdAt: new Date(),
-  }]
-]);
+  async getAllUsers(filters?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    role?: string; 
+    status?: string; 
+    sortBy?: string; 
+    order?: 'asc' | 'desc' 
+  }): Promise<{ users: User[], total: number }> {
+    const {
+      page = 1,
+      limit = 50,
+      search,
+      role,
+      status,
+      sortBy = 'createdAt',
+      order = 'desc'
+    } = filters || {};
 
-// Get active signing key
-function getActiveSigningKey(): JWTKeyConfig {
-  const entries = Array.from(JWT_KEYS.entries());
-  for (const [keyId, key] of entries) {
-    if (key.isActive && (!key.expiresAt || key.expiresAt > new Date())) {
-      return key;
+    // Select safe user fields (exclude sensitive data like passwordHash)
+    let query = db.select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      profileImageUrl: users.profileImageUrl,
+      primaryCommunity: users.primaryCommunity,
+      bio: users.bio,
+      location: users.location,
+      website: users.website,
+      status: users.status,
+      statusMessage: users.statusMessage,
+      timezone: users.timezone,
+      dateOfBirth: users.dateOfBirth,
+      isPrivate: users.isPrivate,
+      showOnlineStatus: users.showOnlineStatus,
+      allowDirectMessages: users.allowDirectMessages,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users);
+
+    // Build conditions
+    const conditions = [];
+
+    // Add search filter
+    if (search) {
+      conditions.push(or(
+        ilike(users.username, `%${search}%`),
+        ilike(users.email, `%${search}%`),
+        ilike(users.firstName, `%${search}%`),
+        ilike(users.lastName, `%${search}%`)
+      ));
     }
-  }
-  throw new Error('No active JWT signing key available');
-}
 
-// Get key for verification (supports multiple keys for graceful rotation) - PROPERLY FIXED
-function getVerificationKey(keyId?: string): JWTKeyConfig {
-  if (keyId && JWT_KEYS.has(keyId)) {
-    const key = JWT_KEYS.get(keyId)!;
-    // Only accept keys that are active OR explicitly within grace period
-    if (key.isActive || (key.expiresAt !== undefined && key.expiresAt > new Date())) {
-      return key;
+    // Add status filter
+    if (status && status !== 'all') {
+      conditions.push(eq(users.status, status));
     }
-  }
-  // Fallback to active key only
-  return getActiveSigningKey();
-}
 
-// Legacy support
-const JWT_SECRET = PRIMARY_JWT_SECRET;
-
-/**
- * Enhanced Token expiration times with security-focused durations
- */
-export const TOKEN_EXPIRY = {
-  EMAIL_VERIFICATION: 24 * 60 * 60, // 24 hours in seconds
-  PASSWORD_RESET: 60 * 60,          // 1 hour in seconds  
-  MFA_SETUP: 10 * 60,               // 10 minutes in seconds
-  ACCESS_TOKEN: 15 * 60,            // 15 minutes in seconds (short for security)
-  REFRESH_TOKEN: 7 * 24 * 60 * 60,  // 7 days in seconds
-  HIGH_SECURITY_ACCESS: 5 * 60,     // 5 minutes for high-security operations
-  DEVICE_BINDING: 30 * 24 * 60 * 60,// 30 days for device-bound tokens
-} as const;
-
-/**
- * JWT Security Configuration
- */
-export const JWT_SECURITY_CONFIG = {
-  ALGORITHM_PREFERENCES: ['HS256', 'HS384', 'HS512'] as const,
-  REQUIRE_JTI: true,           // Require unique token IDs
-  REQUIRE_NBF: true,           // Require not-before claim  
-  MAX_CLOCK_TOLERANCE: 30,     // 30 seconds clock drift tolerance
-  ENABLE_DEVICE_BINDING: true, // Bind tokens to device fingerprints
-  AUDIT_ALL_TOKENS: true,      // Log all token operations
-} as const;
-
-/**
- * Generate a secure random token for email verification
- * Returns both the raw token and a hashed version for database storage
- */
-export function generateVerificationToken(): { token: string; hashedToken: string } {
-  // Generate 32 bytes of cryptographically secure random data
-  const token = randomBytes(32).toString('hex');
-  
-  // Hash the token for secure database storage
-  const hashedToken = createHash('sha256').update(token).digest('hex');
-  
-  return { token, hashedToken };
-}
-
-/**
- * Hash a token for secure comparison (same method as generation)
- */
-export function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
-
-/**
- * Generate a JWT token for email verification with user context
- */
-export async function generateEmailVerificationJWT(
-  userId: string,
-  email: string,
-  expiresInSeconds: number = TOKEN_EXPIRY.EMAIL_VERIFICATION
-): Promise<string> {
-  return await signToken({
-    type: 'email_verification',
-    userId,
-    email,
-  }, {
-    audience: 'email-verification',
-    expirySeconds: expiresInSeconds,
-  });
-}
-
-// Token payload schemas for validation
-const EmailVerificationSchema = z.object({
-  type: z.literal('email_verification'),
-  userId: z.string(),
-  email: z.string().email(),
-  jti: z.string().optional(),
-  nbf: z.number().optional(),
-});
-
-/**
- * Verify and decode an email verification JWT
- */
-export async function verifyEmailVerificationJWT(token: string): Promise<{
-  valid: boolean;
-  payload?: { userId: string; email: string; type: string };
-  error?: string;
-}> {
-  return await verifyToken(token, {
-    audience: 'email-verification',
-    schema: EmailVerificationSchema,
-  });
-}
-
-/**
- * Generate a password reset JWT token
- */
-export async function generatePasswordResetJWT(
-  userId: string,
-  email: string,
-  expiresInSeconds: number = TOKEN_EXPIRY.PASSWORD_RESET
-): Promise<string> {
-  return await signToken({
-    type: 'password_reset',
-    userId,
-    email,
-  }, {
-    audience: 'password-reset',
-    expirySeconds: expiresInSeconds,
-  });
-}
-
-const PasswordResetSchema = z.object({
-  type: z.literal('password_reset'),
-  userId: z.string(),
-  email: z.string().email(),
-  jti: z.string().optional(),
-  nbf: z.number().optional(),
-});
-
-/**
- * Verify and decode a password reset JWT
- */
-export async function verifyPasswordResetJWT(token: string): Promise<{
-  valid: boolean;
-  payload?: { userId: string; email: string; type: string };
-  error?: string;
-}> {
-  return await verifyToken(token, {
-    audience: 'password-reset',
-    schema: PasswordResetSchema,
-  });
-}
-
-/**
- * Generate a secure random code for MFA backup codes - FIXED: crypto secure
- */
-export function generateMFABackupCode(): string {
-  // FIXED: Use crypto.randomBytes for cryptographically secure codes (not Math.random)
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = randomBytes(8); // Cryptographically secure random bytes
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars[bytes[i] % chars.length];
-  }
-  return result;
-}
-
-/**
- * Generate multiple MFA backup codes
- */
-export function generateMFABackupCodes(count: number = 10): string[] {
-  const codes: string[] = [];
-  for (let i = 0; i < count; i++) {
-    codes.push(generateMFABackupCode());
-  }
-  return codes;
-}
-
-// Enhanced JWT Security Features
-interface TokenSecurityContext {
-  deviceFingerprint?: string;  // Device binding
-  ipAddress?: string;         // IP binding for additional security
-  location?: string;          // Geographic context
-  mfaVerified?: boolean;      // MFA completion status
-  riskScore?: number;         // Security risk assessment
-}
-
-// Enhanced JWT Session Management Types and Schemas with security claims
-const AccessTokenJWTPayloadSchema = z.object({
-  userId: z.string(),
-  email: z.string().email(),
-  type: z.literal('access'),
-  sessionId: z.string().optional(),
-  // Enhanced security claims
-  jti: z.string(),                    // JWT ID for tracking
-  nbf: z.number().optional(),         // Not before timestamp
-  deviceFingerprint: z.string().optional(), // Device binding
-  ipAddress: z.string().optional(),   // IP binding
-  mfaVerified: z.boolean().optional(), // MFA status
-  riskScore: z.number().optional(),   // Risk assessment score
-  securityLevel: z.enum(['standard', 'high', 'critical']).optional(),
-  // Standard claims
-  iat: z.number(),
-  exp: z.number(),
-  iss: z.string(),
-  aud: z.string(),
-  // Key rotation support
-  kid: z.string().optional(),         // Key ID for rotation
-});
-
-const RefreshTokenJWTPayloadSchema = z.object({
-  userId: z.string(),
-  tokenId: z.string(), // Reference to refresh token in database
-  type: z.literal('refresh'),
-  // Enhanced security claims
-  jti: z.string(),                    // JWT ID for tracking
-  deviceFingerprint: z.string().optional(), // Device binding
-  ipAddress: z.string().optional(),   // IP binding
-  // Standard claims
-  iat: z.number(),
-  exp: z.number(),
-  iss: z.string(),
-  aud: z.string(),
-  // Key rotation support
-  kid: z.string().optional(),         // Key ID for rotation
-});
-
-export type AccessTokenJWTPayload = z.infer<typeof AccessTokenJWTPayloadSchema>;
-export type RefreshTokenJWTPayload = z.infer<typeof RefreshTokenJWTPayloadSchema>;
-
-/**
- * JWT Security Helper Functions
- */
-
-// Generate unique JWT ID for tracking
-export function generateJTI(): string {
-  return randomBytes(16).toString('hex');
-}
-
-// Determine security level based on context
-function determineSecurityLevel(context?: TokenSecurityContext): 'standard' | 'high' | 'critical' {
-  if (!context) return 'standard';
-  
-  // Critical security for high risk scores
-  if (context.riskScore && context.riskScore > 0.8) return 'critical';
-  
-  // High security for MFA-verified users or device-bound tokens
-  if (context.mfaVerified || context.deviceFingerprint) return 'high';
-  
-  return 'standard';
-}
-
-// Adjust token expiry based on security level
-function adjustExpiryForSecurityLevel(baseExpiry: number, level: 'standard' | 'high' | 'critical'): number {
-  switch (level) {
-    case 'critical':
-      return Math.min(baseExpiry, TOKEN_EXPIRY.HIGH_SECURITY_ACCESS);
-    case 'high':
-      return Math.min(baseExpiry, TOKEN_EXPIRY.ACCESS_TOKEN);
-    default:
-      return baseExpiry;
-  }
-}
-
-// Audit token operations (integrate with existing audit system)
-async function auditTokenOperation(
-  operation: 'generate' | 'verify' | 'revoke',
-  tokenType: string,
-  userId: string,
-  jti: string,
-  context?: TokenSecurityContext
-): Promise<void> {
-  // Enhanced audit logging with security context
-  const auditData = {
-    userId,
-    jti,
-    operation,
-    tokenType,
-    deviceFingerprint: context?.deviceFingerprint,
-    ipAddress: context?.ipAddress,
-    riskScore: context?.riskScore,
-    mfaVerified: context?.mfaVerified,
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  };
-  
-  // For now, log to console - in production, this would integrate with the existing audit system
-  console.log(`[JWT_AUDIT] ${operation.toUpperCase()} ${tokenType} token`, auditData);
-  
-  // TODO: Integrate with storage.createAuditLog() for production
-  // await storage.createAuditLog({
-  //   userId,
-  //   eventType: `jwt_${operation}`,
-  //   details: auditData,
-  //   ipAddress: context?.ipAddress || 'unknown',
-  //   isSuccessful: true
-  // });
-}
-
-/**
- * Generate a secure JWT access token for API authentication with enhanced security
- */
-export async function generateAccessTokenJWT(
-  userId: string,
-  email: string,
-  sessionId?: string,
-  securityContext?: TokenSecurityContext,
-  expirySeconds: number = TOKEN_EXPIRY.ACCESS_TOKEN
-): Promise<string> {
-  const activeKey = getActiveSigningKey();
-  const now = Math.floor(Date.now() / 1000);
-  const jti = generateJTI();
-  
-  // Determine security level based on context
-  const securityLevel = determineSecurityLevel(securityContext);
-  const actualExpiry = adjustExpiryForSecurityLevel(expirySeconds, securityLevel);
-  
-  const tokenPayload: any = {
-    userId,
-    email,
-    type: 'access' as const,
-    sessionId,
-    jti,
-    securityLevel,
-  };
-
-  // Add security context if provided
-  if (securityContext) {
-    if (JWT_SECURITY_CONFIG.ENABLE_DEVICE_BINDING && securityContext.deviceFingerprint) {
-      tokenPayload.deviceFingerprint = securityContext.deviceFingerprint;
+    // Add role filter (requires join with userRoles)
+    if (role) {
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId));
+      conditions.push(eq(userRoles.role, role));
     }
-    if (securityContext.ipAddress) {
-      tokenPayload.ipAddress = securityContext.ipAddress;
+
+    // Apply conditions
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
-    if (securityContext.mfaVerified !== undefined) {
-      tokenPayload.mfaVerified = securityContext.mfaVerified;
-    }
-    if (securityContext.riskScore !== undefined) {
-      tokenPayload.riskScore = securityContext.riskScore;
-    }
-  }
 
-  // Add not-before claim for high security
-  if (JWT_SECURITY_CONFIG.REQUIRE_NBF || securityLevel !== 'standard') {
-    tokenPayload.nbf = now;
-  }
-
-  const token = await new SignJWT(tokenPayload)
-    .setProtectedHeader({ 
-      alg: activeKey.algorithm,
-      kid: activeKey.keyId, // Key ID for rotation support
-    })
-    .setIssuedAt(now)
-    .setIssuer('shuffle-and-sync')
-    .setAudience('api-access')
-    .setExpirationTime(now + actualExpiry)
-    .sign(activeKey.secret);
-    
-  // Audit token generation
-  if (JWT_SECURITY_CONFIG.AUDIT_ALL_TOKENS) {
-    await auditTokenOperation('generate', 'access', userId, jti, securityContext);
-  }
-
-  return token;
-}
-
-/**
- * Generate a secure JWT refresh token with enhanced security
- */
-export async function generateRefreshTokenJWT(
-  userId: string,
-  tokenId: string,
-  securityContext?: TokenSecurityContext,
-  expirySeconds: number = TOKEN_EXPIRY.REFRESH_TOKEN
-): Promise<string> {
-  const activeKey = getActiveSigningKey();
-  const now = Math.floor(Date.now() / 1000);
-  const jti = generateJTI();
-  
-  const tokenPayload: any = {
-    userId,
-    tokenId,
-    type: 'refresh' as const,
-    jti,
-  };
-
-  // Add security context for device binding
-  if (securityContext) {
-    if (JWT_SECURITY_CONFIG.ENABLE_DEVICE_BINDING && securityContext.deviceFingerprint) {
-      tokenPayload.deviceFingerprint = securityContext.deviceFingerprint;
-    }
-    if (securityContext.ipAddress) {
-      tokenPayload.ipAddress = securityContext.ipAddress;
-    }
-  }
-
-  const token = await new SignJWT(tokenPayload)
-    .setProtectedHeader({ 
-      alg: activeKey.algorithm,
-      kid: activeKey.keyId,
-    })
-    .setIssuedAt(now)
-    .setIssuer('shuffle-and-sync')
-    .setAudience('token-refresh')
-    .setExpirationTime(now + expirySeconds)
-    .sign(activeKey.secret);
-    
-  // Audit token generation
-  if (JWT_SECURITY_CONFIG.AUDIT_ALL_TOKENS) {
-    await auditTokenOperation('generate', 'refresh', userId, jti, securityContext);
-  }
-
-  return token;
-}
-
-/**
- * Verify and decode an access token JWT with enhanced security validation - FIXED
- */
-export async function verifyAccessTokenJWT(
-  token: string,
-  securityContext?: { deviceFingerprint?: string; ipAddress?: string }
-): Promise<{
-  valid: boolean;
-  payload?: AccessTokenJWTPayload;
-  error?: string;
-  securityWarnings?: string[];
-}> {
-  try {
-    // First, decode the header to validate algorithm
-    const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
-    const keyId = header.kid;
-    const algorithm = header.alg;
-    
-    // CRITICAL FIX: Enforce algorithm allow-list
-    if (!JWT_SECURITY_CONFIG.ALGORITHM_PREFERENCES.includes(algorithm as any)) {
-      return { valid: false, error: `Algorithm ${algorithm} not allowed` };
-    }
-    
-    // Get the appropriate verification key
-    const verificationKey = getVerificationKey(keyId);
-    
-    // Verify with enhanced options
-    const { payload } = await jwtVerify(token, verificationKey.secret, {
-      issuer: 'shuffle-and-sync',
-      audience: 'api-access',
-      clockTolerance: JWT_SECURITY_CONFIG.MAX_CLOCK_TOLERANCE,
-    });
-    
-    // Validate payload structure with enhanced schema
-    const validatedPayload = AccessTokenJWTPayloadSchema.parse(payload);
-    
-    // CRITICAL FIX: Enforce revocation checking immediately
-    if (validatedPayload.jti) {
-      // Check both sync (in-memory) and async (persistent) revocation
-      const isRevokedSync = isTokenRevoked(validatedPayload.jti);
-      if (isRevokedSync) {
-        return { valid: false, error: 'Token has been revoked' };
+    // Add sorting
+    const validSortColumns = ['createdAt', 'updatedAt', 'username', 'email', 'firstName', 'lastName'];
+    if (validSortColumns.includes(sortBy)) {
+      const sortColumn = users[sortBy as keyof typeof users];
+      if (sortColumn) {
+        if (order === 'asc') {
+          query = query.orderBy(asc(sortColumn));
+        } else {
+          query = query.orderBy(desc(sortColumn));
+        }
       }
-      
-      // PRODUCTION: Check persistent storage for multi-instance deployment
-      const isRevokedPersistent = await isTokenRevokedAsync(validatedPayload.jti);
-      if (isRevokedPersistent) {
-        return { valid: false, error: 'Token has been revoked' };
-      }
+    } else {
+      // Default sort
+      query = query.orderBy(desc(users.createdAt));
     }
-    
-    // Enhanced security validation
-    const securityWarnings: string[] = [];
-    
-    // Check device binding if enabled
-    if (JWT_SECURITY_CONFIG.ENABLE_DEVICE_BINDING && 
-        validatedPayload.deviceFingerprint && 
-        securityContext?.deviceFingerprint &&
-        validatedPayload.deviceFingerprint !== securityContext.deviceFingerprint) {
-      securityWarnings.push('Device fingerprint mismatch detected');
+
+    // Get total count with same filters
+    let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+    if (role) {
+      countQuery = countQuery.leftJoin(userRoles, eq(users.id, userRoles.userId));
     }
-    
-    // Check IP binding for high-security tokens
-    if (validatedPayload.ipAddress && 
-        securityContext?.ipAddress &&
-        validatedPayload.ipAddress !== securityContext.ipAddress) {
-      securityWarnings.push('IP address change detected');
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
     }
+    const [{ count: total }] = await countQuery;
+
+    // Add pagination
+    const offset = (page - 1) * limit;
+    const usersList = await query.limit(limit).offset(offset);
+
+    return { users: usersList, total };
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
+    // Update user and return safe projection (excluding passwordHash)
+    const [user] = await db
+      .update(users)
+      .set({
+        ...userData,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        profileImageUrl: users.profileImageUrl,
+        primaryCommunity: users.primaryCommunity,
+        bio: users.bio,
+        location: users.location,
+        website: users.website,
+        status: users.status,
+        statusMessage: users.statusMessage,
+        timezone: users.timezone,
+        dateOfBirth: users.dateOfBirth,
+        isPrivate: users.isPrivate,
+        showOnlineStatus: users.showOnlineStatus,
+        allowDirectMessages: users.allowDirectMessages,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      });
+    return user;
+  }
+
+  // Community operations
+  async getCommunities(): Promise<Community[]> {
+    return await db
+      .select()
+      .from(communities)
+      .where(eq(communities.isActive, true))
+      .orderBy(communities.displayName);
+  }
+
+  async getCommunity(id: string): Promise<Community | undefined> {
+    const [community] = await db
+      .select()
+      .from(communities)
+      .where(eq(communities.id, id));
+    return community;
+  }
+
+  async createCommunity(communityData: InsertCommunity): Promise<Community> {
+    const [community] = await db
+      .insert(communities)
+      .values([communityData])
+      .returning();
+    return community;
+  }
+
+  // User community operations
+  async getUserCommunities(userId: string): Promise<(UserCommunity & { community: Community })[]> {
+    return await db
+      .select({
+        id: userCommunities.id,
+        userId: userCommunities.userId,
+        communityId: userCommunities.communityId,
+        isPrimary: userCommunities.isPrimary,
+        joinedAt: userCommunities.joinedAt,
+        community: communities,
+      })
+      .from(userCommunities)
+      .innerJoin(communities, eq(userCommunities.communityId, communities.id))
+      .where(eq(userCommunities.userId, userId));
+  }
+
+  async joinCommunity(data: InsertUserCommunity): Promise<UserCommunity> {
+    const [userCommunity] = await db
+      .insert(userCommunities)
+      .values(data)
+      .onConflictDoNothing()
+      .returning();
     
-    // Check not-before claim
-    if (validatedPayload.nbf && validatedPayload.nbf > Math.floor(Date.now() / 1000)) {
-      return { valid: false, error: 'Token not yet valid (nbf claim)' };
-    }
-    
-    // Audit token verification
-    if (JWT_SECURITY_CONFIG.AUDIT_ALL_TOKENS) {
-      await auditTokenOperation('verify', 'access', validatedPayload.userId, validatedPayload.jti, {
-        deviceFingerprint: securityContext?.deviceFingerprint,
-        ipAddress: securityContext?.ipAddress,
+    // Record positive action for community engagement
+    if (userCommunity) {
+      await this.recordPositiveAction(data.userId, 'community_joined', {
+        communityId: data.communityId
       });
     }
     
-    return {
-      valid: true,
-      payload: validatedPayload,
-      securityWarnings: securityWarnings.length > 0 ? securityWarnings : undefined,
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
-    return { valid: false, error: errorMessage };
+    return userCommunity;
   }
-}
 
-/**
- * Verify and decode a refresh token JWT with enhanced security validation - FIXED
- */
-export async function verifyRefreshTokenJWT(
-  token: string,
-  securityContext?: { deviceFingerprint?: string; ipAddress?: string }
-): Promise<{
-  valid: boolean;
-  payload?: RefreshTokenJWTPayload;
-  error?: string;
-  securityWarnings?: string[];
-}> {
-  try {
-    // First, decode the header to validate algorithm
-    const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
-    const keyId = header.kid;
-    const algorithm = header.alg;
-    
-    // CRITICAL FIX: Enforce algorithm allow-list
-    if (!JWT_SECURITY_CONFIG.ALGORITHM_PREFERENCES.includes(algorithm as any)) {
-      return { valid: false, error: `Algorithm ${algorithm} not allowed` };
-    }
-    
-    // Get the appropriate verification key
-    const verificationKey = getVerificationKey(keyId);
-    
-    // Verify with enhanced options
-    const { payload } = await jwtVerify(token, verificationKey.secret, {
-      issuer: 'shuffle-and-sync',
-      audience: 'token-refresh',
-      clockTolerance: JWT_SECURITY_CONFIG.MAX_CLOCK_TOLERANCE,
-    });
-    
-    // Validate payload structure with enhanced schema
-    const validatedPayload = RefreshTokenJWTPayloadSchema.parse(payload);
-    
-    // CRITICAL FIX: Enforce revocation checking immediately
-    if (validatedPayload.jti) {
-      // Check both sync (in-memory) and async (persistent) revocation
-      const isRevokedSync = isTokenRevoked(validatedPayload.jti);
-      if (isRevokedSync) {
-        return { valid: false, error: 'Token has been revoked' };
-      }
-      
-      // PRODUCTION: Check persistent storage for multi-instance deployment
-      const isRevokedPersistent = await isTokenRevokedAsync(validatedPayload.jti);
-      if (isRevokedPersistent) {
-        return { valid: false, error: 'Token has been revoked' };
-      }
-    }
-    
-    // Enhanced security validation
-    const securityWarnings: string[] = [];
-    
-    // Check device binding if enabled
-    if (JWT_SECURITY_CONFIG.ENABLE_DEVICE_BINDING && 
-        validatedPayload.deviceFingerprint && 
-        securityContext?.deviceFingerprint &&
-        validatedPayload.deviceFingerprint !== securityContext.deviceFingerprint) {
-      securityWarnings.push('Device fingerprint mismatch detected');
-    }
-    
-    // Check IP binding for refresh tokens
-    if (validatedPayload.ipAddress && 
-        securityContext?.ipAddress &&
-        validatedPayload.ipAddress !== securityContext.ipAddress) {
-      securityWarnings.push('IP address change detected for refresh token');
-    }
-    
-    // Audit token verification
-    if (JWT_SECURITY_CONFIG.AUDIT_ALL_TOKENS) {
-      await auditTokenOperation('verify', 'refresh', validatedPayload.userId, validatedPayload.jti, {
-        deviceFingerprint: securityContext?.deviceFingerprint,
-        ipAddress: securityContext?.ipAddress,
+  async setPrimaryCommunity(userId: string, communityId: string): Promise<void> {
+    // First, unset all primary communities for the user
+    await db
+      .update(userCommunities)
+      .set({ isPrimary: false })
+      .where(eq(userCommunities.userId, userId));
+
+    // Then set the new primary community
+    await db
+      .update(userCommunities)
+      .set({ isPrimary: true })
+      .where(
+        and(
+          eq(userCommunities.userId, userId),
+          eq(userCommunities.communityId, communityId)
+        )
+      );
+
+    // Update the user's primary community
+    await db
+      .update(users)
+      .set({ 
+        primaryCommunity: communityId,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  // Platform account operations for cross-platform streaming
+  async getUserPlatformAccounts(userId: string): Promise<SafeUserPlatformAccount[]> {
+    return await db
+      .select({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      })
+      .from(userPlatformAccounts)
+      .where(eq(userPlatformAccounts.userId, userId))
+      .orderBy(userPlatformAccounts.platform);
+  }
+
+  async getUserPlatformAccount(userId: string, platform: string): Promise<SafeUserPlatformAccount | undefined> {
+    const result = await db
+      .select({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      })
+      .from(userPlatformAccounts)
+      .where(and(
+        eq(userPlatformAccounts.userId, userId),
+        eq(userPlatformAccounts.platform, platform)
+      ))
+      .limit(1);
+    return result[0];
+  }
+
+  async createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<SafeUserPlatformAccount> {
+    const result = await db
+      .insert(userPlatformAccounts)
+      .values({
+        ...data,
+        updatedAt: new Date()
+      })
+      .returning({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
       });
+    return result[0];
+  }
+
+  async updateUserPlatformAccount(
+    id: string, 
+    data: {
+      handle?: string;
+      accessToken?: string;
+      refreshToken?: string;
+      tokenExpiresAt?: Date;
+      scopes?: unknown;
+      isActive?: boolean;
+      lastVerified?: Date;
     }
+  ): Promise<SafeUserPlatformAccount> {
+    const result = await db
+      .update(userPlatformAccounts)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(userPlatformAccounts.id, id))
+      .returning({
+        id: userPlatformAccounts.id,
+        userId: userPlatformAccounts.userId,
+        platform: userPlatformAccounts.platform,
+        handle: userPlatformAccounts.handle,
+        platformUserId: userPlatformAccounts.platformUserId,
+        channelId: userPlatformAccounts.channelId,
+        pageId: userPlatformAccounts.pageId,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt,
+        scopes: userPlatformAccounts.scopes,
+        isActive: userPlatformAccounts.isActive,
+        lastVerified: userPlatformAccounts.lastVerified,
+        createdAt: userPlatformAccounts.createdAt,
+        updatedAt: userPlatformAccounts.updatedAt,
+      });
+    return result[0];
+  }
+
+  async deleteUserPlatformAccount(id: string): Promise<void> {
+    await db
+      .delete(userPlatformAccounts)
+      .where(eq(userPlatformAccounts.id, id));
+  }
+
+  async getUserPlatformHandle(userId: string, platform: string): Promise<string | null> {
+    const account = await this.getUserPlatformAccount(userId, platform);
+    return account?.handle || null;
+  }
+
+  async getUserPlatformToken(userId: string, platform: string): Promise<string | null> {
+    // Security: Only fetch the token field, never expose tokens in broader queries
+    const result = await db
+      .select({ 
+        accessToken: userPlatformAccounts.accessToken,
+        tokenExpiresAt: userPlatformAccounts.tokenExpiresAt
+      })
+      .from(userPlatformAccounts)
+      .where(and(
+        eq(userPlatformAccounts.userId, userId),
+        eq(userPlatformAccounts.platform, platform),
+        eq(userPlatformAccounts.isActive, true)
+      ))
+      .limit(1);
+    
+    const account = result[0];
+    if (!account?.accessToken) {
+      return null;
+    }
+    
+    // Check token expiry - return null for expired tokens
+    if (account.tokenExpiresAt && account.tokenExpiresAt <= new Date()) {
+      return null;
+    }
+    
+    // TODO: Implement token decryption here when encryption is added
+    return account.accessToken;
+  }
+
+  // Theme preference operations
+  async getUserThemePreferences(userId: string): Promise<ThemePreference[]> {
+    return await db
+      .select()
+      .from(themePreferences)
+      .where(eq(themePreferences.userId, userId));
+  }
+
+  async upsertThemePreference(data: InsertThemePreference): Promise<ThemePreference> {
+    const [preference] = await db
+      .insert(themePreferences)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [themePreferences.userId, themePreferences.communityId],
+        set: {
+          themeMode: data.themeMode,
+          customColors: data.customColors,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return preference;
+  }
+
+  // Event operations
+  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]> {
+    const baseQuery = db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id));
+
+    let conditions = [];
+    if (filters?.communityId) {
+      conditions.push(eq(events.communityId, filters.communityId));
+    }
+    if (filters?.type) {
+      conditions.push(eq(events.type, filters.type));
+    }
+    if (filters?.upcoming) {
+      const today = new Date().toISOString().split('T')[0];
+      conditions.push(gte(events.date, today));
+    }
+
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
+
+    const rawEvents = await query.orderBy(events.date, events.time);
+
+    // Get attendee counts and user attendance separately
+    const eventIds = rawEvents.map(e => e.id);
+    const attendeeCounts = eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+        count: count(eventAttendees.id).as('count'),
+      })
+      .from(eventAttendees)
+      .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
+      .groupBy(eventAttendees.eventId) : [];
+
+    const userAttendance = filters?.userId && eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+      })
+      .from(eventAttendees)
+      .where(and(
+        sql`${eventAttendees.eventId} IN ${eventIds}`,
+        eq(eventAttendees.userId, filters.userId)
+      )) : [];
+
+    return rawEvents.map(event => ({
+      ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
+      attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
+      isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
+    })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
+  }
+
+  async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
+    const [event] = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id))
+      .where(eq(events.id, id));
+
+    if (!event) return undefined;
+
+    // Get attendee count
+    const [attendeeCount] = await db
+      .select({ count: count(eventAttendees.id) })
+      .from(eventAttendees)
+      .where(eq(eventAttendees.eventId, id));
+
+    // Check if user is attending
+    const isUserAttending = userId ? await db
+      .select({ id: eventAttendees.id })
+      .from(eventAttendees)
+      .where(and(
+        eq(eventAttendees.eventId, id),
+        eq(eventAttendees.userId, userId)
+      ))
+      .then(result => result.length > 0) : false;
+
+    return {
+      ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
+      attendeeCount: attendeeCount?.count || 0,
+      isUserAttending,
+    } as Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean };
+  }
+
+  async createEvent(data: InsertEvent): Promise<Event> {
+    const [event] = await db
+      .insert(events)
+      .values(data)
+      .returning();
+      
+    // Auto-create TableSync session for game pod events
+    if (event.type === 'game-pod') {
+      try {
+        const gameSessionData = {
+          eventId: event.id,
+          hostId: event.creatorId,
+          status: 'waiting',
+          currentPlayers: 0,
+          maxPlayers: event.playerSlots || 4,
+          gameData: {
+            name: event.title,
+            format: event.gameFormat || 'commander',
+            powerLevel: event.powerLevel || 'casual',
+            description: event.description || '',
+          },
+          communityId: event.communityId,
+        };
+        
+        await this.createGameSession(gameSessionData);
+      } catch (error) {
+        console.error('Failed to create automatic TableSync session:', error);
+        // Don't fail the event creation if TableSync session fails
+      }
+    }
+    
+    return event;
+  }
+
+  async updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event> {
+    const [event] = await db
+      .update(events)
+      .set(data)
+      .where(eq(events.id, id))
+      .returning();
+    return event;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db
+      .delete(events)
+      .where(eq(events.id, id));
+  }
+
+  // Event attendee operations
+  async joinEvent(data: InsertEventAttendee): Promise<EventAttendee> {
+    const [attendee] = await db
+      .insert(eventAttendees)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [eventAttendees.eventId, eventAttendees.userId],
+        set: {
+          status: data.status || 'attending',
+          joinedAt: new Date(),
+        },
+      })
+      .returning();
+    return attendee;
+  }
+
+  async leaveEvent(eventId: string, userId: string): Promise<void> {
+    await db
+      .delete(eventAttendees)
+      .where(
+        and(
+          eq(eventAttendees.eventId, eventId),
+          eq(eventAttendees.userId, userId)
+        )
+      );
+  }
+
+  async getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]> {
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
+        joinedAt: eventAttendees.joinedAt,
+        user: users,
+      })
+      .from(eventAttendees)
+      .innerJoin(users, eq(eventAttendees.userId, users.id))
+      .where(eq(eventAttendees.eventId, eventId));
+  }
+
+  async getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]> {
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
+        joinedAt: eventAttendees.joinedAt,
+        event: events,
+      })
+      .from(eventAttendees)
+      .innerJoin(events, eq(eventAttendees.eventId, events.id))
+      .where(eq(eventAttendees.userId, userId));
+  }
+
+  // Bulk calendar operations for game pods
+  async createBulkEvents(data: InsertEvent[]): Promise<Event[]> {
+    if (data.length === 0) return [];
+    const createdEvents = await db
+      .insert(events)
+      .values(data)
+      .returning();
+      
+    // Auto-create TableSync sessions for game pod events
+    for (const event of createdEvents) {
+      if (event.type === 'game-pod') {
+        try {
+          const gameSessionData = {
+            eventId: event.id,
+            hostId: event.creatorId,
+            status: 'waiting',
+            currentPlayers: 0,
+            maxPlayers: event.playerSlots || 4,
+            gameData: {
+              name: event.title,
+              format: event.gameFormat || 'commander',
+              powerLevel: event.powerLevel || 'casual',
+              description: event.description || '',
+            },
+            communityId: event.communityId,
+          };
+          
+          await this.createGameSession(gameSessionData);
+        } catch (error) {
+          console.error(`Failed to create automatic TableSync session for event ${event.id}:`, error);
+          // Don't fail the bulk creation if individual TableSync sessions fail
+        }
+      }
+    }
+    
+    return createdEvents;
+  }
+
+  async createRecurringEvents(data: InsertEvent, endDate: string): Promise<Event[]> {
+    if (!data.isRecurring || !data.recurrencePattern || !data.recurrenceInterval) {
+      throw new Error('Invalid recurring event data');
+    }
+
+    const eventList: InsertEvent[] = [];
+    const startDate = new Date(data.date + 'T' + (data.time || '12:00'));
+    const end = new Date(endDate);
+    let currentDate = new Date(startDate);
+    const interval = Number(data.recurrenceInterval) || 1;
+    
+    while (currentDate <= end) {
+      eventList.push({
+        ...data,
+        date: currentDate.toISOString().split('T')[0],
+        parentEventId: null, // Will be set after first event is created
+      });
+      
+      // Calculate next occurrence based on pattern
+      switch (data.recurrencePattern as string) {
+        case 'daily':
+          currentDate.setDate(currentDate.getDate() + interval);
+          break;
+        case 'weekly':
+          currentDate.setDate(currentDate.getDate() + (7 * interval));
+          break;
+        case 'monthly':
+          currentDate.setMonth(currentDate.getMonth() + interval);
+          break;
+      }
+    }
+
+    return this.createBulkEvents(eventList);
+  }
+
+  async getCalendarEvents(filters: { communityId?: string; startDate: string; endDate: string; type?: string }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[]> {
+    const baseQuery = db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        type: events.type,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        communityId: events.communityId,
+        creatorId: events.creatorId,
+        hostId: events.hostId,
+        coHostId: events.coHostId,
+        maxAttendees: events.maxAttendees,
+        isPublic: events.isPublic,
+        status: events.status,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        creator: users,
+        community: communities,
+      })
+      .from(events)
+      .leftJoin(users, eq(events.creatorId, users.id))
+      .leftJoin(communities, eq(events.communityId, communities.id));
+
+    let conditions = [
+      gte(events.date, filters.startDate),
+      sql`${events.date} <= ${filters.endDate}`
+    ];
+    
+    if (filters.communityId) {
+      conditions.push(eq(events.communityId, filters.communityId));
+    }
+    if (filters.type) {
+      conditions.push(eq(events.type, filters.type));
+    }
+
+    const rawEvents = await baseQuery
+      .where(and(...conditions))
+      .orderBy(events.date, events.time);
+
+    // Get player counts for each event
+    const eventIds = rawEvents.map(e => e.id);
+    const playerCounts = eventIds.length > 0 ? await db
+      .select({
+        eventId: eventAttendees.eventId,
+        totalCount: count(eventAttendees.id).as('totalCount'),
+        mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'),
+        alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'),
+      })
+      .from(eventAttendees)
+      .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
+      .groupBy(eventAttendees.eventId) : [];
+
+    return rawEvents.map(event => ({
+      ...event,
+      creator: event.creator || { 
+        id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
+        primaryCommunity: null, username: null, bio: null, location: null, website: null,
+        status: null, statusMessage: null, timezone: null, dateOfBirth: null,
+        isPrivate: false, showOnlineStatus: 'everyone' as any, allowDirectMessages: 'everyone' as any,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      community: event.community,
+      attendeeCount: playerCounts.find(pc => pc.eventId === event.id)?.totalCount || 0,
+      mainPlayers: playerCounts.find(pc => pc.eventId === event.id)?.mainPlayers || 0,
+      alternates: playerCounts.find(pc => pc.eventId === event.id)?.alternates || 0,
+    })) as (Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[];
+  }
+
+  // Password reset operations
+  async createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [token] = await db
+      .insert(passwordResetTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.isUsed, false),
+          gte(passwordResetTokens.expiresAt, new Date())
+        )
+      );
+    return resetToken;
+  }
+
+  async markTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(passwordResetTokens)
+      .set({ isUsed: true })
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async cleanupExpiredTokens(): Promise<void> {
+    await db
+      .delete(passwordResetTokens)
+      .where(
+        sql`${passwordResetTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async invalidateUserPasswordResetTokens(userId: string): Promise<void> {
+    // First get the user's email to find their tokens
+    const user = await this.getUser(userId);
+    if (!user?.email) return;
+    
+    await db
+      .update(passwordResetTokens)
+      .set({ isUsed: true })
+      .where(
+        and(
+          eq(passwordResetTokens.email, user.email),
+          eq(passwordResetTokens.isUsed, false)
+        )
+      );
+  }
+
+  // Email verification operations
+  async createEmailVerificationToken(data: InsertEmailVerificationToken): Promise<EmailVerificationToken> {
+    const [token] = await db
+      .insert(emailVerificationTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined> {
+    const [verificationToken] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(
+        and(
+          eq(emailVerificationTokens.token, token),
+          eq(emailVerificationTokens.isUsed, false),
+          gte(emailVerificationTokens.expiresAt, new Date())
+        )
+      );
+    return verificationToken;
+  }
+
+  async markEmailVerificationTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(emailVerificationTokens)
+      .set({ isUsed: true })
+      .where(eq(emailVerificationTokens.token, token));
+  }
+
+  async cleanupExpiredEmailVerificationTokens(): Promise<void> {
+    await db
+      .delete(emailVerificationTokens)
+      .where(
+        sql`${emailVerificationTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async getEmailVerificationTokenByUserId(userId: string): Promise<EmailVerificationToken | undefined> {
+    const [verificationToken] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(
+        and(
+          eq(emailVerificationTokens.userId, userId),
+          eq(emailVerificationTokens.isUsed, false),
+          gte(emailVerificationTokens.expiresAt, new Date())
+        )
+      )
+      .orderBy(sql`${emailVerificationTokens.createdAt} DESC`);
+    return verificationToken;
+  }
+
+  async invalidateUserEmailVerificationTokens(userId: string): Promise<void> {
+    await db
+      .update(emailVerificationTokens)
+      .set({ isUsed: true })
+      .where(
+        and(
+          eq(emailVerificationTokens.userId, userId),
+          eq(emailVerificationTokens.isUsed, false)
+        )
+      );
+  }
+
+  // Email change operations implementation
+  async createEmailChangeRequest(data: InsertEmailChangeRequest): Promise<EmailChangeRequest> {
+    const [request] = await db
+      .insert(emailChangeRequests)
+      .values(data)
+      .returning();
+    return request;
+  }
+
+  async getEmailChangeRequest(id: string): Promise<EmailChangeRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(eq(emailChangeRequests.id, id));
+    return request;
+  }
+
+  async getUserEmailChangeRequest(userId: string): Promise<EmailChangeRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending"),
+          gte(emailChangeRequests.expiresAt, new Date())
+        )
+      )
+      .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);
+    return request;
+  }
+
+  async updateEmailChangeRequest(id: string, data: Partial<InsertEmailChangeRequest>): Promise<EmailChangeRequest> {
+    const [request] = await db
+      .update(emailChangeRequests)
+      .set(data)
+      .where(eq(emailChangeRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  async createEmailChangeToken(data: InsertEmailChangeToken): Promise<EmailChangeToken> {
+    const [token] = await db
+      .insert(emailChangeTokens)
+      .values(data)
+      .returning();
+    return token;
+  }
+
+  async getEmailChangeToken(token: string): Promise<EmailChangeToken | undefined> {
+    const [changeToken] = await db
+      .select()
+      .from(emailChangeTokens)
+      .where(
+        and(
+          eq(emailChangeTokens.token, token),
+          eq(emailChangeTokens.isUsed, false),
+          gte(emailChangeTokens.expiresAt, new Date())
+        )
+      );
+    return changeToken;
+  }
+
+  async markEmailChangeTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(emailChangeTokens)
+      .set({ isUsed: true })
+      .where(eq(emailChangeTokens.token, token));
+  }
+
+  async cleanupExpiredEmailChangeTokens(): Promise<void> {
+    await db
+      .delete(emailChangeTokens)
+      .where(
+        sql`${emailChangeTokens.expiresAt} < ${new Date()}`
+      );
+  }
+
+  async cancelEmailChangeRequest(userId: string): Promise<void> {
+    await db
+      .update(emailChangeRequests)
+      .set({ status: "cancelled" })
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending")
+        )
+      );
+  }
+
+  // MFA operations implementation
+  async getUserMfaSettings(userId: string): Promise<UserMfaSettings | undefined> {
+    const [mfaSettings] = await db
+      .select()
+      .from(userMfaSettings)
+      .where(eq(userMfaSettings.userId, userId));
+    return mfaSettings;
+  }
+
+  async createUserMfaSettings(data: InsertUserMfaSettings): Promise<UserMfaSettings> {
+    const [mfaSettings] = await db
+      .insert(userMfaSettings)
+      .values(data)
+      .returning();
+    return mfaSettings;
+  }
+
+  async updateUserMfaSettings(userId: string, data: Partial<InsertUserMfaSettings>): Promise<void> {
+    await db
+      .update(userMfaSettings)
+      .set(data)
+      .where(eq(userMfaSettings.userId, userId));
+  }
+
+  async enableUserMfa(userId: string, totpSecret: string, backupCodes: string[]): Promise<void> {
+    const now = new Date();
+    
+    // SECURITY: backupCodes are already hashed by caller (routes layer) using Argon2id
+    // No additional hashing needed here to prevent double-hashing
+    
+    // Update or create MFA settings
+    const existingSettings = await this.getUserMfaSettings(userId);
+    
+    if (existingSettings) {
+      await db
+        .update(userMfaSettings)
+        .set({
+          isEnabled: true,
+          totpSecret,
+          backupCodes, // Already hashed by caller
+          enabledAt: now,
+        })
+        .where(eq(userMfaSettings.userId, userId));
+    } else {
+      await db
+        .insert(userMfaSettings)
+        .values({
+          userId,
+          isEnabled: true,
+          totpSecret,
+          backupCodes, // Already hashed by caller
+          enabledAt: now,
+        });
+    }
+    
+    // Update user's MFA flag
+    await db
+      .update(users)
+      .set({
+        mfaEnabled: true,
+        mfaEnabledAt: now,
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async disableUserMfa(userId: string): Promise<void> {
+    // Disable MFA settings
+    await db
+      .update(userMfaSettings)
+      .set({
+        isEnabled: false,
+        totpSecret: null,
+        backupCodes: [],
+        enabledAt: null,
+      })
+      .where(eq(userMfaSettings.userId, userId));
+    
+    // Update user's MFA flag
+    await db
+      .update(users)
+      .set({
+        mfaEnabled: false,
+        mfaEnabledAt: null,
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserMfaLastVerified(userId: string): Promise<void> {
+    await db
+      .update(userMfaSettings)
+      .set({ lastVerifiedAt: new Date() })
+      .where(eq(userMfaSettings.userId, userId));
+  }
+
+  async markBackupCodeAsUsed(userId: string, codeIndex: number): Promise<void> {
+    const settings = await this.getUserMfaSettings(userId);
+    if (!settings || !settings.backupCodes) return;
+    
+    // Remove the used backup code from the array
+    const updatedCodes = [...settings.backupCodes];
+    updatedCodes.splice(codeIndex, 1);
+    
+    await db
+      .update(userMfaSettings)
+      .set({ 
+        backupCodes: updatedCodes,
+        lastVerifiedAt: new Date()
+      })
+      .where(eq(userMfaSettings.userId, userId));
+  }
+
+  // MFA attempt tracking implementation for throttling and lockout
+  async getUserMfaAttempts(userId: string): Promise<UserMfaAttempts | undefined> {
+    const [attempts] = await db
+      .select()
+      .from(userMfaAttempts)
+      .where(eq(userMfaAttempts.userId, userId));
+    return attempts;
+  }
+
+  async recordMfaFailure(userId: string): Promise<void> {
+    const windowDurationMs = 15 * 60 * 1000; // 15 minutes failure window
+    
+    // Single atomic operation with proper SQL parameterization
+    await db
+      .insert(userMfaAttempts)
+      .values({
+        userId,
+        failedAttempts: 1,
+        lastFailedAt: sql`now()`,
+        lockedUntil: null,
+        windowStartedAt: sql`now()`,
+      })
+      .onConflictDoUpdate({
+        target: userMfaAttempts.userId,
+        set: {
+          // Compute new failure count once to avoid redundant calculations
+          failedAttempts: sql`
+            CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
+              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
+              ELSE ${userMfaAttempts.failedAttempts} + 1
+            END
+          `,
+          // Reset window if expired
+          windowStartedAt: sql`
+            CASE 
+              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN now()
+              ELSE ${userMfaAttempts.windowStartedAt}
+            END
+          `,
+          // Calculate lockout based on the new failure count (CTE wrapped in parentheses for PostgreSQL)
+          lockedUntil: sql`(
+            WITH new_count AS (
+              SELECT CASE 
+                WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
+                WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
+                ELSE ${userMfaAttempts.failedAttempts} + 1
+              END as count
+            )
+            SELECT CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lockedUntil}
+              WHEN new_count.count >= 5 THEN now() + interval '30 minutes'
+              WHEN new_count.count = 4 THEN now() + interval '8 minutes'
+              WHEN new_count.count = 3 THEN now() + interval '2 minutes'
+              WHEN new_count.count = 2 THEN now() + interval '30 seconds'
+              ELSE NULL
+            END
+            FROM new_count
+          )`,
+          // Always update lastFailedAt when processing a failure (except when locked)
+          lastFailedAt: sql`
+            CASE 
+              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lastFailedAt}
+              ELSE now()
+            END
+          `,
+          updatedAt: sql`now()`,
+        },
+      });
+  }
+
+  async resetMfaAttempts(userId: string): Promise<void> {
+    await db
+      .update(userMfaAttempts)
+      .set({
+        failedAttempts: 0,
+        lastFailedAt: null,
+        lockedUntil: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(userMfaAttempts.userId, userId));
+  }
+
+  async checkMfaLockout(userId: string): Promise<{ isLocked: boolean; lockoutEndsAt?: Date; failedAttempts: number }> {
+    const attempts = await this.getUserMfaAttempts(userId);
+    
+    if (!attempts) {
+      return { isLocked: false, failedAttempts: 0 };
+    }
+    
+    const now = new Date();
+    const isLocked = attempts.lockedUntil && attempts.lockedUntil > now;
     
     return {
-      valid: true,
-      payload: validatedPayload,
-      securityWarnings: securityWarnings.length > 0 ? securityWarnings : undefined,
+      isLocked: !!isLocked,
+      lockoutEndsAt: isLocked ? attempts.lockedUntil : undefined,
+      failedAttempts: attempts.failedAttempts,
     };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown verification error';
-    return { valid: false, error: errorMessage };
   }
-}
 
-/**
- * Generate a secure random refresh token ID
- */
-export function generateRefreshTokenId(): string {
-  return randomBytes(32).toString('hex');
-}
+  async cleanupExpiredMfaLockouts(): Promise<void> {
+    const now = new Date();
+    await db
+      .update(userMfaAttempts)
+      .set({
+        failedAttempts: 0,
+        lastFailedAt: null,
+        lockedUntil: null,
+        updatedAt: now,
+      })
+      .where(and(
+        isNotNull(userMfaAttempts.lockedUntil),
+        lte(userMfaAttempts.lockedUntil, now)
+      ));
+  }
 
-/**
- * Advanced JWT Security Management Functions
- */
+  // Device fingerprinting implementation for enhanced MFA security
+  async getDeviceFingerprint(fingerprintHash: string): Promise<DeviceFingerprint | undefined> {
+    const [fingerprint] = await db
+      .select()
+      .from(deviceFingerprints)
+      .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash))
+      .limit(1);
+    return fingerprint;
+  }
 
-// Token revocation with persistent storage (production-ready)
-const REVOKED_TOKENS = new Set<string>(); // In-memory cache for performance
+  async getUserDeviceFingerprints(userId: string): Promise<DeviceFingerprint[]> {
+    return await db
+      .select()
+      .from(deviceFingerprints)
+      .where(and(
+        eq(deviceFingerprints.userId, userId),
+        eq(deviceFingerprints.isActive, true)
+      ))
+      .orderBy(desc(deviceFingerprints.lastSeenAt));
+  }
 
-/**
- * Centralized signing helper using active key rotation
- */
-async function signToken(payload: Record<string, any>, options: {
-  audience: string;
-  issuer?: string;
-  expirySeconds?: number;
-}): Promise<string> {
-  const activeKey = getActiveSigningKey();
-  const now = Math.floor(Date.now() / 1000);
-  const expiry = options.expirySeconds || 3600;
+  async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
+    const [fingerprint] = await db
+      .insert(deviceFingerprints)
+      .values(data)
+      .returning();
+    return fingerprint;
+  }
 
-  // Add required claims if enabled in config
-  const enhancedPayload = {
-    ...payload,
-    ...(JWT_SECURITY_CONFIG.REQUIRE_JTI && { jti: randomBytes(16).toString('hex') }),
-    ...(JWT_SECURITY_CONFIG.REQUIRE_NBF && { nbf: now })
-  };
+  async updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void> {
+    await db
+      .update(deviceFingerprints)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(deviceFingerprints.id, id));
+  }
 
-  return await new SignJWT(enhancedPayload)
-    .setProtectedHeader({ 
-      alg: activeKey.algorithm, 
-      kid: activeKey.keyId 
-    })
-    .setIssuedAt(now)
-    .setExpirationTime(now + expiry)
-    .setIssuer(options.issuer || 'shuffle-and-sync')
-    .setAudience(options.audience)
-    .sign(activeKey.secret);
-}
+  async deleteDeviceFingerprint(id: string): Promise<void> {
+    await db
+      .update(deviceFingerprints)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(deviceFingerprints.id, id));
+  }
 
-/**
- * Centralized verification helper with key rotation and revocation checking
- */
-async function verifyToken(token: string, options: {
-  audience: string;
-  issuer?: string;
-  schema?: any;
-}): Promise<{ valid: boolean; payload?: any; error?: string }> {
-  try {
-    // Decode protected header to get key ID
-    const [headerB64] = token.split('.');
-    const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString());
+  async updateDeviceLastSeen(fingerprintHash: string): Promise<void> {
+    const now = new Date();
+    await db
+      .update(deviceFingerprints)
+      .set({
+        lastSeenAt: now,
+        updatedAt: now,
+      })
+      .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash));
+  }
+
+  // MFA security context implementation
+  async createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext> {
+    const [context] = await db
+      .insert(mfaSecurityContext)
+      .values(data)
+      .returning();
+    return context;
+  }
+
+  async getMfaSecurityContext(userId: string, options?: { limit?: number; onlyFailures?: boolean }): Promise<MfaSecurityContext[]> {
+    const { limit = 50, onlyFailures = false } = options || {};
     
-    // Get verification key by ID
-    const verificationKey = getVerificationKey(header.kid);
+    let query = db
+      .select()
+      .from(mfaSecurityContext)
+      .where(eq(mfaSecurityContext.userId, userId));
+      
+    if (onlyFailures) {
+      query = query.where(eq(mfaSecurityContext.isSuccessful, false));
+    }
     
-    // Enforce algorithm allow-list
-    if (!JWT_SECURITY_CONFIG.ALGORITHM_PREFERENCES.includes(header.alg)) {
-      return { valid: false, error: `Algorithm ${header.alg} not allowed` };
+    return await query
+      .orderBy(desc(mfaSecurityContext.createdAt))
+      .limit(limit);
+  }
+
+  async updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void> {
+    await db
+      .update(mfaSecurityContext)
+      .set(data)
+      .where(eq(mfaSecurityContext.id, id));
+  }
+
+  // Trusted device management implementation
+  async getUserTrustedDevices(userId: string): Promise<(TrustedDevice & { deviceFingerprint: DeviceFingerprint })[]> {
+    return await db
+      .select({
+        id: trustedDevices.id,
+        userId: trustedDevices.userId,
+        deviceFingerprintId: trustedDevices.deviceFingerprintId,
+        name: trustedDevices.name,
+        description: trustedDevices.description,
+        trustLevel: trustedDevices.trustLevel,
+        autoTrustMfa: trustedDevices.autoTrustMfa,
+        trustDurationDays: trustedDevices.trustDurationDays,
+        lastUsedAt: trustedDevices.lastUsedAt,
+        totalLogins: trustedDevices.totalLogins,
+        isActive: trustedDevices.isActive,
+        revokedAt: trustedDevices.revokedAt,
+        revokedReason: trustedDevices.revokedReason,
+        expiresAt: trustedDevices.expiresAt,
+        verifiedAt: trustedDevices.verifiedAt,
+        verificationMethod: trustedDevices.verificationMethod,
+        createdAt: trustedDevices.createdAt,
+        updatedAt: trustedDevices.updatedAt,
+        deviceFingerprint: deviceFingerprints,
+      })
+      .from(trustedDevices)
+      .innerJoin(deviceFingerprints, eq(trustedDevices.deviceFingerprintId, deviceFingerprints.id))
+      .where(and(
+        eq(trustedDevices.userId, userId),
+        eq(trustedDevices.isActive, true),
+        or(
+          eq(trustedDevices.expiresAt, sql`NULL`),
+          gte(trustedDevices.expiresAt, new Date())
+        )
+      ))
+      .orderBy(desc(trustedDevices.lastUsedAt));
+  }
+
+  async createTrustedDevice(data: InsertTrustedDevice): Promise<TrustedDevice> {
+    const [trustedDevice] = await db
+      .insert(trustedDevices)
+      .values(data)
+      .returning();
+    return trustedDevice;
+  }
+
+  async updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void> {
+    await db
+      .update(trustedDevices)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(trustedDevices.id, id));
+  }
+
+  async revokeTrustedDevice(id: string, reason: string): Promise<void> {
+    const now = new Date();
+    await db
+      .update(trustedDevices)
+      .set({
+        isActive: false,
+        revokedAt: now,
+        revokedReason: reason,
+        updatedAt: now,
+      })
+      .where(eq(trustedDevices.id, id));
+  }
+
+  async cleanupExpiredTrustedDevices(): Promise<void> {
+    const now = new Date();
+    await db
+      .update(trustedDevices)
+      .set({
+        isActive: false,
+        revokedReason: "expired",
+        updatedAt: now,
+      })
+      .where(and(
+        eq(trustedDevices.isActive, true),
+        isNotNull(trustedDevices.expiresAt),
+        lte(trustedDevices.expiresAt, now)
+      ));
+  }
+
+  // Device security validation implementation
+  async calculateDeviceRiskScore(userId: string, context: {
+    userAgent: string;
+    ipAddress: string;
+    location?: string;
+    timezone?: string;
+  }): Promise<{ riskScore: number; riskFactors: string[] }> {
+    const riskFactors: string[] = [];
+    let riskScore = 0.1; // Base risk score
+
+    // Get user's historical device patterns
+    const userDevices = await this.getUserDeviceFingerprints(userId);
+    const recentContexts = await this.getMfaSecurityContext(userId, { limit: 20 });
+
+    // Check for new user agent
+    const hasSeenUserAgent = userDevices.some(device => 
+      device.userAgent === context.userAgent
+    );
+    if (!hasSeenUserAgent) {
+      riskScore += 0.3;
+      riskFactors.push("new_user_agent");
     }
 
-    // Verify token with strict settings
-    const { payload } = await jwtVerify(token, verificationKey.secret, {
-      algorithms: [verificationKey.algorithm],
-      clockTolerance: JWT_SECURITY_CONFIG.MAX_CLOCK_TOLERANCE,
-      issuer: options.issuer || 'shuffle-and-sync',
-      audience: options.audience,
-    });
+    // Check for new IP range (simplified check - first 3 octets)
+    const currentIpPrefix = context.ipAddress.split('.').slice(0, 3).join('.');
+    const hasSeenIpRange = recentContexts.some(ctx => 
+      ctx.ipAddress && ctx.ipAddress.split('.').slice(0, 3).join('.') === currentIpPrefix
+    );
+    if (!hasSeenIpRange) {
+      riskScore += 0.2;
+      riskFactors.push("new_ip_range");
+    }
 
-    // Validate schema if provided
-    if (options.schema) {
-      const validatedPayload = options.schema.parse(payload);
-      
-      // Check revocation if jti exists
-      if (validatedPayload.jti && await isTokenRevokedAsync(validatedPayload.jti)) {
-        return { valid: false, error: 'Token has been revoked' };
+    // Check for new location
+    if (context.location) {
+      const hasSeenLocation = recentContexts.some(ctx => 
+        ctx.location === context.location
+      );
+      if (!hasSeenLocation) {
+        riskScore += 0.2;
+        riskFactors.push("new_location");
       }
-      
-      return { valid: true, payload: validatedPayload };
     }
 
-    return { valid: true, payload };
-  } catch (error) {
-  }
-}
+    // Check for recent failed attempts
+    const recentFailures = recentContexts.filter(ctx => 
+      !ctx.isSuccessful && 
+      ctx.createdAt && 
+      (new Date().getTime() - ctx.createdAt.getTime()) < 24 * 60 * 60 * 1000 // 24 hours
+    );
+    if (recentFailures.length > 3) {
+      riskScore += 0.3;
+      riskFactors.push("recent_failed_attempts");
+    }
 
-/**
- * Immediately revoke a token by its JTI with persistent storage
- */
-export async function revokeTokenByJTI(jti: string, userId: string, reason: string = 'user_request'): Promise<void> {
-  // Add to in-memory cache for immediate effect
-  REVOKED_TOKENS.add(jti);
-  
-  try {
-    // Store in persistent storage for production multi-instance deployment
-    const ttlExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 day TTL
-    await storage.revokeJWT(jti, userId, 'access', reason, ttlExpiry);
+    // Check for suspicious timing patterns (multiple attempts in short period)
+    const recentAttempts = recentContexts.filter(ctx =>
+      ctx.createdAt && 
+      (new Date().getTime() - ctx.createdAt.getTime()) < 60 * 60 * 1000 // 1 hour
+    );
+    if (recentAttempts.length > 5) {
+      riskScore += 0.2;
+      riskFactors.push("rapid_attempts");
+    }
+
+    // Cap risk score at 1.0
+    riskScore = Math.min(riskScore, 1.0);
+
+    return { riskScore, riskFactors };
+  }
+
+  async validateDeviceContext(userId: string, fingerprintHash: string): Promise<{
+    isValid: boolean;
+    trustScore: number;
+    requiresAdditionalVerification: boolean;
+    deviceFingerprint?: DeviceFingerprint;
+  }> {
+    // Get or create device fingerprint
+    let deviceFingerprint = await this.getDeviceFingerprint(fingerprintHash);
     
-    console.log(`[JWT_REVOCATION] Persistent revocation recorded`, {
+    if (!deviceFingerprint) {
+      // New device - low trust score, requires additional verification
+      return {
+        isValid: false,
+        trustScore: 0.1,
+        requiresAdditionalVerification: true,
+      };
+    }
+
+    // Check if device belongs to this user
+    if (deviceFingerprint.userId !== userId) {
+      return {
+        isValid: false,
+        trustScore: 0.0,
+        requiresAdditionalVerification: true,
+        deviceFingerprint,
+      };
+    }
+
+    // Check if device is active
+    if (!deviceFingerprint.isActive) {
+      return {
+        isValid: false,
+        trustScore: 0.0,
+        requiresAdditionalVerification: true,
+        deviceFingerprint,
+      };
+    }
+
+    // Calculate trust score based on device history
+    let trustScore = 0.5; // Base trust score
+
+    // Factor in device age (older devices with good history = higher trust)
+    const deviceAgeMs = new Date().getTime() - deviceFingerprint.firstSeenAt.getTime();
+    const deviceAgeDays = deviceAgeMs / (24 * 60 * 60 * 1000);
+    if (deviceAgeDays > 30) trustScore += 0.2;
+    else if (deviceAgeDays > 7) trustScore += 0.1;
+
+    // Factor in successful MFA attempts
+    const successRate = deviceFingerprint.successfulMfaAttempts / 
+      Math.max(1, deviceFingerprint.successfulMfaAttempts + deviceFingerprint.failedMfaAttempts);
+    trustScore += successRate * 0.3;
+
+    // Factor in user trust marking
+    if (deviceFingerprint.isTrusted) {
+      trustScore += 0.2;
+    }
+
+    // Factor in total sessions (more usage = higher trust)
+    if (deviceFingerprint.totalSessions > 50) trustScore += 0.1;
+    else if (deviceFingerprint.totalSessions > 10) trustScore += 0.05;
+
+    // Apply risk score modifier (handle decimal as string in Drizzle)
+    const currentRiskScore = Number(deviceFingerprint.riskScore) || 0.5;
+    trustScore = trustScore * (1 - currentRiskScore);
+
+    // Cap trust score
+    trustScore = Math.min(Math.max(trustScore, 0.0), 1.0);
+
+    // Determine if additional verification is required
+    const requiresAdditionalVerification = trustScore < 0.6 || currentRiskScore > 0.7;
+
+    return {
+      isValid: true,
+      trustScore,
+      requiresAdditionalVerification,
+      deviceFingerprint,
+    };
+  }
+
+  /**
+   * Calculate lockout duration using exponential backoff
+   * 0-1 failures: No lockout
+   * 2 failures: 30 seconds
+   * 3 failures: 2 minutes  
+   * 4 failures: 8 minutes
+   * 5+ failures: 30 minutes
+   */
+  private calculateLockoutSeconds(failedAttempts: number): number {
+    if (failedAttempts < 2) return 0;
+    if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
+    
+    // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
+    const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
+    return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
+  }
+
+  // Refresh token operations implementation
+  async createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken> {
+    const [refreshToken] = await db
+      .insert(refreshTokens)
+      .values(data)
+      .returning();
+    return refreshToken;
+  }
+
+  async getRefreshToken(tokenId: string): Promise<RefreshToken | undefined> {
+    const [refreshToken] = await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.id, tokenId),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ));
+    return refreshToken;
+  }
+
+  async getRefreshTokenByJWT(jwt: string): Promise<RefreshToken | undefined> {
+    const [refreshToken] = await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.token, jwt),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ));
+    return refreshToken;
+  }
+
+  async updateRefreshTokenLastUsed(tokenId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ lastUsed: new Date() })
+      .where(eq(refreshTokens.id, tokenId));
+  }
+
+  async revokeRefreshToken(tokenId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ isRevoked: true })
+      .where(eq(refreshTokens.id, tokenId));
+  }
+
+  async revokeAllUserRefreshTokens(userId: string): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ isRevoked: true })
+      .where(eq(refreshTokens.userId, userId));
+  }
+
+  async cleanupExpiredRefreshTokens(): Promise<void> {
+    await db
+      .delete(refreshTokens)
+      .where(
+        or(
+          eq(refreshTokens.isRevoked, true),
+          lte(refreshTokens.expiresAt, new Date())
+        )
+      );
+  }
+
+  async getUserActiveRefreshTokens(userId: string): Promise<RefreshToken[]> {
+    return await db
+      .select()
+      .from(refreshTokens)
+      .where(and(
+        eq(refreshTokens.userId, userId),
+        eq(refreshTokens.isRevoked, false),
+        gte(refreshTokens.expiresAt, new Date())
+      ))
+      .orderBy(desc(refreshTokens.lastUsed));
+  }
+
+  // Auth audit log operations implementation
+  async createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog> {
+    const [auditLog] = await db
+      .insert(authAuditLog)
+      .values(data)
+      .returning();
+    return auditLog;
+  }
+
+  // JWT token revocation implementation (enterprise security)
+  async revokeJWT(jti: string, userId: string, tokenType: string, reason: string, expiresAt: Date, originalExpiry?: Date, ipAddress?: string, userAgent?: string): Promise<void> {
+    await db.insert(revokedJwtTokens).values({
       jti,
       userId,
+      tokenType,
       reason,
-      timestamp: new Date().toISOString(),
-      storage: 'database',
+      expiresAt,
+      originalExpiry,
+      ipAddress,
+      userAgent,
+      revokedBy: 'system',
     });
-  } catch (error) {
-    console.error(`[JWT_REVOCATION] Failed to persist revocation for JTI ${jti}:`, error);
-    // Keep in-memory revocation even if persistence fails
+    console.log(`[JWT_REVOCATION] Token ${jti} persisted to database for user ${userId}`);
   }
-  
-  // Audit token revocation
-  if (JWT_SECURITY_CONFIG.AUDIT_ALL_TOKENS) {
-    await auditTokenOperation('revoke', 'any', userId, jti, { riskScore: 0 });
-  }
-  
-  console.log(`[JWT_SECURITY] Token revoked: ${jti} for user ${userId} - reason: ${reason}`);
-}
 
-/**
- * Check if a token is revoked by its JTI with persistent storage check
- */
-export async function isTokenRevokedAsync(jti: string): Promise<boolean> {
-  // First check in-memory cache for performance
-  if (REVOKED_TOKENS.has(jti)) {
-    return true;
+  async isJWTRevoked(jti: string): Promise<boolean> {
+    const [result] = await db
+      .select({ id: revokedJwtTokens.id })
+      .from(revokedJwtTokens)
+      .where(eq(revokedJwtTokens.jti, jti))
+      .limit(1);
+    return !!result;
+  }
+
+  async cleanupExpiredRevokedTokens(): Promise<number> {
+    const result = await db
+      .delete(revokedJwtTokens)
+      .where(lte(revokedJwtTokens.expiresAt, new Date()));
+    return result.rowCount || 0;
+  }
+
+  async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number; hours?: number }): Promise<AuthAuditLog[]> {
+    let query = db.select().from(authAuditLog);
+    
+    const conditions = [];
+    if (userId) {
+      conditions.push(eq(authAuditLog.userId, userId));
+    }
+    if (filters?.eventType) {
+      conditions.push(eq(authAuditLog.eventType, filters.eventType));
+    }
+    
+    // Add time filter if hours is specified
+    if (filters?.hours) {
+      const hoursAgo = new Date(Date.now() - filters.hours * 60 * 60 * 1000);
+      conditions.push(gte(authAuditLog.createdAt, hoursAgo));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    query = query.orderBy(desc(authAuditLog.createdAt));
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    return await query;
+  }
+
+  async getRecentAuthFailures(userId: string, hours: number): Promise<AuthAuditLog[]> {
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
+    
+    return await db
+      .select()
+      .from(authAuditLog)
+      .where(and(
+        eq(authAuditLog.userId, userId),
+        eq(authAuditLog.isSuccessful, false),
+        gte(authAuditLog.createdAt, hoursAgo)
+      ))
+      .orderBy(desc(authAuditLog.createdAt));
+  }
+
+  // Notification operations
+  async getUserNotifications(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]> {
+    let conditions = [eq(notifications.userId, userId)];
+    
+    if (options?.unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+    
+    const baseQuery = db.select().from(notifications).where(and(...conditions));
+    
+    const limitedQuery = options?.limit ? baseQuery.limit(options.limit) : baseQuery;
+    
+    return await limitedQuery.orderBy(sql`${notifications.createdAt} DESC`);
+  }
+
+  async createNotification(data: InsertNotification): Promise<Notification> {
+    const [notification] = await db.insert(notifications).values(data).returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async deleteNotification(notificationId: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, notificationId));
+  }
+
+  // Message operations
+  async getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+    let conditions = [
+      sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`
+    ];
+
+    if (options?.eventId) {
+      conditions.push(eq(messages.eventId, options.eventId));
+    }
+
+    if (options?.communityId) {
+      conditions.push(eq(messages.communityId, options.communityId));
+    }
+
+    const results = await db.select({
+      message: messages,
+      sender: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .where(and(...conditions))
+    .orderBy(sql`${messages.createdAt} DESC`)
+    .limit(options?.limit || 50);
+
+    return results.map((r: { message: any; sender: any }) => ({ ...r.message, sender: r.sender }));
+  }
+
+  async sendMessage(data: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(data).returning();
+    return message;
+  }
+
+  async markMessageAsRead(messageId: string): Promise<void> {
+    await db.update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.id, messageId));
+  }
+
+  async getConversation(userId1: string, userId2: string): Promise<(Message & { sender: User; recipient?: User })[]> {
+    const results = await db.select({
+      message: messages,
+      sender: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .where(
+      and(
+        sql`((${messages.senderId} = ${userId1} AND ${messages.recipientId} = ${userId2}) OR 
+             (${messages.senderId} = ${userId2} AND ${messages.recipientId} = ${userId1}))`
+      )
+    )
+    .orderBy(sql`${messages.createdAt} ASC`);
+
+    return results.map((r: { message: any; sender: any }) => ({ ...r.message, sender: r.sender }));
+  }
+
+  // Game session operations
+  async getGameSessionById(id: string): Promise<(GameSession & { host: User; coHost?: User; event: Event }) | null> {
+    const results = await db.select({
+      gameSession: gameSessions,
+      host: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+      event: events,
+    })
+    .from(gameSessions)
+    .leftJoin(users, eq(gameSessions.hostId, users.id))
+    .leftJoin(events, eq(gameSessions.eventId, events.id))
+    .where(eq(gameSessions.id, id))
+    .limit(1);
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const r = results[0];
+    return { 
+      ...r.gameSession, 
+      host: r.host as User, 
+      event: r.event as Event 
+    };
+  }
+
+  async getGameSessions(filters?: { eventId?: string; communityId?: string; hostId?: string; status?: string }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
+    let conditions = [];
+
+    if (filters?.eventId) {
+      conditions.push(eq(gameSessions.eventId, filters.eventId));
+    }
+
+    if (filters?.communityId) {
+      conditions.push(eq(gameSessions.communityId, filters.communityId));
+    }
+
+    if (filters?.hostId) {
+      conditions.push(eq(gameSessions.hostId, filters.hostId));
+    }
+
+    if (filters?.status) {
+      conditions.push(eq(gameSessions.status, filters.status));
+    }
+
+    const results = await db.select({
+      gameSession: gameSessions,
+      host: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      },
+      event: events,
+    })
+    .from(gameSessions)
+    .leftJoin(users, eq(gameSessions.hostId, users.id))
+    .leftJoin(events, eq(gameSessions.eventId, events.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(sql`${gameSessions.createdAt} DESC`);
+
+    return results.map((r: { gameSession: any; host: any; event: any }) => ({ 
+      ...r.gameSession, 
+      host: r.host as User, 
+      event: r.event as Event 
+    }));
+  }
+
+  async createGameSession(data: InsertGameSession): Promise<GameSession> {
+    const [gameSession] = await db.insert(gameSessions).values(data).returning();
+    return gameSession;
+  }
+
+  async updateGameSession(id: string, data: Partial<InsertGameSession>): Promise<GameSession> {
+    const [gameSession] = await db.update(gameSessions)
+      .set(data)
+      .where(eq(gameSessions.id, id))
+      .returning();
+    return gameSession;
+  }
+
+  async joinGameSession(sessionId: string, userId: string): Promise<void> {
+    // Increment current players count
+    await db.update(gameSessions)
+      .set({ currentPlayers: sql`${gameSessions.currentPlayers} + 1` })
+      .where(eq(gameSessions.id, sessionId));
+  }
+
+  async leaveGameSession(sessionId: string, userId: string): Promise<void> {
+    // Decrement current players count
+    await db.update(gameSessions)
+      .set({ currentPlayers: sql`GREATEST(${gameSessions.currentPlayers} - 1, 0)` })
+      .where(eq(gameSessions.id, sessionId));
+  }
+
+  async spectateGameSession(sessionId: string, userId: string): Promise<void> {
+    // Increment spectator count
+    await db.update(gameSessions)
+      .set({ spectators: sql`${gameSessions.spectators} + 1` })
+      .where(eq(gameSessions.id, sessionId));
+  }
+
+  async leaveSpectating(sessionId: string, userId: string): Promise<void> {
+    // Decrement spectator count
+    await db.update(gameSessions)
+      .set({ spectators: sql`GREATEST(${gameSessions.spectators} - 1, 0)` })
+      .where(eq(gameSessions.id, sessionId));
   }
   
-  try {
-    // Check persistent storage for production multi-instance deployment
-    const isRevoked = await storage.isJWTRevoked(jti);
-    if (isRevoked) {
-      REVOKED_TOKENS.add(jti); // Cache result for performance
-      return true;
+  // Social link operations
+  async getUserSocialLinks(userId: string): Promise<UserSocialLink[]> {
+    const links = await db
+      .select()
+      .from(userSocialLinks)
+      .where(eq(userSocialLinks.userId, userId));
+    return links;
+  }
+
+  async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
+    // Delete existing links
+    await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
+    
+    // Insert new links
+    if (links.length > 0) {
+      const newLinks = await db
+        .insert(userSocialLinks)
+        .values(links.map(link => ({ ...link, userId })))
+        .returning();
+      return newLinks;
+    }
+    return [];
+  }
+  
+  // Gaming profile operations
+  async getUserGamingProfiles(userId: string): Promise<(UserGamingProfile & { community: Community })[]> {
+    const profiles = await db
+      .select({
+        id: userGamingProfiles.id,
+        userId: userGamingProfiles.userId,
+        communityId: userGamingProfiles.communityId,
+        rank: userGamingProfiles.rank,
+        experience: userGamingProfiles.experience,
+        favoriteDeck: userGamingProfiles.favoriteDeck,
+        achievements: userGamingProfiles.achievements,
+        statistics: userGamingProfiles.statistics,
+        isVisible: userGamingProfiles.isVisible,
+        createdAt: userGamingProfiles.createdAt,
+        updatedAt: userGamingProfiles.updatedAt,
+        community: communities,
+      })
+      .from(userGamingProfiles)
+      .innerJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+      .where(eq(userGamingProfiles.userId, userId));
+    return profiles;
+  }
+
+  async upsertUserGamingProfile(data: InsertUserGamingProfile): Promise<UserGamingProfile> {
+    const [profile] = await db
+      .insert(userGamingProfiles)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [userGamingProfiles.userId, userGamingProfiles.communityId],
+        set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return profile;
+  }
+  
+  // Friendship operations
+  async getFriends(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]> {
+    const requesterUser = alias(users, 'requesterUser');
+    const addresseeUser = alias(users, 'addresseeUser');
+    
+    const results = await db
+      .select({
+        id: friendships.id,
+        requesterId: friendships.requesterId,
+        addresseeId: friendships.addresseeId,
+        status: friendships.status,
+        createdAt: friendships.createdAt,
+        updatedAt: friendships.updatedAt,
+        requester: requesterUser,
+        addressee: addresseeUser,
+      })
+      .from(friendships)
+      .innerJoin(requesterUser, eq(friendships.requesterId, requesterUser.id))
+      .innerJoin(addresseeUser, eq(friendships.addresseeId, addresseeUser.id))
+      .where(
+        and(
+          eq(friendships.status, 'accepted'),
+          or(
+            eq(friendships.requesterId, userId),
+            eq(friendships.addresseeId, userId)
+          )
+        )
+      );
+    
+    return results.map(r => ({
+      ...r,
+      requester: r.requester as User,
+      addressee: r.addressee as User,
+    }));
+  }
+
+  async getFriendRequests(userId: string): Promise<(Friendship & { requester: User; addressee: User })[]> {
+    const requesterUser = alias(users, 'requesterUser');
+    const addresseeUser = alias(users, 'addresseeUser');
+    
+    const results = await db
+      .select({
+        id: friendships.id,
+        requesterId: friendships.requesterId,
+        addresseeId: friendships.addresseeId,
+        status: friendships.status,
+        createdAt: friendships.createdAt,
+        updatedAt: friendships.updatedAt,
+        requester: requesterUser,
+        addressee: addresseeUser,
+      })
+      .from(friendships)
+      .innerJoin(requesterUser, eq(friendships.requesterId, requesterUser.id))
+      .innerJoin(addresseeUser, eq(friendships.addresseeId, addresseeUser.id))
+      .where(
+        and(
+          eq(friendships.status, 'pending'),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+    
+    return results.map(r => ({
+      ...r,
+      requester: r.requester as User,
+      addressee: r.addressee as User,
+    }));
+  }
+
+  async getFriendCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count(friendships.id) })
+      .from(friendships)
+      .where(
+        and(
+          eq(friendships.status, 'accepted'),
+          or(
+            eq(friendships.requesterId, userId),
+            eq(friendships.addresseeId, userId)
+          )
+        )
+      );
+    return result?.count || 0;
+  }
+
+  async checkFriendshipStatus(userId1: string, userId2: string): Promise<Friendship | undefined> {
+    const [friendship] = await db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          and(
+            eq(friendships.requesterId, userId1),
+            eq(friendships.addresseeId, userId2)
+          ),
+          and(
+            eq(friendships.requesterId, userId2),
+            eq(friendships.addresseeId, userId1)
+          )
+        )
+      );
+    return friendship;
+  }
+
+  async sendFriendRequest(requesterId: string, addresseeId: string): Promise<Friendship> {
+    const [friendship] = await db
+      .insert(friendships)
+      .values({
+        requesterId,
+        addresseeId,
+        status: 'pending',
+      })
+      .returning();
+    return friendship;
+  }
+
+  async respondToFriendRequest(friendshipId: string, status: 'accepted' | 'declined' | 'blocked'): Promise<Friendship> {
+    const [friendship] = await db
+      .update(friendships)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(friendships.id, friendshipId))
+      .returning();
+    return friendship;
+  }
+  
+  // User activity operations
+  async getUserActivities(userId: string, options?: { limit?: number; communityId?: string }): Promise<(UserActivity & { community?: Community })[]> {
+    let conditions = [eq(userActivities.userId, userId)];
+    
+    if (options?.communityId) {
+      conditions.push(eq(userActivities.communityId, options.communityId));
+    }
+    
+    const baseQuery = db
+      .select({
+        id: userActivities.id,
+        userId: userActivities.userId,
+        type: userActivities.type,
+        title: userActivities.title,
+        description: userActivities.description,
+        data: userActivities.data,
+        isPublic: userActivities.isPublic,
+        communityId: userActivities.communityId,
+        createdAt: userActivities.createdAt,
+        community: communities,
+      })
+      .from(userActivities)
+      .leftJoin(communities, eq(userActivities.communityId, communities.id))
+      .where(and(...conditions));
+    
+    const limitedQuery = options?.limit ? baseQuery.limit(options.limit) : baseQuery;
+    
+    const activities = await limitedQuery.orderBy(sql`${userActivities.createdAt} DESC`);
+    return activities.map(activity => ({
+      ...activity,
+      community: activity.community || undefined,
+    }));
+  }
+
+  async createUserActivity(data: InsertUserActivity): Promise<UserActivity> {
+    const [activity] = await db
+      .insert(userActivities)
+      .values(data)
+      .returning();
+    return activity;
+  }
+  
+  // User settings operations
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
+    return settings;
+  }
+
+  async upsertUserSettings(data: InsertUserSettings): Promise<UserSettings> {
+    const [settings] = await db
+      .insert(userSettings)
+      .values(data)
+      .onConflictDoUpdate({
+        target: userSettings.userId,
+        set: {
+          theme: data.theme,
+          notificationSettings: data.notificationSettings,
+          privacySettings: data.privacySettings,
+          streamingSettings: data.streamingSettings,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return settings;
+  }
+  
+  // Matchmaking operations
+  async getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(matchmakingPreferences)
+      .where(eq(matchmakingPreferences.userId, userId));
+    return preferences;
+  }
+
+  async upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences> {
+    const [preferences] = await db
+      .insert(matchmakingPreferences)
+      .values(data)
+      .onConflictDoUpdate({
+        target: matchmakingPreferences.userId,
+        set: {
+          selectedGames: data.selectedGames,
+          selectedFormats: data.selectedFormats,
+          powerLevelMin: data.powerLevelMin,
+          powerLevelMax: data.powerLevelMax,
+          playstyle: data.playstyle,
+          location: data.location,
+          onlineOnly: data.onlineOnly,
+          availability: data.availability,
+          language: data.language,
+          maxDistance: data.maxDistance,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return preferences;
+  }
+
+  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]> {
+    // Optimized AI Matchmaking Algorithm with performance monitoring
+    return withQueryTiming('ai_matchmaking', async () => {
+      // Pre-filter with indexed query to reduce dataset size
+      const userProfiles = await optimizedDb
+        .select({
+          user: users,
+          gamingProfile: userGamingProfiles,
+          preferences: matchmakingPreferences,
+          community: communities,
+        })
+        .from(users)
+        .leftJoin(userGamingProfiles, eq(users.id, userGamingProfiles.userId))
+        .leftJoin(matchmakingPreferences, eq(users.id, matchmakingPreferences.userId))
+        .leftJoin(communities, eq(userGamingProfiles.communityId, communities.id))
+        .where(
+          and(
+            not(eq(users.id, userId)), // Exclude self
+            eq(users.status, 'online'), // Only online users (indexed)
+            eq(userGamingProfiles.isVisible, true) // Only visible profiles (indexed)
+          )
+        )
+        .limit(100); // Limit candidates for performance optimization
+
+      // Calculate match scores
+      const scoredMatches = userProfiles
+      .filter(profile => profile.user && profile.gamingProfile)
+      .map(profile => {
+        let score = 0;
+        const user = profile.user!;
+        const gaming = profile.gamingProfile!;
+        const userPrefs = profile.preferences;
+
+        // Game compatibility (high weight)
+        const sharedGames = (preferences.selectedGames as string[])?.filter(game => 
+          gaming.communityId && (preferences.selectedGames as string[]).includes(gaming.communityId)
+        );
+        if (sharedGames?.length > 0) score += 30;
+
+        // Experience level matching (medium weight)
+        if (gaming.experience) {
+          const experienceLevels = { beginner: 1, intermediate: 2, expert: 3 };
+          const userLevel = experienceLevels[gaming.experience as keyof typeof experienceLevels] || 2;
+          const prefLevel = experienceLevels[preferences.playstyle as keyof typeof experienceLevels] || 2;
+          score += Math.max(0, 20 - Math.abs(userLevel - prefLevel) * 7);
+        }
+
+        // Location proximity (medium weight)
+        if (preferences.onlineOnly || !preferences.location || !user.location) {
+          score += 15; // Online players get base score
+        } else if (user.location === preferences.location) {
+          score += 25; // Same location bonus
+        }
+
+        // Availability matching (low weight)
+        if (userPrefs?.availability === preferences.availability || preferences.availability === 'any') {
+          score += 10;
+        }
+
+        // Language matching (low weight)
+        if (userPrefs?.language === preferences.language) {
+          score += 5;
+        }
+
+        // Random factor to add variety
+        score += Math.random() * 10;
+
+        return {
+          id: user.id,
+          username: user.username || `${user.firstName} ${user.lastName}`,
+          avatar: user.profileImageUrl,
+          games: [gaming.communityId],
+          formats: userPrefs?.selectedFormats || [],
+          powerLevel: this.calculatePowerLevel(gaming, userPrefs),
+          playstyle: gaming.experience || 'intermediate',
+          location: user.location || 'Online Only',
+          availability: userPrefs?.availability || 'any',
+          matchScore: Math.round(score),
+          commonInterests: gaming.favoriteDeck ? [gaming.favoriteDeck] : [],
+          lastOnline: user.status === 'online' ? 'Online now' : '1 hour ago',
+          isOnline: user.status === 'online'
+        };
+      })
+      .filter(match => match.matchScore > 20) // Minimum match threshold
+      .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
+      .slice(0, 20); // Limit results
+
+      return scoredMatches;
+    });
+  }
+
+  // Calculate power level based on gaming experience and stats
+  private calculatePowerLevel(gaming: any, preferences: any): number {
+    let powerLevel = 5; // Base level
+    
+    // Adjust based on experience
+    switch (gaming?.experience?.toLowerCase()) {
+      case 'beginner': powerLevel = 2; break;
+      case 'intermediate': powerLevel = 5; break;
+      case 'advanced': powerLevel = 8; break;
+      case 'expert': powerLevel = 10; break;
+      default: powerLevel = 5;
+    }
+    
+    // Add slight variance based on preferences
+    if (preferences?.selectedFormats?.length > 3) powerLevel += 1;
+    if (preferences?.competitiveLevel === 'competitive') powerLevel += 1;
+    
+    return Math.min(Math.max(powerLevel, 1), 10);
+  }
+  
+  // Tournament operations
+  async getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]> {
+    const query = db
+      .select({
+        tournament: tournaments,
+        organizer: users,
+        community: communities,
+        participantCount: sql<number>`COUNT(${tournamentParticipants.id})::int`.as('participantCount'),
+      })
+      .from(tournaments)
+      .innerJoin(users, eq(tournaments.organizerId, users.id))
+      .innerJoin(communities, eq(tournaments.communityId, communities.id))
+      .leftJoin(tournamentParticipants, eq(tournaments.id, tournamentParticipants.tournamentId))
+      .groupBy(tournaments.id, users.id, communities.id)
+      .orderBy(desc(tournaments.startDate));
+
+    if (communityId) {
+      query.where(eq(tournaments.communityId, communityId));
+    }
+
+    const results = await query;
+    return results.map(result => ({
+      ...result.tournament,
+      organizer: result.organizer,
+      community: result.community,
+      participantCount: result.participantCount,
+    }));
+  }
+
+  async getTournament(tournamentId: string): Promise<(Tournament & { organizer: User; community: Community; participants: (TournamentParticipant & { user: User })[] }) | undefined> {
+    const [tournament] = await db
+      .select({
+        tournament: tournaments,
+        organizer: users,
+        community: communities,
+      })
+      .from(tournaments)
+      .innerJoin(users, eq(tournaments.organizerId, users.id))
+      .innerJoin(communities, eq(tournaments.communityId, communities.id))
+      .where(eq(tournaments.id, tournamentId));
+
+    if (!tournament) return undefined;
+
+    const participants = await db
+      .select({
+        participant: tournamentParticipants,
+        user: users,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(users, eq(tournamentParticipants.userId, users.id))
+      .where(eq(tournamentParticipants.tournamentId, tournamentId));
+
+    return {
+      ...tournament.tournament,
+      organizer: tournament.organizer,
+      community: tournament.community,
+      participants: participants.map(p => ({ ...p.participant, user: p.user })),
+    };
+  }
+
+  async createTournament(data: InsertTournament): Promise<Tournament> {
+    const [tournament] = await db
+      .insert(tournaments)
+      .values(data)
+      .returning();
+    return tournament;
+  }
+
+  async updateTournament(tournamentId: string, data: UpdateTournament): Promise<Tournament> {
+    // Ensure only allowed fields are updated and add business rule validation
+    const updateData = {
+      ...data,
+      updatedAt: new Date(),
+    };
+
+    const [tournament] = await db
+      .update(tournaments)
+      .set(updateData)
+      .where(eq(tournaments.id, tournamentId))
+      .returning();
+    
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+    
+    return tournament;
+  }
+
+  async updateTournamentStatus(tournamentId: string, status: string): Promise<Tournament> {
+    // Internal method for system status updates - bypasses business rules
+    const [tournament] = await db
+      .update(tournaments)
+      .set({ 
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(tournaments.id, tournamentId))
+      .returning();
+    
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+    
+    return tournament;
+  }
+
+  async joinTournament(tournamentId: string, userId: string): Promise<TournamentParticipant> {
+    const [participant] = await db
+      .insert(tournamentParticipants)
+      .values({ tournamentId, userId })
+      .returning();
+    return participant;
+  }
+
+  async leaveTournament(tournamentId: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(tournamentParticipants)
+      .where(
+        and(
+          eq(tournamentParticipants.tournamentId, tournamentId),
+          eq(tournamentParticipants.userId, userId)
+        )
+      );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Advanced tournament operations
+  async getTournamentFormats(): Promise<TournamentFormat[]> {
+    return await db
+      .select()
+      .from(tournamentFormats)
+      .where(eq(tournamentFormats.isActive, true))
+      .orderBy(tournamentFormats.name);
+  }
+
+  async createTournamentFormat(data: InsertTournamentFormat): Promise<TournamentFormat> {
+    const [format] = await db
+      .insert(tournamentFormats)
+      .values(data)
+      .returning();
+    return format;
+  }
+
+  async getTournamentRounds(tournamentId: string): Promise<TournamentRound[]> {
+    return await db
+      .select()
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.tournamentId, tournamentId))
+      .orderBy(tournamentRounds.roundNumber);
+  }
+
+  async createTournamentRound(data: InsertTournamentRound): Promise<TournamentRound> {
+    const [round] = await db
+      .insert(tournamentRounds)
+      .values(data)
+      .returning();
+    return round;
+  }
+
+  async updateTournamentRound(roundId: string, data: Partial<InsertTournamentRound>): Promise<TournamentRound> {
+    const [round] = await db
+      .update(tournamentRounds)
+      .set(data)
+      .where(eq(tournamentRounds.id, roundId))
+      .returning();
+    return round;
+  }
+
+  async getTournamentMatches(tournamentId: string, roundId?: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]> {
+    const query = db
+      .select({
+        match: tournamentMatches,
+        player1: users,
+        player2: alias(users, 'player2'),
+        winner: alias(users, 'winner'),
+      })
+      .from(tournamentMatches)
+      .leftJoin(users, eq(tournamentMatches.player1Id, users.id))
+      .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
+      .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
+      .where(
+        and(
+          eq(tournamentMatches.tournamentId, tournamentId),
+          roundId ? eq(tournamentMatches.roundId, roundId) : undefined
+        )
+      )
+      .orderBy(tournamentMatches.bracketPosition);
+
+    const results = await query;
+    return results.map(r => ({
+      ...r.match,
+      player1: r.player1 ?? undefined,
+      player2: r.player2 ?? undefined,
+      winner: r.winner ?? undefined,
+    }));
+  }
+
+  async createTournamentMatch(data: InsertTournamentMatch): Promise<TournamentMatch> {
+    // Validate that players are participants in the tournament
+    if (data.player1Id) {
+      const participant1 = await db
+        .select()
+        .from(tournamentParticipants)
+        .where(
+          and(
+            eq(tournamentParticipants.tournamentId, data.tournamentId),
+            eq(tournamentParticipants.userId, data.player1Id)
+          )
+        );
+      if (participant1.length === 0) {
+        throw new Error('Player 1 is not a participant in this tournament');
+      }
+    }
+    
+    if (data.player2Id) {
+      const participant2 = await db
+        .select()
+        .from(tournamentParticipants)
+        .where(
+          and(
+            eq(tournamentParticipants.tournamentId, data.tournamentId),
+            eq(tournamentParticipants.userId, data.player2Id)
+          )
+        );
+      if (participant2.length === 0) {
+        throw new Error('Player 2 is not a participant in this tournament');
+      }
+    }
+
+    const [match] = await db
+      .insert(tournamentMatches)
+      .values(data)
+      .returning();
+    return match;
+  }
+
+  async updateTournamentMatch(matchId: string, data: Partial<InsertTournamentMatch>): Promise<TournamentMatch> {
+    // Prevent changing critical structural fields
+    const allowedFields = { ...data };
+    delete allowedFields.tournamentId;
+    delete allowedFields.roundId;
+    delete allowedFields.bracketPosition;
+
+    const [match] = await db
+      .update(tournamentMatches)
+      .set(allowedFields)
+      .where(eq(tournamentMatches.id, matchId))
+      .returning();
+    return match;
+  }
+
+  async getMatchResults(matchId: string): Promise<(MatchResult & { winner: User; loser?: User; reportedBy: User; verifiedBy?: User })[]> {
+    const query = db
+      .select({
+        result: matchResults,
+        winner: users,
+        loser: alias(users, 'loser'),
+        reportedBy: alias(users, 'reportedBy'),
+        verifiedBy: alias(users, 'verifiedBy'),
+      })
+      .from(matchResults)
+      .innerJoin(users, eq(matchResults.winnerId, users.id))
+      .leftJoin(alias(users, 'loser'), eq(matchResults.loserId, alias(users, 'loser').id))
+      .innerJoin(alias(users, 'reportedBy'), eq(matchResults.reportedById, alias(users, 'reportedBy').id))
+      .leftJoin(alias(users, 'verifiedBy'), eq(matchResults.verifiedById, alias(users, 'verifiedBy').id))
+      .where(eq(matchResults.matchId, matchId))
+      .orderBy(desc(matchResults.createdAt));
+
+    const results = await query;
+    return results.map(r => ({
+      ...r.result,
+      winner: r.winner,
+      loser: r.loser ?? undefined,
+      reportedBy: r.reportedBy,
+      verifiedBy: r.verifiedBy ?? undefined,
+    }));
+  }
+
+  async createMatchResult(data: InsertMatchResult): Promise<MatchResult> {
+    const [result] = await db
+      .insert(matchResults)
+      .values(data)
+      .returning();
+    return result;
+  }
+
+  async verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult> {
+    return await db.transaction(async (tx) => {
+      // First, check if there's already a verified result for this match
+      const existingResult = await tx
+        .select()
+        .from(matchResults)
+        .where(
+          and(
+            eq(matchResults.id, resultId),
+            eq(matchResults.isVerified, false)
+          )
+        );
+
+      if (existingResult.length === 0) {
+        throw new Error('Result not found or already verified');
+      }
+
+      const matchResult = existingResult[0];
+
+      // Check if there are any other verified results for this match
+      const otherVerifiedResults = await tx
+        .select()
+        .from(matchResults)
+        .where(
+          and(
+            eq(matchResults.matchId, matchResult.matchId),
+            eq(matchResults.isVerified, true)
+          )
+        );
+
+      if (otherVerifiedResults.length > 0) {
+        throw new Error('This match already has a verified result');
+      }
+
+      // Verify the result
+      const [verifiedResult] = await tx
+        .update(matchResults)
+        .set({ 
+          verifiedById: verifierId, 
+          isVerified: true 
+        })
+        .where(eq(matchResults.id, resultId))
+        .returning();
+
+      // Update the tournament match with the verified result
+      await tx
+        .update(tournamentMatches)
+        .set({
+          winnerId: verifiedResult.winnerId,
+          player1Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.winnerScore : verifiedResult.loserScore,
+          player2Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.loserScore : verifiedResult.winnerScore,
+          status: 'completed',
+          endTime: new Date()
+        })
+        .where(eq(tournamentMatches.id, matchResult.matchId));
+
+      return verifiedResult;
+    });
+  }
+
+  // Forum operations
+  async getForumPosts(communityId: string, options: { category?: string; limit?: number; offset?: number } = {}): Promise<(ForumPost & { author: User; community: Community; replyCount: number; likeCount: number; isLiked?: boolean })[]> {
+    const { category, limit = 20, offset = 0 } = options;
+    
+    const query = db
+      .select({
+        post: forumPosts,
+        author: users,
+        community: communities,
+        replyCount: sql<number>`COUNT(DISTINCT ${forumReplies.id})::int`.as('replyCount'),
+        likeCount: sql<number>`COUNT(DISTINCT ${forumPostLikes.id})::int`.as('likeCount'),
+      })
+      .from(forumPosts)
+      .innerJoin(users, eq(forumPosts.authorId, users.id))
+      .innerJoin(communities, eq(forumPosts.communityId, communities.id))
+      .leftJoin(forumReplies, eq(forumPosts.id, forumReplies.postId))
+      .leftJoin(forumPostLikes, eq(forumPosts.id, forumPostLikes.postId))
+      .where(
+        and(
+          eq(forumPosts.communityId, communityId),
+          category ? eq(forumPosts.category, category) : undefined
+        )
+      )
+      .groupBy(forumPosts.id, users.id, communities.id)
+      .orderBy(desc(forumPosts.isPinned), desc(forumPosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    const results = await query;
+    
+    return results.map(r => ({
+      ...r.post,
+      author: r.author,
+      community: r.community,
+      replyCount: r.replyCount,
+      likeCount: r.likeCount,
+    }));
+  }
+
+  async getForumPost(id: string, userId?: string): Promise<(ForumPost & { author: User; community: Community; isLiked: boolean }) | undefined> {
+    const postQuery = db
+      .select({
+        post: forumPosts,
+        author: users,
+        community: communities,
+      })
+      .from(forumPosts)
+      .innerJoin(users, eq(forumPosts.authorId, users.id))
+      .innerJoin(communities, eq(forumPosts.communityId, communities.id))
+      .where(eq(forumPosts.id, id));
+
+    const [result] = await postQuery;
+    if (!result) return undefined;
+
+    // Check if user liked this post
+    let isLiked = false;
+    if (userId) {
+      const [like] = await db
+        .select()
+        .from(forumPostLikes)
+        .where(
+          and(
+            eq(forumPostLikes.postId, id),
+            eq(forumPostLikes.userId, userId)
+          )
+        );
+      isLiked = !!like;
+    }
+
+    // Increment view count
+    await db
+      .update(forumPosts)
+      .set({ 
+        viewCount: sql`${forumPosts.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(forumPosts.id, id));
+
+    return {
+      ...result.post,
+      author: result.author,
+      community: result.community,
+      isLiked,
+    };
+  }
+
+  async createForumPost(data: InsertForumPost): Promise<ForumPost> {
+    const [post] = await db
+      .insert(forumPosts)
+      .values(data)
+      .returning();
+    return post;
+  }
+
+  async updateForumPost(id: string, data: Partial<InsertForumPost>): Promise<ForumPost> {
+    const [post] = await db
+      .update(forumPosts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(forumPosts.id, id))
+      .returning();
+    return post;
+  }
+
+  async deleteForumPost(id: string): Promise<void> {
+    await db.delete(forumPosts).where(eq(forumPosts.id, id));
+  }
+
+  async likeForumPost(postId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .insert(forumPostLikes)
+        .values({ postId, userId })
+        .onConflictDoNothing();
+      
+      // Update like count
+      await db
+        .update(forumPosts)
+        .set({ 
+          likeCount: sql`${forumPosts.likeCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumPosts.id, postId));
+    } catch (error) {
+      // Ignore if already liked
+    }
+  }
+
+  async unlikeForumPost(postId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(forumPostLikes)
+      .where(
+        and(
+          eq(forumPostLikes.postId, postId),
+          eq(forumPostLikes.userId, userId)
+        )
+      );
+    
+    if ((result.rowCount ?? 0) > 0) {
+      // Update like count
+      await db
+        .update(forumPosts)
+        .set({ 
+          likeCount: sql`GREATEST(${forumPosts.likeCount} - 1, 0)`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumPosts.id, postId));
+    }
+  }
+
+  async getForumReplies(postId: string, userId?: string): Promise<(ForumReply & { author: User; isLiked?: boolean; childReplies?: ForumReply[] })[]> {
+    const replies = await db
+      .select({
+        reply: forumReplies,
+        author: users,
+      })
+      .from(forumReplies)
+      .innerJoin(users, eq(forumReplies.authorId, users.id))
+      .where(eq(forumReplies.postId, postId))
+      .orderBy(forumReplies.createdAt);
+
+    // Add like status if user is provided
+    const enrichedReplies = await Promise.all(
+      replies.map(async (r) => {
+        let isLiked = false;
+        if (userId) {
+          const [like] = await db
+            .select()
+            .from(forumReplyLikes)
+            .where(
+              and(
+                eq(forumReplyLikes.replyId, r.reply.id),
+                eq(forumReplyLikes.userId, userId)
+              )
+            );
+          isLiked = !!like;
+        }
+
+        return {
+          ...r.reply,
+          author: r.author,
+          isLiked,
+        };
+      })
+    );
+
+    return enrichedReplies;
+  }
+
+  async createForumReply(data: InsertForumReply): Promise<ForumReply> {
+    const [reply] = await db
+      .insert(forumReplies)
+      .values(data)
+      .returning();
+    
+    // Update reply count on the post
+    await db
+      .update(forumPosts)
+      .set({ 
+        replyCount: sql`${forumPosts.replyCount} + 1`,
+        lastReplyAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(forumPosts.id, data.postId));
+    
+    return reply;
+  }
+
+  async likeForumReply(replyId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .insert(forumReplyLikes)
+        .values({ replyId, userId })
+        .onConflictDoNothing();
+      
+      // Update like count
+      await db
+        .update(forumReplies)
+        .set({ 
+          likeCount: sql`${forumReplies.likeCount} + 1`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumReplies.id, replyId));
+    } catch (error) {
+      // Ignore if already liked
+    }
+  }
+
+  async unlikeForumReply(replyId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(forumReplyLikes)
+      .where(
+        and(
+          eq(forumReplyLikes.replyId, replyId),
+          eq(forumReplyLikes.userId, userId)
+        )
+      );
+    
+    if ((result.rowCount ?? 0) > 0) {
+      // Update like count
+      await db
+        .update(forumReplies)
+        .set({ 
+          likeCount: sql`GREATEST(${forumReplies.likeCount} - 1, 0)`,
+          updatedAt: new Date()
+        })
+        .where(eq(forumReplies.id, replyId));
+    }
+  }
+
+  // Analytics operations
+  async getAnalyticsData(userId: string): Promise<any> {
+    // Get user's comprehensive analytics data
+    const userAnalytics = {
+      userStats: {
+        totalGamesPlayed: await this.getTotalGamesPlayed(userId),
+        tournamentsEntered: await this.getTournamentsEntered(userId),
+        friendsCount: await this.getFriendsCount(userId),
+        averageSessionDuration: await this.getAverageSessionDuration(userId),
+      },
+      platformStats: {
+        totalUsers: await this.getTotalUsers(),
+        activeUsers: await this.getActiveUsers(),
+        totalTournaments: await this.getTotalTournaments(),
+        totalGamesPlayed: await this.getTotalGamesPlayed(),
+      },
+      gamePopularity: await this.getGamePopularity(),
+      weeklyActivity: await this.getWeeklyActivity(userId),
+    };
+
+    return userAnalytics;
+  }
+
+  private async getTotalGamesPlayed(userId?: string): Promise<number> {
+    if (userId) {
+      // Count user's games
+      const result = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(userGamingProfiles)
+        .where(eq(userGamingProfiles.userId, userId));
+      return result[0]?.count || 0;
+    } else {
+      // Count total platform games
+      const result = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(userGamingProfiles);
+      return result[0]?.count || 0;
+    }
+  }
+
+  private async getTournamentsEntered(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tournamentParticipants)
+      .where(eq(tournamentParticipants.userId, userId));
+    return result[0]?.count || 0;
+  }
+
+  private async getFriendsCount(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(friendships)
+      .where(
+        or(
+          and(eq(friendships.requesterId, userId), eq(friendships.status, 'accepted')),
+          and(eq(friendships.addresseeId, userId), eq(friendships.status, 'accepted'))
+        )
+      );
+    return result[0]?.count || 0;
+  }
+
+  private async getAverageSessionDuration(userId: string): Promise<number> {
+    // Mock data for session duration - in production this would track actual sessions
+    return Math.floor(Math.random() * 120) + 30; // 30-150 minutes
+  }
+
+  private async getTotalUsers(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(users);
+    return result[0]?.count || 0;
+  }
+
+  private async getActiveUsers(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(users)
+      .where(eq(users.status, 'online'));
+    return result[0]?.count || 0;
+  }
+
+  private async getTotalTournaments(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tournaments);
+    return result[0]?.count || 0;
+  }
+
+  private async getGamePopularity(): Promise<Array<{ game: string; players: number; change: number }>> {
+    const result = await db
+      .select({
+        communityId: userGamingProfiles.communityId,
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(userGamingProfiles)
+      .groupBy(userGamingProfiles.communityId);
+
+    return result.map(r => ({
+      game: r.communityId,
+      players: r.count,
+      change: Math.floor(Math.random() * 20) - 10 // Mock change percentage
+    }));
+  }
+
+  private async getWeeklyActivity(userId: string): Promise<Array<{ day: string; value: number }>> {
+    // Mock weekly activity data - in production this would track actual user activity
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map(day => ({
+      day,
+      value: Math.floor(Math.random() * 8) + 1
+    }));
+  }
+
+  // Data export operations
+  async exportUserData(userId: string): Promise<any> {
+    // Get all user data for export
+    const userData = await this.getUser(userId);
+    const socialLinks = await this.getUserSocialLinks(userId);
+    const gamingProfiles = await this.getUserGamingProfiles(userId);
+    const matchmakingPrefs = await this.getMatchmakingPreferences(userId);
+    
+    // Get tournament participation
+    const userTournaments = await db
+      .select({
+        tournament: tournaments,
+        participant: tournamentParticipants,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(tournaments, eq(tournamentParticipants.tournamentId, tournaments.id))
+      .where(eq(tournamentParticipants.userId, userId));
+
+    // Get friend relationships
+    const friends = await db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          eq(friendships.requesterId, userId),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+
+    return {
+      user: userData,
+      socialLinks,
+      gamingProfiles,
+      matchmakingPreferences: matchmakingPrefs,
+      tournaments: userTournaments.map((t: any) => t.tournament),
+      friends,
+      exportDate: new Date().toISOString(),
+      platform: 'Shuffle & Sync',
+    };
+  }
+
+  // Account deletion operations
+  async deleteUserAccount(userId: string): Promise<boolean> {
+    try {
+      // Cascade delete all user data in the correct order to respect foreign key constraints
+      
+      // Delete tournament participations
+      await db.delete(tournamentParticipants).where(eq(tournamentParticipants.userId, userId));
+      
+      // Delete tournaments organized by user
+      await db.delete(tournaments).where(eq(tournaments.organizerId, userId));
+      
+      // Delete matchmaking preferences
+      await db.delete(matchmakingPreferences).where(eq(matchmakingPreferences.userId, userId));
+      
+      // Delete friend relationships
+      await db.delete(friendships).where(
+        or(
+          eq(friendships.requesterId, userId),
+          eq(friendships.addresseeId, userId)
+        )
+      );
+      
+      // Delete social links
+      await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
+      
+      // Delete gaming profiles
+      await db.delete(userGamingProfiles).where(eq(userGamingProfiles.userId, userId));
+      
+      // Finally delete the user
+      const result = await db.delete(users).where(eq(users.id, userId));
+      
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      return false;
+    }
+  }
+
+  // Streaming session operations
+  async getStreamSessions(filters?: { hostUserId?: string; communityId?: string; status?: string; upcoming?: boolean }): Promise<(StreamSession & { host: User; community?: Community; coHosts: StreamSessionCoHost[]; platforms: StreamSessionPlatform[] })[]> {
+    try {
+      let query = db
+        .select({
+          session: streamSessions,
+          host: users,
+          community: communities,
+        })
+        .from(streamSessions)
+        .leftJoin(users, eq(streamSessions.hostUserId, users.id))
+        .leftJoin(communities, eq(streamSessions.communityId, communities.id));
+
+      if (filters?.hostUserId) {
+        query = query.where(eq(streamSessions.hostUserId, filters.hostUserId));
+      }
+      if (filters?.communityId) {
+        query = query.where(eq(streamSessions.communityId, filters.communityId));
+      }
+      if (filters?.status) {
+        query = query.where(eq(streamSessions.status, filters.status));
+      }
+      if (filters?.upcoming) {
+        query = query.where(gte(streamSessions.scheduledStartTime, new Date()));
+      }
+
+      const results = await query;
+
+      // Get co-hosts and platforms for each session
+      const enrichedResults = await Promise.all(
+        results.map(async (result) => {
+          const [coHosts, platforms] = await Promise.all([
+            db.select().from(streamSessionCoHosts).where(eq(streamSessionCoHosts.streamSessionId, result.session.id)),
+            db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, result.session.id))
+          ]);
+
+          return {
+            ...result.session,
+            host: result.host!,
+            community: result.community,
+            coHosts,
+            platforms
+          };
+        })
+      );
+
+      return enrichedResults;
+    } catch (error) {
+      console.error('Error getting stream sessions:', error);
+      throw error;
+    }
+  }
+
+  async getStreamSession(id: string): Promise<(StreamSession & { host: User; community?: Community; coHosts: (StreamSessionCoHost & { user: User })[]; platforms: StreamSessionPlatform[] }) | undefined> {
+    try {
+      const [sessionResult] = await db
+        .select({
+          session: streamSessions,
+          host: users,
+          community: communities,
+        })
+        .from(streamSessions)
+        .leftJoin(users, eq(streamSessions.hostUserId, users.id))
+        .leftJoin(communities, eq(streamSessions.communityId, communities.id))
+        .where(eq(streamSessions.id, id));
+
+      if (!sessionResult) return undefined;
+
+      const [coHostsData, platforms] = await Promise.all([
+        db
+          .select({
+            coHost: streamSessionCoHosts,
+            user: users,
+          })
+          .from(streamSessionCoHosts)
+          .leftJoin(users, eq(streamSessionCoHosts.userId, users.id))
+          .where(eq(streamSessionCoHosts.streamSessionId, id)),
+        db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, id))
+      ]);
+
+      const coHosts = coHostsData.map(ch => ({
+        ...ch.coHost,
+        user: ch.user!
+      }));
+
+      return {
+        ...sessionResult.session,
+        host: sessionResult.host!,
+        community: sessionResult.community,
+        coHosts,
+        platforms
+      };
+    } catch (error) {
+      console.error('Error getting stream session:', error);
+      throw error;
+    }
+  }
+
+  async createStreamSession(data: InsertStreamSession): Promise<StreamSession> {
+    try {
+      const [session] = await db.insert(streamSessions).values(data).returning();
+      return session;
+    } catch (error) {
+      console.error('Error creating stream session:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamSession(id: string, data: Partial<InsertStreamSession>): Promise<StreamSession> {
+    try {
+      const [session] = await db
+        .update(streamSessions)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(streamSessions.id, id))
+        .returning();
+      return session;
+    } catch (error) {
+      console.error('Error updating stream session:', error);
+      throw error;
+    }
+  }
+
+  async deleteStreamSession(id: string): Promise<void> {
+    try {
+      await db.delete(streamSessions).where(eq(streamSessions.id, id));
+    } catch (error) {
+      console.error('Error deleting stream session:', error);
+      throw error;
+    }
+  }
+
+  // Stream session co-host operations
+  async addStreamCoHost(data: InsertStreamSessionCoHost): Promise<StreamSessionCoHost> {
+    try {
+      const [coHost] = await db.insert(streamSessionCoHosts).values(data).returning();
+      return coHost;
+    } catch (error) {
+      console.error('Error adding stream co-host:', error);
+      throw error;
+    }
+  }
+
+  async removeStreamCoHost(sessionId: string, userId: string): Promise<void> {
+    try {
+      await db
+        .delete(streamSessionCoHosts)
+        .where(
+          and(
+            eq(streamSessionCoHosts.streamSessionId, sessionId),
+            eq(streamSessionCoHosts.userId, userId)
+          )
+        );
+    } catch (error) {
+      console.error('Error removing stream co-host:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamCoHostPermissions(sessionId: string, userId: string, permissions: { canControlStream: boolean; canManageChat: boolean; canInviteGuests: boolean; canEndStream: boolean }): Promise<StreamSessionCoHost> {
+    try {
+      const [coHost] = await db
+        .update(streamSessionCoHosts)
+        .set({ permissions })
+        .where(
+          and(
+            eq(streamSessionCoHosts.streamSessionId, sessionId),
+            eq(streamSessionCoHosts.userId, userId)
+          )
+        )
+        .returning();
+      return coHost;
+    } catch (error) {
+      console.error('Error updating stream co-host permissions:', error);
+      throw error;
+    }
+  }
+
+  // Stream session platform operations
+  async addStreamPlatform(data: InsertStreamSessionPlatform): Promise<StreamSessionPlatform> {
+    try {
+      const [platform] = await db.insert(streamSessionPlatforms).values(data).returning();
+      return platform;
+    } catch (error) {
+      console.error('Error adding stream platform:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamPlatform(id: string, data: Partial<InsertStreamSessionPlatform>): Promise<StreamSessionPlatform> {
+    try {
+      const [platform] = await db
+        .update(streamSessionPlatforms)
+        .set(data)
+        .where(eq(streamSessionPlatforms.id, id))
+        .returning();
+      return platform;
+    } catch (error) {
+      console.error('Error updating stream platform:', error);
+      throw error;
+    }
+  }
+
+  async removeStreamPlatform(id: string): Promise<void> {
+    try {
+      await db.delete(streamSessionPlatforms).where(eq(streamSessionPlatforms.id, id));
+    } catch (error) {
+      console.error('Error removing stream platform:', error);
+      throw error;
+    }
+  }
+
+  async getStreamPlatforms(sessionId: string): Promise<StreamSessionPlatform[]> {
+    try {
+      return await db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, sessionId));
+    } catch (error) {
+      console.error('Error getting stream platforms:', error);
+      throw error;
+    }
+  }
+
+  async updateStreamStatus(sessionId: string, platform: string, isLive: boolean, viewerCount?: number): Promise<void> {
+    try {
+      await db
+        .update(streamSessionPlatforms)
+        .set({ 
+          isLive, 
+          viewerCount: viewerCount || 0,
+          lastStatusCheck: new Date()
+        })
+        .where(
+          and(
+            eq(streamSessionPlatforms.streamSessionId, sessionId),
+            eq(streamSessionPlatforms.platform, platform)
+          )
+        );
+    } catch (error) {
+      console.error('Error updating stream status:', error);
+      throw error;
+    }
+  }
+
+  // Collaboration request operations
+  async getCollaborationRequests(filters?: { fromUserId?: string; toUserId?: string; status?: string; type?: string }): Promise<(CollaborationRequest & { fromUser: User; toUser: User; streamSession?: StreamSession })[]> {
+    try {
+      let query = db
+        .select({
+          request: collaborationRequests,
+          fromUser: alias(users, 'fromUser'),
+          toUser: alias(users, 'toUser'),
+          streamSession: streamSessions,
+        })
+        .from(collaborationRequests)
+        .leftJoin(alias(users, 'fromUser'), eq(collaborationRequests.fromUserId, alias(users, 'fromUser').id))
+        .leftJoin(alias(users, 'toUser'), eq(collaborationRequests.toUserId, alias(users, 'toUser').id))
+        .leftJoin(streamSessions, eq(collaborationRequests.streamSessionId, streamSessions.id));
+
+      if (filters?.fromUserId) {
+        query = query.where(eq(collaborationRequests.fromUserId, filters.fromUserId));
+      }
+      if (filters?.toUserId) {
+        query = query.where(eq(collaborationRequests.toUserId, filters.toUserId));
+      }
+      if (filters?.status) {
+        query = query.where(eq(collaborationRequests.status, filters.status));
+      }
+      if (filters?.type) {
+        query = query.where(eq(collaborationRequests.type, filters.type));
+      }
+
+      const results = await query;
+      return results.map(r => ({
+        ...r.request,
+        fromUser: r.fromUser!,
+        toUser: r.toUser!,
+        streamSession: r.streamSession
+      }));
+    } catch (error) {
+      console.error('Error getting collaboration requests:', error);
+      throw error;
+    }
+  }
+
+  async createCollaborationRequest(data: InsertCollaborationRequest): Promise<CollaborationRequest> {
+    try {
+      const [request] = await db.insert(collaborationRequests).values(data).returning();
+      return request;
+    } catch (error) {
+      console.error('Error creating collaboration request:', error);
+      throw error;
+    }
+  }
+
+  async respondToCollaborationRequest(id: string, status: 'accepted' | 'declined' | 'cancelled', responseMessage?: string): Promise<CollaborationRequest> {
+    try {
+      const [request] = await db
+        .update(collaborationRequests)
+        .set({ 
+          status, 
+          responseMessage,
+          respondedAt: new Date()
+        })
+        .where(eq(collaborationRequests.id, id))
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error responding to collaboration request:', error);
+      throw error;
+    }
+  }
+
+  async expireCollaborationRequests(): Promise<void> {
+    try {
+      await db
+        .update(collaborationRequests)
+        .set({ status: 'expired' })
+        .where(
+          and(
+            eq(collaborationRequests.status, 'pending'),
+            sql`expires_at < NOW()`
+          )
+        );
+    } catch (error) {
+      console.error('Error expiring collaboration requests:', error);
+      throw error;
+    }
+  }
+
+  // Stream analytics operations
+  async recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics> {
+    try {
+      const [analytics] = await db.insert(streamAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording stream analytics:', error);
+      throw error;
+    }
+  }
+
+  async getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]> {
+    try {
+      let query = db.select().from(streamAnalytics).where(eq(streamAnalytics.streamSessionId, sessionId));
+      
+      if (platform) {
+        query = query.where(eq(streamAnalytics.platform, platform));
+      }
+
+      return await query.orderBy(streamAnalytics.timestamp);
+    } catch (error) {
+      console.error('Error getting stream analytics:', error);
+      throw error;
+    }
+  }
+
+  async getStreamAnalyticsSummary(sessionId: string): Promise<{ totalViewers: number; peakViewers: number; averageViewers: number; totalChatMessages: number; platforms: string[] }> {
+    try {
+      const analytics = await db
+        .select({
+          maxViewers: sql<number>`MAX(${streamAnalytics.viewerCount})`,
+          avgViewers: sql<number>`AVG(${streamAnalytics.viewerCount})`,
+          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessageCount})`,
+          platforms: sql<string[]>`ARRAY_AGG(DISTINCT ${streamAnalytics.platform})`,
+        })
+        .from(streamAnalytics)
+        .where(eq(streamAnalytics.streamSessionId, sessionId));
+
+      const result = analytics[0];
+      return {
+        totalViewers: result?.maxViewers || 0,
+        peakViewers: result?.maxViewers || 0,
+        averageViewers: Math.round(result?.avgViewers || 0),
+        totalChatMessages: result?.totalMessages || 0,
+        platforms: result?.platforms || []
+      };
+    } catch (error) {
+      console.error('Error getting stream analytics summary:', error);
+      throw error;
+    }
+  }
+
+  // User activity analytics operations
+  async recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics> {
+    try {
+      const [analytics] = await db.insert(userActivityAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording user activity analytics:', error);
+      throw error;
+    }
+  }
+
+  async getUserActivityAnalytics(userId: string, days: number = 30): Promise<UserActivityAnalytics[]> {
+    try {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      return await db
+        .select()
+        .from(userActivityAnalytics)
+        .where(
+          and(
+            eq(userActivityAnalytics.userId, userId),
+            gte(userActivityAnalytics.timestamp, startDate)
+          )
+        )
+        .orderBy(userActivityAnalytics.timestamp);
+    } catch (error) {
+      console.error('Error getting user activity analytics:', error);
+      throw error;
+    }
+  }
+
+  // Community analytics operations
+  async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
+    try {
+      const [analytics] = await db.insert(communityAnalytics).values(data).returning();
+      return analytics;
+    } catch (error) {
+      console.error('Error recording community analytics:', error);
+      throw error;
+    }
+  }
+
+  async getCommunityAnalytics(communityId: string, startDate: Date, endDate: Date): Promise<CommunityAnalytics[]> {
+    try {
+      return await db
+        .select()
+        .from(communityAnalytics)
+        .where(
+          and(
+            eq(communityAnalytics.communityId, communityId),
+            gte(sql`DATE(${communityAnalytics.date})`, startDate.toISOString().split('T')[0]),
+            sql`DATE(${communityAnalytics.date}) <= ${endDate.toISOString().split('T')[0]}`
+          )
+        )
+        .orderBy(communityAnalytics.date, communityAnalytics.hour);
+    } catch (error) {
+      console.error('Error getting community analytics:', error);
+      throw error;
+    }
+  }
+
+  // Platform metrics operations
+  async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
+    try {
+      const [metrics] = await db.insert(platformMetrics).values(data).returning();
+      return metrics;
+    } catch (error) {
+      console.error('Error recording platform metrics:', error);
+      throw error;
+    }
+  }
+
+  async getPlatformMetrics(
+    metricType?: string,
+    timeWindow?: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<PlatformMetrics[]> {
+    try {
+      let query = db.select().from(platformMetrics);
+
+      const conditions = [];
+      if (metricType) {
+        conditions.push(eq(platformMetrics.metricType, metricType));
+      }
+      if (timeWindow) {
+        conditions.push(eq(platformMetrics.timeWindow, timeWindow));
+      }
+      if (startDate) {
+        conditions.push(gte(platformMetrics.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${platformMetrics.timestamp} <= ${endDate}`);
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      return await query.orderBy(platformMetrics.timestamp);
+    } catch (error) {
+      console.error('Error getting platform metrics:', error);
+      throw error;
+    }
+  }
+
+  // Event tracking operations
+  async recordEventTracking(data: InsertEventTracking): Promise<EventTracking> {
+    try {
+      const [event] = await db.insert(eventTracking).values(data).returning();
+      return event;
+    } catch (error) {
+      console.error('Error recording event tracking:', error);
+      throw error;
+    }
+  }
+
+  async getEventTracking(
+    eventName?: string,
+    userId?: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<EventTracking[]> {
+    try {
+      let query = db.select().from(eventTracking);
+
+      const conditions = [];
+      if (eventName) {
+        conditions.push(eq(eventTracking.eventName, eventName));
+      }
+      if (userId) {
+        conditions.push(eq(eventTracking.userId, userId));
+      }
+      if (startDate) {
+        conditions.push(gte(eventTracking.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${eventTracking.timestamp} <= ${endDate}`);
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      return await query.orderBy(eventTracking.timestamp);
+    } catch (error) {
+      console.error('Error getting event tracking:', error);
+      throw error;
+    }
+  }
+
+  // Conversion funnel operations
+  async recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel> {
+    try {
+      const [funnel] = await db.insert(conversionFunnels).values(data).returning();
+      return funnel;
+    } catch (error) {
+      console.error('Error recording conversion funnel:', error);
+      throw error;
+    }
+  }
+
+  async getConversionFunnelData(
+    funnelName: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<ConversionFunnel[]> {
+    try {
+      let query = db
+        .select()
+        .from(conversionFunnels)
+        .where(eq(conversionFunnels.funnelName, funnelName));
+
+      const conditions = [eq(conversionFunnels.funnelName, funnelName)];
+      if (startDate) {
+        conditions.push(gte(conversionFunnels.timestamp, startDate));
+      }
+      if (endDate) {
+        conditions.push(sql`${conversionFunnels.timestamp} <= ${endDate}`);
+      }
+
+      return await query
+        .where(and(...conditions))
+        .orderBy(conversionFunnels.timestamp, conversionFunnels.stepOrder);
+    } catch (error) {
+      console.error('Error getting conversion funnel data:', error);
+      throw error;
+    }
+  }
+
+  // Collaborative streaming events
+  async createCollaborativeStreamEvent(data: InsertCollaborativeStreamEvent): Promise<CollaborativeStreamEvent> {
+    try {
+      const [event] = await db.insert(collaborativeStreamEvents).values(data).returning();
+      return event;
+    } catch (error) {
+      logger.error("Failed to create collaborative stream event", error);
+      throw error;
+    }
+  }
+
+  async getCollaborativeStreamEvent(id: string): Promise<CollaborativeStreamEvent | null> {
+    try {
+      const [event] = await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.id, id));
+      return event || null;
+    } catch (error) {
+      logger.error("Failed to get collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async updateCollaborativeStreamEvent(id: string, data: Partial<InsertCollaborativeStreamEvent>): Promise<CollaborativeStreamEvent> {
+    try {
+      const [event] = await db.update(collaborativeStreamEvents).set(data).where(eq(collaborativeStreamEvents.id, id)).returning();
+      return event;
+    } catch (error) {
+      logger.error("Failed to update collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteCollaborativeStreamEvent(id: string): Promise<void> {
+    try {
+      await db.delete(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.id, id));
+    } catch (error) {
+      logger.error("Failed to delete collaborative stream event", error, { id });
+      throw error;
+    }
+  }
+
+  async getUserCollaborativeStreamEvents(userId: string): Promise<CollaborativeStreamEvent[]> {
+    try {
+      return await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.creatorId, userId));
+    } catch (error) {
+      logger.error("Failed to get user collaborative stream events", error, { userId });
+      throw error;
+    }
+  }
+
+  // Stream collaborators
+  async createStreamCollaborator(data: InsertStreamCollaborator): Promise<StreamCollaborator> {
+    try {
+      const [collaborator] = await db.insert(streamCollaborators).values(data).returning();
+      return collaborator;
+    } catch (error) {
+      logger.error("Failed to create stream collaborator", error);
+      throw error;
+    }
+  }
+
+  async getStreamCollaborator(id: string): Promise<StreamCollaborator | null> {
+    try {
+      const [collaborator] = await db.select().from(streamCollaborators).where(eq(streamCollaborators.id, id));
+      return collaborator || null;
+    } catch (error) {
+      logger.error("Failed to get stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async updateStreamCollaborator(id: string, data: Partial<InsertStreamCollaborator>): Promise<StreamCollaborator> {
+    try {
+      const [collaborator] = await db.update(streamCollaborators).set(data).where(eq(streamCollaborators.id, id)).returning();
+      return collaborator;
+    } catch (error) {
+      logger.error("Failed to update stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteStreamCollaborator(id: string): Promise<void> {
+    try {
+      await db.delete(streamCollaborators).where(eq(streamCollaborators.id, id));
+    } catch (error) {
+      logger.error("Failed to delete stream collaborator", error, { id });
+      throw error;
+    }
+  }
+
+  async getStreamCollaborators(streamEventId: string): Promise<StreamCollaborator[]> {
+    try {
+      return await db.select().from(streamCollaborators).where(eq(streamCollaborators.streamEventId, streamEventId));
+    } catch (error) {
+      logger.error("Failed to get stream collaborators", error, { streamEventId });
+      throw error;
+    }
+  }
+
+  // Stream coordination sessions
+  async createStreamCoordinationSession(data: InsertStreamCoordinationSession): Promise<StreamCoordinationSession> {
+    try {
+      const [session] = await db.insert(streamCoordinationSessions).values(data).returning();
+      return session;
+    } catch (error) {
+      logger.error("Failed to create stream coordination session", error);
+      throw error;
+    }
+  }
+
+  async getStreamCoordinationSession(id: string): Promise<StreamCoordinationSession | null> {
+    try {
+      const [session] = await db.select().from(streamCoordinationSessions).where(eq(streamCoordinationSessions.id, id));
+      return session || null;
+    } catch (error) {
+      logger.error("Failed to get stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async updateStreamCoordinationSession(id: string, data: Partial<InsertStreamCoordinationSession>): Promise<StreamCoordinationSession> {
+    try {
+      const [session] = await db.update(streamCoordinationSessions).set(data).where(eq(streamCoordinationSessions.id, id)).returning();
+      return session;
+    } catch (error) {
+      logger.error("Failed to update stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async deleteStreamCoordinationSession(id: string): Promise<void> {
+    try {
+      await db.delete(streamCoordinationSessions).where(eq(streamCoordinationSessions.id, id));
+    } catch (error) {
+      logger.error("Failed to delete stream coordination session", error, { id });
+      throw error;
+    }
+  }
+
+  async getActiveCoordinationSessions(): Promise<StreamCoordinationSession[]> {
+    try {
+      return await db.select().from(streamCoordinationSessions).where(eq(streamCoordinationSessions.currentPhase, 'live'));
+    } catch (error) {
+      logger.error("Failed to get active coordination sessions", error);
+      throw error;
+    }
+  }
+
+  // ===== ADMIN & MODERATION OPERATIONS =====
+
+  // User role operations (RBAC)
+  async getUserRoles(userId: string): Promise<UserRole[]> {
+    return await db.select().from(userRoles).where(eq(userRoles.userId, userId));
+  }
+
+  async createUserRole(data: InsertUserRole): Promise<UserRole> {
+    const [role] = await db.insert(userRoles).values(data).returning();
+    
+    // Create audit log
+    await this.createAuditLog({
+      adminUserId: data.assignedBy || 'system',
+      action: 'user_role_created',
+      targetUserId: data.userId,
+      details: { role: data.role, permissions: data.permissions },
+      ipAddress: '', // Will be filled by middleware
+    });
+    
+    return role;
+  }
+
+  async updateUserRole(id: string, data: Partial<InsertUserRole>): Promise<UserRole> {
+    const [role] = await db.update(userRoles).set(data).where(eq(userRoles.id, id)).returning();
+    
+    if (data.assignedBy) {
+      await this.createAuditLog({
+        adminUserId: data.assignedBy,
+        action: 'user_role_updated',
+        targetUserId: role.userId,
+        details: { roleId: id, updates: data },
+        ipAddress: '',
+      });
+    }
+    
+    return role;
+  }
+
+  async deleteUserRole(id: string): Promise<void> {
+    await db.delete(userRoles).where(eq(userRoles.id, id));
+  }
+
+  async checkUserPermission(userId: string, permission: string): Promise<boolean> {
+    const roles = await this.getUserRoles(userId);
+    
+    for (const role of roles) {
+      if (role.isActive && role.permissions) {
+        const permissions = typeof role.permissions === 'string' 
+          ? JSON.parse(role.permissions) 
+          : role.permissions;
+        
+        if (Array.isArray(permissions) && permissions.includes(permission)) {
+          return true;
+        }
+      }
     }
     
     return false;
-  } catch (error) {
-    console.error(`[JWT_REVOCATION] Failed to check persistent revocation for JTI ${jti}:`, error);
-    // Fallback to in-memory cache only on database errors
-    return REVOKED_TOKENS.has(jti);
   }
-}
 
-/**
- * Synchronous check for immediate validation (with eventual consistency)
- */
-export function isTokenRevoked(jti: string): boolean {
-  return REVOKED_TOKENS.has(jti);
-}
+  async getUsersByRole(role: string): Promise<(UserRole & { user: User })[]> {
+    return await db.select({
+      id: userRoles.id,
+      userId: userRoles.userId,
+      role: userRoles.role,
+      permissions: userRoles.permissions,
+      isActive: userRoles.isActive,
+      assignedBy: userRoles.assignedBy,
+      assignedAt: userRoles.assignedAt,
+      expiresAt: userRoles.expiresAt,
+      notes: userRoles.notes,
+      createdAt: userRoles.createdAt,
+      user: users
+    })
+    .from(userRoles)
+    .innerJoin(users, eq(userRoles.userId, users.id))
+    .where(and(eq(userRoles.role, role), eq(userRoles.isActive, true)));
+  }
 
-/**
- * Key rotation management functions
- */
+  // User reputation operations
+  async getUserReputation(userId: string): Promise<UserReputation | undefined> {
+    const [reputation] = await db.select().from(userReputation).where(eq(userReputation.userId, userId));
+    return reputation;
+  }
 
-/**
- * Rotate JWT signing keys (enterprise security feature) - PROPERLY FIXED
- */
-export function rotateJWTKeys(): void {
-  const entries = Array.from(JWT_KEYS.entries());
-  let currentActiveKey: string | null = null;
-  let nextKeyToActivate: string | null = null;
-  
-  // Find current active key and determine next key for rotation
-  for (const [keyId, key] of entries) {
-    if (key.isActive) {
-      currentActiveKey = keyId;
-      break;
+  async updateUserReputation(userId: string, data: Partial<InsertUserReputation>): Promise<UserReputation> {
+    // Check if reputation record exists
+    const existing = await this.getUserReputation(userId);
+    
+    if (existing) {
+      const [updated] = await db.update(userReputation)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(userReputation.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(userReputation)
+        .values({ userId, ...data } as InsertUserReputation)
+        .returning();
+      return created;
     }
   }
-  
-  if (!currentActiveKey) {
-    throw new Error('No active key found for rotation');
+
+  async calculateReputationScore(userId: string): Promise<number> {
+    // Get or create user's reputation record
+    let reputation = await this.getUserReputation(userId);
+    if (!reputation) {
+      reputation = await this.updateUserReputation(userId, { score: 100 });
+    }
+
+    // Get user account age for experience factor
+    const user = await this.getUser(userId);
+    const accountAgeMonths = user?.createdAt 
+      ? Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24 * 30))
+      : 0;
+
+    // Get recent user activity analytics (last 30 days)
+    const activityData = await this.getUserActivityAnalytics(userId, 30);
+    
+    // Get moderation actions against this user
+    const moderationActions = await this.getUserActiveModerationActions(userId);
+    
+    // Get user's community involvement
+    const userCommunities = await this.getUserCommunities(userId);
+    
+    // Get report accuracy data
+    const reportsAccuracyRate = (reputation.reportsMade || 0) > 0 
+      ? (reputation.reportsAccurate || 0) / (reputation.reportsMade || 1) 
+      : 0;
+
+    // === BASE SCORE CALCULATION ===
+    let calculatedScore = 100; // Starting base score
+
+    // === POSITIVE FACTORS ===
+    
+    // 1. Account longevity bonus (up to +50 points)
+    const longevityBonus = Math.min(50, accountAgeMonths * 2);
+    calculatedScore += longevityBonus;
+
+    // 2. Positive actions multiplier (up to +100 points)
+    const positiveActionsBonus = Math.min(100, (reputation.positiveActions || 0) * 3);
+    calculatedScore += positiveActionsBonus;
+
+    // 3. Community engagement (up to +75 points)
+    const communityEngagement = Math.min(75, userCommunities.length * 15);
+    calculatedScore += communityEngagement;
+
+    // 4. Activity consistency bonus (up to +50 points)
+    const uniqueEventDays = new Set(activityData.map(activity => 
+      activity.timestamp.toISOString().split('T')[0]
+    )).size;
+    const consistencyBonus = Math.min(50, uniqueEventDays * 2);
+    calculatedScore += consistencyBonus;
+
+    // 5. Report accuracy bonus (up to +40 points)
+    const reportAccuracyBonus = Math.min(40, reportsAccuracyRate * 40);
+    calculatedScore += reportAccuracyBonus;
+
+    // === NEGATIVE FACTORS ===
+    
+    // 1. Negative actions penalty
+    const negativeActionsPenalty = (reputation.negativeActions || 0) * 8;
+    calculatedScore -= negativeActionsPenalty;
+
+    // 2. Active moderation actions penalty
+    const activeModerationPenalty = moderationActions.length * 25;
+    calculatedScore -= activeModerationPenalty;
+
+    // 3. Recent violation penalty (more severe for recent violations)
+    const moderationHistory = Array.isArray(reputation.moderationHistory) 
+      ? reputation.moderationHistory as any[]
+      : [];
+    
+    let recentViolationPenalty = 0;
+    const now = Date.now();
+    moderationHistory.forEach((action: any) => {
+      const actionDate = new Date(action.timestamp || action.createdAt).getTime();
+      const daysSince = (now - actionDate) / (1000 * 60 * 60 * 24);
+      
+      if (daysSince <= 30) {
+        // Recent violations (last 30 days) - high penalty
+        recentViolationPenalty += 50;
+      } else if (daysSince <= 90) {
+        // Medium-term violations - moderate penalty
+        recentViolationPenalty += 20;
+      } else if (daysSince <= 365) {
+        // Older violations - small penalty
+        recentViolationPenalty += 5;
+      }
+    });
+    calculatedScore -= recentViolationPenalty;
+
+    // === LEVEL DETERMINATION ===
+    let newLevel = "new";
+    if (calculatedScore >= 300 && accountAgeMonths >= 6) {
+      newLevel = "veteran";
+    } else if (calculatedScore >= 200 && accountAgeMonths >= 2) {
+      newLevel = "trusted";
+    } else if (calculatedScore < 50 || activeModerationPenalty > 50) {
+      newLevel = "flagged";
+    } else if (calculatedScore < 25 || activeModerationPenalty > 100) {
+      newLevel = "restricted";
+    }
+
+    // Ensure minimum score of 0
+    const finalScore = Math.max(0, Math.floor(calculatedScore));
+    
+    // Update the calculated score and level
+    await this.updateUserReputation(userId, { 
+      score: finalScore,
+      level: newLevel,
+      lastCalculated: new Date()
+    });
+    
+    return finalScore;
   }
-  
-  // Find next available key (not the current active one)
-  for (const [keyId, key] of entries) {
-    if (keyId !== currentActiveKey && !key.expiresAt) {
-      nextKeyToActivate = keyId;
-      break;
+
+  async getUsersByReputationRange(minScore: number, maxScore: number): Promise<(UserReputation & { user: User })[]> {
+    return await db.select({
+      id: userReputation.id,
+      userId: userReputation.userId,
+      score: userReputation.score,
+      level: userReputation.level,
+      positiveActions: userReputation.positiveActions,
+      negativeActions: userReputation.negativeActions,
+      reportsMade: userReputation.reportsMade,
+      reportsAccurate: userReputation.reportsAccurate,
+      moderationHistory: userReputation.moderationHistory,
+      lastCalculated: userReputation.lastCalculated,
+      createdAt: userReputation.createdAt,
+      updatedAt: userReputation.updatedAt,
+      user: users
+    })
+    .from(userReputation)
+    .innerJoin(users, eq(userReputation.userId, users.id))
+    .where(and(
+      gte(userReputation.score, minScore),
+      lte(userReputation.score, maxScore)
+    ));
+  }
+
+  // Additional reputation management methods
+  async recordPositiveAction(userId: string, actionType: string, metadata?: any): Promise<void> {
+    // Get current reputation
+    const reputation = await this.getUserReputation(userId);
+    const currentPositiveActions = reputation?.positiveActions || 0;
+
+    // Update positive actions count
+    await this.updateUserReputation(userId, {
+      positiveActions: currentPositiveActions + 1
+    });
+
+    // Record in moderation history
+    const moderationHistory = Array.isArray(reputation?.moderationHistory) 
+      ? reputation.moderationHistory as any[] 
+      : [];
+    
+    moderationHistory.push({
+      type: 'positive_action',
+      action: actionType,
+      timestamp: new Date().toISOString(),
+      metadata
+    });
+
+    await this.updateUserReputation(userId, {
+      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+    });
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async recordNegativeAction(userId: string, actionType: string, severity: 'minor' | 'moderate' | 'severe', metadata?: any): Promise<void> {
+    // Get current reputation
+    const reputation = await this.getUserReputation(userId);
+    const currentNegativeActions = reputation?.negativeActions || 0;
+
+    // Update negative actions count
+    await this.updateUserReputation(userId, {
+      negativeActions: currentNegativeActions + 1
+    });
+
+    // Record in moderation history with severity
+    const moderationHistory = Array.isArray(reputation?.moderationHistory) 
+      ? reputation.moderationHistory as any[] 
+      : [];
+    
+    moderationHistory.push({
+      type: 'negative_action',
+      action: actionType,
+      severity,
+      timestamp: new Date().toISOString(),
+      metadata
+    });
+
+    await this.updateUserReputation(userId, {
+      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+    });
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async recordReportSubmission(userId: string, reportId: string, isAccurate?: boolean): Promise<void> {
+    const reputation = await this.getUserReputation(userId);
+    const currentReportsMade = reputation?.reportsMade || 0;
+    const currentReportsAccurate = reputation?.reportsAccurate || 0;
+
+    const updates: Partial<InsertUserReputation> = {
+      reportsMade: currentReportsMade + 1
+    };
+
+    // If we know if the report was accurate, update that too
+    if (isAccurate === true) {
+      updates.reportsAccurate = currentReportsAccurate + 1;
+    }
+
+    await this.updateUserReputation(userId, updates);
+
+    // Recalculate reputation score
+    await this.calculateReputationScore(userId);
+  }
+
+  async batchRecalculateReputationScores(userIds?: string[]): Promise<void> {
+    if (userIds && userIds.length > 0) {
+      // Recalculate for specific users
+      for (const userId of userIds) {
+        await this.calculateReputationScore(userId);
+      }
+    } else {
+      // Recalculate for all users with reputation records
+      const allReputations = await db.select({ userId: userReputation.userId }).from(userReputation);
+      
+      for (const rep of allReputations) {
+        await this.calculateReputationScore(rep.userId);
+      }
     }
   }
-  
-  if (!nextKeyToActivate) {
-    throw new Error('No available key for rotation - need at least 2 keys');
-  }
-  
-  // Perform the rotation
-  const currentKey = JWT_KEYS.get(currentActiveKey)!;
-  const nextKey = JWT_KEYS.get(nextKeyToActivate)!;
-  
-  // Mark current key as inactive with grace period
-  currentKey.isActive = false;
-  currentKey.expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour grace period
-  
-  // Activate next key and ensure no expiry
-  nextKey.isActive = true;
-  nextKey.expiresAt = undefined; // Clear any existing expiry
-  
-  console.log(`[JWT_SECURITY] Key rotation completed: ${currentActiveKey} -> ${nextKeyToActivate}`);
-}
 
-/**
- * Get key rotation status
- */
-export function getKeyRotationStatus(): { activeKey: string; gracePeriodKeys: string[]; totalKeys: number } {
-  const entries = Array.from(JWT_KEYS.entries());
-  let activeKey = '';
-  const gracePeriodKeys: string[] = [];
-  
-  for (const [keyId, key] of entries) {
-    if (key.isActive) {
-      activeKey = keyId;
-    } else if (key.expiresAt && key.expiresAt > new Date()) {
-      gracePeriodKeys.push(keyId);
+  // Content report operations
+  async createContentReport(data: InsertContentReport): Promise<ContentReport> {
+    const [report] = await db.insert(contentReports).values(data).returning();
+    
+    // Record positive action for user who submitted the report
+    if (data.reporterUserId) {
+      await this.recordPositiveAction(data.reporterUserId, 'content_report_submitted', {
+        reportId: report.id,
+        contentType: data.contentType,
+        reason: data.reason
+      });
     }
+    
+    // Add to moderation queue if auto-flagged or high priority
+    if (data.reportSource === 'auto_flagged' || data.priority === 'high' || data.priority === 'critical') {
+      await this.addToModerationQueue({
+        itemType: 'content_report',
+        itemId: report.id,
+        priority: data.priority || 'medium',
+        description: `${data.reason}: ${data.contentType} reported`,
+        metadata: { contentType: data.contentType, contentId: data.contentId }
+      });
+    }
+    
+    return report;
   }
-  
-  return {
-    activeKey,
-    gracePeriodKeys,
-    totalKeys: JWT_KEYS.size
-  };
+
+  async getContentReports(filters?: { status?: string; priority?: string; reporterUserId?: string; assignedModerator?: string }): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User })[]> {
+    let query = db.select({
+      id: contentReports.id,
+      reporterUserId: contentReports.reporterUserId,
+      reportedUserId: contentReports.reportedUserId,
+      contentType: contentReports.contentType,
+      contentId: contentReports.contentId,
+      reason: contentReports.reason,
+      description: contentReports.description,
+      status: contentReports.status,
+      priority: contentReports.priority,
+      reportSource: contentReports.reportSource,
+      assignedModerator: contentReports.assignedModerator,
+      evidence: contentReports.evidence,
+      metadata: contentReports.metadata,
+      mlConfidenceScore: contentReports.mlConfidenceScore,
+      resolution: contentReports.resolution,
+      actionTaken: contentReports.actionTaken,
+      createdAt: contentReports.createdAt,
+      resolvedAt: contentReports.resolvedAt,
+      reporter: alias(users, 'reporter'),
+      reportedUser: alias(users, 'reportedUser'),
+      assignedMod: alias(users, 'assignedMod')
+    })
+    .from(contentReports)
+    .leftJoin(alias(users, 'reporter'), eq(contentReports.reporterUserId, alias(users, 'reporter').id))
+    .leftJoin(alias(users, 'reportedUser'), eq(contentReports.reportedUserId, alias(users, 'reportedUser').id))
+    .leftJoin(alias(users, 'assignedMod'), eq(contentReports.assignedModerator, alias(users, 'assignedMod').id));
+
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(contentReports.status, filters.status));
+    if (filters?.priority) conditions.push(eq(contentReports.priority, filters.priority));
+    if (filters?.reporterUserId) conditions.push(eq(contentReports.reporterUserId, filters.reporterUserId));
+    if (filters?.assignedModerator) conditions.push(eq(contentReports.assignedModerator, filters.assignedModerator));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(contentReports.createdAt));
+  }
+
+  async getContentReport(id: string): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User }) | undefined> {
+    const reports = await this.getContentReports();
+    return reports.find(report => report.id === id);
+  }
+
+  async updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport> {
+    const [updated] = await db.update(contentReports)
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
+      .where(eq(contentReports.id, id))
+      .returning();
+    return updated;
+  }
+
+  async assignContentReport(reportId: string, moderatorId: string): Promise<ContentReport> {
+    return await this.updateContentReport(reportId, { assignedModerator: moderatorId });
+  }
+
+  async resolveContentReport(reportId: string, resolution: string, actionTaken?: string, moderatorId?: string): Promise<ContentReport> {
+    // Get the original report to access reporter info
+    const originalReport = await this.getContentReport(reportId);
+    
+    const updateData: Partial<InsertContentReport> = {
+      status: 'resolved',
+      resolution,
+      actionTaken,
+      resolvedAt: new Date()
+    };
+
+    // Update report accuracy tracking for the reporter
+    if (originalReport?.reporterUserId) {
+      const isAccurate = resolution === 'valid' || resolution === 'action_taken';
+      await this.recordReportSubmission(originalReport.reporterUserId, reportId, isAccurate);
+    }
+
+    if (moderatorId) {
+      await this.createAuditLog({
+        adminUserId: moderatorId,
+        action: 'content_report_resolved',
+        targetUserId: '',
+        details: { reportId, resolution, actionTaken },
+        ipAddress: ''
+      });
+    }
+
+    return await this.updateContentReport(reportId, updateData);
+  }
+
+  // Moderation action operations
+  async createModerationAction(data: InsertModerationAction): Promise<ModerationAction> {
+    const [action] = await db.insert(moderationActions).values(data).returning();
+    
+    // Record negative action for the target user based on severity
+    if (data.targetUserId) {
+      let severity: 'minor' | 'moderate' | 'severe' = 'moderate';
+      
+      // Determine severity based on action type
+      if (data.action === 'warning' || data.action === 'content_removal') {
+        severity = 'minor';
+      } else if (data.action === 'temporary_ban' || data.action === 'mute') {
+        severity = 'moderate';
+      } else if (data.action === 'permanent_ban' || data.action === 'shadowban') {
+        severity = 'severe';
+      }
+      
+      await this.recordNegativeAction(data.targetUserId, data.action, severity, {
+        moderationActionId: action.id,
+        reason: data.reason,
+        moderatorId: data.moderatorId
+      });
+    }
+    
+    // Create audit log
+    await this.createAuditLog({
+      adminUserId: data.moderatorId,
+      action: 'moderation_action_created',
+      targetUserId: data.targetUserId,
+      details: { 
+        actionType: data.action, 
+        reason: data.reason,
+        duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
+      },
+      ipAddress: ''
+    });
+    
+    return action;
+  }
+
+  async getModerationActions(filters?: { targetUserId?: string; moderatorId?: string; action?: string; isActive?: boolean }): Promise<(ModerationAction & { moderator: User; targetUser: User })[]> {
+    let query = db.select({
+      id: moderationActions.id,
+      moderatorId: moderationActions.moderatorId,
+      targetUserId: moderationActions.targetUserId,
+      action: moderationActions.action,
+      reason: moderationActions.reason,
+      details: moderationActions.details,
+      isActive: moderationActions.isActive,
+      severity: moderationActions.severity,
+      publicReason: moderationActions.publicReason,
+      internalNotes: moderationActions.internalNotes,
+      appealable: moderationActions.appealable,
+      relatedContentType: moderationActions.relatedContentType,
+      relatedContentId: moderationActions.relatedContentId,
+      evidence: moderationActions.evidence,
+      metadata: moderationActions.metadata,
+      reversedBy: moderationActions.reversedBy,
+      reversedAt: moderationActions.reversedAt,
+      reversalReason: moderationActions.reversalReason,
+      expiresAt: moderationActions.expiresAt,
+      createdAt: moderationActions.createdAt,
+      moderator: alias(users, 'moderator'),
+      targetUser: alias(users, 'targetUser')
+    })
+    .from(moderationActions)
+    .innerJoin(alias(users, 'moderator'), eq(moderationActions.moderatorId, alias(users, 'moderator').id))
+    .innerJoin(alias(users, 'targetUser'), eq(moderationActions.targetUserId, alias(users, 'targetUser').id));
+
+    const conditions = [];
+    if (filters?.targetUserId) conditions.push(eq(moderationActions.targetUserId, filters.targetUserId));
+    if (filters?.moderatorId) conditions.push(eq(moderationActions.moderatorId, filters.moderatorId));
+    if (filters?.action) conditions.push(eq(moderationActions.action, filters.action));
+    if (filters?.isActive !== undefined) conditions.push(eq(moderationActions.isActive, filters.isActive));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(moderationActions.createdAt));
+  }
+
+  async getModerationAction(id: string): Promise<(ModerationAction & { moderator: User; targetUser: User }) | undefined> {
+    const actions = await this.getModerationActions();
+    return actions.find(action => action.id === id);
+  }
+
+  async updateModerationAction(id: string, data: Partial<InsertModerationAction>): Promise<ModerationAction> {
+    const [updated] = await db.update(moderationActions).set(data).where(eq(moderationActions.id, id)).returning();
+    return updated;
+  }
+
+  async reverseModerationAction(id: string, reversedBy: string, reason: string): Promise<ModerationAction> {
+    const [reversed] = await db.update(moderationActions)
+      .set({
+        isActive: false,
+        reversedBy,
+        reversedAt: new Date(),
+        reversalReason: reason
+      })
+      .where(eq(moderationActions.id, id))
+      .returning();
+
+    await this.createAuditLog({
+      adminUserId: reversedBy,
+      action: 'moderation_action_reversed',
+      targetUserId: reversed.targetUserId,
+      details: { moderationActionId: id, reason },
+      ipAddress: ''
+    });
+
+    return reversed;
+  }
+
+  async getUserActiveModerationActions(userId: string): Promise<ModerationAction[]> {
+    return await db.select().from(moderationActions)
+      .where(and(
+        eq(moderationActions.targetUserId, userId),
+        eq(moderationActions.isActive, true),
+        or(
+          sql`${moderationActions.expiresAt} IS NULL`,
+          sql`${moderationActions.expiresAt} > NOW()`
+        )
+      ));
+  }
+
+  // Moderation queue operations
+  async addToModerationQueue(data: InsertModerationQueue): Promise<ModerationQueue> {
+    // Auto-calculate priority if not provided
+    let enhancedData = { ...data };
+    if (!enhancedData.priority) {
+      enhancedData.priority = await this.calculateAutoPriority(data.itemType, data.metadata);
+    }
+
+    // Set reputation scores if available in metadata
+    if (data.metadata) {
+      if (data.metadata.userReputationScore && !enhancedData.userReputationScore) {
+        enhancedData.userReputationScore = data.metadata.userReputationScore;
+      }
+      if (data.metadata.reporterReputationScore && !enhancedData.reporterReputationScore) {
+        enhancedData.reporterReputationScore = data.metadata.reporterReputationScore;
+      }
+      if (data.metadata.riskScore && !enhancedData.riskScore) {
+        enhancedData.riskScore = data.metadata.riskScore;
+      }
+    }
+
+    const [item] = await db.insert(moderationQueue).values(enhancedData).returning();
+    
+    // Create audit log for queue addition
+    await this.createAuditLog({
+      adminUserId: 'system',
+      action: 'moderation_queue_item_added',
+      targetUserId: '',
+      details: { 
+        itemType: item.itemType,
+        itemId: item.itemId,
+        priority: item.priority,
+        autoGenerated: item.autoGenerated
+      },
+      ipAddress: ''
+    });
+    
+    return item;
+  }
+
+  async getModerationQueue(filters?: { status?: string; assignedModerator?: string; priority?: number; itemType?: string; overdue?: boolean }): Promise<(ModerationQueue & { assignedMod?: User })[]> {
+    let query = db.select({
+      id: moderationQueue.id,
+      itemType: moderationQueue.itemType,
+      itemId: moderationQueue.itemId,
+      priority: moderationQueue.priority,
+      status: moderationQueue.status,
+      assignedModerator: moderationQueue.assignedModerator,
+      assignedAt: moderationQueue.assignedAt,
+      description: moderationQueue.description,
+      metadata: moderationQueue.metadata,
+      autoGenerated: moderationQueue.autoGenerated,
+      mlPriority: moderationQueue.mlPriority,
+      userReports: moderationQueue.userReports,
+      escalationLevel: moderationQueue.escalationLevel,
+      resolution: moderationQueue.resolution,
+      estimatedTimeMinutes: moderationQueue.estimatedTimeMinutes,
+      riskScore: moderationQueue.riskScore,
+      userReputationScore: moderationQueue.userReputationScore,
+      reporterReputationScore: moderationQueue.reporterReputationScore,
+      tags: moderationQueue.tags,
+      createdAt: moderationQueue.createdAt,
+      completedAt: moderationQueue.completedAt,
+      assignedMod: users
+    })
+    .from(moderationQueue)
+    .leftJoin(users, eq(moderationQueue.assignedModerator, users.id));
+
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(moderationQueue.status, filters.status));
+    if (filters?.assignedModerator) conditions.push(eq(moderationQueue.assignedModerator, filters.assignedModerator));
+    if (filters?.priority) conditions.push(eq(moderationQueue.priority, filters.priority));
+    if (filters?.itemType) conditions.push(eq(moderationQueue.itemType, filters.itemType));
+    
+    // Handle overdue filter - items assigned more than estimated time ago
+    if (filters?.overdue) {
+      const now = new Date();
+      conditions.push(
+        and(
+          eq(moderationQueue.status, 'assigned'),
+          isNotNull(moderationQueue.assignedAt),
+          isNotNull(moderationQueue.estimatedTimeMinutes),
+          sql`${moderationQueue.assignedAt} + INTERVAL '1 minute' * ${moderationQueue.estimatedTimeMinutes} < ${now}`
+        )
+      );
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(moderationQueue.priority), desc(moderationQueue.createdAt));
+  }
+
+  async getModerationQueueItem(id: string): Promise<(ModerationQueue & { assignedMod?: User }) | undefined> {
+    const items = await this.getModerationQueue();
+    return items.find(item => item.id === id);
+  }
+
+  async assignModerationQueueItem(id: string, moderatorId: string): Promise<ModerationQueue> {
+    const [updated] = await db.update(moderationQueue)
+      .set({ 
+        assignedModerator: moderatorId, 
+        status: 'assigned',
+        assignedAt: new Date()
+      })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return updated;
+  }
+
+  async completeModerationQueueItem(id: string, resolution: string, actionTaken?: string): Promise<ModerationQueue> {
+    const [completed] = await db.update(moderationQueue)
+      .set({ 
+        status: 'completed', 
+        resolution, 
+        completedAt: new Date() 
+      })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return completed;
+  }
+
+  async updateModerationQueuePriority(id: string, priority: number): Promise<ModerationQueue> {
+    const [updated] = await db.update(moderationQueue)
+      .set({ priority })
+      .where(eq(moderationQueue.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Enhanced moderation queue operations
+  async autoAssignModerationQueue(itemType?: string): Promise<{ assigned: number; skipped: number }> {
+    // Get unassigned items
+    const openItems = await this.getModerationQueue({ 
+      status: 'open',
+      ...(itemType && { itemType })
+    });
+
+    if (openItems.length === 0) {
+      return { assigned: 0, skipped: 0 };
+    }
+
+    // Get moderator workloads
+    const workloads = await this.getModeratorWorkload();
+    
+    // Find moderators with lowest workload
+    const availableModerators = workloads
+      .filter(w => w.activeTasks < 10) // Max 10 active tasks per moderator
+      .sort((a, b) => a.activeTasks - b.activeTasks);
+
+    if (availableModerators.length === 0) {
+      return { assigned: 0, skipped: openItems.length };
+    }
+
+    let assigned = 0;
+    let skipped = 0;
+
+    // Assign items using round-robin with workload balancing
+    for (const item of openItems) {
+      const moderator = availableModerators[assigned % availableModerators.length];
+      
+      try {
+        await this.assignModerationQueueItem(item.id, moderator.moderatorId);
+        assigned++;
+        moderator.activeTasks++; // Update local count
+      } catch (error) {
+        console.error('Auto-assignment failed for item:', item.id, error);
+        skipped++;
+      }
+    }
+
+    return { assigned, skipped };
+  }
+
+  async bulkAssignModerationQueue(itemIds: string[], moderatorId: string): Promise<ModerationQueue[]> {
+    const assignedItems: ModerationQueue[] = [];
+    
+    for (const itemId of itemIds) {
+      try {
+        const assigned = await this.assignModerationQueueItem(itemId, moderatorId);
+        assignedItems.push(assigned);
+      } catch (error) {
+        console.error('Bulk assignment failed for item:', itemId, error);
+      }
+    }
+    
+    return assignedItems;
+  }
+
+  async getModeratorWorkload(moderatorId?: string): Promise<{ moderatorId: string; activeTasks: number; avgCompletionTime: number; lastActivity: Date | null }[]> {
+    // Get all moderators with the MODERATOR role
+    const moderators = await db.select({ userId: userRoles.userId })
+      .from(userRoles)
+      .where(eq(userRoles.role, 'MODERATOR'));
+
+    const workloads = [];
+
+    for (const moderator of moderators) {
+      if (moderatorId && moderator.userId !== moderatorId) continue;
+
+      // Count active tasks
+      const activeTasks = await db.select({ count: count() })
+        .from(moderationQueue)
+        .where(
+          and(
+            eq(moderationQueue.assignedModerator, moderator.userId),
+            inArray(moderationQueue.status, ['assigned', 'in_progress'])
+          )
+        );
+
+      // Calculate average completion time from last 10 completed tasks
+      const completedTasks = await db.select({
+        createdAt: moderationQueue.createdAt,
+        completedAt: moderationQueue.completedAt
+      })
+      .from(moderationQueue)
+      .where(
+        and(
+          eq(moderationQueue.assignedModerator, moderator.userId),
+          eq(moderationQueue.status, 'completed'),
+          isNotNull(moderationQueue.completedAt)
+        )
+      )
+      .orderBy(desc(moderationQueue.completedAt))
+      .limit(10);
+
+      let avgCompletionTime = 0;
+      if (completedTasks.length > 0) {
+        const totalTime = completedTasks.reduce((sum, task) => {
+          if (task.completedAt && task.createdAt) {
+            return sum + (task.completedAt.getTime() - task.createdAt.getTime());
+          }
+          return sum;
+        }, 0);
+        avgCompletionTime = totalTime / completedTasks.length / (1000 * 60); // Convert to minutes
+      }
+
+      // Get last activity from audit logs
+      const lastActivity = await db.select({ createdAt: adminAuditLog.createdAt })
+        .from(adminAuditLog)
+        .where(eq(adminAuditLog.adminUserId, moderator.userId))
+        .orderBy(desc(adminAuditLog.createdAt))
+        .limit(1);
+
+      workloads.push({
+        moderatorId: moderator.userId,
+        activeTasks: activeTasks[0]?.count || 0,
+        avgCompletionTime: Math.round(avgCompletionTime),
+        lastActivity: lastActivity[0]?.createdAt || null
+      });
+    }
+
+    return workloads;
+  }
+
+  async escalateOverdueItems(thresholdHours = 24): Promise<ModerationQueue[]> {
+    const cutoffTime = new Date(Date.now() - thresholdHours * 60 * 60 * 1000);
+    
+    const overdueItems = await db.select()
+      .from(moderationQueue)
+      .where(
+        and(
+          eq(moderationQueue.status, 'assigned'),
+          isNotNull(moderationQueue.assignedAt),
+          lte(moderationQueue.assignedAt, cutoffTime)
+        )
+      );
+
+    const escalatedItems: ModerationQueue[] = [];
+
+    for (const item of overdueItems) {
+      try {
+        const [escalated] = await db.update(moderationQueue)
+          .set({ 
+            escalationLevel: (item.escalationLevel || 0) + 1,
+            priority: Math.min((item.priority || 5) + 2, 10) // Increase priority by 2, max 10
+          })
+          .where(eq(moderationQueue.id, item.id))
+          .returning();
+        
+        escalatedItems.push(escalated);
+      } catch (error) {
+        console.error('Escalation failed for item:', item.id, error);
+      }
+    }
+
+    return escalatedItems;
+  }
+
+  async calculateAutoPriority(itemType: string, metadata?: any): Promise<number> {
+    let basePriority = 5; // Default priority
+    
+    // Priority based on item type
+    const typePriorities = {
+      'auto_flag': 8,     // High priority for auto-flagged content
+      'ban_evasion': 9,   // Very high priority for ban evasion
+      'appeal': 7,        // High priority for appeals
+      'report': 6         // Medium-high priority for user reports
+    };
+    
+    basePriority = typePriorities[itemType] || basePriority;
+    
+    // Adjust based on metadata factors
+    if (metadata) {
+      // High-reputation reporter increases priority
+      if (metadata.reporterReputationScore > 300) basePriority += 1;
+      
+      // Low-reputation target increases priority
+      if (metadata.userReputationScore < 100) basePriority += 1;
+      
+      // Multiple reports increase priority
+      if (metadata.userReports > 1) basePriority += Math.min(metadata.userReports - 1, 2);
+      
+      // ML confidence score (if available)
+      if (metadata.mlConfidence > 0.8) basePriority += 2;
+      else if (metadata.mlConfidence > 0.6) basePriority += 1;
+      
+      // Severity-based adjustments
+      if (metadata.severity === 'critical') basePriority += 3;
+      else if (metadata.severity === 'high') basePriority += 2;
+      else if (metadata.severity === 'medium') basePriority += 1;
+    }
+    
+    // Cap priority between 1 and 10
+    return Math.max(1, Math.min(basePriority, 10));
+  }
+
+  async getModerationQueueStats(): Promise<{ totalOpen: number; totalAssigned: number; totalCompleted: number; avgCompletionTime: number; overdueCount: number }> {
+    // Get counts by status
+    const statusCounts = await db.select({
+      status: moderationQueue.status,
+      count: count()
+    })
+    .from(moderationQueue)
+    .groupBy(moderationQueue.status);
+
+    const stats = {
+      totalOpen: 0,
+      totalAssigned: 0,
+      totalCompleted: 0,
+      avgCompletionTime: 0,
+      overdueCount: 0
+    };
+
+    // Process status counts
+    statusCounts.forEach(row => {
+      switch (row.status) {
+        case 'open':
+          stats.totalOpen = row.count;
+          break;
+        case 'assigned':
+        case 'in_progress':
+          stats.totalAssigned += row.count;
+          break;
+        case 'completed':
+          stats.totalCompleted = row.count;
+          break;
+      }
+    });
+
+    // Calculate average completion time from last 100 completed items
+    const recentCompleted = await db.select({
+      createdAt: moderationQueue.createdAt,
+      completedAt: moderationQueue.completedAt
+    })
+    .from(moderationQueue)
+    .where(
+      and(
+        eq(moderationQueue.status, 'completed'),
+        isNotNull(moderationQueue.completedAt)
+      )
+    )
+    .orderBy(desc(moderationQueue.completedAt))
+    .limit(100);
+
+    if (recentCompleted.length > 0) {
+      const totalTime = recentCompleted.reduce((sum, item) => {
+        if (item.completedAt && item.createdAt) {
+          return sum + (item.completedAt.getTime() - item.createdAt.getTime());
+        }
+        return sum;
+      }, 0);
+      stats.avgCompletionTime = Math.round(totalTime / recentCompleted.length / (1000 * 60)); // Convert to minutes
+    }
+
+    // Count overdue items (assigned > 24 hours ago)
+    const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const overdueCount = await db.select({ count: count() })
+      .from(moderationQueue)
+      .where(
+        and(
+          eq(moderationQueue.status, 'assigned'),
+          isNotNull(moderationQueue.assignedAt),
+          lte(moderationQueue.assignedAt, cutoffTime)
+        )
+      );
+
+    stats.overdueCount = overdueCount[0]?.count || 0;
+
+    return stats;
+  }
+
+  // CMS content operations
+  async getCmsContent(type?: string, isPublished?: boolean): Promise<CmsContent[]> {
+    let query = db.select().from(cmsContent);
+    
+    const conditions = [];
+    if (type) conditions.push(eq(cmsContent.type, type));
+    if (isPublished !== undefined) conditions.push(eq(cmsContent.isPublished, isPublished));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(cmsContent.version));
+  }
+
+  async getCmsContentById(id: string): Promise<(CmsContent & { author: User; lastEditor: User; approver?: User }) | undefined> {
+    const [content] = await db.select({
+      id: cmsContent.id,
+      type: cmsContent.type,
+      title: cmsContent.title,
+      content: cmsContent.content,
+      version: cmsContent.version,
+      isPublished: cmsContent.isPublished,
+      publishedAt: cmsContent.publishedAt,
+      scheduledPublishAt: cmsContent.scheduledPublishAt,
+      authorId: cmsContent.authorId,
+      lastEditedBy: cmsContent.lastEditedBy,
+      approvedBy: cmsContent.approvedBy,
+      approvedAt: cmsContent.approvedAt,
+      changeLog: cmsContent.changeLog,
+      previousVersionId: cmsContent.previousVersionId,
+      metaDescription: cmsContent.metaDescription,
+      metaKeywords: cmsContent.metaKeywords,
+      slug: cmsContent.slug,
+      createdAt: cmsContent.createdAt,
+      updatedAt: cmsContent.updatedAt,
+      author: alias(users, 'author'),
+      lastEditor: alias(users, 'lastEditor'),
+      approver: alias(users, 'approver')
+    })
+    .from(cmsContent)
+    .innerJoin(alias(users, 'author'), eq(cmsContent.authorId, alias(users, 'author').id))
+    .innerJoin(alias(users, 'lastEditor'), eq(cmsContent.lastEditedBy, alias(users, 'lastEditor').id))
+    .leftJoin(alias(users, 'approver'), eq(cmsContent.approvedBy, alias(users, 'approver').id))
+    .where(eq(cmsContent.id, id));
+
+    return content;
+  }
+
+  async createCmsContent(data: InsertCmsContent): Promise<CmsContent> {
+    const [content] = await db.insert(cmsContent).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.authorId,
+      action: 'cms_content_created',
+      targetUserId: '',
+      details: { contentType: data.type, title: data.title },
+      ipAddress: ''
+    });
+    
+    return content;
+  }
+
+  async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
+    const [updated] = await db.update(cmsContent)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(cmsContent.id, id))
+      .returning();
+    
+    if (data.lastEditedBy) {
+      await this.createAuditLog({
+        adminUserId: data.lastEditedBy,
+        action: 'cms_content_updated',
+        targetUserId: '',
+        details: { contentId: id, changes: data },
+        ipAddress: ''
+      });
+    }
+    
+    return updated;
+  }
+
+  async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
+    const [published] = await db.update(cmsContent)
+      .set({ 
+        isPublished: true, 
+        publishedAt: new Date(),
+        approvedBy: publisherId,
+        approvedAt: new Date()
+      })
+      .where(eq(cmsContent.id, id))
+      .returning();
+    
+    await this.createAuditLog({
+      adminUserId: publisherId,
+      action: 'cms_content_published',
+      targetUserId: '',
+      details: { contentId: id, title: published.title },
+      ipAddress: ''
+    });
+    
+    return published;
+  }
+
+  async deleteCmsContent(id: string): Promise<void> {
+    await db.delete(cmsContent).where(eq(cmsContent.id, id));
+  }
+
+  async getCmsContentVersions(type: string): Promise<CmsContent[]> {
+    return await db.select().from(cmsContent)
+      .where(eq(cmsContent.type, type))
+      .orderBy(desc(cmsContent.version));
+  }
+
+  // Admin audit log operations (placed early since used by other methods)
+  async createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog> {
+    const [log] = await db.insert(adminAuditLog).values(data).returning();
+    return log;
+  }
+
+  async getAuditLogs(filters?: { adminUserId?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<(AdminAuditLog & { admin: User })[]> {
+    let query = db.select({
+      id: adminAuditLog.id,
+      adminUserId: adminAuditLog.adminUserId,
+      action: adminAuditLog.action,
+      category: adminAuditLog.category,
+      targetType: adminAuditLog.targetType,
+      targetId: adminAuditLog.targetId,
+      targetIdentifier: adminAuditLog.targetIdentifier,
+      oldValues: adminAuditLog.oldValues,
+      newValues: adminAuditLog.newValues,
+      parameters: adminAuditLog.parameters,
+      ipAddress: adminAuditLog.ipAddress,
+      userAgent: adminAuditLog.userAgent,
+      sessionId: adminAuditLog.sessionId,
+      success: adminAuditLog.success,
+      errorMessage: adminAuditLog.errorMessage,
+      impactAssessment: adminAuditLog.impactAssessment,
+      createdAt: adminAuditLog.createdAt,
+      admin: users
+    })
+    .from(adminAuditLog)
+    .innerJoin(users, eq(adminAuditLog.adminUserId, users.id));
+
+    const conditions = [];
+    if (filters?.adminUserId) conditions.push(eq(adminAuditLog.adminUserId, filters.adminUserId));
+    if (filters?.action) conditions.push(eq(adminAuditLog.action, filters.action));
+    if (filters?.startDate) conditions.push(gte(adminAuditLog.createdAt, filters.startDate));
+    if (filters?.endDate) conditions.push(sql`${adminAuditLog.createdAt} <= ${filters.endDate}`);
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(adminAuditLog.createdAt));
+  }
+
+  async getAuditLog(id: string): Promise<(AdminAuditLog & { admin: User }) | undefined> {
+    const logs = await this.getAuditLogs();
+    return logs.find(log => log.id === id);
+  }
+
+  // Ban evasion tracking operations
+  async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
+    const [record] = await db.insert(banEvasionTracking).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.detectedBy || 'system',
+      action: 'ban_evasion_detected',
+      targetUserId: data.userId,
+      details: { 
+        suspiciousActivity: data.suspiciousActivity,
+        confidenceScore: data.confidenceScore 
+      },
+      ipAddress: data.ipAddress || ''
+    });
+    
+    return record;
+  }
+
+  async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
+    let query = db.select({
+      id: banEvasionTracking.id,
+      userId: banEvasionTracking.userId,
+      bannedUserId: banEvasionTracking.bannedUserId,
+      ipAddress: banEvasionTracking.ipAddress,
+      deviceFingerprint: banEvasionTracking.deviceFingerprint,
+      suspiciousActivity: banEvasionTracking.suspiciousActivity,
+      confidenceScore: banEvasionTracking.confidenceScore,
+      status: banEvasionTracking.status,
+      detectedBy: banEvasionTracking.detectedBy,
+      reviewedBy: banEvasionTracking.reviewedBy,
+      reviewedAt: banEvasionTracking.reviewedAt,
+      reviewNotes: banEvasionTracking.reviewNotes,
+      actionTaken: banEvasionTracking.actionTaken,
+      metadata: banEvasionTracking.metadata,
+      evidence: banEvasionTracking.evidence,
+      relatedAccounts: banEvasionTracking.relatedAccounts,
+      detectionMethod: banEvasionTracking.detectionMethod,
+      createdAt: banEvasionTracking.createdAt,
+      user: alias(users, 'user'),
+      bannedUser: alias(users, 'bannedUser')
+    })
+    .from(banEvasionTracking)
+    .innerJoin(alias(users, 'user'), eq(banEvasionTracking.userId, alias(users, 'user').id))
+    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.bannedUserId, alias(users, 'bannedUser').id));
+
+    const conditions = [];
+    if (userId) conditions.push(eq(banEvasionTracking.userId, userId));
+    if (suspiciousActivity !== undefined) conditions.push(eq(banEvasionTracking.suspiciousActivity, suspiciousActivity));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(banEvasionTracking.createdAt));
+  }
+
+  async checkBanEvasion(userId: string, ipAddress: string, deviceFingerprint?: string): Promise<BanEvasionTracking[]> {
+    const conditions = [eq(banEvasionTracking.userId, userId)];
+    
+    if (ipAddress) {
+      conditions.push(eq(banEvasionTracking.ipAddress, ipAddress));
+    }
+    
+    if (deviceFingerprint) {
+      conditions.push(eq(banEvasionTracking.deviceFingerprint, deviceFingerprint));
+    }
+
+    return await db.select().from(banEvasionTracking)
+      .where(or(...conditions))
+      .orderBy(desc(banEvasionTracking.createdAt));
+  }
+
+  async updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking> {
+    const updateData: Partial<InsertBanEvasionTracking> = {
+      status,
+      reviewedAt: new Date()
+    };
+    
+    if (reviewedBy) {
+      updateData.reviewedBy = reviewedBy;
+      
+      await this.createAuditLog({
+        adminUserId: reviewedBy,
+        action: 'ban_evasion_reviewed',
+        targetUserId: '',
+        details: { banEvasionId: id, newStatus: status },
+        ipAddress: ''
+      });
+    }
+
+    const [updated] = await db.update(banEvasionTracking)
+      .set(updateData)
+      .where(eq(banEvasionTracking.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  // User appeal operations
+  async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
+    const [appeal] = await db.insert(userAppeals).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: 'system',
+      action: 'user_appeal_created',
+      targetUserId: data.userId,
+      details: { appealType: data.appealType, reason: data.reason },
+      ipAddress: ''
+    });
+    
+    return appeal;
+  }
+
+  async getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]> {
+    let query = db.select({
+      id: userAppeals.id,
+      userId: userAppeals.userId,
+      moderationActionId: userAppeals.moderationActionId,
+      reason: userAppeals.reason,
+      evidence: userAppeals.evidence,
+      additionalInfo: userAppeals.additionalInfo,
+      status: userAppeals.status,
+      reviewedBy: userAppeals.reviewedBy,
+      reviewedAt: userAppeals.reviewedAt,
+      reviewNotes: userAppeals.reviewNotes,
+      decision: userAppeals.decision,
+      decisionReason: userAppeals.decisionReason,
+      responseToUser: userAppeals.responseToUser,
+      isUserNotified: userAppeals.isUserNotified,
+      canReappeal: userAppeals.canReappeal,
+      reappealCooldownUntil: userAppeals.reappealCooldownUntil,
+      createdAt: userAppeals.createdAt,
+      updatedAt: userAppeals.updatedAt,
+      user: alias(users, 'user'),
+      moderationAction: moderationActions,
+      reviewer: alias(users, 'reviewer')
+    })
+    .from(userAppeals)
+    .innerJoin(alias(users, 'user'), eq(userAppeals.userId, alias(users, 'user').id))
+    .leftJoin(moderationActions, eq(userAppeals.moderationActionId, moderationActions.id))
+    .leftJoin(alias(users, 'reviewer'), eq(userAppeals.reviewedBy, alias(users, 'reviewer').id));
+
+    const conditions = [];
+    if (filters?.userId) conditions.push(eq(userAppeals.userId, filters.userId));
+    if (filters?.status) conditions.push(eq(userAppeals.status, filters.status));
+    if (filters?.reviewedBy) conditions.push(eq(userAppeals.reviewedBy, filters.reviewedBy));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query.orderBy(desc(userAppeals.createdAt));
+  }
+
+  async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User }) | undefined> {
+    const appeals = await this.getUserAppeals();
+    return appeals.find(appeal => appeal.id === id);
+  }
+
+  async updateUserAppeal(id: string, data: Partial<InsertUserAppeal>): Promise<UserAppeal> {
+    const [updated] = await db.update(userAppeals)
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
+      .where(eq(userAppeals.id, id))
+      .returning();
+    return updated;
+  }
+
+  async assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal> {
+  }
+
+  async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
+    // Validate decision value
+    const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
+      reviewNotes: reviewerNotes,
+      reviewedAt: new Date()
+    };
+
+    if (reviewerId) {
+      await this.createAuditLog({
+        adminUserId: reviewerId,
+        action: 'user_appeal_resolved',
+        category: 'user_management',
+        targetId: '',
+        parameters: { appealId, decision, reviewerNotes },
+        ipAddress: ''
+      });
+    }
+
+    return await this.updateUserAppeal(appealId, updateData);
+  }
+
+  // Moderation template operations
+      id: moderationTemplates.id,
+      name: moderationTemplates.name,
+      category: moderationTemplates.category,
+      subject: moderationTemplates.subject,
+      content: moderationTemplates.content,
+      variables: moderationTemplates.variables,
+      isActive: moderationTemplates.isActive,
+      createdBy: users, // This is the User object
+      lastModifiedBy: moderationTemplates.lastModifiedBy,
+      usageCount: moderationTemplates.usageCount,
+      createdAt: moderationTemplates.createdAt,
+      updatedAt: moderationTemplates.updatedAt
+    })
+    .from(moderationTemplates)
+    .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
+
+    if (category) {
+  }
+
+  async getModerationTemplate(id: string): Promise<(Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }) | undefined> {
+    const templates = await this.getModerationTemplates();
+    return templates.find(template => template.id === id);
+  }
+
+  async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
+    const [template] = await db.insert(moderationTemplates).values(data).returning();
+    
+    await this.createAuditLog({
+      adminUserId: data.createdBy,
+      action: 'moderation_template_created',
+      category: 'content_moderation',
+      targetId: '',
+      parameters: { templateName: data.name, category: data.category },
+      ipAddress: ''
+    });
+    
+    return template;
+  }
+
+  async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
+    const [updated] = await db.update(moderationTemplates)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(moderationTemplates.id, id))
+      .returning();
+    
+    if (data.createdBy) {
+      await this.createAuditLog({
+        adminUserId: data.createdBy,
+        action: 'moderation_template_updated',
+        category: 'content_moderation',
+        targetId: '',
+        parameters: { templateId: id, changes: data },
+        ipAddress: ''
+      });
+    }
+    
+    return updated;
+  }
+
+  async deleteModerationTemplate(id: string): Promise<void> {
+    await db.delete(moderationTemplates).where(eq(moderationTemplates.id, id));
+  }
 }
 
-/**
- * Enhanced token validation with revocation checking
- */
-export async function validateTokenSecurity(jti: string, payload: AccessTokenJWTPayload): Promise<{
-  valid: boolean;
-  securityIssues: string[];
-}> {
-  const securityIssues: string[] = [];
-  
-  // Check if token is revoked
-  if (isTokenRevoked(jti)) {
-    securityIssues.push('Token has been revoked');
-    return { valid: false, securityIssues };
-  }
-  
-  // Check security level compliance
-  if (payload.securityLevel === 'critical' && (!payload.mfaVerified || !payload.deviceFingerprint)) {
-    securityIssues.push('Critical security level requires MFA and device binding');
-  }
-  
-  // Check risk score threshold
-  if (payload.riskScore && payload.riskScore > 0.9) {
-    securityIssues.push('Risk score exceeds maximum threshold');
-  }
-  
-  // Check token age for high security
-  const tokenAge = Math.floor(Date.now() / 1000) - payload.iat;
-  if (payload.securityLevel === 'critical' && tokenAge > TOKEN_EXPIRY.HIGH_SECURITY_ACCESS) {
-    securityIssues.push('Token age exceeds critical security limits');
-  }
-  
-  return {
-    valid: securityIssues.length === 0,
-    securityIssues
-  };
-}
+export const storage = new DatabaseStorage();
