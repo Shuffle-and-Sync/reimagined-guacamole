@@ -304,7 +304,7 @@ export default function Profile() {
                 {isEditing ? (
                   <Select 
                     value={editedProfile.status || 'offline'} 
-                    onValueChange={(value) => setEditedProfile(prev => ({ ...prev, status: value }))}
+                    onValueChange={(value) => setEditedProfile(prev => ({ ...prev, status: value as 'online' | 'offline' | 'away' | 'busy' | 'gaming' }))}
                   >
                     <SelectTrigger data-testid="select-edit-status">
                       <SelectValue />

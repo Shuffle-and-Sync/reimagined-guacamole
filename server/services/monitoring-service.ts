@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { logger } from '../logger';
 import os from 'os';
 import fs from 'fs/promises';
-import { db } from '../db-optimized';
+import { db } from '@shared/database-unified';
 import { redisClient } from './redis-client';
 
 export interface SystemMetrics {
