@@ -61,6 +61,7 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
   ];
 
   const steps = type === "tablesync" ? tablesyncSteps : platformSteps;
+  const currentStepData = steps[currentStep];
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -132,14 +133,14 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                    <i className={`${steps[currentStep].icon} text-white text-lg`}></i>
+                    <i className={`${currentStepData?.icon || 'fas fa-question'} text-white text-lg`}></i>
                   </div>
-                  <span>{steps[currentStep].title}</span>
+                  <span>{currentStepData?.title || 'Loading...'}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  {steps[currentStep].content}
+                  {currentStepData?.content || 'Loading content...'}
                 </p>
               </CardContent>
             </Card>

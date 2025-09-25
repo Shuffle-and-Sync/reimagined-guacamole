@@ -149,8 +149,8 @@ export function CoordinationDashboard({ eventId, isHost = false }: CoordinationD
     };
   }, [eventId, user, toast]);
 
-  const currentPhase = COORDINATION_PHASES.find(p => p.name === status?.currentPhase) || COORDINATION_PHASES[0];
-  const allowedTransitions = currentPhase.allowedTransitions;
+  const currentPhase = COORDINATION_PHASES.find(p => p.name === status?.currentPhase) ?? COORDINATION_PHASES[0];
+  const allowedTransitions = currentPhase?.allowedTransitions ?? [];
 
   // Mock data for demonstration - only in development
   const mockMetrics: StreamMetrics = import.meta.env.DEV ? {
@@ -215,13 +215,13 @@ export function CoordinationDashboard({ eventId, isHost = false }: CoordinationD
               <div className="flex items-center gap-4">
                 <Badge 
                   variant="outline" 
-                  className={`flex items-center gap-2 ${PHASE_COLORS[currentPhase.name as keyof typeof PHASE_COLORS]}`}
+                  className={`flex items-center gap-2 ${currentPhase ? PHASE_COLORS[currentPhase.name as keyof typeof PHASE_COLORS] : ''}`}
                 >
-                  {PHASE_ICONS[currentPhase.name as keyof typeof PHASE_ICONS]}
-                  {currentPhase.displayName}
+                  {currentPhase ? PHASE_ICONS[currentPhase.name as keyof typeof PHASE_ICONS] : '⚙️'}
+                  {currentPhase?.displayName || 'Unknown Phase'}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {currentPhase.description}
+                  {currentPhase?.description || 'Phase information unavailable'}
                 </span>
               </div>
               

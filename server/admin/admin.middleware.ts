@@ -234,19 +234,21 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     const userId = getAuthUserId(req);
     
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         message: 'Authentication required',
         code: 'UNAUTHORIZED'
       });
+      return;
     }
 
     const isAdmin = await hasAdminRole(userId);
     
     if (!isAdmin) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         message: 'Admin role required',
         code: 'FORBIDDEN'
       });
+      return;
     }
 
     // Store admin info in request for use in routes
@@ -258,7 +260,8 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     next();
   } catch (error) {
     console.error('Admin role check error:', error);
-    return res.status(500).json({ message: 'Permission check failed' });
+    res.status(500).json({ message: 'Permission check failed' });
+    return;
   }
 }
 
@@ -269,20 +272,22 @@ export function requirePermission(permission: string) {
       const userId = getAuthUserId(req);
       
       if (!userId) {
-        return res.status(401).json({ 
+        res.status(401).json({ 
           message: 'Authentication required',
           code: 'UNAUTHORIZED'
         });
+        return;
       }
 
       const hasAccess = await hasPermission(userId, permission);
       
       if (!hasAccess) {
-        return res.status(403).json({ 
+        res.status(403).json({ 
           message: 'Insufficient permissions',
           code: 'FORBIDDEN',
           required_permission: permission
         });
+        return;
       }
 
       // Store permission info in request for use in routes
@@ -295,10 +300,11 @@ export function requirePermission(permission: string) {
       next();
     } catch (error) {
       console.error('Admin permission check error:', error);
-      return res.status(500).json({ 
+      res.status(500).json({ 
         message: 'Permission check failed',
         code: 'INTERNAL_ERROR'
       });
+      return;
     }
   };
 }
@@ -310,10 +316,11 @@ export function requireAllPermissions(permissions: string[]) {
       const userId = getAuthUserId(req);
       
       if (!userId) {
-        return res.status(401).json({ 
+        res.status(401).json({ 
           message: 'Authentication required',
           code: 'UNAUTHORIZED'
         });
+        return;
       }
 
       // Check all permissions
@@ -322,11 +329,12 @@ export function requireAllPermissions(permissions: string[]) {
       );
 
       if (!permissionChecks.every(hasAccess => hasAccess)) {
-        return res.status(403).json({ 
+        res.status(403).json({ 
           message: 'Insufficient permissions',
           code: 'FORBIDDEN',
           required_permissions: permissions
         });
+        return;
       }
 
       req.adminUser = {
@@ -338,10 +346,11 @@ export function requireAllPermissions(permissions: string[]) {
       next();
     } catch (error) {
       console.error('Admin permissions check error:', error);
-      return res.status(500).json({ 
+      res.status(500).json({ 
         message: 'Permissions check failed',
         code: 'INTERNAL_ERROR'
       });
+      return;
     }
   };
 }
@@ -353,10 +362,11 @@ export function requireAnyPermission(permissions: string[]) {
       const userId = getAuthUserId(req);
       
       if (!userId) {
-        return res.status(401).json({ 
+        res.status(401).json({ 
           message: 'Authentication required',
           code: 'UNAUTHORIZED'
         });
+        return;
       }
 
       // Check if user has any of the permissions
@@ -369,11 +379,12 @@ export function requireAnyPermission(permissions: string[]) {
       }
 
       if (!hasAccess) {
-        return res.status(403).json({ 
+        res.status(403).json({ 
           message: 'Insufficient permissions',
           code: 'FORBIDDEN',
           required_any_permissions: permissions
         });
+        return;
       }
 
       req.adminUser = {
@@ -385,10 +396,11 @@ export function requireAnyPermission(permissions: string[]) {
       next();
     } catch (error) {
       console.error('Admin permissions check error:', error);
-      return res.status(500).json({ 
+      res.status(500).json({ 
         message: 'Permissions check failed',
         code: 'INTERNAL_ERROR'
       });
+      return;
     }
   };
 }

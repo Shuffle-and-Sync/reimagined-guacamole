@@ -397,9 +397,11 @@ export default function GameRoom() {
       }
       
       // Handle screen share end
-      videoTrack.onended = () => {
-        stopScreenShare();
-      };
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          stopScreenShare();
+        };
+      }
       
       toast({
         title: "Screen sharing started",
@@ -561,12 +563,14 @@ export default function GameRoom() {
     // Handle remote stream
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
-      setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
-      
-      // Set video element source
-      const videoElement = remoteVideoRefs.current.get(playerId);
-      if (videoElement) {
-        videoElement.srcObject = remoteStream;
+      if (remoteStream) {
+        setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
+        
+        // Set video element source
+        const videoElement = remoteVideoRefs.current.get(playerId);
+        if (videoElement) {
+          videoElement.srcObject = remoteStream;
+        }
       }
     };
 
