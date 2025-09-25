@@ -2672,18 +2672,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
-    // Delete existing links
-    await db.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
-    
-    // Insert new links
-    if (links.length > 0) {
-      const newLinks = await db
-        .insert(userSocialLinks)
-        .values(links.map(link => ({ ...link, userId })))
-        .returning();
-      return newLinks;
-    }
-    return [];
+    return await db.transaction(async (tx) => {
+      // Delete existing links
+      await tx.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
+      
+      // Insert new links
+      if (links.length > 0) {
+        const newLinks = await tx
+          .insert(userSocialLinks)
+          .values(links.map(link => ({ ...link, userId })))
+          .returning();
+        return newLinks;
+      }
+      return [];
+    });
   }
   
   // Gaming profile operations
@@ -5616,44 +5618,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
-    const [updated] = await db.update(cmsContent)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(cmsContent.id, id))
-      .returning();
-    
-    if (data.lastEditedBy) {
-      await this.createAuditLog({
-        adminUserId: data.lastEditedBy,
-        action: 'cms_content_updated',
-        targetUserId: '',
-        details: { contentId: id, changes: data },
-        ipAddress: ''
-      });
-    }
-    
-    return updated;
+    return await db.transaction(async (tx) => {
+      const [updated] = await tx.update(cmsContent)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(cmsContent.id, id))
+        .returning();
+      
+      if (data.lastEditedBy) {
+        await tx.insert(adminAuditLog).values({
+          adminUserId: data.lastEditedBy,
+          action: 'cms_content_updated',
+          targetUserId: '',
+          details: { contentId: id, changes: data },
+          ipAddress: ''
+        });
+      }
+      
+      return updated;
+    });
   }
 
   async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
-    const [published] = await db.update(cmsContent)
-      .set({ 
-        isPublished: true, 
-        publishedAt: new Date(),
-        approvedBy: publisherId,
-        approvedAt: new Date()
-      })
-      .where(eq(cmsContent.id, id))
-      .returning();
-    
-    await this.createAuditLog({
-      adminUserId: publisherId,
-      action: 'cms_content_published',
-      targetUserId: '',
-      details: { contentId: id, title: published.title },
-      ipAddress: ''
+    return await db.transaction(async (tx) => {
+      const [published] = await tx.update(cmsContent)
+        .set({ 
+          isPublished: true, 
+          publishedAt: new Date(),
+          approvedBy: publisherId,
+          approvedAt: new Date()
+        })
+        .where(eq(cmsContent.id, id))
+        .returning();
+      
+      await tx.insert(adminAuditLog).values({
+        adminUserId: publisherId,
+        action: 'cms_content_published',
+        targetUserId: '',
+        details: { contentId: id, title: published.title },
+        ipAddress: ''
+      });
+      
+      return published;
     });
-    
-    return published;
   }
 
   async deleteCmsContent(id: string): Promise<void> {
@@ -5716,20 +5722,22 @@ export class DatabaseStorage implements IStorage {
 
   // Ban evasion tracking operations
   async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
-    const [record] = await db.insert(banEvasionTracking).values(data).returning();
-    
-    await this.createAuditLog({
-      adminUserId: data.detectedBy || 'system',
-      action: 'ban_evasion_detected',
-      targetUserId: data.userId,
-      details: { 
-        suspiciousActivity: data.suspiciousActivity,
-        confidenceScore: data.confidenceScore 
-      },
-      ipAddress: data.ipAddress || ''
+    return await db.transaction(async (tx) => {
+      const [record] = await tx.insert(banEvasionTracking).values(data).returning();
+      
+      await tx.insert(adminAuditLog).values({
+        adminUserId: data.detectedBy || 'system',
+        action: 'ban_evasion_detected',
+        targetUserId: data.userId,
+        details: { 
+          suspiciousActivity: data.suspiciousActivity,
+          confidenceScore: data.confidenceScore 
+        },
+        ipAddress: data.ipAddress || ''
+      });
+      
+      return record;
     });
-    
-    return record;
   }
 
   async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
@@ -5814,17 +5822,19 @@ export class DatabaseStorage implements IStorage {
 
   // User appeal operations
   async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
-    const [appeal] = await db.insert(userAppeals).values(data).returning();
-    
-    await this.createAuditLog({
-      adminUserId: 'system',
-      action: 'user_appeal_created',
-      targetUserId: data.userId,
-      details: { appealType: data.appealType, reason: data.reason },
-      ipAddress: ''
+    return await db.transaction(async (tx) => {
+      const [appeal] = await tx.insert(userAppeals).values(data).returning();
+      
+      await tx.insert(adminAuditLog).values({
+        adminUserId: 'system',
+        action: 'user_appeal_created',
+        targetUserId: data.userId,
+        details: { appealType: data.appealType, reason: data.reason },
+        ipAddress: ''
+      });
+      
+      return appeal;
     });
-    
-    return appeal;
   }
 
   async getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]> {
@@ -5951,38 +5961,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
-    const [template] = await db.insert(moderationTemplates).values(data).returning();
-    
-    await this.createAuditLog({
-      adminUserId: data.createdBy,
-      action: 'moderation_template_created',
-      category: 'content_moderation',
-      targetId: '',
-      parameters: { templateName: data.name, category: data.category },
-      ipAddress: ''
+    return await db.transaction(async (tx) => {
+      const [template] = await tx.insert(moderationTemplates).values(data).returning();
+      
+      await tx.insert(adminAuditLog).values({
+        adminUserId: data.createdBy,
+        action: 'moderation_template_created',
+        category: 'content_moderation',
+        targetId: '',
+        parameters: { templateName: data.name, category: data.category },
+        ipAddress: ''
+      });
+      
+      return template;
     });
-    
-    return template;
   }
 
   async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
-    const [updated] = await db.update(moderationTemplates)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(moderationTemplates.id, id))
-      .returning();
-    
-    if (data.createdBy) {
-      await this.createAuditLog({
-        adminUserId: data.createdBy,
-        action: 'moderation_template_updated',
-        category: 'content_moderation',
-        targetId: '',
-        parameters: { templateId: id, changes: data },
-        ipAddress: ''
-      });
-    }
-    
-    return updated;
+    return await db.transaction(async (tx) => {
+      const [updated] = await tx.update(moderationTemplates)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(moderationTemplates.id, id))
+        .returning();
+      
+      if (data.createdBy) {
+        await tx.insert(adminAuditLog).values({
+          adminUserId: data.createdBy,
+          action: 'moderation_template_updated',
+          category: 'content_moderation',
+          targetId: '',
+          parameters: { templateId: id, changes: data },
+          ipAddress: ''
+        });
+      }
+      
+      return updated;
+    });
   }
 
   async deleteModerationTemplate(id: string): Promise<void> {
