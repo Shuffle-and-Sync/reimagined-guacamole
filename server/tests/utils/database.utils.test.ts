@@ -16,7 +16,7 @@ import {
   isValidEmail,
   validators,
   type FilterCondition
-} from '../utils/database.utils';
+} from '../../utils/database.utils';
 import { sql } from 'drizzle-orm';
 
 // Mock database column for testing
