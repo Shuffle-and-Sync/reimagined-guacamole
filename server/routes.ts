@@ -38,6 +38,20 @@ import {
 import { generateDeviceFingerprint, extractDeviceContext } from "./auth/device-fingerprinting";
 import { logger } from "./logger";
 import { NotFoundError, ValidationError } from "./types";
+import { 
+  errorHandlingMiddleware,
+  errors
+} from "./middleware/error-handling.middleware";
+const { asyncHandler } = errorHandlingMiddleware;
+const { 
+  AppError,
+  ValidationError: ValidationErr,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError: NotFoundErr,
+  ConflictError,
+  DatabaseError
+} = errors;
 import analyticsRouter from "./routes/analytics";
 import cacheHealthRouter from "./routes/cache-health";
 import databaseHealthRouter from "./routes/database-health";
@@ -51,7 +65,9 @@ import { healthCheck } from "./health";
 import { generatePlatformOAuthURL, handlePlatformOAuthCallback } from "./services/platform-oauth";
 import { 
   validateRequest, 
+  validateQuery,
   validateParams, 
+  validateParamsWithSchema,
   securityHeaders,
   validateUserProfileUpdateSchema,
   validateEmailSchema,
@@ -62,7 +78,13 @@ import {
   validateJoinEventSchema,
   validateMessageSchema,
   validateGameSessionSchema,
-  validateUUID 
+  validateUUID,
+  uuidParamSchema,
+  eventParamSchema,
+  userParamSchema,
+  communityParamSchema,
+  paginationQuerySchema,
+  searchQuerySchema
 } from "./validation";
 import { z } from "zod";
 
@@ -563,59 +585,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Tournament routes
-  app.get('/api/tournaments', async (req, res) => {
-    try {
-      const communityId = req.query.community as string | undefined;
+  // Tournament routes - improved with proper error handling
+  app.get('/api/tournaments', 
+    validateQuery(z.object({
+      community: z.string().uuid().optional(),
+      ...paginationQuerySchema.shape
+    })),
+    asyncHandler(async (req, res) => {
+      const { community: communityId, page, limit } = req.query as any;
       const tournaments = await storage.getTournaments(communityId);
-      res.json(tournaments);
-    } catch (error) {
-      logger.error("Failed to fetch tournaments", error);
-      res.status(500).json({ message: "Failed to fetch tournaments" });
-    }
-  });
+      res.json({
+        success: true,
+        data: tournaments,
+        meta: {
+          page: page || 1,
+          limit: limit || 20,
+          total: tournaments.length
+        }
+      });
+    })
+  );
 
-  app.get('/api/tournaments/:id', async (req, res) => {
-    try {
-      const tournamentId = req.params.id;
+  app.get('/api/tournaments/:id', 
+    validateParamsWithSchema(uuidParamSchema),
+    asyncHandler(async (req, res) => {
+      const { id: tournamentId } = req.params;
       const tournament = await storage.getTournament(tournamentId);
+      
       if (!tournament) {
-        return res.status(404).json({ message: "Tournament not found" });
+        throw new NotFoundErr('Tournament not found');
       }
-      res.json(tournament);
-    } catch (error) {
-      logger.error("Failed to fetch tournament", error, { tournamentId: req.params.id });
-      res.status(500).json({ message: "Failed to fetch tournament" });
-    }
-  });
+      
+      res.json({
+        success: true,
+        data: tournament
+      });
+    })
+  );
 
-  app.post('/api/tournaments', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
+  app.post('/api/tournaments', 
+    isAuthenticated, 
+    validateRequest(z.object({
+      title: z.string().min(1, 'Title is required').max(200),
+      description: z.string().max(1000).optional(),
+      type: z.enum(['tournament', 'convention', 'release', 'community']),
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+      maxParticipants: z.number().int().min(1).max(1000).optional(),
+      communityId: z.string().uuid('Invalid community ID'),
+      isPublic: z.boolean().default(true)
+    })),
+    asyncHandler(async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const tournamentData = { ...req.body, organizerId: userId };
       
       const tournament = await storage.createTournament(tournamentData);
-      res.json(tournament);
-    } catch (error) {
-      logger.error("Failed to create tournament", error, { userId: getAuthUserId(authenticatedReq) });
-      res.status(500).json({ message: "Failed to create tournament" });
-    }
-  });
+      res.status(201).json({
+        success: true,
+        data: tournament,
+        message: 'Tournament created successfully'
+      });
+    })
+  );
 
-  app.post('/api/tournaments/:id/join', isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
+  app.post('/api/tournaments/:id/join', 
+    isAuthenticated,
+    validateParamsWithSchema(uuidParamSchema),
+    asyncHandler(async (req, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
-      const tournamentId = req.params.id;
+      const { id: tournamentId } = req.params;
       
       const participant = await storage.joinTournament(tournamentId, userId);
-      res.json(participant);
-    } catch (error) {
-      logger.error("Failed to join tournament", error, { userId: getAuthUserId(authenticatedReq), tournamentId: req.params.id });
-      res.status(500).json({ message: "Failed to join tournament" });
-    }
-  });
+      if (!participant) {
+        throw new ConflictError('Already joined tournament or tournament is full');
+      }
+      
+      res.status(201).json({
+        success: true,
+        data: participant,
+        message: 'Successfully joined tournament'
+      });
+    })
+  );
 
   app.delete('/api/tournaments/:id/leave', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
@@ -3400,6 +3452,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   });
+  
+  // Add error handling middleware - must be last
+  app.use(errorHandlingMiddleware.notFound);
+  app.use(errorHandlingMiddleware.global);
   
   return httpServer;
 }
