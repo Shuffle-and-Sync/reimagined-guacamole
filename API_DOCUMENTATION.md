@@ -120,18 +120,26 @@ List users with filtering and pagination.
 **Authentication:** Optional
 
 **Query Parameters:**
-- `page` (integer): Page number (default: 1)
+- `page` (integer): Page number (default: 1) - Traditional pagination
 - `limit` (integer): Items per page (max: 100, default: 20)
+- `cursor` (string): Base64-encoded cursor for efficient pagination of large datasets
 - `search` (string): Search term for name/email
 - `status` (string): Filter by status (`active`, `inactive`, `suspended`)
 - `role` (string): Filter by role
 - `communityId` (string): Filter by community membership
-- `sort` (string): Sort field (`name`, `email`, `createdAt`)
-- `order` (string): Sort order (`asc`, `desc`)
+- `sort` (string): Sort field and direction (`name:asc`, `email:desc`, `createdAt:desc`)
 
-**Example Request:**
+**Pagination Methods:**
+1. **Traditional Pagination** (smaller datasets): Use `page` and `limit`
+2. **Cursor Pagination** (large datasets): Use `cursor` and `limit` for better performance
+
+**Example Requests:**
 ```bash
-GET /api/users?page=1&limit=20&search=john&status=active&sort=createdAt&order=desc
+# Traditional pagination
+GET /api/users?page=1&limit=20&search=john&status=active&sort=createdAt:desc
+
+# Cursor-based pagination (recommended for large datasets)
+GET /api/users?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCIsInZhbHVlIjoiMjAyNC0wMS0xMCJ9&limit=50&sort=createdAt:desc
 ```
 
 **Response:**
@@ -158,8 +166,11 @@ GET /api/users?page=1&limit=20&search=john&status=active&sort=createdAt&order=de
     "limit": 20,
     "totalPages": 5,
     "hasNext": true,
-    "hasPrevious": false
-  }
+    "hasPrevious": false,
+    "startIndex": 1,
+    "endIndex": 20
+  },
+  "nextCursor": "eyJmaWVsZCI6ImNyZWF0ZWRBdCIsInZhbHVlIjoiMjAyNC0wMS0wMSIsImlkIjoiMTIzZTQ1NjcifQ=="
 }
 ```
 
@@ -626,10 +637,27 @@ Get messages for authenticated user.
 **Authentication:** Required
 
 **Query Parameters:**
-- `page` (integer): Page number (default: 1)
+- `page` (integer): Page number (default: 1) - Traditional pagination
 - `limit` (integer): Items per page (max: 100, default: 50)
+- `cursor` (string): Base64-encoded cursor for efficient pagination
 - `conversationId` (string): Filter by conversation
+- `communityId` (string): Filter by community messages
+- `eventId` (string): Filter by event messages
 - `unreadOnly` (boolean): Only unread messages
+- `sort` (string): Sort field and direction (`createdAt:desc`, `createdAt:asc`)
+
+**Pagination Methods:**
+1. **Traditional Pagination**: Use `page` and `limit` parameters
+2. **Cursor Pagination**: Use `cursor` and `limit` for better performance with large message histories
+
+**Example Requests:**
+```bash
+# Get latest messages with traditional pagination
+GET /api/messages?page=1&limit=50&sort=createdAt:desc
+
+# Get messages using cursor pagination (recommended for large datasets)
+GET /api/messages?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCJ9&limit=50&conversationId=conv-123
+```
 
 **Response:**
 ```json
