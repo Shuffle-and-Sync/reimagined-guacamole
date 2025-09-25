@@ -500,11 +500,12 @@ router.post('/users/:userId/actions',
         const mostRecentMute = muteActions[0];
         await storage.reverseModerationAction(mostRecentMute.id, adminUserId, reason);
         
-        return res.json({
+        res.json({
           message: 'User unmuted successfully',
           action: 'unmute_completed',
           user: await storage.getUser(userId)
         });
+        return;
       }
 
       // Create moderation action record for all other actions

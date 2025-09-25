@@ -29,7 +29,7 @@ export class CacheService {
     }
   }
 
-  async set(key: string, value: any, ttlSeconds?: number): Promise<boolean> {
+  async set<T>(key: string, value: T, ttlSeconds?: number): Promise<boolean> {
     try {
       const client = redisClient.getClient();
       if (!client || !redisClient.isHealthy()) return false;
@@ -141,7 +141,7 @@ export class CacheService {
   /**
    * API response caching
    */
-  async cacheApiResponse(endpoint: string, params: Record<string, any>, response: any): Promise<boolean> {
+  async cacheApiResponse<T>(endpoint: string, params: Record<string, unknown>, response: T): Promise<boolean> {
     const key = this.generateApiCacheKey(endpoint, params);
     return await this.set(key, response, this.apiTTL);
   }
@@ -166,7 +166,7 @@ export class CacheService {
   /**
    * Analytics caching
    */
-  async cacheAnalyticsData(type: string, identifier: string, data: any, ttlSeconds?: number): Promise<boolean> {
+  async cacheAnalyticsData<T>(type: string, identifier: string, data: T, ttlSeconds?: number): Promise<boolean> {
     const key = `analytics:${type}:${identifier}`;
     return await this.set(key, data, ttlSeconds || this.defaultTTL);
   }
@@ -192,7 +192,7 @@ export class CacheService {
     }
   }
 
-  async multiSet(keyValuePairs: Array<{ key: string; value: any; ttl?: number }>): Promise<boolean> {
+  async multiSet<T>(keyValuePairs: Array<{ key: string; value: T; ttl?: number }>): Promise<boolean> {
     try {
       const client = redisClient.getClient();
       if (!client || !redisClient.isHealthy()) return false;
