@@ -162,7 +162,7 @@ export function auditSecurityConfiguration(): { passed: boolean; issues: string[
   try {
     validateEnvironmentVariables();
   } catch (error) {
-    issues.push(`Environment validation failed: ${error.message}`);
+    issues.push(`Environment validation failed: ${(error as Error).message}`);
   }
   
   // Check AUTH_SECRET strength

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated, getAuthUserId } from '../auth';
 import { generalRateLimit } from '../rate-limiting';
+import { logger } from '../logger';
 import {
   requirePermission,
   requireAllPermissions,
@@ -142,7 +143,10 @@ router.get('/users',
 
       res.json(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetch_users'
+      });
       res.status(500).json({ message: 'Failed to fetch users' });
       return;
     }
@@ -185,7 +189,10 @@ router.get('/users/:userId',
 
       res.json(data);
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      logger.error('Error fetching user details', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_user_details'
+      });
       res.status(500).json({ message: 'Failed to fetch user details' });
       return;
     }
@@ -222,7 +229,10 @@ router.patch('/users/:userId',
       
       res.json(updatedUser);
     } catch (error) {
-      console.error('Error updating user:', error);
+      logger.error('Error updating user', error, { 
+        userId: getAuthUserId(req),
+        operation: 'updating_user'
+      });
       res.status(500).json({ message: 'Failed to update user' });
       return;
     }
@@ -242,7 +252,10 @@ router.get('/users/:userId/roles',
       
       res.json(roles);
     } catch (error) {
-      console.error('Error fetching user roles:', error);
+      logger.error('Error fetching user roles', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_user_roles'
+      });
       res.status(500).json({ message: 'Failed to fetch user roles' });
       return;
     }
@@ -290,7 +303,10 @@ router.post('/users/:userId/roles',
       res.status(201).json(newRole);
       return;
     } catch (error) {
-      console.error('Error assigning role:', error);
+      logger.error('Error assigning role', error, { 
+        userId: getAuthUserId(req),
+        operation: 'assigning_role'
+      });
       res.status(500).json({ message: 'Failed to assign role' });
       return;
     }
@@ -309,7 +325,10 @@ router.delete('/users/:userId/roles/:roleId',
       
       res.json({ message: 'Role revoked successfully' });
     } catch (error) {
-      console.error('Error revoking role:', error);
+      logger.error('Error revoking role', error, { 
+        userId: getAuthUserId(req),
+        operation: 'revoking_role'
+      });
       res.status(500).json({ message: 'Failed to revoke role' });
       return;
     }
@@ -354,7 +373,10 @@ router.get('/users/:userId/details',
         }
       });
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      logger.error('Error fetching user details', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_user_details'
+      });
       res.status(500).json({ message: 'Failed to fetch user details' });
       return;
     }
@@ -396,7 +418,10 @@ router.get('/users/:userId/notes',
         total: notes.length
       });
     } catch (error) {
-      console.error('Error fetching user notes:', error);
+      logger.error('Error fetching user notes', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_user_notes'
+      });
       res.status(500).json({ message: 'Failed to fetch user notes' });
       return;
     }
@@ -451,7 +476,10 @@ router.post('/users/:userId/notes',
       });
       return;
     } catch (error) {
-      console.error('Error adding user note:', error);
+      logger.error('Error adding user note', error, { 
+        userId: getAuthUserId(req),
+        operation: 'adding_user_note'
+      });
       res.status(500).json({ message: 'Failed to add user note' });
       return;
     }
@@ -540,7 +568,10 @@ router.post('/users/:userId/actions',
         user: await storage.getUser(userId)
       });
     } catch (error) {
-      console.error('Error performing user action:', error);
+      logger.error('Error performing user action', error, { 
+        userId: getAuthUserId(req),
+        operation: 'performing_user_action'
+      });
       res.status(500).json({ message: 'Failed to perform user action' });
       return;
     }
@@ -582,7 +613,10 @@ router.get('/users/:userId/activity',
 
       res.json(activity);
     } catch (error) {
-      console.error('Error fetching user activity:', error);
+      logger.error('Error fetching user activity', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_user_activity'
+      });
       res.status(500).json({ message: 'Failed to fetch user activity' });
       return;
     }
@@ -607,7 +641,10 @@ router.get('/content-reports',
       
       res.json(reports);
     } catch (error) {
-      console.error('Error fetching content reports:', error);
+      logger.error('Error fetching content reports', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_content_reports'
+      });
       res.status(500).json({ message: 'Failed to fetch content reports' });
       return;
     }
@@ -631,7 +668,10 @@ router.get('/content-reports/:reportId',
 
       res.json(report);
     } catch (error) {
-      console.error('Error fetching content report:', error);
+      logger.error('Error fetching content report', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_content_report'
+      });
       res.status(500).json({ message: 'Failed to fetch content report' });
       return;
     }
@@ -652,7 +692,10 @@ router.patch('/content-reports/:reportId/assign',
 
       res.json(report);
     } catch (error) {
-      console.error('Error assigning content report:', error);
+      logger.error('Error assigning content report', error, { 
+        userId: getAuthUserId(req),
+        operation: 'assigning_content_report'
+      });
       res.status(500).json({ message: 'Failed to assign content report' });
       return;
     }
@@ -674,7 +717,10 @@ router.patch('/content-reports/:reportId/resolve',
 
       res.json(report);
     } catch (error) {
-      console.error('Error resolving content report:', error);
+      logger.error('Error resolving content report', error, { 
+        userId: getAuthUserId(req),
+        operation: 'resolving_content_report'
+      });
       res.status(500).json({ message: 'Failed to resolve content report' });
       return;
     }
@@ -700,7 +746,10 @@ router.get('/moderation-actions',
       
       res.json(actions);
     } catch (error) {
-      console.error('Error fetching moderation actions:', error);
+      logger.error('Error fetching moderation actions', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_moderation_actions'
+      });
       res.status(500).json({ message: 'Failed to fetch moderation actions' });
       return;
     }
@@ -725,7 +774,10 @@ router.post('/moderation-actions',
       res.status(201).json(action);
       return;
     } catch (error) {
-      console.error('Error creating moderation action:', error);
+      logger.error('Error creating moderation action', error, { 
+        userId: getAuthUserId(req),
+        operation: 'creating_moderation_action'
+      });
       res.status(500).json({ message: 'Failed to create moderation action' });
       return;
     }
@@ -747,7 +799,10 @@ router.patch('/moderation-actions/:actionId/reverse',
 
       res.json(action);
     } catch (error) {
-      console.error('Error reversing moderation action:', error);
+      logger.error('Error reversing moderation action', error, { 
+        userId: getAuthUserId(req),
+        operation: 'reversing_moderation_action'
+      });
       res.status(500).json({ message: 'Failed to reverse moderation action' });
       return;
     }
@@ -788,7 +843,10 @@ router.get('/users/:userId/moderation-actions/active',
         total: activeModerationActions.length
       });
     } catch (error) {
-      console.error('Error fetching active moderation actions:', error);
+      logger.error('Error fetching active moderation actions', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_active_moderation_actions'
+      });
       res.status(500).json({ message: 'Failed to fetch active moderation actions' });
       return;
     }
@@ -832,7 +890,10 @@ router.get('/users/:userId/moderation-actions/history',
         total: moderationHistory.length
       });
     } catch (error) {
-      console.error('Error fetching moderation history:', error);
+      logger.error('Error fetching moderation history', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_moderation_history'
+      });
       res.status(500).json({ message: 'Failed to fetch moderation history' });
       return;
     }
@@ -890,7 +951,10 @@ router.post('/moderation-actions/:actionId/reverse',
         }
       });
     } catch (error) {
-      console.error('Error reversing moderation action:', error);
+      logger.error('Error reversing moderation action', error, { 
+        userId: getAuthUserId(req),
+        operation: 'reversing_moderation_action'
+      });
       res.status(500).json({ message: 'Failed to reverse moderation action' });
       return;
     }
@@ -932,7 +996,10 @@ router.get('/moderation-actions/:actionId',
         updatedAt: action.createdAt // Use createdAt since there's no updatedAt
       });
     } catch (error) {
-      console.error('Error fetching moderation action:', error);
+      logger.error('Error fetching moderation action', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_moderation_action'
+      });
       res.status(500).json({ message: 'Failed to fetch moderation action' });
       return;
     }
@@ -968,7 +1035,10 @@ router.get('/moderation-queue',
       
       res.json(queue);
     } catch (error) {
-      console.error('Error fetching moderation queue:', error);
+      logger.error('Error fetching moderation queue', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_moderation_queue'
+      });
       res.status(500).json({ message: 'Failed to fetch moderation queue' });
       return;
     }
@@ -989,7 +1059,10 @@ router.patch('/moderation-queue/:itemId/assign',
 
       res.json(item);
     } catch (error) {
-      console.error('Error assigning queue item:', error);
+      logger.error('Error assigning queue item', error, { 
+        userId: getAuthUserId(req),
+        operation: 'assigning_queue_item'
+      });
       res.status(500).json({ message: 'Failed to assign queue item' });
       return;
     }
@@ -1018,7 +1091,10 @@ router.patch('/moderation-queue/:itemId/complete',
       
       res.json(item);
     } catch (error) {
-      console.error('Error completing queue item:', error);
+      logger.error('Error completing queue item', error, { 
+        userId: getAuthUserId(req),
+        operation: 'completing_queue_item'
+      });
       res.status(500).json({ message: 'Failed to complete queue item' });
       return;
     }
@@ -1034,7 +1110,10 @@ router.get('/moderation-queue/stats',
       const stats = await storage.getModerationQueueStats();
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching queue stats:', error);
+      logger.error('Error fetching queue stats', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_queue_stats'
+      });
       res.status(500).json({ message: 'Failed to fetch queue statistics' });
       return;
     }
@@ -1061,7 +1140,10 @@ router.post('/moderation-queue/auto-assign',
       
       res.json(result);
     } catch (error) {
-      console.error('Error auto-assigning queue items:', error);
+      logger.error('Error auto-assigning queue items', error, { 
+        userId: getAuthUserId(req),
+        operation: 'auto-assigning_queue_items'
+      });
       res.status(500).json({ message: 'Failed to auto-assign queue items' });
       return;
     }
@@ -1091,7 +1173,10 @@ router.post('/moderation-queue/bulk-assign',
         items: assignedItems
       });
     } catch (error) {
-      console.error('Error bulk assigning queue items:', error);
+      logger.error('Error bulk assigning queue items', error, { 
+        userId: getAuthUserId(req),
+        operation: 'bulk_assigning_queue_items'
+      });
       res.status(500).json({ message: 'Failed to bulk assign queue items' });
       return;
     }
@@ -1110,7 +1195,10 @@ router.get('/moderation-queue/workload',
       
       res.json(workloads);
     } catch (error) {
-      console.error('Error fetching moderator workload:', error);
+      logger.error('Error fetching moderator workload', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_moderator_workload'
+      });
       res.status(500).json({ message: 'Failed to fetch moderator workload' });
       return;
     }
@@ -1140,7 +1228,10 @@ router.post('/moderation-queue/escalate',
         items: escalatedItems
       });
     } catch (error) {
-      console.error('Error escalating overdue items:', error);
+      logger.error('Error escalating overdue items', error, { 
+        userId: getAuthUserId(req),
+        operation: 'escalating_overdue_items'
+      });
       res.status(500).json({ message: 'Failed to escalate overdue items' });
       return;
     }
@@ -1169,7 +1260,10 @@ router.patch('/moderation-queue/:itemId/priority',
       
       res.json(item);
     } catch (error) {
-      console.error('Error updating queue priority:', error);
+      logger.error('Error updating queue priority', error, { 
+        userId: getAuthUserId(req),
+        operation: 'updating_queue_priority'
+      });
       res.status(500).json({ message: 'Failed to update queue priority' });
       return;
     }
@@ -1194,7 +1288,10 @@ router.get('/appeals',
       
       res.json(appeals);
     } catch (error) {
-      console.error('Error fetching appeals:', error);
+      logger.error('Error fetching appeals', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_appeals'
+      });
       res.status(500).json({ message: 'Failed to fetch appeals' });
       return;
     }
@@ -1215,7 +1312,10 @@ router.patch('/appeals/:appealId/assign',
 
       res.json(appeal);
     } catch (error) {
-      console.error('Error assigning appeal:', error);
+      logger.error('Error assigning appeal', error, { 
+        userId: getAuthUserId(req),
+        operation: 'assigning_appeal'
+      });
       res.status(500).json({ message: 'Failed to assign appeal' });
       return;
     }
@@ -1237,7 +1337,10 @@ router.patch('/appeals/:appealId/resolve',
 
       res.json(appeal);
     } catch (error) {
-      console.error('Error resolving appeal:', error);
+      logger.error('Error resolving appeal', error, { 
+        userId: getAuthUserId(req),
+        operation: 'resolving_appeal'
+      });
       res.status(500).json({ message: 'Failed to resolve appeal' });
       return;
     }
@@ -1263,7 +1366,10 @@ router.get('/audit-logs',
       
       res.json(logs);
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      logger.error('Error fetching audit logs', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_audit_logs'
+      });
       res.status(500).json({ message: 'Failed to fetch audit logs' });
       return;
     }
@@ -1288,7 +1394,10 @@ router.get('/cms-content',
 
       res.json(content);
     } catch (error) {
-      console.error('Error fetching CMS content:', error);
+      logger.error('Error fetching CMS content', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_cms_content'
+      });
       res.status(500).json({ message: 'Failed to fetch CMS content' });
       return;
     }
@@ -1314,7 +1423,10 @@ router.post('/cms-content',
       res.status(201).json(content);
       return;
     } catch (error) {
-      console.error('Error creating CMS content:', error);
+      logger.error('Error creating CMS content', error, { 
+        userId: getAuthUserId(req),
+        operation: 'creating_cms_content'
+      });
       res.status(500).json({ message: 'Failed to create CMS content' });
       return;
     }
@@ -1339,7 +1451,10 @@ router.patch('/cms-content/:contentId',
 
       res.json(content);
     } catch (error) {
-      console.error('Error updating CMS content:', error);
+      logger.error('Error updating CMS content', error, { 
+        userId: getAuthUserId(req),
+        operation: 'updating_cms_content'
+      });
       res.status(500).json({ message: 'Failed to update CMS content' });
       return;
     }
@@ -1360,7 +1475,10 @@ router.patch('/cms-content/:contentId/publish',
 
       res.json(content);
     } catch (error) {
-      console.error('Error publishing CMS content:', error);
+      logger.error('Error publishing CMS content', error, { 
+        userId: getAuthUserId(req),
+        operation: 'publishing_cms_content'
+      });
       res.status(500).json({ message: 'Failed to publish CMS content' });
       return;
     }
@@ -1401,7 +1519,10 @@ router.get('/dashboard/stats',
       
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logger.error('Error fetching dashboard stats', error, { 
+        userId: getAuthUserId(req),
+        operation: 'fetching_dashboard_stats'
+      });
       res.status(500).json({ message: 'Failed to fetch dashboard stats' });
       return;
     }
