@@ -155,7 +155,7 @@ export class PreparedStatementCache {
 
 // Enhanced transaction wrapper with better error handling and retry logic
 export async function withTransaction<T>(
-  operation: (tx: typeof db) => Promise<T>,
+  operation: (tx: Parameters<typeof db.transaction>[0]) => Promise<T>,
   operationName: string = 'transaction',
   maxRetries: number = 3
 ): Promise<T> {

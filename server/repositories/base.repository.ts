@@ -8,6 +8,7 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
 import { PgTableWithColumns, TableConfig } from 'drizzle-orm/pg-core';
 import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from 'drizzle-orm';
+import { PgTransaction } from 'drizzle-orm/pg-core';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
 import { withQueryTiming } from '@shared/database-unified';
@@ -557,7 +558,7 @@ export abstract class BaseRepository<
   /**
    * Transaction wrapper for complex operations
    */
-  async transaction<T>(callback: (tx: PgDatabase<any>) => Promise<T>): Promise<T> {
+  async transaction<T>(callback: (tx: PgTransaction<any, any, any>) => Promise<T>): Promise<T> {
     return withQueryTiming(`${this.tableName}:transaction`, async () => {
       try {
         return await this.db.transaction(callback);
