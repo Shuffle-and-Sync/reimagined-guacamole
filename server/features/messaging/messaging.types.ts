@@ -3,11 +3,19 @@ export interface NotificationFilters {
   limit?: number;
 }
 
+export interface NotificationData {
+  eventId?: string;
+  userId?: string;
+  communityId?: string;
+  actionUrl?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface CreateNotificationRequest {
   type: string;
   title: string;
   message: string;
-  data?: any;
+  data?: NotificationData;
 }
 
 export interface MessageFilters {

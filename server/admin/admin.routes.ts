@@ -111,10 +111,11 @@ router.get('/users',
     try {
       const validation = userFiltersSchema.safeParse(req.query);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid query parameters',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { page, limit, search, role, status, sortBy, order } = validation.data;
@@ -142,7 +143,8 @@ router.get('/users',
       res.json(data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      return res.status(500).json({ message: 'Failed to fetch users' });
+      res.status(500).json({ message: 'Failed to fetch users' });
+      return;
     }
   }
 );
@@ -155,6 +157,11 @@ router.get('/users/:userId',
     try {
       const { userId } = req.params;
       
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
+      
       const [user, roles, reputation, moderationActions, appeals] = await Promise.all([
         storage.getUser(userId),
         storage.getUserRoles(userId),
@@ -164,7 +171,8 @@ router.get('/users/:userId',
       ]);
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       const data = {
@@ -178,7 +186,8 @@ router.get('/users/:userId',
       res.json(data);
     } catch (error) {
       console.error('Error fetching user details:', error);
-      return res.status(500).json({ message: 'Failed to fetch user details' });
+      res.status(500).json({ message: 'Failed to fetch user details' });
+      return;
     }
   }
 );
@@ -193,10 +202,11 @@ router.patch('/users/:userId',
       
       const validation = userUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid user data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const updates = validation.data;
@@ -204,7 +214,8 @@ router.patch('/users/:userId',
       // Check if user exists
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
       
       const updatedUser = await storage.updateUser(userId, updates);
@@ -212,7 +223,8 @@ router.patch('/users/:userId',
       res.json(updatedUser);
     } catch (error) {
       console.error('Error updating user:', error);
-      return res.status(500).json({ message: 'Failed to update user' });
+      res.status(500).json({ message: 'Failed to update user' });
+      return;
     }
   }
 );
@@ -231,7 +243,8 @@ router.get('/users/:userId/roles',
       res.json(roles);
     } catch (error) {
       console.error('Error fetching user roles:', error);
-      return res.status(500).json({ message: 'Failed to fetch user roles' });
+      res.status(500).json({ message: 'Failed to fetch user roles' });
+      return;
     }
   }
 );
@@ -246,10 +259,11 @@ router.post('/users/:userId/roles',
       
       const validation = roleAssignSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid role data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { role, permissions, expiresAt, notes } = validation.data;
@@ -258,7 +272,8 @@ router.post('/users/:userId/roles',
       // Check if user exists
       const existingUser = await storage.getUser(userId);
       if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       const roleData = {
@@ -272,10 +287,12 @@ router.post('/users/:userId/roles',
 
       const newRole = await storage.createUserRole(roleData);
       
-      return res.status(201).json(newRole);
+      res.status(201).json(newRole);
+      return;
     } catch (error) {
       console.error('Error assigning role:', error);
-      return res.status(500).json({ message: 'Failed to assign role' });
+      res.status(500).json({ message: 'Failed to assign role' });
+      return;
     }
   }
 );
@@ -293,7 +310,8 @@ router.delete('/users/:userId/roles/:roleId',
       res.json({ message: 'Role revoked successfully' });
     } catch (error) {
       console.error('Error revoking role:', error);
-      return res.status(500).json({ message: 'Failed to revoke role' });
+      res.status(500).json({ message: 'Failed to revoke role' });
+      return;
     }
   }
 );
@@ -310,7 +328,8 @@ router.get('/users/:userId/details',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
       
       // Get additional user data
@@ -336,7 +355,8 @@ router.get('/users/:userId/details',
       });
     } catch (error) {
       console.error('Error fetching user details:', error);
-      return res.status(500).json({ message: 'Failed to fetch user details' });
+      res.status(500).json({ message: 'Failed to fetch user details' });
+      return;
     }
   }
 );
@@ -353,7 +373,8 @@ router.get('/users/:userId/notes',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
       
       // Get notes from moderation actions with action type 'note'
@@ -376,7 +397,8 @@ router.get('/users/:userId/notes',
       });
     } catch (error) {
       console.error('Error fetching user notes:', error);
-      return res.status(500).json({ message: 'Failed to fetch user notes' });
+      res.status(500).json({ message: 'Failed to fetch user notes' });
+      return;
     }
   }
 );
@@ -391,15 +413,17 @@ router.post('/users/:userId/notes',
       const { content } = req.body;
       
       if (!content || typeof content !== 'string' || content.trim().length === 0) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Note content is required',
           errors: [{ message: 'Content must be a non-empty string' }]
         });
+      return;
       }
 
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
       
       const adminUserId = getAuthUserId(req);
@@ -416,7 +440,7 @@ router.post('/users/:userId/notes',
       
       const adminUser = await storage.getUser(adminUserId);
       
-      return res.status(201).json({ 
+      res.status(201).json({ 
         id: moderationAction.id,
         content: moderationAction.adminNotes,
         moderatorId: adminUserId,
@@ -425,9 +449,11 @@ router.post('/users/:userId/notes',
           : adminUser?.username || 'Unknown',
         createdAt: moderationAction.createdAt
       });
+      return;
     } catch (error) {
       console.error('Error adding user note:', error);
-      return res.status(500).json({ message: 'Failed to add user note' });
+      res.status(500).json({ message: 'Failed to add user note' });
+      return;
     }
   }
 );
@@ -444,10 +470,11 @@ router.post('/users/:userId/actions',
       
       const validation = userActionSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid action data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { action, reason, duration, notes } = validation.data;
@@ -455,7 +482,8 @@ router.post('/users/:userId/actions',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       // Handle special case for unmute - reverse the mute action instead of creating unmute action
@@ -464,18 +492,20 @@ router.post('/users/:userId/actions',
         const allActions = await storage.getUserActiveModerationActions(userId);
         const muteActions = allActions.filter(action => action.action === 'mute' && action.isActive);
         if (muteActions.length === 0) {
-          return res.status(400).json({ message: 'No active mute found to reverse' });
+          res.status(400).json({ message: 'No active mute found to reverse' });
+      return;
         }
         
         // Reverse the most recent mute action
         const mostRecentMute = muteActions[0];
         await storage.reverseModerationAction(mostRecentMute.id, adminUserId, reason);
         
-        return res.json({
+        res.json({
           message: 'User unmuted successfully',
           action: 'unmute_completed',
           user: await storage.getUser(userId)
         });
+        return;
       }
 
       // Create moderation action record for all other actions
@@ -483,7 +513,8 @@ router.post('/users/:userId/actions',
       
       // Ensure action is valid for database schema (exclude unmute as it's handled above)
       if (rawAction === 'unmute') {
-        return res.status(500).json({ message: 'Unmute action should have been handled above' });
+        res.status(500).json({ message: 'Unmute action should have been handled above' });
+      return;
       }
       
       // Now we can safely cast the action since unmute is excluded
@@ -510,7 +541,8 @@ router.post('/users/:userId/actions',
       });
     } catch (error) {
       console.error('Error performing user action:', error);
-      return res.status(500).json({ message: 'Failed to perform user action' });
+      res.status(500).json({ message: 'Failed to perform user action' });
+      return;
     }
   }
 );
@@ -525,7 +557,8 @@ router.get('/users/:userId/activity',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       const [moderationActions, appeals, roles] = await Promise.all([
@@ -550,7 +583,8 @@ router.get('/users/:userId/activity',
       res.json(activity);
     } catch (error) {
       console.error('Error fetching user activity:', error);
-      return res.status(500).json({ message: 'Failed to fetch user activity' });
+      res.status(500).json({ message: 'Failed to fetch user activity' });
+      return;
     }
   }
 );
@@ -574,7 +608,8 @@ router.get('/content-reports',
       res.json(reports);
     } catch (error) {
       console.error('Error fetching content reports:', error);
-      return res.status(500).json({ message: 'Failed to fetch content reports' });
+      res.status(500).json({ message: 'Failed to fetch content reports' });
+      return;
     }
   }
 );
@@ -589,14 +624,16 @@ router.get('/content-reports/:reportId',
       
       const report = await storage.getContentReport(reportId);
       if (!report) {
-        return res.status(404).json({ message: 'Content report not found' });
+        res.status(404).json({ message: 'Content report not found' });
+      return;
       }
       
 
       res.json(report);
     } catch (error) {
       console.error('Error fetching content report:', error);
-      return res.status(500).json({ message: 'Failed to fetch content report' });
+      res.status(500).json({ message: 'Failed to fetch content report' });
+      return;
     }
   }
 );
@@ -616,7 +653,8 @@ router.patch('/content-reports/:reportId/assign',
       res.json(report);
     } catch (error) {
       console.error('Error assigning content report:', error);
-      return res.status(500).json({ message: 'Failed to assign content report' });
+      res.status(500).json({ message: 'Failed to assign content report' });
+      return;
     }
   }
 );
@@ -637,7 +675,8 @@ router.patch('/content-reports/:reportId/resolve',
       res.json(report);
     } catch (error) {
       console.error('Error resolving content report:', error);
-      return res.status(500).json({ message: 'Failed to resolve content report' });
+      res.status(500).json({ message: 'Failed to resolve content report' });
+      return;
     }
   }
 );
@@ -662,7 +701,8 @@ router.get('/moderation-actions',
       res.json(actions);
     } catch (error) {
       console.error('Error fetching moderation actions:', error);
-      return res.status(500).json({ message: 'Failed to fetch moderation actions' });
+      res.status(500).json({ message: 'Failed to fetch moderation actions' });
+      return;
     }
   }
 );
@@ -682,10 +722,12 @@ router.post('/moderation-actions',
       const action = await storage.createModerationAction(actionData);
       
 
-      return res.status(201).json(action);
+      res.status(201).json(action);
+      return;
     } catch (error) {
       console.error('Error creating moderation action:', error);
-      return res.status(500).json({ message: 'Failed to create moderation action' });
+      res.status(500).json({ message: 'Failed to create moderation action' });
+      return;
     }
   }
 );
@@ -706,7 +748,8 @@ router.patch('/moderation-actions/:actionId/reverse',
       res.json(action);
     } catch (error) {
       console.error('Error reversing moderation action:', error);
-      return res.status(500).json({ message: 'Failed to reverse moderation action' });
+      res.status(500).json({ message: 'Failed to reverse moderation action' });
+      return;
     }
   }
 );
@@ -721,7 +764,8 @@ router.get('/users/:userId/moderation-actions/active',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       const activeModerationActions = await storage.getUserActiveModerationActions(userId);
@@ -745,7 +789,8 @@ router.get('/users/:userId/moderation-actions/active',
       });
     } catch (error) {
       console.error('Error fetching active moderation actions:', error);
-      return res.status(500).json({ message: 'Failed to fetch active moderation actions' });
+      res.status(500).json({ message: 'Failed to fetch active moderation actions' });
+      return;
     }
   }
 );
@@ -760,7 +805,8 @@ router.get('/users/:userId/moderation-actions/history',
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+      return;
       }
 
       const moderationHistory = await storage.getModerationActions({ targetUserId: userId });
@@ -787,7 +833,8 @@ router.get('/users/:userId/moderation-actions/history',
       });
     } catch (error) {
       console.error('Error fetching moderation history:', error);
-      return res.status(500).json({ message: 'Failed to fetch moderation history' });
+      res.status(500).json({ message: 'Failed to fetch moderation history' });
+      return;
     }
   }
 );
@@ -802,10 +849,11 @@ router.post('/moderation-actions/:actionId/reverse',
       
       const validation = reverseModerationActionSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid reversal data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { reason, notes } = validation.data;
@@ -813,15 +861,18 @@ router.post('/moderation-actions/:actionId/reverse',
       
       const action = await storage.getModerationAction(actionId);
       if (!action) {
-        return res.status(404).json({ message: 'Moderation action not found' });
+        res.status(404).json({ message: 'Moderation action not found' });
+      return;
       }
 
       if (!action.isActive) {
-        return res.status(400).json({ message: 'Action is already inactive' });
+        res.status(400).json({ message: 'Action is already inactive' });
+      return;
       }
 
       if (!action.isReversible) {
-        return res.status(400).json({ message: 'This action cannot be reversed' });
+        res.status(400).json({ message: 'This action cannot be reversed' });
+      return;
       }
 
       const reversedAction = await storage.reverseModerationAction(actionId, adminUserId, reason);
@@ -840,7 +891,8 @@ router.post('/moderation-actions/:actionId/reverse',
       });
     } catch (error) {
       console.error('Error reversing moderation action:', error);
-      return res.status(500).json({ message: 'Failed to reverse moderation action' });
+      res.status(500).json({ message: 'Failed to reverse moderation action' });
+      return;
     }
   }
 );
@@ -855,7 +907,8 @@ router.get('/moderation-actions/:actionId',
       
       const action = await storage.getModerationAction(actionId);
       if (!action) {
-        return res.status(404).json({ message: 'Moderation action not found' });
+        res.status(404).json({ message: 'Moderation action not found' });
+      return;
       }
 
       res.json({
@@ -880,7 +933,8 @@ router.get('/moderation-actions/:actionId',
       });
     } catch (error) {
       console.error('Error fetching moderation action:', error);
-      return res.status(500).json({ message: 'Failed to fetch moderation action' });
+      res.status(500).json({ message: 'Failed to fetch moderation action' });
+      return;
     }
   }
 );
@@ -895,10 +949,11 @@ router.get('/moderation-queue',
     try {
       const validation = queueFiltersSchema.safeParse(req.query);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid query parameters',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { status, assignedModerator, priority, itemType, overdue } = validation.data;
@@ -914,7 +969,8 @@ router.get('/moderation-queue',
       res.json(queue);
     } catch (error) {
       console.error('Error fetching moderation queue:', error);
-      return res.status(500).json({ message: 'Failed to fetch moderation queue' });
+      res.status(500).json({ message: 'Failed to fetch moderation queue' });
+      return;
     }
   }
 );
@@ -934,7 +990,8 @@ router.patch('/moderation-queue/:itemId/assign',
       res.json(item);
     } catch (error) {
       console.error('Error assigning queue item:', error);
-      return res.status(500).json({ message: 'Failed to assign queue item' });
+      res.status(500).json({ message: 'Failed to assign queue item' });
+      return;
     }
   }
 );
@@ -947,10 +1004,11 @@ router.patch('/moderation-queue/:itemId/complete',
     try {
       const validation = completeQueueItemSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid request data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { itemId } = req.params;
@@ -961,7 +1019,8 @@ router.patch('/moderation-queue/:itemId/complete',
       res.json(item);
     } catch (error) {
       console.error('Error completing queue item:', error);
-      return res.status(500).json({ message: 'Failed to complete queue item' });
+      res.status(500).json({ message: 'Failed to complete queue item' });
+      return;
     }
   }
 );
@@ -976,7 +1035,8 @@ router.get('/moderation-queue/stats',
       res.json(stats);
     } catch (error) {
       console.error('Error fetching queue stats:', error);
-      return res.status(500).json({ message: 'Failed to fetch queue statistics' });
+      res.status(500).json({ message: 'Failed to fetch queue statistics' });
+      return;
     }
   }
 );
@@ -989,10 +1049,11 @@ router.post('/moderation-queue/auto-assign',
     try {
       const validation = autoAssignSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid request data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { itemType } = validation.data;
@@ -1001,7 +1062,8 @@ router.post('/moderation-queue/auto-assign',
       res.json(result);
     } catch (error) {
       console.error('Error auto-assigning queue items:', error);
-      return res.status(500).json({ message: 'Failed to auto-assign queue items' });
+      res.status(500).json({ message: 'Failed to auto-assign queue items' });
+      return;
     }
   }
 );
@@ -1014,10 +1076,11 @@ router.post('/moderation-queue/bulk-assign',
     try {
       const validation = bulkAssignSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid request data',
           errors: validation.error.errors
         });
+      return;
       }
       
       const { itemIds, moderatorId } = validation.data;
@@ -1029,7 +1092,8 @@ router.post('/moderation-queue/bulk-assign',
       });
     } catch (error) {
       console.error('Error bulk assigning queue items:', error);
-      return res.status(500).json({ message: 'Failed to bulk assign queue items' });
+      res.status(500).json({ message: 'Failed to bulk assign queue items' });
+      return;
     }
   }
 );
@@ -1047,7 +1111,8 @@ router.get('/moderation-queue/workload',
       res.json(workloads);
     } catch (error) {
       console.error('Error fetching moderator workload:', error);
-      return res.status(500).json({ message: 'Failed to fetch moderator workload' });
+      res.status(500).json({ message: 'Failed to fetch moderator workload' });
+      return;
     }
   }
 );
@@ -1060,10 +1125,11 @@ router.post('/moderation-queue/escalate',
     try {
       const validation = escalateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid request data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { thresholdHours = 24 } = validation.data;
@@ -1075,7 +1141,8 @@ router.post('/moderation-queue/escalate',
       });
     } catch (error) {
       console.error('Error escalating overdue items:', error);
-      return res.status(500).json({ message: 'Failed to escalate overdue items' });
+      res.status(500).json({ message: 'Failed to escalate overdue items' });
+      return;
     }
   }
 );
@@ -1088,10 +1155,11 @@ router.patch('/moderation-queue/:itemId/priority',
     try {
       const validation = priorityUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Invalid request data',
           errors: validation.error.errors
         });
+      return;
       }
 
       const { itemId } = req.params;
@@ -1102,7 +1170,8 @@ router.patch('/moderation-queue/:itemId/priority',
       res.json(item);
     } catch (error) {
       console.error('Error updating queue priority:', error);
-      return res.status(500).json({ message: 'Failed to update queue priority' });
+      res.status(500).json({ message: 'Failed to update queue priority' });
+      return;
     }
   }
 );
@@ -1126,7 +1195,8 @@ router.get('/appeals',
       res.json(appeals);
     } catch (error) {
       console.error('Error fetching appeals:', error);
-      return res.status(500).json({ message: 'Failed to fetch appeals' });
+      res.status(500).json({ message: 'Failed to fetch appeals' });
+      return;
     }
   }
 );
@@ -1146,7 +1216,8 @@ router.patch('/appeals/:appealId/assign',
       res.json(appeal);
     } catch (error) {
       console.error('Error assigning appeal:', error);
-      return res.status(500).json({ message: 'Failed to assign appeal' });
+      res.status(500).json({ message: 'Failed to assign appeal' });
+      return;
     }
   }
 );
@@ -1167,7 +1238,8 @@ router.patch('/appeals/:appealId/resolve',
       res.json(appeal);
     } catch (error) {
       console.error('Error resolving appeal:', error);
-      return res.status(500).json({ message: 'Failed to resolve appeal' });
+      res.status(500).json({ message: 'Failed to resolve appeal' });
+      return;
     }
   }
 );
@@ -1192,7 +1264,8 @@ router.get('/audit-logs',
       res.json(logs);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      return res.status(500).json({ message: 'Failed to fetch audit logs' });
+      res.status(500).json({ message: 'Failed to fetch audit logs' });
+      return;
     }
   }
 );
@@ -1216,7 +1289,8 @@ router.get('/cms-content',
       res.json(content);
     } catch (error) {
       console.error('Error fetching CMS content:', error);
-      return res.status(500).json({ message: 'Failed to fetch CMS content' });
+      res.status(500).json({ message: 'Failed to fetch CMS content' });
+      return;
     }
   }
 );
@@ -1237,10 +1311,12 @@ router.post('/cms-content',
       const content = await storage.createCmsContent(contentData);
       
 
-      return res.status(201).json(content);
+      res.status(201).json(content);
+      return;
     } catch (error) {
       console.error('Error creating CMS content:', error);
-      return res.status(500).json({ message: 'Failed to create CMS content' });
+      res.status(500).json({ message: 'Failed to create CMS content' });
+      return;
     }
   }
 );
@@ -1264,7 +1340,8 @@ router.patch('/cms-content/:contentId',
       res.json(content);
     } catch (error) {
       console.error('Error updating CMS content:', error);
-      return res.status(500).json({ message: 'Failed to update CMS content' });
+      res.status(500).json({ message: 'Failed to update CMS content' });
+      return;
     }
   }
 );
@@ -1284,7 +1361,8 @@ router.patch('/cms-content/:contentId/publish',
       res.json(content);
     } catch (error) {
       console.error('Error publishing CMS content:', error);
-      return res.status(500).json({ message: 'Failed to publish CMS content' });
+      res.status(500).json({ message: 'Failed to publish CMS content' });
+      return;
     }
   }
 );
@@ -1324,7 +1402,8 @@ router.get('/dashboard/stats',
       res.json(stats);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      return res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+      res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+      return;
     }
   }
 );
