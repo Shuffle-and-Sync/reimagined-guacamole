@@ -556,16 +556,34 @@ export abstract class BaseRepository<
   }
 
   /**
-   * Transaction wrapper for complex operations
+   * Transaction wrapper for complex operations with enhanced performance monitoring
    */
   async transaction<T>(callback: (tx: PgTransaction<any, any, any>) => Promise<T>): Promise<T> {
     return withQueryTiming(`${this.tableName}:transaction`, async () => {
       try {
-        return await this.db.transaction(callback);
+        return await this.db.transaction(async (tx) => {
+          return await callback(tx);
+        });
       } catch (error) {
         logger.error(`Transaction failed for ${this.tableName}`, error);
-        throw new DatabaseError(`Transaction failed`);
+        throw new DatabaseError(`Transaction failed for ${this.tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    });
+  }
+
+  /**
+   * Batch operations with transaction support for better performance
+   */
+  async batchOperation<T>(
+    operations: Array<(tx: PgTransaction<any, any, any>) => Promise<T>>
+  ): Promise<T[]> {
+    return this.transaction(async (tx) => {
+      const results: T[] = [];
+      for (const operation of operations) {
+        const result = await operation(tx);
+        results.push(result);
+      }
+      return results;
     });
   }
 }
