@@ -9,6 +9,7 @@ config({ path: resolve(process.cwd(), '.env.local') });
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { sql } from 'drizzle-orm';
+import type { PgTransaction } from 'drizzle-orm/pg-core';
 import ws from "ws";
 import * as schema from "./schema";
 
@@ -164,7 +165,9 @@ export async function withTransaction<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await withQueryTiming(`${operationName}:attempt_${attempt}`, async () => {
-        return await db.transaction(operation);
+        return await db.transaction(async (tx) => {
+          return await operation(tx);
+        });
       });
     } catch (error) {
       lastError = error as Error;

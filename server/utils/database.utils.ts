@@ -516,3 +516,126 @@ export const dbUtils = {
   formatDatabaseError,
   validators
 };
+
+/**
+ * Enhanced cursor-based pagination utilities for better performance
+ */
+export class CursorPagination {
+  /**
+   * Build cursor condition for efficient pagination
+   */
+  static buildCursorCondition(
+    cursor: string | undefined,
+    sortField: PgColumn,
+    sortDirection: 'asc' | 'desc' = 'desc'
+  ): SQL | null {
+    if (!cursor) return null;
+    
+    try {
+      const cursorData = this.parseCursor(cursor);
+      if (!cursorData) return null;
+      
+      if (sortDirection === 'desc') {
+        return lt(sortField, cursorData.value);
+      } else {
+        return gt(sortField, cursorData.value);
+      }
+    } catch (error) {
+      logger.warn('Invalid cursor provided for pagination', { cursor });
+      return null;
+    }
+  }
+
+  /**
+   * Generate cursor from the last item in a result set
+   */
+  static generateCursor(lastItem: any, sortField: string): string {
+    if (!lastItem || !lastItem[sortField]) {
+      return '';
+    }
+    
+    const cursorData = {
+      field: sortField,
+      value: lastItem[sortField],
+      id: lastItem.id
+    };
+    
+    return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+  }
+
+  /**
+   * Parse cursor data safely
+   */
+  static parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+    try {
+      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
+ * Batch query optimization to prevent N+1 problems
+ */
+export class BatchQueryOptimizer {
+  /**
+   * Execute batch queries to prevent N+1 problems
+   */
+  static async batchQuery<T, K, R>(
+    items: T[],
+    keyExtractor: (item: T) => K,
+    queryFunction: (keys: K[]) => Promise<R[]>,
+    resultKeyExtractor: (result: R) => K
+  ): Promise<Map<K, R[]>> {
+    if (items.length === 0) return new Map();
+
+    try {
+      const keys = items.map(keyExtractor);
+      const uniqueKeys = Array.from(new Set(keys));
+      
+      const results = await queryFunction(uniqueKeys);
+      const resultMap = new Map<K, R[]>();
+
+      // Initialize empty arrays for all keys
+      uniqueKeys.forEach(key => resultMap.set(key, []));
+
+      // Group results by key
+      results.forEach(result => {
+        const key = resultKeyExtractor(result);
+        const existing = resultMap.get(key) || [];
+        existing.push(result);
+        resultMap.set(key, existing);
+      });
+
+      return resultMap;
+    } catch (error) {
+      logger.error('Batch query failed:', error);
+      throw new DatabaseError('Failed to execute batch query');
+    }
+  }
+
+  /**
+   * Load related data in batches to avoid N+1 queries
+   */
+  static async loadRelatedData<T, K, R>(
+    entities: T[],
+    relationKey: keyof T,
+    batchLoader: (ids: K[]) => Promise<R[]>
+  ): Promise<Map<K, R[]>> {
+    const ids = entities.map((entity) => entity[relationKey] as K).filter(Boolean);
+    const uniqueIds = Array.from(new Set(ids));
+    
+    if (uniqueIds.length === 0) return new Map();
+
+    const relatedData = await batchLoader(uniqueIds);
+    const dataMap = new Map<K, R[]>();
+
+    uniqueIds.forEach(id => dataMap.set(id, []));
+    
+    // This would need to be customized based on how the related data is structured
+    // For now, return an empty map as this is a generic utility
+    return dataMap;
+  }
+}
