@@ -217,24 +217,47 @@ export function buildPaginationMeta(
  */
 export function sanitizeDatabaseInput(input: any): any {
   if (typeof input === 'string') {
-    // Check for SQL injection patterns
+    // Enhanced SQL injection patterns
     const suspiciousPatterns = [
+      // SQL keywords
       /(\b(union|select|insert|update|delete|drop|alter|create|exec|execute|sp_|xp_)\b)/gi,
+      // SQL comments and special chars
       /(--|\/\*|\*\/|;|'|"|`)/g,
+      // Boolean injections
       /(\bor\b|\band\b).*[=<>]/gi,
-      /(\bwhere\b|\bhaving\b).*[=<>]/gi
+      /(\bwhere\b|\bhaving\b).*[=<>]/gi,
+      // Additional injection patterns
+      /(\binto\b|\bfrom\b|\bjoin\b|\bunion\b).*(\bselect\b|\binsert\b|\bupdate\b|\bdelete\b)/gi,
+      // Hex injection attempts
+      /0x[0-9a-f]/gi,
+      // Database functions
+      /(\bcast\b|\bconvert\b|\bchar\b|\bchr\b|\bascii\b|\bsubstring\b|\bmid\b|\bleft\b|\bright\b)/gi,
+      // Information schema queries
+      /information_schema/gi,
+      // System tables
+      /(\bsys\b|\bmysql\b|\bpostgres\b|\bpg_\b)/gi
     ];
     
-    // If any suspicious pattern is found, log it and return sanitized version
+    let isSuspicious = false;
+    let detectedPatterns: string[] = [];
+    
+    // Check for suspicious patterns and collect them
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(input)) {
-        logger.warn('Potential SQL injection attempt detected', { 
-          input: input.substring(0, 100), // Only log first 100 chars
-          pattern: pattern.source 
-        });
+        isSuspicious = true;
+        detectedPatterns.push(pattern.source);
         // Sanitize aggressively
         input = input.replace(pattern, '');
       }
+    }
+    
+    // Log if suspicious patterns were detected
+    if (isSuspicious) {
+      logger.warn('Potential SQL injection attempt detected and sanitized', { 
+        input: input.substring(0, 100), // Only log first 100 chars for security
+        detectedPatterns,
+        timestamp: new Date().toISOString()
+      });
     }
     
     // Remove potential XSS and other malicious patterns
@@ -243,6 +266,9 @@ export function sanitizeDatabaseInput(input: any): any {
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/data:/gi, '') // Remove data: protocol
+      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
+      .replace(/onload\s*=/gi, '') // Remove onload handlers
+      .replace(/onerror\s*=/gi, '') // Remove onerror handlers
       .trim();
   }
   
@@ -285,7 +311,7 @@ export async function executeWithRetry<T>(
   maxRetries: number = 3,
   baseDelay: number = 1000
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error = new Error('Unknown database error');
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
