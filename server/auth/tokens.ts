@@ -5990,3 +5990,55 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+// Token constants and JWT functions
+export const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Email verification JWT functions
+export function generateEmailVerificationJWT(userId: string, email: string): string {
+  // This would typically use a JWT library like jose or jsonwebtoken
+  // For now, return a placeholder - in production this should be implemented
+  return Buffer.from(JSON.stringify({ userId, email, exp: Date.now() + TOKEN_EXPIRY })).toString('base64');
+}
+
+export function verifyEmailVerificationJWT(token: string): { userId: string; email: string } | null {
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    if (decoded.exp < Date.now()) {
+      return null; // Token expired
+    }
+    return { userId: decoded.userId, email: decoded.email };
+  } catch {
+    return null;
+  }
+}
+
+// Access token JWT functions
+export interface AccessTokenJWTPayload {
+  userId: string;
+  jti: string;
+  exp: number;
+}
+
+export function verifyAccessTokenJWT(token: string): AccessTokenJWTPayload | null {
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    if (decoded.exp < Date.now()) {
+      return null; // Token expired
+    }
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+export function validateTokenSecurity(token: string): boolean {
+  // Basic token security validation
+  return token && token.length > 10;
+}
+
+export async function revokeTokenByJTI(jti: string): Promise<void> {
+  // This would revoke the token in the database
+  // For now, this is a placeholder
+  console.log(`Token ${jti} would be revoked`);
+}

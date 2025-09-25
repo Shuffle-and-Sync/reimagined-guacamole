@@ -2,7 +2,7 @@ import { logger } from '../logger';
 import { monitoringService } from './monitoring-service';
 import { cacheService } from './cache-service';
 import { backupService } from './backup-service';
-import { db } from '../db-optimized';
+import { db } from '@shared/database-unified';
 import { redisClient } from './redis-client';
 import { storage } from '../storage';
 

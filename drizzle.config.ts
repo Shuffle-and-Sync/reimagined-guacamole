@@ -9,11 +9,14 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
 
+// Use direct database URL for migrations if available, otherwise fall back to DATABASE_URL
+const migrationUrl = process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL;
+
 export default defineConfig({
   out: "./migrations",
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: migrationUrl,
   },
 });
