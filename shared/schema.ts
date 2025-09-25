@@ -11,10 +11,23 @@ import {
   date,
   decimal,
   unique,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// PostgreSQL enums for better type safety and performance
+export const userStatusEnum = pgEnum('user_status', ['online', 'offline', 'away', 'busy', 'gaming']);
+export const privacyLevelEnum = pgEnum('privacy_level', ['everyone', 'friends_only', 'private']);
+export const eventTypeEnum = pgEnum('event_type', ['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']);
+export const eventStatusEnum = pgEnum('event_status', ['active', 'cancelled', 'completed', 'draft']);
+export const attendeeStatusEnum = pgEnum('attendee_status', ['attending', 'maybe', 'not_attending']);
+export const gameSessionStatusEnum = pgEnum('game_session_status', ['waiting', 'active', 'paused', 'completed', 'cancelled']);
+export const notificationTypeEnum = pgEnum('notification_type', ['event_join', 'event_leave', 'game_invite', 'message', 'system']);
+export const notificationPriorityEnum = pgEnum('notification_priority', ['low', 'normal', 'high', 'urgent']);
+export const streamSessionStatusEnum = pgEnum('stream_session_status', ['scheduled', 'live', 'ended', 'cancelled']);
+export const collaborationRequestStatusEnum = pgEnum('collaboration_request_status', ['pending', 'accepted', 'declined', 'expired', 'cancelled']);
 
 // Session storage table.
 // (IMPORTANT) This table is used for authentication session management, don't drop it.
@@ -42,13 +55,13 @@ export const users = pgTable("users", {
   bio: text("bio"), // User biography/description
   location: varchar("location"), // Geographic location
   website: varchar("website"), // Personal website URL
-  status: varchar("status").default("offline"), // online, offline, away, busy, gaming
+  status: userStatusEnum("status").default("offline"), // online, offline, away, busy, gaming
   statusMessage: varchar("status_message"), // Custom status message
   timezone: varchar("timezone"), // User's timezone
   dateOfBirth: varchar("date_of_birth"), // YYYY-MM-DD format
   isPrivate: boolean("is_private").default(false), // Private profile setting
-  showOnlineStatus: varchar("show_online_status").default("everyone"), // "everyone", "friends_only"
-  allowDirectMessages: varchar("allow_direct_messages").default("everyone"), // "everyone", "friends_only"
+  showOnlineStatus: privacyLevelEnum("show_online_status").default("everyone"), // "everyone", "friends_only", "private"
+  allowDirectMessages: privacyLevelEnum("allow_direct_messages").default("everyone"), // "everyone", "friends_only", "private"
   // Authentication fields
   passwordHash: varchar("password_hash"), // For credential-based authentication (null for OAuth users)
   isEmailVerified: boolean("is_email_verified").default(false), // Email verification status
@@ -70,7 +83,10 @@ export const users = pgTable("users", {
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  // Index for user activity tracking
+  index("idx_users_last_active").on(table.lastActiveAt),
+]);
 
 // User platform accounts for cross-platform streaming coordination
 export const userPlatformAccounts = pgTable("user_platform_accounts", {
@@ -119,6 +135,8 @@ export const userCommunities = pgTable("user_communities", {
   // Performance indexes for faster lookups
   index("idx_user_communities_user_id").on(table.userId),
   index("idx_user_communities_community_id").on(table.communityId),
+  // Composite index for primary community queries
+  index("idx_user_communities_primary").on(table.userId, table.isPrimary),
 ]);
 
 // User theme preferences
@@ -136,7 +154,7 @@ export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
   description: text("description"),
-  type: varchar("type").notNull(), // tournament, convention, release, stream, community, personal, game_pod
+  type: eventTypeEnum("type").notNull(), // tournament, convention, release, stream, community, personal, game_pod
   date: varchar("date").notNull(), // YYYY-MM-DD format
   time: varchar("time").notNull(), // HH:MM format
   location: varchar("location").notNull(),
@@ -146,7 +164,7 @@ export const events = pgTable("events", {
   coHostId: varchar("co_host_id").references(() => users.id, { onDelete: "set null" }), // Optional co-host
   maxAttendees: integer("max_attendees"), // null means unlimited
   isPublic: boolean("is_public").default(true),
-  status: varchar("status").default("active"), // active, cancelled, completed
+  status: eventStatusEnum("status").default("active"), // active, cancelled, completed, draft
   // Game pod specific fields
   playerSlots: integer("player_slots").default(4), // Number of main player slots (2-4)
   alternateSlots: integer("alternate_slots").default(2), // Number of alternate player slots
@@ -169,6 +187,8 @@ export const events = pgTable("events", {
   index("idx_events_scheduled_at").on(table.date, table.time),
   // Optimize queries by community and scheduled time
   index("idx_events_community_scheduled").on(table.communityId, table.date, table.time),
+  // Composite index for community, date, and status queries
+  index("idx_events_community_date_status").on(table.communityId, table.date, table.status),
 ]);
 
 // Event attendees table for tracking who's attending which events
@@ -176,7 +196,7 @@ export const eventAttendees = pgTable("event_attendees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  status: varchar("status").default("attending"), // attending, maybe, not_attending
+  status: attendeeStatusEnum("status").default("attending"), // attending, maybe, not_attending
   role: varchar("role").default("participant"), // participant, host, co_host, spectator
   playerType: varchar("player_type").default("main"), // main, alternate
   joinedAt: timestamp("joined_at").defaultNow(),
@@ -184,18 +204,20 @@ export const eventAttendees = pgTable("event_attendees", {
   index("idx_event_attendees_event_id").on(table.eventId),
   index("idx_event_attendees_user_id").on(table.userId),
   index("idx_event_attendees_composite").on(table.eventId, table.userId),
+  // Composite index for event attendee status queries
+  index("idx_event_attendees_status").on(table.eventId, table.status, table.role),
 ]);
 
 // Notifications table for real-time user notifications
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  type: varchar("type").notNull(), // event_join, event_leave, game_invite, message, system
+  type: notificationTypeEnum("type").notNull(), // event_join, event_leave, game_invite, message, system
   title: varchar("title").notNull(),
   message: text("message").notNull(),
   data: jsonb("data"), // Additional contextual data (event IDs, user IDs, etc.)
   isRead: boolean("is_read").default(false),
-  priority: varchar("priority").default("normal"), // low, normal, high, urgent
+  priority: notificationPriorityEnum("priority").default("normal"), // low, normal, high, urgent
   communityId: varchar("community_id").references(() => communities.id),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"), // Optional expiration for temporary notifications
@@ -203,6 +225,8 @@ export const notifications = pgTable("notifications", {
   index("idx_notifications_user_id").on(table.userId),
   index("idx_notifications_is_read").on(table.isRead),
   index("idx_notifications_created_at").on(table.createdAt),
+  // Composite index for unread notifications
+  index("idx_notifications_user_unread").on(table.userId, table.createdAt),
 ]);
 
 // Messages table for user-to-user communication
@@ -235,7 +259,7 @@ export const gameSessions = pgTable("game_sessions", {
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   hostId: varchar("host_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   coHostId: varchar("co_host_id").references(() => users.id, { onDelete: "set null" }),
-  status: varchar("status").default("waiting"), // waiting, active, paused, completed, cancelled
+  status: gameSessionStatusEnum("status").default("waiting"), // waiting, active, paused, completed, cancelled
   currentPlayers: integer("current_players").default(0),
   maxPlayers: integer("max_players").notNull(),
   spectators: integer("spectators").default(0),
@@ -249,6 +273,8 @@ export const gameSessions = pgTable("game_sessions", {
   index("idx_game_sessions_event_id").on(table.eventId),
   index("idx_game_sessions_community_id").on(table.communityId),
   index("idx_game_sessions_status").on(table.status),
+  // Composite index for game session matching
+  index("idx_game_sessions_status_community").on(table.status, table.communityId),
 ]);
 
 // Stream sessions table for multi-platform streaming coordination
@@ -260,7 +286,7 @@ export const streamSessions = pgTable("stream_sessions", {
   scheduledStartTime: timestamp("scheduled_start_time").notNull(),
   actualStartTime: timestamp("actual_start_time"),
   endTime: timestamp("end_time"),
-  status: varchar("status").default("scheduled"), // scheduled, live, ended, cancelled
+  status: streamSessionStatusEnum("status").default("scheduled"), // scheduled, live, ended, cancelled
   category: varchar("category").notNull(),
   tags: jsonb("tags").default([]), // String array for search/categorization
   communityId: varchar("community_id").references(() => communities.id),
@@ -334,7 +360,7 @@ export const collaborationRequests = pgTable("collaboration_requests", {
   type: varchar("type").notNull(), // co_host, raid, host, guest_appearance, collab_stream
   message: text("message"),
   scheduledTime: timestamp("scheduled_time"),
-  status: varchar("status").default("pending"), // pending, accepted, declined, expired, cancelled
+  status: collaborationRequestStatusEnum("status").default("pending"), // pending, accepted, declined, expired, cancelled
   metadata: jsonb("metadata"), // Additional request data
   responseMessage: text("response_message"),
   createdAt: timestamp("created_at").defaultNow(),
