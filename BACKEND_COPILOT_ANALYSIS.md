@@ -1,18 +1,18 @@
 # Backend Copilot Agent Report
 
 Backend Copilot Agent Analysis Summary:
-- Files analyzed: 90
-- Total issues: 510
+- Files analyzed: 91
+- Total issues: 508
   - Errors: 5
-  - Warnings: 298
+  - Warnings: 296
   - Info: 207
 
 Issues by category:
-  - typescript: 331
+  - typescript: 333
   - express: 11
   - performance: 39
   - drizzle: 98
-  - security: 31
+  - security: 27
 
 
 ## Recommendations
@@ -27,37 +27,37 @@ Issues by category:
 
 ### server/admin/admin.middleware.ts
 
-⚠️ **Line 439**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
-⚠️ **Line 445**: Usage of "any" type reduces type safety
-   💡 *Use specific types instead of "any"*
-
 ⚠️ **Line 461**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 468**: Usage of "any" type reduces type safety
+⚠️ **Line 467**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 475**: Usage of "any" type reduces type safety
+⚠️ **Line 483**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 495**: Usage of "any" type reduces type safety
+⚠️ **Line 490**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 540**: Usage of "any" type reduces type safety
+⚠️ **Line 497**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 541**: Usage of "any" type reduces type safety
+⚠️ **Line 517**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 413**: Request body used without validation
+⚠️ **Line 562**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 563**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 432**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 420**: Request body used without validation
+⚠️ **Line 439**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
-⚠️ **Line 505**: Request body used without validation
+⚠️ **Line 527**: Request body used without validation
    💡 *Add Zod schema validation for request body*
 
 ### server/agents/backend-copilot-agent.ts
@@ -463,13 +463,13 @@ Issues by category:
 
 ### server/features/tournaments/tournaments.service.ts
 
-⚠️ **Line 44**: Usage of "any" type reduces type safety
+⚠️ **Line 78**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 729**: Usage of "any" type reduces type safety
+⚠️ **Line 763**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 822**: Usage of "any" type reduces type safety
+⚠️ **Line 856**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/features/users/users.types.ts
@@ -485,7 +485,7 @@ Issues by category:
 
 ### server/index.ts
 
-⚠️ **Line 501**: Usage of "any" type reduces type safety
+⚠️ **Line 525**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/logger.ts
@@ -1130,62 +1130,53 @@ Issues by category:
 
 ### server/services/youtube-api.ts
 
-⚠️ **Line 9**: Usage of "any" type reduces type safety
+⚠️ **Line 12**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 117**: Usage of "any" type reduces type safety
+⚠️ **Line 120**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 161**: Usage of "any" type reduces type safety
+⚠️ **Line 164**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 176**: Usage of "any" type reduces type safety
+⚠️ **Line 179**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 224**: Usage of "any" type reduces type safety
+⚠️ **Line 227**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 233**: Usage of "any" type reduces type safety
+⚠️ **Line 236**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 239**: Usage of "any" type reduces type safety
+⚠️ **Line 242**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 248**: Usage of "any" type reduces type safety
+⚠️ **Line 251**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 284**: Usage of "any" type reduces type safety
+⚠️ **Line 287**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 293**: Usage of "any" type reduces type safety
+⚠️ **Line 296**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 299**: Usage of "any" type reduces type safety
+⚠️ **Line 302**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 308**: Usage of "any" type reduces type safety
+⚠️ **Line 311**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 358**: Usage of "any" type reduces type safety
+⚠️ **Line 361**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 408**: Usage of "any" type reduces type safety
+⚠️ **Line 411**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 421**: Usage of "any" type reduces type safety
+⚠️ **Line 424**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 1036**: Usage of "any" type reduces type safety
+⚠️ **Line 1047**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
-
-⚠️ **Line 975**: Console.log usage detected
-   💡 *Use structured logging instead of console.log*
-
-⚠️ **Line 982**: Console.log usage detected
-   💡 *Use structured logging instead of console.log*
-
-⚠️ **Line 1014**: Console.log usage detected
-   💡 *Use structured logging instead of console.log*
 
 ### server/shared/middleware.ts
 
@@ -1500,9 +1491,6 @@ Issues by category:
 ℹ️ **Line 5934**: Query result missing type annotation
    💡 *Add explicit type annotation for query results to improve type safety*
 
-⚠️ **Line 2383**: Console.log usage detected
-   💡 *Use structured logging instead of console.log*
-
 ### server/tests/setup.ts
 
 ⚠️ **Line 83**: Usage of "any" type reduces type safety
@@ -1525,28 +1513,34 @@ Issues by category:
 ⚠️ **Line 218**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 232**: Usage of "any" type reduces type safety
+⚠️ **Line 280**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 271**: Usage of "any" type reduces type safety
+⚠️ **Line 319**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 298**: Usage of "any" type reduces type safety
+⚠️ **Line 346**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 327**: Usage of "any" type reduces type safety
+⚠️ **Line 375**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 343**: Usage of "any" type reduces type safety
+⚠️ **Line 391**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 400**: Usage of "any" type reduces type safety
+⚠️ **Line 448**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 425**: Usage of "any" type reduces type safety
+⚠️ **Line 473**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 442**: Usage of "any" type reduces type safety
+⚠️ **Line 490**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 552**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 569**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/features/communities/communities.routes.ts
