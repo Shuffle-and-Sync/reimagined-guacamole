@@ -4,7 +4,7 @@
  * Test configuration following Copilot best practices for comprehensive testing.
  */
 
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   
@@ -17,7 +17,7 @@ module.exports = {
   ],
   
   // Module path mapping to match tsconfig paths
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1'
   },
@@ -38,7 +38,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 70,
       functions: 70,
