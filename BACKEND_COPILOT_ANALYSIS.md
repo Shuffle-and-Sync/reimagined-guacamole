@@ -2,13 +2,13 @@
 
 Backend Copilot Agent Analysis Summary:
 - Files analyzed: 91
-- Total issues: 506
+- Total issues: 508
   - Errors: 5
-  - Warnings: 294
+  - Warnings: 296
   - Info: 207
 
 Issues by category:
-  - typescript: 331
+  - typescript: 333
   - express: 11
   - performance: 39
   - drizzle: 98
@@ -463,13 +463,13 @@ Issues by category:
 
 ### server/features/tournaments/tournaments.service.ts
 
-⚠️ **Line 44**: Usage of "any" type reduces type safety
+⚠️ **Line 78**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 729**: Usage of "any" type reduces type safety
+⚠️ **Line 763**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
-⚠️ **Line 822**: Usage of "any" type reduces type safety
+⚠️ **Line 856**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/features/users/users.types.ts
@@ -1535,6 +1535,12 @@ Issues by category:
    💡 *Use specific types instead of "any"*
 
 ⚠️ **Line 490**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 552**: Usage of "any" type reduces type safety
+   💡 *Use specific types instead of "any"*
+
+⚠️ **Line 569**: Usage of "any" type reduces type safety
    💡 *Use specific types instead of "any"*
 
 ### server/features/communities/communities.routes.ts
