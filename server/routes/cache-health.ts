@@ -4,6 +4,16 @@ import { cacheService } from '../services/cache-service';
 import { logger } from '../logger';
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../auth';
 import { generalRateLimit } from '../rate-limiting';
+import { 
+  errorHandlingMiddleware,
+  errors
+} from '../middleware/error-handling.middleware';
+
+const { asyncHandler } = errorHandlingMiddleware;
+const { 
+  AuthorizationError,
+  ValidationError
+} = errors;
 
 const router = Router();
 
@@ -31,46 +41,46 @@ const isAdmin = async (userId: string): Promise<boolean> => {
  * Check Redis connection and health
  * GET /api/cache/health
  */
-router.get('/health', async (req, res) => {
+router.get('/health', asyncHandler(async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   
-  try {
-    // Admin-only endpoint
-    const userId = getAuthUserId(authenticatedReq);
-    if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
-    }
-    const isHealthy = redisClient.isHealthy();
-    const pingResult = await redisClient.ping();
-    const stats = await cacheService.getStats();
+  // Admin-only endpoint
+  const userId = getAuthUserId(authenticatedReq);
+  if (!(await isAdmin(userId))) {
+    throw new AuthorizationError('Admin access required');
+  }
+  
+  const isHealthy = redisClient.isHealthy();
+  const pingResult = await redisClient.ping();
+  const stats = await cacheService.getStats();
 
-    const healthStatus = {
-      redis: {
-        connected: isHealthy,
-        ping: pingResult,
-        client: redisClient.getClient() !== null
-      },
-      cache: {
-        stats: stats,
-        service: 'operational'
-      },
-      timestamp: new Date().toISOString()
-    };
+  const healthStatus = {
+    redis: {
+      connected: isHealthy,
+      ping: pingResult,
+      client: redisClient.getClient() !== null
+    },
+    cache: {
+      stats: stats,
+      service: 'operational'
+    },
+    timestamp: new Date().toISOString()
+  };
 
-    if (isHealthy && pingResult) {
-      res.json({ success: true, status: 'healthy', data: healthStatus });
-    } else {
-      res.status(503).json({ success: false, status: 'unhealthy', data: healthStatus });
-    }
-  } catch (error) {
-    logger.error('Cache health check failed', { error });
+  if (isHealthy && pingResult) {
+    res.json({ 
+      success: true, 
+      status: 'healthy', 
+      data: healthStatus 
+    });
+  } else {
     res.status(503).json({ 
       success: false, 
-      status: 'error', 
-      error: 'Cache health check failed' 
+      status: 'unhealthy', 
+      data: healthStatus 
     });
   }
-});
+}));
 
 /**
  * Get Redis info and statistics
@@ -113,58 +123,53 @@ router.get('/info', async (req, res) => {
  * Test cache operations
  * POST /api/cache/test
  */
-router.post('/test', async (req, res) => {
+router.post('/test', asyncHandler(async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   
-  try {
-    // Admin-only endpoint with environment check
-    const userId = getAuthUserId(authenticatedReq);
-    if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
-    }
-    
-    // Only allow in development/testing environments
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({ success: false, error: 'Cache testing disabled in production' });
-    }
-    const testKey = `cache_test_${Date.now()}`;
-    const testValue = { test: 'data', timestamp: new Date().toISOString() };
+  // Admin-only endpoint with environment check
+  const userId = getAuthUserId(authenticatedReq);
+  if (!(await isAdmin(userId))) {
+    throw new AuthorizationError('Admin access required');
+  }
+  
+  // Only allow in development/testing environments
+  if (process.env.NODE_ENV === 'production') {
+    throw new AuthorizationError('Cache testing disabled in production');
+  }
+  
+  const testKey = `cache_test_${Date.now()}`;
+  const testValue = { test: 'data', timestamp: new Date().toISOString() };
 
-    // Test set operation
-    const setResult = await cacheService.set(testKey, testValue, 60);
-    
-    // Test get operation
-    const getValue = await cacheService.get(testKey);
-    
-    // Test exists operation
-    const existsResult = await cacheService.exists(testKey);
-    
-    // Test delete operation
-    const deleteResult = await cacheService.delete(testKey);
+  // Test set operation
+  const setResult = await cacheService.set(testKey, testValue, 60);
+  
+  // Test get operation
+  const getValue = await cacheService.get(testKey);
+  
+  // Test exists operation
+  const existsResult = await cacheService.exists(testKey);
+  
+  // Test delete operation
+  const deleteResult = await cacheService.delete(testKey);
 
-    const testResults = {
-      set: setResult,
-      get: getValue,
-      exists: existsResult,
-      delete: deleteResult,
-      dataMatch: JSON.stringify(getValue) === JSON.stringify(testValue)
-    };
+  const testResults = {
+    set: setResult,
+    get: getValue,
+    exists: existsResult,
+    delete: deleteResult,
+    dataMatch: JSON.stringify(getValue) === JSON.stringify(testValue)
+  };
 
-    const allPassed = setResult && getValue !== null && existsResult && deleteResult && testResults.dataMatch;
+  const allPassed = setResult && getValue !== null && existsResult && deleteResult && testResults.dataMatch;
 
-    res.json({
-      success: true,
+  res.json({
+    success: true,
+    data: {
       allTestsPassed: allPassed,
       results: testResults
-    });
-  } catch (error) {
-    logger.error('Cache test failed', { error });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Cache test failed' 
-    });
-  }
-});
+    }
+  });
+}));
 
 /**
  * Clear all cache data (use with caution)
