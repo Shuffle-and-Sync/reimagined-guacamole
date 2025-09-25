@@ -2,6 +2,9 @@
 // Production-ready implementation of YouTube Data API v3 and YouTube Live Streaming API integration
 // Includes OAuth 2.0, live broadcasting, webhook support with security and error handling
 
+import { logger } from '../logger';
+import { generateSecureToken } from '../utils/security.utils';
+
 // Structured error types for better error handling
 export interface YouTubeAPIError {
   code: string;
@@ -83,7 +86,7 @@ export class YouTubeAPIService {
     this.apiKey = process.env.YOUTUBE_API_KEY;
     this.clientId = process.env.YOUTUBE_CLIENT_ID;
     this.clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
-    this.webhookVerifyToken = process.env.YOUTUBE_WEBHOOK_VERIFY_TOKEN || 'secure_random_token_' + Date.now();
+    this.webhookVerifyToken = process.env.YOUTUBE_WEBHOOK_VERIFY_TOKEN || generateSecureToken();
   }
 
   /**
@@ -972,14 +975,18 @@ export class YouTubeAPIService {
           const retryAfter = response.headers.get('Retry-After');
           const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
           
-          console.log(`YouTube API ${response.status === 429 ? 'rate limited' : 'server error'}, retrying after ${delay}ms...`);
+          logger.warn(`YouTube API ${response.status === 429 ? 'rate limited' : 'server error'}, retrying after ${delay}ms`, { 
+            status: response.status, 
+            attempt, 
+            delay 
+          });
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
 
         // Handle token refresh for 401 errors
         if (response.status === 401 && refreshToken && attempt < retries) {
-          console.log('Attempting to refresh YouTube access token...');
+          logger.info('Attempting to refresh YouTube access token', { attempt });
           const refreshResult = await this.refreshAccessToken(refreshToken);
           if (refreshResult) {
             // Retry with new token
@@ -1011,7 +1018,11 @@ export class YouTubeAPIService {
         
         // Exponential backoff for other errors
         const delay = Math.pow(2, attempt) * 1000;
-        console.log(`YouTube API request failed, retrying after ${delay}ms...`, error);
+        logger.warn(`YouTube API request failed, retrying after ${delay}ms`, { 
+          attempt, 
+          delay, 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
