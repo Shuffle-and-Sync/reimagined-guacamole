@@ -2881,7 +2881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           process.env.AUTH_URL ? new URL(process.env.AUTH_URL).origin : null,
           `http://localhost:${process.env.PORT || 5000}`,
           `https://localhost:${process.env.PORT || 5000}`,
-          `http://${host}`,
+          `https://${host}`,
           `https://${host}`
         ].filter(Boolean));
 
