@@ -458,8 +458,36 @@ router.post('/users/:userId/actions',
         return res.status(404).json({ message: 'User not found' });
       }
 
-      // Create moderation action record
-      const { isPublic, ...actionData } = validation.data;
+      // Handle special case for unmute - reverse the mute action instead of creating unmute action
+      if (action === 'unmute') {
+        // Find the most recent active mute action for this user
+        const allActions = await storage.getUserActiveModerationActions(userId);
+        const muteActions = allActions.filter(action => action.action === 'mute' && action.isActive);
+        if (muteActions.length === 0) {
+          return res.status(400).json({ message: 'No active mute found to reverse' });
+        }
+        
+        // Reverse the most recent mute action
+        const mostRecentMute = muteActions[0];
+        await storage.reverseModerationAction(mostRecentMute.id, adminUserId, reason);
+        
+        return res.json({
+          message: 'User unmuted successfully',
+          action: 'unmute_completed',
+          user: await storage.getUser(userId)
+        });
+      }
+
+      // Create moderation action record for all other actions
+      const { isPublic, action: rawAction, ...actionData } = validation.data;
+      
+      // Ensure action is valid for database schema (exclude unmute as it's handled above)
+      if (rawAction === 'unmute') {
+        return res.status(500).json({ message: 'Unmute action should have been handled above' });
+      }
+      
+      // Now we can safely cast the action since unmute is excluded
+      const validAction = rawAction as 'restrict' | 'warn' | 'mute' | 'shadowban' | 'ban' | 'unban' | 'account_suspend' | 'note';
       
       // Calculate expiration time only for valid positive durations
       const expiresAt = duration && duration > 0 ? new Date(Date.now() + duration * 60 * 60 * 1000) : undefined;
@@ -467,8 +495,9 @@ router.post('/users/:userId/actions',
       const moderationAction = await storage.createModerationAction({
         moderatorId: adminUserId,
         targetUserId: userId,
+        action: validAction,
         ...actionData,
-        isActive: !['unmute', 'unban', 'warn', 'note'].includes(action),
+        isActive: !['unban', 'warn', 'note'].includes(validAction),
         isPublic: isPublic !== false, // Default to public unless explicitly set to false
         duration: duration || undefined,
         expiresAt

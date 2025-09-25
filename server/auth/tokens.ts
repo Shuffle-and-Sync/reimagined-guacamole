@@ -5707,7 +5707,6 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
 
-    return await query.orderBy(desc(adminAuditLog.createdAt));
   }
 
   async getAuditLog(id: string): Promise<(AdminAuditLog & { admin: User }) | undefined> {

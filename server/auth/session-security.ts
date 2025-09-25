@@ -495,7 +495,8 @@ export class SessionSecurityService {
       
       if (device) {
         // Trust increases with device age and successful usage
-      
+     
+        
         // Trust based on successful MFA history
         if ((device.successfulMfaAttempts || 0) > 10) trustScore += 0.2;
         
