@@ -1,4 +1,5 @@
 import { db, withQueryTiming } from "../shared/database-unified";
+import type { PgTransaction } from 'drizzle-orm/pg-core';
 import { logger } from "./logger";
 import {
   users,
@@ -1218,7 +1219,7 @@ export class DatabaseStorage implements IStorage {
     const rawEvents = await query.orderBy(events.date, events.time);
 
     // Get attendee counts and user attendance separately
-    const eventIds = rawEvents.map(e => e.id);
+    const eventIds = rawEvents.map((e: Event) => e.id);
     const attendeeCounts = eventIds.length > 0 ? await db
       .select({
         eventId: eventAttendees.eventId,
@@ -1238,7 +1239,7 @@ export class DatabaseStorage implements IStorage {
         eq(eventAttendees.userId, filters.userId)
       )) : [];
 
-    return rawEvents.map(event => ({
+    return rawEvents.map((event: Event) => ({
       ...event,
       creator: event.creator || { 
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
@@ -1248,8 +1249,8 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(), updatedAt: new Date()
       },
       community: event.community,
-      attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
-      isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
+      attendeeCount: attendeeCounts.find((ac: { eventId: string; count: number }) => ac.eventId === event.id)?.count || 0,
+      isUserAttending: userAttendance.some((ua: { eventId: string }) => ua.eventId === event.id),
     })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
 
     return { data: eventsWithDetails };
@@ -1307,7 +1308,7 @@ export class DatabaseStorage implements IStorage {
         eq(eventAttendees.eventId, id),
         eq(eventAttendees.userId, userId)
       ))
-      .then(result => result.length > 0) : false;
+      .then((result: { id: string }[]) => result.length > 0) : false;
 
     return {
       ...event,
@@ -1608,7 +1609,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(events.date, events.time);
 
     // Get player counts for each event
-    const eventIds = rawEvents.map(e => e.id);
+    const eventIds = rawEvents.map((e: Event) => e.id);
     const playerCounts = eventIds.length > 0 ? await db
       .select({
         eventId: eventAttendees.eventId,
@@ -1620,7 +1621,7 @@ export class DatabaseStorage implements IStorage {
       .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
       .groupBy(eventAttendees.eventId) : [];
 
-    return rawEvents.map(event => ({
+    return rawEvents.map((event: Event) => ({
       ...event,
       creator: event.creator || { 
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
@@ -1630,9 +1631,9 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(), updatedAt: new Date()
       },
       community: event.community,
-      attendeeCount: playerCounts.find(pc => pc.eventId === event.id)?.totalCount || 0,
-      mainPlayers: playerCounts.find(pc => pc.eventId === event.id)?.mainPlayers || 0,
-      alternates: playerCounts.find(pc => pc.eventId === event.id)?.alternates || 0,
+      attendeeCount: playerCounts.find((pc: { eventId: string; totalCount: number; mainPlayers: number; alternates: number }) => pc.eventId === event.id)?.totalCount || 0,
+      mainPlayers: playerCounts.find((pc: { eventId: string; totalCount: number; mainPlayers: number; alternates: number }) => pc.eventId === event.id)?.mainPlayers || 0,
+      alternates: playerCounts.find((pc: { eventId: string; totalCount: number; mainPlayers: number; alternates: number }) => pc.eventId === event.id)?.alternates || 0,
     })) as (Event & { creator: User; community: Community | null; attendeeCount: number; mainPlayers: number; alternates: number })[];
   }
 
@@ -2886,7 +2887,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       // Delete existing links
       await tx.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
       
@@ -2969,7 +2970,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -3001,7 +3002,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -3095,7 +3096,7 @@ export class DatabaseStorage implements IStorage {
     const limitedQuery = options?.limit ? baseQuery.limit(options.limit) : baseQuery;
     
     const activities = await limitedQuery.orderBy(sql`${userActivities.createdAt} DESC`);
-    return activities.map(activity => ({
+    return activities.map((activity: any) => ({
       ...activity,
       community: activity.community || undefined,
     }));
@@ -3195,8 +3196,8 @@ export class DatabaseStorage implements IStorage {
 
       // Calculate match scores
       const scoredMatches = userProfiles
-      .filter(profile => profile.user && profile.gamingProfile)
-      .map(profile => {
+      .filter((profile: any) => profile.user && profile.gamingProfile)
+      .map((profile: any) => {
         let score = 0;
         const user = profile.user!;
         const gaming = profile.gamingProfile!;
@@ -3252,8 +3253,8 @@ export class DatabaseStorage implements IStorage {
           isOnline: user.status === 'online'
         };
       })
-      .filter(match => match.matchScore > 20) // Minimum match threshold
-      .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
+      .filter((match: any) => match.matchScore > 20) // Minimum match threshold  
+      .sort((a: any, b: any) => b.matchScore - a.matchScore) // Best matches first
       .slice(0, 20); // Limit results
 
       return { 
@@ -3304,7 +3305,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const results = await query;
-    return results.map(result => ({
+    return results.map((result: any) => ({
       ...result.tournament,
       organizer: result.organizer,
       community: result.community,
@@ -3339,7 +3340,7 @@ export class DatabaseStorage implements IStorage {
       ...tournament.tournament,
       organizer: tournament.organizer,
       community: tournament.community,
-      participants: participants.map(p => ({ ...p.participant, user: p.user })),
+      participants: participants.map((p: any) => ({ ...p.participant, user: p.user })),
     };
   }
 
@@ -3472,7 +3473,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(tournamentMatches.bracketPosition);
 
     const results = await query;
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r.match,
       player1: r.player1 ?? undefined,
       player2: r.player2 ?? undefined,
@@ -3552,7 +3553,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(matchResults.createdAt));
 
     const results = await query;
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r.result,
       winner: r.winner,
       loser: r.loser ?? undefined,
@@ -3570,7 +3571,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       // First, check if there's already a verified result for this match
       const existingResult = await tx
         .select()
@@ -3668,7 +3669,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tournamentMatches.tournamentId, tournamentId))
       .orderBy(tournamentMatches.roundNumber, tournamentMatches.matchNumber);
 
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r.match,
       player1: r.player1 || undefined,
       player2: r.player2 || undefined,  
@@ -3706,7 +3707,7 @@ export class DatabaseStorage implements IStorage {
 
     const results = await query;
     
-    return results.map(r => ({
+    return results.map((r: any) => ({
       ...r.post,
       author: r.author,
       community: r.community,
@@ -3838,7 +3839,7 @@ export class DatabaseStorage implements IStorage {
 
     // Add like status if user is provided
     const enrichedReplies = await Promise.all(
-      replies.map(async (r) => {
+      replies.map(async (r: any) => {
         let isLiked = false;
         if (userId) {
           const [like] = await db
@@ -4022,7 +4023,7 @@ export class DatabaseStorage implements IStorage {
       .from(userGamingProfiles)
       .groupBy(userGamingProfiles.communityId);
 
-    return result.map(r => ({
+    return result.map((r: any) => ({
       game: r.communityId,
       players: r.count,
       change: Math.floor(Math.random() * 20) - 10 // Mock change percentage
@@ -4147,7 +4148,7 @@ export class DatabaseStorage implements IStorage {
 
       // Get co-hosts and platforms for each session
       const enrichedResults = await Promise.all(
-        results.map(async (result) => {
+        results.map(async (result: any) => {
           const [coHosts, platforms] = await Promise.all([
             db.select().from(streamSessionCoHosts).where(eq(streamSessionCoHosts.streamSessionId, result.session.id)),
             db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, result.session.id))
@@ -4197,7 +4198,7 @@ export class DatabaseStorage implements IStorage {
         db.select().from(streamSessionPlatforms).where(eq(streamSessionPlatforms.streamSessionId, id))
       ]);
 
-      const coHosts = coHostsData.map(ch => ({
+      const coHosts = coHostsData.map((ch: any) => ({
         ...ch.coHost,
         user: ch.user!
       }));
@@ -4387,7 +4388,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const results = await query;
-      return results.map(r => ({
+      return results.map((r: any) => ({
         ...r.request,
         fromUser: r.fromUser!,
         toUser: r.toUser!,
@@ -5649,7 +5650,7 @@ export class DatabaseStorage implements IStorage {
 
       let avgCompletionTime = 0;
       if (completedTasks.length > 0) {
-        const totalTime = completedTasks.reduce((sum, task) => {
+        const totalTime = completedTasks.reduce((sum: any, task: any) => {
           if (task.completedAt && task.createdAt) {
             return sum + (task.completedAt.getTime() - task.createdAt.getTime());
           }
@@ -5766,7 +5767,7 @@ export class DatabaseStorage implements IStorage {
     };
 
     // Process status counts
-    statusCounts.forEach(row => {
+    statusCounts.forEach((row: any) => {
       switch (row.status) {
         case 'open':
           stats.totalOpen = row.count;
@@ -5797,7 +5798,7 @@ export class DatabaseStorage implements IStorage {
     .limit(100);
 
     if (recentCompleted.length > 0) {
-      const totalTime = recentCompleted.reduce((sum, item) => {
+      const totalTime = recentCompleted.reduce((sum: any, item: any) => {
         if (item.completedAt && item.createdAt) {
           return sum + (item.completedAt.getTime() - item.createdAt.getTime());
         }
@@ -5887,7 +5888,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [updated] = await tx.update(cmsContent)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(cmsContent.id, id))
@@ -5908,7 +5909,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [published] = await tx.update(cmsContent)
         .set({ 
           isPublished: true, 
@@ -5991,7 +5992,7 @@ export class DatabaseStorage implements IStorage {
 
   // Ban evasion tracking operations
   async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [record] = await tx.insert(banEvasionTracking).values(data).returning();
       
       await tx.insert(adminAuditLog).values({
@@ -6091,7 +6092,7 @@ export class DatabaseStorage implements IStorage {
 
   // User appeal operations
   async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [appeal] = await tx.insert(userAppeals).values(data).returning();
       
       await tx.insert(adminAuditLog).values({
@@ -6230,7 +6231,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [template] = await tx.insert(moderationTemplates).values(data).returning();
       
       await tx.insert(adminAuditLog).values({
@@ -6247,7 +6248,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [updated] = await tx.update(moderationTemplates)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(moderationTemplates.id, id))
