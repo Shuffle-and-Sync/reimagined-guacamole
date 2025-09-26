@@ -3631,6 +3631,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Tournament transaction operations
+  async getTournamentWithTransaction(tx: any, tournamentId: string): Promise<(Tournament & { organizer: User; community: Community }) | undefined> {
+    const result = await tx
+      .select({
+        tournament: tournaments,
+        organizer: users,
+        community: communities,
+      })
+      .from(tournaments)
+      .innerJoin(users, eq(tournaments.organizerId, users.id))
+      .innerJoin(communities, eq(tournaments.communityId, communities.id))
+      .where(eq(tournaments.id, tournamentId))
+      .limit(1);
+
+    if (result.length === 0) return undefined;
+
+    const { tournament, organizer, community } = result[0];
+    return {
+      ...tournament,
+      organizer,
+      community,
+    };
+  }
+
   async getTournamentParticipantsWithTransaction(tx: any, tournamentId: string): Promise<(TournamentParticipant & { user: User })[]> {
     return await tx
       .select({

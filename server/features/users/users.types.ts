@@ -8,12 +8,12 @@ export interface UpdateProfileRequest {
   bio?: string;
   location?: string;
   website?: string;
-  status?: string;
+  status?: "online" | "offline" | "away" | "busy" | "gaming";
   statusMessage?: string;
   timezone?: string;
   isPrivate?: boolean;
-  showOnlineStatus?: string;
-  allowDirectMessages?: string;
+  showOnlineStatus?: "everyone" | "friends_only" | "private";
+  allowDirectMessages?: "everyone" | "friends_only" | "private";
 }
 
 export interface SocialLinksRequest {
