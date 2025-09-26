@@ -119,20 +119,87 @@ npm run dev
 
 ### Environment Variables
 
+The application requires proper environment variable configuration to function correctly. All variables are documented in `.env.example`.
+
+#### Quick Setup
+
 ```bash
-# Database
-DATABASE_URL=postgresql://...
+# Copy template and run setup script
+cp .env.example .env.local
+./scripts/setup-env.sh
 
-# Authentication
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-AUTH_SECRET=your_secure_random_string
-AUTH_URL=https://your-domain.com
-AUTH_TRUST_HOST=true
-
-# Optional Services
-SENDGRID_API_KEY=your_sendgrid_key
+# Or manually configure
+npm run env:setup
+npm run env:validate
 ```
+
+#### Required Variables (🔴 Critical)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `AUTH_SECRET` | Authentication secret (32+ chars) | Generate with: `openssl rand -base64 32` |
+| `AUTH_URL` | Application base URL | `http://localhost:3000` (dev) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Console |
+
+#### Recommended Variables (🟡 Optional)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `SENDGRID_API_KEY` | Email service API key | `SG.xxx` from SendGrid |
+| `STREAM_KEY_ENCRYPTION_KEY` | Stream encryption (32 chars) | Generate with: `openssl rand -hex 16` |
+| `REDIS_URL` | Redis cache connection | `redis://localhost:6379` |
+| `TWITCH_CLIENT_ID` | Twitch API credentials | From Twitch Developer Console |
+| `YOUTUBE_API_KEY` | YouTube API key | From Google Cloud Console |
+
+#### Environment Validation
+
+```bash
+# Validate current configuration
+npm run env:validate
+
+# Show all variable definitions  
+npm run env:definitions
+
+# Get setup help
+npm run env:help
+```
+
+#### Security Best Practices
+
+- 🔒 Never commit `.env.local` to version control
+- 🔑 Use strong, unique secrets (32+ characters)
+- 🔄 Rotate secrets regularly (every 90 days)
+- ⚠️ Change all demo values before production
+- 🔐 Use HTTPS in production (`AUTH_URL`)
+
+#### Environment-Specific Configuration
+
+**Development:**
+```bash
+NODE_ENV=development
+DATABASE_URL=postgresql://localhost:5432/shufflesync_dev
+AUTH_URL=http://localhost:3000
+```
+
+**Production:**
+```bash
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@prod-host:5432/db
+AUTH_URL=https://your-domain.com
+```
+
+#### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Server won't start | Run `npm run env:validate` to check config |
+| Database errors | Verify `DATABASE_URL` connection |
+| Auth failures | Check Google OAuth credentials |
+| "Demo values" warning | Replace all demo/test values |
+
+For complete setup instructions, see `.env.example`.
 
 ## 🧪 Testing Guide
 
