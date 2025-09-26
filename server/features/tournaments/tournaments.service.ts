@@ -745,6 +745,8 @@ export const tournamentsService = {
       const player1 = participants[i];
       const player2 = participants[i + 1] || null;
 
+      if (!player1) continue; // Skip if player1 is undefined
+      
       pairings.push({
         player1: player1.userId,
         player2: player2?.userId || null,
@@ -773,6 +775,8 @@ export const tournamentsService = {
       const player1 = shuffled[i];
       const player2 = shuffled[i + 1] || null;
 
+      if (!player1) continue; // Skip if player1 is undefined
+      
       pairings.push({
         player1: player1.userId,
         player2: player2?.userId || null,
@@ -804,7 +808,7 @@ export const tournamentsService = {
         const player1 = players[i];
         const player2 = players[players.length - 1 - i];
 
-        if (player1.userId !== "BYE" && player2.userId !== "BYE") {
+        if (player1 && player2 && player1.userId !== "BYE" && player2.userId !== "BYE") {
           roundPairings.push({
             player1: player1.userId,
             player2: player2.userId,
