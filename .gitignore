@@ -44,6 +44,11 @@ tmp/
 temp/
 *.tmp
 
+# Prevent pasted/screenshot files from being committed
+Pasted-*
+Screenshot*
+image\ (*
+
 # Cache directories
 .cache/
 .npm/
