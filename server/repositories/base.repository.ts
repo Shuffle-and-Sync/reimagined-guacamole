@@ -132,7 +132,7 @@ export abstract class BaseRepository<
 
         // Apply sorting
         if (sort?.field) {
-          const column = (this.table as any)[sort.field];
+          const column = this.table[sort.field as keyof TTable];
           if (column) {
             query = query.orderBy(sort.direction === 'desc' ? desc(column) : asc(column));
           }
@@ -414,7 +414,7 @@ export abstract class BaseRepository<
         if (cursor) {
           const cursorData = this.parseCursor(cursor);
           if (cursorData && cursorData.field === sortField) {
-            const column = (this.table as any)[sortField];
+            const column = this.table[sortField as keyof TTable];
             if (column) {
               const cursorCondition = sortDirection === 'desc' 
                 ? lt(column, cursorData.value)
@@ -430,7 +430,7 @@ export abstract class BaseRepository<
         }
         
         // Apply sorting
-        const sortColumn = (this.table as any)[sortField];
+        const sortColumn = this.table[sortField as keyof TTable];
         if (sortColumn) {
           query = query.orderBy(sortDirection === 'desc' ? desc(sortColumn) : asc(sortColumn));
         }
@@ -521,7 +521,7 @@ export abstract class BaseRepository<
     for (const [key, value] of Object.entries(filters)) {
       if (value === undefined || value === null) continue;
 
-      const column = (this.table as any)[key];
+      const column = this.table[key as keyof TTable];
       if (!column) continue;
 
       if (Array.isArray(value)) {
@@ -562,7 +562,7 @@ export abstract class BaseRepository<
   /**
    * Transaction wrapper for complex operations with enhanced performance monitoring
    */
-  async transaction<T>(callback: (tx: PgTransaction<any, any, any>) => Promise<T>): Promise<T> {
+  async transaction<T>(callback: (tx: PgTransaction<Record<string, never>, Record<string, never>, Record<string, never>>) => Promise<T>): Promise<T> {
     return withQueryTiming(`${this.tableName}:transaction`, async () => {
       try {
         return await this.db.transaction(async (tx) => {
@@ -579,7 +579,7 @@ export abstract class BaseRepository<
    * Batch operations with transaction support for better performance
    */
   async batchOperation<T>(
-    operations: Array<(tx: PgTransaction<any, any, any>) => Promise<T>>
+    operations: Array<(tx: PgTransaction<Record<string, never>, Record<string, never>, Record<string, never>>) => Promise<T>>
   ): Promise<T[]> {
     return this.transaction(async (tx) => {
       const results: T[] = [];
