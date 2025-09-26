@@ -523,6 +523,10 @@ router.post('/users/:userId/actions',
         
         // Reverse the most recent mute action
         const mostRecentMute = muteActions[0];
+        if (!mostRecentMute) {
+          res.status(400).json({ message: 'No active mute found to reverse' });
+          return;
+        }
         await storage.reverseModerationAction(mostRecentMute.id, adminUserId, reason);
         
         res.json({

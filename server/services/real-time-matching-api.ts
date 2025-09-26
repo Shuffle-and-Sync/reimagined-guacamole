@@ -523,8 +523,9 @@ export class RealTimeMatchingAPI {
     
     // Filter by minimum compatibility score
     if (request.preferences?.minCompatibilityScore) {
+      const minScore = request.preferences.minCompatibilityScore;
       filtered = filtered.filter(match => 
-        match.compatibilityScore >= request.preferences.minCompatibilityScore
+        match.compatibilityScore >= minScore
       );
     }
     
@@ -539,8 +540,9 @@ export class RealTimeMatchingAPI {
     
     // Filter by excluded users
     if (request.preferences?.excludeUserIds?.length) {
+      const excludeIds = request.preferences.excludeUserIds;
       filtered = filtered.filter(match => 
-        !request.preferences.excludeUserIds.includes(match.candidate.id)
+        !excludeIds.includes(match.candidate.id)
       );
     }
     
