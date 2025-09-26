@@ -4,6 +4,7 @@
  * Global test setup and configuration for the test suite.
  */
 
+import { beforeAll, afterAll, jest } from '@jest/globals';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 

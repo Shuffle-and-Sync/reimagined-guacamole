@@ -31,7 +31,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: "Community not found" });
     }
     
-    res.json(community);
+    return res.json(community);
   } catch (error) {
     logger.error("Failed to fetch community", error, { id: req.params.id });
     return res.status(500).json({ message: "Failed to fetch community" });
@@ -55,7 +55,7 @@ userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, re
     }
     
     const userCommunity = await communitiesService.joinCommunity(userId, communityId);
-    res.json(userCommunity);
+    return res.json(userCommunity);
   } catch (error) {
     if (error instanceof Error && error.message === "Community not found") {
       return res.status(404).json({ message: "Community not found" });
@@ -81,7 +81,7 @@ userCommunitiesRouter.post('/:communityId/set-primary', isAuthenticated, async (
     }
     
     await communitiesService.setPrimaryCommunity(userId, communityId);
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     logger.error("Failed to set primary community", error, { 
       userId: getAuthUserId(authenticatedReq), 

@@ -25,7 +25,7 @@ router.get('/user', isAuthenticated, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     logger.error("Failed to fetch user", error, { userId: getAuthUserId(authenticatedReq) });
     return res.status(500).json({ message: "Failed to fetch user" });
@@ -44,7 +44,7 @@ router.post('/forgot-password', passwordResetRateLimit, validateRequest(validate
     const baseUrl = req.protocol + '://' + req.get('host');
     await authService.requestPasswordReset(email, baseUrl);
 
-    res.json({ message: "If an account with that email exists, a password reset link has been sent." });
+    return res.json({ message: "If an account with that email exists, a password reset link has been sent." });
   } catch (error) {
     logger.error("Failed to process forgot password request", error, { email: req.body.email });
     return res.status(500).json({ message: "Failed to process password reset request" });
@@ -62,7 +62,7 @@ router.get('/verify-reset-token/:token', async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    res.json({ message: "Token is valid", email: result.email });
+    return res.json({ message: "Token is valid", email: result.email });
   } catch (error) {
     logger.error("Failed to verify reset token", error, { token: req.params.token?.substring(0, 8) + "***" });
     return res.status(500).json({ message: "Failed to verify reset token" });
@@ -84,7 +84,7 @@ router.post('/reset-password', authRateLimit, validateRequest(validatePasswordRe
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
     
-    res.json({ message: "Password reset successful" });
+    return res.json({ message: "Password reset successful" });
   } catch (error) {
     if (error instanceof Error && error.message === "Password must be at least 8 characters long") {
       return res.status(400).json({ message: error.message });
