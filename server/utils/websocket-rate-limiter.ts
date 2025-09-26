@@ -17,10 +17,9 @@ export class WebSocketRateLimiter {
 
   constructor(config: RateLimitConfig) {
     this.config = {
-      windowMs: 60 * 1000, // Default: 1 minute
-      maxMessages: 100, // Default: 100 messages per minute
-      skipSuccessfulRequests: false,
-      ...config
+      windowMs: config.windowMs ?? 60 * 1000, // Default: 1 minute
+      maxMessages: config.maxMessages ?? 100, // Default: 100 messages per minute
+      skipSuccessfulRequests: config.skipSuccessfulRequests ?? false,
     };
   }
 

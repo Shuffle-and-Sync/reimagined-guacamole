@@ -120,3 +120,55 @@ export const pick = <T extends object, K extends keyof T>(
   });
   return result;
 };
+
+// Type guard utilities for null/undefined checking
+export const isNotNull = <T>(value: T | null): value is T => {
+  return value !== null;
+};
+
+export const isNotUndefined = <T>(value: T | undefined): value is T => {
+  return value !== undefined;
+};
+
+export const isNotNullOrUndefined = <T>(value: T | null | undefined): value is T => {
+  return value !== null && value !== undefined;
+};
+
+export const assertNotNull = <T>(value: T | null, message?: string): T => {
+  if (value === null) {
+    throw new Error(message || 'Value is null');
+  }
+  return value;
+};
+
+export const assertNotUndefined = <T>(value: T | undefined, message?: string): T => {
+  if (value === undefined) {
+    throw new Error(message || 'Value is undefined');
+  }
+  return value;
+};
+
+export const assertNotNullOrUndefined = <T>(value: T | null | undefined, message?: string): T => {
+  if (value === null || value === undefined) {
+    throw new Error(message || 'Value is null or undefined');
+  }
+  return value;
+};
+
+export const withDefault = <T>(value: T | null | undefined, defaultValue: T): T => {
+  return value ?? defaultValue;
+};
+
+export const safeGet = <T extends object, K extends keyof T>(
+  obj: T | null | undefined,
+  key: K
+): T[K] | undefined => {
+  return obj?.[key];
+};
+
+export const safeCall = <T, Args extends any[]>(
+  fn: ((...args: Args) => T) | null | undefined,
+  ...args: Args
+): T | undefined => {
+  return fn?.(...args);
+};

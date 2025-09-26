@@ -238,11 +238,11 @@ export class WebSocketConnectionManager {
 
       // Categorize connection type
       if (ws.sessionId) {
-        connectionsByType.game_room++;
+        connectionsByType.game_room = (connectionsByType.game_room ?? 0) + 1;
       } else if (ws.eventId) {
-        connectionsByType.collaborative_stream++;
+        connectionsByType.collaborative_stream = (connectionsByType.collaborative_stream ?? 0) + 1;
       } else {
-        connectionsByType.unassigned++;
+        connectionsByType.unassigned = (connectionsByType.unassigned ?? 0) + 1;
       }
     }
 

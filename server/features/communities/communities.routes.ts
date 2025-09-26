@@ -20,6 +20,11 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ message: "Community ID is required" });
+    }
+    
     const community = await communitiesService.getCommunity(id);
     
     if (!community) {
@@ -29,7 +34,7 @@ router.get('/:id', async (req, res) => {
     res.json(community);
   } catch (error) {
     logger.error("Failed to fetch community", error, { id: req.params.id });
-    res.status(500).json({ message: "Failed to fetch community" });
+    return res.status(500).json({ message: "Failed to fetch community" });
   }
 });
 
@@ -45,6 +50,10 @@ userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, re
     const userId = getAuthUserId(authenticatedReq);
     const { communityId } = req.params;
     
+    if (!communityId) {
+      return res.status(400).json({ message: "Community ID is required" });
+    }
+    
     const userCommunity = await communitiesService.joinCommunity(userId, communityId);
     res.json(userCommunity);
   } catch (error) {
@@ -56,7 +65,7 @@ userCommunitiesRouter.post('/:communityId/join', isAuthenticated, async (req, re
       userId: getAuthUserId(authenticatedReq), 
       communityId: req.params.communityId 
     });
-    res.status(500).json({ message: "Failed to join community" });
+    return res.status(500).json({ message: "Failed to join community" });
   }
 });
 
@@ -66,6 +75,10 @@ userCommunitiesRouter.post('/:communityId/set-primary', isAuthenticated, async (
   try {
     const userId = getAuthUserId(authenticatedReq);
     const { communityId } = req.params;
+    
+    if (!communityId) {
+      return res.status(400).json({ message: "Community ID is required" });
+    }
     
     await communitiesService.setPrimaryCommunity(userId, communityId);
     res.json({ success: true });

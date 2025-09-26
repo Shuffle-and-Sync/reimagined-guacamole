@@ -185,19 +185,27 @@ export const rateLimitConfigs = {
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // auth attempts per window
+    standardHeaders: true,
+    legacyHeaders: false,
     skipSuccessfulRequests: true,
   },
   api: {
     windowMs: 60 * 1000, // 1 minute
     max: 60, // API calls per minute
+    standardHeaders: true,
+    legacyHeaders: false,
   },
   upload: {
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 10, // file uploads per hour
+    standardHeaders: true,
+    legacyHeaders: false,
   },
   message: {
     windowMs: 60 * 1000, // 1 minute
     max: 20, // messages per minute
+    standardHeaders: true,
+    legacyHeaders: false,
   }
 };
 
