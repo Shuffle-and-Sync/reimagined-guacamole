@@ -166,7 +166,7 @@ app.use(securityHeaders);
   app.use('/api/admin', adminRoutes);
 
   // Email verification endpoints (moved from routes.ts to avoid Auth.js conflicts)
-  app.post('/api/email/send-verification-email', authRateLimit, validateRequest(validateEmailSchema), async (req, res) => {
+  app.post('/api/email/send-verification-email', authRateLimit, validateRequest(validateEmailSchema), async (req, res): Promise<void> => {
     try {
       const { email } = req.body;
       
@@ -213,11 +213,11 @@ app.use(securityHeaders);
       res.json({ message: "If an account with that email exists, a verification email has been sent." });
     } catch (error) {
       logger.error("Failed to send verification email", error);
-      res.status(500).json({ message: "Failed to send verification email" });
+      return res.status(500).json({ message: "Failed to send verification email" });
     }
   });
 
-  app.get('/api/email/verify-email', async (req, res) => {
+  app.get('/api/email/verify-email', async (req, res): Promise<void> => {
     try {
       const { token } = req.query;
       
@@ -254,11 +254,11 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to verify email", error);
-      res.status(500).json({ message: "Failed to verify email" });
+      return res.status(500).json({ message: "Failed to verify email" });
     }
   });
 
-  app.post('/api/email/resend-verification-email', authRateLimit, async (req, res) => {
+  app.post('/api/email/resend-verification-email', authRateLimit, async (req, res): Promise<void> => {
     try {
       // Get user from session or request body
       let userId;
@@ -325,12 +325,12 @@ app.use(securityHeaders);
       res.json({ message: "If an account exists, a verification email has been sent." });
     } catch (error) {
       logger.error("Failed to resend verification email", error);
-      res.status(500).json({ message: "Failed to resend verification email" });
+      return res.status(500).json({ message: "Failed to resend verification email" });
     }
   });
 
   // Email change endpoints (Phase 2)
-  app.post('/api/email/initiate-email-change', authRateLimit, async (req, res) => {
+  app.post('/api/email/initiate-email-change', authRateLimit, async (req, res): Promise<void> => {
     try {
       // Require authenticated user
       let userId;
@@ -416,11 +416,11 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to initiate email change", error);
-      res.status(500).json({ message: "Failed to initiate email change" });
+      return res.status(500).json({ message: "Failed to initiate email change" });
     }
   });
 
-  app.get('/api/email/confirm-email-change', authRateLimit, async (req, res) => {
+  app.get('/api/email/confirm-email-change', authRateLimit, async (req, res): Promise<void> => {
     try {
       const { token } = req.query;
       
@@ -470,11 +470,11 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to confirm email change", error);
-      res.status(500).json({ message: "Failed to confirm email change" });
+      return res.status(500).json({ message: "Failed to confirm email change" });
     }
   });
 
-  app.post('/api/email/cancel-email-change', authRateLimit, async (req, res) => {
+  app.post('/api/email/cancel-email-change', authRateLimit, async (req, res): Promise<void> => {
     try {
       // Require authenticated user
       let userId;
