@@ -85,14 +85,7 @@ global.__dirname = __dirname;
     '@prisma/engines',
     '@prisma/engines-version',
     'prisma/libquery_engine*',
-    'generated/prisma/**',
-    // Externalize vite and related packages to prevent bundling in production
-    'vite',
-    '../vite.config.js',
-    '../vite.config.ts',
-    '@vitejs/plugin-react',
-    '@replit/vite-plugin-runtime-error-modal',
-    '@replit/vite-plugin-cartographer'
+    'generated/prisma/*'
   ]
 };
 
