@@ -12,6 +12,7 @@
  */
 
 import { eq, and, gte, lte, desc, asc, count, sql } from 'drizzle-orm';
+import type { PgTransaction } from 'drizzle-orm/pg-core';
 import { db } from '@shared/database-unified';
 import { users } from '@shared/schema';
 import { NotFoundError, ValidationError } from '../../shared/types';
@@ -248,7 +249,7 @@ class GameStatsService {
       }
 
       // Use database transaction for data consistency
-      return await db.transaction(async (tx) => {
+      return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
         // Mock creating game result (would insert into game_results table)
         const newResult: GameResult = {
           id: `result-${Date.now()}`,
