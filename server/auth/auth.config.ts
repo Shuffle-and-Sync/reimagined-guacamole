@@ -20,11 +20,11 @@ if (process.env.NODE_ENV === 'production') {
 
 // Dynamic URL configuration for Auth.js
 function getBaseUrl(): string {
-  // In development, always use the actual Replit server URL, not AUTH_URL
+  // In development, use dynamic domain or localhost
   if (process.env.NODE_ENV === 'development') {
-    const replitDomains = process.env.REPLIT_DOMAINS;
-    if (replitDomains) {
-      const computedUrl = `https://${replitDomains}`;
+    const dynamicDomains = process.env.REPLIT_DOMAINS;
+    if (dynamicDomains) {
+      const computedUrl = `https://${dynamicDomains}`;
       console.log(`[AUTH] getBaseUrl() returning: ${computedUrl}`);
       return computedUrl;
     }
@@ -32,7 +32,7 @@ function getBaseUrl(): string {
     return 'http://localhost:5000';
   }
   
-  // In production, use AUTH_URL if available, otherwise construct from Replit domains
+  // In production, use AUTH_URL if available, otherwise construct from dynamic domains
   const prodUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || `https://${process.env.REPLIT_DOMAINS}`;
   console.log(`[AUTH] getBaseUrl() production returning: ${prodUrl}`);
   return prodUrl;

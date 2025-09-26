@@ -4,15 +4,19 @@ import { Request } from "express";
 
 export interface AuthenticatedRequest extends Request {
   user: {
-    claims: {
-      sub: string;
-      email: string;
-      [key: string]: any;
-    };
     id: string;
     email?: string | null;
     name?: string | null;
     image?: string | null;
+  };
+  auth?: {
+    user?: {
+      id: string;
+      email?: string | null;
+      name?: string | null;
+      image?: string | null;
+    };
+    expires: string;
   };
   session?: any;
 }

@@ -29,11 +29,6 @@ declare global {
         email?: string | null;
         name?: string | null;
         image?: string | null;
-        // For backward compatibility with old Replit Auth routes
-        claims?: {
-          sub: string;
-          email?: string | null;
-        };
       };
       // JWT-specific data
       jwtPayload?: {
@@ -86,18 +81,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Add auth session and user data to request (avoiding session conflicts)
+    // Add auth session and user data to request
     req.auth = sessionData;
     req.user = {
       id: sessionData.user.id,
       email: sessionData.user.email,
       name: sessionData.user.name,
       image: sessionData.user.image,
-      // For backward compatibility with old Replit Auth routes
-      claims: {
-        sub: sessionData.user.id,
-        email: sessionData.user.email,
-      },
     };
 
     // ENTERPRISE SESSION SECURITY VALIDATION - Skip for JWT sessions
@@ -197,7 +187,7 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
     const response = await Auth(sessionRequest, authConfig);
     const sessionData = response.ok ? await response.json() : null;
     
-    // Add auth session data to request (avoiding session conflicts)
+    // Add auth session data to request
     req.auth = sessionData;
     if (sessionData?.user) {
       req.user = {
@@ -205,10 +195,6 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
         email: sessionData.user.email,
         name: sessionData.user.name,
         image: sessionData.user.image,
-        claims: {
-          sub: sessionData.user.id,
-          email: sessionData.user.email,
-        },
       };
     }
 
@@ -229,10 +215,6 @@ export function getCurrentUserId(req: AuthenticatedRequest): string | undefined 
 export function isAuthenticated(req: AuthenticatedRequest): boolean {
   return !!req.user?.id;
 }
-
-// Drop-in replacement for the old Replit Auth isAuthenticated middleware
-// This allows existing routes to work without modification
-export const isAuthenticatedCompat = requireAuth;
 
 /**
  * JWT Authentication Middleware

@@ -195,7 +195,7 @@ import { alias } from "drizzle-orm/pg-core";
 // Interface for storage operations
 export interface IStorage {
   // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  // (IMPORTANT) these user operations are mandatory for authentication integration.
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -610,7 +610,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  // (IMPORTANT) these user operations are mandatory for authentication integration.
 
   async getUser(id: string): Promise<User | undefined> {
     // Return user data including all required fields, but with sensitive fields as null for security

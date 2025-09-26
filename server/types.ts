@@ -1,20 +1,19 @@
 import { Request } from "express";
 
 export interface AuthenticatedUser {
-  id: string; // Added id field for compatibility
-  claims: {
-    sub: string;
-    email?: string;
-    name?: string;
-    picture?: string;
-  };
-  accessToken?: string;
-  refreshToken?: string;
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
 }
 
-// Legacy type - use types from server/auth instead
-export interface LegacyAuthenticatedRequest extends Request {
+// Modern Auth.js-compatible request type
+export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
+  auth?: {
+    user?: AuthenticatedUser;
+    expires: string;
+  };
 }
 
 export interface ApiError extends Error {
