@@ -172,3 +172,15 @@ export const safeCall = <T, Args extends any[]>(
 ): T | undefined => {
   return fn?.(...args);
 };
+
+// Route parameter validation utilities for Express
+export const assertRouteParam = (param: string | undefined, paramName: string): string => {
+  if (!param) {
+    throw new Error(`Required route parameter '${paramName}' is missing`);
+  }
+  return param;
+};
+
+export const validateRouteParam = (param: string | undefined, paramName: string): param is string => {
+  return param !== undefined && param.length > 0;
+};

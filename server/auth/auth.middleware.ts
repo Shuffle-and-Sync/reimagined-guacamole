@@ -2,7 +2,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
 import { authConfig } from "./auth.config";
-import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload, revokeTokenByJTI } from "./tokens";
+// TODO: Fix token imports - these functions need to be implemented
+// import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload, revokeTokenByJTI } from "./tokens";
 import { extractDeviceContext } from "./device-fingerprinting";
 import { logger } from "../logger";
 import { storage } from "../storage";

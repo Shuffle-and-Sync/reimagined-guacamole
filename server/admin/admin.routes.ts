@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { isAuthenticated, getAuthUserId } from '../auth';
 import { generalRateLimit } from '../rate-limiting';
 import { logger } from '../logger';
+import { assertRouteParam } from '../shared/utils';
 import {
   requirePermission,
   requireAllPermissions,
@@ -159,12 +160,7 @@ router.get('/users/:userId',
   auditAdminAction('user_details_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const [user, roles, reputation, moderationActions, appeals] = await Promise.all([
         storage.getUser(userId),
@@ -205,12 +201,7 @@ router.patch('/users/:userId',
   auditAdminAction('user_updated'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const validation = userUpdateSchema.safeParse(req.body);
       if (!validation.success) {
@@ -252,12 +243,7 @@ router.get('/users/:userId/roles',
   auditAdminAction('user_roles_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const roles = await storage.getUserRoles(userId);
       
@@ -279,12 +265,7 @@ router.post('/users/:userId/roles',
   auditAdminAction('role_assigned'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const validation = roleAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -335,12 +316,7 @@ router.delete('/users/:userId/roles/:roleId',
   auditAdminAction('role_revoked'),
   async (req, res): Promise<void> => {
     try {
-      const { roleId } = req.params;
-      
-      if (!roleId) {
-        res.status(400).json({ message: 'Role ID is required' });
-        return;
-      }
+      const roleId = assertRouteParam(req.params.roleId, 'roleId');
       
       await storage.deleteUserRole(roleId);
       
@@ -364,12 +340,7 @@ router.get('/users/:userId/details',
   auditAdminAction('user_details_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -417,12 +388,7 @@ router.get('/users/:userId/notes',
   auditAdminAction('user_notes_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
-      
-      if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
-      }
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -465,7 +431,7 @@ router.post('/users/:userId/notes',
   auditAdminAction('user_note_added'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       const { content } = req.body;
       
       if (!content || typeof content !== 'string' || content.trim().length === 0) {
@@ -525,7 +491,7 @@ router.post('/users/:userId/actions',
   auditAdminAction('user_action_performed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const validation = userActionSchema.safeParse(req.body);
       if (!validation.success) {
@@ -615,7 +581,7 @@ router.get('/users/:userId/activity',
   auditAdminAction('user_activity_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -688,7 +654,7 @@ router.get('/content-reports/:reportId',
   auditAdminAction('content_report_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { reportId } = req.params;
+      const reportId = assertRouteParam(req.params.reportId, 'reportId');
       
       const report = await storage.getContentReport(reportId);
       if (!report) {
@@ -715,7 +681,7 @@ router.patch('/content-reports/:reportId/assign',
   auditAdminAction('content_report_assigned'),
   async (req, res): Promise<void> => {
     try {
-      const { reportId } = req.params;
+      const reportId = assertRouteParam(req.params.reportId, 'reportId');
       const { moderatorId } = req.body;
       
       const report = await storage.assignContentReport(reportId, moderatorId);
@@ -739,7 +705,7 @@ router.patch('/content-reports/:reportId/resolve',
   auditAdminAction('content_report_resolved'),
   async (req, res): Promise<void> => {
     try {
-      const { reportId } = req.params;
+      const reportId = assertRouteParam(req.params.reportId, 'reportId');
       const { resolution, actionTaken } = req.body;
       const moderatorId = getAuthUserId(req);
       
@@ -821,7 +787,7 @@ router.patch('/moderation-actions/:actionId/reverse',
   auditAdminAction('moderation_action_reversed'),
   async (req, res): Promise<void> => {
     try {
-      const { actionId } = req.params;
+      const actionId = assertRouteParam(req.params.actionId, 'actionId');
       const { reason } = req.body;
       const reversedBy = getAuthUserId(req);
       
@@ -846,7 +812,7 @@ router.get('/users/:userId/moderation-actions/active',
   auditAdminAction('user_active_moderation_actions_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -890,7 +856,7 @@ router.get('/users/:userId/moderation-actions/history',
   auditAdminAction('user_moderation_history_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -937,7 +903,7 @@ router.post('/moderation-actions/:actionId/reverse',
   auditAdminAction('moderation_action_reversed'),
   async (req, res): Promise<void> => {
     try {
-      const { actionId } = req.params;
+      const actionId = assertRouteParam(req.params.actionId, 'actionId');
       
       const validation = reverseModerationActionSchema.safeParse(req.body);
       if (!validation.success) {
@@ -998,7 +964,7 @@ router.get('/moderation-actions/:actionId',
   auditAdminAction('moderation_action_viewed'),
   async (req, res): Promise<void> => {
     try {
-      const { actionId } = req.params;
+      const actionId = assertRouteParam(req.params.actionId, 'actionId');
       
       const action = await storage.getModerationAction(actionId);
       if (!action) {
@@ -1082,7 +1048,7 @@ router.patch('/moderation-queue/:itemId/assign',
   auditAdminAction('queue_item_assigned'),
   async (req, res): Promise<void> => {
     try {
-      const { itemId } = req.params;
+      const itemId = assertRouteParam(req.params.itemId, 'itemId');
       const moderatorId = getAuthUserId(req);
       
       const item = await storage.assignModerationQueueItem(itemId, moderatorId);
@@ -1115,7 +1081,7 @@ router.patch('/moderation-queue/:itemId/complete',
       return;
       }
 
-      const { itemId } = req.params;
+      const itemId = assertRouteParam(req.params.itemId, 'itemId');
       const { resolution, actionTaken } = validation.data;
       
       const item = await storage.completeModerationQueueItem(itemId, resolution, actionTaken);
@@ -1284,7 +1250,7 @@ router.patch('/moderation-queue/:itemId/priority',
       return;
       }
 
-      const { itemId } = req.params;
+      const itemId = assertRouteParam(req.params.itemId, 'itemId');
       const { priority } = validation.data;
       
       const item = await storage.updateModerationQueuePriority(itemId, priority);
@@ -1314,7 +1280,7 @@ router.get('/appeals',
       const appeals = await storage.getUserAppeals({
         userId: userId as string,
         status: status as string,
-        assignedReviewer: assignedReviewer as string
+        reviewedBy: assignedReviewer as string
       });
       
       res.json(appeals);
@@ -1335,7 +1301,7 @@ router.patch('/appeals/:appealId/assign',
   auditAdminAction('appeal_assigned'),
   async (req, res): Promise<void> => {
     try {
-      const { appealId } = req.params;
+      const appealId = assertRouteParam(req.params.appealId, 'appealId');
       const reviewerId = getAuthUserId(req);
       
       const appeal = await storage.assignAppealReviewer(appealId, reviewerId);
@@ -1359,7 +1325,7 @@ router.patch('/appeals/:appealId/resolve',
   auditAdminAction('appeal_resolved'),
   async (req, res): Promise<void> => {
     try {
-      const { appealId } = req.params;
+      const appealId = assertRouteParam(req.params.appealId, 'appealId');
       const { decision, reviewerNotes } = req.body;
       const reviewerId = getAuthUserId(req);
       
@@ -1470,7 +1436,7 @@ router.patch('/cms-content/:contentId',
   auditAdminAction('cms_content_updated'),
   async (req, res): Promise<void> => {
     try {
-      const { contentId } = req.params;
+      const contentId = assertRouteParam(req.params.contentId, 'contentId');
       const lastEditedBy = getAuthUserId(req);
       const updateData = {
         ...req.body,
@@ -1498,7 +1464,7 @@ router.patch('/cms-content/:contentId/publish',
   auditAdminAction('cms_content_published'),
   async (req, res): Promise<void> => {
     try {
-      const { contentId } = req.params;
+      const contentId = assertRouteParam(req.params.contentId, 'contentId');
       const publisherId = getAuthUserId(req);
       
       const content = await storage.publishCmsContent(contentId, publisherId);
