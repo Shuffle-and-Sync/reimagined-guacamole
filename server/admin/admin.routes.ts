@@ -419,6 +419,11 @@ router.get('/users/:userId/notes',
     try {
       const { userId } = req.params;
       
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         res.status(404).json({ message: 'User not found' });
