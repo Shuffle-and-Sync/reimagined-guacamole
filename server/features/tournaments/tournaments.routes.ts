@@ -37,10 +37,10 @@ router.get('/:id', async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ message: "Tournament not found" });
     }
-    res.json(tournament);
+    return res.json(tournament);
   } catch (error) {
     logger.error("Failed to fetch tournament", error, { tournamentId: req.params.id });
-    res.status(500).json({ message: "Failed to fetch tournament" });
+    return res.status(500).json({ message: "Failed to fetch tournament" });
   }
 });
 
@@ -220,7 +220,7 @@ router.patch('/:id', isAuthenticated, async (req, res) => {
     };
     
     const updatedTournament = await tournamentsService.updateTournament(tournamentId, updates, userId);
-    res.json(updatedTournament);
+    return res.json(updatedTournament);
   } catch (error) {
     logger.error("Failed to update tournament", error, { 
       tournamentId: req.params.id, 
@@ -240,7 +240,7 @@ router.patch('/:id', isAuthenticated, async (req, res) => {
       }
     }
     
-    res.status(500).json({ message: "Failed to update tournament" });
+    return res.status(500).json({ message: "Failed to update tournament" });
   }
 });
 

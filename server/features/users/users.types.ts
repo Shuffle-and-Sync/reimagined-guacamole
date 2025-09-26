@@ -40,4 +40,9 @@ export interface FindPlayersRequest {
   gameType?: string;
   skillLevel?: string;
   communityId?: string;
+  pagination?: {
+    limit?: number;
+    cursor?: string;
+    page?: number;
+  };
 }

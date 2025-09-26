@@ -43,10 +43,10 @@ router.get('/game-sessions/:sessionId', async (req, res) => {
       return res.status(404).json({ message: "Game session not found" });
     }
     
-    res.json(session);
+    return res.json(session);
   } catch (error) {
     logger.error("Failed to fetch game session", error, { sessionId: req.params.sessionId });
-    res.status(500).json({ message: "Failed to fetch game session" });
+    return res.status(500).json({ message: "Failed to fetch game session" });
   }
 });
 

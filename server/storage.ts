@@ -189,7 +189,7 @@ import {
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
 } from "../shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -209,6 +209,7 @@ export interface IStorage {
     sortBy?: string; 
     order?: 'asc' | 'desc' 
   }): Promise<{ users: User[], total: number }>;
+  getCommunityActiveUsers(communityId: string, options?: { limit?: number; cursor?: string; includeOffline?: boolean; sortBy?: string; sortDirection?: 'asc' | 'desc' }): Promise<{ data: User[]; hasMore: boolean }>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
   
@@ -411,7 +412,7 @@ export interface IStorage {
   // Matchmaking operations
   getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined>;
   upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences>;
-  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]>;
+  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<{ data: any[]; hasMore: boolean }>;
   
   // Tournament operations
   getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
@@ -840,6 +841,67 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getCommunityActiveUsers(communityId: string, options: { 
+    limit?: number; 
+    cursor?: string; 
+    includeOffline?: boolean; 
+    sortBy?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  } = {}): Promise<{ data: User[]; hasMore: boolean }> {
+    const { limit = 20, cursor, includeOffline = false, sortBy = 'lastActiveAt', sortDirection = 'desc' } = options;
+
+    let conditions = [
+      eq(userCommunities.communityId, communityId)
+    ];
+
+    if (!includeOffline) {
+      conditions.push(or(
+        eq(users.status, 'online'),
+        eq(users.status, 'away'),
+        eq(users.status, 'busy'),
+        eq(users.status, 'gaming')
+      ));
+    }
+
+    if (cursor) {
+      conditions.push(lt(users.lastActiveAt, new Date(cursor)));
+    }
+
+    const activeUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        profileImageUrl: users.profileImageUrl,
+        primaryCommunity: users.primaryCommunity,
+        bio: users.bio,
+        location: users.location,
+        website: users.website,
+        status: users.status,
+        statusMessage: users.statusMessage,
+        timezone: users.timezone,
+        dateOfBirth: users.dateOfBirth,
+        isPrivate: users.isPrivate,
+        showOnlineStatus: users.showOnlineStatus,
+        allowDirectMessages: users.allowDirectMessages,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        lastActiveAt: users.lastActiveAt
+      })
+      .from(users)
+      .innerJoin(userCommunities, eq(users.id, userCommunities.userId))
+      .where(and(...conditions))
+      .orderBy(sortDirection === 'desc' ? desc(users.lastActiveAt) : asc(users.lastActiveAt))
+      .limit(limit + 1); // Get one extra to check if there are more
+
+    const hasMore = activeUsers.length > limit;
+    const data = hasMore ? activeUsers.slice(0, limit) : activeUsers;
+
+    return { data, hasMore };
+  }
+
   // Community operations
   async getCommunities(): Promise<Community[]> {
     return await db
@@ -1102,7 +1164,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]> {
+  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<{ data: (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[] }> {
     const baseQuery = db
       .select({
         id: events.id,
@@ -1189,6 +1251,8 @@ export class DatabaseStorage implements IStorage {
       attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
     })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
+
+    return { data: eventsWithDetails };
   }
 
   async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
@@ -1368,6 +1432,55 @@ export class DatabaseStorage implements IStorage {
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+  }
+
+  async getEventAttendeesByEventIds(eventIds: string[]): Promise<EventAttendee[]> {
+    if (eventIds.length === 0) return [];
+    
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
+        joinedAt: eventAttendees.joinedAt,
+      })
+      .from(eventAttendees)
+      .where(inArray(eventAttendees.eventId, eventIds));
+  }
+
+  // Transaction-based event operations
+  async getEventWithTransaction(tx: any, id: string): Promise<Event | undefined> {
+    const [event] = await tx
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+    return event;
+  }
+
+  async joinEventWithTransaction(tx: any, data: InsertEventAttendee): Promise<EventAttendee> {
+    const [attendee] = await tx
+      .insert(eventAttendees)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [eventAttendees.eventId, eventAttendees.userId],
+        set: {
+          status: data.status || 'attending',
+          joinedAt: new Date(),
+        },
+      })
+      .returning();
+    return attendee;
+  }
+
+  async createNotificationWithTransaction(tx: any, data: InsertNotification): Promise<Notification> {
+    const [notification] = await tx
+      .insert(notifications)
+      .values(data)
+      .returning();
+    return notification;
   }
 
   // Bulk calendar operations for game pods
@@ -2501,6 +2614,31 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.id, notificationId));
   }
 
+  async getUserNotificationsWithCursor(userId: string, options?: { 
+    unreadOnly?: boolean; 
+    cursor?: string; 
+    limit?: number; 
+    sortField?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  }): Promise<Notification[]> {
+    let conditions = [eq(notifications.userId, userId)];
+    
+    if (options?.unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+
+    if (options?.cursor) {
+      // Add cursor-based pagination condition
+      conditions.push(lt(notifications.createdAt, new Date(options.cursor)));
+    }
+
+    return await db.select()
+      .from(notifications)
+      .where(and(...conditions))
+      .orderBy(desc(notifications.createdAt))
+      .limit(options?.limit || 50);
+  }
+
   // Message operations
   async getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
     let conditions = [
@@ -2537,6 +2675,60 @@ export class DatabaseStorage implements IStorage {
   async sendMessage(data: InsertMessage): Promise<Message> {
     const [message] = await db.insert(messages).values(data).returning();
     return message;
+  }
+
+  async sendMessageWithTransaction(tx: any, data: InsertMessage): Promise<Message> {
+    const [message] = await tx.insert(messages).values(data).returning();
+    return message;
+  }
+
+  async getUserMessagesWithCursor(userId: string, options?: { 
+    eventId?: string; 
+    communityId?: string; 
+    conversationId?: string; 
+    unreadOnly?: boolean; 
+    cursor?: string; 
+    limit?: number; 
+    sortField?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+    let conditions = [
+      sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`
+    ];
+
+    if (options?.eventId) {
+      conditions.push(eq(messages.eventId, options.eventId));
+    }
+
+    if (options?.communityId) {
+      conditions.push(eq(messages.communityId, options.communityId));
+    }
+
+    if (options?.unreadOnly) {
+      conditions.push(eq(messages.isRead, false));
+    }
+
+    if (options?.cursor) {
+      conditions.push(lt(messages.createdAt, new Date(options.cursor)));
+    }
+
+    const results = await db.select({
+      message: messages,
+      sender: users,
+      event: events,
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .leftJoin(events, eq(messages.eventId, events.id))
+    .where(and(...conditions))
+    .orderBy(desc(messages.createdAt))
+    .limit(options?.limit || 50);
+
+    return results.map((r: { message: any; sender: any; event: any }) => ({ 
+      ...r.message, 
+      sender: r.sender, 
+      event: r.event 
+    }));
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -2977,7 +3169,7 @@ export class DatabaseStorage implements IStorage {
     return preferences;
   }
 
-  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]> {
+  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<{ data: any[]; hasMore: boolean }> {
     // Optimized AI Matchmaking Algorithm with performance monitoring
     return withQueryTiming('ai_matchmaking', async () => {
       // Pre-filter with indexed query to reduce dataset size
@@ -3064,7 +3256,10 @@ export class DatabaseStorage implements IStorage {
       .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
       .slice(0, 20); // Limit results
 
-      return scoredMatches;
+      return { 
+        data: scoredMatches, 
+        hasMore: scoredMatches.length >= 20 
+      };
     });
   }
 
@@ -3432,6 +3627,53 @@ export class DatabaseStorage implements IStorage {
 
       return verifiedResult;
     });
+  }
+
+  // Tournament transaction operations
+  async getTournamentParticipantsWithTransaction(tx: any, tournamentId: string): Promise<(TournamentParticipant & { user: User })[]> {
+    return await tx
+      .select({
+        id: tournamentParticipants.id,
+        tournamentId: tournamentParticipants.tournamentId,
+        userId: tournamentParticipants.userId,
+        joinedAt: tournamentParticipants.joinedAt,
+        status: tournamentParticipants.status,
+        user: users,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(users, eq(tournamentParticipants.userId, users.id))
+      .where(eq(tournamentParticipants.tournamentId, tournamentId));
+  }
+
+  async getTournamentRoundsWithTransaction(tx: any, tournamentId: string): Promise<TournamentRound[]> {
+    return await tx
+      .select()
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.tournamentId, tournamentId))
+      .orderBy(tournamentRounds.roundNumber);
+  }
+
+  async getTournamentMatchesWithTransaction(tx: any, tournamentId: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]> {
+    const results = await tx
+      .select({
+        match: tournamentMatches,
+        player1: alias(users, 'player1'),
+        player2: alias(users, 'player2'),
+        winner: alias(users, 'winner'),
+      })
+      .from(tournamentMatches)
+      .leftJoin(alias(users, 'player1'), eq(tournamentMatches.player1Id, alias(users, 'player1').id))
+      .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
+      .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
+      .where(eq(tournamentMatches.tournamentId, tournamentId))
+      .orderBy(tournamentMatches.roundNumber, tournamentMatches.matchNumber);
+
+    return results.map(r => ({
+      ...r.match,
+      player1: r.player1 || undefined,
+      player2: r.player2 || undefined,  
+      winner: r.winner || undefined,
+    }));
   }
 
   // Forum operations
