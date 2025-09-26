@@ -52,12 +52,12 @@ async function initializeConnection() {
   try {
     if (connectionType === 'neon' || connectionType === 'prisma-accelerate') {
       // Try Neon driver first for better performance when compatible
-      const { Pool: NeonPool, neonConfig } = require('@neondatabase/serverless');
-      const { drizzle } = require('drizzle-orm/neon-serverless');
-      const ws = require('ws');
+      const { Pool: NeonPool, neonConfig } = await import('@neondatabase/serverless');
+      const { drizzle } = await import('drizzle-orm/neon-serverless');
+      const ws = await import('ws');
       
       // Configure WebSocket constructor for Neon
-      neonConfig.webSocketConstructor = ws;
+      neonConfig.webSocketConstructor = ws.default;
       
       const poolConfig = {
         connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
@@ -99,8 +99,8 @@ async function initializeConnection() {
         } catch {}
       }
       
-      const { Pool: PgPool } = require('pg');
-      const { drizzle } = require('drizzle-orm/node-postgres');
+      const { Pool: PgPool } = await import('pg');
+      const { drizzle } = await import('drizzle-orm/node-postgres');
       
       const poolConfig = {
         connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
@@ -452,16 +452,20 @@ export async function initializeDatabase(): Promise<void> {
   }
   
   try {
+    // Wait for connection to be initialized if not already done
+    if (!connectionTested) {
+      await initializeConnection();
+    }
+    
     // Test the connection
     await pool.query('SELECT 1');
     console.log('✅ Database connection established');
     
-    // Log pool configuration
-    console.log('📊 Connection pool config:', {
-      max: poolConfig.max,
-      min: poolConfig.min,
-      idleTimeout: poolConfig.idleTimeoutMillis,
-      connectionTimeout: poolConfig.connectionTimeoutMillis
+    // Log connection info
+    console.log('📊 Connection info:', {
+      type: connectionInfo.type,
+      driver: usingNeonDriver ? 'Neon serverless' : 'PostgreSQL',
+      url: connectionInfo.url
     });
   } catch (error) {
     console.error('❌ Failed to initialize database:', error);
