@@ -296,7 +296,7 @@ export async function applyCompositeIndexes(): Promise<void> {
 
 // Enhanced transaction wrapper with better error handling and retry logic
 export async function withTransaction<T>(
-  operation: (tx: Parameters<typeof db.transaction>[0]) => Promise<T>,
+  operation: (tx: PgTransaction<any, any, any>) => Promise<T>,
   operationName: string = 'transaction',
   maxRetries: number = 3
 ): Promise<T> {
