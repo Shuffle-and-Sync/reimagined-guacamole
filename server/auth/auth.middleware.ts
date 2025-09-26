@@ -38,6 +38,7 @@ declare global {
           manualEntryKey: string;
           userId: string;
           createdAt: number;
+          expiresAt: number;
         };
         [key: string]: any;
       };
