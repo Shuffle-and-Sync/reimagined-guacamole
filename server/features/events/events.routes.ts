@@ -14,7 +14,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { communityId, type, upcoming } = req.query;
-    const userId = (req as any).user?.claims?.sub;
+    const userId = (req as any).user?.id;
     
     const events = await eventsService.getEvents({
       userId,
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.claims?.sub;
+    const userId = (req as any).user?.id;
     
     const event = await eventsService.getEvent(id, userId);
     if (!event) {
