@@ -37,7 +37,7 @@ This comprehensive review analyzed the Drizzle ORM implementation across the Shu
 
 1. **Database Configuration Inconsistencies** ✅ **FIXED**
    - Multiple conflicting database configuration files
-   - Inconsistent driver usage (node-postgres vs neon-serverless)
+   - Inconsistent driver usage (now standardized on node-postgres)
    - Mixed import patterns across the codebase
    - **Solution**: Created unified database configuration (`shared/database-unified.ts`)
 
@@ -59,7 +59,7 @@ This comprehensive review analyzed the Drizzle ORM implementation across the Shu
 ### 1. Unified Database Configuration
 
 Created `shared/database-unified.ts` that:
-- Uses Neon serverless for optimal serverless deployment
+- Uses PostgreSQL driver for consistent database connections
 - Includes connection pooling optimizations
 - Provides performance monitoring capabilities
 - Maintains backward compatibility

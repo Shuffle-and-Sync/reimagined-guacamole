@@ -1,5 +1,5 @@
 // Unified database configuration for Drizzle ORM
-// Supports both Neon serverless and regular PostgreSQL connections with automatic fallback
+// Supports PostgreSQL connections with Prisma Accelerate compatibility
 import { config } from "dotenv";
 import { resolve } from "path";
 
@@ -21,11 +21,9 @@ if (!databaseUrl) {
 }
 
 // Detect connection type to help with configuration
-function getConnectionType(url: string): 'neon' | 'postgres' | 'prisma-accelerate' {
+function getConnectionType(url: string): 'postgres' | 'prisma-accelerate' {
   if (url.startsWith('prisma+postgres://')) {
     return 'prisma-accelerate';
-  } else if (url.includes('neon.tech') || url.includes('neondb.')) {
-    return 'neon';
   } else {
     return 'postgres';
   }
@@ -41,88 +39,35 @@ const effectiveUrl = connectionType === 'prisma-accelerate'
 
 console.log(`📡 Using connection URL for: ${connectionType}`);
 
-// Try Neon first, fallback to regular PostgreSQL
-// Try Neon first, fallback to regular PostgreSQL
+// PostgreSQL connection setup
 let pool: any;
 let db: any;
-let usingNeonDriver = false;
 let connectionTested = false;
 
 async function initializeConnection() {
   try {
-    if (connectionType === 'neon' || connectionType === 'prisma-accelerate') {
-      // Try Neon driver first for better performance when compatible
-      const { Pool: NeonPool, neonConfig } = await import('@neondatabase/serverless');
-      const { drizzle } = await import('drizzle-orm/neon-serverless');
-      const ws = await import('ws');
-      
-      // Configure WebSocket constructor for Neon
-      neonConfig.webSocketConstructor = ws.default;
-      
-      const poolConfig = {
-        connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
-        max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
-        min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
-        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
-        connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '5000'), // Shorter timeout for testing
-        keepAlive: true,
-        keepAliveInitialDelayMillis: 30000,
-      };
-      
-      pool = new NeonPool(poolConfig);
-      db = drizzle({ client: pool, schema });
-      
-      // Test the connection with short timeout
-      const testPromise = pool.query('SELECT 1 as test');
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Connection test timeout')), 3000)
-      );
-      
-      await Promise.race([testPromise, timeoutPromise]);
-      
-      usingNeonDriver = true;
-      console.log(`✅ Using Neon serverless driver for ${connectionType}`);
-    } else {
-      throw new Error('Not a Neon connection, use PostgreSQL driver');
-    }
-  } catch (neonError) {
-    // Fallback to regular PostgreSQL driver
-    console.log(`⚠️ Neon driver failed or not applicable, falling back to PostgreSQL driver`);
-    console.log(`🔧 Fallback reason: ${neonError.message}`);
+    const { Pool: PgPool } = await import('pg');
+    const { drizzle } = await import('drizzle-orm/node-postgres');
     
-    try {
-      // Clean up any existing Neon connection
-      if (pool && typeof pool.end === 'function') {
-        try { 
-          await pool.end(); 
-          pool = null;
-        } catch {}
-      }
-      
-      const { Pool: PgPool } = await import('pg');
-      const { drizzle } = await import('drizzle-orm/node-postgres');
-      
-      const poolConfig = {
-        connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
-        max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
-        min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
-        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
-        connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
-        ssl: effectiveUrl?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
-      };
-      
-      pool = new PgPool(poolConfig);
-      db = drizzle(pool, { schema });
-      
-      // Test the PostgreSQL connection
-      await pool.query('SELECT 1 as test');
-      
-      usingNeonDriver = false;
-      console.log(`✅ Using PostgreSQL driver for ${connectionType}`);
-    } catch (pgError) {
-      console.error('❌ Both Neon and PostgreSQL drivers failed:', pgError);
-      throw new Error(`Database connection failed: ${pgError.message}`);
-    }
+    const poolConfig = {
+      connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
+      max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
+      min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
+      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+      connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
+      ssl: effectiveUrl?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+    };
+    
+    pool = new PgPool(poolConfig);
+    db = drizzle(pool, { schema });
+    
+    // Test the PostgreSQL connection
+    await pool.query('SELECT 1 as test');
+    
+    console.log(`✅ Using PostgreSQL driver for ${connectionType}`);
+  } catch (error) {
+    console.error('❌ PostgreSQL connection failed:', error);
+    throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
   connectionTested = true;
 }
@@ -138,7 +83,7 @@ if (databaseUrl) {
 // Export connection info for debugging
 export const connectionInfo = {
   type: connectionType,
-  usingNeonDriver,
+  driver: 'PostgreSQL',
   url: effectiveUrl ? effectiveUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'not set' // Hide credentials
 };
 
@@ -396,7 +341,7 @@ export async function withTransaction<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await withQueryTiming(`${operationName}:attempt_${attempt}`, async () => {
-        return await db.transaction(async (tx) => {
+        return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
           return await operation(tx);
         });
       });
@@ -464,7 +409,7 @@ export async function initializeDatabase(): Promise<void> {
     // Log connection info
     console.log('📊 Connection info:', {
       type: connectionInfo.type,
-      driver: usingNeonDriver ? 'Neon serverless' : 'PostgreSQL',
+      driver: connectionInfo.driver,
       url: connectionInfo.url
     });
   } catch (error) {
@@ -590,8 +535,8 @@ export class DatabasePerformanceMonitor {
       totalConnections: pool.totalCount,
       idleConnections: pool.idleCount,
       waitingCount: pool.waitingCount,
-      maxConnections: poolConfig.max,
-      minConnections: poolConfig.min
+      maxConnections: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
+      minConnections: parseInt(process.env.DB_POOL_MIN_SIZE || '5')
     };
   }
 }
