@@ -5577,6 +5577,11 @@ export class DatabaseStorage implements IStorage {
     for (const item of openItems) {
       const moderator = availableModerators[assigned % availableModerators.length];
       
+      if (!moderator) {
+        skipped++;
+        continue;
+      }
+      
       try {
         await this.assignModerationQueueItem(item.id, moderator.moderatorId);
         assigned++;

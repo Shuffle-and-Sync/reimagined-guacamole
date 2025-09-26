@@ -286,14 +286,16 @@ export class AIStreamingMatcher {
         const facebookLive = await facebookAPI.getLiveVideos();
         if (facebookLive && facebookLive.data && facebookLive.data.length > 0) {
           const video = facebookLive.data[0];
-          platforms.push({
-            platform: 'facebook',
-            username: video.title || video.description || username,
-            isActive: video.status === 'LIVE' || video.status === 'live',
-            followerCount: 0,
-            averageViewers: 0,
-            lastStreamDate: new Date(video.created_time || video.createdTime || Date.now())
-          });
+          if (video) {
+            platforms.push({
+              platform: 'facebook',
+              username: video.title || video.description || username,
+              isActive: video.status === 'LIVE' || video.status === 'live',
+              followerCount: 0,
+              averageViewers: 0,
+              lastStreamDate: new Date(video.created_time || video.createdTime || Date.now())
+            });
+          }
         }
       } catch (error) {
         logger.debug("Facebook Gaming platform data not available", { userId, username, error: error.message });
@@ -633,7 +635,14 @@ export class AIStreamingMatcher {
   }
 
   private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
+    const parts = time.split(':').map(Number);
+    const hours = parts[0];
+    const minutes = parts[1];
+    
+    if (hours === undefined || minutes === undefined) {
+      throw new Error(`Invalid time format: ${time}`);
+    }
+    
     return hours * 60 + minutes;
   }
 
