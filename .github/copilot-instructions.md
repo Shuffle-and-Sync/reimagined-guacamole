@@ -29,7 +29,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
-- **Database**: PostgreSQL with Neon serverless hosting
+- **Database**: PostgreSQL
 - **ORM**: Drizzle ORM for type-safe database operations
 - **Session Storage**: Database-backed sessions with Prisma adapter
 - **Email**: SendGrid for transactional emails

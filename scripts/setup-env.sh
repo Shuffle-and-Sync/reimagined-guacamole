@@ -148,7 +148,7 @@ setup_database() {
     print_info "Database setup options:"
     echo "1. Use existing PostgreSQL database"
     echo "2. Set up local PostgreSQL with Docker"
-    echo "3. Use cloud database (Neon, Supabase, etc.)"
+    echo "3. Use cloud database (Supabase, AWS RDS, etc.)"
     echo "4. Skip database setup"
     
     read -p "Choose option (1-4): " -n 1 -r db_choice
@@ -171,7 +171,7 @@ setup_database() {
             ;;
         3)
             print_info "Please sign up for a cloud database service and update DATABASE_URL in .env.local"
-            print_info "Recommended: Neon (https://neon.tech) or Supabase (https://supabase.com)"
+            print_info "Recommended: Supabase (https://supabase.com) or AWS RDS"
             ;;
         4)
             print_warning "Skipping database setup. You'll need to configure it manually."
