@@ -474,7 +474,7 @@ export class EnhancedWebSocketServer {
       const collaborators = await storage.getStreamCollaborators(eventId);
       const userCollaborator = collaborators.find(c => c.userId === ws.userId);
       
-      const isHost = event.hostUserId === ws.userId;
+      const isHost = event.hostId === ws.userId;
       const isCoHost = userCollaborator?.role === 'co_host';
       
       if (!isHost && !isCoHost) {
@@ -488,7 +488,7 @@ export class EnhancedWebSocketServer {
       }
 
       // Update phase in service
-      await collaborativeStreaming.changePhase(eventId, newPhase, ws.userId!);
+      await collaborativeStreaming.updateCoordinationPhase(eventId, newPhase, ws.userId!);
 
       const phaseMessage = {
         type: 'phase_updated' as const,
