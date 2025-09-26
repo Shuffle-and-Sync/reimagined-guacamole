@@ -254,6 +254,80 @@ npm run test:watch       # Watch mode for development
 npm run test:coverage    # Coverage analysis
 ```
 
+## 🚀 Production Deployment
+
+### Google Cloud Platform Setup
+
+This application is designed for deployment on Google Cloud Platform with the following architecture:
+- **Cloud Run**: Backend and frontend services
+- **Cloud SQL**: PostgreSQL database 
+- **Secret Manager**: Environment variables and credentials
+- **Cloud Build**: CI/CD pipeline
+- **Cloud Storage**: Static assets and backups
+
+### Quick Production Deployment
+
+```bash
+# 1. Set up environment
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
+
+# 2. Configure production environment
+cp .env.production.template .env.production
+# Edit .env.production with your values
+
+# 3. Deploy everything
+npm run deploy:production
+
+# 4. Verify deployment
+npm run verify:production
+```
+
+### Individual Service Deployment
+
+```bash
+# Deploy backend only
+npm run deploy:backend
+
+# Deploy frontend only
+npm run deploy:frontend
+
+# Migrate database safely
+npm run db:migrate:production
+
+# Test locally with production containers
+npm run docker:test
+```
+
+### Production Features
+
+✅ **Containerized Deployment**
+- Docker containers for backend (Node.js) and frontend (NGINX)
+- Multi-stage builds for optimized image sizes
+- Health checks and graceful shutdowns
+
+✅ **Automated CI/CD**
+- Cloud Build pipelines for backend and frontend
+- Automated testing before deployment
+- Rollback capabilities
+
+✅ **Database Management**
+- Safe migration scripts with automatic backups
+- Connection pooling for serverless architecture
+- Performance monitoring and optimization
+
+✅ **Monitoring & Observability**
+- Comprehensive health checks
+- Google Cloud Monitoring integration
+- Custom dashboards and alerting
+- Error tracking and performance metrics
+
+### Production Documentation
+
+- **[Production Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[Environment Template](./.env.production.template)** - Required environment variables
+- **[Deployment Guide](./DEPLOYMENT.md)** - Technical deployment details
+
 ## 🔒 Security
 
 ### Authentication Flow
