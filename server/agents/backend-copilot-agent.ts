@@ -351,23 +351,23 @@ export class BackendCopilotAgent {
     const recommendations: string[] = [];
     const categories = this.categorizeIssues(issues);
 
-    if (categories.typescript > 0) {
+    if ((categories.typescript ?? 0) > 0) {
       recommendations.push('🔧 Fix TypeScript errors to improve type safety and prevent runtime issues');
     }
 
-    if (categories.express > 0) {
+    if ((categories.express ?? 0) > 0) {
       recommendations.push('🚀 Improve Express.js patterns: add error handling, input validation, and proper separation of concerns');
     }
 
-    if (categories.drizzle > 0) {
+    if ((categories.drizzle ?? 0) > 0) {
       recommendations.push('🗄️ Optimize Drizzle ORM usage: use transactions, proper indexing, and efficient query patterns');
     }
 
-    if (categories.performance > 0) {
+    if ((categories.performance ?? 0) > 0) {
       recommendations.push('⚡ Improve performance: add database indexing, implement pagination, optimize queries');
     }
 
-    if (categories.security > 0) {
+    if ((categories.security ?? 0) > 0) {
       recommendations.push('🔒 Address security vulnerabilities: remove hardcoded credentials, prevent SQL injection');
     }
 
@@ -394,7 +394,7 @@ export class BackendCopilotAgent {
     
     const issuesByFile = result.issues.reduce((acc, issue) => {
       if (!acc[issue.file]) acc[issue.file] = [];
-      acc[issue.file].push(issue);
+      acc[issue.file]!.push(issue);
       return acc;
     }, {} as Record<string, CodeIssue[]>);
 

@@ -912,7 +912,7 @@ export class EnhancedSessionManager {
     try {
       await storage.createNotification({
         userId,
-        type: 'security_alert',
+        type: 'system',
         title: 'Security Alert',
         message: 'Unusual activity detected on your account. Please review your recent activity.',
         priority: 'high',
