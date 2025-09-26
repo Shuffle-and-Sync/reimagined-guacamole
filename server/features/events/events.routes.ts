@@ -66,6 +66,9 @@ router.put('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
     const userId = getAuthUserId(authenticatedReq);
     
     const updatedEvent = await eventsService.updateEvent(id, userId, req.body);
@@ -90,6 +93,9 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
     const userId = getAuthUserId(authenticatedReq);
     
     await eventsService.deleteEvent(id, userId);
@@ -114,6 +120,9 @@ router.post('/:eventId/join', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
     const userId = getAuthUserId(authenticatedReq);
     
     const attendee = await eventsService.joinEvent(eventId, userId, req.body);
@@ -133,13 +142,16 @@ router.delete('/:eventId/leave', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
     const userId = getAuthUserId(authenticatedReq);
     
     await eventsService.leaveEvent(eventId, userId);
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     logger.error("Failed to leave event", error, { eventId: req.params.eventId });
-    res.status(500).json({ message: "Failed to leave event" });
+    return res.status(500).json({ message: "Failed to leave event" });
   }
 });
 

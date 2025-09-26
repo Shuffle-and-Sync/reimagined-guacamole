@@ -205,7 +205,7 @@ friendRequestsRouter.post('/', isAuthenticated, async (req, res) => {
   try {
     const requesterId = getAuthUserId(authenticatedReq);
     const friendship = await usersService.sendFriendRequest(requesterId, req.body);
-    res.status(201).json(friendship);
+    return res.status(201).json(friendship);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "Addressee ID is required") {
@@ -220,7 +220,7 @@ friendRequestsRouter.post('/', isAuthenticated, async (req, res) => {
     }
     
     logger.error("Failed to send friend request", error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({ message: "Failed to send friend request" });
+    return res.status(500).json({ message: "Failed to send friend request" });
   }
 });
 
@@ -231,14 +231,14 @@ friendRequestsRouter.put('/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     
     const friendship = await usersService.respondToFriendRequest(userId, id, req.body);
-    res.json(friendship);
+    return res.json(friendship);
   } catch (error) {
     if (error instanceof Error && error.message === "Status must be 'accepted' or 'declined'") {
       return res.status(400).json({ message: "Status must be 'accepted' or 'declined'" });
     }
     
     logger.error("Failed to respond to friend request", error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({ message: "Failed to respond to friend request" });
+    return res.status(500).json({ message: "Failed to respond to friend request" });
   }
 });
 
