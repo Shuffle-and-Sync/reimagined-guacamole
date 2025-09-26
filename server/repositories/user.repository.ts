@@ -43,6 +43,7 @@ export interface UserUpdateData {
   status?: 'active' | 'inactive' | 'suspended';
   isEmailVerified?: boolean;
   mfaEnabled?: boolean;
+  updatedAt?: Date;
 }
 
 /**
@@ -506,7 +507,6 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
         }
 
         const result = await this.update(userId, {
-          deletedAt: null,
           status: 'active',
           email: newEmail,
           isEmailVerified: false,
