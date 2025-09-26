@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";

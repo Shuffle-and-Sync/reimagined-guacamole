@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Header } from "@/shared/components";
 import { Footer } from "@/shared/components";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
