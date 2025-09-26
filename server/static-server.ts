@@ -19,7 +19,23 @@ export function serveStatic(app: Express) {
     ? import.meta.dirname 
     : process.cwd();
   
-  const distPath = path.resolve(dirname, "public");
+  // In production, the built server is in dist/index.js and public is in dist/public
+  // In development, we serve from the current working directory
+  let distPath: string;
+  
+  if (process.env.NODE_ENV === 'production') {
+    // For production build, assume we're running from dist/index.js
+    // So public directory is at ./public relative to the built script
+    distPath = path.resolve(dirname, "public");
+    
+    // If that doesn't exist, try relative to process.cwd()
+    if (!fs.existsSync(distPath)) {
+      distPath = path.resolve(process.cwd(), "dist", "public");
+    }
+  } else {
+    // Development mode
+    distPath = path.resolve(dirname, "public");
+  }
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
