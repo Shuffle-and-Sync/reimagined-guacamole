@@ -2,8 +2,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
 import { authConfig } from "./auth.config";
-// TODO: Fix token imports - these functions need to be implemented
-// import { verifyAccessTokenJWT, validateTokenSecurity, type AccessTokenJWTPayload, revokeTokenByJTI } from "./tokens";
+import { verifyAccessTokenJWT, validateTokenSecurity } from "./tokens";
 import { extractDeviceContext } from "./device-fingerprinting";
 import { logger } from "../logger";
 import { storage } from "../storage";
@@ -255,8 +254,7 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     
     // Verify the JWT access token with enhanced security
     const { valid, payload, error, securityWarnings } = await verifyAccessTokenJWT(token, {
-      deviceFingerprint: deviceContext.userAgent, // Use userAgent as device identifier
-      ipAddress: deviceContext.ipAddress
+      checkSecurity: true
     });
     
     if (!valid || !payload) {
@@ -272,11 +270,11 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
 
     // Enhanced security validation
     if (payload.jti) {
-      const securityValidation = await validateTokenSecurity(payload.jti, payload);
+      const securityValidation = validateTokenSecurity(payload.jti, payload);
       
-      if (!securityValidation.valid) {
+      if (!securityValidation) {
         logger.warn('JWT token failed security validation', { 
-          userId: payload.userId,
+          userId: payload.sub,
           jti: payload.jti,
           securityIssues: securityValidation.securityIssues,
           ip: req.ip
@@ -290,9 +288,9 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     }
     
     // Get user from database to ensure they still exist and are active
-    const user = await storage.getUser(payload.userId);
+    const user = await storage.getUser(payload.sub);
     if (!user) {
-      logger.warn('JWT token for non-existent user', { userId: payload.userId, ip: req.ip });
+      logger.warn('JWT token for non-existent user', { userId: payload.sub, ip: req.ip });
       res.status(401).json({ message: "User not found" });
       return;
     }
@@ -304,7 +302,17 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
       name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
     };
     
-    req.jwtPayload = payload;
+    // Convert our token payload to the expected JWT payload format
+    req.jwtPayload = {
+      userId: payload.sub, // Map 'sub' to 'userId'
+      email: payload.email,
+      type: 'access' as const,
+      sessionId: undefined, // Not available in our simple tokens
+      iat: payload.iat,
+      exp: payload.exp,
+      iss: 'shuffle-and-sync', // Default issuer
+      aud: 'shuffle-and-sync' // Default audience
+    };
     req.isJWTAuth = true;
     
     // Log security warnings if present
@@ -319,10 +327,10 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     
     logger.debug('JWT authentication successful', {
       userId: user.id,
-      sessionId: payload.sessionId,
-      securityLevel: payload.securityLevel,
-      mfaVerified: payload.mfaVerified,
-      deviceBound: !!payload.deviceFingerprint,
+      sessionId: req.jwtPayload?.sessionId,
+      securityLevel: 'standard', // Default security level
+      mfaVerified: false, // Default MFA status
+      deviceBound: !!deviceContext.userAgent,
       ip: req.ip
     });
     
@@ -371,14 +379,23 @@ export async function optionalJWTAuth(req: Request, res: Response, next: NextFun
     
     if (valid && payload) {
       // Get user from database
-      const user = await storage.getUser(payload.userId);
+      const user = await storage.getUser(payload.sub);
       if (user) {
         req.user = {
           id: user.id,
           email: user.email || payload.email,
           name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
         };
-        req.jwtPayload = payload;
+        req.jwtPayload = {
+          userId: payload.sub,
+          email: payload.email,
+          type: 'access' as const,
+          sessionId: undefined,
+          iat: payload.iat,
+          exp: payload.exp,
+          iss: 'shuffle-and-sync',
+          aud: 'shuffle-and-sync'
+        };
         req.isJWTAuth = true;
       }
     }

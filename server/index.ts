@@ -13,9 +13,6 @@ if (cwd && (process.env.NODE_ENV !== 'production')) {
   }
 }
 
-// Initialize production logger early to handle console.log replacement
-import { productionLogger } from "./utils/production-logger";
-
 import express, { type Request, Response, NextFunction } from "express";
 import { serveStatic, log } from "./static-server";
 import { logger } from "./logger";
