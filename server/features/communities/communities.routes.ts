@@ -87,7 +87,7 @@ userCommunitiesRouter.post('/:communityId/set-primary', isAuthenticated, async (
       userId: getAuthUserId(authenticatedReq), 
       communityId: req.params.communityId 
     });
-    res.status(500).json({ message: "Failed to set primary community" });
+    return res.status(500).json({ message: "Failed to set primary community" });
   }
 });
 

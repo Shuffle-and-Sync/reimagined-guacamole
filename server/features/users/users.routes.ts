@@ -37,13 +37,13 @@ router.get('/profile/:userId?', isAuthenticated, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     
-    res.json(userProfile);
+    return res.json(userProfile);
   } catch (error) {
     logger.error("Failed to fetch user profile", error, { 
       currentUserId: getAuthUserId(authenticatedReq), 
       targetUserId: req.params.userId 
     });
-    res.status(500).json({ message: "Failed to fetch profile" });
+    return res.status(500).json({ message: "Failed to fetch profile" });
   }
 });
 
