@@ -109,10 +109,13 @@ function generateBackupCode(): string {
   let result = '';
   
   for (let i = 0; i < 12; i++) {
-    result += chars[bytes[i] % chars.length];
-    // Add dashes for readability every 4 characters
-    if ((i + 1) % 4 === 0 && i < 11) {
-      result += '-';
+    const byte = bytes[i];
+    if (byte !== undefined) {
+      result += chars[byte % chars.length];
+      // Add dashes for readability every 4 characters
+      if ((i + 1) % 4 === 0 && i < 11) {
+        result += '-';
+      }
     }
   }
   
@@ -155,12 +158,15 @@ export async function verifyBackupCode(
     
     // Check against each hashed backup code
     for (let i = 0; i < hashedCodes.length; i++) {
-      const isMatch = await verifyPassword(cleanCode, hashedCodes[i]);
-      if (isMatch) {
-        return {
-          isValid: true,
-          codeIndex: i,
-        };
+      const hashedCode = hashedCodes[i];
+      if (hashedCode) {
+        const isMatch = await verifyPassword(cleanCode, hashedCode);
+        if (isMatch) {
+          return {
+            isValid: true,
+            codeIndex: i,
+          };
+        }
       }
     }
     
