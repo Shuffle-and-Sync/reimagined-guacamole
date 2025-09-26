@@ -227,10 +227,13 @@ export class AutomatedFixEngine {
     
     if (lines[issue.line - 1]) {
       // Only replace non-localhost HTTP URLs
-      lines[issue.line - 1] = lines[issue.line - 1].replace(
-        /http:\/\/(?!localhost)/g, 
-        'https://'
-      );
+      const originalLine = lines[issue.line - 1];
+      if (originalLine) {
+        lines[issue.line - 1] = originalLine.replace(
+          /http:\/\/(?!localhost)/g, 
+          'https://'
+        );
+      }
       await fs.writeFile(filePath, lines.join('\n'));
       logger.info(`Fixed HTTPS URL in ${issue.file}:${issue.line}`);
     }
