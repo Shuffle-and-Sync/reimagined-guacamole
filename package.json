@@ -164,6 +164,8 @@
   },
   "overrides": {
     "glob": "^10.4.5",
-    "inflight": "npm:@isaacs/inflight@^1.0.8"
+    "inflight": "npm:@isaacs/inflight@^1.0.8",
+    "@esbuild-kit/esm-loader": "npm:tsx@^4.20.6",
+    "@esbuild-kit/core-utils": "npm:tsx@^4.20.6"
   }
 }
