@@ -237,15 +237,18 @@ class MonitoringService extends EventEmitter {
       // Disk metrics (basic implementation)
       let diskUsage = { used: 0, free: 0, total: 0, usage: 0 };
       try {
-        const stats = await fs.statfs(process.cwd());
-        diskUsage = {
-          used: (stats.blocks - stats.bavail) * stats.bsize,
-          free: stats.bavail * stats.bsize,
-          total: stats.blocks * stats.bsize,
-          usage: ((stats.blocks - stats.bavail) / stats.blocks) * 100,
-        };
+        const cwd = process.cwd();
+        if (cwd) {
+          const stats = await fs.statfs(cwd);
+          diskUsage = {
+            used: (stats.blocks - stats.bavail) * stats.bsize,
+            free: stats.bavail * stats.bsize,
+            total: stats.blocks * stats.bsize,
+            usage: ((stats.blocks - stats.bavail) / stats.blocks) * 100,
+          };
+        }
       } catch (error) {
-        // If statfs is not available, use reasonable defaults
+        // If statfs is not available or cwd is undefined, use reasonable defaults
         logger.debug('Disk usage calculation failed, using defaults', error);
       }
 

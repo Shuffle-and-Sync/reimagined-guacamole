@@ -38,10 +38,10 @@ const config = {
   outdir: 'dist',
   packages: 'external',
   plugins: [externalizeNodeModulesPlugin],
-  // Use esbuild's built-in alias feature for project aliases
+// Use esbuild's built-in alias feature for project aliases
   alias: {
-    '@shared': path.resolve(import.meta.dirname, 'shared'),
-    '@assets': path.resolve(import.meta.dirname, 'attached_assets'),
+    '@shared': path.resolve(process.cwd(), 'shared'),
+    '@assets': path.resolve(process.cwd(), 'attached_assets'),
   },
   // Handle .node files and other binary modules
   loader: {
