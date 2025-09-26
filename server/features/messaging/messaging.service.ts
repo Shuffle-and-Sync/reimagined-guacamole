@@ -129,7 +129,7 @@ export class MessagingService {
             data: {
               messageId: message.id,
               senderId: userId,
-              messageType: messageData.messageType,
+              messageType: messageData.type,
               conversationId: `${userId}-${messageData.recipientId}`,
             },
             priority: 'normal',

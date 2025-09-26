@@ -209,6 +209,7 @@ export interface IStorage {
     sortBy?: string; 
     order?: 'asc' | 'desc' 
   }): Promise<{ users: User[], total: number }>;
+  getCommunityActiveUsers(communityId: string, options?: { limit?: number; cursor?: string; includeOffline?: boolean; sortBy?: string; sortDirection?: 'asc' | 'desc' }): Promise<{ data: User[]; hasMore: boolean }>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
   
@@ -411,7 +412,7 @@ export interface IStorage {
   // Matchmaking operations
   getMatchmakingPreferences(userId: string): Promise<MatchmakingPreferences | undefined>;
   upsertMatchmakingPreferences(data: InsertMatchmakingPreferences): Promise<MatchmakingPreferences>;
-  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]>;
+  findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<{ data: any[]; hasMore: boolean }>;
   
   // Tournament operations
   getTournaments(communityId?: string): Promise<(Tournament & { organizer: User; community: Community; participantCount: number })[]>;
@@ -838,6 +839,67 @@ export class DatabaseStorage implements IStorage {
         updatedAt: users.updatedAt
       });
     return user;
+  }
+
+  async getCommunityActiveUsers(communityId: string, options: { 
+    limit?: number; 
+    cursor?: string; 
+    includeOffline?: boolean; 
+    sortBy?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  } = {}): Promise<{ data: User[]; hasMore: boolean }> {
+    const { limit = 20, cursor, includeOffline = false, sortBy = 'lastActiveAt', sortDirection = 'desc' } = options;
+
+    let conditions = [
+      eq(userCommunities.communityId, communityId)
+    ];
+
+    if (!includeOffline) {
+      conditions.push(or(
+        eq(users.status, 'online'),
+        eq(users.status, 'away'),
+        eq(users.status, 'busy'),
+        eq(users.status, 'gaming')
+      ));
+    }
+
+    if (cursor) {
+      conditions.push(lt(users.lastActiveAt, new Date(cursor)));
+    }
+
+    const activeUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        profileImageUrl: users.profileImageUrl,
+        primaryCommunity: users.primaryCommunity,
+        bio: users.bio,
+        location: users.location,
+        website: users.website,
+        status: users.status,
+        statusMessage: users.statusMessage,
+        timezone: users.timezone,
+        dateOfBirth: users.dateOfBirth,
+        isPrivate: users.isPrivate,
+        showOnlineStatus: users.showOnlineStatus,
+        allowDirectMessages: users.allowDirectMessages,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        lastActiveAt: users.lastActiveAt
+      })
+      .from(users)
+      .innerJoin(userCommunities, eq(users.id, userCommunities.userId))
+      .where(and(...conditions))
+      .orderBy(sortDirection === 'desc' ? desc(users.lastActiveAt) : asc(users.lastActiveAt))
+      .limit(limit + 1); // Get one extra to check if there are more
+
+    const hasMore = activeUsers.length > limit;
+    const data = hasMore ? activeUsers.slice(0, limit) : activeUsers;
+
+    return { data, hasMore };
   }
 
   // Community operations
@@ -3107,7 +3169,7 @@ export class DatabaseStorage implements IStorage {
     return preferences;
   }
 
-  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<any[]> {
+  async findMatchingPlayers(userId: string, preferences: MatchmakingPreferences): Promise<{ data: any[]; hasMore: boolean }> {
     // Optimized AI Matchmaking Algorithm with performance monitoring
     return withQueryTiming('ai_matchmaking', async () => {
       // Pre-filter with indexed query to reduce dataset size
@@ -3194,7 +3256,10 @@ export class DatabaseStorage implements IStorage {
       .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
       .slice(0, 20); // Limit results
 
-      return scoredMatches;
+      return { 
+        data: scoredMatches, 
+        hasMore: scoredMatches.length >= 20 
+      };
     });
   }
 
@@ -3562,6 +3627,53 @@ export class DatabaseStorage implements IStorage {
 
       return verifiedResult;
     });
+  }
+
+  // Tournament transaction operations
+  async getTournamentParticipantsWithTransaction(tx: any, tournamentId: string): Promise<(TournamentParticipant & { user: User })[]> {
+    return await tx
+      .select({
+        id: tournamentParticipants.id,
+        tournamentId: tournamentParticipants.tournamentId,
+        userId: tournamentParticipants.userId,
+        joinedAt: tournamentParticipants.joinedAt,
+        status: tournamentParticipants.status,
+        user: users,
+      })
+      .from(tournamentParticipants)
+      .innerJoin(users, eq(tournamentParticipants.userId, users.id))
+      .where(eq(tournamentParticipants.tournamentId, tournamentId));
+  }
+
+  async getTournamentRoundsWithTransaction(tx: any, tournamentId: string): Promise<TournamentRound[]> {
+    return await tx
+      .select()
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.tournamentId, tournamentId))
+      .orderBy(tournamentRounds.roundNumber);
+  }
+
+  async getTournamentMatchesWithTransaction(tx: any, tournamentId: string): Promise<(TournamentMatch & { player1?: User; player2?: User; winner?: User })[]> {
+    const results = await tx
+      .select({
+        match: tournamentMatches,
+        player1: alias(users, 'player1'),
+        player2: alias(users, 'player2'),
+        winner: alias(users, 'winner'),
+      })
+      .from(tournamentMatches)
+      .leftJoin(alias(users, 'player1'), eq(tournamentMatches.player1Id, alias(users, 'player1').id))
+      .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
+      .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
+      .where(eq(tournamentMatches.tournamentId, tournamentId))
+      .orderBy(tournamentMatches.roundNumber, tournamentMatches.matchNumber);
+
+    return results.map(r => ({
+      ...r.match,
+      player1: r.player1 || undefined,
+      player2: r.player2 || undefined,  
+      winner: r.winner || undefined,
+    }));
   }
 
   // Forum operations

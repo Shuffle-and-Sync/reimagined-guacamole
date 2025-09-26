@@ -258,12 +258,10 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
         logger.warn('JWT token failed security validation', { 
           userId: payload.sub,
           jti: payload.jti,
-          securityIssues: securityValidation.securityIssues,
           ip: req.ip
         });
         res.status(401).json({ 
-          message: "Token security validation failed",
-          securityIssues: securityValidation.securityIssues
+          message: "Token security validation failed"
         });
         return;
       }
