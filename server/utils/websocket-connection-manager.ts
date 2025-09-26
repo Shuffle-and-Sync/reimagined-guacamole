@@ -346,12 +346,12 @@ export class WebSocketConnectionManager {
 
   private setupPeriodicCleanup(): void {
     // Clean up stale connections every 5 minutes
-    setInterval(() => {
+    const cleanupInterval = setInterval(() => {
       this.cleanupStaleConnections();
     }, 5 * 60 * 1000);
 
     // Send ping to all connections every 30 seconds to detect stale connections
-    setInterval(() => {
+    const pingInterval = setInterval(() => {
       for (const ws of this.connections.values()) {
         if (ws.readyState === WebSocket.OPEN) {
           try {
@@ -362,6 +362,17 @@ export class WebSocketConnectionManager {
         }
       }
     }, 30 * 1000);
+
+    // Store intervals for cleanup during shutdown
+    process.on('SIGTERM', () => {
+      clearInterval(cleanupInterval);
+      clearInterval(pingInterval);
+    });
+    
+    process.on('SIGINT', () => {
+      clearInterval(cleanupInterval);
+      clearInterval(pingInterval);
+    });
   }
 }
 

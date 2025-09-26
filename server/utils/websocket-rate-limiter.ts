@@ -149,7 +149,11 @@ export const highFrequencyRateLimiter = new WebSocketRateLimiter({
 });
 
 // Set up periodic cleanup every 5 minutes
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   defaultRateLimiter.periodicCleanup();
   highFrequencyRateLimiter.periodicCleanup();
 }, 5 * 60 * 1000);
+
+// Clean up intervals on process termination
+process.on('SIGTERM', () => clearInterval(cleanupInterval));
+process.on('SIGINT', () => clearInterval(cleanupInterval));
