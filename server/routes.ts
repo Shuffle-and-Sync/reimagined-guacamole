@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/health', healthCheck);
 
   // Platform OAuth routes for account linking
-  app.get('/api/platforms/:platform/oauth/initiate', isAuthenticated, async (req, res) => {
+  app.get('/api/platforms/:platform/oauth/initiate', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -152,11 +152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ authUrl });
     } catch (error) {
       logger.error('Platform OAuth initiation error:', error);
-      res.status(500).json({ message: 'Failed to initiate OAuth flow' });
+      return res.status(500).json({ message: 'Failed to initiate OAuth flow' });
     }
   });
 
-  app.get('/api/platforms/:platform/oauth/callback', isAuthenticated, async (req, res) => {
+  app.get('/api/platforms/:platform/oauth/callback', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/platforms/accounts/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/platforms/accounts/:id', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       logger.error('Delete platform account error:', error);
-      res.status(500).json({ message: 'Failed to delete platform account' });
+      return res.status(500).json({ message: 'Failed to delete platform account' });
     }
   });
 
