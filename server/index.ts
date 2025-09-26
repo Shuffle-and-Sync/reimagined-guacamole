@@ -1,7 +1,17 @@
-// Load environment variables from .env.local for development
+// Load environment variables from .env.local for development only
 import { config } from "dotenv";
 import { resolve } from "path";
-config({ path: resolve(process.cwd(), '.env.local') });
+import { existsSync } from "fs";
+
+// Only load .env.local in development or if it exists
+// Use a more defensive approach for path resolution
+const cwd = process.cwd();
+if (cwd && (process.env.NODE_ENV !== 'production')) {
+  const envPath = resolve(cwd, '.env.local');
+  if (existsSync(envPath)) {
+    config({ path: envPath });
+  }
+}
 
 // Initialize production logger early to handle console.log replacement
 import { productionLogger } from "./utils/production-logger";
