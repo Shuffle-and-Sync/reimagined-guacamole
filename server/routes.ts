@@ -60,6 +60,7 @@ import monitoringRouter from "./routes/monitoring";
 import matchingRouter from "./routes/matching";
 import { CollaborativeStreamingService } from "./services/collaborative-streaming";
 import { websocketMessageSchema } from '../shared/websocket-schemas';
+import EnhancedWebSocketServer from './utils/websocket-server-enhanced';
 // Auth.js session validation will be done via session endpoint
 import { healthCheck } from "./health";
 import { generatePlatformOAuthURL, handlePlatformOAuthCallback } from "./services/platform-oauth";
@@ -2884,25 +2885,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // WebSocket server for real-time game coordination
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Initialize Enhanced WebSocket Server with security and reliability features
+  const enhancedWebSocketServer = new EnhancedWebSocketServer(httpServer);
   
-  // Extended WebSocket type with additional properties
-  type ExtendedWebSocket = WebSocket & {
-    userId?: string;
-    userName?: string;
-    userAvatar?: string;
-    sessionId?: string;
-  };
+  logger.info('Enhanced WebSocket server initialized with security features', {
+    rateLimiting: true,
+    authenticationValidation: true,
+    messageValidation: true,
+    connectionManagement: true
+  });
+
+  // Health check endpoint for WebSocket server
+  app.get('/api/websocket/health', (req, res) => {
+    const stats = enhancedWebSocketServer.getStats();
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      websocket: stats
+    });
+  });
   
-  // Game room connections: sessionId -> Set of WebSocket connections
-  const gameRooms = new Map<string, Set<ExtendedWebSocket>>();
-  
-  // Collaborative streaming room connections: eventId -> Set of WebSocket connections
-  const collaborativeStreamRooms = new Map<string, Set<ExtendedWebSocket>>();
-  
-  wss.on('connection', async (ws, req) => {
-    logger.info('WebSocket connection attempt');
+  // WebSocket functionality is now handled by the Enhanced WebSocket Server
+  // All real-time features including authentication, rate limiting, message validation,
+  // and connection management are implemented in the EnhancedWebSocketServer class
     
     // Extract and validate Auth.js session from request
     let authenticatedUserId: string | null = null;
