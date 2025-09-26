@@ -186,7 +186,7 @@ export class UsersService {
       // Create notification for the addressee
       await storage.createNotification({
         userId: addresseeId,
-        type: 'friend_request',
+        type: 'system',
         title: 'New Friend Request',
         message: `You have a new friend request`,
         data: { friendshipId: friendship.id, requesterId },
@@ -208,13 +208,13 @@ export class UsersService {
         throw new Error("Status must be 'accepted' or 'declined'");
       }
 
-      const friendship = await storage.respondToFriendRequest(userId, requestId);
+      const friendship = await storage.respondToFriendRequest(requestId, status as 'accepted' | 'declined');
       
       if (status === 'accepted') {
         // Create notification for the requester
         await storage.createNotification({
           userId: friendship.requesterId,
-          type: 'friend_request_accepted',
+          type: 'system',
           title: 'Friend Request Accepted',
           message: `Your friend request was accepted`,
           data: { friendshipId: friendship.id },
@@ -264,24 +264,21 @@ export class UsersService {
 
   async findPlayers(userId: string, searchCriteria: FindPlayersRequest) {
     try {
-      // Enhanced player search with cursor-based pagination for better performance
-      const enhancedCriteria = {
-        ...searchCriteria,
-        // Ensure pagination limits are applied to prevent large result sets
-        pagination: {
-          limit: Math.min(searchCriteria.pagination?.limit || 20, 50), // Max 50 players per request
-          cursor: searchCriteria.pagination?.cursor,
-          page: searchCriteria.pagination?.page
-        }
-      };
+      // Get user's matchmaking preferences first
+      const userPreferences = await storage.getMatchmakingPreferences(userId);
+      
+      if (!userPreferences) {
+        throw new Error("User matchmaking preferences not found. Please set up your preferences first.");
+      }
 
-      const players = await storage.findMatchingPlayers(userId, enhancedCriteria);
+      // Enhanced player search with cursor-based pagination for better performance
+      const players = await storage.findMatchingPlayers(userId, userPreferences);
       
       logger.info("Player search completed with pagination", { 
         userId, 
         resultCount: players.data?.length || 0,
         hasMore: players.hasMore,
-        criteria: enhancedCriteria 
+        searchCriteria
       });
       
       return players;
