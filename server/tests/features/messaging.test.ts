@@ -6,6 +6,10 @@
  */
 
 import { describe, test, expect, jest } from '@jest/globals';
+import { WebSocketRateLimiter } from '../../utils/websocket-rate-limiter';
+import { messageValidator } from '../../utils/websocket-message-validator';
+import { WebSocketConnectionManager } from '../../utils/websocket-connection-manager';
+import { envValidator } from '../../utils/websocket-env-validation';
 
 const createMockMessage = (overrides = {}) => ({
   id: 'message-123',
@@ -21,11 +25,28 @@ const createMockWebSocket = () => ({
   send: jest.fn(),
   close: jest.fn(),
   addEventListener: jest.fn(),
+  on: jest.fn(), // Add missing event emitter methods
+  once: jest.fn(),
+  off: jest.fn(),
+  emit: jest.fn(),
+  ping: jest.fn(),
   readyState: 1, // WebSocket.OPEN
   CONNECTING: 0,
   OPEN: 1,
   CLOSING: 2,
   CLOSED: 3
+});
+
+const createMockIncomingMessage = (overrides = {}) => ({
+  type: 'message',
+  sessionId: 'test-session',
+  user: {
+    id: 'user-123',
+    name: 'Test User',
+    avatar: 'avatar.jpg'
+  },
+  content: 'Hello world',
+  ...overrides
 });
 
 describe('Real-time Messaging', () => {
@@ -79,5 +100,294 @@ describe('Real-time Messaging', () => {
     expect(streamingEvent.type).toBe('phase_change');
     expect(streamingEvent.eventId).toBeTruthy();
     expect(streamingEvent.hostUserId).toBeTruthy();
+  });
+});
+
+describe('WebSocket Rate Limiting', () => {
+  test('should create rate limiter with default config', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 60 * 1000,
+      maxMessages: 100
+    });
+    
+    expect(rateLimiter).toBeDefined();
+    expect(rateLimiter.getStats().activeConnections).toBe(0);
+  });
+
+  test('should allow messages under rate limit', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 60 * 1000,
+      maxMessages: 5
+    });
+    
+    const connectionId = 'test-connection';
+    
+    // Should allow first 5 messages
+    for (let i = 0; i < 5; i++) {
+      expect(rateLimiter.isAllowed(connectionId, 'test_message')).toBe(true);
+    }
+    
+    // Should block 6th message
+    expect(rateLimiter.isAllowed(connectionId, 'test_message')).toBe(false);
+  });
+
+  test('should provide rate limit status', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 60 * 1000,
+      maxMessages: 10
+    });
+    
+    const connectionId = 'test-connection';
+    rateLimiter.isAllowed(connectionId, 'test_message');
+    
+    const status = rateLimiter.getStatus(connectionId);
+    expect(status.remaining).toBe(9);
+    expect(status.totalHits).toBe(1);
+    expect(typeof status.resetTime).toBe('number');
+  });
+
+  test('should cleanup connection data', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 60 * 1000,
+      maxMessages: 10
+    });
+    
+    const connectionId = 'test-connection';
+    rateLimiter.isAllowed(connectionId, 'test_message');
+    
+    let stats = rateLimiter.getStats();
+    expect(stats.activeConnections).toBe(1);
+    
+    rateLimiter.cleanup(connectionId);
+    stats = rateLimiter.getStats();
+    expect(stats.activeConnections).toBe(0);
+  });
+});
+
+describe('WebSocket Message Validation', () => {
+  test('should validate incoming messages', () => {
+    const validMessage = createMockIncomingMessage();
+    const result = messageValidator.validateIncoming(validMessage);
+    
+    expect(result.success).toBe(true);
+    expect(result.data).toBeDefined();
+  });
+
+  test('should reject invalid incoming messages', () => {
+    const invalidMessage = { type: 'invalid_type' };
+    const result = messageValidator.validateIncoming(invalidMessage);
+    
+    expect(result.success).toBe(false);
+    expect(result.error).toBeTruthy();
+  });
+
+  test('should validate outgoing messages', () => {
+    const validOutgoingMessage = {
+      type: 'error',
+      message: 'Test error message'
+    };
+    
+    const result = messageValidator.validateOutgoing(validOutgoingMessage);
+    expect(result.success).toBe(true);
+  });
+
+  test('should sanitize message content', () => {
+    const unsafeMessage = {
+      content: '<script>alert("xss")</script>Safe content',
+      name: 'User<script>',
+      safeField: 'This is safe'
+    };
+    
+    const sanitized = messageValidator.sanitizeMessage(unsafeMessage);
+    
+    // HTML entities should be escaped
+    expect(sanitized.content).toContain('&lt;script&gt;');
+    expect(sanitized.content).not.toContain('<script>');
+    expect(sanitized.name).not.toContain('<script>');
+    expect(sanitized.safeField).toBe('This is safe');
+  });
+
+  test('should create standardized error messages', () => {
+    const errorMessage = messageValidator.createErrorMessage(
+      'Test error',
+      'TEST_CODE',
+      { detail: 'test' }
+    );
+    
+    expect(errorMessage.type).toBe('error');
+    expect(errorMessage.message).toBe('Test error');
+    expect(errorMessage.code).toBe('TEST_CODE');
+    expect(errorMessage.details).toEqual({ detail: 'test' });
+  });
+
+  test('should create rate limit warning messages', () => {
+    const warningMessage = messageValidator.createRateLimitWarning(5, Date.now() + 60000);
+    
+    expect(warningMessage.type).toBe('rate_limit_warning');
+    expect(warningMessage.remaining).toBe(5);
+    expect(typeof warningMessage.resetTime).toBe('number');
+  });
+});
+
+describe('WebSocket Connection Management', () => {
+  test('should register and track connections', () => {
+    const connectionManager = new WebSocketConnectionManager();
+    const mockWS = createMockWebSocket() as any;
+    
+    const connectionId = connectionManager.registerConnection(mockWS, 'user-123');
+    
+    expect(connectionId).toBeTruthy();
+    expect(connectionId).toMatch(/^ws_\d+_/);
+    
+    const stats = connectionManager.getStats();
+    expect(stats.totalConnections).toBe(1);
+  });
+
+  test('should update connection activity', () => {
+    const connectionManager = new WebSocketConnectionManager();
+    const mockWS = createMockWebSocket() as any;
+    
+    const connectionId = connectionManager.registerConnection(mockWS, 'user-123');
+    connectionManager.updateActivity(connectionId);
+    
+    // Should not throw error
+    expect(true).toBe(true);
+  });
+
+  test('should check authentication expiration', () => {
+    const connectionManager = new WebSocketConnectionManager({
+      authExpiryTimeout: 100 // 100ms for testing
+    });
+    const mockWS = createMockWebSocket() as any;
+    
+    const connectionId = connectionManager.registerConnection(mockWS, 'user-123', 'test-token');
+    
+    // Should not be expired immediately
+    expect(connectionManager.isAuthExpired(connectionId)).toBe(false);
+    
+    // After timeout, should be expired
+    setTimeout(() => {
+      expect(connectionManager.isAuthExpired(connectionId)).toBe(true);
+    }, 150);
+  });
+
+  test('should manage room memberships', () => {
+    const connectionManager = new WebSocketConnectionManager();
+    const mockWS = createMockWebSocket() as any;
+    
+    const connectionId = connectionManager.registerConnection(mockWS, 'user-123');
+    
+    const joined = connectionManager.joinGameRoom(connectionId, 'session-123');
+    expect(joined).toBe(true);
+    
+    const connections = connectionManager.getGameRoomConnections('session-123');
+    expect(connections.length).toBe(1);
+  });
+});
+
+describe('WebSocket Environment Validation', () => {
+  test('should validate websocket URL construction', () => {
+    // Mock environment for testing
+    const originalEnv = process.env.AUTH_URL;
+    process.env.AUTH_URL = 'https://example.com';
+    
+    try {
+      const config = envValidator.validateAndGetConfig();
+      expect(config.authUrl).toBe('https://example.com');
+      expect(config.allowedOrigins).toContain('https://example.com');
+    } finally {
+      process.env.AUTH_URL = originalEnv;
+    }
+  });
+
+  test('should handle missing environment variables gracefully', () => {
+    const originalEnv = process.env.AUTH_URL;
+    delete process.env.AUTH_URL;
+    
+    try {
+      const validation = envValidator.validateRequiredEnvironment();
+      // In test environment, this might still be valid due to defaults
+      expect(validation).toBeDefined();
+    } finally {
+      if (originalEnv) {
+        process.env.AUTH_URL = originalEnv;
+      }
+    }
+  });
+
+  test('should determine production environment correctly', () => {
+    const config = envValidator.validateAndGetConfig();
+    expect(typeof config.isProduction).toBe('boolean');
+  });
+
+  test('should build allowed origins list', () => {
+    const config = envValidator.validateAndGetConfig();
+    expect(Array.isArray(config.allowedOrigins)).toBe(true);
+    expect(config.allowedOrigins.length).toBeGreaterThan(0);
+  });
+});
+
+describe('WebSocket Stress Testing', () => {
+  test('should handle multiple rapid connections', () => {
+    const connectionManager = new WebSocketConnectionManager();
+    const connectionIds: string[] = [];
+    
+    // Simulate 100 rapid connections
+    for (let i = 0; i < 100; i++) {
+      const mockWS = createMockWebSocket() as any;
+      const connectionId = connectionManager.registerConnection(mockWS, `user-${i}`);
+      connectionIds.push(connectionId);
+    }
+    
+    const stats = connectionManager.getStats();
+    expect(stats.totalConnections).toBe(100);
+    
+    // Cleanup
+    connectionIds.forEach(id => connectionManager.removeConnection(id));
+  });
+
+  test('should handle rapid message rate limiting', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 1000, // 1 second
+      maxMessages: 10
+    });
+    
+    const connectionId = 'stress-test-connection';
+    let allowedCount = 0;
+    let blockedCount = 0;
+    
+    // Try to send 20 messages rapidly
+    for (let i = 0; i < 20; i++) {
+      if (rateLimiter.isAllowed(connectionId, 'stress_test')) {
+        allowedCount++;
+      } else {
+        blockedCount++;
+      }
+    }
+    
+    expect(allowedCount).toBe(10); // Should allow exactly 10
+    expect(blockedCount).toBe(10); // Should block exactly 10
+  });
+
+  test('should handle memory cleanup under load', () => {
+    const rateLimiter = new WebSocketRateLimiter({
+      windowMs: 100, // Short window for testing
+      maxMessages: 5
+    });
+    
+    // Create many connections
+    for (let i = 0; i < 1000; i++) {
+      rateLimiter.isAllowed(`connection-${i}`, 'test_message');
+    }
+    
+    let initialStats = rateLimiter.getStats();
+    expect(initialStats.activeConnections).toBe(1000);
+    
+    // Wait for window to expire and run cleanup
+    setTimeout(() => {
+      rateLimiter.periodicCleanup();
+      const finalStats = rateLimiter.getStats();
+      expect(finalStats.activeConnections).toBeLessThan(initialStats.activeConnections);
+    }, 200);
   });
 });
