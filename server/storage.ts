@@ -1,4 +1,4 @@
-import { db, withQueryTiming } from "@shared/database-unified";
+import { db, withQueryTiming } from "../shared/database-unified";
 import { logger } from "./logger";
 import {
   users,
@@ -188,7 +188,7 @@ import {
   type InsertAuthAuditLog,
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
-} from "@shared/schema";
+} from "../shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -589,7 +589,7 @@ export interface IStorage {
   
   // User appeal operations
   createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal>;
-  getUserAppeals(filters?: { userId?: string; status?: string; assignedReviewer?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User })[]>;
+  getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]>;
   getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; assignedRev?: User }) | undefined>;
   updateUserAppeal(id: string, data: Partial<InsertUserAppeal>): Promise<UserAppeal>;
   assignAppealReviewer(appealId: string, reviewerId: string): Promise<UserAppeal>;
@@ -655,7 +655,7 @@ export class DatabaseStorage implements IStorage {
     limit?: number; 
     search?: string; 
     role?: string; 
-    status?: string; 
+    status?: 'online' | 'offline' | 'away' | 'busy' | 'gaming' | 'all'; 
     sortBy?: string; 
     order?: 'asc' | 'desc' 
   }): Promise<{ users: User[], total: number }> {
@@ -707,18 +707,18 @@ export class DatabaseStorage implements IStorage {
 
     // Add status filter
     if (status && status !== 'all') {
-      conditions.push(eq(users.status, status));
+      conditions.push(eq(users.status, status as 'online' | 'offline' | 'away' | 'busy' | 'gaming'));
     }
 
     // Add role filter (requires join with userRoles)
     if (role) {
-      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId));
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId)) as any;
       conditions.push(eq(userRoles.role, role));
     }
 
     // Apply conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     // Add sorting
@@ -727,29 +727,29 @@ export class DatabaseStorage implements IStorage {
       const sortColumn = users[sortBy as keyof typeof users];
       if (sortColumn) {
         if (order === 'asc') {
-          query = query.orderBy(asc(sortColumn));
+          query = query.orderBy(asc(sortColumn)) as any;
         } else {
-          query = query.orderBy(desc(sortColumn));
+          query = query.orderBy(desc(sortColumn)) as any;
         }
       }
     } else {
       // Default sort
-      query = query.orderBy(desc(users.createdAt));
+      query = query.orderBy(desc(users.createdAt)) as any;
     }
 
     // Get total count with same filters
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
     if (role) {
-      countQuery = countQuery.leftJoin(userRoles, eq(users.id, userRoles.userId));
+      countQuery = countQuery.leftJoin(userRoles, eq(users.id, userRoles.userId)) as any;
     }
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions));
+      countQuery = countQuery.where(and(...conditions)) as any;
     }
     const [{ count: total }] = await countQuery;
 
     // Add pagination
     const offset = (page - 1) * limit;
-    const usersList = await query.limit(limit).offset(offset);
+    const usersList = await (query as any).limit(limit).offset(offset);
 
     return { users: usersList, total };
   }

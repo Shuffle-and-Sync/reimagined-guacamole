@@ -7,7 +7,8 @@ import {
   validateDeviceContext,
   extractDeviceContext 
 } from './device-fingerprinting';
-import { revokeTokenByJTI } from './tokens';
+// TODO: Fix token imports - revokeTokenByJTI needs to be implemented
+// import { revokeTokenByJTI } from './tokens';
 
 /**
  * Enterprise-grade Session Security Service
