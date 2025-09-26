@@ -42,6 +42,7 @@ import {
   errorHandlingMiddleware,
   errors
 } from "./middleware/error-handling.middleware";
+import { assertRouteParam } from "./shared/utils";
 const { asyncHandler } = errorHandlingMiddleware;
 const { 
   AppError,
@@ -140,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { platform } = req.params;
+      const platform = assertRouteParam(req.params.platform, 'platform');
       
       if (!['twitch', 'youtube', 'facebook'].includes(platform)) {
         return res.status(400).json({ message: 'Unsupported platform' });
