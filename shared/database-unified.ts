@@ -48,8 +48,18 @@ export const db = drizzle({
   logger: process.env.NODE_ENV === 'development' ? {
     logQuery(query, params) {
       if (process.env.DB_LOG_QUERIES === 'true') {
-        console.log('🔍 DB Query:', query);
-        if (params) console.log('📋 Params:', params);
+        // Use structured logging for better readability
+        const timestamp = new Date().toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit", 
+          second: "2-digit",
+          hour12: true,
+        });
+        
+        console.log(`${timestamp} [DB] 🔍 Query: ${query}`);
+        if (params) {
+          console.log(`${timestamp} [DB] 📋 Params: ${JSON.stringify(params)}`);
+        }
       }
     }
   } : false
