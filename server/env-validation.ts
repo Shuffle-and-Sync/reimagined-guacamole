@@ -112,7 +112,7 @@ export function validateEnvironmentVariables(): EnvValidationResult {
 
 /**
  * Validates environment variables and logs results
- * Throws error in production if validation fails
+ * More lenient in production for Cloud Run compatibility
  */
 export function validateAndLogEnvironment(): void {
   const result = validateEnvironmentVariables();
@@ -130,7 +130,15 @@ export function validateAndLogEnvironment(): void {
       missingRequired: result.missingRequired
     });
 
+    // In production, log critical errors but allow server to start for health checks
+    // Services that depend on missing variables will gracefully degrade
     if (process.env.NODE_ENV === 'production') {
+      logger.warn('Starting server with degraded functionality due to missing environment variables', {
+        missingRequired: result.missingRequired
+      });
+      // Don't throw error - allow server to start for Cloud Run health checks
+    } else {
+      // In development, still throw to catch configuration issues early
       throw new Error(`Environment validation failed: ${result.errors.join(', ')}`);
     }
   } else {
