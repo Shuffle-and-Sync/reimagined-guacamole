@@ -41,10 +41,10 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
     
-    res.json(event);
+    return res.json(event);
   } catch (error) {
     logger.error("Failed to fetch event", error, { eventId: req.params.id });
-    res.status(500).json({ message: "Failed to fetch event" });
+    return res.status(500).json({ message: "Failed to fetch event" });
   }
 });
 
