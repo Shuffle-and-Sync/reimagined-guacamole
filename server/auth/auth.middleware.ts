@@ -30,6 +30,17 @@ declare global {
         name?: string | null;
         image?: string | null;
       };
+      // Express session support
+      session?: {
+        mfaPendingSecret?: {
+          secret: string;
+          qrCodeUrl: string;
+          manualEntryKey: string;
+          userId: string;
+          createdAt: number;
+        };
+        [key: string]: any;
+      };
       // JWT-specific data
       jwtPayload?: {
         userId: string;
