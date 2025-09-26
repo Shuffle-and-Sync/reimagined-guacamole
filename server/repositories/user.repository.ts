@@ -7,7 +7,7 @@
 
 import { BaseRepository, QueryOptions, PaginatedResult } from './base.repository';
 import { db } from '@shared/database-unified';
-import { users, communities, userCommunities, type User, type InsertUser } from '@shared/schema';
+import { users, communities, userCommunities, userRoles, type User, type InsertUser } from '@shared/schema';
 import { eq, and, sql, ilike, or } from 'drizzle-orm';
 import { logger } from '../logger';
 import { withQueryTiming } from '@shared/database-unified';
@@ -126,7 +126,9 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           const searchTerm = `%${search.trim()}%`;
           conditions.push(
             or(
-              ilike(this.table.name, searchTerm),
+              ilike(this.table.firstName, searchTerm),
+              ilike(this.table.lastName, searchTerm),
+              ilike(this.table.username, searchTerm),
               ilike(this.table.email, searchTerm)
             )
           );
@@ -139,7 +141,29 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
 
         // Filter by role
         if (role) {
-          conditions.push(eq(this.table.role, role));
+          const roleUserIds = await this.db
+            .select({ userId: userRoles.userId })
+            .from(userRoles)
+            .where(and(
+              eq(userRoles.role, role),
+              eq(userRoles.isActive, true)
+            ));
+
+          if (roleUserIds.length > 0) {
+            const userIds = roleUserIds.map(ur => ur.userId);
+            conditions.push(sql`${this.table.id} = ANY(${userIds})`);
+          } else {
+            // No users with this role, return empty result
+            return {
+              data: [],
+              total: 0,
+              page: baseOptions.pagination?.page || 1,
+              limit: baseOptions.pagination?.limit || 50,
+              totalPages: 0,
+              hasNext: false,
+              hasPrevious: false
+            };
+          }
         }
 
         // Filter by community membership
@@ -166,10 +190,8 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           }
         }
 
-        // Exclude deleted users unless explicitly included
-        if (!includeDeleted) {
-          conditions.push(sql`${this.table.deletedAt} IS NULL`);
-        }
+        // Note: User soft deletion is not implemented in current schema
+        // Exclude deleted users logic would go here if deletedAt field exists
 
         // Combine with base filters
         const filters = {

@@ -1491,12 +1491,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user and verify password
       const user = await storage.getUser(userId);
-      if (!user || !user.password) {
+      if (!user || !user.passwordHash) {
         return res.status(404).json({ message: "User not found" });
       }
       
       // Verify password before allowing MFA disable
-      const isPasswordValid = await verifyPassword(password, user.password);
+      const isPasswordValid = await verifyPassword(password, user.passwordHash);
       if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid password" });
       }
@@ -1679,12 +1679,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user and verify password
       const user = await storage.getUser(userId);
-      if (!user || !user.password) {
+      if (!user || !user.passwordHash) {
         return res.status(404).json({ message: "User not found" });
       }
       
       // Verify password
-      const isPasswordValid = await verifyPassword(password, user.password);
+      const isPasswordValid = await verifyPassword(password, user.passwordHash);
       if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid password" });
       }
@@ -1830,7 +1830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createRefreshToken(newRefreshTokenData);
         
         // Revoke the old refresh token
-        await storage.revokeRefreshToken(payload.tokenId);
+        await storage.revokeRefreshToken(payload.jti);
         
         // Log successful token refresh to audit trail
         await storage.createAuthAuditLog({
@@ -1839,12 +1839,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ipAddress: req.ip || 'unknown', 
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: true,
-          details: { oldTokenId: payload.tokenId, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' }
+          details: { oldTokenId: payload.jti, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' }
         });
         
         logger.info('Refresh token rotation completed successfully', {
           userId: user.id,
-          oldTokenId: payload.tokenId,
+          oldTokenId: payload.jti,
           newTokenId: newRefreshTokenId,
           ip: req.ip,
           userAgent: req.headers['user-agent']
@@ -1861,12 +1861,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (rotationError) {
         logger.error('Refresh token rotation failed', rotationError, {
           userId: user.id,
-          tokenId: payload.tokenId,
+          tokenId: payload.jti,
           ip: req.ip
         });
         
         // If rotation fails, revoke the old token for security
-        await storage.revokeRefreshToken(payload.tokenId);
+        await storage.revokeRefreshToken(payload.jti);
         return res.status(500).json({ message: "Token rotation failed - please login again" });
       }
       
@@ -1896,16 +1896,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Ensure user can only revoke their own tokens
-      if (payload.userId !== userId) {
+      if (payload.sub !== userId) {
         return res.status(403).json({ message: "Cannot revoke another user's token" });
       }
       
       // Revoke the refresh token
-      await storage.revokeRefreshToken(payload.tokenId);
+      await storage.revokeRefreshToken(payload.jti);
       
       logger.info('Refresh token revoked successfully', {
         userId,
-        tokenId: payload.tokenId,
+        tokenId: payload.jti,
         userAgent: req.headers['user-agent'],
         ipAddress: req.ip
       });

@@ -255,7 +255,7 @@ export class AIStreamingMatcher {
           platform: 'twitch',
           username: twitchUser?.display_name || twitchUser?.login || username,
           isActive: !!twitchStream && twitchStream.type === 'live',
-          followerCount: twitchUser?.view_count || twitchUser?.follower_count || 0,
+          followerCount: twitchUser?.view_count || 0,
           averageViewers: twitchStream?.viewer_count || 0,
           lastStreamDate: twitchStream ? new Date() : undefined,
           streamQuality: '720p'
@@ -271,10 +271,10 @@ export class AIStreamingMatcher {
         
         platforms.push({
           platform: 'youtube',
-          username: youtubeChannel?.title || youtubeChannel?.snippet?.title || username,
-          isActive: !!youtubeLive && (youtubeLive.status === 'live' || youtubeLive.type === 'live'),
-          followerCount: youtubeChannel?.subscriberCount || youtubeChannel?.statistics?.subscriberCount || 0,
-          averageViewers: youtubeLive?.viewerCount || youtubeLive?.concurrent_viewers || 0,
+          username: youtubeChannel?.title || username,
+          isActive: !!youtubeLive && youtubeLive.status === 'live',
+          followerCount: youtubeChannel?.subscriberCount || 0,
+          averageViewers: youtubeLive?.concurrentViewers || 0,
           lastStreamDate: youtubeLive ? new Date() : undefined
         });
       } catch (error) {
@@ -284,8 +284,8 @@ export class AIStreamingMatcher {
       // Check Facebook Gaming
       try {
         const facebookLive = await facebookAPI.getLiveVideos();
-        if (facebookLive && facebookLive.length > 0) {
-          const video = facebookLive[0];
+        if (facebookLive && facebookLive.data && facebookLive.data.length > 0) {
+          const video = facebookLive.data[0];
           platforms.push({
             platform: 'facebook',
             username: video.title || video.description || username,

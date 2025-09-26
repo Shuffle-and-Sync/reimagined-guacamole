@@ -98,7 +98,7 @@ export { pool, db };
 // Database performance monitoring
 export class DatabaseMonitor {
   private static instance: DatabaseMonitor;
-  private queryStats = new Map<string, { count: number; totalTime: number; avgTime: number }>();
+  private queryStats = new Map<string, { count: number; totalTime: number; avgTime: number; timestamps: number[] }>();
   
   public static getInstance(): DatabaseMonitor {
     if (!DatabaseMonitor.instance) {
@@ -108,15 +108,44 @@ export class DatabaseMonitor {
   }
 
   public recordQuery(operation: string, duration: number): void {
-    const stats = this.queryStats.get(operation) || { count: 0, totalTime: 0, avgTime: 0 };
+    const stats = this.queryStats.get(operation) || { count: 0, totalTime: 0, avgTime: 0, timestamps: [] };
     stats.count += 1;
     stats.totalTime += duration;
     stats.avgTime = stats.totalTime / stats.count;
+    stats.timestamps.push(Date.now());
+    
+    // Keep only last 100 timestamps to prevent memory bloat
+    if (stats.timestamps.length > 100) {
+      stats.timestamps = stats.timestamps.slice(-100);
+    }
+    
     this.queryStats.set(operation, stats);
   }
 
   public getStats(): Record<string, { count: number; totalTime: number; avgTime: number }> {
-    return Object.fromEntries(this.queryStats);
+    const result: Record<string, { count: number; totalTime: number; avgTime: number }> = {};
+    for (const [key, value] of this.queryStats.entries()) {
+      result[key] = {
+        count: value.count,
+        totalTime: value.totalTime,
+        avgTime: value.avgTime
+      };
+    }
+    return result;
+  }
+
+  public getSlowQueries(thresholdMs: number = 500): Record<string, { count: number; totalTime: number; avgTime: number }> {
+    const result: Record<string, { count: number; totalTime: number; avgTime: number }> = {};
+    for (const [key, value] of this.queryStats.entries()) {
+      if (value.avgTime > thresholdMs) {
+        result[key] = {
+          count: value.count,
+          totalTime: value.totalTime,
+          avgTime: value.avgTime
+        };
+      }
+    }
+    return result;
   }
 
   public reset(): void {
