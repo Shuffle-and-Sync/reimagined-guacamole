@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/platforms/:platform/refresh', isAuthenticated, async (req, res) => {
+  app.post('/api/platforms/:platform/refresh', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -255,12 +255,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: 'Token refreshed successfully' });
     } catch (error) {
       logger.error('Refresh platform token error:', error);
-      res.status(500).json({ message: 'Failed to refresh platform token' });
+      return res.status(500).json({ message: 'Failed to refresh platform token' });
     }
   });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       logger.error("Failed to fetch user", error, { userId: getAuthUserId(authenticatedReq) });
-      res.status(500).json({ message: "Failed to fetch user" });
+      return res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user profile (for viewing other users' profiles)
-  app.get('/api/user/profile/:userId?', isAuthenticated, async (req, res) => {
+  app.get('/api/user/profile/:userId?', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const currentUserId = getAuthUserId(authenticatedReq);
@@ -339,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       logger.error("Failed to fetch user profile", error, { currentUserId: getAuthUserId(authenticatedReq), targetUserId: req.params.userId });
-      res.status(500).json({ message: "Failed to fetch profile" });
+      return res.status(500).json({ message: "Failed to fetch profile" });
     }
   });
 
@@ -412,7 +412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/friend-requests', isAuthenticated, async (req, res) => {
+  app.post('/api/friend-requests', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const requesterId = getAuthUserId(authenticatedReq);
@@ -446,11 +446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(friendship);
     } catch (error) {
       logger.error("Failed to send friend request", error, { userId: getAuthUserId(authenticatedReq) });
-      res.status(500).json({ message: "Failed to send friend request" });
+      return res.status(500).json({ message: "Failed to send friend request" });
     }
   });
 
-  app.put('/api/friend-requests/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/friend-requests/:id', isAuthenticated, async (req, res): Promise<void> => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -477,7 +477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(friendship);
     } catch (error) {
       logger.error("Failed to respond to friend request", error, { userId: getAuthUserId(authenticatedReq) });
-      res.status(500).json({ message: "Failed to respond to friend request" });
+      return res.status(500).json({ message: "Failed to respond to friend request" });
     }
   });
 
