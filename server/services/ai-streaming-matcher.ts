@@ -4,6 +4,7 @@ import { storage } from "../storage";
 import { twitchAPI } from "./twitch-api";
 import { youtubeAPI } from "./youtube-api";
 import { facebookAPI } from "./facebook-api";
+import type { User } from "@shared/schema";
 
 // Enhanced streaming-specific matching interfaces
 export interface StreamerProfile {
@@ -321,7 +322,7 @@ export class AIStreamingMatcher {
         logger.warn("getUsers not available, using empty list", { error });
         users = [];
       }
-      const streamingCandidates = users.filter(u => u.id !== criteria.userId).slice(0, 50);
+      const streamingCandidates = users.filter((u: User) => u.id !== criteria.userId).slice(0, 50);
 
       // Convert to streaming profiles
       const candidates: StreamerProfile[] = [];

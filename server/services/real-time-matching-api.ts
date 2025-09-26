@@ -9,6 +9,7 @@ import { logger } from "../logger";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import { aiAlgorithmEngine } from "./ai-algorithm-engine";
 import { storage } from "../storage";
+import type { ConnectedPlatform } from "./ai-streaming-matcher";
 
 // Real-time matching interfaces
 export interface RealTimeMatchRequest {
@@ -789,7 +790,7 @@ export class RealTimeMatchingAPI {
     // Calculate diversity based on different collaboration types and platforms
     const uniqueTypes = new Set(matches.flatMap(match => match.collaborationTypes));
     const uniquePlatforms = new Set(matches.flatMap(match => 
-      match.candidate.platforms.map(p => p.platform)
+      match.candidate.platforms.map((p: ConnectedPlatform) => p.platform)
     ));
     
     return Math.min(100, (uniqueTypes.size * 20) + (uniquePlatforms.size * 15));
