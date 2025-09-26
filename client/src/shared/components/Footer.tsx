@@ -1,3 +1,4 @@
+import React from "react";
 import { Logo } from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 

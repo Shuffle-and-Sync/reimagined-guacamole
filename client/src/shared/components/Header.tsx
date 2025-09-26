@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { Logo } from "@/components/ui/logo";
