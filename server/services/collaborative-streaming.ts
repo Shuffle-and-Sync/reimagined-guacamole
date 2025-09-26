@@ -478,6 +478,10 @@ export class CollaborativeStreamingService {
               if (youtubeAPI && youtubeAPI.isConfigured()) {
                 try {
                   // Get valid access token for YouTube
+                  if (!session.currentHost) {
+                    logger.warn('No current host for YouTube stream status check');
+                    break;
+                  }
                   const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
                   const channelId = platformIdentifiers.youtube;
                   
@@ -522,6 +526,10 @@ export class CollaborativeStreamingService {
               if (twitchAPI && twitchAPI.isConfigured()) {
                 try {
                   // Get valid access token for Twitch
+                  if (!session.currentHost) {
+                    logger.warn('No current host for Twitch stream status check');
+                    break;
+                  }
                   const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
                   const twitchUserId = platformIdentifiers.twitch;
                   
@@ -566,6 +574,10 @@ export class CollaborativeStreamingService {
               if (facebookAPI && facebookAPI.isConfigured()) {
                 try {
                   // Get valid access token for Facebook
+                  if (!session.currentHost) {
+                    logger.warn('No current host for Facebook stream status check');
+                    break;
+                  }
                   const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
                   const pageId = platformIdentifiers.facebook;
                   
