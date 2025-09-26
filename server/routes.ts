@@ -847,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/forum/replies/:id/like', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const replyId = req.params.id;
+      const replyId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       await storage.likeForumReply(replyId, userId);
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/forum/replies/:id/like', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const replyId = req.params.id;
+      const replyId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       await storage.unlikeForumReply(replyId, userId);
@@ -937,7 +937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { eventId } = req.params;
+      const eventId = assertRouteParam(req.params.eventId, 'eventId');
       
       const event = await storage.getCollaborativeStreamEvent(eventId);
       if (!event) {
