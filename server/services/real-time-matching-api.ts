@@ -188,8 +188,7 @@ export class RealTimeMatchingAPI {
         urgency: request.preferences?.urgency ? urgencyMap[request.preferences.urgency] : 'medium',
         maxResults: request.preferences?.maxResults || 20,
         games: request.preferences?.requiredGames,
-        timeSlots: request.preferences?.preferredTimeSlots,
-        excludeUserIds: request.preferences?.excludeUserIds
+        timeSlots: request.preferences?.preferredTimeSlots
       });
 
       // Enhance matches with real-time data

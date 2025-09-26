@@ -203,7 +203,7 @@ export class CollaborativeStreamingService {
       await streamingCoordinator.createStreamSession({
         title: event.title,
         description: event.description || '',
-        game: event.contentType,
+        category: event.contentType,
         platforms: event.streamingPlatforms.map(p => ({
           id: p,
           name: p.charAt(0).toUpperCase() + p.slice(1),
@@ -213,9 +213,12 @@ export class CollaborativeStreamingService {
         coHostUserIds: [], // Will be populated as collaborators join
         scheduledStartTime: event.scheduledStartTime,
         tags: ['collaborative', event.targetAudience],
-        visibility: 'public',
-        maxViewers: undefined,
-        streamKey: event.streamKey || undefined
+        isPublic: true,
+        autoStartEnabled: false,
+        crossPlatformChat: true,
+        recordingEnabled: false,
+        multistreaming: true,
+        status: 'scheduled' as const
       });
 
       logger.info('Coordination session started', { 
