@@ -310,7 +310,8 @@ class MonitoringService extends EventEmitter {
       if (result.status === 'fulfilled') {
         this.healthStatus.set(result.value.service, result.value);
       } else {
-        const serviceName = ['database', 'redis', 'application', 'filesystem'][index];
+        const serviceNames = ['database', 'redis', 'application', 'filesystem'];
+        const serviceName = serviceNames[index] || 'unknown';
         this.healthStatus.set(serviceName, {
           service: serviceName,
           status: 'unhealthy',
