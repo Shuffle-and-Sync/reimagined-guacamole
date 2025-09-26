@@ -1,3 +1,4 @@
+import React from "react";
 import { Header } from "@/shared/components";
 import { Footer } from "@/shared/components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
