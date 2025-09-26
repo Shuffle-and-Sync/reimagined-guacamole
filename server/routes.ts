@@ -1769,41 +1769,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if refresh token exists in database and is not revoked
-      const tokenRecord = await storage.getRefreshToken(payload.tokenId);
+      const tokenRecord = await storage.getRefreshToken(payload.jti);
       if (!tokenRecord) {
-        logger.warn('Refresh token not found in database', { tokenId: payload.tokenId, ip: req.ip });
+        logger.warn('Refresh token not found in database', { tokenId: payload.jti, ip: req.ip });
         return res.status(401).json({ message: "Invalid refresh token" });
       }
       
       // CRITICAL SECURITY: Check if token was already revoked (reuse detection)
       if (tokenRecord.isRevoked) {
         logger.error('SECURITY ALERT: Refresh token reuse detected - revoking all user tokens', {
-          userId: payload.userId,
-          tokenId: payload.tokenId,
+          userId: payload.sub,
+          tokenId: payload.jti,
           ip: req.ip,
           userAgent: req.headers['user-agent']
         });
         
         // Revoke ALL user's refresh tokens immediately
-        await storage.revokeAllUserRefreshTokens(payload.userId);
+        await storage.revokeAllUserRefreshTokens(payload.sub);
         
         // Log security incident to audit trail
         await storage.createAuthAuditLog({
-          userId: payload.userId,
+          userId: payload.sub,
           eventType: 'logout', // Closest equivalent to forced logout due to security
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: false,
-          failureReason: 'refresh_token_reuse_detected',
-          details: { tokenId: payload.tokenId, revokedAllTokens: true }
+          failureReason: 'security_policy', // Use valid enum value instead
+          details: { tokenId: payload.jti, revokedAllTokens: true }
         });
         return res.status(401).json({ message: "Security violation detected - all tokens revoked" });
       }
       
       // Get user details
-      const user = await storage.getUser(payload.userId);
+      const user = await storage.getUser(payload.sub);
       if (!user) {
-        logger.warn('User not found for refresh token', { userId: payload.userId, ip: req.ip });
+        logger.warn('User not found for refresh token', { userId: payload.sub, ip: req.ip });
         return res.status(401).json({ message: "User not found" });
       }
       
