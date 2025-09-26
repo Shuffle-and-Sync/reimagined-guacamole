@@ -2,17 +2,23 @@ FROM node:18
 
 WORKDIR /app
 
+# Set git configuration to use modern branch naming
+RUN git config --global init.defaultBranch main
+
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies
-RUN npm install --production
+# Install all dependencies (including devDependencies needed for build)
+RUN npm ci
 
 # Copy application code
 COPY . .
 
 # Build the application
 RUN npm run build
+
+# Remove devDependencies to reduce image size (but keep production deps)
+RUN npm prune --production
 
 # Set production environment
 ENV NODE_ENV=production
