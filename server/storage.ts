@@ -724,13 +724,34 @@ export class DatabaseStorage implements IStorage {
     // Add sorting
     const validSortColumns = ['createdAt', 'updatedAt', 'username', 'email', 'firstName', 'lastName'];
     if (validSortColumns.includes(sortBy)) {
-      const sortColumn = users[sortBy as keyof typeof users];
-      if (sortColumn) {
-        if (order === 'asc') {
-          query = query.orderBy(asc(sortColumn)) as any;
-        } else {
-          query = query.orderBy(desc(sortColumn)) as any;
-        }
+      let sortColumn;
+      switch (sortBy) {
+        case 'createdAt':
+          sortColumn = users.createdAt;
+          break;
+        case 'updatedAt':
+          sortColumn = users.updatedAt;
+          break;
+        case 'username':
+          sortColumn = users.username;
+          break;
+        case 'email':
+          sortColumn = users.email;
+          break;
+        case 'firstName':
+          sortColumn = users.firstName;
+          break;
+        case 'lastName':
+          sortColumn = users.lastName;
+          break;
+        default:
+          sortColumn = users.createdAt;
+      }
+      
+      if (order === 'asc') {
+        query = query.orderBy(asc(sortColumn)) as any;
+      } else {
+        query = query.orderBy(desc(sortColumn)) as any;
       }
     } else {
       // Default sort
@@ -778,7 +799,7 @@ export class DatabaseStorage implements IStorage {
         set: {
           ...userData,
           updatedAt: new Date(),
-        },
+        } as any,  // Type assertion to handle Drizzle type issues
       })
       .returning();
     return user;
@@ -786,12 +807,14 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
     // Update user and return safe projection (excluding passwordHash)
+    const updateData = {
+      ...userData,
+      updatedAt: new Date(),
+    };
+    
     const [user] = await db
       .update(users)
-      .set({
-        ...userData,
-        updatedAt: new Date(),
-      })
+      .set(updateData as any)  // Type assertion to handle Drizzle type issues
       .where(eq(users.id, id))
       .returning({
         id: users.id,
