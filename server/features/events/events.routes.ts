@@ -69,7 +69,7 @@ router.put('/:id', isAuthenticated, async (req, res) => {
     const userId = getAuthUserId(authenticatedReq);
     
     const updatedEvent = await eventsService.updateEvent(id, userId, req.body);
-    res.json(updatedEvent);
+    return res.json(updatedEvent);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "Event not found") {
@@ -81,7 +81,7 @@ router.put('/:id', isAuthenticated, async (req, res) => {
     }
     
     logger.error("Failed to update event", error, { eventId: req.params.id });
-    res.status(500).json({ message: "Failed to update event" });
+    return res.status(500).json({ message: "Failed to update event" });
   }
 });
 
@@ -93,7 +93,7 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
     const userId = getAuthUserId(authenticatedReq);
     
     await eventsService.deleteEvent(id, userId);
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "Event not found") {
@@ -105,7 +105,7 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
     }
     
     logger.error("Failed to delete event", error, { eventId: req.params.id });
-    res.status(500).json({ message: "Failed to delete event" });
+    return res.status(500).json({ message: "Failed to delete event" });
   }
 });
 
@@ -117,14 +117,14 @@ router.post('/:eventId/join', isAuthenticated, async (req, res) => {
     const userId = getAuthUserId(authenticatedReq);
     
     const attendee = await eventsService.joinEvent(eventId, userId, req.body);
-    res.json(attendee);
+    return res.json(attendee);
   } catch (error) {
     if (error instanceof Error && error.message === "Event not found") {
       return res.status(404).json({ message: "Event not found" });
     }
     
     logger.error("Failed to join event", error, { eventId: req.params.eventId });
-    res.status(500).json({ message: "Failed to join event" });
+    return res.status(500).json({ message: "Failed to join event" });
   }
 });
 
@@ -161,14 +161,14 @@ router.post('/bulk', isAuthenticated, async (req, res) => {
   try {
     const userId = getAuthUserId(authenticatedReq);
     const createdEvents = await eventsService.createBulkEvents(userId, req.body);
-    res.status(201).json(createdEvents);
+    return res.status(201).json(createdEvents);
   } catch (error) {
     if (error instanceof Error && error.message === "Events array is required") {
       return res.status(400).json({ message: "Events array is required" });
     }
     
     logger.error("Failed to create bulk events", error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -217,13 +217,13 @@ calendarEventsRouter.get('/', async (req, res) => {
       type: type as string,
     });
     
-    res.json(events);
+    return res.json(events);
   } catch (error) {
     if (error instanceof Error && error.message === "startDate and endDate are required") {
       return res.status(400).json({ message: "startDate and endDate are required" });
     }
     
     logger.error("Failed to fetch calendar events", error, { filters: req.query });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
