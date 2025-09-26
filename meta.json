@@ -1,0 +1,2027 @@
+{
+  "inputs": {
+    "server/static-server.ts": {
+      "bytes": 1614,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/logger.ts": {
+      "bytes": 2495,
+      "imports": [],
+      "format": "esm"
+    },
+    "shared/schema.ts": {
+      "bytes": 125380,
+      "imports": [
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "shared/database-unified.ts": {
+      "bytes": 17605,
+      "imports": [
+        {
+          "path": "dotenv",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@neondatabase/serverless",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/neon-serverless",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "ws",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "shared/schema.ts",
+          "kind": "import-statement",
+          "original": "./schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/env-validation.ts": {
+      "bytes": 4663,
+      "imports": [
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/startup-optimization.ts": {
+      "bytes": 4477,
+      "imports": [
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/password.ts": {
+      "bytes": 7954,
+      "imports": [
+        {
+          "path": "@node-rs/argon2",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/storage.ts": {
+      "bytes": 213274,
+      "imports": [
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "./logger",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "shared/schema.ts",
+          "kind": "import-statement",
+          "original": "@shared/schema"
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/auth.config.ts": {
+      "bytes": 15039,
+      "imports": [
+        {
+          "path": "@auth/core/providers/google",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core/providers/twitch",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core/providers/credentials",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/password.ts",
+          "kind": "import-statement",
+          "original": "./password"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/tokens.ts": {
+      "bytes": 214185,
+      "imports": [
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "../logger",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "shared/schema.ts",
+          "kind": "import-statement",
+          "original": "@shared/schema"
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/device-fingerprinting.ts": {
+      "bytes": 5896,
+      "imports": [
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/session-security.ts": {
+      "bytes": 32387,
+      "imports": [
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/device-fingerprinting.ts",
+          "kind": "import-statement",
+          "original": "./device-fingerprinting"
+        },
+        {
+          "path": "./tokens",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/auth.middleware.ts": {
+      "bytes": 13331,
+      "imports": [
+        {
+          "path": "@auth/core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/auth.config.ts",
+          "kind": "import-statement",
+          "original": "./auth.config"
+        },
+        {
+          "path": "server/auth/tokens.ts",
+          "kind": "import-statement",
+          "original": "./tokens"
+        },
+        {
+          "path": "server/auth/device-fingerprinting.ts",
+          "kind": "import-statement",
+          "original": "./device-fingerprinting"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/auth/session-security.ts",
+          "kind": "import-statement",
+          "original": "./session-security"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/index.ts": {
+      "bytes": 1973,
+      "imports": [
+        {
+          "path": "server/auth/auth.middleware.ts",
+          "kind": "import-statement",
+          "original": "./auth.middleware"
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/auth.middleware.ts",
+          "kind": "import-statement",
+          "original": "./auth.middleware"
+        },
+        {
+          "path": "server/auth/auth.middleware.ts",
+          "kind": "import-statement",
+          "original": "./auth.middleware"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/communities/communities.service.ts": {
+      "bytes": 3098,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/communities/communities.routes.ts": {
+      "bytes": 3983,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/features/communities/communities.service.ts",
+          "kind": "import-statement",
+          "original": "./communities.service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/middleware/error-handling.middleware.ts": {
+      "bytes": 9049,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "nanoid",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/utils/database.utils.ts": {
+      "bytes": 17070,
+      "imports": [
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/middleware/error-handling.middleware.ts",
+          "kind": "import-statement",
+          "original": "../middleware/error-handling.middleware"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/events/events.service.ts": {
+      "bytes": 10043,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "server/utils/database.utils.ts",
+          "kind": "import-statement",
+          "original": "../../utils/database.utils"
+        },
+        {
+          "path": "shared/schema.ts",
+          "kind": "import-statement",
+          "original": "@shared/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/validation.ts": {
+      "bytes": 10243,
+      "imports": [
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "./auth"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/rate-limiting.ts": {
+      "bytes": 3239,
+      "imports": [
+        {
+          "path": "express-rate-limit",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "./auth"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/events/events.routes.ts": {
+      "bytes": 7913,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/features/events/events.service.ts",
+          "kind": "import-statement",
+          "original": "./events.service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "server/validation.ts",
+          "kind": "import-statement",
+          "original": "../../validation"
+        },
+        {
+          "path": "server/rate-limiting.ts",
+          "kind": "import-statement",
+          "original": "../../rate-limiting"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/users/users.service.ts": {
+      "bytes": 11308,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "../../utils/database.utils",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/users/users.routes.ts": {
+      "bytes": 11134,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/features/users/users.service.ts",
+          "kind": "import-statement",
+          "original": "./users.service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "server/validation.ts",
+          "kind": "import-statement",
+          "original": "../../validation"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/messaging/messaging.service.ts": {
+      "bytes": 5992,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/messaging/messaging.routes.ts": {
+      "bytes": 4877,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/features/messaging/messaging.service.ts",
+          "kind": "import-statement",
+          "original": "./messaging.service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "server/utils/database.utils.ts",
+          "kind": "import-statement",
+          "original": "../../utils/database.utils"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/tournaments/tournaments.service.ts": {
+      "bytes": 30263,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "@shared/schema",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/tournaments/tournaments.routes.ts": {
+      "bytes": 9260,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/features/tournaments/tournaments.service.ts",
+          "kind": "import-statement",
+          "original": "./tournaments.service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "shared/schema.ts",
+          "kind": "import-statement",
+          "original": "@shared/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/features/games/games.routes.ts": {
+      "bytes": 1864,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../../auth"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../../logger"
+        },
+        {
+          "path": "server/validation.ts",
+          "kind": "import-statement",
+          "original": "../../validation"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../../storage"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/auth/auth.routes.ts": {
+      "bytes": 701,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/auth.config.ts",
+          "kind": "import-statement",
+          "original": "./auth.config"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/twitch-api.ts": {
+      "bytes": 12160,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "require-call",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/redis-client.ts": {
+      "bytes": 5109,
+      "imports": [
+        {
+          "path": "redis",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/cache-service.ts": {
+      "bytes": 8171,
+      "imports": [
+        {
+          "path": "server/services/redis-client.ts",
+          "kind": "import-statement",
+          "original": "./redis-client"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/streaming-coordinator.ts": {
+      "bytes": 12652,
+      "imports": [
+        {
+          "path": "server/services/twitch-api.ts",
+          "kind": "import-statement",
+          "original": "./twitch-api"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/services/cache-service.ts",
+          "kind": "import-statement",
+          "original": "./cache-service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/routes/webhooks.ts": {
+      "bytes": 3161,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/services/twitch-api.ts",
+          "kind": "import-statement",
+          "original": "../services/twitch-api"
+        },
+        {
+          "path": "server/services/streaming-coordinator.ts",
+          "kind": "import-statement",
+          "original": "../services/streaming-coordinator"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/notification-delivery.ts": {
+      "bytes": 14510,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/notification-templates.ts": {
+      "bytes": 12303,
+      "imports": [],
+      "format": "esm"
+    },
+    "server/services/enhanced-notification.ts": {
+      "bytes": 10172,
+      "imports": [
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/services/notification-delivery.ts",
+          "kind": "import-statement",
+          "original": "./notification-delivery"
+        },
+        {
+          "path": "server/services/notification-templates.ts",
+          "kind": "import-statement",
+          "original": "./notification-templates"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/routes/notification-preferences.ts": {
+      "bytes": 5494,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/services/enhanced-notification.ts",
+          "kind": "import-statement",
+          "original": "../services/enhanced-notification"
+        },
+        {
+          "path": "server/auth/auth.middleware.ts",
+          "kind": "import-statement",
+          "original": "../auth/auth.middleware"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/monitoring-service.ts": {
+      "bytes": 23450,
+      "imports": [
+        {
+          "path": "events",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "os",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs/promises",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "server/services/redis-client.ts",
+          "kind": "import-statement",
+          "original": "./redis-client"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/routes/monitoring.ts": {
+      "bytes": 10639,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../auth"
+        },
+        {
+          "path": "server/rate-limiting.ts",
+          "kind": "import-statement",
+          "original": "../rate-limiting"
+        },
+        {
+          "path": "server/services/monitoring-service.ts",
+          "kind": "import-statement",
+          "original": "../services/monitoring-service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "dynamic-import",
+          "original": "../storage"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/backup-service.ts": {
+      "bytes": 16077,
+      "imports": [
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs/promises",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "child_process",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "util",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/services/infrastructure-test-service.ts": {
+      "bytes": 25222,
+      "imports": [
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/services/monitoring-service.ts",
+          "kind": "import-statement",
+          "original": "./monitoring-service"
+        },
+        {
+          "path": "server/services/cache-service.ts",
+          "kind": "import-statement",
+          "original": "./cache-service"
+        },
+        {
+          "path": "server/services/backup-service.ts",
+          "kind": "import-statement",
+          "original": "./backup-service"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "./redis-client",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/routes/infrastructure-tests.ts": {
+      "bytes": 9092,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../auth"
+        },
+        {
+          "path": "server/rate-limiting.ts",
+          "kind": "import-statement",
+          "original": "../rate-limiting"
+        },
+        {
+          "path": "server/services/infrastructure-test-service.ts",
+          "kind": "import-statement",
+          "original": "../services/infrastructure-test-service"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "dynamic-import",
+          "original": "../storage"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/admin/admin.middleware.ts": {
+      "bytes": 16374,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../auth"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/admin/admin.routes.ts": {
+      "bytes": 46110,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "../storage"
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "../auth"
+        },
+        {
+          "path": "server/rate-limiting.ts",
+          "kind": "import-statement",
+          "original": "../rate-limiting"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "server/admin/admin.middleware.ts",
+          "kind": "import-statement",
+          "original": "./admin.middleware"
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/email-service.ts": {
+      "bytes": 9498,
+      "imports": [
+        {
+          "path": "@sendgrid/mail",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/utils/security.utils.ts": {
+      "bytes": 6538,
+      "imports": [
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "../logger"
+        },
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "vite.config.ts": {
+      "bytes": 1212,
+      "imports": [
+        {
+          "path": "vite",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@vitejs/plugin-react",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@replit/vite-plugin-runtime-error-modal",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@replit/vite-plugin-cartographer",
+          "kind": "dynamic-import",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "server/vite.ts": {
+      "bytes": 3341,
+      "imports": [
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "http",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "nanoid",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "vite",
+          "kind": "dynamic-import",
+          "external": true
+        },
+        {
+          "path": "vite.config.ts",
+          "kind": "dynamic-import",
+          "original": "../vite.config.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "server/index.ts": {
+      "bytes": 22170,
+      "imports": [
+        {
+          "path": "dotenv",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "./utils/production-logger",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/static-server.ts",
+          "kind": "import-statement",
+          "original": "./static-server"
+        },
+        {
+          "path": "server/logger.ts",
+          "kind": "import-statement",
+          "original": "./logger"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "import-statement",
+          "original": "@shared/database-unified"
+        },
+        {
+          "path": "server/env-validation.ts",
+          "kind": "import-statement",
+          "original": "./env-validation"
+        },
+        {
+          "path": "server/startup-optimization.ts",
+          "kind": "import-statement",
+          "original": "./startup-optimization"
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "./features/auth/auth.routes",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/features/communities/communities.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/communities/communities.routes"
+        },
+        {
+          "path": "server/features/events/events.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/events/events.routes"
+        },
+        {
+          "path": "server/features/users/users.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/users/users.routes"
+        },
+        {
+          "path": "server/features/messaging/messaging.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/messaging/messaging.routes"
+        },
+        {
+          "path": "server/features/tournaments/tournaments.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/tournaments/tournaments.routes"
+        },
+        {
+          "path": "server/features/games/games.routes.ts",
+          "kind": "import-statement",
+          "original": "./features/games/games.routes"
+        },
+        {
+          "path": "./shared/middleware",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation"
+        },
+        {
+          "path": "@auth/express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "./auth/auth.config",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/auth/auth.routes.ts",
+          "kind": "import-statement",
+          "original": "./auth/auth.routes"
+        },
+        {
+          "path": "server/routes/webhooks.ts",
+          "kind": "import-statement",
+          "original": "./routes/webhooks"
+        },
+        {
+          "path": "server/routes/notification-preferences.ts",
+          "kind": "import-statement",
+          "original": "./routes/notification-preferences"
+        },
+        {
+          "path": "server/routes/monitoring.ts",
+          "kind": "import-statement",
+          "original": "./routes/monitoring"
+        },
+        {
+          "path": "server/routes/infrastructure-tests.ts",
+          "kind": "import-statement",
+          "original": "./routes/infrastructure-tests"
+        },
+        {
+          "path": "server/admin/admin.routes.ts",
+          "kind": "import-statement",
+          "original": "./admin/admin.routes"
+        },
+        {
+          "path": "server/services/monitoring-service.ts",
+          "kind": "import-statement",
+          "original": "./services/monitoring-service"
+        },
+        {
+          "path": "server/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation"
+        },
+        {
+          "path": "server/rate-limiting.ts",
+          "kind": "import-statement",
+          "original": "./rate-limiting"
+        },
+        {
+          "path": "server/email-service.ts",
+          "kind": "import-statement",
+          "original": "./email-service"
+        },
+        {
+          "path": "server/auth/tokens.ts",
+          "kind": "import-statement",
+          "original": "./auth/tokens"
+        },
+        {
+          "path": "server/storage.ts",
+          "kind": "import-statement",
+          "original": "./storage"
+        },
+        {
+          "path": "server/auth/index.ts",
+          "kind": "import-statement",
+          "original": "./auth"
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "server/utils/security.utils.ts",
+          "kind": "import-statement",
+          "original": "./utils/security.utils"
+        },
+        {
+          "path": "http",
+          "kind": "dynamic-import",
+          "external": true
+        },
+        {
+          "path": "server/vite.ts",
+          "kind": "dynamic-import",
+          "original": "./vite"
+        },
+        {
+          "path": "shared/database-unified.ts",
+          "kind": "dynamic-import",
+          "original": "@shared/database-unified"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/index.js": {
+      "imports": [
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "dotenv",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@neondatabase/serverless",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/neon-serverless",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "ws",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "vite",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@vitejs/plugin-react",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@replit/vite-plugin-runtime-error-modal",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@replit/vite-plugin-cartographer",
+          "kind": "dynamic-import",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "nanoid",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "vite",
+          "kind": "dynamic-import",
+          "external": true
+        },
+        {
+          "path": "dotenv",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core/providers/google",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core/providers/twitch",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/core/providers/credentials",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@node-rs/argon2",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm/pg-core",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "drizzle-orm",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "nanoid",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express-rate-limit",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@auth/express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "redis",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "events",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "os",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs/promises",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs/promises",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "child_process",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "express",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "@sendgrid/mail",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "zod",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "http",
+          "kind": "dynamic-import",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "server/index.ts",
+      "inputs": {
+        "server/logger.ts": {
+          "bytesInOutput": 2413
+        },
+        "shared/schema.ts": {
+          "bytesInOutput": 133687
+        },
+        "shared/database-unified.ts": {
+          "bytesInOutput": 16575
+        },
+        "server/storage.ts": {
+          "bytesInOutput": 164101
+        },
+        "vite.config.ts": {
+          "bytesInOutput": 1472
+        },
+        "server/vite.ts": {
+          "bytesInOutput": 2815
+        },
+        "server/index.ts": {
+          "bytesInOutput": 15342
+        },
+        "server/static-server.ts": {
+          "bytesInOutput": 1072
+        },
+        "server/env-validation.ts": {
+          "bytesInOutput": 3260
+        },
+        "server/startup-optimization.ts": {
+          "bytesInOutput": 2339
+        },
+        "server/features/communities/communities.routes.ts": {
+          "bytesInOutput": 3310
+        },
+        "server/auth/auth.middleware.ts": {
+          "bytesInOutput": 3704
+        },
+        "server/auth/auth.config.ts": {
+          "bytesInOutput": 12523
+        },
+        "server/auth/password.ts": {
+          "bytesInOutput": 2112
+        },
+        "server/auth/tokens.ts": {
+          "bytesInOutput": 149208
+        },
+        "server/auth/device-fingerprinting.ts": {
+          "bytesInOutput": 3633
+        },
+        "server/auth/session-security.ts": {
+          "bytesInOutput": 24220
+        },
+        "server/auth/index.ts": {
+          "bytesInOutput": 295
+        },
+        "server/features/communities/communities.service.ts": {
+          "bytesInOutput": 2592
+        },
+        "server/features/events/events.routes.ts": {
+          "bytesInOutput": 6827
+        },
+        "server/features/events/events.service.ts": {
+          "bytesInOutput": 8061
+        },
+        "server/utils/database.utils.ts": {
+          "bytesInOutput": 11287
+        },
+        "server/middleware/error-handling.middleware.ts": {
+          "bytesInOutput": 609
+        },
+        "server/validation.ts": {
+          "bytesInOutput": 6816
+        },
+        "server/rate-limiting.ts": {
+          "bytesInOutput": 2650
+        },
+        "server/features/users/users.routes.ts": {
+          "bytesInOutput": 9801
+        },
+        "server/features/users/users.service.ts": {
+          "bytesInOutput": 9922
+        },
+        "server/features/messaging/messaging.routes.ts": {
+          "bytesInOutput": 4072
+        },
+        "server/features/messaging/messaging.service.ts": {
+          "bytesInOutput": 5047
+        },
+        "server/features/tournaments/tournaments.routes.ts": {
+          "bytesInOutput": 7682
+        },
+        "server/features/tournaments/tournaments.service.ts": {
+          "bytesInOutput": 25325
+        },
+        "server/features/games/games.routes.ts": {
+          "bytesInOutput": 1551
+        },
+        "server/auth/auth.routes.ts": {
+          "bytesInOutput": 435
+        },
+        "server/routes/webhooks.ts": {
+          "bytesInOutput": 2128
+        },
+        "server/services/twitch-api.ts": {
+          "bytesInOutput": 9378
+        },
+        "server/services/streaming-coordinator.ts": {
+          "bytesInOutput": 8655
+        },
+        "server/services/redis-client.ts": {
+          "bytesInOutput": 4159
+        },
+        "server/services/cache-service.ts": {
+          "bytesInOutput": 6742
+        },
+        "server/routes/notification-preferences.ts": {
+          "bytesInOutput": 4313
+        },
+        "server/services/enhanced-notification.ts": {
+          "bytesInOutput": 8044
+        },
+        "server/services/notification-delivery.ts": {
+          "bytesInOutput": 10814
+        },
+        "server/services/notification-templates.ts": {
+          "bytesInOutput": 10571
+        },
+        "server/routes/monitoring.ts": {
+          "bytesInOutput": 9053
+        },
+        "server/services/monitoring-service.ts": {
+          "bytesInOutput": 19389
+        },
+        "server/routes/infrastructure-tests.ts": {
+          "bytesInOutput": 7854
+        },
+        "server/services/infrastructure-test-service.ts": {
+          "bytesInOutput": 20570
+        },
+        "server/services/backup-service.ts": {
+          "bytesInOutput": 13497
+        },
+        "server/admin/admin.routes.ts": {
+          "bytesInOutput": 41837
+        },
+        "server/admin/admin.middleware.ts": {
+          "bytesInOutput": 11316
+        },
+        "server/email-service.ts": {
+          "bytesInOutput": 3986
+        },
+        "server/utils/security.utils.ts": {
+          "bytesInOutput": 3477
+        }
+      },
+      "bytes": 843991
+    }
+  }
+}
