@@ -111,7 +111,7 @@ router.post('/:id/start', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
     
     const tournament = await tournamentsService.startTournament(tournamentId, userId);
     res.json(tournament);
@@ -126,7 +126,7 @@ router.post('/:id/advance', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
     
     const tournament = await tournamentsService.advanceRound(tournamentId, userId);
     res.json(tournament);
@@ -145,8 +145,8 @@ router.post('/:id/matches/:matchId/result', isAuthenticated, async (req, res) =>
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
-    const matchId = req.params.matchId;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
+    const matchId = assertRouteParam(req.params.matchId, 'matchId');
     const { winnerId, player1Score, player2Score } = req.body;
     
     const result = await tournamentsService.reportMatchResult(tournamentId, matchId, winnerId, userId, player1Score, player2Score);
@@ -182,8 +182,8 @@ router.post('/:id/matches/:matchId/create-session', isAuthenticated, async (req,
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
-    const matchId = req.params.matchId;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
+    const matchId = assertRouteParam(req.params.matchId, 'matchId');
     
     const session = await tournamentsService.createMatchGameSession(tournamentId, matchId, userId);
     res.json(session);
@@ -202,7 +202,7 @@ router.patch('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
     
     // Validate request body with UpdateTournament schema
     const validationResult = updateTournamentSchema.safeParse(req.body);
