@@ -288,12 +288,15 @@ export class WebSocketMessageValidator {
     
     for (const field of stringFields) {
       if (sanitized[field] && typeof sanitized[field] === 'string') {
-        // Remove HTML tags and script content
-        sanitized[field] = sanitized[field]
-          .replace(/<[^>]*>/g, '') // Remove HTML tags
-          .replace(/javascript:/gi, '') // Remove javascript: URLs
-          .replace(/on\w+\s*=/gi, '') // Remove event handlers
-          .trim();
+        // Use whitelist approach for better security - only allow safe characters
+        const safeCharacters = /[a-zA-Z0-9\s\-_.,!?@#$%^&*()+=\[\]{}|;:'"<>/\\~`]/g;
+        const matches = sanitized[field].match(safeCharacters);
+        sanitized[field] = matches ? matches.join('') : '';
+        
+        // Additional length limiting for safety
+        if (sanitized[field].length > 10000) {
+          sanitized[field] = sanitized[field].substring(0, 10000);
+        }
       }
     }
 
