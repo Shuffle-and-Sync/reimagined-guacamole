@@ -84,7 +84,7 @@ export class AuthService {
       // Mark token as used
       await storage.markTokenAsUsed(token);
 
-      // Password updates are handled by Replit Auth system
+      // Password updates are handled by Auth.js credential provider
       // Token cleanup ensures one-time use security
       
       logger.info("Password reset successful", { email: resetToken.email.substring(0, 3) + "***" });
