@@ -1,0 +1,42 @@
+# Multi-stage build for frontend
+FROM node:18 AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for build)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the frontend
+RUN npm run build
+
+# Production stage with NGINX
+FROM nginx:alpine
+
+# Copy built frontend from builder stage
+COPY --from=builder /app/dist/public /usr/share/nginx/html
+
+# Create a simple NGINX configuration
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /api/ { \
+        return 404; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]

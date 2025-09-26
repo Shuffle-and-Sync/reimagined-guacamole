@@ -1,0 +1,75 @@
+# Cloud Build configuration for backend deployment
+steps:
+  # Build backend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
+      - '.'
+    id: 'build-backend'
+
+  # Push backend image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+    id: 'push-backend'
+    waitFor: ['build-backend']
+
+  # Push latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
+    id: 'push-backend-latest'
+    waitFor: ['build-backend']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'shuffle-sync-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--timeout'
+      - '300'
+      - '--set-env-vars'
+      - 'NODE_ENV=production'
+    id: 'deploy-backend'
+    waitFor: ['push-backend']
+
+# Configure build timeout
+timeout: 1200s
+
+# Configure build options
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  
+# Substitutions for variables
+substitutions:
+  _REGION: us-central1
+  _SERVICE_NAME: shuffle-sync-backend
+
+images:
+  - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
