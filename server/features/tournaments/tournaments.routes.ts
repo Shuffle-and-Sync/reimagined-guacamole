@@ -3,6 +3,7 @@ import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../..
 import { tournamentsService } from "./tournaments.service";
 import { logger } from "../../logger";
 import { updateTournamentSchema } from "@shared/schema";
+import { assertRouteParam } from "../../shared/utils";
 
 const router = Router();
 
@@ -71,7 +72,7 @@ router.post('/:id/join', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
     
     const participant = await tournamentsService.joinTournament(tournamentId, userId);
     res.json(participant);
@@ -86,7 +87,7 @@ router.delete('/:id/leave', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const tournamentId = req.params.id;
+    const tournamentId = assertRouteParam(req.params.id, 'id');
     
     const success = await tournamentsService.leaveTournament(tournamentId, userId);
     if (success) {

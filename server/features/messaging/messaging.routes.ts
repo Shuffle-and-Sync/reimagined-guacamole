@@ -3,6 +3,7 @@ import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../..
 import { messagingService } from "./messaging.service";
 import { logger } from "../../logger";
 import { dbUtils } from "../../utils/database.utils";
+import { assertRouteParam } from "../../shared/utils";
 
 const router = Router();
 
@@ -45,7 +46,7 @@ router.post('/', isAuthenticated, async (req, res) => {
 
 router.patch('/:id/read', isAuthenticated, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = assertRouteParam(req.params.id, 'id');
     await messagingService.markNotificationAsRead(id);
     res.json({ success: true });
   } catch (error) {
@@ -118,7 +119,7 @@ conversationsRouter.get('/:userId', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const user = authenticatedReq.user as any;
-    const { userId } = req.params;
+    const userId = assertRouteParam(req.params.userId, 'userId');
     
     const currentUserId = getAuthUserId(authenticatedReq);
     const conversation = await messagingService.getConversation(currentUserId, userId);
