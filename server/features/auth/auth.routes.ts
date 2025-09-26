@@ -28,7 +28,7 @@ router.get('/user', isAuthenticated, async (req, res) => {
     res.json(user);
   } catch (error) {
     logger.error("Failed to fetch user", error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({ message: "Failed to fetch user" });
+    return res.status(500).json({ message: "Failed to fetch user" });
   }
 });
 
@@ -47,7 +47,7 @@ router.post('/forgot-password', passwordResetRateLimit, validateRequest(validate
     res.json({ message: "If an account with that email exists, a password reset link has been sent." });
   } catch (error) {
     logger.error("Failed to process forgot password request", error, { email: req.body.email });
-    res.status(500).json({ message: "Failed to process password reset request" });
+    return res.status(500).json({ message: "Failed to process password reset request" });
   }
 });
 
@@ -65,7 +65,7 @@ router.get('/verify-reset-token/:token', async (req, res) => {
     res.json({ message: "Token is valid", email: result.email });
   } catch (error) {
     logger.error("Failed to verify reset token", error, { token: req.params.token?.substring(0, 8) + "***" });
-    res.status(500).json({ message: "Failed to verify reset token" });
+    return res.status(500).json({ message: "Failed to verify reset token" });
   }
 });
 
@@ -91,7 +91,7 @@ router.post('/reset-password', authRateLimit, validateRequest(validatePasswordRe
     }
     
     logger.error("Failed to reset password", error, { token: req.body.token?.substring(0, 8) + "***" });
-    res.status(500).json({ message: "Failed to reset password" });
+    return res.status(500).json({ message: "Failed to reset password" });
   }
 });
 
