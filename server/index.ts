@@ -555,9 +555,15 @@ app.use(securityHeaders);
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    // Dynamically import setupVite only in development to avoid bundling vite in production
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+    // Use dynamic import with runtime path resolution to avoid bundling vite in production
+    try {
+      const viteModule = await import(`./vite.js`);
+      await viteModule.setupVite(app, server);
+    } catch (error) {
+      console.error('Failed to load vite module:', error);
+      // Fallback to static serving if vite module fails to load
+      serveStatic(app);
+    }
   } else {
     serveStatic(app);
   }
