@@ -184,10 +184,10 @@ class InfrastructureTestService {
 
     // Test cache service initialization
     suite.tests.push(await this.runTest('cache', 'service_status', async () => {
-      const stats = cacheService.getStats();
+      const stats = await cacheService.getStats();
       return { 
         connected: stats.connected, 
-        memoryCache: stats.memoryCache.enabled,
+        memoryCache: stats.memoryCache?.enabled || false,
         stats: stats.stats 
       };
     }));
@@ -223,10 +223,11 @@ class InfrastructureTestService {
       const fallbackKey = `fallback_test_${Date.now()}`;
       await cacheService.set(fallbackKey, { fallback: true }, 60);
       const retrieved = await cacheService.get(fallbackKey);
+      const cacheStats = await cacheService.getStats();
       
       return { 
         fallbackWorking: retrieved !== null,
-        redisDown: !cacheService.getStats().connected 
+        redisDown: !cacheStats.connected 
       };
     }));
 
