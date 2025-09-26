@@ -200,6 +200,8 @@ describe('WebSocket Message Validation', () => {
     
     const sanitized = messageValidator.sanitizeMessage(unsafeMessage);
     
+    // HTML entities should be escaped
+    expect(sanitized.content).toContain('&lt;script&gt;');
     expect(sanitized.content).not.toContain('<script>');
     expect(sanitized.name).not.toContain('<script>');
     expect(sanitized.safeField).toBe('This is safe');

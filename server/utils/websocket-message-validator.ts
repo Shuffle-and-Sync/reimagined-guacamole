@@ -288,12 +288,16 @@ export class WebSocketMessageValidator {
     
     for (const field of stringFields) {
       if (sanitized[field] && typeof sanitized[field] === 'string') {
-        // Use whitelist approach for better security - only allow safe characters
-        const safeCharacters = /[a-zA-Z0-9\s\-_.,!?@#$%^&*()+=\[\]{}|;:'"<>/\\~`]/g;
-        const matches = sanitized[field].match(safeCharacters);
-        sanitized[field] = matches ? matches.join('') : '';
+        // Simple and secure approach: HTML entity encoding
+        sanitized[field] = sanitized[field]
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#x27;')
+          .replace(/\//g, '&#x2F;');
         
-        // Additional length limiting for safety
+        // Length limiting for safety
         if (sanitized[field].length > 10000) {
           sanitized[field] = sanitized[field].substring(0, 10000);
         }
