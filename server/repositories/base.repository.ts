@@ -26,7 +26,9 @@ export interface SortOptions {
 }
 
 export interface FilterOptions {
-  [key: string]: any;
+  [key: string]: string | number | boolean | Date | null | undefined | 
+    string[] | number[] | 
+    { operator: 'gte' | 'lte' | 'gt' | 'lt' | 'like' | 'not'; value: unknown };
 }
 
 export interface QueryOptions {
@@ -57,7 +59,7 @@ export abstract class BaseRepository<
   TInsert = TTable['$inferInsert'],
   TUpdate = Partial<TInsert>
 > {
-  protected db: PgDatabase<any>;
+  protected db: PgDatabase<any>; // Keep original type for compatibility with existing codebase
   protected table: TTable;
   protected tableName: string;
 
@@ -461,7 +463,7 @@ export abstract class BaseRepository<
   /**
    * Generate cursor for pagination
    */
-  private generateCursor(item: any, sortField: string): string {
+  private generateCursor(item: Record<string, unknown>, sortField: string): string {
     if (!item || !item[sortField]) {
       return '';
     }
@@ -478,7 +480,7 @@ export abstract class BaseRepository<
   /**
    * Parse cursor data
    */
-  private parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+  private parseCursor(cursor: string): { field: string; value: unknown; id: string } | null {
     try {
       const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
       return JSON.parse(decoded);
@@ -498,10 +500,11 @@ export abstract class BaseRepository<
   /**
    * Execute raw SQL query with proper error handling
    */
-  protected async executeRawQuery<T = any>(query: string, params?: any[]): Promise<T[]> {
+  protected async executeRawQuery<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]> {
     return withQueryTiming(`${this.tableName}:rawQuery`, async () => {
       try {
-        return await this.db.execute(sql.raw(query, params));
+        const sqlQuery = params ? sql.raw(query, ...params) : sql.raw(query);
+        return await this.db.execute(sqlQuery);
       } catch (error) {
         logger.error(`Raw query failed for ${this.tableName}`, error, { query, params });
         throw new DatabaseError(`Database query failed`);
@@ -524,26 +527,27 @@ export abstract class BaseRepository<
       if (Array.isArray(value)) {
         // IN clause for arrays
         conditions.push(sql`${column} = ANY(${value})`);
-      } else if (typeof value === 'object' && value.operator) {
+      } else if (typeof value === 'object' && value !== null && 'operator' in value && typeof value.operator === 'string') {
         // Custom operators like { operator: 'gte', value: 10 }
-        switch (value.operator) {
+        const operatorValue = value as { operator: string; value: unknown };
+        switch (operatorValue.operator) {
           case 'gte':
-            conditions.push(sql`${column} >= ${value.value}`);
+            conditions.push(sql`${column} >= ${operatorValue.value}`);
             break;
           case 'lte':
-            conditions.push(sql`${column} <= ${value.value}`);
+            conditions.push(sql`${column} <= ${operatorValue.value}`);
             break;
           case 'gt':
-            conditions.push(sql`${column} > ${value.value}`);
+            conditions.push(sql`${column} > ${operatorValue.value}`);
             break;
           case 'lt':
-            conditions.push(sql`${column} < ${value.value}`);
+            conditions.push(sql`${column} < ${operatorValue.value}`);
             break;
           case 'like':
-            conditions.push(sql`${column} ILIKE ${`%${value.value}%`}`);
+            conditions.push(sql`${column} ILIKE ${`%${operatorValue.value}%`}`);
             break;
           case 'not':
-            conditions.push(sql`${column} != ${value.value}`);
+            conditions.push(sql`${column} != ${operatorValue.value}`);
             break;
         }
       } else {
