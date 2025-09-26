@@ -3,6 +3,9 @@ import { config } from "dotenv";
 import { resolve } from "path";
 config({ path: resolve(process.cwd(), '.env.local') });
 
+// Initialize production logger early to handle console.log replacement
+import { productionLogger } from "./utils/production-logger";
+
 import express, { type Request, Response, NextFunction } from "express";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./logger";

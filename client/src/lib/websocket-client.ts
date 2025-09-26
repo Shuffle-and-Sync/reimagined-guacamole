@@ -3,14 +3,20 @@ import { logger } from './logger';
 
 export type WebSocketMessage = 
   // Game room messages
-  | { type: 'join_room'; sessionId: string; user: any }
-  | { type: 'message'; sessionId: string; user: any; content: string }
-  | { type: 'game_action'; sessionId: string; action: string; user: any; data: any }
-  // Collaborative streaming messages
-  | { type: 'join_collab_stream'; eventId: string; collaborator: any }
-  | { type: 'phase_change'; eventId: string; newPhase: string; hostUserId: string }
+  | { type: 'join_room'; sessionId: string; user: { id: string; name: string; avatar?: string } }
+  | { type: 'message'; sessionId: string; user: { id: string; name: string; avatar?: string }; content: string }
+  | { type: 'game_action'; sessionId: string; action: string; user: { id: string; name: string; avatar?: string }; data: any }
+  // Collaborative streaming messages  
+  | { type: 'join_collab_stream'; eventId: string; collaborator?: any }
+  | { type: 'phase_change'; eventId: string; newPhase: string; hostUserId?: string }
   | { type: 'coordination_event'; eventId: string; eventType: string; eventData: any }
-  | { type: 'collaborator_status_update'; eventId: string; userId: string; statusUpdate: any };
+  | { type: 'collaborator_status_update'; eventId: string; userId?: string; statusUpdate: any }
+  // WebRTC messages
+  | { type: 'webrtc_offer'; sessionId: string; targetPlayer: string; offer: any }
+  | { type: 'webrtc_answer'; sessionId: string; targetPlayer: string; answer: any }
+  | { type: 'webrtc_ice_candidate'; sessionId: string; targetPlayer: string; candidate: any }
+  | { type: 'camera_toggle'; sessionId: string; user: { id: string; name: string }; cameraOn: boolean }
+  | { type: 'mic_toggle'; sessionId: string; user: { id: string; name: string }; micOn: boolean };
 
 export type WebSocketEventListener = (data: any) => void;
 
