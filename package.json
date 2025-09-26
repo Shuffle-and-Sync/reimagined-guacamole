@@ -30,7 +30,15 @@
     "copilot:analyze": "tsx scripts/backend-copilot-cli.ts",
     "copilot:fix": "tsx scripts/backend-copilot-cli.ts --fix",
     "copilot:report": "tsx scripts/backend-copilot-cli.ts && echo 'Report generated: BACKEND_COPILOT_ANALYSIS.md'",
-    "copilot:ci": "tsx scripts/backend-copilot-cli.ts && exit 0"
+    "copilot:ci": "tsx scripts/backend-copilot-cli.ts && exit 0",
+    "deploy:production": "./scripts/deploy-production.sh",
+    "deploy:backend": "./scripts/deploy-production.sh --backend-only",
+    "deploy:frontend": "./scripts/deploy-production.sh --frontend-only",
+    "db:migrate:production": "./scripts/migrate-production-db.sh",
+    "verify:production": "./scripts/verify-production.sh",
+    "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
+    "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
+    "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'"
   },
   "dependencies": {
     "@auth/core": "^0.40.0",

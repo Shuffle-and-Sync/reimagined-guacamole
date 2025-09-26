@@ -1,0 +1,133 @@
+# Google Cloud Monitoring Alerting Policy Configuration
+# Deploy using: gcloud alpha monitoring policies create --policy-from-file=alerting-policy.yaml
+
+displayName: "Shuffle & Sync Production Alerts"
+documentation:
+  content: |
+    This alerting policy monitors critical metrics for the Shuffle & Sync production environment.
+    
+    Alerts include:
+    - High error rates on Cloud Run services
+    - High response latency
+    - Database connection issues
+    - Memory and CPU usage thresholds
+    - SSL certificate expiration
+  mimeType: "text/markdown"
+
+conditions:
+  # High error rate alert
+  - displayName: "High Error Rate - Backend"
+    documentation:
+      content: "Backend service is experiencing high error rates (>5%)"
+      mimeType: "text/plain"
+    conditionThreshold:
+      filter: |
+        resource.type="cloud_run_revision"
+        resource.labels.service_name="shuffle-sync-backend"
+        metric.type="run.googleapis.com/request_count"
+        metric.labels.response_code_class!="2xx"
+      comparison: COMPARISON_GREATER_THAN
+      thresholdValue: 0.05  # 5% error rate
+      duration: 300s  # 5 minutes
+      aggregations:
+        - alignmentPeriod: 300s
+          perSeriesAligner: ALIGN_RATE
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - "resource.labels.service_name"
+
+  # High response latency alert
+  - displayName: "High Response Latency - Backend"
+    documentation:
+      content: "Backend service response latency is above acceptable threshold (>2s)"
+      mimeType: "text/plain"
+    conditionThreshold:
+      filter: |
+        resource.type="cloud_run_revision"
+        resource.labels.service_name="shuffle-sync-backend"
+        metric.type="run.googleapis.com/request_latencies"
+      comparison: COMPARISON_GREATER_THAN
+      thresholdValue: 2000  # 2 seconds in milliseconds
+      duration: 300s  # 5 minutes
+      aggregations:
+        - alignmentPeriod: 300s
+          perSeriesAligner: ALIGN_DELTA
+          crossSeriesReducer: REDUCE_PERCENTILE_95
+          groupByFields:
+            - "resource.labels.service_name"
+
+  # Memory usage alert
+  - displayName: "High Memory Usage - Backend"
+    documentation:
+      content: "Backend service memory usage is above 80%"
+      mimeType: "text/plain"
+    conditionThreshold:
+      filter: |
+        resource.type="cloud_run_revision"
+        resource.labels.service_name="shuffle-sync-backend"
+        metric.type="run.googleapis.com/container/memory/utilizations"
+      comparison: COMPARISON_GREATER_THAN
+      thresholdValue: 0.8  # 80%
+      duration: 600s  # 10 minutes
+      aggregations:
+        - alignmentPeriod: 300s
+          perSeriesAligner: ALIGN_MEAN
+          crossSeriesReducer: REDUCE_MEAN
+          groupByFields:
+            - "resource.labels.service_name"
+
+  # CPU usage alert
+  - displayName: "High CPU Usage - Backend"
+    documentation:
+      content: "Backend service CPU usage is above 80%"
+      mimeType: "text/plain"
+    conditionThreshold:
+      filter: |
+        resource.type="cloud_run_revision"
+        resource.labels.service_name="shuffle-sync-backend"
+        metric.type="run.googleapis.com/container/cpu/utilizations"
+      comparison: COMPARISON_GREATER_THAN
+      thresholdValue: 0.8  # 80%
+      duration: 600s  # 10 minutes
+      aggregations:
+        - alignmentPeriod: 300s
+          perSeriesAligner: ALIGN_MEAN
+          crossSeriesReducer: REDUCE_MEAN
+          groupByFields:
+            - "resource.labels.service_name"
+
+  # Database connection alert
+  - displayName: "Database Connection Issues"
+    documentation:
+      content: "Cloud SQL database is experiencing connection issues"
+      mimeType: "text/plain"
+    conditionThreshold:
+      filter: |
+        resource.type="cloudsql_database"
+        metric.type="cloudsql.googleapis.com/database/up"
+      comparison: COMPARISON_LESS_THAN
+      thresholdValue: 1
+      duration: 60s  # 1 minute
+      aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_MEAN
+          crossSeriesReducer: REDUCE_MEAN
+
+# Notification channels (configure with actual values)
+notificationChannels:
+  # Email notification
+  - type: "email"
+    displayName: "Production Team Email"
+    # Configure with: gcloud alpha monitoring channels create --channel-content-from-file=email-channel.yaml
+    
+  # Slack notification (if configured)
+  # - type: "slack"
+  #   displayName: "Production Alerts Slack"
+
+# Alerting policy settings
+alertStrategy:
+  autoClose: 604800s  # 7 days
+  
+enabled: true
+validity:
+  end_time: null  # No end time (always active)
