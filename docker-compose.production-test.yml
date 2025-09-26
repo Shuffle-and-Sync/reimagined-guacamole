@@ -1,0 +1,105 @@
+# Docker Compose configuration for testing production-like environment locally
+# This file helps test the production Docker images before deploying to Cloud Run
+
+version: '3.8'
+
+services:
+  # PostgreSQL database (similar to Cloud SQL)
+  postgres:
+    image: postgres:15
+    container_name: shuffle-sync-postgres
+    environment:
+      POSTGRES_DB: shuffleandsync_prod
+      POSTGRES_USER: shufflesync
+      POSTGRES_PASSWORD: local_dev_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shufflesync"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: shuffle-sync-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend service (production image)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shuffle-sync-backend
+    environment:
+      # Database connection
+      DATABASE_URL: postgresql://shufflesync:local_dev_password_123@postgres:5432/shuffleandsync_prod
+      
+      # Authentication
+      AUTH_SECRET: local-development-secret-key-64-characters-long-for-testing-only
+      AUTH_URL: http://localhost:8080
+      
+      # Google OAuth (use test values or real ones for local testing)
+      GOOGLE_CLIENT_ID: your-test-client-id
+      GOOGLE_CLIENT_SECRET: your-test-client-secret
+      
+      # Application settings
+      NODE_ENV: production
+      PORT: 8080
+      
+      # Optional services
+      REDIS_URL: redis://redis:6379
+      SENDGRID_API_KEY: # Add your SendGrid key for email testing
+      STREAM_KEY_ENCRYPTION_KEY: test-key-32-characters-long-123
+      
+      # Security settings
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080
+      
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend service (production image)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: shuffle-sync-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

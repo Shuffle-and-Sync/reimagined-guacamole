@@ -1,6 +1,56 @@
 # Cloud Run Deployment Guide
 
-This guide addresses the deployment configuration fixes for Cloud Run compatibility.
+This guide addresses the deployment configuration fixes for Cloud Run compatibility and provides comprehensive production deployment instructions.
+
+## 🚀 Quick Start for Production Deployment
+
+### Prerequisites
+1. **Follow the complete [Production Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md)**
+2. **Configure environment variables using [.env.production.template](./.env.production.template)**
+3. **Set up Google Cloud Project with required APIs enabled**
+
+### One-Command Deployment
+```bash
+# Set your project details
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
+
+# Deploy everything
+npm run deploy:production
+```
+
+### Individual Service Deployment
+```bash
+# Deploy backend only
+npm run deploy:backend
+
+# Deploy frontend only  
+npm run deploy:frontend
+
+# Migrate database
+npm run db:migrate:production
+
+# Verify deployment
+npm run verify:production
+```
+
+## 📋 New Production Features
+
+### Docker Containers
+- **Backend**: `Dockerfile` - Node.js production container
+- **Frontend**: `Dockerfile.frontend` - NGINX-based static serving
+- **Local Testing**: `docker-compose.production-test.yml` - Full production simulation
+
+### Deployment Automation
+- **Cloud Build**: `cloudbuild.yaml` and `cloudbuild-frontend.yaml` 
+- **Deploy Script**: `scripts/deploy-production.sh` - Automated deployment
+- **Migration Script**: `scripts/migrate-production-db.sh` - Safe database updates
+- **Verification Script**: `scripts/verify-production.sh` - Post-deployment testing
+
+### Monitoring & Observability
+- **Alerting**: `monitoring/alerting-policy.yaml` - Production alerts
+- **Dashboard**: `monitoring/dashboard-config.json` - Monitoring dashboard
+- **Health Checks**: Enhanced `/api/health` endpoint with full system status
 
 ## Fixed Issues
 

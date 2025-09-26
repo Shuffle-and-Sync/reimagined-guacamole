@@ -49,3 +49,15 @@ temp/
 .npm/
 .yarn/
 temp_*.txt
+
+# Production deployment files
+backup_*.sql
+backup_info.txt
+.env.production
+gcp-credentials.json
+
+# Docker volumes
+postgres_data/
+
+# Cloud Build logs
+cloudbuild-logs/
