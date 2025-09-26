@@ -50,7 +50,7 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Google OAuth 2.0 via Auth.js v5 for secure user authentication
 - **UI Icons**: Lucide React for modern, consistent iconography across the platform
 - **Fonts**: Google Fonts (Inter, DM Sans, Architects Daughter, Fira Code, Geist Mono) for typography
-- **Development Tools**: Replit-specific plugins for development environment integration
+- **Development Tools**: Environment-specific plugins and configurations for development
 
 ### Design Patterns
 - **Separation of Concerns**: Clear separation between client, server, and shared code
@@ -73,7 +73,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # Auth.js Configuration
 AUTH_SECRET=your_secure_random_string
-AUTH_URL=https://your-app-url.replit.dev
+AUTH_URL=https://your-app-domain.com
 AUTH_TRUST_HOST=true
 
 # Database Connection
@@ -90,13 +90,13 @@ DATABASE_URL=your_neon_database_url
    - Create OAuth 2.0 Client ID credentials
 
 2. **Configure Authorized Redirect URIs**:
-   - Add your Replit app URL + `/api/auth/callback/google`
-   - Example: `https://your-app-url.replit.dev/api/auth/callback/google`
+   - Add your application URL + `/api/auth/callback/google`
+   - Example: `https://your-app-domain.com/api/auth/callback/google`
 
 3. **Set Environment Variables**:
    - Copy Client ID and Client Secret to environment variables
    - Generate a secure random string for `AUTH_SECRET` (keep this secret!)
-   - Set `AUTH_TRUST_HOST=true` for Replit environment compatibility
+   - Set `AUTH_TRUST_HOST=true` for deployment environment compatibility
 
 ### Authentication Flow
 
@@ -184,7 +184,7 @@ DATABASE_URL=your_neon_database_url
 - **FIXED**: Critical security vulnerabilities including CSP policies and authentication rate limiting
 
 ### September 18, 2025
-- **MAJOR**: Migrated from Replit Authentication to Auth.js v5 with Google OAuth
+- **MAJOR**: Migrated from legacy authentication to Auth.js v5 with Google OAuth
 - **UPDATED**: Removed legacy authentication dependencies (openid-client, passport)
 - **IMPROVED**: Enhanced authentication middleware with consistent user ID handling
 - **ADDED**: Comprehensive authentication testing and validation
