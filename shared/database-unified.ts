@@ -1,20 +1,14 @@
 // Unified database configuration for Drizzle ORM
-// Combines optimizations from server/db-optimized.ts with shared database access
+// Supports both Neon serverless and regular PostgreSQL connections with automatic fallback
 import { config } from "dotenv";
 import { resolve } from "path";
 
 // Load environment variables from .env.local for development
 config({ path: resolve(process.cwd(), '.env.local') });
 
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
 import { sql } from 'drizzle-orm';
 import type { PgTransaction } from 'drizzle-orm/pg-core';
-import ws from "ws";
 import * as schema from "./schema";
-
-// Configure WebSocket constructor for Neon
-neonConfig.webSocketConstructor = ws;
 
 // Handle missing DATABASE_URL gracefully for Cloud Run health checks
 const databaseUrl = process.env.DATABASE_URL;
@@ -26,44 +20,135 @@ if (!databaseUrl) {
   }
 }
 
-// Optimized connection pool configuration
-const poolConfig = {
-  connectionString: databaseUrl || 'postgresql://dummy:dummy@localhost:5432/dummy', // Fallback for health checks
-  // Connection pool optimization
-  max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'), // Max connections
-  min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),  // Min connections
-  idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'), // 30 seconds
-  connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'), // 10 seconds
-  // Neon-specific optimizations
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 30000,
+// Detect connection type to help with configuration
+function getConnectionType(url: string): 'neon' | 'postgres' | 'prisma-accelerate' {
+  if (url.startsWith('prisma+postgres://')) {
+    return 'prisma-accelerate';
+  } else if (url.includes('neon.tech') || url.includes('neondb.')) {
+    return 'neon';
+  } else {
+    return 'postgres';
+  }
+}
+
+const connectionType = databaseUrl ? getConnectionType(databaseUrl) : 'postgres';
+console.log(`🔌 Detected connection type: ${connectionType}`);
+
+// Get effective database URL (use direct URL for Prisma Accelerate)
+const effectiveUrl = connectionType === 'prisma-accelerate' 
+  ? (process.env.DATABASE_DIRECT_URL || databaseUrl?.replace('prisma+postgres://', 'postgres://'))
+  : databaseUrl;
+
+console.log(`📡 Using connection URL for: ${connectionType}`);
+
+// Try Neon first, fallback to regular PostgreSQL
+// Try Neon first, fallback to regular PostgreSQL
+let pool: any;
+let db: any;
+let usingNeonDriver = false;
+let connectionTested = false;
+
+async function initializeConnection() {
+  try {
+    if (connectionType === 'neon' || connectionType === 'prisma-accelerate') {
+      // Try Neon driver first for better performance when compatible
+      const { Pool: NeonPool, neonConfig } = require('@neondatabase/serverless');
+      const { drizzle } = require('drizzle-orm/neon-serverless');
+      const ws = require('ws');
+      
+      // Configure WebSocket constructor for Neon
+      neonConfig.webSocketConstructor = ws;
+      
+      const poolConfig = {
+        connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
+        max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
+        min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
+        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+        connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '5000'), // Shorter timeout for testing
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 30000,
+      };
+      
+      pool = new NeonPool(poolConfig);
+      db = drizzle({ client: pool, schema });
+      
+      // Test the connection with short timeout
+      const testPromise = pool.query('SELECT 1 as test');
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection test timeout')), 3000)
+      );
+      
+      await Promise.race([testPromise, timeoutPromise]);
+      
+      usingNeonDriver = true;
+      console.log(`✅ Using Neon serverless driver for ${connectionType}`);
+    } else {
+      throw new Error('Not a Neon connection, use PostgreSQL driver');
+    }
+  } catch (neonError) {
+    // Fallback to regular PostgreSQL driver
+    console.log(`⚠️ Neon driver failed or not applicable, falling back to PostgreSQL driver`);
+    console.log(`🔧 Fallback reason: ${neonError.message}`);
+    
+    try {
+      // Clean up any existing Neon connection
+      if (pool && typeof pool.end === 'function') {
+        try { 
+          await pool.end(); 
+          pool = null;
+        } catch {}
+      }
+      
+      const { Pool: PgPool } = require('pg');
+      const { drizzle } = require('drizzle-orm/node-postgres');
+      
+      const poolConfig = {
+        connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
+        max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
+        min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
+        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+        connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
+        ssl: effectiveUrl?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+      };
+      
+      pool = new PgPool(poolConfig);
+      db = drizzle(pool, { schema });
+      
+      // Test the PostgreSQL connection
+      await pool.query('SELECT 1 as test');
+      
+      usingNeonDriver = false;
+      console.log(`✅ Using PostgreSQL driver for ${connectionType}`);
+    } catch (pgError) {
+      console.error('❌ Both Neon and PostgreSQL drivers failed:', pgError);
+      throw new Error(`Database connection failed: ${pgError.message}`);
+    }
+  }
+  connectionTested = true;
+}
+
+// Initialize connection immediately but handle errors gracefully
+if (databaseUrl) {
+  initializeConnection().catch(error => {
+    console.error('❌ Failed to initialize database connection:', error);
+    // Don't throw here, let individual operations handle the error
+  });
+}
+
+// Export connection info for debugging
+export const connectionInfo = {
+  type: connectionType,
+  usingNeonDriver,
+  url: effectiveUrl ? effectiveUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'not set' // Hide credentials
 };
 
-export const pool = new Pool(poolConfig);
+// Add development logging  
+if (process.env.NODE_ENV === 'development' && process.env.DB_LOG_QUERIES === 'true') {
+  console.log(`[DB] 🔍 Query logging enabled for ${connectionType} connection`);
+}
 
-// Enhanced Drizzle configuration with conditional logging
-export const db = drizzle({ 
-  client: pool, 
-  schema,
-  logger: process.env.NODE_ENV === 'development' ? {
-    logQuery(query, params) {
-      if (process.env.DB_LOG_QUERIES === 'true') {
-        // Use structured logging for better readability
-        const timestamp = new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit", 
-          second: "2-digit",
-          hour12: true,
-        });
-        
-        console.log(`${timestamp} [DB] 🔍 Query: ${query}`);
-        if (params) {
-          console.log(`${timestamp} [DB] 📋 Params: ${JSON.stringify(params)}`);
-        }
-      }
-    }
-  } : false
-});
+// Export the database instances
+export { pool, db };
 
 // Database performance monitoring
 export class DatabaseMonitor {
@@ -99,7 +184,7 @@ export function withQueryTiming<T>(operation: string, queryFunction: () => Promi
   const startTime = Date.now();
   return queryFunction().finally(() => {
     const duration = Date.now() - startTime;
-    DatabasePerformanceMonitor.getInstance().recordQuery(operation, duration);
+    DatabaseMonitor.getInstance().recordQuery(operation, duration);
     
     if (duration > 1000) { // Log slow queries (> 1 second)
       console.warn(`🐌 Slow query detected - ${operation}: ${duration}ms`);
@@ -110,39 +195,35 @@ export function withQueryTiming<T>(operation: string, queryFunction: () => Promi
 // Connection health monitoring
 export async function checkDatabaseHealth(): Promise<{
   status: 'healthy' | 'unhealthy';
-  poolStatus?: any;
-  connectionCount?: number;
+  connectionInfo?: any;
   queryResponseTime?: number;
   performanceMetrics?: any;
   error?: string;
 }> {
   try {
+    // Wait for connection to be initialized if not already done
+    if (!connectionTested) {
+      await initializeConnection();
+    }
+    
     const startTime = Date.now();
     
-    // Test basic connectivity
-    await pool.query('SELECT 1');
+    // Test basic connectivity with appropriate method based on driver
+    await pool.query('SELECT 1 as health_check, NOW() as timestamp');
     
     const queryResponseTime = Date.now() - startTime;
     
-    // Get pool status
-    const poolStatus = DatabasePerformanceMonitor.getInstance().getConnectionPoolStatus();
-    
     // Get performance metrics
-    const performanceMetrics = DatabasePerformanceMonitor.getInstance().getMetrics();
+    const performanceMetrics = DatabaseMonitor.getInstance().getStats();
 
     return {
       status: 'healthy',
-      poolStatus,
-      connectionCount: pool.totalCount,
+      connectionInfo,
       queryResponseTime,
       performanceMetrics
     };
   } catch (error) {
     console.error('Database health check failed:', error);
-    DatabasePerformanceMonitor.getInstance().recordConnectionAlert(
-      `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      'error'
-    );
     
     return {
       status: 'unhealthy',
