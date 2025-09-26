@@ -5,6 +5,9 @@ export interface AccessTokenJWTPayload {
   exp: number;
 }
 
+// Token expiry constant
+export const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 export function verifyAccessTokenJWT(token: string): AccessTokenJWTPayload | null {
   try {
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
@@ -12,6 +15,27 @@ export function verifyAccessTokenJWT(token: string): AccessTokenJWTPayload | nul
       return null; // Token expired
     }
     return decoded;
+  } catch {
+    return null;
+  }
+}
+
+export function generateEmailVerificationJWT(email: string): string {
+  const payload = {
+    email,
+    iat: Date.now(),
+    exp: Date.now() + TOKEN_EXPIRY
+  };
+  return Buffer.from(JSON.stringify(payload)).toString('base64');
+}
+
+export function verifyEmailVerificationJWT(token: string): { email: string } | null {
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    if (decoded.exp < Date.now()) {
+      return null; // Token expired
+    }
+    return { email: decoded.email };
   } catch {
     return null;
   }
