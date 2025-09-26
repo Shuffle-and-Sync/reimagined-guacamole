@@ -16,10 +16,18 @@ const externalizeNodeModulesPlugin = {
         return { path: args.path, external: true };
       }
       
+      // Externalize the entire vite.ts file and anything vite-related
+      if (args.path === './vite' || args.path === './vite.js' || args.path.endsWith('/vite.ts') ||
+          args.path.endsWith('/vite.js') || args.path === './server/vite' || args.path === 'server/vite' ||
+          args.path === './static-server' && args.importer.includes('vite')) {
+        return { path: args.path, external: true };
+      }
+      
       // Externalize vite and vite-related paths specifically
       if (args.path.includes('vite.config') || args.path === 'vite' || 
           args.path.startsWith('@vitejs/') || args.path.startsWith('@replit/vite-') ||
-          args.path === './vite' || args.path.endsWith('/vite.ts')) {
+          args.path === '../vite.config.js' || args.path.endsWith('vite.config.js') ||
+          args.path.endsWith('vite.config.ts')) {
         return { path: args.path, external: true };
       }
       
@@ -75,9 +83,18 @@ global.__dirname = __dirname;
   keepNames: true,
   // Target Node.js
   target: 'node18',
-  // Ignore these patterns when bundling
+  // Handle Node.js globals properly
   external: [
     'node:*',
+    // Vite and related dependencies - completely external
+    'vite',
+    'vite/*',
+    '@vitejs/*', 
+    '@replit/vite-*',
+    '../vite.config.js',
+    './vite.js', 
+    './vite',
+    // Prisma related
     '@prisma/client',
     '@prisma/client/*',
     '@prisma/client/runtime/library',
