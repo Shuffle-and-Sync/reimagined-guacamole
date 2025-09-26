@@ -1341,7 +1341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(newPassword);
       
       // Update user password
-      await storage.updateUser(user.id, { password: hashedPassword });
+      await storage.updateUser(user.id, { passwordHash: hashedPassword });
       
       // Mark token as used
       await storage.markTokenAsUsed(token);
@@ -1460,7 +1460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       logger.info('MFA enabled successfully', { userId });
       
       // Create audit log entry
-      await storage.createAuditLog({
+      await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_enabled',
         details: { 
@@ -1509,7 +1509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       logger.info('MFA disabled successfully', { userId });
       
       // Create audit log entry
-      await storage.createAuditLog({
+      await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_disabled',
         details: { 
@@ -1621,7 +1621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Create audit log entry
-        await storage.createAuditLog({
+        await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
           details: { 
@@ -1647,7 +1647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logger.warn('MFA verification failed', { userId, isBackupCode });
         
         // Create audit log entry for failed verification
-        await storage.createAuditLog({
+        await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
           details: { 
@@ -1709,7 +1709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       logger.info('MFA backup codes regenerated', { userId });
       
       // Create audit log entry
-      await storage.createAuditLog({
+      await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_verified', // Using existing enum, could add 'mfa_backup_codes_regenerated'
         details: { 

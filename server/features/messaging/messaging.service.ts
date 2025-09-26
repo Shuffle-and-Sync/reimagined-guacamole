@@ -25,10 +25,7 @@ export class MessagingService {
       } else {
         return await storage.getUserNotifications(userId, {
           unreadOnly: filters.unreadOnly,
-          page: filters.pagination?.page || 1,
           limit: filters.pagination?.limit || 50,
-          sortField: filters.sort?.field || 'createdAt',
-          sortDirection: filters.sort?.direction || 'desc',
         });
       }
     } catch (error) {
@@ -95,12 +92,7 @@ export class MessagingService {
         return await storage.getUserMessages(userId, {
           eventId: filters.eventId,
           communityId: filters.communityId,  
-          conversationId: filters.conversationId,
-          unreadOnly: filters.unreadOnly,
-          page: filters.pagination?.page || 1,
           limit: filters.pagination?.limit || 50,
-          sortField: filters.sort?.field || 'createdAt',
-          sortDirection: filters.sort?.direction || 'desc',
         });
       }
     } catch (error) {
