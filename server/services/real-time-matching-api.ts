@@ -595,8 +595,10 @@ export class RealTimeMatchingAPI {
     // Manage cache size
     if (this.matchCache.size >= this.MAX_CACHE_SIZE) {
       const oldestKey = this.matchCache.keys().next().value;
-      this.matchCache.delete(oldestKey);
-      this.cacheExpiry.delete(oldestKey);
+      if (oldestKey) {
+        this.matchCache.delete(oldestKey);
+        this.cacheExpiry.delete(oldestKey);
+      }
     }
     
     this.matchCache.set(requestId, response);

@@ -24,7 +24,7 @@ export interface NotificationData {
 }
 
 export interface CreateNotificationRequest {
-  type: string;
+  type: 'event_join' | 'event_leave' | 'game_invite' | 'message' | 'system';
   title: string;
   message: string;
   data?: NotificationData;

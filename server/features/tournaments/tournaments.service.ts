@@ -620,7 +620,7 @@ export const tournamentsService = {
         title: `${tournament.name} - Match ${match.bracketPosition}`,
         description: `Tournament match between players in ${tournament.name}`,
         type: "tournament" as const,
-        date: new Date().toISOString().split('T')[0], // Today
+        date: new Date().toISOString().split('T')[0] as string, // Today
         time: new Date().toTimeString().slice(0, 5), // Current time
         location: `Tournament Match Room`,
         communityId: tournament.communityId,
