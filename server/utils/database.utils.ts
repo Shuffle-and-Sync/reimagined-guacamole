@@ -116,10 +116,11 @@ function buildSingleCondition(column: PgColumn, filter: FilterCondition): SQL | 
     
     case 'between':
       if (!values || values.length !== 2) return null;
-      return and(
+      const betweenCondition = and(
         gte(column, values[0]),
         lte(column, values[1])
       );
+      return betweenCondition ?? null;
     
     default:
       logger.warn('Unknown filter operator', { operator });
@@ -149,7 +150,8 @@ export function buildSearchConditions(
     }
   }
 
-  return searchConditions.length > 0 ? or(...searchConditions) : null;
+  const orCondition = searchConditions.length > 0 ? or(...searchConditions) : null;
+  return orCondition ?? null;
 }
 
 /**
