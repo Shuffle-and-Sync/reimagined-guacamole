@@ -297,7 +297,10 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
     return JSON.parse(json);
   } catch (error) {
-    logger.warn('JSON parse failed, using fallback', { json, error: error.message });
+    logger.warn('JSON parse failed, using fallback', { 
+      json, 
+      error: error instanceof Error ? error.message : String(error) 
+    });
     return fallback;
   }
 }
