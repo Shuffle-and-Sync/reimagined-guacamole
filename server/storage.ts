@@ -189,7 +189,7 @@ import {
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
 } from "../shared/schema";
-import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 // Interface for storage operations
@@ -1102,7 +1102,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]> {
+  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<{ data: (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[] }> {
     const baseQuery = db
       .select({
         id: events.id,
@@ -1189,6 +1189,8 @@ export class DatabaseStorage implements IStorage {
       attendeeCount: attendeeCounts.find(ac => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some(ua => ua.eventId === event.id),
     })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
+
+    return { data: eventsWithDetails };
   }
 
   async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
@@ -1368,6 +1370,55 @@ export class DatabaseStorage implements IStorage {
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+  }
+
+  async getEventAttendeesByEventIds(eventIds: string[]): Promise<EventAttendee[]> {
+    if (eventIds.length === 0) return [];
+    
+    return await db
+      .select({
+        id: eventAttendees.id,
+        eventId: eventAttendees.eventId,
+        userId: eventAttendees.userId,
+        status: eventAttendees.status,
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
+        joinedAt: eventAttendees.joinedAt,
+      })
+      .from(eventAttendees)
+      .where(inArray(eventAttendees.eventId, eventIds));
+  }
+
+  // Transaction-based event operations
+  async getEventWithTransaction(tx: any, id: string): Promise<Event | undefined> {
+    const [event] = await tx
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+    return event;
+  }
+
+  async joinEventWithTransaction(tx: any, data: InsertEventAttendee): Promise<EventAttendee> {
+    const [attendee] = await tx
+      .insert(eventAttendees)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [eventAttendees.eventId, eventAttendees.userId],
+        set: {
+          status: data.status || 'attending',
+          joinedAt: new Date(),
+        },
+      })
+      .returning();
+    return attendee;
+  }
+
+  async createNotificationWithTransaction(tx: any, data: InsertNotification): Promise<Notification> {
+    const [notification] = await tx
+      .insert(notifications)
+      .values(data)
+      .returning();
+    return notification;
   }
 
   // Bulk calendar operations for game pods
@@ -2501,6 +2552,31 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.id, notificationId));
   }
 
+  async getUserNotificationsWithCursor(userId: string, options?: { 
+    unreadOnly?: boolean; 
+    cursor?: string; 
+    limit?: number; 
+    sortField?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  }): Promise<Notification[]> {
+    let conditions = [eq(notifications.userId, userId)];
+    
+    if (options?.unreadOnly) {
+      conditions.push(eq(notifications.isRead, false));
+    }
+
+    if (options?.cursor) {
+      // Add cursor-based pagination condition
+      conditions.push(lt(notifications.createdAt, new Date(options.cursor)));
+    }
+
+    return await db.select()
+      .from(notifications)
+      .where(and(...conditions))
+      .orderBy(desc(notifications.createdAt))
+      .limit(options?.limit || 50);
+  }
+
   // Message operations
   async getUserMessages(userId: string, options?: { eventId?: string; communityId?: string; limit?: number }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
     let conditions = [
@@ -2537,6 +2613,60 @@ export class DatabaseStorage implements IStorage {
   async sendMessage(data: InsertMessage): Promise<Message> {
     const [message] = await db.insert(messages).values(data).returning();
     return message;
+  }
+
+  async sendMessageWithTransaction(tx: any, data: InsertMessage): Promise<Message> {
+    const [message] = await tx.insert(messages).values(data).returning();
+    return message;
+  }
+
+  async getUserMessagesWithCursor(userId: string, options?: { 
+    eventId?: string; 
+    communityId?: string; 
+    conversationId?: string; 
+    unreadOnly?: boolean; 
+    cursor?: string; 
+    limit?: number; 
+    sortField?: string; 
+    sortDirection?: 'asc' | 'desc' 
+  }): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+    let conditions = [
+      sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`
+    ];
+
+    if (options?.eventId) {
+      conditions.push(eq(messages.eventId, options.eventId));
+    }
+
+    if (options?.communityId) {
+      conditions.push(eq(messages.communityId, options.communityId));
+    }
+
+    if (options?.unreadOnly) {
+      conditions.push(eq(messages.isRead, false));
+    }
+
+    if (options?.cursor) {
+      conditions.push(lt(messages.createdAt, new Date(options.cursor)));
+    }
+
+    const results = await db.select({
+      message: messages,
+      sender: users,
+      event: events,
+    })
+    .from(messages)
+    .leftJoin(users, eq(messages.senderId, users.id))
+    .leftJoin(events, eq(messages.eventId, events.id))
+    .where(and(...conditions))
+    .orderBy(desc(messages.createdAt))
+    .limit(options?.limit || 50);
+
+    return results.map((r: { message: any; sender: any; event: any }) => ({ 
+      ...r.message, 
+      sender: r.sender, 
+      event: r.event 
+    }));
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
