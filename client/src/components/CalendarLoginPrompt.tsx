@@ -2,11 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Header } from "@/shared/components";
 import { TrophyIcon, UsersIcon, ClockIcon } from "lucide-react";
+import { useAuth } from "@/features/auth";
 
 export default function CalendarLoginPrompt() {
+  const { signIn } = useAuth();
+  
   const handleLogin = () => {
-    // Redirect to login - this will redirect back to calendar after authentication
-    window.location.href = "/api/auth/login";
+    // Use Auth.js v5 Google OAuth signin
+    signIn('google');
   };
 
   return (

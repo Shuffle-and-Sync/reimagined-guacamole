@@ -2336,7 +2336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events', async (req, res) => {
     try {
       const { communityId, type, upcoming } = req.query;
-      const userId = (req as any).user?.claims?.sub;
+      const userId = (req as any).user?.id;
       
       const events = await storage.getEvents({
         userId,
@@ -2355,7 +2355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = (req as any).user?.claims?.sub;
+      const userId = (req as any).user?.id;
       
       const event = await storage.getEvent(id, userId);
       if (!event) {

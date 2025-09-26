@@ -2,11 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Header } from "@/shared/components";
 import { TrophyIcon, SwordIcon, CrownIcon } from "lucide-react";
+import { useAuth } from "@/features/auth";
 
 export default function TournamentsLoginPrompt() {
+  const { signIn } = useAuth();
+  
   const handleLogin = () => {
-    // Redirect to login - this will redirect back to tournaments after authentication
-    window.location.href = "/api/auth/login";
+    // Use Auth.js v5 Google OAuth signin
+    signIn('google');
   };
 
   return (
