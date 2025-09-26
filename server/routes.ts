@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { platform } = req.params;
+      const platform = assertRouteParam(req.params.platform, 'platform');
       const { code, state } = req.query;
       
       if (!code || !state) {
@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { id } = req.params;
+      const id = assertRouteParam(req.params.id, 'id');
       
       // Verify ownership before deletion
       const account = await storage.getUserPlatformAccounts(userId);
@@ -241,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { platform } = req.params;
+      const platform = assertRouteParam(req.params.platform, 'platform');
       
       // Import refresh function
       const { refreshPlatformToken } = await import('./services/platform-oauth');
@@ -454,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { id } = req.params;
+      const id = assertRouteParam(req.params.id, 'id');
       const { status } = req.body;
       
       if (!['accepted', 'declined', 'blocked'].includes(status)) {
@@ -485,7 +485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { id } = req.params;
+      const id = assertRouteParam(req.params.id, 'id');
       
       // First check if the user is part of this friendship
       const friendship = await storage.checkFriendshipStatus(userId, id);
@@ -611,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tournaments/:id', 
     validateParamsWithSchema(uuidParamSchema),
     asyncHandler(async (req, res) => {
-      const { id: tournamentId } = req.params;
+      const tournamentId = assertRouteParam(req.params.id, 'id');
       const tournament = await storage.getTournament(tournamentId);
       
       if (!tournament) {
@@ -656,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     asyncHandler(async (req, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
-      const { id: tournamentId } = req.params;
+      const tournamentId = assertRouteParam(req.params.id, 'id');
       
       const participant = await storage.joinTournament(tournamentId, userId);
       if (!participant) {
@@ -675,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const tournamentId = req.params.id;
+      const tournamentId = assertRouteParam(req.params.id, 'id');
       
       const success = await storage.leaveTournament(tournamentId, userId);
       if (success) {
@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/forum/posts/:id', async (req, res) => {
     try {
-      const postId = req.params.id;
+      const postId = assertRouteParam(req.params.id, 'id');
       const userId = req.query.userId as string;
       
       const post = await storage.getForumPost(postId, userId);
@@ -745,7 +745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/forum/posts/:id', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const postId = req.params.id;
+      const postId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       // Check if user owns the post
@@ -768,7 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/forum/posts/:id', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const postId = req.params.id;
+      const postId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       // Check if user owns the post
@@ -791,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/forum/posts/:id/like', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const postId = req.params.id;
+      const postId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       await storage.likeForumPost(postId, userId);
@@ -805,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/forum/posts/:id/like', isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const postId = req.params.id;
+      const postId = assertRouteParam(req.params.id, 'id');
       const userId = getAuthUserId(authenticatedReq);
       
       await storage.unlikeForumPost(postId, userId);
