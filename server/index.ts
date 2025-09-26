@@ -17,7 +17,7 @@ if (cwd && (process.env.NODE_ENV !== 'production')) {
 import { productionLogger } from "./utils/production-logger";
 
 import express, { type Request, Response, NextFunction } from "express";
-import { setupVite, serveStatic, log } from "./vite";
+import { serveStatic, log } from "./static-server";
 import { logger } from "./logger";
 import { db, initializeDatabase } from "@shared/database-unified";
 import { validateAndLogEnvironment, getEnvironmentStatus } from "./env-validation";
@@ -544,6 +544,8 @@ app.use(securityHeaders);
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    // Dynamically import setupVite only in development to avoid bundling vite in production
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
     serveStatic(app);
