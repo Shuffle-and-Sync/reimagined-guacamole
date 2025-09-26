@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/features/auth";
 import { Redirect } from "wouter";
 
