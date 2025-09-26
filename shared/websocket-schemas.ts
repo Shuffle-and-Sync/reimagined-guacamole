@@ -136,5 +136,5 @@ export const validateMessageRate = (messageType: string): { windowMs: number; ma
     'default': { windowMs: 60 * 1000, maxMessages: 100 }
   };
   
-  return rateConfigs[messageType] ?? rateConfigs.default;
+  return rateConfigs[messageType] || rateConfigs.default;
 };
