@@ -171,7 +171,8 @@ app.use(securityHeaders);
       const { email } = req.body;
       
       if (!email) {
-        return res.status(400).json({ message: "Email is required" });
+        res.status(400).json({ message: "Email is required" });
+        return;
       }
 
       // Check if user exists
@@ -179,12 +180,14 @@ app.use(securityHeaders);
       
       if (!user) {
         // Don't reveal if email exists to prevent enumeration attacks
-        return res.json({ message: "If an account with that email exists, a verification email has been sent." });
+        res.json({ message: "If an account with that email exists, a verification email has been sent." });
+        return;
       }
 
       // Check if email is already verified - but don't reveal this to prevent enumeration
       if (user.isEmailVerified) {
-        return res.json({ message: "If an account with that email exists, a verification email has been sent." });
+        res.json({ message: "If an account with that email exists, a verification email has been sent." });
+        return;
       }
 
       // Invalidate any existing verification tokens for this user
@@ -213,7 +216,8 @@ app.use(securityHeaders);
       res.json({ message: "If an account with that email exists, a verification email has been sent." });
     } catch (error) {
       logger.error("Failed to send verification email", error);
-      return res.status(500).json({ message: "Failed to send verification email" });
+      res.status(500).json({ message: "Failed to send verification email" });
+        return;
     }
   });
 
@@ -222,21 +226,24 @@ app.use(securityHeaders);
       const { token } = req.query;
       
       if (!token || typeof token !== 'string') {
-        return res.status(400).json({ message: "Verification token is required" });
+        res.status(400).json({ message: "Verification token is required" });
+        return;
       }
 
       // Verify JWT token
       const jwtResult = await verifyEmailVerificationJWT(token);
       
       if (!jwtResult.valid) {
-        return res.status(400).json({ message: "Invalid or expired verification token" });
+        res.status(400).json({ message: "Invalid or expired verification token" });
+        return;
       }
 
       // Check token in database
       const dbToken = await storage.getEmailVerificationToken(token);
       
       if (!dbToken) {
-        return res.status(400).json({ message: "Invalid or expired verification token" });
+        res.status(400).json({ message: "Invalid or expired verification token" });
+        return;
       }
 
       // Mark token as used
@@ -254,7 +261,8 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to verify email", error);
-      return res.status(500).json({ message: "Failed to verify email" });
+      res.status(500).json({ message: "Failed to verify email" });
+        return;
     }
   });
 
@@ -271,7 +279,8 @@ app.use(securityHeaders);
       const { email } = req.body;
       
       if (!userId && !email) {
-        return res.status(400).json({ message: "User session or email is required" });
+        res.status(400).json({ message: "User session or email is required" });
+        return;
       }
 
       let user;
@@ -283,20 +292,23 @@ app.use(securityHeaders);
       
       if (!user) {
         // Don't reveal if user exists to prevent enumeration attacks
-        return res.json({ message: "If an account exists, a verification email has been sent." });
+        res.json({ message: "If an account exists, a verification email has been sent." });
+        return;
       }
 
       // Check if email is already verified - but don't reveal this to prevent enumeration
       if (user.isEmailVerified) {
-        return res.json({ message: "If an account exists, a verification email has been sent." });
+        res.json({ message: "If an account exists, a verification email has been sent." });
+        return;
       }
 
       // Check for existing unexpired token
       const existingToken = await storage.getEmailVerificationTokenByUserId(user.id);
       if (existingToken) {
-        return res.status(429).json({ 
+        res.status(429).json({ 
           message: "A verification email was already sent recently. Please check your email or wait before requesting another." 
         });
+        return;
       }
 
       // Invalidate any existing verification tokens for this user
@@ -325,7 +337,8 @@ app.use(securityHeaders);
       res.json({ message: "If an account exists, a verification email has been sent." });
     } catch (error) {
       logger.error("Failed to resend verification email", error);
-      return res.status(500).json({ message: "Failed to resend verification email" });
+      res.status(500).json({ message: "Failed to resend verification email" });
+        return;
     }
   });
 
@@ -337,7 +350,8 @@ app.use(securityHeaders);
       try {
         userId = getAuthUserId(req);
       } catch (authError) {
-        return res.status(401).json({ message: "Authentication required" });
+        res.status(401).json({ message: "Authentication required" });
+        return;
       }
       
       // Validate request body with Zod
@@ -347,9 +361,10 @@ app.use(securityHeaders);
       
       const validation = emailChangeSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: validation.error.errors[0]?.message || "Invalid email address" 
         });
+        return;
       }
       
       const { newEmail } = validation.data;
@@ -357,26 +372,30 @@ app.use(securityHeaders);
       // Get current user
       const user = await storage.getUser(userId);
       if (!user || !user.email) {
-        return res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
+        return;
       }
 
       // Check if new email is same as current
       if (user.email === newEmail) {
-        return res.status(400).json({ message: "New email address must be different from current email" });
+        res.status(400).json({ message: "New email address must be different from current email" });
+        return;
       }
 
       // Check if new email is already taken by another user
       const existingUser = await storage.getUserByEmail(newEmail);
       if (existingUser && existingUser.id !== userId) {
-        return res.status(409).json({ message: "Email address is already in use by another account" });
+        res.status(409).json({ message: "Email address is already in use by another account" });
+        return;
       }
 
       // Check for existing pending email change request
       const existingRequest = await storage.getUserEmailChangeRequest(userId);
       if (existingRequest) {
-        return res.status(429).json({ 
+        res.status(429).json({ 
           message: "An email change request is already pending. Please complete or cancel the existing request first." 
         });
+        return;
       }
 
       // Create email change request
@@ -416,7 +435,8 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to initiate email change", error);
-      return res.status(500).json({ message: "Failed to initiate email change" });
+      res.status(500).json({ message: "Failed to initiate email change" });
+        return;
     }
   });
 
@@ -425,28 +445,32 @@ app.use(securityHeaders);
       const { token } = req.query;
       
       if (!token || typeof token !== 'string') {
-        return res.status(400).json({ message: "Email change verification token is required" });
+        res.status(400).json({ message: "Email change verification token is required" });
+        return;
       }
 
       // Verify JWT token
       const jwtResult = await verifyEmailVerificationJWT(token);
       
       if (!jwtResult.valid) {
-        return res.status(400).json({ message: "Invalid or expired verification token" });
+        res.status(400).json({ message: "Invalid or expired verification token" });
+        return;
       }
 
       // Check token in database
       const dbToken = await storage.getEmailChangeToken(token);
       
       if (!dbToken) {
-        return res.status(400).json({ message: "Invalid or expired verification token" });
+        res.status(400).json({ message: "Invalid or expired verification token" });
+        return;
       }
 
       // Get the email change request
       const emailChangeRequest = await storage.getEmailChangeRequest(dbToken.emailChangeRequestId);
       
       if (!emailChangeRequest || emailChangeRequest.status !== "pending") {
-        return res.status(400).json({ message: "Invalid or expired email change request" });
+        res.status(400).json({ message: "Invalid or expired email change request" });
+        return;
       }
 
       // Mark token as used
@@ -470,7 +494,8 @@ app.use(securityHeaders);
       });
     } catch (error) {
       logger.error("Failed to confirm email change", error);
-      return res.status(500).json({ message: "Failed to confirm email change" });
+      res.status(500).json({ message: "Failed to confirm email change" });
+        return;
     }
   });
 
@@ -481,7 +506,8 @@ app.use(securityHeaders);
       try {
         userId = getAuthUserId(req);
       } catch (authError) {
-        return res.status(401).json({ message: "Authentication required" });
+        res.status(401).json({ message: "Authentication required" });
+        return;
       }
       
       // Cancel any pending email change request
