@@ -207,6 +207,11 @@ router.patch('/users/:userId',
     try {
       const { userId } = req.params;
       
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
+      
       const validation = userUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         res.status(400).json({ 
@@ -248,6 +253,12 @@ router.get('/users/:userId/roles',
   async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
+      
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
+      
       const roles = await storage.getUserRoles(userId);
       
       res.json(roles);
@@ -269,6 +280,11 @@ router.post('/users/:userId/roles',
   async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
+      
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
       
       const validation = roleAssignSchema.safeParse(req.body);
       if (!validation.success) {
@@ -321,6 +337,11 @@ router.delete('/users/:userId/roles/:roleId',
     try {
       const { roleId } = req.params;
       
+      if (!roleId) {
+        res.status(400).json({ message: 'Role ID is required' });
+        return;
+      }
+      
       await storage.deleteUserRole(roleId);
       
       res.json({ message: 'Role revoked successfully' });
@@ -344,6 +365,11 @@ router.get('/users/:userId/details',
   async (req, res): Promise<void> => {
     try {
       const { userId } = req.params;
+      
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
       
       const user = await storage.getUser(userId);
       if (!user) {
