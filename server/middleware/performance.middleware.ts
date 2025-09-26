@@ -200,7 +200,7 @@ export function performanceMonitoringMiddleware(req: Request, res: Response, nex
     res.setHeader('X-Response-Time', `${responseTime}ms`);
     
     // Call original end method
-    return originalEnd.apply(this, args as [chunk?: any, encoding?: BufferEncoding, cb?: (() => void)]);
+    return originalEnd.apply(this, args as any);
   };
 
   next();
@@ -316,7 +316,7 @@ export function databaseMonitoringMiddleware(req: Request, res: Response, next: 
       }
     }
 
-    return originalEnd.apply(this, args as [chunk?: any, encoding?: BufferEncoding, cb?: (() => void)]);
+    return originalEnd.apply(this, args as any);
   };
 
   next();
