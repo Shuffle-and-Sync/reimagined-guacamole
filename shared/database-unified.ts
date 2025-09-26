@@ -16,13 +16,19 @@ import * as schema from "./schema";
 // Configure WebSocket constructor for Neon
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is required");
+// Handle missing DATABASE_URL gracefully for Cloud Run health checks
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('WARNING: DATABASE_URL environment variable is missing - database functionality will be unavailable');
+  } else {
+    throw new Error("DATABASE_URL environment variable is required");
+  }
 }
 
 // Optimized connection pool configuration
 const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl || 'postgresql://dummy:dummy@localhost:5432/dummy', // Fallback for health checks
   // Connection pool optimization
   max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'), // Max connections
   min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),  // Min connections
@@ -348,6 +354,12 @@ export async function withTransaction<T>(
 
 // Connection lifecycle management
 export async function initializeDatabase(): Promise<void> {
+  // Skip initialization if DATABASE_URL is not set (for health checks)
+  if (!databaseUrl) {
+    console.warn('⚠️ Skipping database initialization - DATABASE_URL not configured');
+    return;
+  }
+  
   try {
     // Test the connection
     await pool.query('SELECT 1');
