@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { websocketMessageSchema } from '../../shared/websocket-schemas';
+import { websocketMessageSchema } from '@shared/websocket-schemas';
 import { logger } from '../logger';
 
 // Outgoing WebSocket message schemas
