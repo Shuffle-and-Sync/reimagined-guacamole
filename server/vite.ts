@@ -25,8 +25,29 @@ export async function setupVite(app: Express, server: Server) {
   const { createServer: createViteServer, createLogger } = await import("vite");
   const viteLogger = createLogger();
   
-  // Dynamically import vite config to avoid issues in production bundling
-  const viteConfig = await import("../vite.config.js").then(m => m.default);
+  // Skip vite config import entirely and use a minimal config
+  // This prevents vite.config.ts from being bundled
+  const viteConfig = {
+    plugins: [],
+    resolve: {
+      alias: {
+        "@": path.resolve(process.cwd(), "client", "src"),
+        "@shared": path.resolve(process.cwd(), "shared"),
+        "@assets": path.resolve(process.cwd(), "attached_assets"),
+      },
+    },
+    root: path.resolve(process.cwd(), "client"),
+    build: {
+      outDir: path.resolve(process.cwd(), "dist/public"),
+      emptyOutDir: true,
+    },
+    server: {
+      fs: {
+        strict: true,
+        deny: ["**/.*"],
+      },
+    },
+  };
   
   const serverOptions = {
     middlewareMode: true,
