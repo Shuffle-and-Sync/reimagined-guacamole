@@ -160,7 +160,7 @@ export function validateDeviceContext(context: DeviceContext): {
  */
 export function extractDeviceContext(headers: Record<string, string | string[] | undefined>, ipAddress: string): DeviceContext {
   const userAgent = Array.isArray(headers['user-agent']) 
-    ? headers['user-agent'][0] 
+    ? headers['user-agent'][0] || ''
     : headers['user-agent'] || '';
 
   return {

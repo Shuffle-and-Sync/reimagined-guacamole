@@ -159,7 +159,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error("Auth middleware error:", error);
     return res.status(401).json({ message: "Unauthorized" });
