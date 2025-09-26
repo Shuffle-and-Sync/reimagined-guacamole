@@ -7,6 +7,7 @@ import {
   validateUserProfileUpdateSchema,
   validateSocialLinksSchema
 } from "../../validation";
+import { assertRouteParam } from "../../shared/utils";
 
 const router = Router();
 
@@ -175,7 +176,7 @@ friendsRouter.delete('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const { id } = req.params;
+    const id = assertRouteParam(req.params.id, 'id');
     
     await usersService.removeFriend(userId, id);
     res.json({ success: true });
@@ -228,7 +229,7 @@ friendRequestsRouter.put('/:id', isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const { id } = req.params;
+    const id = assertRouteParam(req.params.id, 'id');
     
     const friendship = await usersService.respondToFriendRequest(userId, id, req.body);
     return res.json(friendship);

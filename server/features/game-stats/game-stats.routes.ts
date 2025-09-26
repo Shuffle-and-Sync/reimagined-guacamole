@@ -17,6 +17,7 @@ import { requireAuth } from '../../auth/auth.middleware';
 import { ValidationError, NotFoundError } from '../../shared/types';
 import { gameStatsService } from './game-stats.service';
 import { validateRequest } from '../../validation';
+import { assertRouteParam } from '../../shared/utils';
 
 const router = Router();
 
@@ -208,7 +209,7 @@ router.get('/game-results', requireAuth, async (req, res, next) => {
  */
 router.delete('/game-results/:id', requireAuth, async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const id = assertRouteParam(req.params.id, 'id');
     const userId = req.user!.id;
 
     await gameStatsService.deleteGameResult(id, userId);
