@@ -29,6 +29,20 @@ export const notificationPriorityEnum = pgEnum('notification_priority', ['low', 
 export const streamSessionStatusEnum = pgEnum('stream_session_status', ['scheduled', 'live', 'ended', 'cancelled']);
 export const collaborationRequestStatusEnum = pgEnum('collaboration_request_status', ['pending', 'accepted', 'declined', 'expired', 'cancelled']);
 
+// Additional enums for database improvements - high priority
+export const emailVerificationStatusEnum = pgEnum('email_verification_status', ['pending', 'verified', 'expired', 'cancelled']);
+export const friendRequestStatusEnum = pgEnum('friend_request_status', ['pending', 'accepted', 'declined', 'blocked']);
+export const tournamentStatusEnum = pgEnum('tournament_status', ['upcoming', 'active', 'completed', 'cancelled']);
+export const tournamentParticipantStatusEnum = pgEnum('tournament_participant_status', ['registered', 'active', 'eliminated', 'winner']);
+export const tournamentRoundStatusEnum = pgEnum('tournament_round_status', ['pending', 'active', 'completed']);
+export const tournamentMatchStatusEnum = pgEnum('tournament_match_status', ['pending', 'active', 'completed', 'bye']);
+export const moderationCaseStatusEnum = pgEnum('moderation_case_status', ['pending', 'investigating', 'resolved', 'dismissed']);
+export const moderationTaskStatusEnum = pgEnum('moderation_task_status', ['open', 'assigned', 'in_progress', 'completed', 'skipped']);
+export const bannedUserStatusEnum = pgEnum('banned_user_status', ['flagged', 'investigating', 'confirmed', 'false_positive']);
+export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'under_review', 'approved', 'denied', 'withdrawn']);
+export const collaborativeStreamStatusEnum = pgEnum('collaborative_stream_status', ['planning', 'recruiting', 'scheduled', 'live', 'completed', 'cancelled']);
+export const streamCollaboratorStatusEnum = pgEnum('stream_collaborator_status', ['invited', 'accepted', 'declined', 'removed']);
+
 // Session storage table.
 // (IMPORTANT) This table is used for authentication session management, don't drop it.
 export const sessions = pgTable(
