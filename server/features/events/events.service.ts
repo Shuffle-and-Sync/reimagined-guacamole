@@ -32,27 +32,26 @@ export class EventsService {
       // First, get the events
       const events = await storage.getEvents(filters);
       
-      if (events.data.length === 0) {
-        return events;
+      if (events.length === 0) {
+        return { data: events };
       }
 
       // Use batch query optimization to load all attendees at once
       const attendeesMap = await BatchQueryOptimizer.batchQuery(
-        events.data,
+        events,
         (event: Event) => event.id,
         (eventIds: string[]) => storage.getEventAttendeesByEventIds(eventIds),
         (attendee: EventAttendee) => attendee.eventId
       );
 
       // Attach attendees to each event
-      const eventsWithAttendees = events.data.map(event => ({
+      const eventsWithAttendees = events.map((event: any) => ({
         ...event,
         attendees: attendeesMap.get(event.id) || [],
         attendeeCount: attendeesMap.get(event.id)?.length || 0
       }));
 
       return {
-        ...events,
         data: eventsWithAttendees
       };
     } catch (error) {
