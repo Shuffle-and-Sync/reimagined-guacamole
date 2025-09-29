@@ -30,7 +30,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
  * Database health check endpoint
  * GET /api/database/health
  */
-router.get('/health', async (req, res) => {
+router.get('/health', async (req, res): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -60,7 +60,7 @@ router.get('/health', async (req, res) => {
  * Database performance statistics
  * GET /api/database/stats
  */
-router.get('/stats', async (req, res) => {
+router.get('/stats', async (req, res): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -103,7 +103,7 @@ router.get('/stats', async (req, res) => {
  * Reset performance statistics
  * POST /api/database/reset-stats
  */
-router.post('/reset-stats', async (req, res) => {
+router.post('/reset-stats', async (req, res): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -144,7 +144,7 @@ router.post('/reset-stats', async (req, res) => {
  * Database connection pool information
  * GET /api/database/pool
  */
-router.get('/pool', async (req, res) => {
+router.get('/pool', async (req, res): Promise<void> => {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
