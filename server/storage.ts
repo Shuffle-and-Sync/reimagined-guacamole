@@ -856,12 +856,15 @@ export class DatabaseStorage implements IStorage {
     ];
 
     if (!includeOffline) {
-      conditions.push(or(
+      const statusCondition = or(
         eq(users.status, 'online'),
         eq(users.status, 'away'),
         eq(users.status, 'busy'),
         eq(users.status, 'gaming')
-      ));
+      );
+      if (statusCondition) {
+        conditions.push(statusCondition);
+      }
     }
 
     if (cursor) {
@@ -1165,7 +1168,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<{ data: (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[] }> {
+  async getEvents(filters?: { userId?: string; communityId?: string; type?: string; upcoming?: boolean }): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[]> {
     const baseQuery = db
       .select({
         id: events.id,
@@ -1205,11 +1208,11 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(events.communityId, filters.communityId));
     }
     if (filters?.type) {
-      conditions.push(eq(events.type, filters.type));
+      conditions.push(eq(events.type, filters.type as any));
     }
     if (filters?.upcoming) {
       const today = new Date().toISOString().split('T')[0];
-      conditions.push(gte(events.date, today));
+      conditions.push(gte(events.date, today as any));
     }
 
     const query = conditions.length > 0 
@@ -1219,14 +1222,14 @@ export class DatabaseStorage implements IStorage {
     const rawEvents = await query.orderBy(events.date, events.time);
 
     // Get attendee counts and user attendance separately
-    const eventIds = rawEvents.map((e: Event) => e.id);
+    const eventIds = rawEvents.map((e: any) => e.id);
     const attendeeCounts = eventIds.length > 0 ? await db
       .select({
         eventId: eventAttendees.eventId,
         count: count(eventAttendees.id).as('count'),
       })
       .from(eventAttendees)
-      .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
+      .where(inArray(eventAttendees.eventId, eventIds))
       .groupBy(eventAttendees.eventId) : [];
 
     const userAttendance = filters?.userId && eventIds.length > 0 ? await db
@@ -1235,11 +1238,11 @@ export class DatabaseStorage implements IStorage {
       })
       .from(eventAttendees)
       .where(and(
-        sql`${eventAttendees.eventId} IN ${eventIds}`,
+        inArray(eventAttendees.eventId, eventIds),
         eq(eventAttendees.userId, filters.userId)
       )) : [];
 
-    return rawEvents.map((event: Event) => ({
+    const eventsWithDetails = rawEvents.map((event: any) => ({
       ...event,
       creator: event.creator || { 
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
@@ -1251,9 +1254,9 @@ export class DatabaseStorage implements IStorage {
       community: event.community,
       attendeeCount: attendeeCounts.find((ac: { eventId: string; count: number }) => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some((ua: { eventId: string }) => ua.eventId === event.id),
-    })) as (Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending?: boolean })[];
+    }));
 
-    return { data: eventsWithDetails };
+    return eventsWithDetails;
   }
 
   async getEvent(id: string, userId?: string): Promise<(Event & { creator: User; community: Community | null; attendeeCount: number; isUserAttending: boolean }) | undefined> {
@@ -1334,10 +1337,10 @@ export class DatabaseStorage implements IStorage {
     // Auto-create TableSync session for game pod events
     if (event.type === 'game-pod') {
       try {
-        const gameSessionData = {
+        const gameSessionData: InsertGameSession = {
           eventId: event.id,
           hostId: event.creatorId,
-          status: 'waiting',
+          status: 'waiting' as const,
           currentPlayers: 0,
           maxPlayers: event.playerSlots || 4,
           gameData: {
@@ -1496,10 +1499,10 @@ export class DatabaseStorage implements IStorage {
     for (const event of createdEvents) {
       if (event.type === 'game-pod') {
         try {
-          const gameSessionData = {
+          const gameSessionData: InsertGameSession = {
             eventId: event.id,
             hostId: event.creatorId,
-            status: 'waiting',
+            status: 'waiting' as const,
             currentPlayers: 0,
             maxPlayers: event.playerSlots || 4,
             gameData: {
@@ -1534,11 +1537,14 @@ export class DatabaseStorage implements IStorage {
     const interval = Number(data.recurrenceInterval) || 1;
     
     while (currentDate <= end) {
-      eventList.push({
+      const eventData: InsertEvent = {
         ...data,
-        date: currentDate.toISOString().split('T')[0],
-        parentEventId: null, // Will be set after first event is created
-      });
+        date: currentDate.toISOString().split('T')[0] as string,
+      };
+      // Remove parentEventId to let it be auto-generated
+      delete (eventData as any).parentEventId;
+      
+      eventList.push(eventData);
       
       // Calculate next occurrence based on pattern
       switch (data.recurrencePattern as string) {
@@ -1601,7 +1607,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(events.communityId, filters.communityId));
     }
     if (filters.type) {
-      conditions.push(eq(events.type, filters.type));
+      conditions.push(eq(events.type, filters.type as any));
     }
 
     const rawEvents = await baseQuery
@@ -1609,7 +1615,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(events.date, events.time);
 
     // Get player counts for each event
-    const eventIds = rawEvents.map((e: Event) => e.id);
+    const eventIds = rawEvents.map((e: any) => e.id);
     const playerCounts = eventIds.length > 0 ? await db
       .select({
         eventId: eventAttendees.eventId,
@@ -1621,7 +1627,7 @@ export class DatabaseStorage implements IStorage {
       .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
       .groupBy(eventAttendees.eventId) : [];
 
-    return rawEvents.map((event: Event) => ({
+    return rawEvents.map((event: any) => ({
       ...event,
       creator: event.creator || { 
         id: '', email: null, firstName: null, lastName: null, profileImageUrl: null,
@@ -2052,8 +2058,8 @@ export class DatabaseStorage implements IStorage {
     
     return {
       isLocked: !!isLocked,
-      lockoutEndsAt: isLocked ? attempts.lockedUntil : undefined,
-      failedAttempts: attempts.failedAttempts,
+      lockoutEndsAt: isLocked ? attempts.lockedUntil || undefined : undefined,
+      failedAttempts: attempts.failedAttempts || 0,
     };
   }
 
@@ -2363,14 +2369,15 @@ export class DatabaseStorage implements IStorage {
     let trustScore = 0.5; // Base trust score
 
     // Factor in device age (older devices with good history = higher trust)
-    const deviceAgeMs = new Date().getTime() - deviceFingerprint.firstSeenAt.getTime();
+    const deviceAgeMs = new Date().getTime() - (deviceFingerprint.firstSeenAt?.getTime() || 0);
     const deviceAgeDays = deviceAgeMs / (24 * 60 * 60 * 1000);
     if (deviceAgeDays > 30) trustScore += 0.2;
     else if (deviceAgeDays > 7) trustScore += 0.1;
 
     // Factor in successful MFA attempts
-    const successRate = deviceFingerprint.successfulMfaAttempts / 
-      Math.max(1, deviceFingerprint.successfulMfaAttempts + deviceFingerprint.failedMfaAttempts);
+    const successfulAttempts = deviceFingerprint.successfulMfaAttempts || 0;
+    const failedAttempts = deviceFingerprint.failedMfaAttempts || 0;
+    const successRate = successfulAttempts / Math.max(1, successfulAttempts + failedAttempts);
     trustScore += successRate * 0.3;
 
     // Factor in user trust marking
@@ -2379,8 +2386,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Factor in total sessions (more usage = higher trust)
-    if (deviceFingerprint.totalSessions > 50) trustScore += 0.1;
-    else if (deviceFingerprint.totalSessions > 10) trustScore += 0.05;
+    const totalSessions = deviceFingerprint.totalSessions || 0;
+    if (totalSessions > 50) trustScore += 0.1;
+    else if (totalSessions > 10) trustScore += 0.05;
 
     // Apply risk score modifier (handle decimal as string in Drizzle)
     const currentRiskScore = Number(deviceFingerprint.riskScore) || 0.5;
@@ -2809,7 +2817,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.status) {
-      conditions.push(eq(gameSessions.status, filters.status));
+      conditions.push(eq(gameSessions.status, filters.status as any));
     }
 
     const results = await db.select({
@@ -3589,6 +3597,10 @@ export class DatabaseStorage implements IStorage {
 
       const matchResult = existingResult[0];
 
+      if (!matchResult) {
+        throw new Error('Match result not found');
+      }
+
       // Check if there are any other verified results for this match
       const otherVerifiedResults = await tx
         .select()
@@ -3614,6 +3626,10 @@ export class DatabaseStorage implements IStorage {
         .where(eq(matchResults.id, resultId))
         .returning();
 
+      if (!verifiedResult) {
+        throw new Error('Failed to verify match result');
+      }
+
       // Update the tournament match with the verified result
       await tx
         .update(tournamentMatches)
@@ -3621,7 +3637,7 @@ export class DatabaseStorage implements IStorage {
           winnerId: verifiedResult.winnerId,
           player1Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.winnerScore : verifiedResult.loserScore,
           player2Score: verifiedResult.winnerId === matchResult.winnerId ? verifiedResult.loserScore : verifiedResult.winnerScore,
-          status: 'completed',
+          status: 'completed' as any,
           endTime: new Date()
         })
         .where(eq(tournamentMatches.id, matchResult.matchId));
@@ -3690,7 +3706,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
       .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
       .where(eq(tournamentMatches.tournamentId, tournamentId))
-      .orderBy(tournamentMatches.roundNumber, tournamentMatches.matchNumber);
+      .orderBy(tournamentMatches.bracketPosition, tournamentMatches.createdAt);
 
     return results.map((r: any) => ({
       ...r.match,
