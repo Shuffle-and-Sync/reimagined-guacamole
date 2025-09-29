@@ -1,4 +1,4 @@
-import { db, withQueryTiming } from "../shared/database-unified";
+import { db, withQueryTiming } from "@shared/database-unified";
 import type { PgTransaction } from 'drizzle-orm/pg-core';
 import { logger } from "./logger";
 import {
@@ -189,7 +189,7 @@ import {
   type InsertAuthAuditLog,
   type InsertRevokedJwtToken,
   type RevokedJwtToken,
-} from "../shared/schema";
+} from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
