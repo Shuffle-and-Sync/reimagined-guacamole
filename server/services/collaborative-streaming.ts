@@ -470,8 +470,13 @@ export class CollaborativeStreamingService {
       const platformResults: Record<string, any> = {};
       const platformErrors: string[] = [];
 
+      // Validate current host before proceeding
+      if (!session.currentHost) {
+        throw new Error('No current host available for cross-platform streaming coordination');
+      }
+
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost, event.streamingPlatforms);
+      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
 
       // Start streaming on each configured platform
       for (const platformName of event.streamingPlatforms) {
@@ -703,8 +708,13 @@ export class CollaborativeStreamingService {
         throw new Error(`Collaborative event not found: ${eventId}`);
       }
 
+      // Validate current host before proceeding
+      if (!session.currentHost) {
+        throw new Error('No current host available for break coordination');
+      }
+
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost, event.streamingPlatforms);
+      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
       const breakResults: Record<string, any> = {};
 
       // Coordinate break on each active platform with real API calls
@@ -713,6 +723,10 @@ export class CollaborativeStreamingService {
           switch (platformName) {
             case 'youtube':
               if (youtubeAPI && youtubeAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for YouTube break coordination');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
                 const channelId = platformIdentifiers.youtube;
                 
@@ -731,6 +745,10 @@ export class CollaborativeStreamingService {
 
             case 'twitch':
               if (twitchAPI && twitchAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for Twitch break coordination');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
                 const twitchUserId = platformIdentifiers.twitch;
                 
@@ -749,6 +767,10 @@ export class CollaborativeStreamingService {
 
             case 'facebook':
               if (facebookAPI && facebookAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for Facebook break coordination');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
                 const pageId = platformIdentifiers.facebook;
                 
@@ -824,8 +846,13 @@ export class CollaborativeStreamingService {
         throw new Error(`Collaborative event not found: ${eventId}`);
       }
 
+      // Validate current host before proceeding
+      if (!session.currentHost) {
+        throw new Error('No current host available for ending cross-platform streaming');
+      }
+
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost, event.streamingPlatforms);
+      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
       const endResults: Record<string, any> = {};
       const errors: string[] = [];
 
@@ -835,6 +862,10 @@ export class CollaborativeStreamingService {
           switch (platformName) {
             case 'youtube':
               if (youtubeAPI && youtubeAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for YouTube stream ending');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
                 const channelId = platformIdentifiers.youtube;
                 
@@ -860,6 +891,10 @@ export class CollaborativeStreamingService {
 
             case 'twitch':
               if (twitchAPI && twitchAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for Twitch stream ending');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
                 const twitchUserId = platformIdentifiers.twitch;
                 
@@ -884,6 +919,10 @@ export class CollaborativeStreamingService {
 
             case 'facebook':
               if (facebookAPI && facebookAPI.isConfigured()) {
+                if (!session.currentHost) {
+                  logger.warn('No current host for Facebook stream ending');
+                  break;
+                }
                 const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
                 const pageId = platformIdentifiers.facebook;
                 
