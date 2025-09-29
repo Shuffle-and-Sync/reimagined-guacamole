@@ -60,7 +60,7 @@ import backupRouter from "./routes/backup";
 import monitoringRouter from "./routes/monitoring";
 import matchingRouter from "./routes/matching";
 import { CollaborativeStreamingService } from "./services/collaborative-streaming";
-import { websocketMessageSchema } from '../shared/websocket-schemas';
+import { websocketMessageSchema } from '@shared/websocket-schemas';
 import EnhancedWebSocketServer from './utils/websocket-server-enhanced';
 // Auth.js session validation will be done via session endpoint
 import { healthCheck } from "./health";
