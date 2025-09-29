@@ -9,6 +9,7 @@ import { PgDatabase } from 'drizzle-orm/pg-core';
 import { PgTableWithColumns, TableConfig } from 'drizzle-orm/pg-core';
 import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from 'drizzle-orm';
 import { PgTransaction } from 'drizzle-orm/pg-core';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
 import { withQueryTiming } from '@shared/database-unified';
@@ -54,7 +55,7 @@ export interface PaginatedResult<T> {
  * Provides common CRUD operations and utilities for database entities
  */
 export abstract class BaseRepository<
-  TTable extends PgTableWithColumns<TableConfig>,
+  TTable extends PgTable,
   TEntity = TTable['$inferSelect'],
   TInsert = TTable['$inferInsert'],
   TUpdate = Partial<TInsert>
@@ -77,7 +78,7 @@ export abstract class BaseRepository<
       try {
         const result = await this.db
           .select()
-          .from(this.table)
+          .from(this.table as any)
           .where(eq((this.table as any).id, id))
           .limit(1);
 
@@ -99,7 +100,7 @@ export abstract class BaseRepository<
       try {
         const result = await this.db
           .select()
-          .from(this.table)
+          .from(this.table as any)
           .where(sql`${(this.table as any).id} = ANY(${ids})`);
         
         return result as TEntity[];
@@ -122,28 +123,28 @@ export abstract class BaseRepository<
         const offset = (page - 1) * limit;
 
         // Build base query
-        let query = this.db.select().from(this.table);
+        let query = this.db.select().from(this.table as any);
 
         // Apply filters
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
           if (whereConditions.length > 0) {
-            query = query.where(and(...whereConditions));
+            query = query.where(and(...whereConditions)) as any;
           }
         }
 
         // Apply sorting
         if (sort?.field) {
-          const column = this.table[sort.field as keyof TTable];
+          const column = (this.table as any)[sort.field];
           if (column) {
-            query = query.orderBy(sort.direction === 'desc' ? desc(column) : asc(column));
+            query = query.orderBy(sort.direction === 'desc' ? desc(column) : asc(column)) as any;
           }
         }
 
         // Get total count
         const countQuery = this.db
           .select({ count: count() })
-          .from(this.table);
+          .from(this.table as any);
 
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
@@ -161,7 +162,7 @@ export abstract class BaseRepository<
         const totalPages = Math.ceil(total / limit);
 
         return {
-          data,
+          data: data as TEntity[],
           total,
           page,
           limit,
@@ -190,11 +191,11 @@ export abstract class BaseRepository<
 
         const result = await this.db
           .select()
-          .from(this.table)
+          .from(this.table as any)
           .where(and(...whereConditions))
           .limit(1);
 
-        return result[0] || null;
+        return (result[0] as TEntity) || null;
       } catch (error) {
         logger.error(`Failed to find one ${this.tableName}`, error, { filters });
         throw new DatabaseError(`Failed to find ${this.tableName}`);
@@ -210,14 +211,14 @@ export abstract class BaseRepository<
       try {
         const result = await this.db
           .insert(this.table)
-          .values(data)
+          .values(data as any)
           .returning();
 
         if (!result[0]) {
           throw new DatabaseError(`Failed to create ${this.tableName}`);
         }
 
-        return result[0];
+        return result[0] as TEntity;
       } catch (error) {
         logger.error(`Failed to create ${this.tableName}`, error, { data });
         throw new DatabaseError(`Failed to create ${this.tableName}`);
@@ -233,10 +234,12 @@ export abstract class BaseRepository<
       if (data.length === 0) return [];
 
       try {
-        return await this.db
+        const result = await this.db
           .insert(this.table)
-          .values(data)
+          .values(data as any)
           .returning();
+        
+        return result as unknown as TEntity[];
       } catch (error) {
         logger.error(`Failed to create multiple ${this.tableName}`, error, { count: data.length });
         throw new DatabaseError(`Failed to create ${this.tableName} records`);
@@ -253,10 +256,10 @@ export abstract class BaseRepository<
         const result = await this.db
           .update(this.table)
           .set(data)
-          .where(eq(this.table.id, id))
+          .where(eq((this.table as any).id, id))
           .returning();
 
-        return result[0] || null;
+        return (result[0] as TEntity) || null;
       } catch (error) {
         logger.error(`Failed to update ${this.tableName}`, error, { id, data });
         throw new DatabaseError(`Failed to update ${this.tableName}`);
@@ -276,11 +279,13 @@ export abstract class BaseRepository<
           throw new DatabaseError('Update requires at least one filter condition');
         }
 
-        return await this.db
+        const result = await this.db
           .update(this.table)
           .set(data)
           .where(and(...whereConditions))
           .returning();
+        
+        return result as unknown as TEntity[];
       } catch (error) {
         logger.error(`Failed to update ${this.tableName} with filters`, error, { filters, data });
         throw new DatabaseError(`Failed to update ${this.tableName} records`);
@@ -301,14 +306,14 @@ export abstract class BaseRepository<
           const result = await this.db
             .update(this.table)
             .set({ deletedAt: new Date() } as any)
-            .where(eq(this.table.id, id))
+            .where(eq((this.table as any).id, id))
             .returning();
           
           return result.length > 0;
         } else {
           const result = await this.db
             .delete(this.table)
-            .where(eq(this.table.id, id))
+            .where(eq((this.table as any).id, id))
             .returning();
           
           return result.length > 0;
@@ -364,12 +369,12 @@ export abstract class BaseRepository<
   async count(filters?: FilterOptions): Promise<number> {
     return withQueryTiming(`${this.tableName}:count`, async () => {
       try {
-        let query = this.db.select({ count: count() }).from(this.table);
+        let query = this.db.select({ count: count() }).from(this.table as any);
 
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
           if (whereConditions.length > 0) {
-            query = query.where(and(...whereConditions));
+            query = query.where(and(...whereConditions)) as any;
           }
         }
 
@@ -403,7 +408,7 @@ export abstract class BaseRepository<
         const maxLimit = Math.min(limit, 100);
         
         // Build base query
-        let query = this.db.select().from(this.table);
+        let query = this.db.select().from(this.table as any);
         
         // Apply filters
         const conditions = [];
@@ -416,7 +421,7 @@ export abstract class BaseRepository<
         if (cursor) {
           const cursorData = this.parseCursor(cursor);
           if (cursorData && cursorData.field === sortField) {
-            const column = this.table[sortField as keyof TTable];
+            const column = (this.table as any)[sortField];
             if (column) {
               const cursorCondition = sortDirection === 'desc' 
                 ? lt(column, cursorData.value)
@@ -428,13 +433,13 @@ export abstract class BaseRepository<
         
         // Apply all conditions
         if (conditions.length > 0) {
-          query = query.where(and(...conditions));
+          query = query.where(and(...conditions)) as any;
         }
         
         // Apply sorting
-        const sortColumn = this.table[sortField as keyof TTable];
+        const sortColumn = (this.table as any)[sortField];
         if (sortColumn) {
-          query = query.orderBy(sortDirection === 'desc' ? desc(sortColumn) : asc(sortColumn));
+          query = query.orderBy(sortDirection === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
         }
         
         // Fetch one extra item to check if there's more data
@@ -523,7 +528,7 @@ export abstract class BaseRepository<
     for (const [key, value] of Object.entries(filters)) {
       if (value === undefined || value === null) continue;
 
-      const column = this.table[key as keyof TTable];
+      const column = (this.table as any)[key];
       if (!column) continue;
 
       if (Array.isArray(value)) {
