@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../logger';
 
 // Twitch API configuration
 const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
@@ -379,7 +380,7 @@ export class TwitchAPIService {
     // Handle challenge verification (subscription setup)
     if (messageType === 'webhook_callback_verification') {
       const challenge = req.body.challenge;
-      console.log('Twitch EventSub challenge verified');
+      logger.info('Twitch EventSub challenge verified');
       res.status(200).send(challenge);
       return null;
     }
@@ -394,19 +395,19 @@ export class TwitchAPIService {
         event_data: req.body.event || {},
       };
 
-      console.log('Twitch EventSub notification received:', event.event_type);
+      logger.info('Twitch EventSub notification received', { eventType: event.event_type });
       res.status(204).send();
       return event;
     }
 
     // Handle revocation
     if (messageType === 'revocation') {
-      console.log('Twitch EventSub subscription revoked:', req.body.subscription);
+      logger.info('Twitch EventSub subscription revoked', { subscription: req.body.subscription });
       res.status(204).send();
       return null;
     }
 
-    console.warn('Unknown Twitch EventSub message type:', messageType);
+    logger.warn('Unknown Twitch EventSub message type', { messageType });
     res.status(400).send('Bad Request');
     return null;
   }
