@@ -39,7 +39,7 @@ export const tournamentMatchStatusEnum = pgEnum('tournament_match_status', ['pen
 export const moderationCaseStatusEnum = pgEnum('moderation_case_status', ['pending', 'investigating', 'resolved', 'dismissed']);
 export const moderationTaskStatusEnum = pgEnum('moderation_task_status', ['open', 'assigned', 'in_progress', 'completed', 'skipped']);
 export const bannedUserStatusEnum = pgEnum('banned_user_status', ['flagged', 'investigating', 'confirmed', 'false_positive']);
-export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'under_review', 'approved', 'denied', 'withdrawn']);
+export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'under_review', 'approved', 'denied', 'withdrawn', 'resolved']);
 export const collaborativeStreamStatusEnum = pgEnum('collaborative_stream_status', ['planning', 'recruiting', 'scheduled', 'live', 'completed', 'cancelled']);
 export const streamCollaboratorStatusEnum = pgEnum('stream_collaborator_status', ['invited', 'accepted', 'declined', 'removed']);
 
@@ -2130,7 +2130,7 @@ export const userAppeals = pgTable("user_appeals", {
   additionalInfo: text("additional_info"), // Any other relevant information
   
   // Workflow
-  status: varchar("status").default("pending"), // pending, under_review, approved, denied, withdrawn
+  status: appealStatusEnum("status").default("pending"), // pending, under_review, approved, denied, withdrawn, resolved
   reviewedBy: varchar("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   reviewNotes: text("review_notes"), // Internal notes from reviewer
