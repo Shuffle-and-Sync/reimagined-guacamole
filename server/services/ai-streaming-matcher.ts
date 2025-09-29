@@ -262,7 +262,7 @@ export class AIStreamingMatcher {
           streamQuality: '720p'
         });
       } catch (error) {
-        logger.debug("Twitch platform data not available", { userId, username, error: error.message });
+        logger.debug("Twitch platform data not available", { userId, username, error: error instanceof Error ? error.message : String(error) });
       }
 
       // Check YouTube
@@ -279,27 +279,27 @@ export class AIStreamingMatcher {
           lastStreamDate: youtubeLive ? new Date() : undefined
         });
       } catch (error) {
-        logger.debug("YouTube platform data not available", { userId, username, error: error.message });
+        logger.debug("YouTube platform data not available", { userId, username, error: error instanceof Error ? error.message : String(error) });
       }
 
       // Check Facebook Gaming
       try {
-        const facebookLive = await facebookAPI.getLiveVideos();
+        const facebookLive = await facebookAPI.getLiveVideos('', '');
         if (facebookLive && facebookLive.data && facebookLive.data.length > 0) {
           const video = facebookLive.data[0];
           if (video) {
             platforms.push({
               platform: 'facebook',
               username: video.title || video.description || username,
-              isActive: video.status === 'LIVE' || video.status === 'live',
+              isActive: video.status === 'LIVE',
               followerCount: 0,
               averageViewers: 0,
-              lastStreamDate: new Date(video.created_time || video.createdTime || Date.now())
+              lastStreamDate: new Date()
             });
           }
         }
       } catch (error) {
-        logger.debug("Facebook Gaming platform data not available", { userId, username, error: error.message });
+        logger.debug("Facebook Gaming platform data not available", { userId, username, error: error instanceof Error ? error.message : String(error) });
       }
 
     } catch (error) {
@@ -317,9 +317,10 @@ export class AIStreamingMatcher {
       // Get basic users first, then build streaming profiles
       let users;
       try {
-        users = await storage.getUsers?.() || [];
+        // Use getAllUsers method 
+        users = await storage.getAllUsers?.() || [];
       } catch (error) {
-        logger.warn("getUsers not available, using empty list", { error });
+        logger.warn("User lookup not available, using empty list", { error });
         users = [];
       }
       const streamingCandidates = users.filter((u: User) => u.id !== criteria.userId).slice(0, 50);
@@ -622,12 +623,20 @@ export class AIStreamingMatcher {
     const [start1, end1] = slot1.split('-').map(t => this.timeToMinutes(t));
     const [start2, end2] = slot2.split('-').map(t => this.timeToMinutes(t));
     
+    if (start1 === undefined || end1 === undefined || start2 === undefined || end2 === undefined) {
+      return false;
+    }
+    
     return Math.max(start1, start2) < Math.min(end1, end2);
   }
 
   private calculateOverlapTime(slot1: string, slot2: string): string {
     const [start1, end1] = slot1.split('-').map(t => this.timeToMinutes(t));
     const [start2, end2] = slot2.split('-').map(t => this.timeToMinutes(t));
+    
+    if (start1 === undefined || end1 === undefined || start2 === undefined || end2 === undefined) {
+      return '';
+    }
     
     const overlapStart = Math.max(start1, start2);
     const overlapEnd = Math.min(end1, end2);
