@@ -16,6 +16,7 @@ import type { PgTransaction } from 'drizzle-orm/pg-core';
 import { db } from '@shared/database-unified';
 import { users } from '@shared/schema';
 import { NotFoundError, ValidationError } from '../../shared/types';
+import { logger } from '../../logger';
 
 // Types for service layer (would typically come from shared schema)
 interface GameStats {
@@ -56,6 +57,15 @@ interface GameStatsFilters {
   offset: number;
   sortBy: 'createdAt' | 'winRate' | 'totalGames';
   sortOrder: 'asc' | 'desc';
+}
+
+interface CreateGameResultData {
+  gameType: string;
+  format: string;
+  result: 'win' | 'loss' | 'draw';
+  opponentId?: string | null;
+  duration: number;
+  notes?: string | null;
 }
 
 /**
@@ -240,7 +250,7 @@ class GameStatsService {
   /**
    * Create a new game result and update statistics
    */
-  async createGameResult(userId: string, gameResultData: any) {
+  async createGameResult(userId: string, gameResultData: CreateGameResultData) {
     try {
       // Validate user exists
       const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
@@ -328,12 +338,12 @@ class GameStatsService {
       }
 
       // Mock deletion (would delete from game_results and update game_stats)
-      console.log(`Deleting game result ${resultId} for user ${userId}`);
+      logger.info('Deleting game result', { resultId, userId });
       
       // In a real implementation, this would also recalculate statistics
       return true;
     } catch (error) {
-      console.error('Error deleting game result:', error);
+      logger.error('Error deleting game result:', error);
       throw error;
     }
   }

@@ -78,10 +78,10 @@ export abstract class BaseRepository<
         const result = await this.db
           .select()
           .from(this.table)
-          .where(eq(this.table.id, id))
+          .where(eq((this.table as any).id, id))
           .limit(1);
 
-        return result[0] || null;
+        return (result[0] as TEntity) || null;
       } catch (error) {
         logger.error(`Failed to find ${this.tableName} by ID`, error, { id });
         throw new DatabaseError(`Failed to find ${this.tableName}`);
@@ -97,10 +97,12 @@ export abstract class BaseRepository<
       if (ids.length === 0) return [];
 
       try {
-        return await this.db
+        const result = await this.db
           .select()
           .from(this.table)
-          .where(sql`${this.table.id} = ANY(${ids})`);
+          .where(sql`${(this.table as any).id} = ANY(${ids})`);
+        
+        return result as TEntity[];
       } catch (error) {
         logger.error(`Failed to find ${this.tableName} by IDs`, error, { ids });
         throw new DatabaseError(`Failed to find ${this.tableName} records`);

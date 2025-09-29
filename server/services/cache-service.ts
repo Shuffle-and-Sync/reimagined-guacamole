@@ -257,11 +257,11 @@ export class CacheService {
       const info = await redisClient.getInfo();
       
       // Parse memory usage from info
-      let memoryUsage = null;
+      let memoryUsage: string | null = null;
       if (info) {
         const memoryMatch = info.match(/used_memory_human:([^\r\n]+)/);
-        if (memoryMatch) {
-          memoryUsage = memoryMatch[1];
+        if (memoryMatch && memoryMatch[1]) {
+          memoryUsage = memoryMatch[1].trim();
         }
       }
 

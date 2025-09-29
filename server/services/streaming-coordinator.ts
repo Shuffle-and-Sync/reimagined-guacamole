@@ -253,11 +253,11 @@ export class StreamingCoordinator {
     if (hostStreamStatus.isStreaming && session.status === 'scheduled') {
       session.status = 'live';
       session.actualStartTime = currentTime;
-      console.log(`Stream session ${sessionId} started live`);
+      logger.info(`Stream session started live`, { sessionId });
     } else if (!hostStreamStatus.isStreaming && session.status === 'live') {
       session.status = 'ended';
       session.endTime = currentTime;
-      console.log(`Stream session ${sessionId} ended`);
+      logger.info(`Stream session ended`, { sessionId });
     }
 
     // Update viewer metrics
@@ -287,7 +287,7 @@ export class StreamingCoordinator {
 
     // TODO: Store in database
     // TODO: Send notification to target user
-    console.log(`Collaboration request sent: ${requestId}`, collaborationRequest);
+    logger.info(`Collaboration request sent`, { requestId, collaborationRequest });
 
     return collaborationRequest;
   }
@@ -381,15 +381,15 @@ export class StreamingCoordinator {
 
     switch (eventType) {
       case 'stream.online':
-        console.log(`Stream started: ${eventData.broadcaster_user_login}`);
+        logger.info(`Stream started`, { broadcaster: eventData.broadcaster_user_login });
         // Find and update relevant stream sessions
         break;
       case 'stream.offline':
-        console.log(`Stream ended: ${eventData.broadcaster_user_login}`);
+        logger.info(`Stream ended`, { broadcaster: eventData.broadcaster_user_login });
         // Find and update relevant stream sessions
         break;
       default:
-        console.log(`Unhandled Twitch event: ${eventType}`);
+        logger.warn(`Unhandled Twitch event`, { eventType });
     }
   }
 
