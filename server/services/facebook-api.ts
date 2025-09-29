@@ -2,6 +2,8 @@
 // This is a placeholder implementation for Facebook Gaming API integration
 // TODO: Implement full Facebook Gaming Creator API and Graph API integration
 
+import { logger } from '../logger';
+
 export interface FacebookPage {
   id: string;
   name: string;
@@ -169,7 +171,11 @@ export class FacebookAPIService {
           const retryAfter = response.headers.get('Retry-After');
           const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
           
-          console.log(`Facebook API ${response.status === 429 ? 'rate limited' : 'server error'}, retrying after ${delay}ms...`);
+          logger.warn(`Facebook API ${response.status === 429 ? 'rate limited' : 'server error'}, retrying after ${delay}ms...`, {
+            status: response.status,
+            attempt,
+            delay
+          });
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }

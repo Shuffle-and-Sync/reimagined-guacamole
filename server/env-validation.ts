@@ -47,7 +47,7 @@ const VALIDATION_RULES = {
     try {
       const url = new URL(value);
       if (!['http:', 'https:'].includes(url.protocol)) {
-        throw new Error('AUTH_URL must use http:// or https:// protocol');
+        throw new Error('AUTH_URL must use https:// or https:// protocol');
       }
       return true;
     } catch {

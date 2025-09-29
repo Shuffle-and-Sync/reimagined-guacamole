@@ -140,7 +140,7 @@ export class WebSocketEnvironmentValidator {
     if (!this.determineEnvironment()) {
       origins.add(`http://localhost:${port}`);
       origins.add(`https://localhost:${port}`);
-      origins.add('http://127.0.0.1:' + port);
+      origins.add('https://127.0.0.1:' + port);
       origins.add('https://127.0.0.1:' + port);
     }
 
