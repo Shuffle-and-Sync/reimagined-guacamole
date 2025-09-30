@@ -23,13 +23,13 @@ router.get('/', isAuthenticated, async (req: Request, res: Response) => {
     const userId = getAuthUserId(authenticatedReq);
     const preferences = await enhancedNotificationService.getNotificationPreferences(userId);
     
-    res.json(preferences);
+    return res.json(preferences);
   } catch (error) {
     logger.error('Failed to get notification preferences', {
       error,
       userId: getAuthUserId(authenticatedReq)
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -45,14 +45,14 @@ router.put('/', isAuthenticated, async (req: Request, res: Response) => {
     
     await enhancedNotificationService.updateNotificationPreferences(userId, preferences);
     
-    res.json({ success: true, message: 'Notification preferences updated' });
+    return res.json({ success: true, message: 'Notification preferences updated' });
   } catch (error) {
     logger.error('Failed to update notification preferences', {
       error,
       userId: getAuthUserId(authenticatedReq),
       preferences: req.body
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -81,7 +81,7 @@ router.post('/test', isAuthenticated, async (req: Request, res: Response) => {
       options
     );
     
-    res.json({
+    return res.json({
       success: true,
       notification: result.notification,
       deliveryResults: result.deliveryResults
@@ -91,7 +91,7 @@ router.post('/test', isAuthenticated, async (req: Request, res: Response) => {
       error,
       userId: getAuthUserId(authenticatedReq)
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -120,7 +120,7 @@ router.post('/announcement', isAuthenticated, async (req: Request, res: Response
       }
     );
     
-    res.json({
+    return res.json({
       success: true,
       message: `System announcement sent to ${userIds.length} users`
     });
@@ -129,7 +129,7 @@ router.post('/announcement', isAuthenticated, async (req: Request, res: Response
       error,
       userId: getAuthUserId(authenticatedReq)
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -143,7 +143,7 @@ router.post('/digest/weekly', isAuthenticated, async (req: Request, res: Respons
     // This would typically be restricted to admin users
     await enhancedNotificationService.sendWeeklyDigests();
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Weekly digest processing started'
     });
@@ -152,7 +152,7 @@ router.post('/digest/weekly', isAuthenticated, async (req: Request, res: Respons
       error,
       userId: getAuthUserId(authenticatedReq)
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -173,13 +173,13 @@ router.post('/websocket/register', isAuthenticated, async (req: Request, res: Re
       connectionId
     });
     
-    res.json({ success: true, message: 'WebSocket connection registered' });
+    return res.json({ success: true, message: 'WebSocket connection registered' });
   } catch (error) {
     logger.error('Failed to register WebSocket connection', {
       error,
       userId: getAuthUserId(authenticatedReq)
     });
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 });
 

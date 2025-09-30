@@ -68,13 +68,13 @@ router.get('/health', asyncHandler(async (req, res) => {
   };
 
   if (isHealthy && pingResult) {
-    res.json({ 
+    return res.json({ 
       success: true, 
       status: 'healthy', 
       data: healthStatus 
     });
   } else {
-    res.status(503).json({ 
+    return res.status(503).json({ 
       success: false, 
       status: 'unhealthy', 
       data: healthStatus 
@@ -98,7 +98,7 @@ router.get('/info', async (req, res) => {
     const redisInfo = await redisClient.getInfo();
     const cacheStats = await cacheService.getStats();
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         redis: {
@@ -112,7 +112,7 @@ router.get('/info', async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get cache info', { error });
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: 'Failed to get cache info' 
     });
@@ -162,7 +162,7 @@ router.post('/test', asyncHandler(async (req, res) => {
 
   const allPassed = setResult && getValue !== null && existsResult && deleteResult && testResults.dataMatch;
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       allTestsPassed: allPassed,
@@ -200,13 +200,13 @@ router.delete('/clear', async (req, res) => {
     }
     await redisClient.flushAll();
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Cache cleared successfully'
     });
   } catch (error) {
     logger.error('Failed to clear cache', { error });
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: 'Failed to clear cache' 
     });
