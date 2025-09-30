@@ -779,16 +779,28 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    if (!user) {
+      throw new Error('Database operation failed');
+    }
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    if (!user) {
+      throw new Error('Database operation failed');
+    }
     return user;
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
     const [user] = await db.insert(users).values(userData).returning();
+    if (!user) {
+      throw new Error('Failed to create user');
+    }
+    if (!user) {
+      throw new Error('Database operation failed');
+    }
     return user;
   }
 
@@ -804,6 +816,9 @@ export class DatabaseStorage implements IStorage {
         } as any,  // Type assertion to handle Drizzle type issues
       })
       .returning();
+    if (!user) {
+      throw new Error('Failed to upsert user');
+    }
     return user;
   }
 
@@ -2604,6 +2619,9 @@ export class DatabaseStorage implements IStorage {
 
   async createNotification(data: InsertNotification): Promise<Notification> {
     const [notification] = await db.insert(notifications).values(data).returning();
+    if (!notification) {
+      throw new Error('Database operation failed');
+    }
     return notification;
   }
 
@@ -2683,6 +2701,9 @@ export class DatabaseStorage implements IStorage {
 
   async sendMessage(data: InsertMessage): Promise<Message> {
     const [message] = await db.insert(messages).values(data).returning();
+    if (!message) {
+      throw new Error('Database operation failed');
+    }
     return message;
   }
 
@@ -2846,6 +2867,9 @@ export class DatabaseStorage implements IStorage {
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
     const [gameSession] = await db.insert(gameSessions).values(data).returning();
+    if (!gameSession) {
+      throw new Error('Database operation failed');
+    }
     return gameSession;
   }
 
@@ -4258,6 +4282,9 @@ export class DatabaseStorage implements IStorage {
   async createStreamSession(data: InsertStreamSession): Promise<StreamSession> {
     try {
       const [session] = await db.insert(streamSessions).values(data).returning();
+      if (!session) {
+        throw new Error('Database operation failed');
+      }
       return session;
     } catch (error) {
       console.error('Error creating stream session:', error);
@@ -4292,6 +4319,9 @@ export class DatabaseStorage implements IStorage {
   async addStreamCoHost(data: InsertStreamSessionCoHost): Promise<StreamSessionCoHost> {
     try {
       const [coHost] = await db.insert(streamSessionCoHosts).values(data).returning();
+      if (!coHost) {
+        throw new Error('Database operation failed');
+      }
       return coHost;
     } catch (error) {
       console.error('Error adding stream co-host:', error);
@@ -4338,6 +4368,9 @@ export class DatabaseStorage implements IStorage {
   async addStreamPlatform(data: InsertStreamSessionPlatform): Promise<StreamSessionPlatform> {
     try {
       const [platform] = await db.insert(streamSessionPlatforms).values(data).returning();
+      if (!platform) {
+        throw new Error('Database operation failed');
+      }
       return platform;
     } catch (error) {
       console.error('Error adding stream platform:', error);
@@ -4442,6 +4475,9 @@ export class DatabaseStorage implements IStorage {
   async createCollaborationRequest(data: InsertCollaborationRequest): Promise<CollaborationRequest> {
     try {
       const [request] = await db.insert(collaborationRequests).values(data).returning();
+      if (!request) {
+        throw new Error('Database operation failed');
+      }
       return request;
     } catch (error) {
       console.error('Error creating collaboration request:', error);
@@ -4488,6 +4524,9 @@ export class DatabaseStorage implements IStorage {
   async recordStreamAnalytics(data: InsertStreamAnalytics): Promise<StreamAnalytics> {
     try {
       const [analytics] = await db.insert(streamAnalytics).values(data).returning();
+      if (!analytics) {
+        throw new Error('Database operation failed');
+      }
       return analytics;
     } catch (error) {
       console.error('Error recording stream analytics:', error);
@@ -4540,6 +4579,9 @@ export class DatabaseStorage implements IStorage {
   async recordUserActivityAnalytics(data: InsertUserActivityAnalytics): Promise<UserActivityAnalytics> {
     try {
       const [analytics] = await db.insert(userActivityAnalytics).values(data).returning();
+      if (!analytics) {
+        throw new Error('Database operation failed');
+      }
       return analytics;
     } catch (error) {
       console.error('Error recording user activity analytics:', error);
@@ -4572,6 +4614,9 @@ export class DatabaseStorage implements IStorage {
   async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
     try {
       const [analytics] = await db.insert(communityAnalytics).values(data).returning();
+      if (!analytics) {
+        throw new Error('Database operation failed');
+      }
       return analytics;
     } catch (error) {
       console.error('Error recording community analytics:', error);
@@ -4602,6 +4647,9 @@ export class DatabaseStorage implements IStorage {
   async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
     try {
       const [metrics] = await db.insert(platformMetrics).values(data).returning();
+      if (!metrics) {
+        throw new Error('Database operation failed');
+      }
       return metrics;
     } catch (error) {
       console.error('Error recording platform metrics:', error);
@@ -4647,6 +4695,9 @@ export class DatabaseStorage implements IStorage {
   async recordEventTracking(data: InsertEventTracking): Promise<EventTracking> {
     try {
       const [event] = await db.insert(eventTracking).values(data).returning();
+      if (!event) {
+        throw new Error('Database operation failed');
+      }
       return event;
     } catch (error) {
       console.error('Error recording event tracking:', error);
@@ -4692,6 +4743,9 @@ export class DatabaseStorage implements IStorage {
   async recordConversionFunnel(data: InsertConversionFunnel): Promise<ConversionFunnel> {
     try {
       const [funnel] = await db.insert(conversionFunnels).values(data).returning();
+      if (!funnel) {
+        throw new Error('Database operation failed');
+      }
       return funnel;
     } catch (error) {
       console.error('Error recording conversion funnel:', error);
@@ -4731,6 +4785,9 @@ export class DatabaseStorage implements IStorage {
   async createCollaborativeStreamEvent(data: InsertCollaborativeStreamEvent): Promise<CollaborativeStreamEvent> {
     try {
       const [event] = await db.insert(collaborativeStreamEvents).values(data).returning();
+      if (!event) {
+        throw new Error('Database operation failed');
+      }
       return event;
     } catch (error) {
       logger.error("Failed to create collaborative stream event", error);
@@ -4751,6 +4808,9 @@ export class DatabaseStorage implements IStorage {
   async updateCollaborativeStreamEvent(id: string, data: Partial<InsertCollaborativeStreamEvent>): Promise<CollaborativeStreamEvent> {
     try {
       const [event] = await db.update(collaborativeStreamEvents).set(data).where(eq(collaborativeStreamEvents.id, id)).returning();
+      if (!event) {
+        throw new Error('Database operation failed');
+      }
       return event;
     } catch (error) {
       logger.error("Failed to update collaborative stream event", error, { id });
@@ -4780,6 +4840,9 @@ export class DatabaseStorage implements IStorage {
   async createStreamCollaborator(data: InsertStreamCollaborator): Promise<StreamCollaborator> {
     try {
       const [collaborator] = await db.insert(streamCollaborators).values(data).returning();
+      if (!collaborator) {
+        throw new Error('Database operation failed');
+      }
       return collaborator;
     } catch (error) {
       logger.error("Failed to create stream collaborator", error);
@@ -4800,6 +4863,9 @@ export class DatabaseStorage implements IStorage {
   async updateStreamCollaborator(id: string, data: Partial<InsertStreamCollaborator>): Promise<StreamCollaborator> {
     try {
       const [collaborator] = await db.update(streamCollaborators).set(data).where(eq(streamCollaborators.id, id)).returning();
+      if (!collaborator) {
+        throw new Error('Database operation failed');
+      }
       return collaborator;
     } catch (error) {
       logger.error("Failed to update stream collaborator", error, { id });
@@ -4829,6 +4895,9 @@ export class DatabaseStorage implements IStorage {
   async createStreamCoordinationSession(data: InsertStreamCoordinationSession): Promise<StreamCoordinationSession> {
     try {
       const [session] = await db.insert(streamCoordinationSessions).values(data).returning();
+      if (!session) {
+        throw new Error('Database operation failed');
+      }
       return session;
     } catch (error) {
       logger.error("Failed to create stream coordination session", error);
@@ -4849,6 +4918,9 @@ export class DatabaseStorage implements IStorage {
   async updateStreamCoordinationSession(id: string, data: Partial<InsertStreamCoordinationSession>): Promise<StreamCoordinationSession> {
     try {
       const [session] = await db.update(streamCoordinationSessions).set(data).where(eq(streamCoordinationSessions.id, id)).returning();
+      if (!session) {
+        throw new Error('Database operation failed');
+      }
       return session;
     } catch (error) {
       logger.error("Failed to update stream coordination session", error, { id });
@@ -4956,6 +5028,9 @@ export class DatabaseStorage implements IStorage {
   // User reputation operations
   async getUserReputation(userId: string): Promise<UserReputation | undefined> {
     const [reputation] = await db.select().from(userReputation).where(eq(userReputation.userId, userId));
+    if (!reputation) {
+      throw new Error('Database operation failed');
+    }
     return reputation;
   }
 
@@ -5418,6 +5493,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateModerationAction(id: string, data: Partial<InsertModerationAction>): Promise<ModerationAction> {
     const [updated] = await db.update(moderationActions).set(data).where(eq(moderationActions.id, id)).returning();
+    if (!updated) {
+      throw new Error('Database operation failed');
+    }
     return updated;
   }
 
@@ -5986,6 +6064,9 @@ export class DatabaseStorage implements IStorage {
   // Admin audit log operations (placed early since used by other methods)
   async createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog> {
     const [log] = await db.insert(adminAuditLog).values(data).returning();
+    if (!log) {
+      throw new Error('Database operation failed');
+    }
     return log;
   }
 
