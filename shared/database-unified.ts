@@ -8,7 +8,15 @@ config({ path: resolve(process.cwd(), '.env.local') });
 
 import { sql } from 'drizzle-orm';
 import type { PgTransaction } from 'drizzle-orm/pg-core';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
+import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import * as schema from "./schema";
+
+// Export schema and transaction types for use in repositories
+export type Schema = typeof schema;
+export type Database = NodePgDatabase<Schema>;
+export type Transaction = PgTransaction<NodePgQueryResultHKT, Schema, ExtractTablesWithRelations<Schema>>;
 
 // Handle missing DATABASE_URL gracefully for Cloud Run health checks
 const databaseUrl = process.env.DATABASE_URL;
@@ -41,7 +49,7 @@ console.log(`📡 Using connection URL for: ${connectionType}`);
 
 // PostgreSQL connection setup
 let pool: any;
-let db: any;
+let db: Database;
 let connectionTested = false;
 
 async function initializeConnection() {
