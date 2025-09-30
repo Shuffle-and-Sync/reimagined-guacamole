@@ -1594,7 +1594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           trustScore: deviceValidation.trustScore,
           ipAddress: deviceContext.ipAddress,
           location: deviceContext.location || null,
-          riskFactors: riskAssessment.riskFactors.length > 0 ? riskAssessment.riskFactors : null,
+          riskFactors: riskAssessment.riskFactors.length > 0 ? riskAssessment.riskFactors : undefined,
           isSuccessful: true,
           newDevice: !deviceValidation.deviceFingerprint,
           newLocation: riskAssessment.riskFactors.includes('location_change'),

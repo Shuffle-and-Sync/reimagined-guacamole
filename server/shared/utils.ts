@@ -38,7 +38,7 @@ export const parseInteger = (value: string | undefined, defaultValue?: number): 
 };
 
 export const formatDate = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] || '';
 };
 
 export const formatDateTime = (date: Date): string => {
