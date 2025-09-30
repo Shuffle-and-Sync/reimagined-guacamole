@@ -535,7 +535,9 @@ export class CollaborativeStreamingService {
                   
                   if (accessToken && twitchUserId) {
                     // Make real API call to check Twitch stream status
-                    const streamData = await twitchAPI.getStreamByUserId(twitchUserId, accessToken);
+                    const streamData = twitchAPI.getStreamByUserId 
+                      ? await twitchAPI.getStreamByUserId(twitchUserId, accessToken)
+                      : null;
                     
                     if (streamData && streamData.type === 'live') {
                       platformResults.twitch = { 
@@ -579,7 +581,9 @@ export class CollaborativeStreamingService {
                   
                   if (accessToken && pageId) {
                     // Make real API call to check Facebook live video status
-                    const liveStatus = await facebookAPI.getLiveVideoStatus(pageId, accessToken);
+                    const liveStatus = facebookAPI.getLiveVideoStatus
+                      ? await facebookAPI.getLiveVideoStatus(pageId, accessToken)
+                      : null;
                     
                     if (liveStatus && liveStatus.status === 'LIVE') {
                       platformResults.facebook = { 
@@ -715,7 +719,9 @@ export class CollaborativeStreamingService {
                 const channelId = platformIdentifiers.youtube;
                 
                 if (accessToken && channelId) {
-                  await youtubeAPI.updateBroadcastDescription(channelId, accessToken, '[BREAK] Taking a short break - back soon!');
+                  if (youtubeAPI.updateBroadcastDescription) {
+                    await youtubeAPI.updateBroadcastDescription(channelId, accessToken, '[BREAK] Taking a short break - back soon!');
+                  }
                   breakResults.youtube = { status: 'break', action: 'description_updated', timestamp: new Date() };
                   logger.info('YouTube break coordinated via description update', { eventId, channelId });
                 } else {
@@ -733,7 +739,9 @@ export class CollaborativeStreamingService {
                 const twitchUserId = platformIdentifiers.twitch;
                 
                 if (accessToken && twitchUserId) {
-                  await twitchAPI.updateStreamTitle(twitchUserId, accessToken, '[BREAK] Taking a short break - back soon!');
+                  if (twitchAPI.updateStreamTitle) {
+                    await twitchAPI.updateStreamTitle(twitchUserId, accessToken, '[BREAK] Taking a short break - back soon!');
+                  }
                   breakResults.twitch = { status: 'break', action: 'title_updated', timestamp: new Date() };
                   logger.info('Twitch break coordinated via title update', { eventId, userId: twitchUserId });
                 } else {
@@ -751,7 +759,9 @@ export class CollaborativeStreamingService {
                 const pageId = platformIdentifiers.facebook;
                 
                 if (accessToken && pageId) {
-                  await facebookAPI.updateLiveVideoDescription(pageId, accessToken, 'Taking a short break - back soon!');
+                  if (facebookAPI.updateLiveVideoDescription) {
+                    await facebookAPI.updateLiveVideoDescription(pageId, accessToken, 'Taking a short break - back soon!');
+                  }
                   breakResults.facebook = { status: 'break', action: 'description_updated', timestamp: new Date() };
                   logger.info('Facebook break coordinated via description update', { eventId, pageId });
                 } else {
@@ -868,7 +878,9 @@ export class CollaborativeStreamingService {
                 
                 if (accessToken && twitchUserId) {
                   // Verify Twitch stream has ended using proper API
-                  const streamData = await twitchAPI.getStreamByUserId(twitchUserId, accessToken);
+                  const streamData = twitchAPI.getStreamByUserId
+                    ? await twitchAPI.getStreamByUserId(twitchUserId, accessToken)
+                    : null;
                   if (!streamData || streamData.type !== 'live') {
                     endResults.twitch = { status: 'ended', action: 'stream_confirmed_ended', timestamp: new Date(), userId: twitchUserId };
                     logger.info('Twitch stream confirmed ended', { eventId, userId: twitchUserId });
@@ -892,7 +904,9 @@ export class CollaborativeStreamingService {
                 
                 if (accessToken && pageId) {
                   // End Facebook live video
-                  const liveStatus = await facebookAPI.getLiveVideoStatus(pageId, accessToken);
+                  const liveStatus = facebookAPI.getLiveVideoStatus
+                    ? await facebookAPI.getLiveVideoStatus(pageId, accessToken)
+                    : null;
                   if (liveStatus && liveStatus.status === 'LIVE') {
                     await facebookAPI.endLiveVideo(liveStatus.id, accessToken);
                     endResults.facebook = { status: 'ended', action: 'live_video_ended', timestamp: new Date(), pageId };
