@@ -768,7 +768,8 @@ export class DatabaseStorage implements IStorage {
     if (conditions.length > 0) {
       countQuery = countQuery.where(and(...conditions)) as any;
     }
-    const [{ count: total }] = await countQuery;
+    const countResult = await countQuery;
+    const total = countResult?.[0]?.count ?? 0;
 
     // Add pagination
     const offset = (page - 1) * limit;
@@ -1054,6 +1055,19 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return result[0];
+  }
+
+  // Internal method to get platform account with tokens (for OAuth refresh)
+  async getUserPlatformAccountWithTokens(userId: string, platform: string): Promise<UserPlatformAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(userPlatformAccounts)
+      .where(and(
+        eq(userPlatformAccounts.userId, userId),
+        eq(userPlatformAccounts.platform, platform)
+      ))
+      .limit(1);
+    return account;
   }
 
   async createUserPlatformAccount(data: InsertUserPlatformAccount): Promise<SafeUserPlatformAccount> {
@@ -1349,8 +1363,12 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
       
+    if (!event) {
+      throw new Error('Failed to create event');
+    }
+      
     // Auto-create TableSync session for game pod events
-    if (event.type === 'game-pod') {
+    if (event.type === 'game_pod') {
       try {
         const gameSessionData: InsertGameSession = {
           eventId: event.id,
@@ -1512,7 +1530,7 @@ export class DatabaseStorage implements IStorage {
       
     // Auto-create TableSync sessions for game pod events
     for (const event of createdEvents) {
-      if (event.type === 'game-pod') {
+      if (event.type === 'game_pod') {
         try {
           const gameSessionData: InsertGameSession = {
             eventId: event.id,
