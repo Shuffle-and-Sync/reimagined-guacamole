@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { logger } from '../logger';
 import { realtimeMatchingAPI } from '../services/real-time-matching-api';
 import { isAuthenticated } from '../auth';
+import { assertRouteParam } from '../shared/utils';
 
 export const matchingRouter = Router();
 
@@ -239,7 +240,7 @@ matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
 matchingRouter.delete('/subscribe/:subscriptionId', isAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
-    const subscriptionId = req.params.subscriptionId;
+    const subscriptionId = assertRouteParam(req.params.subscriptionId, 'subscriptionId');
 
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
