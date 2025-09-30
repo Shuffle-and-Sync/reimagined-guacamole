@@ -270,6 +270,29 @@ export class FacebookAPIService {
   }
 
   /**
+   * Get current user information
+   */
+  async getMe(accessToken: string): Promise<FacebookAPIResult<{ id: string; name: string }>> {
+    if (!this.isConfigured()) {
+      return { success: false, error: { code: 'NO_CONFIG', message: 'Facebook API not configured' } };
+    }
+
+    const result = await this.makeAPIRequest<any>(
+      `/me?fields=id,name`,
+      { accessToken }
+    );
+
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    return {
+      success: true,
+      data: result.data
+    };
+  }
+
+  /**
    * Get page information with production error handling
    */
   async getPage(pageId: string, accessToken: string): Promise<FacebookAPIResult<FacebookPage>> {

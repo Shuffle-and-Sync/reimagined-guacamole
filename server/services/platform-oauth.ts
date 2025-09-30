@@ -121,9 +121,8 @@ export async function refreshPlatformToken(userId: string, platform: string): Pr
   // This is a limitation that needs to be addressed with a dedicated storage method
   
   try {
-    // Get all platform accounts to access refresh token
-    const allAccounts = await storage.getUserPlatformAccounts(userId);
-    const fullAccount = allAccounts.find(acc => acc.platform === platform);
+    // Get platform account with tokens for refresh
+    const fullAccount = await storage.getUserPlatformAccountWithTokens(userId, platform);
     
     if (!fullAccount?.refreshToken) {
       logger.warn(`No refresh token available for ${platform} user ${userId}`);
@@ -301,7 +300,7 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       tokenExpiresAt: expiresAt,
-      scopes: tokenData.scope?.split(' ') || [],
+      scopes: (tokenData as any).scope?.split(' ') || [],
       isActive: true,
     });
     
@@ -309,7 +308,7 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
       userId, 
       channelId: channelData.id, 
       channelTitle: channelData.title,
-      scopes: tokenData.scope 
+      scopes: (tokenData as any).scope 
     });
     
     return account;
