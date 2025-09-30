@@ -129,9 +129,15 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
       });
     }
 
-    const matchRequest = {
+    const matchRequest: typeof validationResult.data & { userId: string; context?: { plannedStreamTime?: Date } } = {
       userId,
-      ...validationResult.data
+      ...validationResult.data,
+      context: validationResult.data.context ? {
+        ...validationResult.data.context,
+        plannedStreamTime: validationResult.data.context.plannedStreamTime 
+          ? new Date(validationResult.data.context.plannedStreamTime) 
+          : undefined
+      } : undefined
     };
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
