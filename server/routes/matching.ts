@@ -89,7 +89,7 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
-    res.json({
+    return res.json({
       success: true,
       data: matches
     });
@@ -102,7 +102,7 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to get real-time matches", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get real-time matches',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -142,7 +142,7 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
-    res.json({
+    return res.json({
       success: true,
       data: matches
     });
@@ -155,7 +155,7 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to get real-time matches via POST", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get real-time matches',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -175,7 +175,7 @@ matchingRouter.get('/trending', isAuthenticated, async (req, res) => {
 
     const opportunities = await realtimeMatchingAPI.getTrendingOpportunities(userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: opportunities
     });
@@ -187,7 +187,7 @@ matchingRouter.get('/trending', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to get trending opportunities", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get trending opportunities',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -220,7 +220,7 @@ matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
       callback
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         subscriptionId,
@@ -232,7 +232,7 @@ matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to create subscription", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to create subscription',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -255,14 +255,14 @@ matchingRouter.delete('/subscribe/:subscriptionId', isAuthenticated, async (req,
     const success = realtimeMatchingAPI.unsubscribe(subscriptionId);
 
     if (success) {
-      res.json({
+      return res.json({
         success: true,
         message: 'Unsubscribed successfully'
       });
 
       logger.info("Real-time subscription removed", { userId, subscriptionId });
     } else {
-      res.status(404).json({
+      return res.status(404).json({
         error: 'Subscription not found'
       });
     }
@@ -273,7 +273,7 @@ matchingRouter.delete('/subscribe/:subscriptionId', isAuthenticated, async (req,
       userId: req.user?.id,
       subscriptionId: req.params.subscriptionId
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to remove subscription',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -311,7 +311,7 @@ matchingRouter.post('/outcome', isAuthenticated, async (req, res) => {
       feedback: outcome.feedback
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Collaboration outcome recorded successfully'
     });
@@ -325,7 +325,7 @@ matchingRouter.post('/outcome', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to record collaboration outcome", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to record outcome',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -362,7 +362,7 @@ matchingRouter.get('/performance', isAuthenticated, async (req, res) => {
       }
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: metrics
     });
@@ -371,7 +371,7 @@ matchingRouter.get('/performance', isAuthenticated, async (req, res) => {
 
   } catch (error) {
     logger.error("Failed to get performance metrics", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get performance metrics',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });
@@ -406,14 +406,14 @@ matchingRouter.post('/feedback', isAuthenticated, async (req, res) => {
       suggestions: suggestions ? 'provided' : 'none'
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Feedback recorded successfully'
     });
 
   } catch (error) {
     logger.error("Failed to record feedback", { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to record feedback',
       message: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     });

@@ -24,7 +24,7 @@ export const eventTypeEnum = pgEnum('event_type', ['tournament', 'convention', '
 export const eventStatusEnum = pgEnum('event_status', ['active', 'cancelled', 'completed', 'draft']);
 export const attendeeStatusEnum = pgEnum('attendee_status', ['attending', 'maybe', 'not_attending']);
 export const gameSessionStatusEnum = pgEnum('game_session_status', ['waiting', 'active', 'paused', 'completed', 'cancelled']);
-export const notificationTypeEnum = pgEnum('notification_type', ['event_join', 'event_leave', 'game_invite', 'message', 'system', 'friend_request', 'friend_accepted']);
+export const notificationTypeEnum = pgEnum('notification_type', ['event_join', 'event_leave', 'game_invite', 'message', 'system', 'friend_request', 'friend_accepted', 'pod_filled', 'pod_almost_full', 'spectator_join']);
 export const notificationPriorityEnum = pgEnum('notification_priority', ['low', 'normal', 'high', 'urgent']);
 export const streamSessionStatusEnum = pgEnum('stream_session_status', ['scheduled', 'live', 'ended', 'cancelled']);
 export const collaborationRequestStatusEnum = pgEnum('collaboration_request_status', ['pending', 'accepted', 'declined', 'expired', 'cancelled']);
@@ -1654,7 +1654,7 @@ export const insertAuthAuditLogSchema = createInsertSchema(authAuditLog, {
   failureReason: z.enum([
     "invalid_password", "account_locked", "mfa_required", "invalid_mfa_code",
     "email_not_verified", "account_disabled", "rate_limited", "invalid_token",
-    "high_risk_detected", "security_policy"
+    "high_risk_detected", "security_policy", "transaction_error", "email_send_failed", "registration_error"
   ]).optional(),
 }).omit({
   id: true,

@@ -30,7 +30,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
  * Database health check endpoint
  * GET /api/database/health
  */
-router.get('/health', async (req, res): Promise<void> => {
+router.get('/health', async (req, res)=> {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -42,14 +42,14 @@ router.get('/health', async (req, res): Promise<void> => {
 
     const health = await checkDatabaseHealth();
     
-    res.json({
+    return res.json({
       success: true,
       database: health,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Database health check failed', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Health check failed',
     });
@@ -60,7 +60,7 @@ router.get('/health', async (req, res): Promise<void> => {
  * Database performance statistics
  * GET /api/database/stats
  */
-router.get('/stats', async (req, res): Promise<void> => {
+router.get('/stats', async (req, res)=> {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -80,7 +80,7 @@ router.get('/stats', async (req, res): Promise<void> => {
       waitingClients: pool.waitingCount,
     };
 
-    res.json({
+    return res.json({
       success: true,
       stats: {
         pool: poolStats,
@@ -92,7 +92,7 @@ router.get('/stats', async (req, res): Promise<void> => {
     });
   } catch (error) {
     logger.error('Failed to get database stats', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get database statistics',
     });
@@ -103,7 +103,7 @@ router.get('/stats', async (req, res): Promise<void> => {
  * Reset performance statistics
  * POST /api/database/reset-stats
  */
-router.post('/reset-stats', async (req, res): Promise<void> => {
+router.post('/reset-stats', async (req, res)=> {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -126,14 +126,14 @@ router.post('/reset-stats', async (req, res): Promise<void> => {
     
     logger.info('Database performance statistics reset', { userId });
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Performance statistics reset successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to reset database stats', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to reset statistics',
     });
@@ -144,7 +144,7 @@ router.post('/reset-stats', async (req, res): Promise<void> => {
  * Database connection pool information
  * GET /api/database/pool
  */
-router.get('/pool', async (req, res): Promise<void> => {
+router.get('/pool', async (req, res)=> {
   const authenticatedReq = req as AuthenticatedRequest;
   
   try {
@@ -164,14 +164,14 @@ router.get('/pool', async (req, res): Promise<void> => {
       connectionTimeout: process.env.DB_CONNECT_TIMEOUT || '10000',
     };
     
-    res.json({
+    return res.json({
       success: true,
       pool: poolInfo,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to get pool information', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get pool information',
     });
