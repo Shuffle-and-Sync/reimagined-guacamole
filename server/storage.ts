@@ -4497,6 +4497,9 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(streamSessions.id, id))
         .returning();
+      if (!session) {
+        throw new Error('Failed to update stream session');
+      }
       return session;
     } catch (error) {
       console.error('Error updating stream session:', error);
@@ -4555,6 +4558,9 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .returning();
+      if (!coHost) {
+        throw new Error('Failed to update stream co-host permissions');
+      }
       return coHost;
     } catch (error) {
       console.error('Error updating stream co-host permissions:', error);
@@ -4583,6 +4589,9 @@ export class DatabaseStorage implements IStorage {
         .set(data)
         .where(eq(streamSessionPlatforms.id, id))
         .returning();
+      if (!platform) {
+        throw new Error('Failed to update stream platform');
+      }
       return platform;
     } catch (error) {
       console.error('Error updating stream platform:', error);
@@ -4695,6 +4704,9 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(collaborationRequests.id, id))
         .returning();
+      if (!request) {
+        throw new Error('Failed to respond to collaboration request');
+      }
       return request;
     } catch (error) {
       console.error('Error responding to collaboration request:', error);
@@ -4735,13 +4747,17 @@ export class DatabaseStorage implements IStorage {
 
   async getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]> {
     try {
-      let query = db.select().from(streamAnalytics).where(eq(streamAnalytics.streamSessionId, sessionId));
+      const conditions = [eq(streamAnalytics.streamSessionId, sessionId)];
       
       if (platform) {
-        query = query.where(eq(streamAnalytics.platform, platform));
+        conditions.push(eq(streamAnalytics.platform, platform));
       }
 
-      return await query.orderBy(streamAnalytics.timestamp);
+      return await db
+        .select()
+        .from(streamAnalytics)
+        .where(and(...conditions))
+        .orderBy(streamAnalytics.timestamp);
     } catch (error) {
       console.error('Error getting stream analytics:', error);
       throw error;
@@ -4958,11 +4974,6 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date
   ): Promise<ConversionFunnel[]> {
     try {
-      let query = db
-        .select()
-        .from(conversionFunnels)
-        .where(eq(conversionFunnels.funnelName, funnelName));
-
       const conditions = [eq(conversionFunnels.funnelName, funnelName)];
       if (startDate) {
         conditions.push(gte(conversionFunnels.timestamp, startDate));
@@ -4971,7 +4982,9 @@ export class DatabaseStorage implements IStorage {
         conditions.push(sql`${conversionFunnels.timestamp} <= ${endDate}`);
       }
 
-      return await query
+      return await db
+        .select()
+        .from(conversionFunnels)
         .where(and(...conditions))
         .orderBy(conversionFunnels.timestamp, conversionFunnels.stepOrder);
     } catch (error) {
@@ -5787,7 +5800,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Moderation queue operations
-  async addToModerationQueue(data: InsertModerationQueue): Promise<ModerationQueue> {
+  async addToModerationQueue(data: InsertModerationQueue & { metadata?: any }): Promise<ModerationQueue> {
     // Auto-calculate priority if not provided
     let enhancedData = { ...data };
     if (!enhancedData.priority) {
@@ -5803,18 +5816,24 @@ export class DatabaseStorage implements IStorage {
         enhancedData.reporterReputationScore = data.metadata.reporterReputationScore;
       }
       if (data.metadata.riskScore && !enhancedData.riskScore) {
-        enhancedData.riskScore = data.metadata.riskScore;
+        enhancedData.riskScore = data.metadata.riskScore as any;
       }
     }
 
-    const [item] = await db.insert(moderationQueue).values(enhancedData).returning();
+    const [item] = await db.insert(moderationQueue).values(enhancedData as any).returning();
+    
+    if (!item) {
+      throw new Error('Failed to add to moderation queue');
+    }
     
     // Create audit log for queue addition
     await this.createAuditLog({
       adminUserId: 'system',
       action: 'moderation_queue_item_added',
-      targetUserId: '',
-      details: { 
+      category: 'content_moderation',
+      targetType: 'moderation_queue',
+      targetId: item.id,
+      parameters: { 
         itemType: item.itemType,
         itemId: item.itemId,
         priority: item.priority,
