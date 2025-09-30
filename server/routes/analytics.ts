@@ -84,7 +84,7 @@ router.post('/events',
     
     await analyticsService.trackEvent(eventData);
     
-    res.json({ 
+    return res.json({ 
       success: true, 
       message: 'Event tracked successfully' 
     });
@@ -128,10 +128,10 @@ router.post('/funnel', async (req, res) => {
       funnelData.metadata
     );
     
-    res.json({ success: true, message: 'Funnel step tracked successfully' });
+    return res.json({ success: true, message: 'Funnel step tracked successfully' });
   } catch (error) {
     logger.error('Failed to track funnel step', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to track funnel step' 
     });
@@ -174,10 +174,10 @@ router.post('/stream-metrics', async (req, res) => {
     
     await analyticsService.trackStreamMetrics(metricsData);
     
-    res.json({ success: true, message: 'Stream metrics tracked successfully' });
+    return res.json({ success: true, message: 'Stream metrics tracked successfully' });
   } catch (error) {
     logger.error('Failed to track stream metrics', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to track stream metrics' 
     });
@@ -211,10 +211,10 @@ router.post('/system-metrics', async (req, res) => {
     
     await analyticsService.recordSystemMetrics(metricsData);
     
-    res.json({ success: true, message: 'System metrics recorded successfully' });
+    return res.json({ success: true, message: 'System metrics recorded successfully' });
   } catch (error) {
     logger.error('Failed to record system metrics', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to record system metrics' 
     });
@@ -244,10 +244,10 @@ router.post('/community-metrics', async (req, res) => {
     
     await analyticsService.aggregateCommunityMetrics(communityId, date, hour);
     
-    res.json({ success: true, message: 'Community metrics aggregated successfully' });
+    return res.json({ success: true, message: 'Community metrics aggregated successfully' });
   } catch (error) {
     logger.error('Failed to aggregate community metrics', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to aggregate community metrics' 
     });
@@ -261,10 +261,10 @@ router.post('/community-metrics', async (req, res) => {
 router.get('/realtime-stats', cacheMiddleware(cacheConfigs.shortCache), async (req, res) => {
   try {
     const stats = await analyticsService.getRealTimeStats();
-    res.json({ success: true, data: stats });
+    return res.json({ success: true, data: stats });
   } catch (error) {
     logger.error('Failed to get real-time stats', { error });
-    res.status(500).json({ success: false, error: 'Failed to get real-time stats' });
+    return res.status(500).json({ success: false, error: 'Failed to get real-time stats' });
   }
 });
 
@@ -294,10 +294,10 @@ router.get('/dashboard', cacheMiddleware(cacheConfigs.analyticsCache), async (re
     
     const dashboardData = await analyticsService.generateDashboardData(userId, communityId, timeframe);
     
-    res.json({ success: true, data: dashboardData });
+    return res.json({ success: true, data: dashboardData });
   } catch (error) {
     logger.error('Failed to generate dashboard data', { error, query: req.query });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to generate dashboard data' 
     });
@@ -331,10 +331,10 @@ router.get('/user-activity/:userId', async (req, res) => {
     
     const activityData = await storage.getUserActivityAnalytics(userId, days);
     
-    res.json({ success: true, data: activityData });
+    return res.json({ success: true, data: activityData });
   } catch (error) {
     logger.error('Failed to get user activity analytics', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get user activity analytics' 
     });
@@ -365,10 +365,10 @@ router.get('/community/:communityId', async (req, res) => {
     
     const communityData = await storage.getCommunityAnalytics(communityId, startDate, endDate);
     
-    res.json({ success: true, data: communityData });
+    return res.json({ success: true, data: communityData });
   } catch (error) {
     logger.error('Failed to get community analytics', { error, params: req.params, query: req.query });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get community analytics' 
     });
@@ -399,10 +399,10 @@ router.get('/platform-metrics', async (req, res) => {
     
     const platformData = await storage.getPlatformMetrics(metricType, timeWindow, startDate, endDate);
     
-    res.json({ success: true, data: platformData });
+    return res.json({ success: true, data: platformData });
   } catch (error) {
     logger.error('Failed to get platform metrics', { error, query: req.query });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get platform metrics' 
     });
@@ -434,10 +434,10 @@ router.get('/events', async (req, res) => {
     
     const eventData = await storage.getEventTracking(eventName, userId, startDate, endDate);
     
-    res.json({ success: true, data: eventData });
+    return res.json({ success: true, data: eventData });
   } catch (error) {
     logger.error('Failed to get event tracking data', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get event tracking data' 
     });
@@ -471,10 +471,10 @@ router.get('/funnel/:funnelName', async (req, res) => {
     
     const funnelData = await storage.getConversionFunnelData(funnelName, startDate, endDate);
     
-    res.json({ success: true, data: funnelData });
+    return res.json({ success: true, data: funnelData });
   } catch (error) {
     logger.error('Failed to get conversion funnel data', { error, params: req.params, query: req.query });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get conversion funnel data' 
     });
@@ -503,10 +503,10 @@ router.get('/user-insights/:userId', async (req, res) => {
     
     const insights = await analyticsService.generateUserInsights(userId);
     
-    res.json({ success: true, data: insights });
+    return res.json({ success: true, data: insights });
   } catch (error) {
     logger.error('Failed to get user insights', { error, userId: getAuthUserId(authenticatedReq) });
-    res.status(400).json({ 
+    return res.status(400).json({ 
       success: false, 
       error: error instanceof z.ZodError ? error.errors : 'Failed to get user insights' 
     });
@@ -522,7 +522,7 @@ router.get('/health', async (req, res) => {
     // Test database connectivity and analytics service health
     const testMetrics = await storage.getPlatformMetrics('system', '1m');
     
-    res.json({ 
+    return res.json({ 
       success: true, 
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -534,7 +534,7 @@ router.get('/health', async (req, res) => {
     });
   } catch (error) {
     logger.error('Analytics health check failed', { error });
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       status: 'unhealthy',
       error: 'Analytics service health check failed' 

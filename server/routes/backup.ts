@@ -38,14 +38,14 @@ router.get('/status', async (req, res) => {
 
     const status = backupService.getBackupStatus();
     
-    res.json({
+    return res.json({
       success: true,
       status,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to get backup status', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get backup status',
     });
@@ -81,14 +81,14 @@ router.post('/full', async (req, res) => {
     
     const metadata = await backupService.createFullBackup();
     
-    res.json({
+    return res.json({
       success: true,
       backup: metadata,
       message: 'Full backup completed successfully',
     });
   } catch (error) {
     logger.error('Full backup failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Full backup failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -114,14 +114,14 @@ router.post('/critical', async (req, res) => {
     
     const metadata = await backupService.createCriticalDataBackup();
     
-    res.json({
+    return res.json({
       success: true,
       backup: metadata,
       message: 'Critical data backup completed successfully',
     });
   } catch (error) {
     logger.error('Critical data backup failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Critical data backup failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -174,14 +174,14 @@ router.post('/restore', async (req, res) => {
       dryRun,
     });
     
-    res.json({
+    return res.json({
       success: result.success,
       result,
       message: result.success ? 'Database restore completed successfully' : 'Database restore failed',
     });
   } catch (error) {
     logger.error('Database restore failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Database restore failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -216,14 +216,14 @@ router.post('/verify', async (req, res) => {
     
     const result = await backupService.verifyBackup(backupPath);
     
-    res.json({
+    return res.json({
       success: result.valid,
       verification: result,
       message: result.valid ? 'Backup verification successful' : 'Backup verification failed',
     });
   } catch (error) {
     logger.error('Backup verification failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Backup verification failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -249,14 +249,14 @@ router.delete('/cleanup', async (req, res) => {
     
     const result = await backupService.cleanupOldBackups();
     
-    res.json({
+    return res.json({
       success: true,
       cleanup: result,
       message: `Cleanup completed: ${result.deletedCount} files deleted, ${Math.round(result.freedSpace / 1024 / 1024)}MB freed`,
     });
   } catch (error) {
     logger.error('Backup cleanup failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Backup cleanup failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -294,7 +294,7 @@ router.get('/health', async (req, res) => {
       check === true || check === 'completed' || check === 'no_backups'
     );
 
-    res.json({
+    return res.json({
       success: true,
       healthy: allHealthy,
       health,
@@ -302,7 +302,7 @@ router.get('/health', async (req, res) => {
     });
   } catch (error) {
     logger.error('Backup health check failed', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Backup health check failed',
     });

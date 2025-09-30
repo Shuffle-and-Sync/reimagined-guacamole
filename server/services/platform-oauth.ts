@@ -121,9 +121,8 @@ export async function refreshPlatformToken(userId: string, platform: string): Pr
   // This is a limitation that needs to be addressed with a dedicated storage method
   
   try {
-    // Get all platform accounts to access refresh token
-    const allAccounts = await storage.getUserPlatformAccounts(userId);
-    const fullAccount = allAccounts.find(acc => acc.platform === platform);
+    // Get platform account with tokens for refresh
+    const fullAccount = await storage.getUserPlatformAccountWithTokens(userId, platform);
     
     if (!fullAccount?.refreshToken) {
       logger.warn(`No refresh token available for ${platform} user ${userId}`);
@@ -301,7 +300,7 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       tokenExpiresAt: expiresAt,
-      scopes: tokenData.scope?.split(' ') || [],
+      scopes: (tokenData as any).scope?.split(' ') || [],
       isActive: true,
     });
     
@@ -309,7 +308,7 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
       userId, 
       channelId: channelData.id, 
       channelTitle: channelData.title,
-      scopes: tokenData.scope 
+      scopes: (tokenData as any).scope 
     });
     
     return account;
@@ -397,7 +396,7 @@ async function refreshTwitchToken(refreshToken: string, userId: string): Promise
 async function refreshYouTubeToken(refreshToken: string, userId: string): Promise<string | null> {
   try {
     const youtubeService = new YouTubeAPIService();
-    const tokenData = await youtubeService.refreshToken(refreshToken);
+    const tokenData = await youtubeService.refreshAccessToken(refreshToken);
     
     if (!tokenData) {
       return null;
@@ -423,31 +422,17 @@ async function refreshYouTubeToken(refreshToken: string, userId: string): Promis
 
 /**
  * Refresh Facebook token
+ * Note: Facebook tokens typically need to be exchanged for long-lived tokens
  */
 async function refreshFacebookToken(refreshToken: string, userId: string): Promise<string | null> {
   try {
-    const facebookService = new FacebookAPIService();
-    const tokenData = await facebookService.refreshToken(refreshToken);
-    
-    if (!tokenData.success) {
-      return null;
-    }
-    
-    const expiresAt = tokenData.data.expires_in ? 
-      new Date(Date.now() + tokenData.data.expires_in * 1000) : null;
-    
-    // Update stored tokens
-    const account = await storage.getUserPlatformAccount(userId, 'facebook');
-    if (account) {
-      await storage.updateUserPlatformAccount(account.id, {
-        accessToken: tokenData.data.access_token,
-        tokenExpiresAt: expiresAt,
-      });
-    }
-    
-    return tokenData.data.access_token;
+    // Facebook doesn't use refresh tokens the same way as YouTube/Twitch
+    // Long-lived tokens need to be exchanged via a different flow
+    // For now, return null to indicate refresh is not available
+    logger.warn(`Facebook token refresh not implemented for user ${userId}`);
+    return null;
   } catch (error) {
-    logger.error('Failed to refresh Facebook token:', error);
+    logger.error(`Failed to refresh Facebook token for user ${userId}:`, error);
     return null;
   }
 }

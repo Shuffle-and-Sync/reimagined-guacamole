@@ -35,7 +35,7 @@ export class EnhancedNotificationService {
       // Create notification in database
       const notificationData: InsertNotification = {
         userId,
-        type,
+        type: type as any, // Type assertion for notification type enum
         title: template.title,
         message: template.message,
         priority: options?.priority || template.priority,
