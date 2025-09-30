@@ -8,7 +8,7 @@
 import { BaseRepository, QueryOptions, PaginatedResult } from './base.repository';
 import { db } from '@shared/database-unified';
 import { users, communities, userCommunities, userRoles, type User, type InsertUser } from '@shared/schema';
-import { eq, and, sql, ilike, or } from 'drizzle-orm';
+import { eq, and, sql, ilike, or, count, desc, asc } from 'drizzle-orm';
 import { logger } from '../logger';
 import { withQueryTiming } from '@shared/database-unified';
 import { ValidationError, NotFoundError } from '../middleware/error-handling.middleware';
@@ -16,14 +16,14 @@ import { ValidationError, NotFoundError } from '../middleware/error-handling.mid
 export interface UserWithCommunities extends User {
   communities: Array<{
     community: typeof communities.$inferSelect;
-    isPrimary: boolean;
-    joinedAt: Date;
+    isPrimary: boolean | null;
+    joinedAt: Date | null;
   }>;
 }
 
 export interface UserSearchOptions extends QueryOptions {
   search?: string;
-  status?: 'active' | 'inactive' | 'suspended';
+  status?: 'online' | 'offline' | 'away' | 'busy' | 'gaming';
   role?: string;
   communityId?: string;
   includeDeleted?: boolean;
@@ -40,7 +40,7 @@ export interface UserUpdateData {
   youtubeHandle?: string;
   discordHandle?: string;
   primaryCommunityId?: string;
-  status?: 'active' | 'inactive' | 'suspended';
+  status?: 'online' | 'offline' | 'away' | 'busy' | 'gaming';
   isEmailVerified?: boolean;
   mfaEnabled?: boolean;
   updatedAt?: Date;
@@ -194,15 +194,50 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
         // Note: User soft deletion is not implemented in current schema
         // Exclude deleted users logic would go here if deletedAt field exists
 
-        // Combine with base filters
-        const filters = {
-          ...baseOptions.filters,
-          ...(conditions.length > 0 ? { _customConditions: conditions } : {})
-        };
+        // If we have custom conditions, we need to handle them separately
+        if (conditions.length > 0) {
+          // Build custom query with conditions
+          const page = baseOptions.pagination?.page || 1;
+          const limit = Math.min(baseOptions.pagination?.limit || 50, 100);
+          const offset = (page - 1) * limit;
 
+          let query = this.db.select().from(this.table);
+          
+          if (conditions.length > 0) {
+            query = query.where(and(...conditions)) as any;
+          }
+
+          // Apply sorting if specified
+          if (baseOptions.sort?.field) {
+            const column = (this.table as any)[baseOptions.sort.field];
+            if (column) {
+              query = query.orderBy(baseOptions.sort.direction === 'desc' ? desc(column) : asc(column)) as any;
+            }
+          }
+
+          const [data, totalResult] = await Promise.all([
+            query.limit(limit).offset(offset),
+            this.db.select({ count: count() }).from(this.table).where(and(...conditions))
+          ]);
+
+          const total = totalResult[0]?.count || 0;
+          const totalPages = Math.ceil(total / limit);
+
+          return {
+            data: data as User[],
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrevious: page > 1
+          };
+        }
+
+        // Otherwise use base filters
         return await this.find({
           ...baseOptions,
-          filters
+          filters: baseOptions.filters
         });
       } catch (error) {
         logger.error('Failed to search users', error, { options });
@@ -422,7 +457,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
     totalCommunities: number;
     totalFriends: number;
     totalEvents: number;
-    joinedAt: Date;
+    joinedAt: Date | null;
   }> {
     return withQueryTiming('users:getUserStats', async () => {
       try {
@@ -465,12 +500,11 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
     return withQueryTiming('users:softDeleteUser', async () => {
       try {
         await this.transaction(async (tx) => {
-          // Soft delete the user
+          // Soft delete the user by marking as offline and changing email
           const result = await tx
             .update(users)
             .set({ 
-              deletedAt: new Date(),
-              status: 'inactive',
+              status: 'offline',
               email: `deleted_${userId}@deleted.local` // Prevent email conflicts
             })
             .where(eq(users.id, userId))
@@ -507,7 +541,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
         }
 
         const result = await this.update(userId, {
-          status: 'active',
+          status: 'online',
           email: newEmail,
           isEmailVerified: false,
           updatedAt: new Date()
