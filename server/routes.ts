@@ -963,7 +963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         // Check if user is the event creator
         const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -994,7 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         // Check if user is the event creator
         const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -1025,7 +1025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         const suggestions = await collaborativeStreaming.getCollaborationSuggestions(eventId, userId);
         res.json(suggestions);
@@ -1048,7 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         const collaborator = await collaborativeStreaming.addCollaborator(eventId, req.body);
         res.status(201).json(collaborator);
@@ -1069,7 +1069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         const collaborators = await storage.getStreamCollaborators(eventId);
         res.json(collaborators);
       } catch (error) {
@@ -1091,7 +1091,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId, collaboratorId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
+        const collaboratorId = assertRouteParam(req.params.collaboratorId, 'collaboratorId');
         
         const collaborator = await storage.updateStreamCollaborator(collaboratorId, req.body);
         res.json(collaborator);
@@ -1114,7 +1115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId, collaboratorId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
+        const collaboratorId = assertRouteParam(req.params.collaboratorId, 'collaboratorId');
         
         await storage.deleteStreamCollaborator(collaboratorId);
         res.json({ message: 'Collaborator removed successfully' });
@@ -1137,7 +1139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         const session = await collaborativeStreaming.startCoordinationSession(eventId, userId);
         res.status(201).json(session);
@@ -1159,7 +1161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         const { phase } = req.body;
         
         await collaborativeStreaming.updateCoordinationPhase(eventId, phase, userId);
@@ -1182,7 +1184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const { eventId } = req.params;
+        const eventId = assertRouteParam(req.params.eventId, 'eventId');
         
         const status = await collaborativeStreaming.getCoordinationStatus(eventId);
         res.json(status);
@@ -2665,7 +2667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const currentUserId = getAuthUserId(authenticatedReq);
-      const { userId } = req.params;
+      const userId = assertRouteParam(req.params.userId, 'userId');
       const conversation = await storage.getConversation(currentUserId, userId);
       res.json(conversation);
     } catch (error) {
