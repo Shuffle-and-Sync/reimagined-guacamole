@@ -1,6 +1,7 @@
 import { redisClient } from './redis-client';
 import { logger } from '../logger';
-import type { StreamSession, User, Community } from '@shared/schema';
+import type { User, Community } from '@shared/schema';
+import type { StreamSession } from './streaming-coordinator';
 
 /**
  * High-level caching service for application data
