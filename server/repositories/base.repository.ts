@@ -12,7 +12,7 @@ import { PgTransaction } from 'drizzle-orm/pg-core';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
-import { withQueryTiming } from '@shared/database-unified';
+import { withQueryTiming, type Database, type Transaction } from '@shared/database-unified';
 
 // Generic types for repository operations
 export interface PaginationOptions {
@@ -60,11 +60,11 @@ export abstract class BaseRepository<
   TInsert = TTable['$inferInsert'],
   TUpdate = Partial<TInsert>
 > {
-  protected db: PgDatabase<any>; // Keep original type for compatibility with existing codebase
+  protected db: Database;
   protected table: TTable;
   protected tableName: string;
 
-  constructor(db: PgDatabase<any>, table: TTable, tableName: string) {
+  constructor(db: Database, table: TTable, tableName: string) {
     this.db = db;
     this.table = table;
     this.tableName = tableName;
@@ -259,7 +259,7 @@ export abstract class BaseRepository<
           .where(eq((this.table as any).id, id))
           .returning();
 
-        return (result[0] as TEntity) || null;
+        return (result as TEntity[])[0] || null;
       } catch (error) {
         logger.error(`Failed to update ${this.tableName}`, error, { id, data });
         throw new DatabaseError(`Failed to update ${this.tableName}`);
@@ -309,14 +309,14 @@ export abstract class BaseRepository<
             .where(eq((this.table as any).id, id))
             .returning();
           
-          return result.length > 0;
+          return (result as unknown[]).length > 0;
         } else {
           const result = await this.db
             .delete(this.table)
             .where(eq((this.table as any).id, id))
             .returning();
           
-          return result.length > 0;
+          return (result as unknown[]).length > 0;
         }
       } catch (error) {
         logger.error(`Failed to delete ${this.tableName}`, error, { id });
@@ -347,14 +347,14 @@ export abstract class BaseRepository<
             .where(and(...whereConditions))
             .returning();
           
-          return result.length;
+          return (result as unknown[]).length;
         } else {
           const result = await this.db
             .delete(this.table)
             .where(and(...whereConditions))
             .returning();
           
-          return result.length;
+          return (result as unknown[]).length;
         }
       } catch (error) {
         logger.error(`Failed to delete ${this.tableName} with filters`, error, { filters });
@@ -443,7 +443,7 @@ export abstract class BaseRepository<
         }
         
         // Fetch one extra item to check if there's more data
-        const data = await query.limit(maxLimit + 1);
+        const data = await query.limit(maxLimit + 1) as TEntity[];
         
         const hasMore = data.length > maxLimit;
         const results = hasMore ? data.slice(0, maxLimit) : data;
@@ -452,7 +452,9 @@ export abstract class BaseRepository<
         let nextCursor: string | undefined;
         if (hasMore && results.length > 0) {
           const lastItem = results[results.length - 1];
-          nextCursor = this.generateCursor(lastItem, sortField);
+          if (lastItem) {
+            nextCursor = this.generateCursor(lastItem, sortField);
+          }
         }
         
         return {
@@ -470,15 +472,16 @@ export abstract class BaseRepository<
   /**
    * Generate cursor for pagination
    */
-  private generateCursor(item: Record<string, unknown>, sortField: string): string {
-    if (!item || !item[sortField]) {
+  private generateCursor(item: TEntity | Record<string, unknown>, sortField: string): string {
+    if (!item || !item[sortField as keyof typeof item]) {
       return '';
     }
     
+    const itemAsRecord = item as Record<string, unknown>;
     const cursorData = {
       field: sortField,
-      value: item[sortField],
-      id: item.id
+      value: itemAsRecord[sortField],
+      id: itemAsRecord.id || ''
     };
     
     return Buffer.from(JSON.stringify(cursorData)).toString('base64');
@@ -510,8 +513,12 @@ export abstract class BaseRepository<
   protected async executeRawQuery<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]> {
     return withQueryTiming(`${this.tableName}:rawQuery`, async () => {
       try {
-        const sqlQuery = params ? sql.raw(query, ...params) : sql.raw(query);
-        return await this.db.execute(sqlQuery);
+        // Use sql.raw for simple queries without params, or use sql template for parameterized queries
+        const sqlQuery = params && params.length > 0 
+          ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
+          : sql.raw(query);
+        const result = await this.db.execute(sqlQuery);
+        return result as unknown as T[];
       } catch (error) {
         logger.error(`Raw query failed for ${this.tableName}`, error, { query, params });
         throw new DatabaseError(`Database query failed`);
@@ -569,7 +576,7 @@ export abstract class BaseRepository<
   /**
    * Transaction wrapper for complex operations with enhanced performance monitoring
    */
-  async transaction<T>(callback: (tx: PgTransaction<Record<string, never>, Record<string, never>, Record<string, never>>) => Promise<T>): Promise<T> {
+  async transaction<T>(callback: (tx: Transaction) => Promise<T>): Promise<T> {
     return withQueryTiming(`${this.tableName}:transaction`, async () => {
       try {
         return await this.db.transaction(async (tx) => {
@@ -586,7 +593,7 @@ export abstract class BaseRepository<
    * Batch operations with transaction support for better performance
    */
   async batchOperation<T>(
-    operations: Array<(tx: PgTransaction<Record<string, never>, Record<string, never>, Record<string, never>>) => Promise<T>>
+    operations: Array<(tx: Transaction) => Promise<T>>
   ): Promise<T[]> {
     return this.transaction(async (tx) => {
       const results: T[] = [];
