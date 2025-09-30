@@ -4390,7 +4390,7 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(streamSessions.communityId, filters.communityId));
       }
       if (filters?.status) {
-        conditions.push(eq(streamSessions.status, filters.status));
+        conditions.push(eq(streamSessions.status, filters.status as any));
       }
       if (filters?.upcoming) {
         conditions.push(gte(streamSessions.scheduledStartTime, new Date()));
@@ -4649,7 +4649,7 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(collaborationRequests.toUserId, filters.toUserId));
       }
       if (filters?.status) {
-        conditions.push(eq(collaborationRequests.status, filters.status));
+        conditions.push(eq(collaborationRequests.status, filters.status as any));
       }
       if (filters?.type) {
         conditions.push(eq(collaborationRequests.type, filters.type));
@@ -4828,7 +4828,7 @@ export class DatabaseStorage implements IStorage {
   // Community analytics operations
   async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
     try {
-      const [analytics] = await db.insert(communityAnalytics).values(data).returning();
+      const [analytics] = await db.insert(communityAnalytics).values(data as any).returning();
       if (!analytics) {
         throw new Error('Database operation failed');
       }
@@ -4861,7 +4861,7 @@ export class DatabaseStorage implements IStorage {
   // Platform metrics operations
   async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
     try {
-      const [metrics] = await db.insert(platformMetrics).values(data).returning();
+      const [metrics] = await db.insert(platformMetrics).values(data as any).returning();
       if (!metrics) {
         throw new Error('Database operation failed');
       }
@@ -4879,8 +4879,6 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date
   ): Promise<PlatformMetrics[]> {
     try {
-      let query = db.select().from(platformMetrics);
-
       const conditions = [];
       if (metricType) {
         conditions.push(eq(platformMetrics.metricType, metricType));
@@ -4895,9 +4893,10 @@ export class DatabaseStorage implements IStorage {
         conditions.push(sql`${platformMetrics.timestamp} <= ${endDate}`);
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      const query = db
+        .select()
+        .from(platformMetrics)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       return await query.orderBy(platformMetrics.timestamp);
     } catch (error) {
@@ -4927,8 +4926,6 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date
   ): Promise<EventTracking[]> {
     try {
-      let query = db.select().from(eventTracking);
-
       const conditions = [];
       if (eventName) {
         conditions.push(eq(eventTracking.eventName, eventName));
@@ -4943,9 +4940,10 @@ export class DatabaseStorage implements IStorage {
         conditions.push(sql`${eventTracking.timestamp} <= ${endDate}`);
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      const query = db
+        .select()
+        .from(eventTracking)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       return await query.orderBy(eventTracking.timestamp);
     } catch (error) {
