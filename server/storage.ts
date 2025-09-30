@@ -648,7 +648,10 @@ export class DatabaseStorage implements IStorage {
       lastActiveAt: users.lastActiveAt,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
-    }).from(users).where(eq(users.id, id));
+    }).from(users).where(eq(users.id, id));    
+    if (!user) {
+      throw new Error('Database operation failed');
+    }
     return user;
   }
 
@@ -854,7 +857,10 @@ export class DatabaseStorage implements IStorage {
         allowDirectMessages: users.allowDirectMessages,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt
-      });
+      });    
+    if (!user) {
+      throw new Error('Database operation failed');
+    }
     return user;
   }
 
@@ -935,7 +941,10 @@ export class DatabaseStorage implements IStorage {
     const [community] = await db
       .select()
       .from(communities)
-      .where(eq(communities.id, id));
+      .where(eq(communities.id, id));    
+    if (!community) {
+      throw new Error('Database operation failed');
+    }
     return community;
   }
 
@@ -975,6 +984,13 @@ export class DatabaseStorage implements IStorage {
       await this.recordPositiveAction(data.userId, 'community_joined', {
         communityId: data.communityId
       });
+    }    
+    
+    
+    if (!userCommunity) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return userCommunity;
@@ -1066,7 +1082,10 @@ export class DatabaseStorage implements IStorage {
         eq(userPlatformAccounts.userId, userId),
         eq(userPlatformAccounts.platform, platform)
       ))
-      .limit(1);
+      .limit(1);    
+    if (!account) {
+      throw new Error('Database operation failed');
+    }
     return account;
   }
 
@@ -1283,8 +1302,10 @@ export class DatabaseStorage implements IStorage {
       community: event.community,
       attendeeCount: attendeeCounts.find((ac: { eventId: string; count: number }) => ac.eventId === event.id)?.count || 0,
       isUserAttending: userAttendance.some((ua: { eventId: string }) => ua.eventId === event.id),
-    }));
-
+    }));    
+    if (!eventsWithDetails) {
+      throw new Error('Database operation failed');
+    }
     return eventsWithDetails;
   }
 
@@ -1390,6 +1411,13 @@ export class DatabaseStorage implements IStorage {
         console.error('Failed to create automatic TableSync session:', error);
         // Don't fail the event creation if TableSync session fails
       }
+    }    
+    
+    
+    if (!event) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return event;
@@ -1400,7 +1428,10 @@ export class DatabaseStorage implements IStorage {
       .update(events)
       .set(data)
       .where(eq(events.id, id))
-      .returning();
+      .returning();    
+    if (!event) {
+      throw new Error('Database operation failed');
+    }
     return event;
   }
 
@@ -1422,7 +1453,10 @@ export class DatabaseStorage implements IStorage {
           joinedAt: new Date(),
         },
       })
-      .returning();
+      .returning();    
+    if (!attendee) {
+      throw new Error('Database operation failed');
+    }
     return attendee;
   }
 
@@ -1493,7 +1527,10 @@ export class DatabaseStorage implements IStorage {
     const [event] = await tx
       .select()
       .from(events)
-      .where(eq(events.id, id));
+      .where(eq(events.id, id));    
+    if (!event) {
+      throw new Error('Database operation failed');
+    }
     return event;
   }
 
@@ -1508,7 +1545,10 @@ export class DatabaseStorage implements IStorage {
           joinedAt: new Date(),
         },
       })
-      .returning();
+      .returning();    
+    if (!attendee) {
+      throw new Error('Database operation failed');
+    }
     return attendee;
   }
 
@@ -1553,6 +1593,13 @@ export class DatabaseStorage implements IStorage {
           // Don't fail the bulk creation if individual TableSync sessions fail
         }
       }
+    }    
+    
+    
+    if (!createdEvents) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return createdEvents;
@@ -1681,7 +1728,10 @@ export class DatabaseStorage implements IStorage {
     const [token] = await db
       .insert(passwordResetTokens)
       .values(data)
-      .returning();
+      .returning();    
+    if (!token) {
+      throw new Error('Database operation failed');
+    }
     return token;
   }
 
@@ -1695,7 +1745,10 @@ export class DatabaseStorage implements IStorage {
           eq(passwordResetTokens.isUsed, false),
           gte(passwordResetTokens.expiresAt, new Date())
         )
-      );
+      );    
+    if (!resetToken) {
+      throw new Error('Database operation failed');
+    }
     return resetToken;
   }
 
@@ -1735,7 +1788,10 @@ export class DatabaseStorage implements IStorage {
     const [token] = await db
       .insert(emailVerificationTokens)
       .values(data)
-      .returning();
+      .returning();    
+    if (!token) {
+      throw new Error('Database operation failed');
+    }
     return token;
   }
 
@@ -1749,7 +1805,10 @@ export class DatabaseStorage implements IStorage {
           eq(emailVerificationTokens.isUsed, false),
           gte(emailVerificationTokens.expiresAt, new Date())
         )
-      );
+      );    
+    if (!verificationToken) {
+      throw new Error('Database operation failed');
+    }
     return verificationToken;
   }
 
@@ -1779,7 +1838,10 @@ export class DatabaseStorage implements IStorage {
           gte(emailVerificationTokens.expiresAt, new Date())
         )
       )
-      .orderBy(sql`${emailVerificationTokens.createdAt} DESC`);
+      .orderBy(sql`${emailVerificationTokens.createdAt} DESC`);    
+    if (!verificationToken) {
+      throw new Error('Database operation failed');
+    }
     return verificationToken;
   }
 
@@ -1800,7 +1862,10 @@ export class DatabaseStorage implements IStorage {
     const [request] = await db
       .insert(emailChangeRequests)
       .values(data)
-      .returning();
+      .returning();    
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
     return request;
   }
 
@@ -1808,7 +1873,10 @@ export class DatabaseStorage implements IStorage {
     const [request] = await db
       .select()
       .from(emailChangeRequests)
-      .where(eq(emailChangeRequests.id, id));
+      .where(eq(emailChangeRequests.id, id));    
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
     return request;
   }
 
@@ -1823,7 +1891,10 @@ export class DatabaseStorage implements IStorage {
           gte(emailChangeRequests.expiresAt, new Date())
         )
       )
-      .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);
+      .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);    
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
     return request;
   }
 
@@ -1832,7 +1903,10 @@ export class DatabaseStorage implements IStorage {
       .update(emailChangeRequests)
       .set(data)
       .where(eq(emailChangeRequests.id, id))
-      .returning();
+      .returning();    
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
     return request;
   }
 
@@ -1840,7 +1914,10 @@ export class DatabaseStorage implements IStorage {
     const [token] = await db
       .insert(emailChangeTokens)
       .values(data)
-      .returning();
+      .returning();    
+    if (!token) {
+      throw new Error('Database operation failed');
+    }
     return token;
   }
 
@@ -1854,7 +1931,10 @@ export class DatabaseStorage implements IStorage {
           eq(emailChangeTokens.isUsed, false),
           gte(emailChangeTokens.expiresAt, new Date())
         )
-      );
+      );    
+    if (!changeToken) {
+      throw new Error('Database operation failed');
+    }
     return changeToken;
   }
 
@@ -1890,7 +1970,10 @@ export class DatabaseStorage implements IStorage {
     const [mfaSettings] = await db
       .select()
       .from(userMfaSettings)
-      .where(eq(userMfaSettings.userId, userId));
+      .where(eq(userMfaSettings.userId, userId));    
+    if (!mfaSettings) {
+      throw new Error('Database operation failed');
+    }
     return mfaSettings;
   }
 
@@ -1898,7 +1981,10 @@ export class DatabaseStorage implements IStorage {
     const [mfaSettings] = await db
       .insert(userMfaSettings)
       .values(data)
-      .returning();
+      .returning();    
+    if (!mfaSettings) {
+      throw new Error('Database operation failed');
+    }
     return mfaSettings;
   }
 
@@ -2001,7 +2087,10 @@ export class DatabaseStorage implements IStorage {
     const [attempts] = await db
       .select()
       .from(userMfaAttempts)
-      .where(eq(userMfaAttempts.userId, userId));
+      .where(eq(userMfaAttempts.userId, userId));    
+    if (!attempts) {
+      throw new Error('Database operation failed');
+    }
     return attempts;
   }
 
@@ -2118,7 +2207,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(deviceFingerprints)
       .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash))
-      .limit(1);
+      .limit(1);    
+    if (!fingerprint) {
+      throw new Error('Database operation failed');
+    }
     return fingerprint;
   }
 
@@ -2137,7 +2229,10 @@ export class DatabaseStorage implements IStorage {
     const [fingerprint] = await db
       .insert(deviceFingerprints)
       .values(data)
-      .returning();
+      .returning();    
+    if (!fingerprint) {
+      throw new Error('Database operation failed');
+    }
     return fingerprint;
   }
 
@@ -2177,7 +2272,10 @@ export class DatabaseStorage implements IStorage {
     const [context] = await db
       .insert(mfaSecurityContext)
       .values(data)
-      .returning();
+      .returning();    
+    if (!context) {
+      throw new Error('Database operation failed');
+    }
     return context;
   }
 
@@ -2246,7 +2344,10 @@ export class DatabaseStorage implements IStorage {
     const [trustedDevice] = await db
       .insert(trustedDevices)
       .values(data)
-      .returning();
+      .returning();    
+    if (!trustedDevice) {
+      throw new Error('Database operation failed');
+    }
     return trustedDevice;
   }
 
@@ -2463,7 +2564,10 @@ export class DatabaseStorage implements IStorage {
     const [refreshToken] = await db
       .insert(refreshTokens)
       .values(data)
-      .returning();
+      .returning();    
+    if (!refreshToken) {
+      throw new Error('Database operation failed');
+    }
     return refreshToken;
   }
 
@@ -2475,7 +2579,10 @@ export class DatabaseStorage implements IStorage {
         eq(refreshTokens.id, tokenId),
         eq(refreshTokens.isRevoked, false),
         gte(refreshTokens.expiresAt, new Date())
-      ));
+      ));    
+    if (!refreshToken) {
+      throw new Error('Database operation failed');
+    }
     return refreshToken;
   }
 
@@ -2487,7 +2594,10 @@ export class DatabaseStorage implements IStorage {
         eq(refreshTokens.token, jwt),
         eq(refreshTokens.isRevoked, false),
         gte(refreshTokens.expiresAt, new Date())
-      ));
+      ));    
+    if (!refreshToken) {
+      throw new Error('Database operation failed');
+    }
     return refreshToken;
   }
 
@@ -2932,7 +3042,10 @@ export class DatabaseStorage implements IStorage {
     const links = await db
       .select()
       .from(userSocialLinks)
-      .where(eq(userSocialLinks.userId, userId));
+      .where(eq(userSocialLinks.userId, userId));    
+    if (!links) {
+      throw new Error('Database operation failed');
+    }
     return links;
   }
 
@@ -2972,7 +3085,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(userGamingProfiles)
       .innerJoin(communities, eq(userGamingProfiles.communityId, communities.id))
-      .where(eq(userGamingProfiles.userId, userId));
+      .where(eq(userGamingProfiles.userId, userId));    
+    if (!profiles) {
+      throw new Error('Database operation failed');
+    }
     return profiles;
   }
 
@@ -3090,7 +3206,10 @@ export class DatabaseStorage implements IStorage {
             eq(friendships.addresseeId, userId1)
           )
         )
-      );
+      );    
+    if (!friendship) {
+      throw new Error('Database operation failed');
+    }
     return friendship;
   }
 
@@ -3102,7 +3221,10 @@ export class DatabaseStorage implements IStorage {
         addresseeId,
         status: 'pending',
       })
-      .returning();
+      .returning();    
+    if (!friendship) {
+      throw new Error('Database operation failed');
+    }
     return friendship;
   }
 
@@ -3165,7 +3287,10 @@ export class DatabaseStorage implements IStorage {
     const [settings] = await db
       .select()
       .from(userSettings)
-      .where(eq(userSettings.userId, userId));
+      .where(eq(userSettings.userId, userId));    
+    if (!settings) {
+      throw new Error('Database operation failed');
+    }
     return settings;
   }
 
@@ -3192,7 +3317,10 @@ export class DatabaseStorage implements IStorage {
     const [preferences] = await db
       .select()
       .from(matchmakingPreferences)
-      .where(eq(matchmakingPreferences.userId, userId));
+      .where(eq(matchmakingPreferences.userId, userId));    
+    if (!preferences) {
+      throw new Error('Database operation failed');
+    }
     return preferences;
   }
 
@@ -3216,7 +3344,10 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
-      .returning();
+      .returning();    
+    if (!preferences) {
+      throw new Error('Database operation failed');
+    }
     return preferences;
   }
 
@@ -3398,7 +3529,10 @@ export class DatabaseStorage implements IStorage {
     const [tournament] = await db
       .insert(tournaments)
       .values(data)
-      .returning();
+      .returning();    
+    if (!tournament) {
+      throw new Error('Database operation failed');
+    }
     return tournament;
   }
 
@@ -3444,7 +3578,10 @@ export class DatabaseStorage implements IStorage {
     const [participant] = await db
       .insert(tournamentParticipants)
       .values({ tournamentId, userId })
-      .returning();
+      .returning();    
+    if (!participant) {
+      throw new Error('Database operation failed');
+    }
     return participant;
   }
 
@@ -3473,7 +3610,10 @@ export class DatabaseStorage implements IStorage {
     const [format] = await db
       .insert(tournamentFormats)
       .values(data)
-      .returning();
+      .returning();    
+    if (!format) {
+      throw new Error('Database operation failed');
+    }
     return format;
   }
 
@@ -3489,7 +3629,10 @@ export class DatabaseStorage implements IStorage {
     const [round] = await db
       .insert(tournamentRounds)
       .values(data)
-      .returning();
+      .returning();    
+    if (!round) {
+      throw new Error('Database operation failed');
+    }
     return round;
   }
 
@@ -3498,7 +3641,10 @@ export class DatabaseStorage implements IStorage {
       .update(tournamentRounds)
       .set(data)
       .where(eq(tournamentRounds.id, roundId))
-      .returning();
+      .returning();    
+    if (!round) {
+      throw new Error('Database operation failed');
+    }
     return round;
   }
 
@@ -3566,7 +3712,10 @@ export class DatabaseStorage implements IStorage {
     const [match] = await db
       .insert(tournamentMatches)
       .values(data)
-      .returning();
+      .returning();    
+    if (!match) {
+      throw new Error('Database operation failed');
+    }
     return match;
   }
 
@@ -3581,7 +3730,10 @@ export class DatabaseStorage implements IStorage {
       .update(tournamentMatches)
       .set(allowedFields)
       .where(eq(tournamentMatches.id, matchId))
-      .returning();
+      .returning();    
+    if (!match) {
+      throw new Error('Database operation failed');
+    }
     return match;
   }
 
@@ -3616,7 +3768,10 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db
       .insert(matchResults)
       .values(data)
-      .returning();
+      .returning();    
+    if (!result) {
+      throw new Error('Database operation failed');
+    }
     return result;
   }
 
@@ -3848,7 +4003,10 @@ export class DatabaseStorage implements IStorage {
     const [post] = await db
       .insert(forumPosts)
       .values(data)
-      .returning();
+      .returning();    
+    if (!post) {
+      throw new Error('Database operation failed');
+    }
     return post;
   }
 
@@ -3857,7 +4015,10 @@ export class DatabaseStorage implements IStorage {
       .update(forumPosts)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(forumPosts.id, id))
-      .returning();
+      .returning();    
+    if (!post) {
+      throw new Error('Database operation failed');
+    }
     return post;
   }
 
@@ -3941,8 +4102,10 @@ export class DatabaseStorage implements IStorage {
           isLiked,
         };
       })
-    );
-
+    );    
+    if (!enrichedReplies) {
+      throw new Error('Database operation failed');
+    }
     return enrichedReplies;
   }
 
@@ -3960,7 +4123,14 @@ export class DatabaseStorage implements IStorage {
         lastReplyAt: new Date(),
         updatedAt: new Date()
       })
-      .where(eq(forumPosts.id, data.postId));
+      .where(eq(forumPosts.id, data.postId));    
+    
+    
+    if (!reply) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return reply;
   }
@@ -4981,7 +5151,14 @@ export class DatabaseStorage implements IStorage {
       targetUserId: data.userId,
       details: { role: data.role, permissions: data.permissions },
       ipAddress: '', // Will be filled by middleware
-    });
+    });    
+    
+    
+    if (!role) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return role;
   }
@@ -4997,6 +5174,13 @@ export class DatabaseStorage implements IStorage {
         details: { roleId: id, updates: data },
         ipAddress: '',
       });
+    }    
+    
+    
+    if (!role) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return role;
@@ -5019,6 +5203,13 @@ export class DatabaseStorage implements IStorage {
           return true;
         }
       }
+    }    
+    
+    
+    if (!false) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return false;
@@ -5178,7 +5369,14 @@ export class DatabaseStorage implements IStorage {
       score: finalScore,
       level: newLevel,
       lastCalculated: new Date()
-    });
+    });    
+    
+    
+    if (!finalScore) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return finalScore;
   }
@@ -5327,6 +5525,13 @@ export class DatabaseStorage implements IStorage {
         description: `${data.reason}: ${data.contentType} reported`,
         metadata: { contentType: data.contentType, contentId: data.contentId }
       });
+    }    
+    
+    
+    if (!report) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return report;
@@ -5383,7 +5588,10 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(contentReports)
       .set({ ...data as any, resolvedAt: data.status === 'resolved' ? new Date() : undefined }) // Type assertion needed for Drizzle compatibility
       .where(eq(contentReports.id, id))
-      .returning();
+      .returning();    
+    if (!updated) {
+      throw new Error('Database operation failed');
+    }
     return updated;
   }
 
@@ -5456,7 +5664,14 @@ export class DatabaseStorage implements IStorage {
         duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
       },
       ipAddress: ''
-    });
+    });    
+    
+    
+    if (!action) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return action;
   }
@@ -5533,8 +5748,10 @@ export class DatabaseStorage implements IStorage {
       targetUserId: reversed.targetUserId,
       details: { moderationActionId: id, reason },
       ipAddress: ''
-    });
-
+    });    
+    if (!reversed) {
+      throw new Error('Database operation failed');
+    }
     return reversed;
   }
 
@@ -5585,7 +5802,14 @@ export class DatabaseStorage implements IStorage {
         autoGenerated: item.autoGenerated
       },
       ipAddress: ''
-    });
+    });    
+    
+    
+    if (!item) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return item;
   }
@@ -5657,7 +5881,10 @@ export class DatabaseStorage implements IStorage {
         assignedAt: new Date()
       })
       .where(eq(moderationQueue.id, id))
-      .returning();
+      .returning();    
+    if (!updated) {
+      throw new Error('Database operation failed');
+    }
     return updated;
   }
 
@@ -5669,7 +5896,10 @@ export class DatabaseStorage implements IStorage {
         completedAt: new Date() 
       })
       .where(eq(moderationQueue.id, id))
-      .returning();
+      .returning();    
+    if (!completed) {
+      throw new Error('Database operation failed');
+    }
     return completed;
   }
 
@@ -5740,6 +5970,13 @@ export class DatabaseStorage implements IStorage {
       } catch (error) {
         console.error('Bulk assignment failed for item:', itemId, error);
       }
+    }    
+    
+    
+    if (!assignedItems) {
+    
+      throw new Error('Database operation failed');
+    
     }
     
     return assignedItems;
@@ -5806,8 +6043,10 @@ export class DatabaseStorage implements IStorage {
         avgCompletionTime: Math.round(avgCompletionTime),
         lastActivity: lastActivity[0]?.createdAt || null
       });
+    }    
+    if (!workloads) {
+      throw new Error('Database operation failed');
     }
-
     return workloads;
   }
 
@@ -5842,8 +6081,10 @@ export class DatabaseStorage implements IStorage {
       } catch (error) {
         console.error('Escalation failed for item:', item.id, error);
       }
+    }    
+    if (!escalatedItems) {
+      throw new Error('Database operation failed');
     }
-
     return escalatedItems;
   }
 
@@ -6004,8 +6245,10 @@ export class DatabaseStorage implements IStorage {
     .innerJoin(alias(users, 'author'), eq(cmsContent.authorId, alias(users, 'author').id))
     .innerJoin(alias(users, 'lastEditor'), eq(cmsContent.lastEditedBy, alias(users, 'lastEditor').id))
     .leftJoin(alias(users, 'approver'), eq(cmsContent.approvedBy, alias(users, 'approver').id))
-    .where(eq(cmsContent.id, id));
-
+    .where(eq(cmsContent.id, id));    
+    if (!content) {
+      throw new Error('Database operation failed');
+    }
     return content;
   }
 
@@ -6018,7 +6261,14 @@ export class DatabaseStorage implements IStorage {
       targetUserId: '',
       details: { contentType: data.type, title: data.title },
       ipAddress: ''
-    });
+    });    
+    
+    
+    if (!content) {
+    
+      throw new Error('Database operation failed');
+    
+    }
     
     return content;
   }
@@ -6298,7 +6548,10 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(userAppeals)
       .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
       .where(eq(userAppeals.id, id))
-      .returning();
+      .returning();    
+    if (!updated) {
+      throw new Error('Database operation failed');
+    }
     return updated;
   }
 
