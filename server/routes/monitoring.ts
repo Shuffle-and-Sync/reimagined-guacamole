@@ -38,14 +38,14 @@ router.get('/status', async (req, res) => {
 
     const status = monitoringService.getStatus();
     
-    res.json({
+    return res.json({
       success: true,
       status,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to get monitoring status', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get monitoring status',
     });
@@ -73,7 +73,7 @@ router.get('/metrics', async (req, res) => {
     
     const metrics = monitoringService.getMetrics(sinceDate, limitNum);
     
-    res.json({
+    return res.json({
       success: true,
       metrics,
       count: metrics.length,
@@ -81,7 +81,7 @@ router.get('/metrics', async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get metrics', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get metrics',
     });
@@ -105,7 +105,7 @@ router.get('/health', async (req, res) => {
     const status = monitoringService.getStatus();
     const healthChecks = await monitoringService.performHealthChecks();
     
-    res.json({
+    return res.json({
       success: true,
       health: Object.fromEntries(healthChecks),
       summary: {
@@ -118,7 +118,7 @@ router.get('/health', async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get health status', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get health status',
     });
@@ -150,7 +150,7 @@ router.get('/alerts', async (req, res) => {
 
     const alerts = monitoringService.getAlerts(filters);
     
-    res.json({
+    return res.json({
       success: true,
       alerts,
       count: alerts.length,
@@ -164,7 +164,7 @@ router.get('/alerts', async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to get alerts', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get alerts',
     });
@@ -189,7 +189,7 @@ router.post('/health/check', async (req, res) => {
     
     const healthChecks = await monitoringService.performHealthChecks();
     
-    res.json({
+    return res.json({
       success: true,
       health: Object.fromEntries(healthChecks),
       message: 'Health check completed successfully',
@@ -197,7 +197,7 @@ router.post('/health/check', async (req, res) => {
     });
   } catch (error) {
     logger.error('Manual health check failed', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Health check failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -223,7 +223,7 @@ router.post('/metrics/collect', async (req, res) => {
     
     const metrics = await monitoringService.collectSystemMetrics();
     
-    res.json({
+    return res.json({
       success: true,
       metrics,
       message: 'Metrics collection completed successfully',
@@ -231,7 +231,7 @@ router.post('/metrics/collect', async (req, res) => {
     });
   } catch (error) {
     logger.error('Manual metrics collection failed', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Metrics collection failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -257,14 +257,14 @@ router.post('/start', async (req, res) => {
     
     monitoringService.start();
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Monitoring service started successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to start monitoring service', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to start monitoring service',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -301,14 +301,14 @@ router.post('/stop', async (req, res) => {
     
     monitoringService.stop();
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Monitoring service stopped successfully',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to stop monitoring service', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to stop monitoring service',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -347,7 +347,7 @@ router.post('/alerts/test', async (req, res) => {
 
     monitoringService.emit('alert', testAlert);
 
-    res.json({
+    return res.json({
       success: true,
       alert: testAlert,
       message: 'Test alert created successfully',
@@ -355,7 +355,7 @@ router.post('/alerts/test', async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to create test alert', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to create test alert',
       details: error instanceof Error ? error.message : 'Unknown error',

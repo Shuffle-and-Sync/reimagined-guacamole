@@ -38,14 +38,14 @@ router.get('/status', async (req, res) => {
 
     const status = infrastructureTestService.getStatus();
     
-    res.json({
+    return res.json({
       success: true,
       status,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to get test service status', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get test service status',
     });
@@ -85,7 +85,7 @@ router.post('/run', async (req, res) => {
     
     const report = await infrastructureTestService.runComprehensiveTests();
     
-    res.json({
+    return res.json({
       success: true,
       report,
       message: `Infrastructure tests completed with ${report.overall.score}% success rate`,
@@ -93,7 +93,7 @@ router.post('/run', async (req, res) => {
     });
   } catch (error) {
     logger.error('Infrastructure tests failed', error, { userId: getAuthUserId(authenticatedReq) });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Infrastructure tests failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -141,7 +141,7 @@ router.post('/suite/:suiteName', async (req, res) => {
       });
     }
     
-    res.json({
+    return res.json({
       success: true,
       suite,
       message: `Test suite '${suite.name}' completed`,
@@ -152,7 +152,7 @@ router.post('/suite/:suiteName', async (req, res) => {
       userId: getAuthUserId(authenticatedReq),
       suiteName: req.params.suiteName 
     });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Test suite execution failed',
       details: error instanceof Error ? error.message : 'Unknown error',
@@ -230,14 +230,14 @@ router.get('/summary', async (req, res) => {
       }
     };
     
-    res.json({
+    return res.json({
       success: true,
       summary,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Failed to get test summary', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get test summary',
     });
@@ -269,7 +269,7 @@ router.get('/health', async (req, res) => {
 
     const allHealthy = Object.values(health).every(check => check === true);
 
-    res.json({
+    return res.json({
       success: true,
       healthy: allHealthy,
       health,
@@ -277,7 +277,7 @@ router.get('/health', async (req, res) => {
     });
   } catch (error) {
     logger.error('Test service health check failed', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Test service health check failed',
     });
