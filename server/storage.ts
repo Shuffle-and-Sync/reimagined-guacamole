@@ -2935,6 +2935,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     const r = results[0];
+    if (!r) {
+      return null;
+    }
     return { 
       ...r.gameSession, 
       host: r.host as User, 
@@ -2998,6 +3001,9 @@ export class DatabaseStorage implements IStorage {
       .set(data)
       .where(eq(gameSessions.id, id))
       .returning();
+    if (!gameSession) {
+      throw new Error('Failed to update game session');
+    }
     return gameSession;
   }
 
@@ -3096,6 +3102,9 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    if (!profile) {
+      throw new Error('Failed to upsert user gaming profile');
+    }
     return profile;
   }
   
@@ -3229,6 +3238,9 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(friendships.id, friendshipId))
       .returning();
+    if (!friendship) {
+      throw new Error('Failed to update friendship status');
+    }
     return friendship;
   }
   
@@ -3271,6 +3283,9 @@ export class DatabaseStorage implements IStorage {
       .insert(userActivities)
       .values(data)
       .returning();
+    if (!activity) {
+      throw new Error('Failed to create user activity');
+    }
     return activity;
   }
   
@@ -3301,6 +3316,9 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    if (!settings) {
+      throw new Error('Failed to upsert user settings');
+    }
     return settings;
   }
   
@@ -5141,8 +5159,10 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.assignedBy || 'system',
       action: 'user_role_created',
-      targetUserId: data.userId,
-      details: { role: data.role, permissions: data.permissions },
+      category: 'role_assignment',
+      targetType: 'user',
+      targetId: data.userId,
+      parameters: { role: data.role, permissions: data.permissions },
       ipAddress: '', // Will be filled by middleware
     });    
     
@@ -5159,12 +5179,18 @@ export class DatabaseStorage implements IStorage {
   async updateUserRole(id: string, data: Partial<InsertUserRole>): Promise<UserRole> {
     const [role] = await db.update(userRoles).set(data).where(eq(userRoles.id, id)).returning();
     
+    if (!role) {
+      throw new Error('Failed to update user role');
+    }
+    
     if (data.assignedBy) {
       await this.createAuditLog({
         adminUserId: data.assignedBy,
         action: 'user_role_updated',
-        targetUserId: role.userId,
-        details: { roleId: id, updates: data },
+        category: 'role_assignment',
+        targetType: 'user',
+        targetId: role.userId,
+        parameters: { roleId: id, updates: data },
         ipAddress: '',
       });
     }    
@@ -5545,7 +5571,7 @@ export class DatabaseStorage implements IStorage {
       assignedModerator: contentReports.assignedModerator,
       evidence: contentReports.evidence,
       metadata: (contentReports as any).metadata,
-      mlConfidenceScore: contentReports.mlConfidenceScore,
+      confidenceScore: contentReports.confidenceScore,
       resolution: contentReports.resolution,
       actionTaken: contentReports.actionTaken,
       createdAt: contentReports.createdAt,
