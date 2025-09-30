@@ -63,16 +63,19 @@ export class UserService {
         throw new ConflictError('Email already in use');
       }
 
-      // Create user
+      // Create user - only include fields that exist in the users table
       const userData = {
-        ...data,
         email: data.email.toLowerCase(),
-        status: 'active' as const,
-        role: 'user' as const,
+        firstName: data.name, // Map 'name' to 'firstName'
+        status: 'offline' as const, // Use valid user status enum value
         isEmailVerified: data.provider === 'google', // Auto-verify for OAuth
         mfaEnabled: false,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        ...(data.password && { passwordHash: data.password }), // Only include if password exists
+        ...(data.image && { profileImageUrl: data.image }),
+        ...(data.bio && { bio: data.bio }),
+        ...(data.location && { location: data.location }),
       };
 
       const user = await this.userRepository.create(userData);
@@ -271,7 +274,7 @@ export class UserService {
   async deactivateAccount(userId: string): Promise<void> {
     try {
       await this.userRepository.updateProfile(userId, {
-        status: 'inactive',
+        status: 'offline', // Use valid user status enum value
         updatedAt: new Date()
       });
 
@@ -305,6 +308,10 @@ export class UserService {
         throw new ValidationError('User not found');
       }
 
+      if (!user.email) {
+        throw new ValidationError('User has no email address');
+      }
+
       if (user.isEmailVerified) {
         throw new ValidationError('Email already verified');
       }
@@ -313,7 +320,7 @@ export class UserService {
       const token = await generateEmailVerificationJWT(user.id, user.email);
 
       // Send verification email
-      await sendEmailVerificationEmail(user.email, user.name || 'User', token);
+      await sendEmailVerificationEmail(user.email, user.firstName || 'User', token);
 
       logger.info('Email verification sent', { userId, email: user.email });
     } catch (error) {

@@ -2112,7 +2112,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(deviceFingerprints)
       .set({
-        ...data,
+        ...data as any, // Type assertion needed for Drizzle compatibility
         updatedAt: new Date(),
       })
       .where(eq(deviceFingerprints.id, id));
@@ -2168,7 +2168,7 @@ export class DatabaseStorage implements IStorage {
   async updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void> {
     await db
       .update(mfaSecurityContext)
-      .set(data)
+      .set(data as any) // Type assertion needed for Drizzle compatibility
       .where(eq(mfaSecurityContext.id, id));
   }
 
@@ -5289,7 +5289,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport> {
     const [updated] = await db.update(contentReports)
-      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
+      .set({ ...data as any, resolvedAt: data.status === 'resolved' ? new Date() : undefined }) // Type assertion needed for Drizzle compatibility
       .where(eq(contentReports.id, id))
       .returning();
     return updated;
@@ -5741,7 +5741,9 @@ export class DatabaseStorage implements IStorage {
           .where(eq(moderationQueue.id, item.id))
           .returning();
         
-        escalatedItems.push(escalated);
+        if (escalated) {
+          escalatedItems.push(escalated);
+        }
       } catch (error) {
         console.error('Escalation failed for item:', item.id, error);
       }
@@ -6122,7 +6124,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const [updated] = await db.update(banEvasionTracking)
-      .set(updateData)
+      .set(updateData as any) // Type assertion needed for Drizzle compatibility
       .where(eq(banEvasionTracking.id, id))
       .returning();
     
@@ -6217,8 +6219,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
     }
 
-    const updateData = {
-      status: 'resolved' as const,
+    const updateData: Partial<InsertUserAppeal> = {
+      status: 'resolved',
       decision,
       reviewNotes: reviewerNotes,
       reviewedAt: new Date()

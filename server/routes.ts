@@ -1590,8 +1590,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           deviceFingerprintId: deviceValidation.deviceFingerprint?.id || null,
           verificationMethod: isBackupCode ? 'backup_code' : 'totp',
-          riskScore: riskAssessment.riskScore,
-          trustScore: deviceValidation.trustScore,
+          riskScore: riskAssessment.riskScore.toString(),
+          trustScore: deviceValidation.trustScore.toString(),
           ipAddress: deviceContext.ipAddress,
           location: deviceContext.location || null,
           riskFactors: riskAssessment.riskFactors.length > 0 ? riskAssessment.riskFactors : null,
@@ -1808,6 +1808,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         logger.warn('User not found for refresh token', { userId: payload.sub, ip: req.ip });
         return res.status(401).json({ message: "User not found" });
+      }
+
+      if (!user.email) {
+        logger.warn('User has no email for refresh token', { userId: payload.sub, ip: req.ip });
+        return res.status(401).json({ message: "User has no email address" });
       }
       
       // CRITICAL SECURITY: Implement refresh token rotation
