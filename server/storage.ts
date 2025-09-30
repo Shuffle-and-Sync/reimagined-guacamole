@@ -837,27 +837,7 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set(updateData as any)  // Type assertion to handle Drizzle type issues
       .where(eq(users.id, id))
-      .returning({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        username: users.username,
-        profileImageUrl: users.profileImageUrl,
-        primaryCommunity: users.primaryCommunity,
-        bio: users.bio,
-        location: users.location,
-        website: users.website,
-        status: users.status,
-        statusMessage: users.statusMessage,
-        timezone: users.timezone,
-        dateOfBirth: users.dateOfBirth,
-        isPrivate: users.isPrivate,
-        showOnlineStatus: users.showOnlineStatus,
-        allowDirectMessages: users.allowDirectMessages,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      });    
+      .returning();    
     if (!user) {
       throw new Error('Database operation failed');
     }
@@ -923,7 +903,7 @@ export class DatabaseStorage implements IStorage {
       .limit(limit + 1); // Get one extra to check if there are more
 
     const hasMore = activeUsers.length > limit;
-    const data = hasMore ? activeUsers.slice(0, limit) : activeUsers;
+    const data = (hasMore ? activeUsers.slice(0, limit) : activeUsers) as User[];
 
     return { data, hasMore };
   }
@@ -953,6 +933,9 @@ export class DatabaseStorage implements IStorage {
       .insert(communities)
       .values([communityData])
       .returning();
+    if (!community) {
+      throw new Error('Failed to create community');
+    }
     return community;
   }
 
@@ -1111,6 +1094,9 @@ export class DatabaseStorage implements IStorage {
         createdAt: userPlatformAccounts.createdAt,
         updatedAt: userPlatformAccounts.updatedAt,
       });
+    if (!result[0]) {
+      throw new Error('Failed to create user platform account');
+    }
     return result[0];
   }
 
@@ -1148,6 +1134,9 @@ export class DatabaseStorage implements IStorage {
         createdAt: userPlatformAccounts.createdAt,
         updatedAt: userPlatformAccounts.updatedAt,
       });
+    if (!result[0]) {
+      throw new Error('Failed to update user platform account');
+    }
     return result[0];
   }
 
@@ -1212,6 +1201,9 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    if (!preference) {
+      throw new Error('Failed to upsert theme preference');
+    }
     return preference;
   }
 
@@ -2228,7 +2220,7 @@ export class DatabaseStorage implements IStorage {
   async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
     const [fingerprint] = await db
       .insert(deviceFingerprints)
-      .values(data)
+      .values(data as any) // Type assertion to handle decimal/number type mismatch
       .returning();    
     if (!fingerprint) {
       throw new Error('Database operation failed');
@@ -2271,7 +2263,7 @@ export class DatabaseStorage implements IStorage {
   async createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext> {
     const [context] = await db
       .insert(mfaSecurityContext)
-      .values(data)
+      .values(data as any) // Type assertion to handle decimal/number type mismatch
       .returning();    
     if (!context) {
       throw new Error('Database operation failed');
@@ -2282,16 +2274,15 @@ export class DatabaseStorage implements IStorage {
   async getMfaSecurityContext(userId: string, options?: { limit?: number; onlyFailures?: boolean }): Promise<MfaSecurityContext[]> {
     const { limit = 50, onlyFailures = false } = options || {};
     
-    let query = db
-      .select()
-      .from(mfaSecurityContext)
-      .where(eq(mfaSecurityContext.userId, userId));
-      
+    const conditions = [eq(mfaSecurityContext.userId, userId)];
     if (onlyFailures) {
-      query = query.where(eq(mfaSecurityContext.isSuccessful, false));
+      conditions.push(eq(mfaSecurityContext.isSuccessful, false));
     }
     
-    return await query
+    return await db
+      .select()
+      .from(mfaSecurityContext)
+      .where(and(...conditions))
       .orderBy(desc(mfaSecurityContext.createdAt))
       .limit(limit);
   }
@@ -2649,8 +2640,11 @@ export class DatabaseStorage implements IStorage {
   async createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog> {
     const [auditLog] = await db
       .insert(authAuditLog)
-      .values(data)
+      .values(data as any) // Type assertion to handle decimal/number type mismatch
       .returning();
+    if (!auditLog) {
+      throw new Error('Failed to create auth audit log');
+    }
     return auditLog;
   }
 
@@ -2687,8 +2681,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAuthAuditLogs(userId?: string, filters?: { eventType?: string; limit?: number; hours?: number }): Promise<AuthAuditLog[]> {
-    let query = db.select().from(authAuditLog);
-    
     const conditions = [];
     if (userId) {
       conditions.push(eq(authAuditLog.userId, userId));
@@ -2703,17 +2695,17 @@ export class DatabaseStorage implements IStorage {
       conditions.push(gte(authAuditLog.createdAt, hoursAgo));
     }
     
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    query = query.orderBy(desc(authAuditLog.createdAt));
+    const baseQuery = db
+      .select()
+      .from(authAuditLog)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(authAuditLog.createdAt));
     
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      return await baseQuery.limit(filters.limit);
     }
     
-    return await query;
+    return await baseQuery;
   }
 
   async getRecentAuthFailures(userId: string, hours: number): Promise<AuthAuditLog[]> {
@@ -4372,7 +4364,21 @@ export class DatabaseStorage implements IStorage {
   // Streaming session operations
   async getStreamSessions(filters?: { hostUserId?: string; communityId?: string; status?: string; upcoming?: boolean }): Promise<(StreamSession & { host: User; community?: Community; coHosts: StreamSessionCoHost[]; platforms: StreamSessionPlatform[] })[]> {
     try {
-      let query = db
+      const conditions = [];
+      if (filters?.hostUserId) {
+        conditions.push(eq(streamSessions.hostUserId, filters.hostUserId));
+      }
+      if (filters?.communityId) {
+        conditions.push(eq(streamSessions.communityId, filters.communityId));
+      }
+      if (filters?.status) {
+        conditions.push(eq(streamSessions.status, filters.status));
+      }
+      if (filters?.upcoming) {
+        conditions.push(gte(streamSessions.scheduledStartTime, new Date()));
+      }
+
+      const results = await db
         .select({
           session: streamSessions,
           host: users,
@@ -4380,22 +4386,8 @@ export class DatabaseStorage implements IStorage {
         })
         .from(streamSessions)
         .leftJoin(users, eq(streamSessions.hostUserId, users.id))
-        .leftJoin(communities, eq(streamSessions.communityId, communities.id));
-
-      if (filters?.hostUserId) {
-        query = query.where(eq(streamSessions.hostUserId, filters.hostUserId));
-      }
-      if (filters?.communityId) {
-        query = query.where(eq(streamSessions.communityId, filters.communityId));
-      }
-      if (filters?.status) {
-        query = query.where(eq(streamSessions.status, filters.status));
-      }
-      if (filters?.upcoming) {
-        query = query.where(gte(streamSessions.scheduledStartTime, new Date()));
-      }
-
-      const results = await query;
+        .leftJoin(communities, eq(streamSessions.communityId, communities.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       // Get co-hosts and platforms for each session
       const enrichedResults = await Promise.all(
@@ -4622,7 +4614,21 @@ export class DatabaseStorage implements IStorage {
   // Collaboration request operations
   async getCollaborationRequests(filters?: { fromUserId?: string; toUserId?: string; status?: string; type?: string }): Promise<(CollaborationRequest & { fromUser: User; toUser: User; streamSession?: StreamSession })[]> {
     try {
-      let query = db
+      const conditions = [];
+      if (filters?.fromUserId) {
+        conditions.push(eq(collaborationRequests.fromUserId, filters.fromUserId));
+      }
+      if (filters?.toUserId) {
+        conditions.push(eq(collaborationRequests.toUserId, filters.toUserId));
+      }
+      if (filters?.status) {
+        conditions.push(eq(collaborationRequests.status, filters.status));
+      }
+      if (filters?.type) {
+        conditions.push(eq(collaborationRequests.type, filters.type));
+      }
+
+      const results = await db
         .select({
           request: collaborationRequests,
           fromUser: alias(users, 'fromUser'),
@@ -4632,22 +4638,9 @@ export class DatabaseStorage implements IStorage {
         .from(collaborationRequests)
         .leftJoin(alias(users, 'fromUser'), eq(collaborationRequests.fromUserId, alias(users, 'fromUser').id))
         .leftJoin(alias(users, 'toUser'), eq(collaborationRequests.toUserId, alias(users, 'toUser').id))
-        .leftJoin(streamSessions, eq(collaborationRequests.streamSessionId, streamSessions.id));
+        .leftJoin(streamSessions, eq(collaborationRequests.streamSessionId, streamSessions.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-      if (filters?.fromUserId) {
-        query = query.where(eq(collaborationRequests.fromUserId, filters.fromUserId));
-      }
-      if (filters?.toUserId) {
-        query = query.where(eq(collaborationRequests.toUserId, filters.toUserId));
-      }
-      if (filters?.status) {
-        query = query.where(eq(collaborationRequests.status, filters.status));
-      }
-      if (filters?.type) {
-        query = query.where(eq(collaborationRequests.type, filters.type));
-      }
-
-      const results = await query;
       return results.map((r: any) => ({
         ...r.request,
         fromUser: r.fromUser!,
