@@ -626,7 +626,11 @@ export class YouTubeAPIService {
   /**
    * Exchange authorization code for access tokens
    */
-  async exchangeCodeForTokens(code: string): Promise<{ 
+  async exchangeCodeForTokens(
+    code: string, 
+    redirectUri?: string,
+    codeVerifier?: string
+  ): Promise<{ 
     access_token: string; 
     refresh_token?: string;
     expires_in: number;
@@ -638,18 +642,25 @@ export class YouTubeAPIService {
     }
 
     try {
+      const tokenParams: Record<string, string> = {
+        client_id: this.clientId!,
+        client_secret: this.clientSecret!,
+        redirect_uri: redirectUri || process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5000/auth/youtube/callback',
+        grant_type: 'authorization_code',
+        code,
+      };
+      
+      // Add PKCE code verifier if provided
+      if (codeVerifier) {
+        tokenParams.code_verifier = codeVerifier;
+      }
+      
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({
-          client_id: this.clientId!,
-          client_secret: this.clientSecret!,
-          redirect_uri: process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5000/auth/youtube/callback',
-          grant_type: 'authorization_code',
-          code,
-        }),
+        body: new URLSearchParams(tokenParams),
       });
 
       if (!response.ok) {
@@ -906,10 +917,10 @@ export class YouTubeAPIService {
 
       if (channelIdMatch && videoIdMatch && titleMatch && publishedMatch) {
         return {
-          channelId: channelIdMatch[1],
-          videoId: videoIdMatch[1],
+          channelId: channelIdMatch[1]!,
+          videoId: videoIdMatch[1]!,
           title: titleMatch[1] || titleMatch[2] || '',
-          publishedAt: publishedMatch[1],
+          publishedAt: publishedMatch[1]!,
         };
       }
 

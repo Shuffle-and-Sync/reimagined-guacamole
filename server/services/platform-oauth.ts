@@ -280,6 +280,10 @@ async function handleYouTubeCallback(code: string, userId: string, storedState: 
       codeVerifier
     );
     
+    if (!tokenData) {
+      throw new Error('Failed to exchange code for tokens');
+    }
+    
     // Get channel info using the access token
     const channelData = await youtubeService.getMyChannel(tokenData.access_token);
     
@@ -325,17 +329,22 @@ async function handleFacebookCallback(code: string, userId: string): Promise<any
   const facebookService = new FacebookAPIService();
   
   // Exchange code for tokens
-  const tokenData = await facebookService.exchangeCodeForTokens(code, `${process.env.AUTH_URL}/api/platforms/facebook/oauth/callback`);
+  const tokenData = await facebookService.exchangeCodeForToken(code, `${process.env.AUTH_URL}/api/platforms/facebook/oauth/callback`);
+  
+  if (!tokenData) {
+    throw new Error('Failed to exchange code for tokens');
+  }
   
   // Get user info
   const userInfo = await facebookService.getMe(tokenData.access_token);
   
-  if (!userInfo.success) {
+  if (!userInfo.success || !userInfo.data) {
     throw new Error('Failed to fetch Facebook user info');
   }
   
   // Store account with tokens
-  const expiresAt = tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null;
+  // Note: Facebook short-lived tokens don't include expires_in, they're typically valid for 1-2 hours
+  const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours default
   
   return await storage.createUserPlatformAccount({
     userId,
@@ -343,7 +352,7 @@ async function handleFacebookCallback(code: string, userId: string): Promise<any
     handle: userInfo.data.name,
     platformUserId: userInfo.data.id,
     accessToken: tokenData.access_token,
-    refreshToken: tokenData.refresh_token,
+    refreshToken: null, // Facebook uses long-lived token exchange instead of refresh tokens
     tokenExpiresAt: expiresAt,
     scopes: [],
     isActive: true,
@@ -402,7 +411,7 @@ async function refreshYouTubeToken(refreshToken: string, userId: string): Promis
       return null;
     }
     
-    const expiresAt = tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : null;
+    const expiresAt = tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : undefined;
     
     // Update stored tokens
     const account = await storage.getUserPlatformAccount(userId, 'youtube');
