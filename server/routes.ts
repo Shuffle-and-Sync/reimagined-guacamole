@@ -2792,7 +2792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create notification for host when someone joins
       const gameSession = await storage.getGameSessions({ eventId: id });
-      if (gameSession.length > 0) {
+      if (gameSession.length > 0 && gameSession[0]?.hostId) {
         await storage.createNotification({
           userId: gameSession[0].hostId,
           type: 'event_join',
@@ -2837,7 +2837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create notification for host when someone leaves
       const gameSession = await storage.getGameSessions({ eventId: id });
-      if (gameSession.length > 0) {
+      if (gameSession.length > 0 && gameSession[0]?.hostId) {
         await storage.createNotification({
           userId: gameSession[0].hostId,
           type: 'event_leave',
@@ -2864,7 +2864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create notification for host when someone starts spectating
       const gameSession = await storage.getGameSessions({ eventId: id });
-      if (gameSession.length > 0) {
+      if (gameSession.length > 0 && gameSession[0]?.hostId) {
         await storage.createNotification({
           userId: gameSession[0].hostId,
           type: 'spectator_join',

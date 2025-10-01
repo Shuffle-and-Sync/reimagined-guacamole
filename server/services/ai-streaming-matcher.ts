@@ -315,10 +315,11 @@ export class AIStreamingMatcher {
   private async getStreamingCandidates(criteria: MatchingCriteria, userProfile: StreamerProfile): Promise<StreamerProfile[]> {
     try {
       // Get basic users first, then build streaming profiles
-      let users;
+      let users: User[] = [];
       try {
         // Use getAllUsers method 
-        users = await storage.getAllUsers?.() || [];
+        const result = await storage.getAllUsers?.();
+        users = result?.users || [];
       } catch (error) {
         logger.warn("User lookup not available, using empty list", { error });
         users = [];
