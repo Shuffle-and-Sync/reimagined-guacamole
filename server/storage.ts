@@ -6470,37 +6470,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
-    // Note: Some fields below may not exist in the actual schema yet - using type assertion
-    const banEvasionAny = banEvasionTracking as any;
     let query = db.select({
       id: banEvasionTracking.id,
       userId: banEvasionTracking.userId,
-      bannedUserId: banEvasionAny.bannedUserId,
       ipAddress: banEvasionTracking.ipAddress,
-      deviceFingerprint: banEvasionAny.deviceFingerprint,
-      suspiciousActivity: banEvasionAny.suspiciousActivity,
-      confidenceScore: banEvasionTracking.confidenceScore,
-      status: banEvasionAny.status,
-      detectedBy: banEvasionAny.detectedBy,
-      reviewedBy: banEvasionAny.reviewedBy,
-      reviewedAt: banEvasionAny.reviewedAt,
-      reviewNotes: banEvasionAny.reviewNotes,
-      actionTaken: banEvasionAny.actionTaken,
-      metadata: banEvasionAny.metadata,
-      evidence: banEvasionAny.evidence,
-      relatedAccounts: banEvasionAny.relatedAccounts,
+      hashedFingerprint: banEvasionTracking.hashedFingerprint,
+      userAgent: banEvasionTracking.userAgent,
+      screenResolution: banEvasionTracking.screenResolution,
+      timezone: banEvasionTracking.timezone,
+      language: banEvasionTracking.language,
+      loginPatterns: banEvasionTracking.loginPatterns,
+      activitySignature: banEvasionTracking.activitySignature,
       detectionMethod: banEvasionTracking.detectionMethod,
+      confidenceScore: banEvasionTracking.confidenceScore,
+      relatedBannedUser: banEvasionTracking.relatedBannedUser,
+      status: banEvasionTracking.status,
+      investigatedBy: banEvasionTracking.investigatedBy,
+      investigatedAt: banEvasionTracking.investigatedAt,
+      notes: banEvasionTracking.notes,
       createdAt: banEvasionTracking.createdAt,
       user: alias(users, 'user'),
       bannedUser: alias(users, 'bannedUser')
     })
     .from(banEvasionTracking)
     .innerJoin(alias(users, 'user'), eq(banEvasionTracking.userId, alias(users, 'user').id))
-    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.bannedUserId, alias(users, 'bannedUser').id));
+    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.relatedBannedUser, alias(users, 'bannedUser').id));
 
     const conditions = [];
     if (userId) conditions.push(eq(banEvasionTracking.userId, userId));
-    if (suspiciousActivity !== undefined) conditions.push(eq(banEvasionTracking.suspiciousActivity, suspiciousActivity));
+    // Note: suspiciousActivity parameter removed as field doesn't exist in schema
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -6517,7 +6515,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (deviceFingerprint) {
-      conditions.push(eq(banEvasionTracking.deviceFingerprint, deviceFingerprint));
+      conditions.push(eq(banEvasionTracking.hashedFingerprint, deviceFingerprint));
     }
 
     return await db.select().from(banEvasionTracking)
@@ -6525,17 +6523,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(banEvasionTracking.createdAt));
   }
 
-  async updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking> {
+  async updateBanEvasionStatus(id: string, status: "flagged" | "investigating" | "confirmed" | "false_positive", investigatedBy?: string): Promise<BanEvasionTracking> {
     const updateData: Partial<InsertBanEvasionTracking> = {
       status,
-      reviewedAt: new Date()
+      investigatedAt: new Date()
     };
     
-    if (reviewedBy) {
-      updateData.reviewedBy = reviewedBy;
+    if (investigatedBy) {
+      updateData.investigatedBy = investigatedBy;
       
       await this.createAuditLog({
-        adminUserId: reviewedBy,
+        adminUserId: investigatedBy,
         action: 'ban_evasion_reviewed',
         category: 'content_moderation',
         targetId: id,
@@ -6550,6 +6548,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(banEvasionTracking.id, id))
       .returning();
     
+    if (!updated) {
+      throw new Error('Failed to update ban evasion status');
+    }
+    
     return updated;
   }
 
@@ -6557,6 +6559,10 @@ export class DatabaseStorage implements IStorage {
   async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
     return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [appeal] = await tx.insert(userAppeals).values(data).returning();
+      
+      if (!appeal) {
+        throw new Error('Failed to create user appeal');
+      }
       
       await tx.insert(adminAuditLog).values({
         adminUserId: 'system',
@@ -6639,13 +6645,7 @@ export class DatabaseStorage implements IStorage {
     return await this.updateUserAppeal(appealId, updateData);
   }
 
-  async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
-    // Validate decision value
-    const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
-    if (!validDecisions.includes(decision as any)) {
-      throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
-    }
-
+  async resolveUserAppeal(appealId: string, decision: "approve" | "deny" | "partial_approve", reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
     const updateData: Partial<InsertUserAppeal> = {
       status: 'resolved',
       decision,
@@ -6702,6 +6702,10 @@ export class DatabaseStorage implements IStorage {
     return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [template] = await tx.insert(moderationTemplates).values(data).returning();
       
+      if (!template) {
+        throw new Error('Failed to create moderation template');
+      }
+      
       await tx.insert(adminAuditLog).values({
         adminUserId: data.createdBy,
         action: 'moderation_template_created',
@@ -6721,6 +6725,10 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(moderationTemplates.id, id))
         .returning();
+      
+      if (!updated) {
+        throw new Error('Failed to update moderation template');
+      }
       
       if (data.createdBy) {
         await tx.insert(adminAuditLog).values({
