@@ -5684,6 +5684,10 @@ export class DatabaseStorage implements IStorage {
   async createModerationAction(data: InsertModerationAction): Promise<ModerationAction> {
     const [action] = await db.insert(moderationActions).values(data).returning();
     
+    if (!action) {
+      throw new Error('Failed to create moderation action');
+    }
+    
     // Record negative action for the target user based on severity
     if (data.targetUserId) {
       let severity: 'minor' | 'moderate' | 'severe' = 'moderate';
@@ -5709,7 +5713,9 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.moderatorId,
       action: 'moderation_action_created',
+      category: 'content_moderation',
       targetId: data.targetUserId,
+      targetType: 'user',
       parameters: { 
         actionType: data.action, 
         reason: data.reason,
@@ -5795,6 +5801,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(moderationActions.id, id))
       .returning();
 
+    if (!reversed) {
+      throw new Error('Failed to reverse moderation action');
+    }
+
     await this.createAuditLog({
       adminUserId: reversedBy,
       action: 'moderation_action_reversed',
@@ -5804,9 +5814,8 @@ export class DatabaseStorage implements IStorage {
       parameters: { moderationActionId: id, reason },
       ipAddress: ''
     });    
-    if (!reversed) {
-      throw new Error('Database operation failed');
-    }
+    
+    return reversed;
     return reversed;
   }
 
@@ -6131,7 +6140,6 @@ export class DatabaseStorage implements IStorage {
       try {
         const [escalated] = await db.update(moderationQueue)
           .set({ 
-            escalationLevel: (item.escalationLevel || 0) + 1,
             priority: Math.min((item.priority || 5) + 2, 10) // Increase priority by 2, max 10
           })
           .where(eq(moderationQueue.id, item.id))
@@ -6317,6 +6325,10 @@ export class DatabaseStorage implements IStorage {
   async createCmsContent(data: InsertCmsContent): Promise<CmsContent> {
     const [content] = await db.insert(cmsContent).values(data).returning();
     
+    if (!content) {
+      throw new Error('Failed to create CMS content');
+    }
+    
     await this.createAuditLog({
       adminUserId: data.authorId,
       action: 'cms_content_created',
@@ -6327,13 +6339,6 @@ export class DatabaseStorage implements IStorage {
       ipAddress: ''
     });    
     
-    
-    if (!content) {
-    
-      throw new Error('Database operation failed');
-    
-    }
-    
     return content;
   }
 
@@ -6343,6 +6348,10 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(cmsContent.id, id))
         .returning();
+      
+      if (!updated) {
+        throw new Error('Failed to update CMS content');
+      }
       
       if (data.lastEditedBy) {
         await tx.insert(adminAuditLog).values({
@@ -6371,6 +6380,10 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(cmsContent.id, id))
         .returning();
+      
+      if (!published) {
+        throw new Error('Failed to publish CMS content');
+      }
       
       await tx.insert(adminAuditLog).values({
         adminUserId: publisherId,
