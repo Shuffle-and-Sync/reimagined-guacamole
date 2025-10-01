@@ -5542,7 +5542,13 @@ export class DatabaseStorage implements IStorage {
 
   // Content report operations
   async createContentReport(data: InsertContentReport): Promise<ContentReport> {
-    const [report] = await db.insert(contentReports).values(data).returning();
+    // Convert confidenceScore from number to string if present (decimal type requires string)
+    const insertData = {
+      ...data,
+      confidenceScore: data.confidenceScore !== undefined ? String(data.confidenceScore) : undefined
+    };
+    
+    const [report] = await db.insert(contentReports).values(insertData).returning();
     
     if (!report) {
       throw new Error('Failed to create content report');
@@ -5587,7 +5593,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getContentReports(filters?: { status?: string; priority?: string; reporterUserId?: string; assignedModerator?: string }): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: contentReports.id,
       reporterUserId: contentReports.reporterUserId,
       reportedUserId: contentReports.reportedUserId,
@@ -5595,13 +5601,14 @@ export class DatabaseStorage implements IStorage {
       contentId: contentReports.contentId,
       reason: contentReports.reason,
       description: contentReports.description,
+      evidence: contentReports.evidence,
+      isSystemGenerated: contentReports.isSystemGenerated,
+      automatedFlags: contentReports.automatedFlags,
+      confidenceScore: contentReports.confidenceScore,
       status: contentReports.status,
       priority: contentReports.priority,
-      reportSource: (contentReports as any).reportSource,
       assignedModerator: contentReports.assignedModerator,
-      evidence: contentReports.evidence,
-      metadata: (contentReports as any).metadata,
-      confidenceScore: contentReports.confidenceScore,
+      moderationNotes: contentReports.moderationNotes,
       resolution: contentReports.resolution,
       actionTaken: contentReports.actionTaken,
       createdAt: contentReports.createdAt,
@@ -5621,11 +5628,19 @@ export class DatabaseStorage implements IStorage {
     if (filters?.reporterUserId) conditions.push(eq(contentReports.reporterUserId, filters.reporterUserId));
     if (filters?.assignedModerator) conditions.push(eq(contentReports.assignedModerator, filters.assignedModerator));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
-    return await query.orderBy(desc(contentReports.createdAt));
+    const results = await query.orderBy(desc(contentReports.createdAt));
+    
+    // Map null to undefined for optional joined fields to match return type
+    return results.map(r => ({
+      ...r,
+      reporter: r.reporter || undefined,
+      reportedUser: r.reportedUser || undefined,
+      assignedMod: r.assignedMod || undefined
+    }));
   }
 
   async getContentReport(id: string): Promise<(ContentReport & { reporter?: User; reportedUser?: User; assignedMod?: User }) | undefined> {
@@ -5735,7 +5750,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getModerationActions(filters?: { targetUserId?: string; moderatorId?: string; action?: string; isActive?: boolean }): Promise<(ModerationAction & { moderator: User; targetUser: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: moderationActions.id,
       moderatorId: moderationActions.moderatorId,
       targetUserId: moderationActions.targetUserId,
@@ -5770,9 +5785,9 @@ export class DatabaseStorage implements IStorage {
     if (filters?.action) conditions.push(eq(moderationActions.action, filters.action));
     if (filters?.isActive !== undefined) conditions.push(eq(moderationActions.isActive, filters.isActive));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
     return await query.orderBy(desc(moderationActions.createdAt));
   }
@@ -5815,7 +5830,6 @@ export class DatabaseStorage implements IStorage {
       ipAddress: ''
     });    
     
-    return reversed;
     return reversed;
   }
 
@@ -5885,7 +5899,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getModerationQueue(filters?: { status?: string; assignedModerator?: string; priority?: number; itemType?: string; overdue?: boolean }): Promise<(ModerationQueue & { assignedMod?: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: moderationQueue.id,
       itemType: moderationQueue.itemType,
       itemId: moderationQueue.itemId,
@@ -5893,18 +5907,17 @@ export class DatabaseStorage implements IStorage {
       status: moderationQueue.status,
       assignedModerator: moderationQueue.assignedModerator,
       assignedAt: moderationQueue.assignedAt,
-      description: (moderationQueue as any).description,
-      metadata: moderationQueue.metadata,
-      autoGenerated: (moderationQueue as any).autoGenerated,
-      mlPriority: moderationQueue.mlPriority,
-      userReports: (moderationQueue as any).userReports,
-      escalationLevel: (moderationQueue as any).escalationLevel,
-      resolution: moderationQueue.resolution,
-      estimatedTimeMinutes: moderationQueue.estimatedTimeMinutes,
       riskScore: moderationQueue.riskScore,
       userReputationScore: moderationQueue.userReputationScore,
       reporterReputationScore: moderationQueue.reporterReputationScore,
+      mlPriority: moderationQueue.mlPriority,
+      autoGenerated: moderationQueue.autoGenerated,
+      summary: moderationQueue.summary,
       tags: moderationQueue.tags,
+      estimatedTimeMinutes: moderationQueue.estimatedTimeMinutes,
+      metadata: moderationQueue.metadata,
+      resolution: moderationQueue.resolution,
+      actionTaken: moderationQueue.actionTaken,
       createdAt: moderationQueue.createdAt,
       completedAt: moderationQueue.completedAt,
       assignedMod: users
@@ -5931,11 +5944,17 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
-    return await query.orderBy(desc(moderationQueue.priority), desc(moderationQueue.createdAt));
+    const results = await query.orderBy(desc(moderationQueue.priority), desc(moderationQueue.createdAt));
+    
+    // Map null to undefined for optional joined fields to match return type
+    return results.map(r => ({
+      ...r,
+      assignedMod: r.assignedMod || undefined
+    }));
   }
 
   async getModerationQueueItem(id: string): Promise<(ModerationQueue & { assignedMod?: User }) | undefined> {
@@ -5979,6 +5998,11 @@ export class DatabaseStorage implements IStorage {
       .set({ priority })
       .where(eq(moderationQueue.id, id))
       .returning();
+    
+    if (!updated) {
+      throw new Error('Failed to update moderation queue priority');
+    }
+    
     return updated;
   }
 
@@ -6162,7 +6186,7 @@ export class DatabaseStorage implements IStorage {
     let basePriority = 5; // Default priority
     
     // Priority based on item type
-    const typePriorities = {
+    const typePriorities: Record<string, number> = {
       'auto_flag': 8,     // High priority for auto-flagged content
       'ban_evasion': 9,   // Very high priority for ban evasion
       'appeal': 7,        // High priority for appeals
@@ -6273,15 +6297,15 @@ export class DatabaseStorage implements IStorage {
 
   // CMS content operations
   async getCmsContent(type?: string, isPublished?: boolean): Promise<CmsContent[]> {
-    let query = db.select().from(cmsContent);
+    const baseQuery = db.select().from(cmsContent);
     
     const conditions = [];
     if (type) conditions.push(eq(cmsContent.type, type));
     if (isPublished !== undefined) conditions.push(eq(cmsContent.isPublished, isPublished));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
     return await query.orderBy(desc(cmsContent.version));
   }
@@ -6319,7 +6343,11 @@ export class DatabaseStorage implements IStorage {
     if (!content) {
       throw new Error('Database operation failed');
     }
-    return content;
+    // Map null to undefined for optional joined fields to match return type
+    return {
+      ...content,
+      approver: content.approver || undefined
+    };
   }
 
   async createCmsContent(data: InsertCmsContent): Promise<CmsContent> {
@@ -6419,7 +6447,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAuditLogs(filters?: { adminUserId?: string; action?: string; startDate?: Date; endDate?: Date }): Promise<(AdminAuditLog & { admin: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: adminAuditLog.id,
       adminUserId: adminAuditLog.adminUserId,
       action: adminAuditLog.action,
@@ -6448,9 +6476,9 @@ export class DatabaseStorage implements IStorage {
     if (filters?.startDate) conditions.push(gte(adminAuditLog.createdAt, filters.startDate));
     if (filters?.endDate) conditions.push(sql`${adminAuditLog.createdAt} <= ${filters.endDate}`);
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
     return await query.orderBy(desc(adminAuditLog.createdAt));
   }
@@ -6463,16 +6491,26 @@ export class DatabaseStorage implements IStorage {
   // Ban evasion tracking operations
   async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
     return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
-      const [record] = await tx.insert(banEvasionTracking).values(data).returning();
+      // Convert confidenceScore from number to string if present (decimal type requires string)
+      const insertData = {
+        ...data,
+        confidenceScore: data.confidenceScore !== undefined ? String(data.confidenceScore) : undefined
+      };
+      
+      const [record] = await tx.insert(banEvasionTracking).values(insertData).returning();
+      
+      if (!record) {
+        throw new Error('Failed to create ban evasion record');
+      }
       
       await tx.insert(adminAuditLog).values({
-        adminUserId: data.detectedBy || 'system',
+        adminUserId: data.investigatedBy || 'system',
         action: 'ban_evasion_detected',
         category: 'content_moderation',
         targetId: data.userId,
         targetType: 'user',
         parameters: { 
-          suspiciousActivity: data.suspiciousActivity,
+          detectionMethod: data.detectionMethod,
           confidenceScore: data.confidenceScore 
         },
         ipAddress: data.ipAddress || ''
@@ -6483,7 +6521,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: banEvasionTracking.id,
       userId: banEvasionTracking.userId,
       ipAddress: banEvasionTracking.ipAddress,
@@ -6513,11 +6551,17 @@ export class DatabaseStorage implements IStorage {
     if (userId) conditions.push(eq(banEvasionTracking.userId, userId));
     // Note: suspiciousActivity parameter removed as field doesn't exist in schema
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
-    return await query.orderBy(desc(banEvasionTracking.createdAt));
+    const results = await query.orderBy(desc(banEvasionTracking.createdAt));
+    
+    // Map null to undefined for optional joined fields to match return type
+    return results.map(r => ({
+      ...r,
+      bannedUser: r.bannedUser || undefined
+    }));
   }
 
   async checkBanEvasion(userId: string, ipAddress: string, deviceFingerprint?: string): Promise<BanEvasionTracking[]> {
@@ -6592,7 +6636,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserAppeals(filters?: { userId?: string; status?: string; reviewedBy?: string }): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User })[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: userAppeals.id,
       userId: userAppeals.userId,
       moderationActionId: userAppeals.moderationActionId,
@@ -6609,6 +6653,7 @@ export class DatabaseStorage implements IStorage {
       isUserNotified: userAppeals.isUserNotified,
       canReappeal: userAppeals.canReappeal,
       reappealCooldownUntil: userAppeals.reappealCooldownUntil,
+      resolvedAt: userAppeals.resolvedAt,
       createdAt: userAppeals.createdAt,
       updatedAt: userAppeals.updatedAt,
       user: alias(users, 'user'),
@@ -6622,14 +6667,21 @@ export class DatabaseStorage implements IStorage {
 
     const conditions = [];
     if (filters?.userId) conditions.push(eq(userAppeals.userId, filters.userId));
-    if (filters?.status) conditions.push(eq(userAppeals.status, filters.status));
+    if (filters?.status) conditions.push(eq(userAppeals.status, filters.status as any));
     if (filters?.reviewedBy) conditions.push(eq(userAppeals.reviewedBy, filters.reviewedBy));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0 
+      ? baseQuery.where(and(...conditions))
+      : baseQuery;
 
-    return await query.orderBy(desc(userAppeals.createdAt));
+    const results = await query.orderBy(desc(userAppeals.createdAt));
+    
+    // Map null to undefined for optional joined fields to match return type
+    return results.map(r => ({
+      ...r,
+      moderationAction: r.moderationAction || undefined,
+      reviewer: r.reviewer || undefined
+    }));
   }
 
   async getUserAppeal(id: string): Promise<(UserAppeal & { user: User; moderationAction?: ModerationAction; reviewer?: User }) | undefined> {
@@ -6682,7 +6734,7 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation template operations
   async getModerationTemplates(category?: string): Promise<Array<Omit<ModerationTemplate, 'createdBy'> & { createdBy: User }>> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: moderationTemplates.id,
       name: moderationTemplates.name,
       category: moderationTemplates.category,
@@ -6699,9 +6751,9 @@ export class DatabaseStorage implements IStorage {
     .from(moderationTemplates)
     .innerJoin(users, eq(moderationTemplates.createdBy, users.id));
 
-    if (category) {
-      query = query.where(eq(moderationTemplates.category, category));
-    }
+    const query = category 
+      ? baseQuery.where(eq(moderationTemplates.category, category))
+      : baseQuery;
 
     return await query;
   }
