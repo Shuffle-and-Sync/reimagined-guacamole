@@ -4467,7 +4467,7 @@ export class DatabaseStorage implements IStorage {
       return {
         ...sessionResult.session,
         host: sessionResult.host!,
-        community: sessionResult.community,
+        community: sessionResult.community || undefined,
         coHosts,
         platforms
       };
@@ -5250,6 +5250,7 @@ export class DatabaseStorage implements IStorage {
       id: userRoles.id,
       userId: userRoles.userId,
       role: userRoles.role,
+      communityId: userRoles.communityId,
       permissions: userRoles.permissions,
       isActive: userRoles.isActive,
       assignedBy: userRoles.assignedBy,
@@ -5281,11 +5282,17 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(userReputation.userId, userId))
         .returning();
+      if (!updated) {
+        throw new Error('Failed to update user reputation');
+      }
       return updated;
     } else {
       const [created] = await db.insert(userReputation)
         .values({ userId, ...data } as InsertUserReputation)
         .returning();
+      if (!created) {
+        throw new Error('Failed to create user reputation');
+      }
       return created;
     }
   }
@@ -5380,7 +5387,7 @@ export class DatabaseStorage implements IStorage {
     calculatedScore -= recentViolationPenalty;
 
     // === LEVEL DETERMINATION ===
-    let newLevel = "new";
+    let newLevel: "new" | "trusted" | "veteran" | "flagged" | "restricted" = "new";
     if (calculatedScore >= 300 && accountAgeMonths >= 6) {
       newLevel = "veteran";
     } else if (calculatedScore >= 200 && accountAgeMonths >= 2) {
@@ -5537,6 +5544,10 @@ export class DatabaseStorage implements IStorage {
   async createContentReport(data: InsertContentReport): Promise<ContentReport> {
     const [report] = await db.insert(contentReports).values(data).returning();
     
+    if (!report) {
+      throw new Error('Failed to create content report');
+    }
+    
     // Record positive action for user who submitted the report
     if (data.reporterUserId) {
       await this.recordPositiveAction(data.reporterUserId, 'content_report_submitted', {
@@ -5547,12 +5558,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Add to moderation queue if auto-flagged or high priority
-    if (data.reportSource === 'auto_flagged' || data.priority === 'high' || data.priority === 'critical') {
+    if (data.isSystemGenerated || data.priority === 'high' || data.priority === 'urgent') {
+      // Map priority strings to numbers (1-10 scale)
+      const priorityMap: Record<string, number> = {
+        low: 3,
+        medium: 5,
+        high: 7,
+        urgent: 9
+      };
+      
       await this.addToModerationQueue({
-        itemType: 'content_report',
+        itemType: 'report',
         itemId: report.id,
-        priority: data.priority || 'medium',
-        description: `${data.reason}: ${data.contentType} reported`,
+        priority: priorityMap[data.priority || 'medium'],
+        summary: `${data.reason}: ${data.contentType} reported`,
         metadata: { contentType: data.contentType, contentId: data.contentId }
       });
     }    
@@ -5650,8 +5669,10 @@ export class DatabaseStorage implements IStorage {
       await this.createAuditLog({
         adminUserId: moderatorId,
         action: 'content_report_resolved',
-        targetUserId: '',
-        details: { reportId, resolution, actionTaken },
+        targetId: reportId,
+        targetType: 'content_report',
+        category: 'content_moderation',
+        parameters: { reportId, resolution, actionTaken },
         ipAddress: ''
       });
     }
@@ -5663,16 +5684,21 @@ export class DatabaseStorage implements IStorage {
   async createModerationAction(data: InsertModerationAction): Promise<ModerationAction> {
     const [action] = await db.insert(moderationActions).values(data).returning();
     
+    if (!action) {
+      throw new Error('Failed to create moderation action');
+    }
+    
     // Record negative action for the target user based on severity
     if (data.targetUserId) {
       let severity: 'minor' | 'moderate' | 'severe' = 'moderate';
       
       // Determine severity based on action type
-      if (data.action === 'warning' || data.action === 'content_removal') {
+      // Valid actions: warn, mute, restrict, shadowban, ban, unban, content_remove, account_suspend, note, unmute
+      if (data.action === 'warn' || data.action === 'content_remove' || data.action === 'note') {
         severity = 'minor';
-      } else if (data.action === 'temporary_ban' || data.action === 'mute') {
+      } else if (data.action === 'mute' || data.action === 'restrict' || data.action === 'unmute') {
         severity = 'moderate';
-      } else if (data.action === 'permanent_ban' || data.action === 'shadowban') {
+      } else if (data.action === 'ban' || data.action === 'shadowban' || data.action === 'account_suspend') {
         severity = 'severe';
       }
       
@@ -5687,8 +5713,10 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.moderatorId,
       action: 'moderation_action_created',
-      targetUserId: data.targetUserId,
-      details: { 
+      category: 'content_moderation',
+      targetId: data.targetUserId,
+      targetType: 'user',
+      parameters: { 
         actionType: data.action, 
         reason: data.reason,
         duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
@@ -5713,16 +5741,17 @@ export class DatabaseStorage implements IStorage {
       targetUserId: moderationActions.targetUserId,
       action: moderationActions.action,
       reason: moderationActions.reason,
-      details: (moderationActions as any).details,
+      duration: moderationActions.duration,
+      metadata: moderationActions.metadata,
       isActive: moderationActions.isActive,
-      severity: (moderationActions as any).severity,
-      publicReason: (moderationActions as any).publicReason,
-      internalNotes: (moderationActions as any).internalNotes,
-      appealable: (moderationActions as any).appealable,
+      isReversible: moderationActions.isReversible,
+      isPublic: moderationActions.isPublic,
       relatedContentType: moderationActions.relatedContentType,
       relatedContentId: moderationActions.relatedContentId,
-      evidence: (moderationActions as any).evidence,
-      metadata: moderationActions.metadata,
+      relatedReportId: moderationActions.relatedReportId,
+      ipAddress: moderationActions.ipAddress,
+      userAgent: moderationActions.userAgent,
+      adminNotes: moderationActions.adminNotes,
       reversedBy: moderationActions.reversedBy,
       reversedAt: moderationActions.reversedAt,
       reversalReason: moderationActions.reversalReason,
@@ -5772,16 +5801,21 @@ export class DatabaseStorage implements IStorage {
       .where(eq(moderationActions.id, id))
       .returning();
 
+    if (!reversed) {
+      throw new Error('Failed to reverse moderation action');
+    }
+
     await this.createAuditLog({
       adminUserId: reversedBy,
       action: 'moderation_action_reversed',
-      targetUserId: reversed.targetUserId,
-      details: { moderationActionId: id, reason },
+      targetId: reversed.targetUserId,
+      targetType: 'user',
+      category: 'content_moderation',
+      parameters: { moderationActionId: id, reason },
       ipAddress: ''
     });    
-    if (!reversed) {
-      throw new Error('Database operation failed');
-    }
+    
+    return reversed;
     return reversed;
   }
 
@@ -5928,7 +5962,8 @@ export class DatabaseStorage implements IStorage {
     const [completed] = await db.update(moderationQueue)
       .set({ 
         status: 'completed', 
-        resolution, 
+        resolution,
+        ...(actionTaken && { actionTaken }),
         completedAt: new Date() 
       })
       .where(eq(moderationQueue.id, id))
@@ -6105,7 +6140,6 @@ export class DatabaseStorage implements IStorage {
       try {
         const [escalated] = await db.update(moderationQueue)
           .set({ 
-            escalationLevel: (item.escalationLevel || 0) + 1,
             priority: Math.min((item.priority || 5) + 2, 10) // Increase priority by 2, max 10
           })
           .where(eq(moderationQueue.id, item.id))
@@ -6291,20 +6325,19 @@ export class DatabaseStorage implements IStorage {
   async createCmsContent(data: InsertCmsContent): Promise<CmsContent> {
     const [content] = await db.insert(cmsContent).values(data).returning();
     
+    if (!content) {
+      throw new Error('Failed to create CMS content');
+    }
+    
     await this.createAuditLog({
       adminUserId: data.authorId,
       action: 'cms_content_created',
-      targetUserId: '',
-      details: { contentType: data.type, title: data.title },
+      targetId: content.id,
+      targetType: 'cms_content',
+      category: 'content_moderation',
+      parameters: { contentType: data.type, title: data.title },
       ipAddress: ''
     });    
-    
-    
-    if (!content) {
-    
-      throw new Error('Database operation failed');
-    
-    }
     
     return content;
   }
@@ -6316,12 +6349,18 @@ export class DatabaseStorage implements IStorage {
         .where(eq(cmsContent.id, id))
         .returning();
       
+      if (!updated) {
+        throw new Error('Failed to update CMS content');
+      }
+      
       if (data.lastEditedBy) {
         await tx.insert(adminAuditLog).values({
           adminUserId: data.lastEditedBy,
           action: 'cms_content_updated',
-          targetUserId: '',
-          details: { contentId: id, changes: data },
+          category: 'content_moderation',
+          targetId: id,
+          targetType: 'cms_content',
+          parameters: { contentId: id, changes: data },
           ipAddress: ''
         });
       }
@@ -6342,11 +6381,17 @@ export class DatabaseStorage implements IStorage {
         .where(eq(cmsContent.id, id))
         .returning();
       
+      if (!published) {
+        throw new Error('Failed to publish CMS content');
+      }
+      
       await tx.insert(adminAuditLog).values({
         adminUserId: publisherId,
         action: 'cms_content_published',
-        targetUserId: '',
-        details: { contentId: id, title: published.title },
+        category: 'content_moderation',
+        targetId: id,
+        targetType: 'cms_content',
+        parameters: { contentId: id, title: published.title },
         ipAddress: ''
       });
       
@@ -6423,8 +6468,10 @@ export class DatabaseStorage implements IStorage {
       await tx.insert(adminAuditLog).values({
         adminUserId: data.detectedBy || 'system',
         action: 'ban_evasion_detected',
-        targetUserId: data.userId,
-        details: { 
+        category: 'content_moderation',
+        targetId: data.userId,
+        targetType: 'user',
+        parameters: { 
           suspiciousActivity: data.suspiciousActivity,
           confidenceScore: data.confidenceScore 
         },
@@ -6436,37 +6483,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBanEvasionRecords(userId?: string, suspiciousActivity?: boolean): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
-    // Note: Some fields below may not exist in the actual schema yet - using type assertion
-    const banEvasionAny = banEvasionTracking as any;
     let query = db.select({
       id: banEvasionTracking.id,
       userId: banEvasionTracking.userId,
-      bannedUserId: banEvasionAny.bannedUserId,
       ipAddress: banEvasionTracking.ipAddress,
-      deviceFingerprint: banEvasionAny.deviceFingerprint,
-      suspiciousActivity: banEvasionAny.suspiciousActivity,
-      confidenceScore: banEvasionTracking.confidenceScore,
-      status: banEvasionAny.status,
-      detectedBy: banEvasionAny.detectedBy,
-      reviewedBy: banEvasionAny.reviewedBy,
-      reviewedAt: banEvasionAny.reviewedAt,
-      reviewNotes: banEvasionAny.reviewNotes,
-      actionTaken: banEvasionAny.actionTaken,
-      metadata: banEvasionAny.metadata,
-      evidence: banEvasionAny.evidence,
-      relatedAccounts: banEvasionAny.relatedAccounts,
+      hashedFingerprint: banEvasionTracking.hashedFingerprint,
+      userAgent: banEvasionTracking.userAgent,
+      screenResolution: banEvasionTracking.screenResolution,
+      timezone: banEvasionTracking.timezone,
+      language: banEvasionTracking.language,
+      loginPatterns: banEvasionTracking.loginPatterns,
+      activitySignature: banEvasionTracking.activitySignature,
       detectionMethod: banEvasionTracking.detectionMethod,
+      confidenceScore: banEvasionTracking.confidenceScore,
+      relatedBannedUser: banEvasionTracking.relatedBannedUser,
+      status: banEvasionTracking.status,
+      investigatedBy: banEvasionTracking.investigatedBy,
+      investigatedAt: banEvasionTracking.investigatedAt,
+      notes: banEvasionTracking.notes,
       createdAt: banEvasionTracking.createdAt,
       user: alias(users, 'user'),
       bannedUser: alias(users, 'bannedUser')
     })
     .from(banEvasionTracking)
     .innerJoin(alias(users, 'user'), eq(banEvasionTracking.userId, alias(users, 'user').id))
-    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.bannedUserId, alias(users, 'bannedUser').id));
+    .leftJoin(alias(users, 'bannedUser'), eq(banEvasionTracking.relatedBannedUser, alias(users, 'bannedUser').id));
 
     const conditions = [];
     if (userId) conditions.push(eq(banEvasionTracking.userId, userId));
-    if (suspiciousActivity !== undefined) conditions.push(eq(banEvasionTracking.suspiciousActivity, suspiciousActivity));
+    // Note: suspiciousActivity parameter removed as field doesn't exist in schema
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -6483,7 +6528,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (deviceFingerprint) {
-      conditions.push(eq(banEvasionTracking.deviceFingerprint, deviceFingerprint));
+      conditions.push(eq(banEvasionTracking.hashedFingerprint, deviceFingerprint));
     }
 
     return await db.select().from(banEvasionTracking)
@@ -6491,20 +6536,22 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(banEvasionTracking.createdAt));
   }
 
-  async updateBanEvasionStatus(id: string, status: string, reviewedBy?: string): Promise<BanEvasionTracking> {
+  async updateBanEvasionStatus(id: string, status: "flagged" | "investigating" | "confirmed" | "false_positive", investigatedBy?: string): Promise<BanEvasionTracking> {
     const updateData: Partial<InsertBanEvasionTracking> = {
       status,
-      reviewedAt: new Date()
+      investigatedAt: new Date()
     };
     
-    if (reviewedBy) {
-      updateData.reviewedBy = reviewedBy;
+    if (investigatedBy) {
+      updateData.investigatedBy = investigatedBy;
       
       await this.createAuditLog({
-        adminUserId: reviewedBy,
+        adminUserId: investigatedBy,
         action: 'ban_evasion_reviewed',
-        targetUserId: '',
-        details: { banEvasionId: id, newStatus: status },
+        category: 'content_moderation',
+        targetId: id,
+        targetType: 'ban_evasion_tracking',
+        parameters: { banEvasionId: id, newStatus: status },
         ipAddress: ''
       });
     }
@@ -6514,6 +6561,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(banEvasionTracking.id, id))
       .returning();
     
+    if (!updated) {
+      throw new Error('Failed to update ban evasion status');
+    }
+    
     return updated;
   }
 
@@ -6522,11 +6573,17 @@ export class DatabaseStorage implements IStorage {
     return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [appeal] = await tx.insert(userAppeals).values(data).returning();
       
+      if (!appeal) {
+        throw new Error('Failed to create user appeal');
+      }
+      
       await tx.insert(adminAuditLog).values({
         adminUserId: 'system',
         action: 'user_appeal_created',
-        targetUserId: data.userId,
-        details: { appealType: data.appealType, reason: data.reason },
+        category: 'content_moderation',
+        targetId: data.userId,
+        targetType: 'user',
+        parameters: { reason: data.reason },
         ipAddress: ''
       });
       
@@ -6601,13 +6658,7 @@ export class DatabaseStorage implements IStorage {
     return await this.updateUserAppeal(appealId, updateData);
   }
 
-  async resolveUserAppeal(appealId: string, decision: string, reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
-    // Validate decision value
-    const validDecisions = ['approve', 'deny', 'partial_approve'] as const;
-    if (!validDecisions.includes(decision as any)) {
-      throw new Error(`Invalid decision: ${decision}. Must be one of: ${validDecisions.join(', ')}`);
-    }
-
+  async resolveUserAppeal(appealId: string, decision: "approve" | "deny" | "partial_approve", reviewerNotes?: string, reviewerId?: string): Promise<UserAppeal> {
     const updateData: Partial<InsertUserAppeal> = {
       status: 'resolved',
       decision,
@@ -6664,6 +6715,10 @@ export class DatabaseStorage implements IStorage {
     return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
       const [template] = await tx.insert(moderationTemplates).values(data).returning();
       
+      if (!template) {
+        throw new Error('Failed to create moderation template');
+      }
+      
       await tx.insert(adminAuditLog).values({
         adminUserId: data.createdBy,
         action: 'moderation_template_created',
@@ -6683,6 +6738,10 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(moderationTemplates.id, id))
         .returning();
+      
+      if (!updated) {
+        throw new Error('Failed to update moderation template');
+      }
       
       if (data.createdBy) {
         await tx.insert(adminAuditLog).values({
