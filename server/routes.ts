@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "./auth";
+import { isAuthenticated, getAuthUserId, requireHybridAuth, type AuthenticatedRequest } from "./auth";
 import { 
   insertCommunitySchema, 
   insertEventSchema, 
@@ -1383,8 +1383,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store pending TOTP secret in session with 10-minute expiry
       const pendingData = {
         secret: setupData.secret,
-        expiresAt: Date.now() + (10 * 60 * 1000), // 10 minutes
-        userId
+        qrCodeUrl: setupData.qrCodeUrl,
+        manualEntryKey: setupData.manualEntryKey,
+        userId,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + (10 * 60 * 1000) // 10 minutes
       };
       
       // Store in session for production-ready distributed deployments
@@ -1818,7 +1821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // CRITICAL SECURITY: Implement refresh token rotation
       // 1. Generate new refresh token ID and JWT
       const newRefreshTokenId = generateRefreshTokenId();
-      const newRefreshTokenJWT = await generateRefreshTokenJWT(user.id, newRefreshTokenId);
+      const newRefreshTokenJWT = await generateRefreshTokenJWT(user.id, user.email, newRefreshTokenId);
       
       // 2. Generate new access token
       const newAccessToken = await generateAccessTokenJWT(user.id, user.email);
@@ -2072,7 +2075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Send verification email
-        emailSent = await sendEmailVerificationEmail(normalizedEmail, verificationToken);
+        const baseUrl = process.env.AUTH_URL || process.env.PUBLIC_WEB_URL || 'https://shuffleandsync.org';
+        emailSent = await sendEmailVerificationEmail(normalizedEmail, verificationToken, baseUrl);
         
         if (!emailSent) {
           logger.error('Failed to send verification email during registration', { 
@@ -2793,7 +2797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'event_join',
           title: 'Player Joined Game',
-          message: `${user?.name || user?.email} joined your game session`,
+          message: `${user?.name || user?.email || 'A player'} joined your game session`,
           data: { gameSessionId: id, playerId: userId },
         });
       }
@@ -2838,7 +2842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'event_leave',
           title: 'Player Left Game',
-          message: `${user?.name || user?.email} left your game session`,
+          message: `${user?.name || user?.email || 'A player'} left your game session`,
           data: { gameSessionId: id, playerId: userId },
         });
       }
@@ -2865,7 +2869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: gameSession[0].hostId,
           type: 'spectator_join',
           title: 'New Spectator',
-          message: `${user?.name || user?.email} is now spectating your game`,
+          message: `${user?.name || user?.email || 'Someone'} is now spectating your game`,
           data: { gameSessionId: id, spectatorId: userId },
         });
       }
