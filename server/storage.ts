@@ -4467,7 +4467,7 @@ export class DatabaseStorage implements IStorage {
       return {
         ...sessionResult.session,
         host: sessionResult.host!,
-        community: sessionResult.community,
+        community: sessionResult.community || undefined,
         coHosts,
         platforms
       };
@@ -5250,6 +5250,7 @@ export class DatabaseStorage implements IStorage {
       id: userRoles.id,
       userId: userRoles.userId,
       role: userRoles.role,
+      communityId: userRoles.communityId,
       permissions: userRoles.permissions,
       isActive: userRoles.isActive,
       assignedBy: userRoles.assignedBy,
@@ -5281,11 +5282,17 @@ export class DatabaseStorage implements IStorage {
         .set({ ...data, updatedAt: new Date() })
         .where(eq(userReputation.userId, userId))
         .returning();
+      if (!updated) {
+        throw new Error('Failed to update user reputation');
+      }
       return updated;
     } else {
       const [created] = await db.insert(userReputation)
         .values({ userId, ...data } as InsertUserReputation)
         .returning();
+      if (!created) {
+        throw new Error('Failed to create user reputation');
+      }
       return created;
     }
   }
@@ -5537,6 +5544,10 @@ export class DatabaseStorage implements IStorage {
   async createContentReport(data: InsertContentReport): Promise<ContentReport> {
     const [report] = await db.insert(contentReports).values(data).returning();
     
+    if (!report) {
+      throw new Error('Failed to create content report');
+    }
+    
     // Record positive action for user who submitted the report
     if (data.reporterUserId) {
       await this.recordPositiveAction(data.reporterUserId, 'content_report_submitted', {
@@ -5547,12 +5558,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Add to moderation queue if auto-flagged or high priority
-    if (data.reportSource === 'auto_flagged' || data.priority === 'high' || data.priority === 'critical') {
+    if (data.isSystemGenerated || data.priority === 'high' || data.priority === 'urgent') {
+      // Map priority strings to numbers (1-10 scale)
+      const priorityMap: Record<string, number> = {
+        low: 3,
+        medium: 5,
+        high: 7,
+        urgent: 9
+      };
+      
       await this.addToModerationQueue({
-        itemType: 'content_report',
+        itemType: 'report',
         itemId: report.id,
-        priority: data.priority || 'medium',
-        description: `${data.reason}: ${data.contentType} reported`,
+        priority: priorityMap[data.priority || 'medium'],
+        summary: `${data.reason}: ${data.contentType} reported`,
         metadata: { contentType: data.contentType, contentId: data.contentId }
       });
     }    
@@ -5653,7 +5672,7 @@ export class DatabaseStorage implements IStorage {
         targetId: reportId,
         targetType: 'content_report',
         category: 'content_moderation',
-        details: { reportId, resolution, actionTaken },
+        parameters: { reportId, resolution, actionTaken },
         ipAddress: ''
       });
     }
@@ -5691,7 +5710,7 @@ export class DatabaseStorage implements IStorage {
       adminUserId: data.moderatorId,
       action: 'moderation_action_created',
       targetId: data.targetUserId,
-      details: { 
+      parameters: { 
         actionType: data.action, 
         reason: data.reason,
         duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
@@ -5716,16 +5735,17 @@ export class DatabaseStorage implements IStorage {
       targetUserId: moderationActions.targetUserId,
       action: moderationActions.action,
       reason: moderationActions.reason,
-      details: (moderationActions as any).details,
+      duration: moderationActions.duration,
+      metadata: moderationActions.metadata,
       isActive: moderationActions.isActive,
-      severity: (moderationActions as any).severity,
-      publicReason: (moderationActions as any).publicReason,
-      internalNotes: (moderationActions as any).internalNotes,
-      appealable: (moderationActions as any).appealable,
+      isReversible: moderationActions.isReversible,
+      isPublic: moderationActions.isPublic,
       relatedContentType: moderationActions.relatedContentType,
       relatedContentId: moderationActions.relatedContentId,
-      evidence: (moderationActions as any).evidence,
-      metadata: moderationActions.metadata,
+      relatedReportId: moderationActions.relatedReportId,
+      ipAddress: moderationActions.ipAddress,
+      userAgent: moderationActions.userAgent,
+      adminNotes: moderationActions.adminNotes,
       reversedBy: moderationActions.reversedBy,
       reversedAt: moderationActions.reversedAt,
       reversalReason: moderationActions.reversalReason,
@@ -5781,7 +5801,7 @@ export class DatabaseStorage implements IStorage {
       targetId: reversed.targetUserId,
       targetType: 'user',
       category: 'content_moderation',
-      details: { moderationActionId: id, reason },
+      parameters: { moderationActionId: id, reason },
       ipAddress: ''
     });    
     if (!reversed) {
@@ -6303,7 +6323,7 @@ export class DatabaseStorage implements IStorage {
       targetId: content.id,
       targetType: 'cms_content',
       category: 'content_moderation',
-      details: { contentType: data.type, title: data.title },
+      parameters: { contentType: data.type, title: data.title },
       ipAddress: ''
     });    
     
@@ -6331,7 +6351,7 @@ export class DatabaseStorage implements IStorage {
           category: 'content_moderation',
           targetId: id,
           targetType: 'cms_content',
-          details: { contentId: id, changes: data },
+          parameters: { contentId: id, changes: data },
           ipAddress: ''
         });
       }
@@ -6358,7 +6378,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'cms_content',
-        details: { contentId: id, title: published.title },
+        parameters: { contentId: id, title: published.title },
         ipAddress: ''
       });
       
@@ -6438,7 +6458,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: data.userId,
         targetType: 'user',
-        details: { 
+        parameters: { 
           suspiciousActivity: data.suspiciousActivity,
           confidenceScore: data.confidenceScore 
         },
@@ -6520,7 +6540,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'ban_evasion_tracking',
-        details: { banEvasionId: id, newStatus: status },
+        parameters: { banEvasionId: id, newStatus: status },
         ipAddress: ''
       });
     }
@@ -6544,7 +6564,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: data.userId,
         targetType: 'user',
-        details: { reason: data.reason },
+        parameters: { reason: data.reason },
         ipAddress: ''
       });
       
