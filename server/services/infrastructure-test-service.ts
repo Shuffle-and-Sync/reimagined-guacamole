@@ -187,8 +187,8 @@ class InfrastructureTestService {
       const stats = await cacheService.getStats();
       return { 
         connected: stats.connected, 
-        memoryCache: stats.memoryCache?.enabled || false,
-        stats: stats.stats 
+        keyCount: stats.keyCount,
+        memoryUsage: stats.memoryUsage
       };
     }));
 
@@ -658,7 +658,7 @@ class InfrastructureTestService {
     // Test end-to-end system resilience
     suite.tests.push(await this.runTest('integration', 'system_resilience', async () => {
       // Test that systems work together even when Redis is down
-      const cacheStatus = cacheService.getStatus();
+      const cacheStatus = await cacheService.getStats();
       const monitoringStatus = monitoringService.getStatus();
       const dbConnectivity = await db.execute('SELECT 1');
       
