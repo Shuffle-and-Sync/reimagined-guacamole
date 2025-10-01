@@ -124,12 +124,21 @@ export class NotificationDeliveryService {
 
       const results = await Promise.allSettled(deliveryTasks.map(task => task.promise));
       const deliveryResults: DeliveryResult[] = results.map((result, index) => {
-        const channel = deliveryTasks[index].channel;
+        const task = deliveryTasks[index];
+        if (!task) {
+          // This should never happen since we map over the same array
+          return {
+            channel: 'browser' as keyof NotificationChannels,
+            success: false,
+            error: 'Task not found'
+          };
+        }
+        
         if (result.status === 'fulfilled') {
           return result.value;
         } else {
           return {
-            channel,
+            channel: task.channel,
             success: false,
             error: result.reason?.message || 'Unknown error'
           };
