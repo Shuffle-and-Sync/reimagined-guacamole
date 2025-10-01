@@ -5380,7 +5380,7 @@ export class DatabaseStorage implements IStorage {
     calculatedScore -= recentViolationPenalty;
 
     // === LEVEL DETERMINATION ===
-    let newLevel = "new";
+    let newLevel: "new" | "trusted" | "veteran" | "flagged" | "restricted" = "new";
     if (calculatedScore >= 300 && accountAgeMonths >= 6) {
       newLevel = "veteran";
     } else if (calculatedScore >= 200 && accountAgeMonths >= 2) {
@@ -5650,7 +5650,9 @@ export class DatabaseStorage implements IStorage {
       await this.createAuditLog({
         adminUserId: moderatorId,
         action: 'content_report_resolved',
-        targetUserId: '',
+        targetId: reportId,
+        targetType: 'content_report',
+        category: 'content_moderation',
         details: { reportId, resolution, actionTaken },
         ipAddress: ''
       });
@@ -5668,11 +5670,12 @@ export class DatabaseStorage implements IStorage {
       let severity: 'minor' | 'moderate' | 'severe' = 'moderate';
       
       // Determine severity based on action type
-      if (data.action === 'warning' || data.action === 'content_removal') {
+      // Valid actions: warn, mute, restrict, shadowban, ban, unban, content_remove, account_suspend, note, unmute
+      if (data.action === 'warn' || data.action === 'content_remove' || data.action === 'note') {
         severity = 'minor';
-      } else if (data.action === 'temporary_ban' || data.action === 'mute') {
+      } else if (data.action === 'mute' || data.action === 'restrict' || data.action === 'unmute') {
         severity = 'moderate';
-      } else if (data.action === 'permanent_ban' || data.action === 'shadowban') {
+      } else if (data.action === 'ban' || data.action === 'shadowban' || data.action === 'account_suspend') {
         severity = 'severe';
       }
       
@@ -5687,7 +5690,7 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.moderatorId,
       action: 'moderation_action_created',
-      targetUserId: data.targetUserId,
+      targetId: data.targetUserId,
       details: { 
         actionType: data.action, 
         reason: data.reason,
@@ -5775,7 +5778,9 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: reversedBy,
       action: 'moderation_action_reversed',
-      targetUserId: reversed.targetUserId,
+      targetId: reversed.targetUserId,
+      targetType: 'user',
+      category: 'content_moderation',
       details: { moderationActionId: id, reason },
       ipAddress: ''
     });    
@@ -5928,7 +5933,8 @@ export class DatabaseStorage implements IStorage {
     const [completed] = await db.update(moderationQueue)
       .set({ 
         status: 'completed', 
-        resolution, 
+        resolution,
+        ...(actionTaken && { actionTaken }),
         completedAt: new Date() 
       })
       .where(eq(moderationQueue.id, id))
@@ -6294,7 +6300,9 @@ export class DatabaseStorage implements IStorage {
     await this.createAuditLog({
       adminUserId: data.authorId,
       action: 'cms_content_created',
-      targetUserId: '',
+      targetId: content.id,
+      targetType: 'cms_content',
+      category: 'content_moderation',
       details: { contentType: data.type, title: data.title },
       ipAddress: ''
     });    
@@ -6320,7 +6328,9 @@ export class DatabaseStorage implements IStorage {
         await tx.insert(adminAuditLog).values({
           adminUserId: data.lastEditedBy,
           action: 'cms_content_updated',
-          targetUserId: '',
+          category: 'content_moderation',
+          targetId: id,
+          targetType: 'cms_content',
           details: { contentId: id, changes: data },
           ipAddress: ''
         });
@@ -6345,7 +6355,9 @@ export class DatabaseStorage implements IStorage {
       await tx.insert(adminAuditLog).values({
         adminUserId: publisherId,
         action: 'cms_content_published',
-        targetUserId: '',
+        category: 'content_moderation',
+        targetId: id,
+        targetType: 'cms_content',
         details: { contentId: id, title: published.title },
         ipAddress: ''
       });
@@ -6423,7 +6435,9 @@ export class DatabaseStorage implements IStorage {
       await tx.insert(adminAuditLog).values({
         adminUserId: data.detectedBy || 'system',
         action: 'ban_evasion_detected',
-        targetUserId: data.userId,
+        category: 'content_moderation',
+        targetId: data.userId,
+        targetType: 'user',
         details: { 
           suspiciousActivity: data.suspiciousActivity,
           confidenceScore: data.confidenceScore 
@@ -6503,7 +6517,9 @@ export class DatabaseStorage implements IStorage {
       await this.createAuditLog({
         adminUserId: reviewedBy,
         action: 'ban_evasion_reviewed',
-        targetUserId: '',
+        category: 'content_moderation',
+        targetId: id,
+        targetType: 'ban_evasion_tracking',
         details: { banEvasionId: id, newStatus: status },
         ipAddress: ''
       });
@@ -6525,8 +6541,10 @@ export class DatabaseStorage implements IStorage {
       await tx.insert(adminAuditLog).values({
         adminUserId: 'system',
         action: 'user_appeal_created',
-        targetUserId: data.userId,
-        details: { appealType: data.appealType, reason: data.reason },
+        category: 'content_moderation',
+        targetId: data.userId,
+        targetType: 'user',
+        details: { reason: data.reason },
         ipAddress: ''
       });
       
