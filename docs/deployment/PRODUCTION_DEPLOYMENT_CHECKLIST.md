@@ -61,7 +61,6 @@ This comprehensive checklist ensures a successful production deployment of Shuff
 ### 6. Security Configuration
 - [ ] **Security Settings Verified**
   - [ ] Strong `AUTH_SECRET` generated (64+ characters)
-  - [ ] `SESSION_SECRET` different from `AUTH_SECRET`
   - [ ] CORS origins properly configured
   - [ ] Rate limiting settings appropriate for production
   - [ ] HTTPS redirect enabled
