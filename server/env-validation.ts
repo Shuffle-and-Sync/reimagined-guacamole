@@ -24,6 +24,23 @@ const RECOMMENDED_VARS = [
   'TWITCH_CLIENT_SECRET',
   'YOUTUBE_API_KEY',
   'DISCORD_BOT_TOKEN',
+  'SENTRY_DSN',
+  'DATABASE_DIRECT_URL',
+  'AUTH_TRUST_HOST',
+  'LOG_LEVEL',
+  'ALLOWED_ORIGINS',
+] as const;
+
+// Define optional platform integration variables
+const OPTIONAL_PLATFORM_VARS = [
+  'FACEBOOK_APP_ID',
+  'FACEBOOK_APP_SECRET',
+  'FACEBOOK_WEBHOOK_VERIFY_TOKEN',
+  'YOUTUBE_CLIENT_ID',
+  'YOUTUBE_CLIENT_SECRET',
+  'YOUTUBE_WEBHOOK_VERIFY_TOKEN',
+  'TWITCH_EVENTSUB_SECRET',
+  'SENDGRID_SENDER',
 ] as const;
 
 // Define environment variables with specific validation rules
@@ -129,6 +146,94 @@ const VALIDATION_RULES = {
       throw new Error('NODE_ENV must be one of: development, production, test');
     }
     return true;
+  },
+  DATABASE_DIRECT_URL: (value: string) => {
+    // Same validation as DATABASE_URL
+    if (!value.startsWith('postgres://') && 
+        !value.startsWith('postgresql://') && 
+        !value.startsWith('prisma+postgres://')) {
+      throw new Error('DATABASE_DIRECT_URL must be a valid PostgreSQL connection string (postgres:// or postgresql:// or prisma+postgres://)');
+    }
+    return true;
+  },
+  AUTH_TRUST_HOST: (value: string) => {
+    const lowerValue = value.toLowerCase();
+    if (!['true', 'false', '1', '0'].includes(lowerValue)) {
+      throw new Error('AUTH_TRUST_HOST must be a boolean value (true, false, 1, or 0)');
+    }
+    return true;
+  },
+  LOG_LEVEL: (value: string) => {
+    if (!['error', 'warn', 'info', 'debug'].includes(value.toLowerCase())) {
+      throw new Error('LOG_LEVEL must be one of: error, warn, info, debug');
+    }
+    return true;
+  },
+  ALLOWED_ORIGINS: (value: string) => {
+    // Check if it's a comma-separated list of valid URLs or *
+    if (value === '*') {
+      return true;
+    }
+    const origins = value.split(',').map(o => o.trim());
+    for (const origin of origins) {
+      if (origin === '') continue;
+      try {
+        new URL(origin);
+      } catch {
+        throw new Error(`ALLOWED_ORIGINS contains invalid URL: ${origin}. Must be comma-separated valid URLs or "*"`);
+      }
+    }
+    return true;
+  },
+  FACEBOOK_APP_ID: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('FACEBOOK_APP_ID must be a valid Facebook app ID from Facebook Developer Console');
+    }
+    return true;
+  },
+  FACEBOOK_APP_SECRET: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('FACEBOOK_APP_SECRET must be a valid Facebook app secret from Facebook Developer Console');
+    }
+    return true;
+  },
+  FACEBOOK_WEBHOOK_VERIFY_TOKEN: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 16)) {
+      throw new Error('FACEBOOK_WEBHOOK_VERIFY_TOKEN must be a secure random token (16+ characters)');
+    }
+    return true;
+  },
+  YOUTUBE_CLIENT_ID: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('YOUTUBE_CLIENT_ID must be a valid YouTube OAuth client ID from Google Cloud Console');
+    }
+    return true;
+  },
+  YOUTUBE_CLIENT_SECRET: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('YOUTUBE_CLIENT_SECRET must be a valid YouTube OAuth client secret from Google Cloud Console');
+    }
+    return true;
+  },
+  YOUTUBE_WEBHOOK_VERIFY_TOKEN: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 16)) {
+      throw new Error('YOUTUBE_WEBHOOK_VERIFY_TOKEN must be a secure random token (16+ characters)');
+    }
+    return true;
+  },
+  TWITCH_EVENTSUB_SECRET: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 16)) {
+      throw new Error('TWITCH_EVENTSUB_SECRET must be a secure random token (16+ characters). Generate with: openssl rand -hex 16');
+    }
+    return true;
+  },
+  SENDGRID_SENDER: (value: string) => {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (value && !emailRegex.test(value)) {
+      throw new Error('SENDGRID_SENDER must be a valid email address (e.g., noreply@yourdomain.com)');
+    }
+    return true;
   }
 } as const;
 
@@ -218,6 +323,25 @@ export function validateEnvironmentVariables(): EnvValidationResult {
     if (!value || value.trim() === '') {
       missingRecommended.push(varName);
       warnings.push(`Recommended environment variable ${varName} is not set`);
+      continue;
+    }
+
+    // Apply specific validation rules if they exist
+    if (varName in VALIDATION_RULES) {
+      try {
+        VALIDATION_RULES[varName as keyof typeof VALIDATION_RULES](value);
+      } catch (error) {
+        warnings.push(`${varName}: ${(error as Error).message}`);
+      }
+    }
+  }
+
+  // Check optional platform integration variables (only validate if set)
+  for (const varName of OPTIONAL_PLATFORM_VARS) {
+    const value = process.env[varName];
+    
+    // Skip if not set (these are truly optional)
+    if (!value || value.trim() === '') {
       continue;
     }
 
@@ -409,6 +533,7 @@ export function getEnvironmentVariableDefinitions() {
       development: [...REQUIRED_DEVELOPMENT_VARS]
     },
     recommended: [...RECOMMENDED_VARS],
+    optionalPlatforms: [...OPTIONAL_PLATFORM_VARS],
     hasValidation: Object.keys(VALIDATION_RULES)
   };
 }
