@@ -59,18 +59,29 @@ The Shuffle & Sync authentication system successfully implements **dual authenti
 
 ## Test Coverage
 
-Created comprehensive test suite: `server/tests/features/auth-credentials-oauth.test.ts`
+Created comprehensive test suites:
 
-**Tests**: 24 total, all passing ✅
+1. **`server/tests/features/auth-credentials-oauth.test.ts`** - 24 tests ✅
+   - Custom credentials authentication (4 tests)
+   - Google OAuth authentication (3 tests)
+   - Authentication flow conflicts (3 tests)
+   - Security and rate limiting (3 tests)
+   - Session management (3 tests)
+   - Error messages and user guidance (4 tests)
+   - Registration flow (4 tests)
 
-Categories tested:
-- Custom credentials authentication (4 tests)
-- Google OAuth authentication (3 tests)
-- Authentication flow conflicts (3 tests)
-- Security and rate limiting (3 tests)
-- Session management (3 tests)
-- Error messages and user guidance (4 tests)
-- Registration flow (4 tests)
+2. **`server/tests/features/registration-login-integration.test.ts`** - 33 tests ✅ (NEW)
+   - Custom credentials registration flow (6 tests)
+   - Custom credentials login flow (9 tests)
+   - Google OAuth registration and login flow (5 tests)
+   - Email verification flow (4 tests)
+   - Complete registration → verification → login flow (1 test)
+   - Error handling and edge cases (5 tests)
+   - Session management (3 tests)
+
+**Total**: 57 authentication tests, all passing ✅
+
+**Detailed Test Findings**: See `REGISTRATION_LOGIN_TEST_FINDINGS.md` for comprehensive test results, API behavior documentation, and user flow verification.
 
 ## Code References
 
