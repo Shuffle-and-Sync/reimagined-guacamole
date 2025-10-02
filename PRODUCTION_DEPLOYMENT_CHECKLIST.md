@@ -446,7 +446,7 @@ npm run env:validate
 
 - **Detailed Deployment Guide**: [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
 - **GCP-Specific Checklist**: [docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
-- **Security Improvements**: [docs/deployment/SECURITY_IMPROVEMENTS.md](docs/deployment/SECURITY_IMPROVEMENTS.md)
+- **Security Improvements**: [docs/SECURITY_IMPROVEMENTS.md](docs/SECURITY_IMPROVEMENTS.md)
 - **Environment Template**: [.env.production.template](.env.production.template)
 - **Deployment Scripts**: [scripts/](scripts/)
 - **Monitoring Configuration**: [monitoring/](monitoring/)
