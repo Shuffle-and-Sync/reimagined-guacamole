@@ -241,8 +241,52 @@ All identified security vulnerabilities have been addressed with enterprise-grad
 - ✅ **Code Quality:** Zero TypeScript compilation errors
 - ✅ **Test Coverage:** Comprehensive security test suites
 - ✅ **Documentation:** Complete security implementation documentation
+- ✅ **Admin Access Control:** Master administrator account setup and verification
 
 The application now meets enterprise security standards with comprehensive protection against common vulnerabilities.
+
+## Administrator Account Security
+
+### Master Admin Account Setup
+
+A comprehensive administrator account management system has been implemented to ensure secure access control:
+
+**Features:**
+- Environment-based admin configuration (`MASTER_ADMIN_EMAIL`, `MASTER_ADMIN_PASSWORD`)
+- Automated admin account initialization (`npm run admin:init`)
+- Admin account verification utility (`npm run admin:verify`)
+- Super admin role with all permissions (`super_admin:all`)
+- Support for both OAuth and credentials authentication
+- Email pre-verification for admin accounts
+- Comprehensive audit logging of admin actions
+
+**Security Best Practices:**
+- Use dedicated admin email addresses
+- Enable MFA for admin accounts (recommended)
+- Use OAuth (Google) authentication for maximum security
+- If using password authentication, enforce 12+ character minimum
+- Store admin credentials in password managers
+- Rotate admin credentials every 90 days
+- Monitor admin access via audit logs
+
+**Documentation:**
+- Complete admin setup guide: `docs/ADMIN_SETUP.md`
+- Production deployment includes admin initialization
+- API endpoints for admin status verification
+
+**API Endpoints:**
+- `GET /api/admin/system/status` - Check admin configuration status
+- `POST /api/admin/system/verify-admin` - Comprehensive admin verification
+
+### Admin Role Hierarchy
+
+1. **Super Admin** (`super_admin`) - Full system access, all permissions
+2. **Admin** (`admin`) - Most administrative functions
+3. **Trust & Safety** (`trust_safety`) - User safety and ban management
+4. **Moderator** (`moderator`) - Content moderation
+5. **Community Manager** (`community_manager`) - CMS and analytics
+
+See `server/admin/admin.middleware.ts` for complete role and permission definitions.
 ```
 
 **Impact:** Prevents credential and sensitive data exposure in logs.
