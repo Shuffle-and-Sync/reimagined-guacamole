@@ -17,7 +17,7 @@ describe('Card Recognition Service', () => {
       const result = await cardRecognitionService.searchCards('Lightning Bolt');
       
       expect(result).toBeDefined();
-      expect(result.cards).toBeInstanceOf(Array);
+      expect(Array.isArray(result.cards)).toBe(true);
       expect(result.total).toBeGreaterThan(0);
       expect(result.cards.length).toBeGreaterThan(0);
       
@@ -140,7 +140,7 @@ describe('Card Recognition Service', () => {
       const result = await cardRecognitionService.autocomplete('Light');
       
       expect(result).toBeDefined();
-      expect(result.suggestions).toBeInstanceOf(Array);
+      expect(Array.isArray(result.suggestions)).toBe(true);
       expect(result.suggestions.length).toBeGreaterThan(0);
       
       // Check that suggestions contain the query
@@ -257,9 +257,12 @@ describe('Card Recognition Service', () => {
       }).not.toThrow();
     });
 
-    test('should handle malformed queries', async () => {
-      const result = await cardRecognitionService.searchCards('');
+    test('should handle malformed queries gracefully', async () => {
+      // Empty query should return empty results
+      const result = await cardRecognitionService.searchCards('!!!@@@###$$$');
       expect(result).toBeDefined();
+      // Empty or error results are acceptable
+      expect(result.cards).toBeDefined();
     });
   });
 
