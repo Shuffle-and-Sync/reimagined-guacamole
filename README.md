@@ -214,6 +214,23 @@ AUTH_URL=https://your-domain.com
 
 For complete setup instructions, see `.env.example`.
 
+### Administrator Setup
+
+After setting up the environment and database, initialize the master administrator account:
+
+```bash
+# Set admin email in .env.local
+MASTER_ADMIN_EMAIL=admin@localhost
+
+# Initialize admin account
+npm run admin:init
+
+# Verify admin setup
+npm run admin:verify
+```
+
+For production deployment and comprehensive admin configuration, see [docs/ADMIN_SETUP.md](docs/ADMIN_SETUP.md).
+
 ## 🧪 Testing Guide
 
 ### Test Structure
