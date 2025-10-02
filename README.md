@@ -119,7 +119,11 @@ npm run dev
 
 ### Environment Variables
 
-The application requires proper environment variable configuration to function correctly. All variables are documented in `.env.example`.
+The application requires proper environment variable configuration to function correctly. 
+
+📖 **[Complete Environment Variables Documentation →](./ENVIRONMENT_VARIABLES.md)**
+
+All variables are also documented in `.env.example` with inline comments and examples.
 
 #### Quick Setup
 
@@ -156,6 +160,8 @@ npm run env:validate
 
 #### Environment Validation
 
+All environment variables are automatically validated at startup. For comprehensive documentation of all variables, validation rules, and security best practices, see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md).
+
 ```bash
 # Validate current configuration
 npm run env:validate
@@ -166,6 +172,12 @@ npm run env:definitions
 # Get setup help
 npm run env:help
 ```
+
+**Quick Reference:**
+- **Required (Production):** 5 variables (DATABASE_URL, AUTH_SECRET, AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+- **Required (Development):** 2 variables (DATABASE_URL, AUTH_SECRET)
+- **Recommended:** 12 variables (email, streaming, caching, platform integrations)
+- **Optional Platform:** 8 variables (Facebook, YouTube, Twitch advanced features)
 
 #### Security Best Practices
 
