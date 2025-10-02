@@ -285,7 +285,7 @@ router.get('/health', async (req, res) => {
       backupServiceEnabled: status.config.enabled,
       backupDirectoryAccessible: true, // Would need fs check
       recentBackupStatus: status.recentBackups.length > 0 ? 
-        status.recentBackups[status.recentBackups.length - 1].status : 'no_backups',
+        status.recentBackups[status.recentBackups.length - 1]?.status ?? 'no_backups' : 'no_backups',
       configurationValid: status.config.schedule.full && status.config.schedule.criticalData,
       diskSpaceAvailable: true, // Would need actual disk space check
     };

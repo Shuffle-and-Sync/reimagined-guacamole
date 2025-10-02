@@ -83,8 +83,8 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
     const matchRequest = {
       userId,
-      preferences: Object.keys(preferences).some(key => preferences[key] !== undefined) ? preferences : undefined,
-      context: Object.keys(context).some(key => context[key] !== undefined) ? context : undefined
+      preferences: Object.keys(preferences).some(key => preferences[key as keyof typeof preferences] !== undefined) ? preferences : undefined,
+      context: Object.keys(context).some(key => context[key as keyof typeof context] !== undefined) ? context : undefined
     };
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
@@ -129,7 +129,7 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
       });
     }
 
-    const matchRequest: typeof validationResult.data & { userId: string; context?: { plannedStreamTime?: Date } } = {
+    const matchRequest = {
       userId,
       ...validationResult.data,
       context: validationResult.data.context ? {
@@ -138,7 +138,7 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
           ? new Date(validationResult.data.context.plannedStreamTime) 
           : undefined
       } : undefined
-    };
+    } as const;
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
