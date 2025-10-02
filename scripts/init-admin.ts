@@ -11,12 +11,33 @@
  *   tsx scripts/init-admin.ts       - Direct execution
  */
 
+import { storage } from "../server/storage";
 import { db } from "@shared/database-unified";
-import { users, userRoles } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
 import { hashPassword } from "../server/auth/password";
 import { logger } from "../server/logger";
 import crypto from "crypto";
+import { sql } from "drizzle-orm";
+
+/**
+ * Wait for database connection to be ready
+ */
+async function waitForDatabase(maxAttempts = 10, delayMs = 1000): Promise<void> {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      // Try a simple database query to check connection
+      await db.execute(sql`SELECT 1 as test`);
+      logger.info('✓ Database connection established');
+      return; // Connection is ready
+    } catch (error) {
+      if (i < maxAttempts - 1) {
+        logger.info(`Waiting for database connection... (attempt ${i + 1}/${maxAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      } else {
+        throw new Error(`Database connection timeout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+  }
+}
 
 interface AdminConfig {
   email: string;
@@ -55,32 +76,27 @@ function getAdminConfig(): AdminConfig | null {
  * Check if user exists by email
  */
 async function getUserByEmail(email: string) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
-  
-  return user;
+  try {
+    const user = await storage.getUserByEmail(email);
+    return user;
+  } catch (error) {
+    // User not found
+    return undefined;
+  }
 }
 
 /**
  * Check if user has super_admin role
  */
 async function hasSuperAdminRole(userId: string): Promise<boolean> {
-  const [role] = await db
-    .select()
-    .from(userRoles)
-    .where(
-      and(
-        eq(userRoles.userId, userId),
-        eq(userRoles.role, 'super_admin'),
-        eq(userRoles.isActive, true)
-      )
-    )
-    .limit(1);
-  
-  return !!role;
+  try {
+    const userRoles = await storage.getUserRoles(userId);
+    return userRoles.some(role => 
+      role.role === 'super_admin' && role.isActive
+    );
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
@@ -114,8 +130,8 @@ async function createAdminUser(config: AdminConfig) {
     logger.info('Admin account will use OAuth authentication only');
   }
   
-  // Create user
-  const [newUser] = await db.insert(users).values(userData).returning();
+  // Create user using storage
+  const newUser = await storage.createUser(userData);
   
   if (!newUser) {
     throw new Error('Failed to create admin user');
@@ -131,7 +147,7 @@ async function createAdminUser(config: AdminConfig) {
 async function assignSuperAdminRole(userId: string) {
   const roleId = crypto.randomUUID();
   
-  const [role] = await db.insert(userRoles).values({
+  const role = await storage.createUserRole({
     id: roleId,
     userId,
     role: 'super_admin',
@@ -140,7 +156,7 @@ async function assignSuperAdminRole(userId: string) {
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date()
-  }).returning();
+  });
   
   if (!role) {
     throw new Error('Failed to assign super_admin role');
@@ -155,80 +171,92 @@ async function assignSuperAdminRole(userId: string) {
  */
 async function initializeAdminAccount(verify = false): Promise<boolean> {
   try {
+    // Wait for database connection to be ready
+    console.log('Waiting for database connection...');
+    await waitForDatabase();
+    console.log('Database connection ready');
+    
     const config = getAdminConfig();
     
     if (!config) {
       if (verify) {
-        logger.warn('⚠️  No admin configuration found');
-        logger.warn('   Set MASTER_ADMIN_EMAIL in your environment variables');
+        console.warn('⚠️  No admin configuration found');
+        console.warn('   Set MASTER_ADMIN_EMAIL in your environment variables');
         return false;
       }
-      logger.info('Skipping admin initialization - MASTER_ADMIN_EMAIL not configured');
+      console.log('Skipping admin initialization - MASTER_ADMIN_EMAIL not configured');
       return true; // Not an error, just not configured
     }
     
-    logger.info('Checking admin account configuration...', { email: config.email });
+    console.log('Checking admin account configuration for:', config.email);
     
     // Check if user exists
+    console.log('Checking if admin user exists...');
     let user = await getUserByEmail(config.email);
+    console.log('User exists:', !!user);
     
     if (!user) {
       if (verify) {
-        logger.error('❌ Admin account does not exist', { email: config.email });
-        logger.info('   Run "npm run admin:init" to create the admin account');
+        console.error('❌ Admin account does not exist');
+        console.error('   Email:', config.email);
+        console.error('   Run "npm run admin:init" to create the admin account');
         return false;
       }
       
-      logger.info('Creating new admin account...', { email: config.email });
+      console.log('Creating new admin account...');
       user = await createAdminUser(config);
+      console.log('✓ Admin user created');
     } else {
+      console.log('Admin user already exists, checking role...');
       logger.info('Admin user already exists', { userId: user.id, email: user.email });
       
       // Update password if provided and different
       if (config.password && user.passwordHash) {
         logger.info('Updating admin password...');
         const newPasswordHash = await hashPassword(config.password);
-        await db.update(users)
-          .set({ 
-            passwordHash: newPasswordHash,
-            passwordChangedAt: new Date(),
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, user.id));
+        await storage.updateUser(user.id, { 
+          passwordHash: newPasswordHash,
+          passwordChangedAt: new Date(),
+          updatedAt: new Date()
+        });
         logger.info('✓ Admin password updated');
       }
     }
     
     // Check if user has super_admin role
+    console.log('Checking if user has super_admin role...');
     const hasRole = await hasSuperAdminRole(user.id);
+    console.log('Has super_admin role:', hasRole);
     
     if (!hasRole) {
       if (verify) {
-        logger.error('❌ Admin account exists but does not have super_admin role', { 
-          userId: user.id, 
-          email: user.email 
-        });
-        logger.info('   Run "npm run admin:init" to assign the super_admin role');
+        console.error('❌ Admin account exists but does not have super_admin role');
+        console.error('   User ID:', user.id);
+        console.error('   Email:', user.email);
+        console.error('   Run "npm run admin:init" to assign the super_admin role');
         return false;
       }
       
-      logger.info('Assigning super_admin role...', { userId: user.id });
+      console.log('Assigning super_admin role...');
       await assignSuperAdminRole(user.id);
+      console.log('✓ Super admin role assigned');
     } else {
-      logger.info('User already has super_admin role', { userId: user.id });
+      console.log('✓ User already has super_admin role');
     }
     
     if (verify) {
-      logger.info('✅ Admin account verified successfully');
-      logger.info('   Email: ' + config.email);
-      logger.info('   User ID: ' + user.id);
-      logger.info('   Role: super_admin');
-      logger.info('   Auth: ' + (user.passwordHash ? 'Credentials + OAuth' : 'OAuth only'));
+      console.log('');
+      console.log('✅ Admin account verified successfully');
+      console.log('   Email:', config.email);
+      console.log('   User ID:', user.id);
+      console.log('   Role: super_admin');
+      console.log('   Auth:', (user.passwordHash ? 'Credentials + OAuth' : 'OAuth only'));
     } else {
-      logger.info('✅ Admin account initialized successfully');
-      logger.info('   Email: ' + config.email);
-      logger.info('   User ID: ' + user.id);
-      logger.info('   You can now sign in with admin privileges');
+      console.log('');
+      console.log('✅ Admin account initialized successfully');
+      console.log('   Email:', config.email);
+      console.log('   User ID:', user.id);
+      console.log('   You can now sign in with admin privileges');
     }
     
     return true;
