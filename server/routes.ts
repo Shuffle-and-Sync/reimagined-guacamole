@@ -120,6 +120,7 @@ import {
   messageRateLimit, 
   eventCreationRateLimit 
 } from "./rate-limiting";
+import { cardRecognitionRoutes } from "./features/cards/cards.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers middleware
@@ -892,6 +893,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Real-time matching and AI recommendations
   app.use('/api/matching', matchingRouter);
+  
+  // Card recognition routes for MTG and other TCG cards
+  app.use('/api/cards', cardRecognitionRoutes);
 
   // ========================================
   // COLLABORATIVE STREAMING API ROUTES
