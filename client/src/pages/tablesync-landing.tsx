@@ -350,33 +350,33 @@ export default function TableSyncLanding() {
 
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:border-white/40 transition-all duration-300 relative">
               <div className="absolute top-4 right-4 z-10">
-                <Badge className="bg-yellow-500/80 text-yellow-900 font-bold">Coming Soon</Badge>
+                <Badge className="bg-green-500/80 text-green-900 font-bold">Live Now</Badge>
               </div>
-              <CardContent className="p-8 opacity-75">
+              <CardContent className="p-8">
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fas fa-magic text-white text-2xl"></i>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white mb-1">Card Recognition AI</h3>
-                    <p className="text-gray-300">Smart game assistance</p>
+                    <h3 className="text-2xl font-bold text-white mb-1">Card Recognition</h3>
+                    <p className="text-gray-300">MTG card lookup & search</p>
                   </div>
                 </div>
                 <p className="text-gray-300 mb-6 leading-relaxed">
-                  Automatically identify cards in your camera feed and provide instant information overlay for viewers and players.
+                  Search and identify Magic: The Gathering cards instantly with our Scryfall-powered API. Get card details, pricing, and legality information.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
-                    <span className="text-sm text-gray-300">Instant card identification</span>
+                    <i className="fas fa-check-circle text-green-400"></i>
+                    <span className="text-sm text-gray-300">Text-based card search</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
-                    <span className="text-sm text-gray-300">Real-time card info overlay</span>
+                    <i className="fas fa-check-circle text-green-400"></i>
+                    <span className="text-sm text-gray-300">Card details & pricing</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <i className="fas fa-clock text-yellow-400"></i>
-                    <span className="text-sm text-gray-300">Price tracking integration</span>
+                    <i className="fas fa-check-circle text-green-400"></i>
+                    <span className="text-sm text-gray-300">Format legality checking</span>
                   </div>
                 </div>
               </CardContent>
