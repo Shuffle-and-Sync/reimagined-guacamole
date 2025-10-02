@@ -6,11 +6,13 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
 
 - [Prerequisites](#prerequisites)
 - [Environment Setup](#environment-setup)
+  - [Administrator Account Setup](#5-initialize-administrator-account)
 - [Deployment Procedures](#deployment-procedures)
 - [Rollback Strategies](#rollback-strategies)
 - [Verification Steps](#verification-steps)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
+  - [Administrator Setup Guide](docs/ADMIN_SETUP.md)
 
 ---
 
@@ -80,6 +82,7 @@ Edit `.env.production` and configure the following **critical** variables:
 | `AUTH_URL` | Production domain URL | `https://your-domain.com` |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From [Google Cloud Console](https://console.cloud.google.com) |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Cloud Console |
+| `MASTER_ADMIN_EMAIL` | Administrator email address | Your admin email (e.g., `admin@yourdomain.com`) |
 
 #### Step 3: Configure Optional Variables
 
@@ -91,6 +94,7 @@ For enhanced functionality, configure these recommended variables:
 | `STREAM_KEY_ENCRYPTION_KEY` | Encryption key (32 chars) | Stream key security |
 | `REDIS_URL` | Redis connection string | Caching layer |
 | `SENTRY_DSN` | Sentry error tracking | Error monitoring |
+| `MASTER_ADMIN_PASSWORD` | Admin password (12+ chars) | Credentials authentication (optional, use OAuth if not set) |
 
 #### Step 4: Validate Environment Configuration
 
@@ -284,6 +288,28 @@ gcloud run deploy shuffle-sync-frontend \
 ```bash
 ./scripts/migrate-production-db.sh
 ```
+
+#### 5. Initialize Administrator Account
+
+After database migrations, set up the master administrator account:
+
+```bash
+# Set admin configuration in environment or Secret Manager
+export MASTER_ADMIN_EMAIL=admin@yourdomain.com
+export MASTER_ADMIN_PASSWORD=$(openssl rand -base64 16)
+
+# Initialize admin account
+npm run admin:init
+
+# Verify admin setup
+npm run admin:verify
+```
+
+**Important**: 
+- See [docs/ADMIN_SETUP.md](docs/ADMIN_SETUP.md) for comprehensive admin setup guide
+- Store admin credentials securely in your password manager
+- Enable MFA after first login
+- Use OAuth (Google) for admin access in production when possible
 
 ### Deployment with Cloud Build (CI/CD)
 

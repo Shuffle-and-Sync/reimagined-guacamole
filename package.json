@@ -36,6 +36,8 @@
     "env:definitions": "tsx scripts/validate-env.ts --definitions",
     "env:setup": "cp .env.example .env.local && echo '✅ Created .env.local from template. Edit with your configuration and run: npm run env:validate'",
     "env:setup-full": "./scripts/setup-env.sh",
+    "admin:init": "tsx scripts/init-admin.ts",
+    "admin:verify": "tsx scripts/init-admin.ts --verify",
     "deploy:production": "./scripts/deploy-production.sh",
     "deploy:backend": "./scripts/deploy-production.sh --backend-only",
     "deploy:frontend": "./scripts/deploy-production.sh --frontend-only",
