@@ -103,6 +103,179 @@ const reverseModerationActionSchema = z.object({
   notes: z.string().optional()
 });
 
+// ===== SYSTEM STATUS & CONFIGURATION ROUTES =====
+
+/**
+ * GET /api/admin/system/status
+ * Get system status and admin account configuration
+ * Requires: super_admin role
+ */
+router.get('/system/status',
+  requirePermission(ADMIN_PERMISSIONS.SUPER_ADMIN),
+  auditAdminAction('system_status_viewed'),
+  async (req, res): Promise<void> => {
+    try {
+      const adminEmail = process.env.MASTER_ADMIN_EMAIL;
+      
+      if (!adminEmail) {
+        res.json({
+          adminConfigured: false,
+          message: 'No master admin email configured',
+          recommendation: 'Set MASTER_ADMIN_EMAIL environment variable and run npm run admin:init'
+        });
+        return;
+      }
+
+      // Check if admin user exists
+      const adminUser = await storage.getUserByEmail(adminEmail);
+      
+      if (!adminUser) {
+        res.json({
+          adminConfigured: false,
+          adminEmail,
+          userExists: false,
+          message: 'Admin email configured but user does not exist',
+          recommendation: 'Run npm run admin:init to create admin account'
+        });
+        return;
+      }
+
+      // Check if user has super_admin role
+      const userRoles = await storage.getUserRoles(adminUser.id);
+      const hasSuperAdmin = userRoles.some(role => 
+        role.role === 'super_admin' && role.isActive
+      );
+
+      res.json({
+        adminConfigured: true,
+        adminEmail,
+        userExists: true,
+        userId: adminUser.id,
+        hasSuperAdminRole: hasSuperAdmin,
+        emailVerified: adminUser.isEmailVerified,
+        hasPassword: !!adminUser.passwordHash,
+        authMethods: {
+          oauth: true, // Always available
+          credentials: !!adminUser.passwordHash
+        },
+        mfaEnabled: adminUser.mfaEnabled,
+        lastLogin: adminUser.lastLoginAt,
+        createdAt: adminUser.createdAt,
+        recommendation: hasSuperAdmin 
+          ? 'Admin account properly configured' 
+          : 'Admin user exists but missing super_admin role - run npm run admin:init'
+      });
+    } catch (error) {
+      logger.error('Error checking system status', error, { 
+        userId: getAuthUserId(req),
+        operation: 'system_status_check'
+      });
+      res.status(500).json({ 
+        message: 'Failed to check system status',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return;
+    }
+  }
+);
+
+/**
+ * POST /api/admin/system/verify-admin
+ * Verify admin account setup and report issues
+ * Requires: super_admin role
+ */
+router.post('/system/verify-admin',
+  requirePermission(ADMIN_PERMISSIONS.SUPER_ADMIN),
+  auditAdminAction('admin_verification_run'),
+  async (req, res): Promise<void> => {
+    try {
+      const issues: string[] = [];
+      const checks = {
+        environmentConfigured: false,
+        userExists: false,
+        emailVerified: false,
+        roleAssigned: false,
+        authenticationConfigured: false
+      };
+
+      // Check 1: Environment variable
+      const adminEmail = process.env.MASTER_ADMIN_EMAIL;
+      if (!adminEmail) {
+        issues.push('MASTER_ADMIN_EMAIL environment variable is not set');
+      } else {
+        checks.environmentConfigured = true;
+
+        // Check 2: User exists
+        const adminUser = await storage.getUserByEmail(adminEmail);
+        if (!adminUser) {
+          issues.push(`Admin user does not exist for email: ${adminEmail}`);
+        } else {
+          checks.userExists = true;
+
+          // Check 3: Email verified
+          if (!adminUser.isEmailVerified) {
+            issues.push('Admin account email is not verified');
+          } else {
+            checks.emailVerified = true;
+          }
+
+          // Check 4: Super admin role
+          const userRoles = await storage.getUserRoles(adminUser.id);
+          const hasSuperAdmin = userRoles.some(role => 
+            role.role === 'super_admin' && role.isActive
+          );
+          
+          if (!hasSuperAdmin) {
+            issues.push('Admin user does not have super_admin role assigned');
+          } else {
+            checks.roleAssigned = true;
+          }
+
+          // Check 5: Authentication method
+          const hasOAuth = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+          const hasPassword = !!adminUser.passwordHash;
+          
+          if (!hasOAuth && !hasPassword) {
+            issues.push('No authentication method configured (neither OAuth nor password)');
+          } else {
+            checks.authenticationConfigured = true;
+          }
+
+          // Additional security checks
+          if (!adminUser.mfaEnabled) {
+            issues.push('MFA is not enabled for admin account (recommended for security)');
+          }
+        }
+      }
+
+      const allChecksPassed = Object.values(checks).every(check => check === true);
+
+      res.json({
+        status: allChecksPassed ? 'verified' : 'issues_found',
+        checks,
+        issues,
+        recommendation: issues.length > 0 
+          ? 'Run npm run admin:init to resolve configuration issues'
+          : 'Admin account is properly configured',
+        securityRecommendations: [
+          adminEmail && checks.userExists && !checks.authenticationConfigured ? 'Enable OAuth or set admin password' : null,
+          checks.userExists && checks.roleAssigned && issues.includes('MFA is not enabled for admin account (recommended for security)') ? 'Enable MFA for enhanced security' : null,
+        ].filter(Boolean)
+      });
+    } catch (error) {
+      logger.error('Error verifying admin account', error, { 
+        userId: getAuthUserId(req),
+        operation: 'admin_verification'
+      });
+      res.status(500).json({ 
+        message: 'Failed to verify admin account',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return;
+    }
+  }
+);
+
 // ===== USER MANAGEMENT ROUTES =====
 
 // Get users (with filtering and pagination)
