@@ -1,21 +1,68 @@
+/**
+ * Platform OAuth Service
+ * 
+ * This module handles OAuth 2.0 authentication flows for streaming platforms:
+ * - Twitch
+ * - YouTube
+ * - Facebook Gaming
+ * 
+ * Security Features:
+ * - PKCE (Proof Key for Code Exchange) for all platforms
+ * - Cryptographically secure state parameters
+ * - Token encryption in storage
+ * - Automatic token refresh
+ * - CSRF protection via state validation
+ * 
+ * @see TWITCH_OAUTH_GUIDE.md for detailed Twitch OAuth documentation
+ */
+
 import { randomBytes, createHash } from 'crypto';
 import { storage } from '../storage';
 import { logger } from '../logger';
 import { YouTubeAPIService } from './youtube-api';
 import { FacebookAPIService } from './facebook-api';
 
+/**
+ * OAuth state stored temporarily during authorization flow
+ * Used to prevent CSRF attacks and store PKCE verifiers
+ */
 interface OAuthState {
-  userId: string;
-  platform: string;
-  timestamp: number;
-  codeVerifier?: string; // For PKCE
+  userId: string;          // User initiating the OAuth flow
+  platform: string;        // Platform being authorized (twitch/youtube/facebook)
+  timestamp: number;       // Creation time for expiry checking
+  codeVerifier?: string;   // PKCE code verifier (required for token exchange)
 }
 
-// Store OAuth states temporarily (in production, use Redis)
+/**
+ * In-memory OAuth state storage
+ * TODO: Replace with Redis in production for scalability
+ * States expire after 10 minutes and are cleaned up automatically
+ */
 const oauthStates = new Map<string, OAuthState>();
 
 /**
- * Platform OAuth scopes for each platform
+ * OAuth scopes requested for each streaming platform
+ * 
+ * Twitch Scopes:
+ * - user:read:email: Access user's email address
+ * - channel:read:stream_key: Read the user's stream key
+ * - channel:manage:broadcast: Manage broadcast settings (title, game, etc.)
+ * - channel:read:subscriptions: Read subscription information
+ * - bits:read: View bits/cheers information
+ * - analytics:read:games: Access game analytics
+ * - analytics:read:extensions: Access extension analytics
+ * 
+ * YouTube Scopes:
+ * - youtube.readonly: View YouTube account data
+ * - youtube.force-ssl: Manage YouTube account (required for live streaming)
+ * - youtube.channel-memberships.creator: Access channel membership data
+ * 
+ * Facebook Scopes:
+ * - pages_show_list: List user's Facebook pages
+ * - pages_read_engagement: Read page engagement metrics
+ * - pages_manage_posts: Create and manage posts
+ * - publish_video: Upload and publish videos
+ * - gaming_user_picture: Access gaming profile picture
  */
 const PLATFORM_SCOPES = {
   twitch: [
@@ -43,6 +90,17 @@ const PLATFORM_SCOPES = {
 
 /**
  * Generate OAuth authorization URL for platform account linking
+ * 
+ * This initiates the OAuth 2.0 authorization code flow with PKCE:
+ * 1. Generates cryptographically secure state parameter
+ * 2. Stores state with user ID and platform for validation
+ * 3. Generates platform-specific authorization URL
+ * 4. Cleans up expired states (>10 minutes old)
+ * 
+ * @param platform - Platform identifier (twitch, youtube, facebook)
+ * @param userId - ID of user initiating OAuth flow
+ * @returns Authorization URL to redirect user to
+ * @throws Error if platform is unsupported
  */
 export async function generatePlatformOAuthURL(platform: string, userId: string): Promise<string> {
   const state = generateSecureState();
@@ -90,7 +148,7 @@ export async function handlePlatformOAuthCallback(
   
   switch (platform) {
     case 'twitch':
-      result = await handleTwitchCallback(code, userId);
+      result = await handleTwitchCallback(code, userId, storedState);
       break;
     case 'youtube':
       result = await handleYouTubeCallback(code, userId, storedState);
@@ -147,15 +205,29 @@ export async function refreshPlatformToken(userId: string, platform: string): Pr
 }
 
 /**
- * Generate Twitch OAuth URL
+ * Generate Twitch OAuth URL with PKCE for enhanced security
+ * PKCE (Proof Key for Code Exchange) prevents authorization code interception attacks
  */
 function generateTwitchOAuthURL(state: string): string {
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+  
+  // Store code verifier with state for later verification
+  const storedState = oauthStates.get(state);
+  if (storedState) {
+    storedState.codeVerifier = codeVerifier;
+  }
+  
   const params = new URLSearchParams({
     client_id: process.env.TWITCH_CLIENT_ID!,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
     response_type: 'code',
     scope: PLATFORM_SCOPES.twitch.join(' '),
     state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    // Force consent to ensure user sees all requested permissions
+    force_verify: 'true'
   });
   
   return `https://id.twitch.tv/oauth2/authorize?${params.toString()}`;
@@ -205,23 +277,39 @@ function generateFacebookOAuthURL(state: string): string {
 }
 
 /**
- * Handle Twitch OAuth callback
+ * Handle Twitch OAuth callback with PKCE verification
  */
-async function handleTwitchCallback(code: string, userId: string): Promise<any> {
-  // Exchange code for tokens
+async function handleTwitchCallback(code: string, userId: string, storedState: OAuthState): Promise<any> {
+  const codeVerifier = storedState.codeVerifier;
+  
+  if (!codeVerifier) {
+    logger.error('Missing PKCE code verifier for Twitch OAuth', { userId });
+    throw new Error('Missing PKCE code verifier for Twitch OAuth');
+  }
+  
+  // Exchange code for tokens with PKCE verification
+  const tokenParams: Record<string, string> = {
+    client_id: process.env.TWITCH_CLIENT_ID!,
+    client_secret: process.env.TWITCH_CLIENT_SECRET!,
+    code,
+    grant_type: 'authorization_code',
+    redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
+    code_verifier: codeVerifier,
+  };
+  
   const response = await fetch('https://id.twitch.tv/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: process.env.TWITCH_CLIENT_ID!,
-      client_secret: process.env.TWITCH_CLIENT_SECRET!,
-      code,
-      grant_type: 'authorization_code',
-      redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
-    }),
+    body: new URLSearchParams(tokenParams),
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    logger.error('Failed to exchange Twitch authorization code', { 
+      userId, 
+      status: response.status,
+      error: errorText 
+    });
     throw new Error('Failed to exchange Twitch authorization code');
   }
   
@@ -236,14 +324,27 @@ async function handleTwitchCallback(code: string, userId: string): Promise<any> 
   });
   
   if (!userResponse.ok) {
+    logger.error('Failed to fetch Twitch user info', { userId });
     throw new Error('Failed to fetch Twitch user info');
   }
   
   const userData = await userResponse.json();
   const user = userData.data[0];
   
+  if (!user) {
+    logger.error('No user data returned from Twitch API', { userId });
+    throw new Error('No user data returned from Twitch API');
+  }
+  
   // Store account with tokens
   const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+  
+  logger.info('Twitch OAuth completed successfully', { 
+    userId, 
+    twitchUserId: user.id, 
+    twitchLogin: user.login,
+    scopes: tokenData.scope 
+  });
   
   return await storage.createUserPlatformAccount({
     userId,
@@ -376,25 +477,28 @@ async function refreshTwitchToken(refreshToken: string, userId: string): Promise
     });
     
     if (!response.ok) {
+      logger.warn('Failed to refresh Twitch token', { userId, status: response.status });
       return null;
     }
     
     const tokenData = await response.json();
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
     
-    // Update stored tokens
-    const account = await storage.getUserPlatformAccount(userId, 'youtube');
+    // Update stored tokens - FIX: was incorrectly using 'youtube' instead of 'twitch'
+    const account = await storage.getUserPlatformAccount(userId, 'twitch');
     if (account) {
       await storage.updateUserPlatformAccount(account.id, {
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refresh_token || refreshToken,
         tokenExpiresAt: expiresAt,
       });
+      
+      logger.info('Twitch token refreshed successfully', { userId, twitchUserId: account.platformUserId });
     }
     
     return tokenData.access_token;
   } catch (error) {
-    logger.error('Failed to refresh Twitch token:', error);
+    logger.error('Failed to refresh Twitch token:', error, { userId });
     return null;
   }
 }
