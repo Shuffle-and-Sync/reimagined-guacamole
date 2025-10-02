@@ -479,13 +479,51 @@ Status: ✅ PASSED
 Issues found: None
 Recommendations: All implemented
 
+## Test Coverage
+
+### Comprehensive Test Suites
+
+**Total Authentication Tests**: 57 tests, 100% passing ✅
+
+1. **Registration & Login Integration Tests** (`server/tests/features/registration-login-integration.test.ts`)
+   - 33 comprehensive integration tests
+   - Tests registration, login, verification, OAuth, errors, sessions
+   - See detailed findings: `REGISTRATION_LOGIN_TEST_FINDINGS.md`
+
+2. **Credentials vs OAuth Tests** (`server/tests/features/auth-credentials-oauth.test.ts`)
+   - 24 unit tests for authentication logic
+   - Tests both authentication methods
+   - Tests security features and error handling
+
+3. **General Authentication Tests** (`server/tests/features/authentication.test.ts`)
+   - Basic authentication functionality tests
+   - Session validation tests
+
+### Test Documentation
+- **Detailed Findings**: See `REGISTRATION_LOGIN_TEST_FINDINGS.md` for complete test results and API behavior documentation
+- **Audit Summary**: See `AUTHENTICATION_AUDIT_SUMMARY.md` for security audit and recommendations
+
+### Running Tests
+```bash
+# Run all authentication tests
+npm test -- --testPathPatterns="auth"
+
+# Run registration/login integration tests
+npm test -- server/tests/features/registration-login-integration.test.ts
+
+# Run credentials vs OAuth tests
+npm test -- server/tests/features/auth-credentials-oauth.test.ts
+```
+
 ## Support
 
 For authentication issues:
 1. Check this documentation
 2. Review error messages carefully
-3. Check server logs (if developer)
-4. Contact support at support@shuffleandsync.org
+3. Check test findings: `REGISTRATION_LOGIN_TEST_FINDINGS.md`
+4. Review audit summary: `AUTHENTICATION_AUDIT_SUMMARY.md`
+5. Check server logs (if developer)
+6. Contact support at support@shuffleandsync.org
 
 ## License
 
