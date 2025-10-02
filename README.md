@@ -444,10 +444,58 @@ npm run docker:test
 
 ## 📚 Documentation
 
+### Platform Integration Guides
+- **[Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
+- **[Twitch Developer Portal Setup](./TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
+
+### General Documentation
 - **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Comprehensive testing documentation
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
 - **[API Documentation](./API_DOCUMENTATION.md)** - API endpoints and usage
 - **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
+
+### Platform OAuth Integration
+
+The platform supports secure OAuth 2.0 integration with major streaming platforms:
+
+#### Twitch Integration 🎮
+- **PKCE Security**: Implements Proof Key for Code Exchange (RFC 7636) for enhanced security
+- **Automatic Token Refresh**: Handles token expiration and renewal automatically
+- **EventSub Webhooks**: Real-time stream status notifications
+- **Comprehensive Scopes**: Stream management, analytics, and user data access
+
+**Quick Start:**
+1. Create Twitch application at https://dev.twitch.tv/console/apps
+2. Configure OAuth redirect URLs (see [Developer Portal Setup](./TWITCH_DEVELOPER_PORTAL_SETUP.md))
+3. Set environment variables:
+   ```bash
+   TWITCH_CLIENT_ID=your_client_id
+   TWITCH_CLIENT_SECRET=your_client_secret
+   TWITCH_EVENTSUB_SECRET=$(openssl rand -hex 16)
+   ```
+4. See [Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md) for detailed implementation
+
+#### YouTube Integration 📺
+- **PKCE Support**: Full PKCE implementation for secure authorization
+- **Channel Management**: Access to channel data and live stream settings
+- **Automatic Refresh**: Seamless token renewal
+
+#### Facebook Gaming Integration 🎯
+- **Page Management**: Access to gaming pages and posts
+- **Video Publishing**: Upload and manage video content
+- **Engagement Metrics**: Read page engagement data
+
+**Security Features:**
+- ✅ PKCE (Proof Key for Code Exchange) for all platforms
+- ✅ Cryptographically secure state parameters
+- ✅ Encrypted token storage in PostgreSQL
+- ✅ Automatic token refresh with 5-minute buffer
+- ✅ CSRF protection via state validation
+- ✅ Single-use authorization codes
+
+**See Also:**
+- [Platform OAuth API Documentation](./API_DOCUMENTATION.md#platform-oauth-api)
+- [Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
 
 ## 🤖 Testing Agent Features
 
