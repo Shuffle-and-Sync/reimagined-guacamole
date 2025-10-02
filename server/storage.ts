@@ -259,6 +259,7 @@ export interface IStorage {
   // Event attendee operations
   joinEvent(data: InsertEventAttendee): Promise<EventAttendee>;
   leaveEvent(eventId: string, userId: string): Promise<void>;
+  updateEventAttendee(id: string, data: Partial<{ playerType: string; status: 'attending' | 'maybe' | 'not_attending'; role: string }>): Promise<EventAttendee>;
   getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]>;
   getUserEventAttendance(userId: string): Promise<(EventAttendee & { event: Event })[]>;
   
@@ -1461,6 +1462,20 @@ export class DatabaseStorage implements IStorage {
           eq(eventAttendees.userId, userId)
         )
       );
+  }
+
+  async updateEventAttendee(id: string, data: Partial<{ playerType: string; status: 'attending' | 'maybe' | 'not_attending'; role: string }>): Promise<EventAttendee> {
+    const [updated] = await db
+      .update(eventAttendees)
+      .set(data as any)
+      .where(eq(eventAttendees.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Event attendee not found');
+    }
+    
+    return updated;
   }
 
   async getEventAttendees(eventId: string): Promise<(EventAttendee & { user: User })[]> {

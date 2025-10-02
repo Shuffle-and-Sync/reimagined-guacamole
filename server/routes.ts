@@ -43,6 +43,9 @@ import {
   errors
 } from "./middleware/error-handling.middleware";
 import { assertRouteParam } from "./shared/utils";
+import { graphicsGeneratorService } from "./services/graphics-generator";
+import { enhancedNotificationService } from "./services/enhanced-notifications";
+import { waitlistService } from "./services/waitlist";
 const { asyncHandler } = errorHandlingMiddleware;
 const { 
   AppError,
@@ -2417,6 +2420,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventData = insertEventSchema.partial().parse(req.body);
       const updatedEvent = await storage.updateEvent(id, eventData);
       
+      // Send update notifications
+      const changes: string[] = [];
+      if (eventData.date && eventData.date !== existingEvent.date) changes.push('date');
+      if (eventData.time && eventData.time !== existingEvent.time) changes.push('time');
+      if (eventData.location && eventData.location !== existingEvent.location) changes.push('location');
+      
+      if (changes.length > 0) {
+        enhancedNotificationService.sendEventUpdatedNotification(id, changes).catch(err => 
+          logger.error('Failed to send update notification', err)
+        );
+      }
+      
       return res.json(updatedEvent);
     } catch (error) {
       logger.error("Failed to update event", error, { eventId: req.params.id });
@@ -2540,7 +2555,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await storage.getEvent(eventId);
       const leavingUser = await storage.getUser(userId);
       
+      // Get attendee info to check if they were a main player
+      const attendees = await storage.getEventAttendees(eventId);
+      const leavingAttendee = attendees.find(a => a.userId === userId);
+      const wasMainPlayer = leavingAttendee?.playerType === 'main';
+      
       await storage.leaveEvent(eventId, userId);
+
+      // If a main player left, try to promote from waitlist
+      if (wasMainPlayer && event?.type === 'game_pod') {
+        await waitlistService.promoteFromWaitlist(eventId).catch(err => 
+          logger.error('Failed to promote from waitlist', err)
+        );
+      }
 
       // Notify event creator that someone left
       if (event && leavingUser && event.creatorId !== userId) {
@@ -2571,6 +2598,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       logger.error("Failed to fetch event attendees", error, { eventId: req.params.eventId });
       return res.status(500).json({ message: "Failed to fetch event attendees" });
+    }
+  });
+
+  // Graphics generation route
+  app.post('/api/graphics/generate', isAuthenticated, async (req: any, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { eventId, template = 'modern', includeQR = true } = req.body;
+      
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
+      // Verify user has access to this event
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      const graphicDataUrl = await graphicsGeneratorService.generateEventGraphic(
+        eventId,
+        template,
+        includeQR
+      );
+
+      return res.json({
+        dataUrl: graphicDataUrl,
+        template,
+        eventId,
+      });
+    } catch (error) {
+      logger.error("Failed to generate graphic", error, { eventId: req.body.eventId });
+      return res.status(500).json({ message: "Failed to generate graphic" });
     }
   });
 

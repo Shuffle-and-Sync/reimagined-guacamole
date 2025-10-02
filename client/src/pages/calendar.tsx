@@ -20,6 +20,7 @@ import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
 import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
 import { PodStatusBadge } from "@/components/calendar/PodStatusBadge";
+import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
 import { addMonths, subMonths, format } from 'date-fns';
 import type { Event, Community } from "@shared/schema";
 
@@ -51,6 +52,8 @@ export default function Calendar() {
   const [filterType, setFilterType] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCSVUploadOpen, setIsCSVUploadOpen] = useState(false);
+  const [isGraphicsOpen, setIsGraphicsOpen] = useState(false);
+  const [selectedEventForGraphics, setSelectedEventForGraphics] = useState<{ id: string; title: string } | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Auto-set community when creating new events
@@ -566,6 +569,19 @@ export default function Calendar() {
             />
           )}
 
+          {/* Graphics Generator Dialog */}
+          {selectedEventForGraphics && (
+            <GraphicsGeneratorDialog
+              isOpen={isGraphicsOpen}
+              onClose={() => {
+                setIsGraphicsOpen(false);
+                setSelectedEventForGraphics(null);
+              }}
+              eventId={selectedEventForGraphics.id}
+              eventTitle={selectedEventForGraphics.title}
+            />
+          )}
+
           <Tabs defaultValue="overview" className="space-y-8">
             <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
               <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
@@ -657,6 +673,17 @@ export default function Calendar() {
                               <div className="flex space-x-2">
                                 {user && (user.id === event.creator?.id || user.id === event.hostId) && (
                                   <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedEventForGraphics({ id: event.id, title: event.title });
+                                        setIsGraphicsOpen(true);
+                                      }}
+                                    >
+                                      <i className="fas fa-image mr-2"></i>
+                                      Generate Graphic
+                                    </Button>
                                     <Button
                                       variant="outline"
                                       size="sm"
