@@ -81,9 +81,39 @@ const VALIDATION_RULES = {
     }
     return true;
   },
+  TWITCH_CLIENT_ID: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('TWITCH_CLIENT_ID must be a valid Twitch client ID from Twitch Developer Console');
+    }
+    return true;
+  },
+  TWITCH_CLIENT_SECRET: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('TWITCH_CLIENT_SECRET must be a valid Twitch client secret from Twitch Developer Console');
+    }
+    return true;
+  },
+  YOUTUBE_API_KEY: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('YOUTUBE_API_KEY must be a valid YouTube API key from Google Cloud Console');
+    }
+    return true;
+  },
+  DISCORD_BOT_TOKEN: (value: string) => {
+    if (value && (value.includes('demo-') || value.includes('your-') || value.length < 10)) {
+      throw new Error('DISCORD_BOT_TOKEN must be a valid Discord bot token from Discord Developer Portal');
+    }
+    return true;
+  },
   REDIS_URL: (value: string) => {
     if (value && !value.startsWith('redis://')) {
       throw new Error('REDIS_URL must be a valid Redis connection string starting with "redis://"');
+    }
+    return true;
+  },
+  SENTRY_DSN: (value: string) => {
+    if (value && !value.startsWith('https://') && !value.startsWith('http://')) {
+      throw new Error('SENTRY_DSN must be a valid Sentry DSN URL starting with "https://" or "http://"');
     }
     return true;
   },
