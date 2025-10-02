@@ -16,6 +16,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
+import { CalendarGrid } from "@/components/calendar/CalendarGrid";
+import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
+import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
+import { PodStatusBadge } from "@/components/calendar/PodStatusBadge";
+import { addMonths, subMonths, format } from 'date-fns';
 import type { Event, Community } from "@shared/schema";
 
 const EVENT_TYPES = [
@@ -30,7 +35,9 @@ type ExtendedEvent = Event & {
   creator: any; 
   community: Community | null; 
   attendeeCount: number; 
-  isUserAttending?: boolean; 
+  isUserAttending?: boolean;
+  mainPlayers?: number;
+  alternates?: number;
 };
 
 export default function Calendar() {
@@ -42,8 +49,9 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
-  // Removed filterCommunity since events are automatically filtered by selected community
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCSVUploadOpen, setIsCSVUploadOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Auto-set community when creating new events
   useEffect(() => {
@@ -60,6 +68,12 @@ export default function Calendar() {
   const [newEventLocation, setNewEventLocation] = useState("");
   const [newEventDescription, setNewEventDescription] = useState("");
   const [newEventCommunityId, setNewEventCommunityId] = useState("");
+  
+  // Pod-specific fields
+  const [newEventPlayerSlots, setNewEventPlayerSlots] = useState(4);
+  const [newEventAlternateSlots, setNewEventAlternateSlots] = useState(2);
+  const [newEventGameFormat, setNewEventGameFormat] = useState("");
+  const [newEventPowerLevel, setNewEventPowerLevel] = useState(5);
 
   // Fetch events for the selected community only
   const { data: events = [], isLoading: eventsLoading, refetch: refetchEvents } = useQuery<ExtendedEvent[]>({
@@ -84,6 +98,55 @@ export default function Calendar() {
     queryKey: ['/api/communities'],
     enabled: isAuthenticated, // Only fetch when authenticated
   });
+
+  // Real-time WebSocket updates
+  useEffect(() => {
+    if (!isAuthenticated || !selectedCommunity) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected for real-time event updates');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        
+        // Handle different message types
+        if (['EVENT_CREATED', 'EVENT_UPDATED', 'EVENT_DELETED', 'POD_STATUS_CHANGED'].includes(message.type)) {
+          // Invalidate queries to refetch events
+          queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+          
+          // Show toast for real-time updates
+          if (message.type === 'EVENT_CREATED') {
+            toast({
+              title: 'New Event Created',
+              description: 'Calendar updated with new event',
+            });
+          } else if (message.type === 'POD_STATUS_CHANGED') {
+            toast({
+              title: 'Pod Status Updated',
+              description: 'A game pod status has changed',
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [isAuthenticated, selectedCommunity, queryClient, toast]);
 
   // Create event mutation
   const createEventMutation = useMutation({
@@ -110,6 +173,10 @@ export default function Calendar() {
       setNewEventLocation("");
       setNewEventDescription("");
       setNewEventCommunityId("");
+      setNewEventPlayerSlots(4);
+      setNewEventAlternateSlots(2);
+      setNewEventGameFormat("");
+      setNewEventPowerLevel(5);
     },
     onError: () => {
       toast({ title: "Failed to create event", variant: "destructive" });
@@ -171,6 +238,10 @@ export default function Calendar() {
       setNewEventLocation("");
       setNewEventDescription("");
       setNewEventCommunityId("");
+      setNewEventPlayerSlots(4);
+      setNewEventAlternateSlots(2);
+      setNewEventGameFormat("");
+      setNewEventPowerLevel(5);
     },
     onError: () => {
       toast({ title: "Failed to update event", variant: "destructive" });
@@ -207,29 +278,33 @@ export default function Calendar() {
       return;
     }
 
+    const eventData: any = {
+      title: newEventTitle,
+      type: newEventType,
+      date: newEventDate,
+      time: newEventTime,
+      location: newEventLocation,
+      description: newEventDescription,
+      communityId: selectedCommunity.id,
+    };
+
+    // Add pod-specific fields if event type is game_pod
+    if (newEventType === 'game_pod') {
+      eventData.playerSlots = newEventPlayerSlots;
+      eventData.alternateSlots = newEventAlternateSlots;
+      eventData.gameFormat = newEventGameFormat;
+      eventData.powerLevel = newEventPowerLevel;
+    }
+
     if (editingEventId) {
       // Update existing event
       updateEventMutation.mutate({
         id: editingEventId,
-        title: newEventTitle,
-        type: newEventType,
-        date: newEventDate,
-        time: newEventTime,
-        location: newEventLocation,
-        description: newEventDescription,
-        communityId: selectedCommunity.id,
+        ...eventData,
       });
     } else {
       // Create new event
-      createEventMutation.mutate({
-        title: newEventTitle,
-        type: newEventType,
-        date: newEventDate,
-        time: newEventTime,
-        location: newEventLocation,
-        description: newEventDescription,
-        communityId: selectedCommunity.id, // Auto-set to current community
-      });
+      createEventMutation.mutate(eventData);
     }
   };
 
@@ -327,17 +402,26 @@ export default function Calendar() {
                   Select a specific realm to create events
                 </p>
               )}
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    className="bg-primary hover:bg-primary/90" 
-                    data-testid="button-create-event"
-                    disabled={!selectedCommunity}
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Create Event
-                  </Button>
-                </DialogTrigger>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCSVUploadOpen(true)}
+                  disabled={!selectedCommunity}
+                >
+                  <i className="fas fa-file-csv mr-2"></i>
+                  Bulk Upload
+                </Button>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="bg-primary hover:bg-primary/90" 
+                      data-testid="button-create-event"
+                      disabled={!selectedCommunity}
+                    >
+                      <i className="fas fa-plus mr-2"></i>
+                      Create Event
+                    </Button>
+                  </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>{editingEventId ? 'Edit Event' : 'Create New Event'}</DialogTitle>
@@ -439,6 +523,20 @@ export default function Calendar() {
                     />
                   </div>
 
+                  {/* Pod-specific fields for game_pod events */}
+                  {newEventType === 'game_pod' && (
+                    <PodFieldsForm
+                      playerSlots={newEventPlayerSlots}
+                      setPlayerSlots={setNewEventPlayerSlots}
+                      alternateSlots={newEventAlternateSlots}
+                      setAlternateSlots={setNewEventAlternateSlots}
+                      gameFormat={newEventGameFormat}
+                      setGameFormat={setNewEventGameFormat}
+                      powerLevel={newEventPowerLevel}
+                      setPowerLevel={setNewEventPowerLevel}
+                    />
+                  )}
+
                   <div className="flex justify-end space-x-3">
                     <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} data-testid="button-cancel-event">Cancel</Button>
                     <Button 
@@ -452,8 +550,21 @@ export default function Calendar() {
                 </div>
               </DialogContent>
             </Dialog>
+              </div>
             </div>
           </div>
+
+          {/* CSV Upload Dialog */}
+          {selectedCommunity && (
+            <CSVUploadDialog
+              isOpen={isCSVUploadOpen}
+              onClose={() => setIsCSVUploadOpen(false)}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+              }}
+              communityId={selectedCommunity.id}
+            />
+          )}
 
           <Tabs defaultValue="overview" className="space-y-8">
             <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
@@ -522,12 +633,20 @@ export default function Calendar() {
                               </div>
                               <div>
                                 <h3 className="font-semibold text-lg">{event.title}</h3>
-                                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
                                   <span>📅 {new Date(event.date).toLocaleDateString()}</span>
                                   <span>🕒 {event.time}</span>
                                   <span>📍 {event.location}</span>
                                   <Badge variant="outline">{event.community?.name || 'All Communities'}</Badge>
                                 </div>
+                                {/* Pod status badge for game_pod events */}
+                                {event.type === 'game_pod' && (
+                                  <PodStatusBadge
+                                    event={event}
+                                    mainPlayers={event.mainPlayers || 0}
+                                    alternates={event.alternates || 0}
+                                  />
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center space-x-3">
@@ -634,33 +753,45 @@ export default function Calendar() {
 
                 {/* Calendar Grid */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>{communityTheme.terminology.events} Calendar - {viewMode === "month" ? "Month" : "Week"} View</CardTitle>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>{communityTheme.terminology.events} Calendar - {format(currentMonth, 'MMMM yyyy')}</CardTitle>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentMonth(new Date())}
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                      >
+                        <i className="fas fa-chevron-right"></i>
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredEvents.map((event) => {
-                        const eventType = EVENT_TYPES.find(t => t.id === event.type);
-                        return (
-                          <Card key={event.id} className="border-l-4" style={{borderLeftColor: eventType?.color.replace('bg-', '#')}}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <div className={`w-6 h-6 ${eventType?.color} rounded flex items-center justify-center`}>
-                                  <i className={`${eventType?.icon} text-white text-xs`}></i>
-                                </div>
-                                <Badge variant="outline" className="text-xs">{event.community?.name || 'All Communities'}</Badge>
-                              </div>
-                              <h4 className="font-semibold text-sm mb-1">{event.title}</h4>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <div>📅 {new Date(event.date).toLocaleDateString()}</div>
-                                <div>🕒 {event.time}</div>
-                                <div>📍 {event.location}</div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
+                    <CalendarGrid
+                      currentDate={currentMonth}
+                      events={filteredEvents}
+                      onDateClick={(date) => {
+                        // Set the selected date when clicking a day
+                        setSelectedDate(format(date, 'yyyy-MM-dd'));
+                      }}
+                      onEventClick={(event) => {
+                        // Could open event details dialog here
+                        console.log('Event clicked:', event);
+                      }}
+                    />
                   </CardContent>
                 </Card>
               </div>
