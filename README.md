@@ -150,6 +150,7 @@ npm run env:validate
 | `SENDGRID_API_KEY` | Email service API key | `SG.xxx` from SendGrid |
 | `STREAM_KEY_ENCRYPTION_KEY` | Stream encryption (32 chars) | Generate with: `openssl rand -hex 16` |
 | `REDIS_URL` | Redis cache connection | `redis://localhost:6379` |
+| `SENTRY_DSN` | Error tracking (Sentry) | `https://abc@sentry.io/123` |
 | `TWITCH_CLIENT_ID` | Twitch API credentials | From Twitch Developer Console |
 | `YOUTUBE_API_KEY` | YouTube API key | From Google Cloud Console |
 

@@ -94,8 +94,8 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Production database provisioned
 - [ ] Database accessible from application servers
 - [ ] Database connection pooling configured
-  - `DB_POOL_MIN` and `DB_POOL_MAX` set appropriately
-- [ ] Database SSL/TLS enabled (`DB_SSL_MODE=require`)
+  - `DB_POOL_MIN_SIZE` and `DB_POOL_MAX_SIZE` set appropriately
+- [ ] Database SSL/TLS enabled (configure via DATABASE_URL connection string)
 - [ ] Database timezone set correctly
 
 ### Schema & Migrations
