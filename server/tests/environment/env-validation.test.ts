@@ -19,6 +19,13 @@ describe('Environment Variable Validation', () => {
           key.startsWith('GOOGLE_') ||
           key.startsWith('SENDGRID_') ||
           key.startsWith('STREAM_') ||
+          key.startsWith('FACEBOOK_') ||
+          key.startsWith('YOUTUBE_') ||
+          key.startsWith('TWITCH_') ||
+          key.startsWith('DISCORD_') ||
+          key.startsWith('SENTRY_') ||
+          key.startsWith('LOG_') ||
+          key.startsWith('ALLOWED_') ||
           key === 'NODE_ENV') {
         delete process.env[key];
       }
@@ -313,6 +320,15 @@ describe('Environment Variable Validation', () => {
       
       expect(defs.recommended).toContain('SENDGRID_API_KEY');
       expect(defs.recommended).toContain('STREAM_KEY_ENCRYPTION_KEY');
+      expect(defs.recommended).toContain('SENTRY_DSN');
+      expect(defs.recommended).toContain('DATABASE_DIRECT_URL');
+      expect(defs.recommended).toContain('AUTH_TRUST_HOST');
+      expect(defs.recommended).toContain('LOG_LEVEL');
+      expect(defs.recommended).toContain('ALLOWED_ORIGINS');
+
+      expect(defs.optionalPlatforms).toContain('FACEBOOK_APP_ID');
+      expect(defs.optionalPlatforms).toContain('YOUTUBE_CLIENT_ID');
+      expect(defs.optionalPlatforms).toContain('TWITCH_EVENTSUB_SECRET');
     });
 
     it('should provide environment status for health checks', () => {
@@ -326,6 +342,153 @@ describe('Environment Variable Validation', () => {
       expect(status.valid).toBe(true);
       expect(status.missingRequired).toBe(0);
       expect(typeof status.requiredCount).toBe('number');
+    });
+  });
+
+  describe('New Variable Validations', () => {
+    beforeEach(() => {
+      process.env.NODE_ENV = 'development';
+      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
+    });
+
+    describe('DATABASE_DIRECT_URL', () => {
+      it('should accept valid PostgreSQL URLs', () => {
+        process.env.DATABASE_DIRECT_URL = 'postgresql://user:pass@host:5432/db';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('DATABASE_DIRECT_URL') && w.includes('not set'))).toBe(false);
+      });
+
+      it('should reject invalid database URLs', () => {
+        process.env.DATABASE_DIRECT_URL = 'mysql://user:pass@host:3306/db';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('DATABASE_DIRECT_URL'))).toBe(true);
+      });
+    });
+
+    describe('AUTH_TRUST_HOST', () => {
+      it('should accept boolean values', () => {
+        process.env.AUTH_TRUST_HOST = 'true';
+        let result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('AUTH_TRUST_HOST') && !w.includes('not set'))).toBe(false);
+
+        process.env.AUTH_TRUST_HOST = 'false';
+        result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('AUTH_TRUST_HOST') && !w.includes('not set'))).toBe(false);
+
+        process.env.AUTH_TRUST_HOST = '1';
+        result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('AUTH_TRUST_HOST') && !w.includes('not set'))).toBe(false);
+      });
+
+      it('should reject non-boolean values', () => {
+        process.env.AUTH_TRUST_HOST = 'yes';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('AUTH_TRUST_HOST') && w.includes('boolean'))).toBe(true);
+      });
+    });
+
+    describe('LOG_LEVEL', () => {
+      it('should accept valid log levels', () => {
+        const validLevels = ['error', 'warn', 'info', 'debug', 'ERROR', 'INFO'];
+        
+        for (const level of validLevels) {
+          process.env.LOG_LEVEL = level;
+          const result = validateEnvironmentVariables();
+          expect(result.warnings.some(w => w.includes('LOG_LEVEL') && !w.includes('not set'))).toBe(false);
+        }
+      });
+
+      it('should reject invalid log levels', () => {
+        process.env.LOG_LEVEL = 'verbose';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('LOG_LEVEL'))).toBe(true);
+      });
+    });
+
+    describe('ALLOWED_ORIGINS', () => {
+      it('should accept wildcard', () => {
+        process.env.ALLOWED_ORIGINS = '*';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('ALLOWED_ORIGINS') && !w.includes('not set'))).toBe(false);
+      });
+
+      it('should accept comma-separated valid URLs', () => {
+        process.env.ALLOWED_ORIGINS = 'https://example.com,https://app.example.com,http://localhost:3000';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('ALLOWED_ORIGINS') && !w.includes('not set'))).toBe(false);
+      });
+
+      it('should reject invalid URLs', () => {
+        process.env.ALLOWED_ORIGINS = 'not-a-url,https://valid.com';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('ALLOWED_ORIGINS') && w.includes('invalid'))).toBe(true);
+      });
+    });
+
+    describe('Platform Integration Variables', () => {
+      it('should validate FACEBOOK_APP_ID when set', () => {
+        process.env.FACEBOOK_APP_ID = 'demo-facebook-app-id';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('FACEBOOK_APP_ID'))).toBe(true);
+      });
+
+      it('should not warn when FACEBOOK_APP_ID is not set', () => {
+        // Don't set FACEBOOK_APP_ID
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('FACEBOOK_APP_ID'))).toBe(false);
+      });
+
+      it('should validate YOUTUBE_CLIENT_ID when set', () => {
+        process.env.YOUTUBE_CLIENT_ID = 'valid-youtube-client-id-from-console';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('YOUTUBE_CLIENT_ID'))).toBe(false);
+      });
+
+      it('should reject demo YOUTUBE_CLIENT_SECRET', () => {
+        process.env.YOUTUBE_CLIENT_SECRET = 'demo-youtube-secret';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('YOUTUBE_CLIENT_SECRET'))).toBe(true);
+      });
+
+      it('should validate TWITCH_EVENTSUB_SECRET when set', () => {
+        process.env.TWITCH_EVENTSUB_SECRET = '1234567890123456'; // 16 chars
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('TWITCH_EVENTSUB_SECRET') && !w.includes('not set'))).toBe(false);
+      });
+
+      it('should reject short TWITCH_EVENTSUB_SECRET', () => {
+        process.env.TWITCH_EVENTSUB_SECRET = 'short';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('TWITCH_EVENTSUB_SECRET') && w.includes('16+'))).toBe(true);
+      });
+
+      it('should validate SENDGRID_SENDER email format', () => {
+        process.env.SENDGRID_SENDER = 'noreply@example.com';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('SENDGRID_SENDER') && !w.includes('not set'))).toBe(false);
+      });
+
+      it('should reject invalid SENDGRID_SENDER email', () => {
+        process.env.SENDGRID_SENDER = 'not-an-email';
+        
+        const result = validateEnvironmentVariables();
+        expect(result.warnings.some(w => w.includes('SENDGRID_SENDER') && w.includes('email'))).toBe(true);
+      });
     });
   });
 
