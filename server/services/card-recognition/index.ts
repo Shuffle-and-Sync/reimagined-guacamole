@@ -10,15 +10,19 @@ import { games } from '../../../shared/schema';
 import { logger } from '../../logger';
 import { ICardAdapter, UniversalCard, CardSearchResult, AutocompleteResult } from './adapters/base.adapter';
 import { scryfallAdapter } from './adapters/scryfall.adapter';
+import { pokemonTCGAdapter } from './adapters/pokemon.adapter';
+import { yugiohAdapter } from './adapters/yugioh.adapter';
 import { CustomGameAdapter } from './adapters/custom.adapter';
 
 export class UniversalCardService {
   private adapters = new Map<string, ICardAdapter>();
 
   constructor() {
-    // Register default MTG adapter
+    // Register official game adapters
     this.adapters.set('mtg-official', scryfallAdapter);
-    logger.info('Universal Card Service initialized with Scryfall adapter');
+    this.adapters.set('pokemon-tcg', pokemonTCGAdapter);
+    this.adapters.set('yugioh-tcg', yugiohAdapter);
+    logger.info('Universal Card Service initialized with MTG, Pokemon, and Yu-Gi-Oh adapters');
   }
 
   /**
@@ -44,10 +48,13 @@ export class UniversalCardService {
     // Determine which adapter to use
     let adapter: ICardAdapter;
 
-    // For now, we only have Scryfall for MTG Official
-    // All other games use custom adapter
+    // Check for official game adapters
     if (gameId === 'mtg-official') {
       adapter = scryfallAdapter;
+    } else if (gameId === 'pokemon-tcg') {
+      adapter = pokemonTCGAdapter;
+    } else if (gameId === 'yugioh-tcg') {
+      adapter = yugiohAdapter;
     } else {
       // Default to custom game adapter for all user-defined games
       adapter = new CustomGameAdapter(gameId);
@@ -152,12 +159,23 @@ export class UniversalCardService {
    * Clear adapter cache (useful for testing or when game config changes)
    */
   clearAdapterCache(): void {
-    // Keep the default MTG adapter
+    // Keep the official game adapters
     const mtgAdapter = this.adapters.get('mtg-official');
+    const pokemonAdapter = this.adapters.get('pokemon-tcg');
+    const yugiohAdapter = this.adapters.get('yugioh-tcg');
+    
     this.adapters.clear();
+    
     if (mtgAdapter) {
       this.adapters.set('mtg-official', mtgAdapter);
     }
+    if (pokemonAdapter) {
+      this.adapters.set('pokemon-tcg', pokemonAdapter);
+    }
+    if (yugiohAdapter) {
+      this.adapters.set('yugioh-tcg', yugiohAdapter);
+    }
+    
     logger.info('Adapter cache cleared');
   }
 }
