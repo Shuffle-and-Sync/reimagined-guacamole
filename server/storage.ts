@@ -1,5 +1,4 @@
-import { db, withQueryTiming } from "@shared/database-unified";
-import type { PgTransaction } from 'drizzle-orm/pg-core';
+import { db, withQueryTiming, type Transaction } from "@shared/database-unified";
 import { logger } from "./logger";
 import {
   users,
@@ -191,7 +190,7 @@ import {
   type RevokedJwtToken,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { alias } from "drizzle-orm/sqlite-core";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
@@ -844,7 +843,7 @@ export class DatabaseStorage implements IStorage {
         set: {
           ...userData,
           updatedAt: new Date(),
-        } as any,  // Type assertion to handle Drizzle type issues
+        },
       })
       .returning();
     if (!user) {
@@ -862,7 +861,7 @@ export class DatabaseStorage implements IStorage {
     
     const [user] = await db
       .update(users)
-      .set(updateData as any)  // Type assertion to handle Drizzle type issues
+      .set(updateData)
       .where(eq(users.id, id))
       .returning();    
     if (!user) {
@@ -1509,7 +1508,7 @@ export class DatabaseStorage implements IStorage {
   async updateEventAttendee(id: string, data: Partial<{ playerType: string; status: 'attending' | 'maybe' | 'not_attending'; role: string }>): Promise<EventAttendee> {
     const [updated] = await db
       .update(eventAttendees)
-      .set(data as any)
+      .set(data)
       .where(eq(eventAttendees.id, id))
       .returning();
     
@@ -2072,10 +2071,10 @@ export class DatabaseStorage implements IStorage {
       await db
         .update(userMfaSettings)
         .set({
-          isEnabled: true,
-          totpSecret,
-          backupCodes, // Already hashed by caller
-          enabledAt: now,
+          enabled: true,
+          secret: totpSecret,
+          backupCodes: JSON.stringify(backupCodes), // Store as JSON string in SQLite
+          updatedAt: now,
         })
         .where(eq(userMfaSettings.userId, userId));
     } else {
@@ -2083,10 +2082,11 @@ export class DatabaseStorage implements IStorage {
         .insert(userMfaSettings)
         .values({
           userId,
-          isEnabled: true,
-          totpSecret,
-          backupCodes, // Already hashed by caller
-          enabledAt: now,
+          enabled: true,
+          secret: totpSecret,
+          backupCodes: JSON.stringify(backupCodes), // Store as JSON string in SQLite
+          createdAt: now,
+          updatedAt: now,
         });
     }
     
@@ -2105,10 +2105,10 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(userMfaSettings)
       .set({
-        isEnabled: false,
-        totpSecret: null,
-        backupCodes: [],
-        enabledAt: null,
+        enabled: false,
+        secret: null,
+        backupCodes: null, // NULL instead of empty array
+        updatedAt: new Date(),
       })
       .where(eq(userMfaSettings.userId, userId));
     
@@ -2125,7 +2125,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserMfaLastVerified(userId: string): Promise<void> {
     await db
       .update(userMfaSettings)
-      .set({ lastVerifiedAt: new Date() })
+      .set({ updatedAt: new Date() }) // lastVerifiedAt doesn't exist in schema, use updatedAt
       .where(eq(userMfaSettings.userId, userId));
   }
 
@@ -2133,15 +2133,15 @@ export class DatabaseStorage implements IStorage {
     const settings = await this.getUserMfaSettings(userId);
     if (!settings || !settings.backupCodes) return;
     
-    // Remove the used backup code from the array
-    const updatedCodes = [...settings.backupCodes];
-    updatedCodes.splice(codeIndex, 1);
+    // Parse JSON string array, remove used code, then stringify back
+    const codes = JSON.parse(settings.backupCodes);
+    codes.splice(codeIndex, 1);
     
     await db
       .update(userMfaSettings)
       .set({ 
-        backupCodes: updatedCodes,
-        lastVerifiedAt: new Date()
+        backupCodes: JSON.stringify(codes),
+        updatedAt: new Date()
       })
       .where(eq(userMfaSettings.userId, userId));
   }
@@ -2160,64 +2160,63 @@ export class DatabaseStorage implements IStorage {
 
   async recordMfaFailure(userId: string): Promise<void> {
     const windowDurationMs = 15 * 60 * 1000; // 15 minutes failure window
+    const now = Date.now();
     
-    // Single atomic operation with proper SQL parameterization
-    await db
-      .insert(userMfaAttempts)
-      .values({
+    const existing = await db
+      .select()
+      .from(userMfaAttempts)
+      .where(eq(userMfaAttempts.userId, userId))
+      .limit(1);
+    
+    if (existing.length === 0) {
+      // Insert new record
+      await db.insert(userMfaAttempts).values({
         userId,
+        attemptType: 'totp',
+        success: false,
+        ipAddress: '',
         failedAttempts: 1,
-        lastFailedAt: sql`now()`,
+        lastFailedAt: new Date(),
         lockedUntil: null,
-        windowStartedAt: sql`now()`,
-      })
-      .onConflictDoUpdate({
-        target: userMfaAttempts.userId,
-        set: {
-          // Compute new failure count once to avoid redundant calculations
-          failedAttempts: sql`
-            CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
-              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
-              ELSE ${userMfaAttempts.failedAttempts} + 1
-            END
-          `,
-          // Reset window if expired
-          windowStartedAt: sql`
-            CASE 
-              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN now()
-              ELSE ${userMfaAttempts.windowStartedAt}
-            END
-          `,
-          // Calculate lockout based on the new failure count (CTE wrapped in parentheses for PostgreSQL)
-          lockedUntil: sql`(
-            WITH new_count AS (
-              SELECT CASE 
-                WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
-                WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
-                ELSE ${userMfaAttempts.failedAttempts} + 1
-              END as count
-            )
-            SELECT CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lockedUntil}
-              WHEN new_count.count >= 5 THEN now() + interval '30 minutes'
-              WHEN new_count.count = 4 THEN now() + interval '8 minutes'
-              WHEN new_count.count = 3 THEN now() + interval '2 minutes'
-              WHEN new_count.count = 2 THEN now() + interval '30 seconds'
-              ELSE NULL
-            END
-            FROM new_count
-          )`,
-          // Always update lastFailedAt when processing a failure (except when locked)
-          lastFailedAt: sql`
-            CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lastFailedAt}
-              ELSE now()
-            END
-          `,
-          updatedAt: sql`now()`,
-        },
+        windowStartedAt: new Date(),
+        createdAt: new Date(),
       });
+    } else {
+      const record = existing[0];
+      const windowStart = record.windowStartedAt ? record.windowStartedAt.getTime() : 0;
+      const isWindowExpired = (now - windowStart) > windowDurationMs;
+      const isCurrentlyLocked = record.lockedUntil && record.lockedUntil.getTime() > now;
+      
+      // If locked, don't update anything
+      if (isCurrentlyLocked) {
+        return;
+      }
+      
+      // Calculate new failure count
+      let newFailedAttempts = isWindowExpired ? 1 : (record.failedAttempts || 0) + 1;
+      
+      // Calculate lockout time based on failure count
+      let lockedUntil: Date | null = null;
+      if (newFailedAttempts >= 5) {
+        lockedUntil = new Date(now + 30 * 60 * 1000); // 30 minutes
+      } else if (newFailedAttempts === 4) {
+        lockedUntil = new Date(now + 8 * 60 * 1000); // 8 minutes
+      } else if (newFailedAttempts === 3) {
+        lockedUntil = new Date(now + 2 * 60 * 1000); // 2 minutes
+      } else if (newFailedAttempts === 2) {
+        lockedUntil = new Date(now + 30 * 1000); // 30 seconds
+      }
+      
+      await db
+        .update(userMfaAttempts)
+        .set({
+          failedAttempts: newFailedAttempts,
+          windowStartedAt: isWindowExpired ? new Date() : record.windowStartedAt,
+          lockedUntil,
+          lastFailedAt: new Date(),
+        })
+        .where(eq(userMfaAttempts.userId, userId));
+    }
   }
 
   async resetMfaAttempts(userId: string): Promise<void> {
@@ -2227,7 +2226,6 @@ export class DatabaseStorage implements IStorage {
         failedAttempts: 0,
         lastFailedAt: null,
         lockedUntil: null,
-        updatedAt: new Date(),
       })
       .where(eq(userMfaAttempts.userId, userId));
   }
@@ -2292,7 +2290,7 @@ export class DatabaseStorage implements IStorage {
   async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
     const [fingerprint] = await db
       .insert(deviceFingerprints)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data)
       .returning();    
     if (!fingerprint) {
       throw new Error('Database operation failed');
@@ -2304,7 +2302,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(deviceFingerprints)
       .set({
-        ...data as any, // Type assertion needed for Drizzle compatibility
+        ...data,
         updatedAt: new Date(),
       })
       .where(eq(deviceFingerprints.id, id));
@@ -2335,7 +2333,7 @@ export class DatabaseStorage implements IStorage {
   async createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext> {
     const [context] = await db
       .insert(mfaSecurityContext)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data)
       .returning();    
     if (!context) {
       throw new Error('Database operation failed');
@@ -2362,7 +2360,7 @@ export class DatabaseStorage implements IStorage {
   async updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void> {
     await db
       .update(mfaSecurityContext)
-      .set(data as any) // Type assertion needed for Drizzle compatibility
+      .set(data)
       .where(eq(mfaSecurityContext.id, id));
   }
 
@@ -2712,7 +2710,7 @@ export class DatabaseStorage implements IStorage {
   async createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog> {
     const [auditLog] = await db
       .insert(authAuditLog)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data) // Type assertion to handle decimal/number type mismatch
       .returning();
     if (!auditLog) {
       throw new Error('Failed to create auth audit log');
@@ -3120,7 +3118,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // Delete existing links
       await tx.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
       
@@ -3858,7 +3856,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // First, check if there's already a verified result for this match
       const existingResult = await tx
         .select()
@@ -4900,7 +4898,7 @@ export class DatabaseStorage implements IStorage {
   // Community analytics operations
   async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
     try {
-      const [analytics] = await db.insert(communityAnalytics).values(data as any).returning();
+      const [analytics] = await db.insert(communityAnalytics).values(data).returning();
       if (!analytics) {
         throw new Error('Database operation failed');
       }
@@ -4933,7 +4931,7 @@ export class DatabaseStorage implements IStorage {
   // Platform metrics operations
   async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
     try {
-      const [metrics] = await db.insert(platformMetrics).values(data as any).returning();
+      const [metrics] = await db.insert(platformMetrics).values(data).returning();
       if (!metrics) {
         throw new Error('Database operation failed');
       }
@@ -5722,7 +5720,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport> {
     const [updated] = await db.update(contentReports)
-      .set({ ...data as any, resolvedAt: data.status === 'resolved' ? new Date() : undefined }) // Type assertion needed for Drizzle compatibility
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
       .where(eq(contentReports.id, id))
       .returning();    
     if (!updated) {
@@ -5938,7 +5936,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const [item] = await db.insert(moderationQueue).values(enhancedData as any).returning();
+    const [item] = await db.insert(moderationQueue).values(enhancedData).returning();
     
     if (!item) {
       throw new Error('Failed to add to moderation queue');
@@ -6443,7 +6441,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [updated] = await tx.update(cmsContent)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(cmsContent.id, id))
@@ -6470,7 +6468,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [published] = await tx.update(cmsContent)
         .set({ 
           isPublished: true, 
@@ -6562,7 +6560,7 @@ export class DatabaseStorage implements IStorage {
 
   // Ban evasion tracking operations
   async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // Convert confidenceScore from number to string if present (decimal type requires string)
       const insertData = {
         ...data,
@@ -6673,7 +6671,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const [updated] = await db.update(banEvasionTracking)
-      .set(updateData as any) // Type assertion needed for Drizzle compatibility
+      .set(updateData)
       .where(eq(banEvasionTracking.id, id))
       .returning();
     
@@ -6686,7 +6684,7 @@ export class DatabaseStorage implements IStorage {
 
   // User appeal operations
   async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [appeal] = await tx.insert(userAppeals).values(data).returning();
       
       if (!appeal) {
@@ -6836,7 +6834,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [template] = await tx.insert(moderationTemplates).values(data).returning();
       
       if (!template) {
@@ -6857,7 +6855,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [updated] = await tx.update(moderationTemplates)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(moderationTemplates.id, id))
