@@ -96,15 +96,17 @@ export function CollaboratorManagement({ eventId, isOwner = false }: Collaborato
     addCollaborator.mutate({
       eventId,
       collaboratorData: {
+        eventId, // Required field
         userId: data.userId || '',
         role: data.role,
         status: 'invited',
-        invitedByUserId: '', // This will be set by the backend
-        platformHandles: data.platformHandles,
-        streamingCapabilities: data.streamingCapabilities,
-        availableTimeSlots: {},
-        contentSpecialties: [],
-        technicalSetup: {},
+        invitedBy: '', // This will be set by the backend
+        platformHandles: typeof data.platformHandles === 'object' 
+          ? JSON.stringify(data.platformHandles) 
+          : data.platformHandles || '{}',
+        streamingCapabilities: Array.isArray(data.streamingCapabilities)
+          ? JSON.stringify(data.streamingCapabilities)
+          : data.streamingCapabilities || '[]',
       },
     }, {
       onSuccess: () => {
@@ -320,15 +322,21 @@ export function CollaboratorManagement({ eventId, isOwner = false }: Collaborato
                       </Badge>
                     </div>
                     
-                    {collaborator.streamingCapabilities && collaborator.streamingCapabilities.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {collaborator.streamingCapabilities.map((capability: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {STREAMING_CAPABILITIES.find(c => c.value === capability)?.label || capability}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    {(() => {
+                      const capabilities = typeof collaborator.streamingCapabilities === 'string'
+                        ? JSON.parse(collaborator.streamingCapabilities || '[]')
+                        : (Array.isArray(collaborator.streamingCapabilities) ? collaborator.streamingCapabilities : []);
+                      
+                      return capabilities.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {capabilities.map((capability: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {STREAMING_CAPABILITIES.find(c => c.value === capability)?.label || capability}
+                            </Badge>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

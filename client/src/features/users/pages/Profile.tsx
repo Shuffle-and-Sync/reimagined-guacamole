@@ -344,7 +344,7 @@ export default function Profile() {
                       return (
                         <div key={link.id} className="flex items-center gap-2" data-testid={`social-link-${link.platform}`}>
                           <i className={platform?.icon || 'fas fa-link'} />
-                          <span className="text-sm">{link.username}</span>
+                          <span className="text-sm">{link.displayName || link.url}</span>
                         </div>
                       );
                     })}
