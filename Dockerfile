@@ -14,7 +14,8 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Build the application
+# Build the application with full initialization
+# This ensures Prisma client generation, type checking, and all build steps
 RUN npm run build
 
 # Remove devDependencies to reduce image size (but keep production deps)
