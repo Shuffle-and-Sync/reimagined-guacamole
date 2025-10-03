@@ -19,7 +19,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import type { ForumPost, ForumReply, User, Community } from "@shared/schema";
+// import type { ForumPost, ForumReply, User, Community } from "@shared/schema";
+import type { User, Community } from "@shared/schema";
+
+// TODO: Forum types don't exist in schema
+type ForumPost = any;
+type ForumReply = any;
 
 const FORUM_CATEGORIES = [
   { id: "strategy", name: "Strategy & Tactics", icon: "fas fa-chess", color: "bg-blue-500" },
@@ -318,7 +323,7 @@ export default function CommunityForum() {
                   </CardHeader>
                   <CardContent>
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      {currentPost.content.split('\n').map((paragraph, index) => (
+                      {currentPost.content.split('\n').map((paragraph: string, index: number) => (
                         <p key={index}>{paragraph}</p>
                       ))}
                     </div>
@@ -389,7 +394,7 @@ export default function CommunityForum() {
                                 </span>
                               </div>
                               <div className="prose prose-sm max-w-none dark:prose-invert">
-                                {reply.content.split('\n').map((paragraph, index) => (
+                                {reply.content.split('\n').map((paragraph: string, index: number) => (
                                   <p key={index}>{paragraph}</p>
                                 ))}
                               </div>

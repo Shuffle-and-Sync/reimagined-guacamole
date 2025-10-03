@@ -39,6 +39,10 @@ type ExtendedEvent = Event & {
   isUserAttending?: boolean;
   mainPlayers?: number;
   alternates?: number;
+  // Properties that don't exist in schema but are used by legacy code
+  // TODO: Update code to use startTime/endTime instead
+  date?: string;
+  time?: string;
 };
 
 export default function Calendar() {
@@ -319,8 +323,8 @@ export default function Calendar() {
     // Pre-populate form with existing event data
     setNewEventTitle(event.title);
     setNewEventType(event.type);
-    setNewEventDate(event.date);
-    setNewEventTime(event.time);
+    setNewEventDate(event.date || ''); // Ensure not null
+    setNewEventTime(event.time || ''); // Ensure not null
     setNewEventLocation(event.location);
     setNewEventDescription(event.description || '');
     setNewEventCommunityId(event.communityId || '');

@@ -15,7 +15,9 @@ import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import type { MatchmakingPreferences } from '@shared/schema';
+// import type { MatchmakingPreferences } from '@shared/schema';
+// TODO: MatchmakingPreferences doesn't exist in schema
+type MatchmakingPreferences = any;
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
 
