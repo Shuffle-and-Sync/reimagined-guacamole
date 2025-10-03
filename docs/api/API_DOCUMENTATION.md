@@ -364,6 +364,255 @@ Leave a community.
 }
 ```
 
+## Platform OAuth API
+
+Platform OAuth endpoints allow users to connect their streaming platform accounts (Twitch, YouTube, Facebook Gaming) to enable stream coordination features.
+
+**See also:** [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch integration documentation.
+
+### GET /platforms/:platform/oauth/initiate
+
+Initiate OAuth flow for a streaming platform.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `platform` (string): Platform identifier (`twitch`, `youtube`, `facebook`)
+
+**Security Features:**
+- **PKCE (Proof Key for Code Exchange)**: All platforms support PKCE for enhanced security
+- **State Parameter**: Cryptographically random CSRF token (64 hex characters)
+- **10-minute TTL**: OAuth states expire after 10 minutes
+
+**Example Request:**
+```bash
+GET /api/platforms/twitch/oauth/initiate
+Cookie: authjs.session-token=<session-token>
+```
+
+**Success Response:**
+```json
+{
+  "authUrl": "https://id.twitch.tv/oauth2/authorize?client_id=...&redirect_uri=...&response_type=code&scope=user:read:email+channel:read:stream_key&state=...&code_challenge=...&code_challenge_method=S256&force_verify=true"
+}
+```
+
+**Usage Flow:**
+1. Frontend calls this endpoint
+2. Backend generates OAuth URL with PKCE
+3. Frontend redirects user to returned `authUrl`
+4. User authorizes on platform
+5. Platform redirects to callback URL
+
+**Error Responses:**
+```json
+{
+  "message": "Unsupported platform"
+}
+```
+
+### GET /platforms/:platform/oauth/callback
+
+Handle OAuth callback from streaming platform.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `platform` (string): Platform identifier (`twitch`, `youtube`, `facebook`)
+
+**Query Parameters:**
+- `code` (string, required): Authorization code from platform
+- `state` (string, required): State parameter for CSRF protection
+
+**Description:** 
+This endpoint is called by the OAuth provider after user authorization. It:
+1. Validates the state parameter matches stored value
+2. Exchanges authorization code for access/refresh tokens using PKCE
+3. Retrieves user's platform profile information
+4. Stores account connection and tokens securely in database
+5. Returns success with platform handle
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "platform": "twitch",
+  "handle": "streamer_username"
+}
+```
+
+**Error Responses:**
+```json
+// Invalid state parameter
+{
+  "message": "Failed to complete OAuth flow"
+}
+
+// Missing parameters
+{
+  "message": "Missing OAuth parameters"
+}
+```
+
+**Security Validations:**
+- State parameter must match stored value
+- State must not be expired (10-minute TTL)
+- User ID must match between initiate and callback
+- Platform must match between initiate and callback
+- State is single-use (deleted after successful callback)
+
+### GET /platforms/accounts
+
+Get all connected platform accounts for the authenticated user.
+
+**Authentication:** Required
+
+**Description:** Returns list of streaming platforms the user has connected, including platform handles and connection status.
+
+**Example Request:**
+```bash
+GET /api/platforms/accounts
+Cookie: authjs.session-token=<session-token>
+```
+
+**Success Response:**
+```json
+[
+  {
+    "id": "account-uuid-1",
+    "userId": "user-uuid",
+    "platform": "twitch",
+    "handle": "streamer_username",
+    "platformUserId": "12345678",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "account-uuid-2",
+    "userId": "user-uuid",
+    "platform": "youtube",
+    "handle": "Channel Name",
+    "platformUserId": "UCxxxxxxxxxxxxxx",
+    "channelId": "UCxxxxxxxxxxxxxx",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  }
+]
+```
+
+**Notes:**
+- Access tokens are NOT returned for security
+- Use platform-specific APIs to get fresh tokens when needed
+- Tokens are automatically refreshed before expiry
+
+### DELETE /platforms/accounts/:id
+
+Disconnect a platform account.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (string, required): Platform account UUID
+
+**Description:** Removes the connection to a streaming platform account. This:
+- Deletes stored access and refresh tokens
+- Removes the account association
+- Does NOT revoke tokens on the platform (user must do this in platform settings)
+
+**Example Request:**
+```bash
+DELETE /api/platforms/accounts/account-uuid-1
+Cookie: authjs.session-token=<session-token>
+```
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "message": "Platform account disconnected"
+}
+```
+
+**Error Responses:**
+```json
+// Account not found or not owned by user
+{
+  "message": "Platform account not found"
+}
+
+// Database error
+{
+  "message": "Failed to disconnect account"
+}
+```
+
+**Security:**
+- Users can only disconnect their own accounts
+- Account ownership is verified before deletion
+
+### Platform-Specific Scopes
+
+Each platform requests different OAuth scopes:
+
+**Twitch:**
+- `user:read:email` - Read user email address
+- `channel:read:stream_key` - Read stream key
+- `channel:manage:broadcast` - Manage broadcast settings
+- `channel:read:subscriptions` - Read subscription data
+- `bits:read` - Read bits/cheers data
+- `analytics:read:games` - Read game analytics
+- `analytics:read:extensions` - Read extension analytics
+
+**YouTube:**
+- `https://www.googleapis.com/auth/youtube.readonly` - Read YouTube data
+- `https://www.googleapis.com/auth/youtube.force-ssl` - Manage YouTube account
+- `https://www.googleapis.com/auth/youtube.channel-memberships.creator` - Read channel memberships
+
+**Facebook Gaming:**
+- `pages_show_list` - List pages
+- `pages_read_engagement` - Read page engagement
+- `pages_manage_posts` - Manage page posts
+- `publish_video` - Publish videos
+- `gaming_user_picture` - Access gaming profile picture
+
+### Token Management
+
+The platform OAuth system automatically handles token lifecycle:
+
+1. **Storage**: Tokens stored encrypted in database
+2. **Expiry Tracking**: Token expiration times monitored
+3. **Auto-Refresh**: Tokens refreshed automatically when near expiry (5-minute buffer)
+4. **Secure Access**: Tokens only accessible to owning user
+5. **Revocation**: Users can disconnect at any time
+
+**Refresh Flow:**
+- Access tokens typically expire in 1-4 hours
+- System checks expiry before each API call
+- If token expires within 5 minutes, automatic refresh triggered
+- If refresh fails, user prompted to re-authenticate
+
+### OAuth Redirect URLs
+
+The following redirect URLs must be configured in each platform's developer console:
+
+**Development:**
+```
+http://localhost:3000/api/platforms/twitch/oauth/callback
+http://localhost:3000/api/platforms/youtube/oauth/callback
+http://localhost:3000/api/platforms/facebook/oauth/callback
+```
+
+**Production:**
+```
+https://your-domain.com/api/platforms/twitch/oauth/callback
+https://your-domain.com/api/platforms/youtube/oauth/callback
+https://your-domain.com/api/platforms/facebook/oauth/callback
+```
+
+⚠️ **Important:** Redirect URLs are case-sensitive and must match exactly!
+
 ## Communities API
 
 ### GET /communities
