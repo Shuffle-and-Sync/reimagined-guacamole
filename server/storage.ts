@@ -3442,35 +3442,29 @@ export class DatabaseStorage implements IStorage {
         const gaming = profile.gamingProfile!;
         const userPrefs = profile.preferences;
 
-        // Game compatibility (high weight)
-        const sharedGames = (preferences.selectedGames as string[])?.filter(game => 
-          gaming.communityId && (preferences.selectedGames as string[]).includes(gaming.communityId)
-        );
-        if (sharedGames?.length > 0) score += 30;
+        // Game type matching (high weight)
+        if (gaming.gameType === preferences.gameType) {
+          score += 30;
+        }
 
-        // Experience level matching (medium weight)
-        if (gaming.experience) {
-          const experienceLevels = { beginner: 1, intermediate: 2, expert: 3 };
-          const userLevel = experienceLevels[gaming.experience as keyof typeof experienceLevels] || 2;
-          const prefLevel = experienceLevels[preferences.playstyle as keyof typeof experienceLevels] || 2;
-          score += Math.max(0, 20 - Math.abs(userLevel - prefLevel) * 7);
+        // Format compatibility (medium weight)
+        if (preferences.preferredFormats && gaming.preferredFormats) {
+          const userFormats = JSON.parse(gaming.preferredFormats || '[]');
+          const prefFormats = JSON.parse(preferences.preferredFormats || '[]');
+          const sharedFormats = userFormats.filter((f: string) => prefFormats.includes(f));
+          if (sharedFormats.length > 0) score += 20;
+        }
+
+        // Play style matching (medium weight)
+        if (userPrefs?.playStyle === preferences.playStyle) {
+          score += 15;
         }
 
         // Location proximity (medium weight)
-        if (preferences.onlineOnly || !preferences.location || !user.location) {
-          score += 15; // Online players get base score
-        } else if (user.location === preferences.location) {
+        if (!preferences.preferredLocation || !user.location) {
+          score += 15; // Online or no location preference
+        } else if (user.location === preferences.preferredLocation) {
           score += 25; // Same location bonus
-        }
-
-        // Availability matching (low weight)
-        if (userPrefs?.availability === preferences.availability || preferences.availability === 'any') {
-          score += 10;
-        }
-
-        // Language matching (low weight)
-        if (userPrefs?.language === preferences.language) {
-          score += 5;
         }
 
         // Random factor to add variety
@@ -4801,7 +4795,7 @@ export class DatabaseStorage implements IStorage {
 
   async getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]> {
     try {
-      const conditions = [eq(streamAnalytics.streamSessionId, sessionId)];
+      const conditions = [eq(streamAnalytics.sessionId, sessionId)]; // Changed from streamSessionId
       
       if (platform) {
         conditions.push(eq(streamAnalytics.platform, platform));
@@ -4824,11 +4818,11 @@ export class DatabaseStorage implements IStorage {
         .select({
           maxViewers: sql<number>`MAX(${streamAnalytics.viewerCount})`,
           avgViewers: sql<number>`AVG(${streamAnalytics.viewerCount})`,
-          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessageCount})`,
-          platforms: sql<string[]>`ARRAY_AGG(DISTINCT ${streamAnalytics.platform})`,
+          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessages})`, // Changed from chatMessageCount
+          platforms: sql<string>`GROUP_CONCAT(DISTINCT ${streamAnalytics.platform})`, // Changed from ARRAY_AGG to GROUP_CONCAT for SQLite
         })
         .from(streamAnalytics)
-        .where(eq(streamAnalytics.streamSessionId, sessionId));
+        .where(eq(streamAnalytics.sessionId, sessionId)); // Changed from streamSessionId
 
       const result = analytics[0];
       return {
@@ -5227,7 +5221,7 @@ export class DatabaseStorage implements IStorage {
       category: 'role_assignment',
       targetType: 'user',
       targetId: data.userId,
-      parameters: { role: data.role, permissions: data.permissions },
+      parameters: JSON.stringify({ role: data.role, permissions: data.permissions }),
       ipAddress: '', // Will be filled by middleware
     });    
     
@@ -5255,7 +5249,7 @@ export class DatabaseStorage implements IStorage {
         category: 'role_assignment',
         targetType: 'user',
         targetId: role.userId,
-        parameters: { roleId: id, updates: data },
+        parameters: JSON.stringify({ roleId: id, updates: data }),
         ipAddress: '',
       });
     }    
@@ -5397,7 +5391,7 @@ export class DatabaseStorage implements IStorage {
 
     // 4. Activity consistency bonus (up to +50 points)
     const uniqueEventDays = new Set(activityData.map(activity => 
-      activity.timestamp.toISOString().split('T')[0]
+      activity.date // Use date field instead of timestamp
     )).size;
     const consistencyBonus = Math.min(50, uniqueEventDays * 2);
     calculatedScore += consistencyBonus;
@@ -5632,7 +5626,7 @@ export class DatabaseStorage implements IStorage {
         itemId: report.id,
         priority: priorityMap[data.priority || 'medium'],
         summary: `${data.reason}: ${data.contentType} reported`,
-        metadata: { contentType: data.contentType, contentId: data.contentId }
+        metadata: JSON.stringify({ contentType: data.contentType, contentId: data.contentId })
       });
     }    
     
@@ -5741,7 +5735,7 @@ export class DatabaseStorage implements IStorage {
         targetId: reportId,
         targetType: 'content_report',
         category: 'content_moderation',
-        parameters: { reportId, resolution, actionTaken },
+        parameters: JSON.stringify({ reportId, resolution, actionTaken }),
         ipAddress: ''
       });
     }
@@ -5785,11 +5779,11 @@ export class DatabaseStorage implements IStorage {
       category: 'content_moderation',
       targetId: data.targetUserId,
       targetType: 'user',
-      parameters: { 
+      parameters: JSON.stringify({ 
         actionType: data.action, 
         reason: data.reason,
         duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
-      },
+      }),
       ipAddress: ''
     });    
     
@@ -5880,7 +5874,7 @@ export class DatabaseStorage implements IStorage {
       targetId: reversed.targetUserId,
       targetType: 'user',
       category: 'content_moderation',
-      parameters: { moderationActionId: id, reason },
+      parameters: JSON.stringify({ moderationActionId: id, reason }),
       ipAddress: ''
     });    
     
@@ -5933,12 +5927,12 @@ export class DatabaseStorage implements IStorage {
       category: 'content_moderation',
       targetType: 'moderation_queue',
       targetId: item.id,
-      parameters: { 
+      parameters: JSON.stringify({ 
         itemType: item.itemType,
         itemId: item.itemId,
         priority: item.priority,
         autoGenerated: item.autoGenerated
-      },
+      }),
       ipAddress: ''
     });    
     
@@ -6473,7 +6467,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'cms_content',
-        parameters: { contentId: id, title: published.title },
+        parameters: JSON.stringify({ contentId: id, title: published.title }),
         ipAddress: ''
       });
       
@@ -6563,10 +6557,10 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: data.userId,
         targetType: 'user',
-        parameters: { 
+        parameters: JSON.stringify({ 
           detectionMethod: data.detectionMethod,
           confidenceScore: data.confidenceScore 
-        },
+        }),
         ipAddress: data.ipAddress || ''
       });
       
@@ -6649,7 +6643,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'ban_evasion_tracking',
-        parameters: { banEvasionId: id, newStatus: status },
+        parameters: JSON.stringify({ banEvasionId: id, newStatus: status }),
         ipAddress: ''
       });
     }
@@ -6778,7 +6772,7 @@ export class DatabaseStorage implements IStorage {
         action: 'user_appeal_resolved',
         category: 'user_management',
         targetId: appealId,
-        parameters: { appealId, decision, reviewerNotes },
+        parameters: JSON.stringify({ appealId, decision, reviewerNotes }),
         ipAddress: ''
       });
     }
