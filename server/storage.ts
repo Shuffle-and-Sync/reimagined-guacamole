@@ -1,5 +1,4 @@
-import { db, withQueryTiming } from "@shared/database-unified";
-import type { PgTransaction } from 'drizzle-orm/pg-core';
+import { db, withQueryTiming, type Transaction } from "@shared/database-unified";
 import { logger } from "./logger";
 import {
   users,
@@ -191,7 +190,7 @@ import {
   type RevokedJwtToken,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { alias } from "drizzle-orm/sqlite-core";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
@@ -844,7 +843,7 @@ export class DatabaseStorage implements IStorage {
         set: {
           ...userData,
           updatedAt: new Date(),
-        } as any,  // Type assertion to handle Drizzle type issues
+        },
       })
       .returning();
     if (!user) {
@@ -862,7 +861,7 @@ export class DatabaseStorage implements IStorage {
     
     const [user] = await db
       .update(users)
-      .set(updateData as any)  // Type assertion to handle Drizzle type issues
+      .set(updateData)
       .where(eq(users.id, id))
       .returning();    
     if (!user) {
@@ -1509,7 +1508,7 @@ export class DatabaseStorage implements IStorage {
   async updateEventAttendee(id: string, data: Partial<{ playerType: string; status: 'attending' | 'maybe' | 'not_attending'; role: string }>): Promise<EventAttendee> {
     const [updated] = await db
       .update(eventAttendees)
-      .set(data as any)
+      .set(data)
       .where(eq(eventAttendees.id, id))
       .returning();
     
@@ -2072,10 +2071,10 @@ export class DatabaseStorage implements IStorage {
       await db
         .update(userMfaSettings)
         .set({
-          isEnabled: true,
-          totpSecret,
-          backupCodes, // Already hashed by caller
-          enabledAt: now,
+          enabled: true,
+          secret: totpSecret,
+          backupCodes: JSON.stringify(backupCodes), // Store as JSON string in SQLite
+          updatedAt: now,
         })
         .where(eq(userMfaSettings.userId, userId));
     } else {
@@ -2083,10 +2082,11 @@ export class DatabaseStorage implements IStorage {
         .insert(userMfaSettings)
         .values({
           userId,
-          isEnabled: true,
-          totpSecret,
-          backupCodes, // Already hashed by caller
-          enabledAt: now,
+          enabled: true,
+          secret: totpSecret,
+          backupCodes: JSON.stringify(backupCodes), // Store as JSON string in SQLite
+          createdAt: now,
+          updatedAt: now,
         });
     }
     
@@ -2105,10 +2105,10 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(userMfaSettings)
       .set({
-        isEnabled: false,
-        totpSecret: null,
-        backupCodes: [],
-        enabledAt: null,
+        enabled: false,
+        secret: '', // Empty string instead of null since it's notNull
+        backupCodes: null,
+        updatedAt: new Date(),
       })
       .where(eq(userMfaSettings.userId, userId));
     
@@ -2125,7 +2125,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserMfaLastVerified(userId: string): Promise<void> {
     await db
       .update(userMfaSettings)
-      .set({ lastVerifiedAt: new Date() })
+      .set({ updatedAt: new Date() }) // lastVerifiedAt doesn't exist in schema, use updatedAt
       .where(eq(userMfaSettings.userId, userId));
   }
 
@@ -2133,15 +2133,15 @@ export class DatabaseStorage implements IStorage {
     const settings = await this.getUserMfaSettings(userId);
     if (!settings || !settings.backupCodes) return;
     
-    // Remove the used backup code from the array
-    const updatedCodes = [...settings.backupCodes];
-    updatedCodes.splice(codeIndex, 1);
+    // Parse JSON string array, remove used code, then stringify back
+    const codes = JSON.parse(settings.backupCodes);
+    codes.splice(codeIndex, 1);
     
     await db
       .update(userMfaSettings)
       .set({ 
-        backupCodes: updatedCodes,
-        lastVerifiedAt: new Date()
+        backupCodes: JSON.stringify(codes),
+        updatedAt: new Date()
       })
       .where(eq(userMfaSettings.userId, userId));
   }
@@ -2160,64 +2160,63 @@ export class DatabaseStorage implements IStorage {
 
   async recordMfaFailure(userId: string): Promise<void> {
     const windowDurationMs = 15 * 60 * 1000; // 15 minutes failure window
+    const now = Date.now();
     
-    // Single atomic operation with proper SQL parameterization
-    await db
-      .insert(userMfaAttempts)
-      .values({
+    const existing = await db
+      .select()
+      .from(userMfaAttempts)
+      .where(eq(userMfaAttempts.userId, userId))
+      .limit(1);
+    
+    if (existing.length === 0) {
+      // Insert new record
+      await db.insert(userMfaAttempts).values({
         userId,
+        attemptType: 'totp',
+        success: false,
+        ipAddress: '',
         failedAttempts: 1,
-        lastFailedAt: sql`now()`,
+        lastFailedAt: new Date(),
         lockedUntil: null,
-        windowStartedAt: sql`now()`,
-      })
-      .onConflictDoUpdate({
-        target: userMfaAttempts.userId,
-        set: {
-          // Compute new failure count once to avoid redundant calculations
-          failedAttempts: sql`
-            CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
-              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
-              ELSE ${userMfaAttempts.failedAttempts} + 1
-            END
-          `,
-          // Reset window if expired
-          windowStartedAt: sql`
-            CASE 
-              WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN now()
-              ELSE ${userMfaAttempts.windowStartedAt}
-            END
-          `,
-          // Calculate lockout based on the new failure count (CTE wrapped in parentheses for PostgreSQL)
-          lockedUntil: sql`(
-            WITH new_count AS (
-              SELECT CASE 
-                WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.failedAttempts}
-                WHEN (now() - ${userMfaAttempts.windowStartedAt}) > (interval '1 millisecond' * ${windowDurationMs}) THEN 1
-                ELSE ${userMfaAttempts.failedAttempts} + 1
-              END as count
-            )
-            SELECT CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lockedUntil}
-              WHEN new_count.count >= 5 THEN now() + interval '30 minutes'
-              WHEN new_count.count = 4 THEN now() + interval '8 minutes'
-              WHEN new_count.count = 3 THEN now() + interval '2 minutes'
-              WHEN new_count.count = 2 THEN now() + interval '30 seconds'
-              ELSE NULL
-            END
-            FROM new_count
-          )`,
-          // Always update lastFailedAt when processing a failure (except when locked)
-          lastFailedAt: sql`
-            CASE 
-              WHEN ${userMfaAttempts.lockedUntil} > now() THEN ${userMfaAttempts.lastFailedAt}
-              ELSE now()
-            END
-          `,
-          updatedAt: sql`now()`,
-        },
+        windowStartedAt: new Date(),
+        createdAt: new Date(),
       });
+    } else {
+      const record = existing[0]!; // Safe: we checked existing.length === 0 above
+      const windowStart = record.windowStartedAt ? record.windowStartedAt.getTime() : 0;
+      const isWindowExpired = (now - windowStart) > windowDurationMs;
+      const isCurrentlyLocked = record.lockedUntil && record.lockedUntil.getTime() > now;
+      
+      // If locked, don't update anything
+      if (isCurrentlyLocked) {
+        return;
+      }
+      
+      // Calculate new failure count
+      let newFailedAttempts = isWindowExpired ? 1 : (record.failedAttempts || 0) + 1;
+      
+      // Calculate lockout time based on failure count
+      let lockedUntil: Date | null = null;
+      if (newFailedAttempts >= 5) {
+        lockedUntil = new Date(now + 30 * 60 * 1000); // 30 minutes
+      } else if (newFailedAttempts === 4) {
+        lockedUntil = new Date(now + 8 * 60 * 1000); // 8 minutes
+      } else if (newFailedAttempts === 3) {
+        lockedUntil = new Date(now + 2 * 60 * 1000); // 2 minutes
+      } else if (newFailedAttempts === 2) {
+        lockedUntil = new Date(now + 30 * 1000); // 30 seconds
+      }
+      
+      await db
+        .update(userMfaAttempts)
+        .set({
+          failedAttempts: newFailedAttempts,
+          windowStartedAt: isWindowExpired ? new Date() : record.windowStartedAt,
+          lockedUntil,
+          lastFailedAt: new Date(),
+        })
+        .where(eq(userMfaAttempts.userId, userId));
+    }
   }
 
   async resetMfaAttempts(userId: string): Promise<void> {
@@ -2227,7 +2226,6 @@ export class DatabaseStorage implements IStorage {
         failedAttempts: 0,
         lastFailedAt: null,
         lockedUntil: null,
-        updatedAt: new Date(),
       })
       .where(eq(userMfaAttempts.userId, userId));
   }
@@ -2257,7 +2255,6 @@ export class DatabaseStorage implements IStorage {
         failedAttempts: 0,
         lastFailedAt: null,
         lockedUntil: null,
-        updatedAt: now,
       })
       .where(and(
         isNotNull(userMfaAttempts.lockedUntil),
@@ -2286,13 +2283,13 @@ export class DatabaseStorage implements IStorage {
         eq(deviceFingerprints.userId, userId),
         eq(deviceFingerprints.isActive, true)
       ))
-      .orderBy(desc(deviceFingerprints.lastSeenAt));
+      .orderBy(desc(deviceFingerprints.lastSeen)); // Changed from lastSeenAt to lastSeen
   }
 
   async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
     const [fingerprint] = await db
       .insert(deviceFingerprints)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data)
       .returning();    
     if (!fingerprint) {
       throw new Error('Database operation failed');
@@ -2303,10 +2300,7 @@ export class DatabaseStorage implements IStorage {
   async updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void> {
     await db
       .update(deviceFingerprints)
-      .set({
-        ...data as any, // Type assertion needed for Drizzle compatibility
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(deviceFingerprints.id, id));
   }
 
@@ -2315,18 +2309,15 @@ export class DatabaseStorage implements IStorage {
       .update(deviceFingerprints)
       .set({
         isActive: false,
-        updatedAt: new Date(),
       })
       .where(eq(deviceFingerprints.id, id));
   }
 
   async updateDeviceLastSeen(fingerprintHash: string): Promise<void> {
-    const now = new Date();
     await db
       .update(deviceFingerprints)
       .set({
-        lastSeenAt: now,
-        updatedAt: now,
+        lastSeen: new Date(), // Changed from lastSeenAt to lastSeen
       })
       .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash));
   }
@@ -2335,7 +2326,7 @@ export class DatabaseStorage implements IStorage {
   async createMfaSecurityContext(data: InsertMfaSecurityContext): Promise<MfaSecurityContext> {
     const [context] = await db
       .insert(mfaSecurityContext)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data)
       .returning();    
     if (!context) {
       throw new Error('Database operation failed');
@@ -2362,7 +2353,7 @@ export class DatabaseStorage implements IStorage {
   async updateMfaSecurityContext(id: string, data: Partial<InsertMfaSecurityContext>): Promise<void> {
     await db
       .update(mfaSecurityContext)
-      .set(data as any) // Type assertion needed for Drizzle compatibility
+      .set(data)
       .where(eq(mfaSecurityContext.id, id));
   }
 
@@ -2386,8 +2377,8 @@ export class DatabaseStorage implements IStorage {
         expiresAt: trustedDevices.expiresAt,
         verifiedAt: trustedDevices.verifiedAt,
         verificationMethod: trustedDevices.verificationMethod,
-        createdAt: trustedDevices.createdAt,
-        updatedAt: trustedDevices.updatedAt,
+        trustedAt: trustedDevices.trustedAt,
+        lastUsed: trustedDevices.lastUsed,
         deviceFingerprint: deviceFingerprints,
       })
       .from(trustedDevices)
@@ -2417,10 +2408,7 @@ export class DatabaseStorage implements IStorage {
   async updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void> {
     await db
       .update(trustedDevices)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(trustedDevices.id, id));
   }
 
@@ -2430,9 +2418,9 @@ export class DatabaseStorage implements IStorage {
       .update(trustedDevices)
       .set({
         isActive: false,
+        isRevoked: true,
         revokedAt: now,
         revokedReason: reason,
-        updatedAt: now,
       })
       .where(eq(trustedDevices.id, id));
   }
@@ -2443,8 +2431,8 @@ export class DatabaseStorage implements IStorage {
       .update(trustedDevices)
       .set({
         isActive: false,
+        isRevoked: true,
         revokedReason: "expired",
-        updatedAt: now,
       })
       .where(and(
         eq(trustedDevices.isActive, true),
@@ -2467,13 +2455,12 @@ export class DatabaseStorage implements IStorage {
     const userDevices = await this.getUserDeviceFingerprints(userId);
     const recentContexts = await this.getMfaSecurityContext(userId, { limit: 20 });
 
-    // Check for new user agent
-    const hasSeenUserAgent = userDevices.some(device => 
-      device.userAgent === context.userAgent
-    );
-    if (!hasSeenUserAgent) {
+    // Check for new device (fingerprint not in user's devices)
+    // Note: deviceFingerprints schema doesn't have userAgent field
+    const hasSeenDevice = userDevices.length > 0;
+    if (!hasSeenDevice) {
       riskScore += 0.3;
-      riskFactors.push("new_user_agent");
+      riskFactors.push("new_device");
     }
 
     // Check for new IP range (simplified check - first 3 octets)
@@ -2563,39 +2550,25 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Calculate trust score based on device history
-    let trustScore = 0.5; // Base trust score
+    // Note: deviceFingerprints only has: trustScore, firstSeen, lastSeen, isBlocked
+    let trustScore = deviceFingerprint.trustScore || 0.5;
 
     // Factor in device age (older devices with good history = higher trust)
-    const deviceAgeMs = new Date().getTime() - (deviceFingerprint.firstSeenAt?.getTime() || 0);
+    const deviceAgeMs = new Date().getTime() - (deviceFingerprint.firstSeen?.getTime() || 0);
     const deviceAgeDays = deviceAgeMs / (24 * 60 * 60 * 1000);
     if (deviceAgeDays > 30) trustScore += 0.2;
     else if (deviceAgeDays > 7) trustScore += 0.1;
 
-    // Factor in successful MFA attempts
-    const successfulAttempts = deviceFingerprint.successfulMfaAttempts || 0;
-    const failedAttempts = deviceFingerprint.failedMfaAttempts || 0;
-    const successRate = successfulAttempts / Math.max(1, successfulAttempts + failedAttempts);
-    trustScore += successRate * 0.3;
-
-    // Factor in user trust marking
-    if (deviceFingerprint.isTrusted) {
-      trustScore += 0.2;
+    // Check if blocked
+    if (deviceFingerprint.isBlocked) {
+      trustScore = 0.0;
     }
-
-    // Factor in total sessions (more usage = higher trust)
-    const totalSessions = deviceFingerprint.totalSessions || 0;
-    if (totalSessions > 50) trustScore += 0.1;
-    else if (totalSessions > 10) trustScore += 0.05;
-
-    // Apply risk score modifier (handle decimal as string in Drizzle)
-    const currentRiskScore = Number(deviceFingerprint.riskScore) || 0.5;
-    trustScore = trustScore * (1 - currentRiskScore);
 
     // Cap trust score
     trustScore = Math.min(Math.max(trustScore, 0.0), 1.0);
 
     // Determine if additional verification is required
-    const requiresAdditionalVerification = trustScore < 0.6 || currentRiskScore > 0.7;
+    const requiresAdditionalVerification = trustScore < 0.6;
 
     return {
       isValid: true,
@@ -2712,7 +2685,7 @@ export class DatabaseStorage implements IStorage {
   async createAuthAuditLog(data: InsertAuthAuditLog): Promise<AuthAuditLog> {
     const [auditLog] = await db
       .insert(authAuditLog)
-      .values(data as any) // Type assertion to handle decimal/number type mismatch
+      .values(data) // Type assertion to handle decimal/number type mismatch
       .returning();
     if (!auditLog) {
       throw new Error('Failed to create auth audit log');
@@ -3120,7 +3093,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserSocialLinks(userId: string, links: InsertUserSocialLink[]): Promise<UserSocialLink[]> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // Delete existing links
       await tx.delete(userSocialLinks).where(eq(userSocialLinks.userId, userId));
       
@@ -3380,10 +3353,14 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: userSettings.userId,
         set: {
-          theme: data.theme,
-          notificationSettings: data.notificationSettings,
+          notificationsEnabled: data.notificationsEnabled,
+          emailNotifications: data.emailNotifications,
+          pushNotifications: data.pushNotifications,
+          notificationTypes: data.notificationTypes,
           privacySettings: data.privacySettings,
-          streamingSettings: data.streamingSettings,
+          displayPreferences: data.displayPreferences,
+          language: data.language,
+          timezone: data.timezone,
           updatedAt: new Date(),
         },
       })
@@ -3413,16 +3390,15 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: matchmakingPreferences.userId,
         set: {
-          selectedGames: data.selectedGames,
-          selectedFormats: data.selectedFormats,
-          powerLevelMin: data.powerLevelMin,
-          powerLevelMax: data.powerLevelMax,
-          playstyle: data.playstyle,
-          location: data.location,
-          onlineOnly: data.onlineOnly,
-          availability: data.availability,
-          language: data.language,
-          maxDistance: data.maxDistance,
+          gameType: data.gameType,
+          preferredFormats: data.preferredFormats,
+          skillLevelRange: data.skillLevelRange,
+          availabilitySchedule: data.availabilitySchedule,
+          maxTravelDistance: data.maxTravelDistance,
+          preferredLocation: data.preferredLocation,
+          playStyle: data.playStyle,
+          communicationPreferences: data.communicationPreferences,
+          blockedUsers: data.blockedUsers,
           updatedAt: new Date(),
         },
       })
@@ -3466,35 +3442,29 @@ export class DatabaseStorage implements IStorage {
         const gaming = profile.gamingProfile!;
         const userPrefs = profile.preferences;
 
-        // Game compatibility (high weight)
-        const sharedGames = (preferences.selectedGames as string[])?.filter(game => 
-          gaming.communityId && (preferences.selectedGames as string[]).includes(gaming.communityId)
-        );
-        if (sharedGames?.length > 0) score += 30;
+        // Game type matching (high weight)
+        if (gaming.gameType === preferences.gameType) {
+          score += 30;
+        }
 
-        // Experience level matching (medium weight)
-        if (gaming.experience) {
-          const experienceLevels = { beginner: 1, intermediate: 2, expert: 3 };
-          const userLevel = experienceLevels[gaming.experience as keyof typeof experienceLevels] || 2;
-          const prefLevel = experienceLevels[preferences.playstyle as keyof typeof experienceLevels] || 2;
-          score += Math.max(0, 20 - Math.abs(userLevel - prefLevel) * 7);
+        // Format compatibility (medium weight)
+        if (preferences.preferredFormats && gaming.preferredFormats) {
+          const userFormats = JSON.parse(gaming.preferredFormats || '[]');
+          const prefFormats = JSON.parse(preferences.preferredFormats || '[]');
+          const sharedFormats = userFormats.filter((f: string) => prefFormats.includes(f));
+          if (sharedFormats.length > 0) score += 20;
+        }
+
+        // Play style matching (medium weight)
+        if (userPrefs?.playStyle === preferences.playStyle) {
+          score += 15;
         }
 
         // Location proximity (medium weight)
-        if (preferences.onlineOnly || !preferences.location || !user.location) {
-          score += 15; // Online players get base score
-        } else if (user.location === preferences.location) {
+        if (!preferences.preferredLocation || !user.location) {
+          score += 15; // Online or no location preference
+        } else if (user.location === preferences.preferredLocation) {
           score += 25; // Same location bonus
-        }
-
-        // Availability matching (low weight)
-        if (userPrefs?.availability === preferences.availability || preferences.availability === 'any') {
-          score += 10;
-        }
-
-        // Language matching (low weight)
-        if (userPrefs?.language === preferences.language) {
-          score += 5;
         }
 
         // Random factor to add variety
@@ -3748,7 +3718,7 @@ export class DatabaseStorage implements IStorage {
           roundId ? eq(tournamentMatches.roundId, roundId) : undefined
         )
       )
-      .orderBy(tournamentMatches.bracketPosition);
+      .orderBy(tournamentMatches.matchNumber); // Use matchNumber instead of bracketPosition
 
     const results = await query;
     return results.map((r: any) => ({
@@ -3806,7 +3776,6 @@ export class DatabaseStorage implements IStorage {
     const allowedFields = { ...data };
     delete allowedFields.tournamentId;
     delete allowedFields.roundId;
-    delete allowedFields.bracketPosition;
 
     const [match] = await db
       .update(tournamentMatches)
@@ -3858,7 +3827,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyMatchResult(resultId: string, verifierId: string): Promise<MatchResult> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // First, check if there's already a verified result for this match
       const existingResult = await tx
         .select()
@@ -3985,7 +3954,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(alias(users, 'player2'), eq(tournamentMatches.player2Id, alias(users, 'player2').id))
       .leftJoin(alias(users, 'winner'), eq(tournamentMatches.winnerId, alias(users, 'winner').id))
       .where(eq(tournamentMatches.tournamentId, tournamentId))
-      .orderBy(tournamentMatches.bracketPosition, tournamentMatches.createdAt);
+      .orderBy(tournamentMatches.matchNumber, tournamentMatches.createdAt); // Use matchNumber instead of bracketPosition
 
     return results.map((r: any) => ({
       ...r.match,
@@ -4202,7 +4171,7 @@ export class DatabaseStorage implements IStorage {
       .update(forumPosts)
       .set({ 
         replyCount: sql`${forumPosts.replyCount} + 1`,
-        lastReplyAt: new Date(),
+        lastActivityAt: new Date(), // Changed from lastReplyAt to lastActivityAt
         updatedAt: new Date()
       })
       .where(eq(forumPosts.id, data.postId));    
@@ -4620,12 +4589,21 @@ export class DatabaseStorage implements IStorage {
 
   async updateStreamCoHostPermissions(sessionId: string, userId: string, permissions: { canControlStream: boolean; canManageChat: boolean; canInviteGuests: boolean; canEndStream: boolean }): Promise<StreamSessionCoHost> {
     try {
+      // Note: streamSessionCoHosts doesn't have permissions field, only role
+      // Map permissions to role for simplified implementation
+      let role = 'co_host';
+      if (permissions.canControlStream && permissions.canManageChat && permissions.canInviteGuests && permissions.canEndStream) {
+        role = 'moderator';
+      } else if (!permissions.canControlStream && !permissions.canManageChat) {
+        role = 'guest';
+      }
+      
       const [coHost] = await db
         .update(streamSessionCoHosts)
-        .set({ permissions })
+        .set({ role })
         .where(
           and(
-            eq(streamSessionCoHosts.streamSessionId, sessionId),
+            eq(streamSessionCoHosts.sessionId, sessionId),
             eq(streamSessionCoHosts.userId, userId)
           )
         )
@@ -4691,16 +4669,16 @@ export class DatabaseStorage implements IStorage {
 
   async updateStreamStatus(sessionId: string, platform: string, isLive: boolean, viewerCount?: number): Promise<void> {
     try {
+      // streamSessionPlatforms has 'status' field, not 'isLive'
       await db
         .update(streamSessionPlatforms)
         .set({ 
-          isLive, 
+          status: isLive ? 'live' : 'offline', // Use status field instead of isLive
           viewerCount: viewerCount || 0,
-          lastStatusCheck: new Date()
         })
         .where(
           and(
-            eq(streamSessionPlatforms.streamSessionId, sessionId),
+            eq(streamSessionPlatforms.sessionId, sessionId),
             eq(streamSessionPlatforms.platform, platform)
           )
         );
@@ -4723,9 +4701,7 @@ export class DatabaseStorage implements IStorage {
       if (filters?.status) {
         conditions.push(eq(collaborationRequests.status, filters.status as any));
       }
-      if (filters?.type) {
-        conditions.push(eq(collaborationRequests.type, filters.type));
-      }
+      // Note: collaborationRequests doesn't have a 'type' field in schema
 
       const results = await db
         .select({
@@ -4737,7 +4713,7 @@ export class DatabaseStorage implements IStorage {
         .from(collaborationRequests)
         .leftJoin(alias(users, 'fromUser'), eq(collaborationRequests.fromUserId, alias(users, 'fromUser').id))
         .leftJoin(alias(users, 'toUser'), eq(collaborationRequests.toUserId, alias(users, 'toUser').id))
-        .leftJoin(streamSessions, eq(collaborationRequests.streamSessionId, streamSessions.id))
+        .leftJoin(streamSessions, eq(collaborationRequests.eventId, streamSessions.eventId)) // Use eventId instead of streamSessionId
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       return results.map((r: any) => ({
@@ -4767,11 +4743,11 @@ export class DatabaseStorage implements IStorage {
 
   async respondToCollaborationRequest(id: string, status: 'accepted' | 'declined' | 'cancelled', responseMessage?: string): Promise<CollaborationRequest> {
     try {
+      // Note: collaborationRequests doesn't have a 'responseMessage' field
       const [request] = await db
         .update(collaborationRequests)
         .set({ 
           status, 
-          responseMessage,
           respondedAt: new Date()
         })
         .where(eq(collaborationRequests.id, id))
@@ -4819,7 +4795,7 @@ export class DatabaseStorage implements IStorage {
 
   async getStreamAnalytics(sessionId: string, platform?: string): Promise<StreamAnalytics[]> {
     try {
-      const conditions = [eq(streamAnalytics.streamSessionId, sessionId)];
+      const conditions = [eq(streamAnalytics.sessionId, sessionId)]; // Changed from streamSessionId
       
       if (platform) {
         conditions.push(eq(streamAnalytics.platform, platform));
@@ -4842,11 +4818,11 @@ export class DatabaseStorage implements IStorage {
         .select({
           maxViewers: sql<number>`MAX(${streamAnalytics.viewerCount})`,
           avgViewers: sql<number>`AVG(${streamAnalytics.viewerCount})`,
-          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessageCount})`,
-          platforms: sql<string[]>`ARRAY_AGG(DISTINCT ${streamAnalytics.platform})`,
+          totalMessages: sql<number>`SUM(${streamAnalytics.chatMessages})`, // Changed from chatMessageCount
+          platforms: sql<string>`GROUP_CONCAT(DISTINCT ${streamAnalytics.platform})`, // Changed from ARRAY_AGG to GROUP_CONCAT for SQLite
         })
         .from(streamAnalytics)
-        .where(eq(streamAnalytics.streamSessionId, sessionId));
+        .where(eq(streamAnalytics.sessionId, sessionId)); // Changed from streamSessionId
 
       const result = analytics[0];
       return {
@@ -4900,7 +4876,7 @@ export class DatabaseStorage implements IStorage {
   // Community analytics operations
   async recordCommunityAnalytics(data: InsertCommunityAnalytics): Promise<CommunityAnalytics> {
     try {
-      const [analytics] = await db.insert(communityAnalytics).values(data as any).returning();
+      const [analytics] = await db.insert(communityAnalytics).values(data).returning();
       if (!analytics) {
         throw new Error('Database operation failed');
       }
@@ -4933,7 +4909,7 @@ export class DatabaseStorage implements IStorage {
   // Platform metrics operations
   async recordPlatformMetrics(data: InsertPlatformMetrics): Promise<PlatformMetrics> {
     try {
-      const [metrics] = await db.insert(platformMetrics).values(data as any).returning();
+      const [metrics] = await db.insert(platformMetrics).values(data).returning();
       if (!metrics) {
         throw new Error('Database operation failed');
       }
@@ -5245,7 +5221,7 @@ export class DatabaseStorage implements IStorage {
       category: 'role_assignment',
       targetType: 'user',
       targetId: data.userId,
-      parameters: { role: data.role, permissions: data.permissions },
+      parameters: JSON.stringify({ role: data.role, permissions: data.permissions }),
       ipAddress: '', // Will be filled by middleware
     });    
     
@@ -5273,7 +5249,7 @@ export class DatabaseStorage implements IStorage {
         category: 'role_assignment',
         targetType: 'user',
         targetId: role.userId,
-        parameters: { roleId: id, updates: data },
+        parameters: JSON.stringify({ roleId: id, updates: data }),
         ipAddress: '',
       });
     }    
@@ -5415,7 +5391,7 @@ export class DatabaseStorage implements IStorage {
 
     // 4. Activity consistency bonus (up to +50 points)
     const uniqueEventDays = new Set(activityData.map(activity => 
-      activity.timestamp.toISOString().split('T')[0]
+      activity.date // Use date field instead of timestamp
     )).size;
     const consistencyBonus = Math.min(50, uniqueEventDays * 2);
     calculatedScore += consistencyBonus;
@@ -5650,7 +5626,7 @@ export class DatabaseStorage implements IStorage {
         itemId: report.id,
         priority: priorityMap[data.priority || 'medium'],
         summary: `${data.reason}: ${data.contentType} reported`,
-        metadata: { contentType: data.contentType, contentId: data.contentId }
+        metadata: JSON.stringify({ contentType: data.contentType, contentId: data.contentId })
       });
     }    
     
@@ -5722,7 +5698,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateContentReport(id: string, data: Partial<InsertContentReport>): Promise<ContentReport> {
     const [updated] = await db.update(contentReports)
-      .set({ ...data as any, resolvedAt: data.status === 'resolved' ? new Date() : undefined }) // Type assertion needed for Drizzle compatibility
+      .set({ ...data, resolvedAt: data.status === 'resolved' ? new Date() : undefined })
       .where(eq(contentReports.id, id))
       .returning();    
     if (!updated) {
@@ -5759,7 +5735,7 @@ export class DatabaseStorage implements IStorage {
         targetId: reportId,
         targetType: 'content_report',
         category: 'content_moderation',
-        parameters: { reportId, resolution, actionTaken },
+        parameters: JSON.stringify({ reportId, resolution, actionTaken }),
         ipAddress: ''
       });
     }
@@ -5803,11 +5779,11 @@ export class DatabaseStorage implements IStorage {
       category: 'content_moderation',
       targetId: data.targetUserId,
       targetType: 'user',
-      parameters: { 
+      parameters: JSON.stringify({ 
         actionType: data.action, 
         reason: data.reason,
         duration: data.expiresAt ? `until ${data.expiresAt}` : 'permanent'
-      },
+      }),
       ipAddress: ''
     });    
     
@@ -5898,7 +5874,7 @@ export class DatabaseStorage implements IStorage {
       targetId: reversed.targetUserId,
       targetType: 'user',
       category: 'content_moderation',
-      parameters: { moderationActionId: id, reason },
+      parameters: JSON.stringify({ moderationActionId: id, reason }),
       ipAddress: ''
     });    
     
@@ -5938,7 +5914,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const [item] = await db.insert(moderationQueue).values(enhancedData as any).returning();
+    const [item] = await db.insert(moderationQueue).values(enhancedData).returning();
     
     if (!item) {
       throw new Error('Failed to add to moderation queue');
@@ -5951,12 +5927,12 @@ export class DatabaseStorage implements IStorage {
       category: 'content_moderation',
       targetType: 'moderation_queue',
       targetId: item.id,
-      parameters: { 
+      parameters: JSON.stringify({ 
         itemType: item.itemType,
         itemId: item.itemId,
         priority: item.priority,
         autoGenerated: item.autoGenerated
-      },
+      }),
       ipAddress: ''
     });    
     
@@ -6443,7 +6419,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCmsContent(id: string, data: Partial<InsertCmsContent>): Promise<CmsContent> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [updated] = await tx.update(cmsContent)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(cmsContent.id, id))
@@ -6470,7 +6446,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async publishCmsContent(id: string, publisherId: string): Promise<CmsContent> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [published] = await tx.update(cmsContent)
         .set({ 
           isPublished: true, 
@@ -6491,7 +6467,7 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'cms_content',
-        parameters: { contentId: id, title: published.title },
+        parameters: JSON.stringify({ contentId: id, title: published.title }),
         ipAddress: ''
       });
       
@@ -6562,7 +6538,7 @@ export class DatabaseStorage implements IStorage {
 
   // Ban evasion tracking operations
   async createBanEvasionRecord(data: InsertBanEvasionTracking): Promise<BanEvasionTracking> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       // Convert confidenceScore from number to string if present (decimal type requires string)
       const insertData = {
         ...data,
@@ -6581,10 +6557,10 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: data.userId,
         targetType: 'user',
-        parameters: { 
+        parameters: JSON.stringify({ 
           detectionMethod: data.detectionMethod,
           confidenceScore: data.confidenceScore 
-        },
+        }),
         ipAddress: data.ipAddress || ''
       });
       
@@ -6667,13 +6643,13 @@ export class DatabaseStorage implements IStorage {
         category: 'content_moderation',
         targetId: id,
         targetType: 'ban_evasion_tracking',
-        parameters: { banEvasionId: id, newStatus: status },
+        parameters: JSON.stringify({ banEvasionId: id, newStatus: status }),
         ipAddress: ''
       });
     }
 
     const [updated] = await db.update(banEvasionTracking)
-      .set(updateData as any) // Type assertion needed for Drizzle compatibility
+      .set(updateData)
       .where(eq(banEvasionTracking.id, id))
       .returning();
     
@@ -6686,7 +6662,7 @@ export class DatabaseStorage implements IStorage {
 
   // User appeal operations
   async createUserAppeal(data: InsertUserAppeal): Promise<UserAppeal> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [appeal] = await tx.insert(userAppeals).values(data).returning();
       
       if (!appeal) {
@@ -6796,7 +6772,7 @@ export class DatabaseStorage implements IStorage {
         action: 'user_appeal_resolved',
         category: 'user_management',
         targetId: appealId,
-        parameters: { appealId, decision, reviewerNotes },
+        parameters: JSON.stringify({ appealId, decision, reviewerNotes }),
         ipAddress: ''
       });
     }
@@ -6836,7 +6812,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createModerationTemplate(data: InsertModerationTemplate): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [template] = await tx.insert(moderationTemplates).values(data).returning();
       
       if (!template) {
@@ -6857,7 +6833,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateModerationTemplate(id: string, data: Partial<InsertModerationTemplate>): Promise<ModerationTemplate> {
-    return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+    return await db.transaction(async (tx: Transaction) => {
       const [updated] = await tx.update(moderationTemplates)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(moderationTemplates.id, id))
