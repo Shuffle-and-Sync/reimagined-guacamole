@@ -462,7 +462,7 @@ router.post('/users/:userId/roles',
       const roleData = {
         userId,
         role,
-        permissions,
+        permissions: permissions ? JSON.stringify(permissions) : '[]',
         assignedBy: adminUserId,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
         notes
