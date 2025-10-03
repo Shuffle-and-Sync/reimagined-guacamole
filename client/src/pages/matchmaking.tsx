@@ -124,14 +124,37 @@ export default function Matchmaking() {
   // Load saved preferences when available
   useEffect(() => {
     if (savedPreferences) {
-      setSelectedGames(savedPreferences.selectedGames as string[] || ["MTG"]);
-      setSelectedFormats(savedPreferences.selectedFormats as string[] || ["commander"]);
-      setPowerLevelRange([savedPreferences.powerLevelMin || 1, savedPreferences.powerLevelMax || 10]);
-      setPlaystyle(savedPreferences.playstyle || "any");
-      setLocation(savedPreferences.location || "");
-      setOnlineOnly(savedPreferences.onlineOnly || false);
-      setAvailability(savedPreferences.availability || "any");
-      setLanguage(savedPreferences.language || "english");
+      // Parse JSON fields
+      const preferredFormats = savedPreferences.preferredFormats 
+        ? (typeof savedPreferences.preferredFormats === 'string'
+          ? JSON.parse(savedPreferences.preferredFormats)
+          : savedPreferences.preferredFormats)
+        : [];
+      
+      const skillLevelRange = savedPreferences.skillLevelRange
+        ? (typeof savedPreferences.skillLevelRange === 'string'
+          ? JSON.parse(savedPreferences.skillLevelRange)
+          : savedPreferences.skillLevelRange)
+        : [1, 10];
+      
+      const availabilitySchedule = savedPreferences.availabilitySchedule
+        ? (typeof savedPreferences.availabilitySchedule === 'string'
+          ? JSON.parse(savedPreferences.availabilitySchedule)
+          : savedPreferences.availabilitySchedule)
+        : {};
+      
+      // Note: selectedGames is not in schema, using gameType instead
+      setSelectedGames([savedPreferences.gameType || "MTG"]);
+      setSelectedFormats(preferredFormats.length > 0 ? preferredFormats : ["commander"]);
+      setPowerLevelRange(Array.isArray(skillLevelRange) && skillLevelRange.length === 2 ? skillLevelRange : [1, 10]);
+      setPlaystyle(savedPreferences.playStyle || "any");
+      setLocation(savedPreferences.preferredLocation || "");
+      // Note: onlineOnly is not in schema
+      setOnlineOnly(false);
+      // Convert availabilitySchedule object to a simple string for the UI
+      setAvailability(availabilitySchedule.general || "any");
+      // Note: language is not in matchmaking preferences schema
+      setLanguage("english");
     }
   }, [savedPreferences]);
 
@@ -178,16 +201,13 @@ export default function Matchmaking() {
     setIsSearching(true);
     
     const searchPreferences = {
-      selectedGames,
-      selectedFormats,
-      powerLevelMin: powerLevelRange[0],
-      powerLevelMax: powerLevelRange[1],
-      playstyle,
-      location,
-      onlineOnly,
-      availability,
-      language,
-      maxDistance: 50
+      gameType: selectedGames[0] || "MTG",
+      preferredFormats: JSON.stringify(selectedFormats),
+      skillLevelRange: JSON.stringify(powerLevelRange),
+      playStyle: playstyle,
+      preferredLocation: location,
+      availabilitySchedule: JSON.stringify({ general: availability }),
+      maxTravelDistance: 50
     };
     
     // Save preferences and find matches
@@ -642,16 +662,13 @@ export default function Matchmaking() {
                     <Button
                       onClick={() => {
                         const preferencesData = {
-                          selectedGames,
-                          selectedFormats,
-                          powerLevelMin: powerLevelRange[0],
-                          powerLevelMax: powerLevelRange[1],
-                          playstyle,
-                          location,
-                          onlineOnly,
-                          availability,
-                          language,
-                          maxDistance: 50
+                          gameType: selectedGames[0] || "MTG", // Schema requires single gameType, not array
+                          preferredFormats: JSON.stringify(selectedFormats),
+                          skillLevelRange: JSON.stringify(powerLevelRange),
+                          playStyle: playstyle,
+                          preferredLocation: location,
+                          availabilitySchedule: JSON.stringify({ general: availability }),
+                          maxTravelDistance: 50,
                         };
                         savePreferencesMutation.mutate(preferencesData);
                       }}

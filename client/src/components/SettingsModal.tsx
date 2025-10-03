@@ -59,22 +59,39 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   // Load settings from backend when available
   useEffect(() => {
     if (userSettings) {
+      // Parse JSON fields from database
+      const notificationTypes = userSettings.notificationTypes 
+        ? (typeof userSettings.notificationTypes === 'string' 
+          ? JSON.parse(userSettings.notificationTypes) 
+          : userSettings.notificationTypes)
+        : {};
+      const privacySettings = userSettings.privacySettings 
+        ? (typeof userSettings.privacySettings === 'string' 
+          ? JSON.parse(userSettings.privacySettings) 
+          : userSettings.privacySettings)
+        : {};
+      const displayPreferences = userSettings.displayPreferences 
+        ? (typeof userSettings.displayPreferences === 'string' 
+          ? JSON.parse(userSettings.displayPreferences) 
+          : userSettings.displayPreferences)
+        : {};
+      
       setPreferences({
-        theme: userSettings.theme || "system",
-        notifications: (userSettings.notificationSettings as any) || {
+        theme: displayPreferences.theme || "system",
+        notifications: notificationTypes || {
           email: true,
           browser: true,
           eventReminders: true,
           socialUpdates: false,
           weeklyDigest: true
         },
-        privacy: (userSettings.privacySettings as any) || {
+        privacy: privacySettings || {
           profileVisible: true,
           showOnlineStatus: true,
           allowDirectMessages: true,
           shareStreamingActivity: true
         },
-        streaming: (userSettings.streamingSettings as any) || {
+        streaming: displayPreferences.streaming || {
           defaultQuality: "720p",
           autoStartRecording: false,
           chatOverlay: true,
@@ -87,10 +104,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const saveSettingsMutation = useMutation({
     mutationFn: async (settingsData: any) => {
       const response = await apiRequest('PUT', '/api/user/settings', {
-        theme: settingsData.theme,
-        notificationSettings: settingsData.notifications,
-        privacySettings: settingsData.privacy,
-        streamingSettings: settingsData.streaming,
+        notificationTypes: JSON.stringify(settingsData.notifications),
+        privacySettings: JSON.stringify(settingsData.privacy),
+        displayPreferences: JSON.stringify({
+          theme: settingsData.theme,
+          streaming: settingsData.streaming
+        }),
       });
       return response.json();
     },

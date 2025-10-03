@@ -9,20 +9,28 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from "@/hooks/use-toast";
 import type { Tournament, TournamentMatch, TournamentRound, User } from '@shared/schema';
 
+// Extended match type with optional properties that may not exist in schema
+type ExtendedTournamentMatch = TournamentMatch & {
+  player1?: User;
+  player2?: User;
+  winner?: User;
+  // Legacy properties that may not exist in actual schema
+  bracketPosition?: number;
+  player1Score?: number;
+  player2Score?: number;
+  gameSessionId?: string;
+};
+
 interface TournamentBracketProps {
   tournament: Tournament & { 
     organizer: User; 
     rounds?: TournamentRound[];
-    matches?: TournamentMatch[];
+    matches?: ExtendedTournamentMatch[];
   };
 }
 
 interface MatchComponentProps {
-  match: TournamentMatch & { 
-    player1?: User; 
-    player2?: User; 
-    winner?: User;
-  };
+  match: ExtendedTournamentMatch;
   isOrganizer: boolean;
   tournamentStatus: string;
   currentUserId?: string;
@@ -64,7 +72,7 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <Badge variant="outline" className="text-xs">
-            Match {match.bracketPosition}
+            Match {match.bracketPosition ?? match.matchNumber}
           </Badge>
           <Badge variant={match.status === 'completed' ? 'default' : 'secondary'}>
             {match.status}

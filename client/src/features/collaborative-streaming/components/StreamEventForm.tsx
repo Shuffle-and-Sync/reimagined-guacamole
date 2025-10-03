@@ -102,14 +102,15 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
       description: data.description,
       scheduledStartTime: data.scheduledStartTime,
       estimatedDuration: data.estimatedDuration,
+      organizerId: '', // Will be set by backend
       communityId: data.communityId,
-      streamingPlatforms: data.streamingPlatforms,
+      streamingPlatforms: JSON.stringify(data.streamingPlatforms),
       contentType: data.contentType,
       targetAudience: data.targetAudience,
       maxCollaborators: data.maxCollaborators,
       requiresApproval: data.requiresApproval,
       isPrivate: data.isPrivate,
-      tags: data.tags,
+      tags: JSON.stringify(data.tags),
     };
 
     createEvent.mutate(eventData, {

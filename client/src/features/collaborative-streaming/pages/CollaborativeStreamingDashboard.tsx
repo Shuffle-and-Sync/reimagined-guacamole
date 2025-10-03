@@ -179,11 +179,17 @@ export default function CollaborativeStreamingDashboard() {
                       <div className="flex items-center gap-1 text-sm">
                         <span className="font-medium">Platforms:</span>
                         <div className="flex gap-1">
-                          {event.streamingPlatforms?.map((platform: string) => (
-                            <Badge key={platform} variant="secondary" className="text-xs">
-                              {platform}
-                            </Badge>
-                          ))}
+                          {(() => {
+                            const platforms = typeof event.streamingPlatforms === 'string'
+                              ? JSON.parse(event.streamingPlatforms || '[]')
+                              : (Array.isArray(event.streamingPlatforms) ? event.streamingPlatforms : []);
+                            
+                            return platforms.map((platform: string) => (
+                              <Badge key={platform} variant="secondary" className="text-xs">
+                                {platform}
+                              </Badge>
+                            ));
+                          })()}
                         </div>
                       </div>
                       
