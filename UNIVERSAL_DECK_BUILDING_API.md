@@ -11,8 +11,10 @@ The Universal Deck-Building API provides a flexible framework for managing multi
 The card service uses the adapter pattern to support multiple card sources:
 
 - **Scryfall Adapter**: For Magic: The Gathering via Scryfall API
+- **Pokemon TCG Adapter**: For Pokemon via Pokemon TCG API
+- **Yu-Gi-Oh Adapter**: For Yu-Gi-Oh via YGOPRODeck API
 - **Custom Game Adapter**: For user-defined games with database-backed cards
-- **Future Adapters**: Pokemon TCG, Yu-Gi-Oh, etc.
+- **Future Adapters**: Additional games can be easily added
 
 ### Components
 
@@ -29,6 +31,8 @@ The card service uses the adapter pattern to support multiple card sources:
 3. **Adapters** (`server/services/card-recognition/adapters/`)
    - Base interface defining contract
    - Scryfall adapter for MTG
+   - Pokemon TCG adapter for Pokemon
+   - Yu-Gi-Oh adapter for Yu-Gi-Oh
    - Custom adapter for database-backed cards
 
 ## API Endpoints
