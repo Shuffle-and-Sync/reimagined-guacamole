@@ -94,24 +94,39 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 
 ## Database Schema Considerations
 
+### Database Architecture
+- **Single PostgreSQL Instance**: One database for all data (local development or Cloud SQL production)
+- **Primary ORM**: Drizzle ORM (`shared/database-unified.ts`) - handles all runtime database operations
+- **Schema Definition**: `shared/schema.ts` (Drizzle) - authoritative schema source
+- **Legacy Compatibility**: `prisma/schema.prisma` - maintained for build compatibility only
+- **Session Strategy**: JWT sessions (no database sessions) - Auth.js uses stateless authentication
+
+> **Important**: Despite having both Drizzle and Prisma configurations, the application uses ONE PostgreSQL database accessed via Drizzle ORM. Prisma is only used for build-time schema validation. See [docs/DATABASE_ARCHITECTURE.md](../docs/DATABASE_ARCHITECTURE.md) for details.
+
 ### Key Tables
 - **users**: User profiles with TCG community preferences
 - **communities**: TCG communities (MTG, Pokemon, Lorcana, etc.)
 - **user_communities**: Many-to-many relationship for community membership
 - **events**: Tournaments, streaming events, and calendar entries
 - **messages**: Real-time messaging system
-- **sessions**: Auth.js session storage
+- **sessions**: Auth.js session tables (defined but not used - JWT sessions active)
 
 ### Important Relationships
 - Users have a primary community but can belong to multiple communities
 - Events are associated with specific communities
 - Real-time coordination features require WebSocket integration
 
+### Database Development Patterns
+- **Schema Changes**: Always modify `shared/schema.ts` (Drizzle schema)
+- **Migrations**: Use `npm run db:push` (dev) or Drizzle Kit migrations (prod)
+- **Queries**: Always import from `shared/database-unified` - never use Prisma client
+- **Transactions**: Use `withTransaction` helper from database-unified
+
 ## Authentication & Security
 
 ### Authentication Flow
 - Google OAuth 2.0 via Auth.js v5
-- Database-backed sessions with automatic expiration
+- **Database sessions via Drizzle adapter** - secure session management with database persistence
 - HTTP-only secure cookies
 - CSRF protection enabled
 
@@ -120,7 +135,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - Input validation and sanitization
 - Secure environment variable management
 - Proper CORS configuration
-- SQL injection prevention via Drizzle ORM
+- SQL injection prevention via Drizzle ORM's parameterized queries
 
 ## Development Workflow
 

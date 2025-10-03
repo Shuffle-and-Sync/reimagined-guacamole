@@ -3,6 +3,8 @@ import Google from "@auth/core/providers/google";
 import Twitch from "@auth/core/providers/twitch";
 import Credentials from "@auth/core/providers/credentials";
 import type { AuthConfig } from "@auth/core/types";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { db } from "@shared/database-unified";
 import { comparePassword, checkAuthRateLimit, recordAuthFailure, clearAuthFailures } from "./password";
 import { storage } from "../storage";
 
@@ -49,9 +51,12 @@ export const authConfig: AuthConfig = {
   // Secret configuration
   secret: process.env.AUTH_SECRET,
   
-  // Use JWT sessions instead of database sessions to avoid ORM conflicts
+  // Use Drizzle adapter for database sessions
+  adapter: DrizzleAdapter(db),
+  
+  // Use database sessions with Drizzle adapter
   session: {
-    strategy: "jwt",
+    strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: true, // Trust host for both development and production deployment

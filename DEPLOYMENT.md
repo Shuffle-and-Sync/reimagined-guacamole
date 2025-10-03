@@ -106,9 +106,11 @@ This validates that all required variables are set and properly formatted.
 
 ### 2. Database Setup
 
+> **Important**: The application requires **ONE PostgreSQL database instance** only. Both Drizzle ORM (primary) and Prisma (build compatibility) connect to the same database. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for detailed explanation.
+
 #### Cloud SQL PostgreSQL Instance
 
-Create a Cloud SQL PostgreSQL instance:
+Create a single Cloud SQL PostgreSQL instance for the entire application:
 
 ```bash
 # Set variables
@@ -116,7 +118,7 @@ export PROJECT_ID="your-gcp-project-id"
 export REGION="us-central1"
 export INSTANCE_NAME="shuffle-sync-db"
 
-# Create Cloud SQL instance
+# Create Cloud SQL instance (this is your ONLY database instance)
 gcloud sql instances create $INSTANCE_NAME \
   --database-version=POSTGRES_15 \
   --tier=db-f1-micro \
@@ -131,15 +133,20 @@ gcloud sql instances create $INSTANCE_NAME \
 #### Create Production Database
 
 ```bash
-# Create the application database
+# Create the application database (used by both Drizzle and Prisma)
 gcloud sql databases create shufflesync_prod \
   --instance=$INSTANCE_NAME
 
-# Create application user
+# Create application user (single user for all database access)
 gcloud sql users create app_user \
   --instance=$INSTANCE_NAME \
   --password="your-secure-app-password"
 ```
+
+> **Note**: This single database is accessed by:
+> - Drizzle ORM (primary) - all application queries
+> - Prisma (build-time only) - schema validation during build
+> - Both use the same `DATABASE_URL` connection string
 
 #### Configure Database Connection
 
@@ -149,8 +156,18 @@ CONNECTION_NAME=$(gcloud sql instances describe $INSTANCE_NAME \
   --format="value(connectionName)")
 
 # For Cloud Run, use Unix socket connection
-DATABASE_URL="postgresql://app_user:password@/$DB_NAME?host=/cloudsql/$CONNECTION_NAME"
+# This single DATABASE_URL is used by both Drizzle and Prisma
+DATABASE_URL="postgresql://app_user:password@/shufflesync_prod?host=/cloudsql/$CONNECTION_NAME"
 ```
+
+**Database Architecture Summary:**
+- ✅ **One PostgreSQL instance** (Cloud SQL)
+- ✅ **One database** (shufflesync_prod)
+- ✅ **One connection string** (DATABASE_URL)
+- ✅ **Primary ORM**: Drizzle (handles all runtime queries)
+- ✅ **Secondary**: Prisma (build-time schema validation only)
+
+For complete details, see [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md)
 
 ### 3. Google OAuth Configuration
 

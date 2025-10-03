@@ -75,11 +75,13 @@ npm run test:coverage
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL (single instance)
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: Database-backed sessions with Prisma adapter
+- **Session Storage**: Database sessions via Drizzle adapter (stateful, secure)
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
+
+> **Note**: The project uses Drizzle ORM exclusively with Auth.js Drizzle adapter. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
 
 ## 📋 Quick Start
 
@@ -87,8 +89,10 @@ npm run test:coverage
 
 - Node.js 20+ 
 - npm or yarn
-- PostgreSQL database (or Neon serverless)
+- PostgreSQL database (local, Cloud SQL, Neon, or any PostgreSQL provider)
 - Google OAuth 2.0 credentials
+
+> **Database Note**: You need only ONE PostgreSQL database instance. The application uses Drizzle ORM for all data access, with Prisma maintained for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md).
 
 ### Installation
 
@@ -450,6 +454,9 @@ npm run docker:test
 - **[Build Initialization Summary](./BUILD_INITIALIZATION_SUMMARY.md)** - Summary of all initialization improvements
 - **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
+
+### Database and Architecture
+- **[Database Architecture Guide](./docs/DATABASE_ARCHITECTURE.md)** - Comprehensive guide to database setup, Drizzle vs Prisma, and single PostgreSQL instance architecture
 
 ### Platform Integration Guides
 - **[Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
