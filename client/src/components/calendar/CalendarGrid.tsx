@@ -22,7 +22,12 @@ export function CalendarGrid({ currentDate, events, onDateClick, onEventClick }:
 
   const getEventsForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return events.filter(event => event.date === dateStr);
+    // return events.filter(event => event.date === dateStr); // TODO: date property doesn't exist
+    return events.filter(event => {
+      if (!event.startTime) return false;
+      const eventDate = format(new Date(event.startTime), 'yyyy-MM-dd');
+      return eventDate === dateStr;
+    });
   };
 
   return (
@@ -68,7 +73,8 @@ export function CalendarGrid({ currentDate, events, onDateClick, onEventClick }:
                       }}
                       title={event.title}
                     >
-                      {event.time} {event.title}
+                      {/* {event.time} {event.title} */} {/* TODO: time property doesn't exist */}
+                      {event.startTime && format(new Date(event.startTime), 'HH:mm')} {event.title}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
