@@ -189,7 +189,7 @@ export class UsersService {
         type: 'system',
         title: 'New Friend Request',
         message: `You have a new friend request`,
-        data: { friendshipId: friendship.id, requesterId },
+        data: JSON.stringify({ friendshipId: friendship.id, requesterId }),
       });
       
       logger.info("Friend request sent", { requesterId, addresseeId });
@@ -211,13 +211,13 @@ export class UsersService {
       const friendship = await storage.respondToFriendRequest(requestId, status as 'accepted' | 'declined');
       
       if (status === 'accepted') {
-        // Create notification for the requester
+        // Create notification for the requester (userId is the requester in friendships table)
         await storage.createNotification({
-          userId: friendship.requesterId,
+          userId: friendship.userId,
           type: 'system',
           title: 'Friend Request Accepted',
           message: `Your friend request was accepted`,
-          data: { friendshipId: friendship.id },
+          data: JSON.stringify({ friendshipId: friendship.id }),
         });
       }
       
@@ -253,7 +253,13 @@ export class UsersService {
 
   async updateMatchmakingPreferences(userId: string, preferences: MatchmakingPreferencesRequest) {
     try {
-      const updatedPreferences = await storage.upsertMatchmakingPreferences({ userId, ...preferences });
+      // Ensure required fields exist
+      const prefsWithDefaults = {
+        userId,
+        gameType: preferences.gameType || 'MTG', // Default to MTG if not provided
+        ...preferences
+      };
+      const updatedPreferences = await storage.upsertMatchmakingPreferences(prefsWithDefaults);
       logger.info("Matchmaking preferences updated", { userId });
       return updatedPreferences;
     } catch (error) {

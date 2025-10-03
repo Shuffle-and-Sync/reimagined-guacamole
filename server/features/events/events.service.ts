@@ -137,15 +137,13 @@ export class EventsService {
           throw new Error("Event not found");
         }
         
-        const { status = 'attending', role = 'participant', playerType = 'main' } = joinData;
+        const { status = 'attending' } = joinData;
         
-        // Create the event attendee record
+        // Create the event attendee record (note: schema doesn't have role/playerType fields)
         const attendee = await storage.joinEventWithTransaction(tx, {
           eventId,
           userId,
           status: status as 'attending' | 'maybe' | 'not_attending',
-          role: role as 'participant' | 'host' | 'co_host' | 'spectator',
-          playerType: playerType as 'main' | 'alternate',
         });
 
         // Create notification for the event host (if different from joiner)
@@ -155,14 +153,12 @@ export class EventsService {
             type: 'event_join',
             title: 'New Event Participant',
             message: `A user joined your event: ${event.title}`,
-            data: {
+            data: JSON.stringify({
               eventId: event.id,
               participantId: userId,
               eventTitle: event.title,
-              participantRole: role,
-            },
+            }),
             priority: 'normal',
-            communityId: event.communityId,
           });
         }
 
@@ -226,11 +222,7 @@ export class EventsService {
         creatorId: userId,
         hostId: userId,
         type: event.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
-        // Validate recurrencePattern if provided
-        recurrencePattern: event.recurrencePattern && 
-          ['daily', 'weekly', 'monthly'].includes(event.recurrencePattern)
-          ? event.recurrencePattern as 'daily' | 'weekly' | 'monthly'
-          : undefined,
+        // Note: events schema doesn't have recurrencePattern fields - those would be handled separately
       }));
 
       const createdEvents = await storage.createBulkEvents(eventData);
@@ -254,15 +246,17 @@ export class EventsService {
         throw new Error(`Invalid recurrence pattern: ${recurringRequest.recurrencePattern}. Must be one of: ${validPatterns.join(', ')}`);
       }
 
+      // Create base event data without recurrence fields (those are handled by storage function)
+      const { recurrencePattern: _pattern, recurrenceInterval: _interval, recurrenceEndDate: _endDate, ...eventBase } = recurringRequest;
+      
       const eventData = {
-        ...recurringRequest,
+        ...eventBase,
         creatorId: userId,
         hostId: userId,
         type: recurringRequest.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
-        recurrencePattern,
       };
 
-      const createdEvents = await storage.createRecurringEvents(eventData, recurringRequest.recurrenceEndDate);
+      const createdEvents = await storage.createRecurringEvents(eventData, recurrencePattern, recurringRequest.recurrenceEndDate);
       logger.info("Recurring events created", { userId, count: createdEvents.length, pattern: recurrencePattern });
       return createdEvents;
     } catch (error) {
