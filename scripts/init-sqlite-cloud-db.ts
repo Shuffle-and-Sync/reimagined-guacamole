@@ -29,10 +29,10 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS accounts (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
+        user_id TEXT NOT NULL,
         type TEXT NOT NULL,
         provider TEXT NOT NULL,
-        providerAccountId TEXT NOT NULL,
+        provider_account_id TEXT NOT NULL,
         refresh_token TEXT,
         access_token TEXT,
         expires_at INTEGER,
@@ -40,9 +40,7 @@ async function initializeDatabase() {
         scope TEXT,
         id_token TEXT,
         session_state TEXT,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        UNIQUE(provider, providerAccountId)
+        UNIQUE(provider, provider_account_id)
       )
     `;
     console.log('  ✅ accounts table created');
@@ -51,11 +49,9 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
-        sessionToken TEXT NOT NULL UNIQUE,
-        userId TEXT NOT NULL,
-        expires INTEGER NOT NULL,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        session_token TEXT NOT NULL UNIQUE,
+        user_id TEXT NOT NULL,
+        expires INTEGER NOT NULL
       )
     `;
     console.log('  ✅ sessions table created');
@@ -77,17 +73,32 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE,
-        emailVerified INTEGER,
-        name TEXT,
-        image TEXT,
-        username TEXT UNIQUE,
+        first_name TEXT,
+        last_name TEXT,
+        profile_image_url TEXT,
+        primary_community TEXT,
+        username TEXT,
         bio TEXT,
         location TEXT,
         website TEXT,
-        twitchUsername TEXT,
-        youtubeChannelId TEXT,
-        discordId TEXT,
-        primaryCommunityId TEXT,
+        status TEXT DEFAULT 'offline',
+        status_message TEXT,
+        timezone TEXT,
+        date_of_birth TEXT,
+        is_private INTEGER DEFAULT 0,
+        show_online_status TEXT DEFAULT 'everyone',
+        allow_direct_messages TEXT DEFAULT 'everyone',
+        password_hash TEXT,
+        is_email_verified INTEGER DEFAULT 0,
+        email_verified_at INTEGER,
+        failed_login_attempts INTEGER DEFAULT 0,
+        last_failed_login INTEGER,
+        account_locked_until INTEGER,
+        password_changed_at INTEGER,
+        mfa_enabled INTEGER DEFAULT 0,
+        mfa_enabled_at INTEGER,
+        last_login_at INTEGER,
+        last_active_at INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -100,15 +111,12 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS communities (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
-        displayName TEXT NOT NULL,
+        display_name TEXT NOT NULL,
         description TEXT,
-        iconUrl TEXT,
-        bannerUrl TEXT,
-        primaryColor TEXT,
-        active INTEGER DEFAULT 1,
-        memberCount INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        theme_color TEXT NOT NULL,
+        icon_class TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at INTEGER NOT NULL
       )
     `;
     console.log('  ✅ communities table created');
@@ -118,14 +126,50 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_communities (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
-        communityId TEXT NOT NULL,
-        role TEXT DEFAULT 'member',
-        joinedAt INTEGER NOT NULL,
-        UNIQUE(userId, communityId)
+        user_id TEXT NOT NULL,
+        community_id TEXT NOT NULL,
+        is_primary INTEGER DEFAULT 0,
+        joined_at INTEGER NOT NULL,
+        UNIQUE(user_id, community_id)
       )
     `;
     console.log('  ✅ user_communities table created');
+    
+    // User Platform Accounts table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_platform_accounts (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        handle TEXT NOT NULL,
+        platform_user_id TEXT,
+        channel_id TEXT,
+        page_id TEXT,
+        access_token TEXT,
+        refresh_token TEXT,
+        token_expires_at INTEGER,
+        scopes TEXT,
+        is_active INTEGER DEFAULT 1,
+        last_verified INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        UNIQUE(user_id, platform)
+      )
+    `;
+    console.log('  ✅ user_platform_accounts table created');
+    
+    // Theme Preferences table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS theme_preferences (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        community_id TEXT,
+        theme_mode TEXT DEFAULT 'dark',
+        custom_colors TEXT,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ theme_preferences table created');
     
     // Events table
     console.log('\n📋 Creating Events table...');
@@ -134,38 +178,799 @@ async function initializeDatabase() {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
-        eventType TEXT NOT NULL,
-        communityId TEXT,
-        creatorId TEXT NOT NULL,
-        startTime INTEGER NOT NULL,
-        endTime INTEGER,
+        type TEXT NOT NULL,
+        status TEXT DEFAULT 'active',
+        start_time INTEGER NOT NULL,
+        end_time INTEGER,
         location TEXT,
-        isVirtual INTEGER DEFAULT 0,
-        maxAttendees INTEGER,
-        registrationDeadline INTEGER,
-        status TEXT DEFAULT 'upcoming',
+        is_virtual INTEGER DEFAULT 0,
+        max_attendees INTEGER,
+        creator_id TEXT NOT NULL,
+        host_id TEXT,
+        co_host_id TEXT,
+        community_id TEXT,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
     `;
     console.log('  ✅ events table created');
     
+    // Event Attendees table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS event_attendees (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        status TEXT DEFAULT 'attending',
+        joined_at INTEGER NOT NULL,
+        UNIQUE(event_id, user_id)
+      )
+    `;
+    console.log('  ✅ event_attendees table created');
+    
     // Messages table
     console.log('\n📋 Creating Messages table...');
     await db.sql`
       CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
-        senderId TEXT NOT NULL,
-        recipientId TEXT,
-        communityId TEXT,
+        sender_id TEXT NOT NULL,
+        receiver_id TEXT,
+        event_id TEXT,
         content TEXT NOT NULL,
-        messageType TEXT DEFAULT 'text',
-        readAt INTEGER,
+        is_read INTEGER DEFAULT 0,
+        read_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ messages table created');
+    
+    // Notifications table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        priority TEXT DEFAULT 'normal',
+        title TEXT NOT NULL,
+        message TEXT,
+        data TEXT,
+        is_read INTEGER DEFAULT 0,
+        read_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ notifications table created');
+    
+    // Game Sessions table
+    console.log('\n📋 Creating Game Sessions table...');
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS game_sessions (
+        id TEXT PRIMARY KEY,
+        event_id TEXT,
+        game_type TEXT NOT NULL,
+        status TEXT DEFAULT 'waiting',
+        max_players INTEGER,
+        current_players INTEGER DEFAULT 0,
+        host_id TEXT NOT NULL,
+        co_host_id TEXT,
+        board_state TEXT,
+        started_at INTEGER,
+        ended_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ game_sessions table created');
+    
+    // Authentication & Security tables
+    console.log('\n📋 Creating Authentication & Security tables...');
+    
+    // Password Reset Tokens
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        expires_at INTEGER NOT NULL,
+        used_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ password_reset_tokens table created');
+    
+    // Email Verification Tokens
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS email_verification_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        email TEXT NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        expires_at INTEGER NOT NULL,
+        verified_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ email_verification_tokens table created');
+    
+    // User MFA Settings
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_mfa_settings (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL UNIQUE,
+        secret TEXT NOT NULL,
+        backup_codes TEXT,
+        enabled INTEGER DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ messages table created');
+    console.log('  ✅ user_mfa_settings table created');
+    
+    // Auth Audit Log
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS auth_audit_log (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        event_type TEXT NOT NULL,
+        ip_address TEXT,
+        user_agent TEXT,
+        is_successful INTEGER,
+        failure_reason TEXT,
+        details TEXT,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ auth_audit_log table created');
+    
+    // Social Features tables
+    console.log('\n📋 Creating Social Features tables...');
+    
+    // Friendships
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS friendships (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        friend_id TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at INTEGER NOT NULL,
+        responded_at INTEGER,
+        UNIQUE(user_id, friend_id)
+      )
+    `;
+    console.log('  ✅ friendships table created');
+    
+    // User Activities
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_activities (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        activity_type TEXT NOT NULL,
+        description TEXT,
+        metadata TEXT,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ user_activities table created');
+    
+    // Tournament tables
+    console.log('\n📋 Creating Tournament tables...');
+    
+    // Tournaments
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS tournaments (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        game_type TEXT NOT NULL,
+        format TEXT NOT NULL,
+        status TEXT DEFAULT 'upcoming',
+        max_participants INTEGER,
+        current_participants INTEGER DEFAULT 0,
+        prize_pool REAL,
+        organizer_id TEXT NOT NULL,
+        community_id TEXT,
+        start_date INTEGER NOT NULL,
+        end_date INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ tournaments table created');
+    
+    // Tournament Participants
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS tournament_participants (
+        id TEXT PRIMARY KEY,
+        tournament_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        status TEXT DEFAULT 'registered',
+        seed INTEGER,
+        final_rank INTEGER,
+        joined_at INTEGER NOT NULL,
+        UNIQUE(tournament_id, user_id)
+      )
+    `;
+    console.log('  ✅ tournament_participants table created');
+    
+    // Tournament Formats
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS tournament_formats (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        game_type TEXT NOT NULL,
+        description TEXT,
+        rules TEXT DEFAULT '{}',
+        structure TEXT NOT NULL,
+        default_rounds INTEGER,
+        is_official INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        UNIQUE(name, game_type)
+      )
+    `;
+    console.log('  ✅ tournament_formats table created');
+    
+    // Tournament Rounds
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS tournament_rounds (
+        id TEXT PRIMARY KEY,
+        tournament_id TEXT NOT NULL,
+        round_number INTEGER NOT NULL,
+        name TEXT,
+        status TEXT DEFAULT 'pending',
+        start_time INTEGER,
+        end_time INTEGER,
+        created_at INTEGER NOT NULL,
+        UNIQUE(tournament_id, round_number)
+      )
+    `;
+    console.log('  ✅ tournament_rounds table created');
+    
+    // Tournament Matches
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS tournament_matches (
+        id TEXT PRIMARY KEY,
+        tournament_id TEXT NOT NULL,
+        round_id TEXT NOT NULL,
+        match_number INTEGER NOT NULL,
+        player1_id TEXT,
+        player2_id TEXT,
+        winner_id TEXT,
+        status TEXT DEFAULT 'pending',
+        table_number INTEGER,
+        start_time INTEGER,
+        end_time INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ tournament_matches table created');
+    
+    // Match Results
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS match_results (
+        id TEXT PRIMARY KEY,
+        match_id TEXT NOT NULL UNIQUE,
+        player1_score INTEGER,
+        player2_score INTEGER,
+        player1_deck TEXT,
+        player2_deck TEXT,
+        duration_minutes INTEGER,
+        notes TEXT,
+        reported_by TEXT NOT NULL,
+        is_verified INTEGER DEFAULT 0,
+        verified_by TEXT,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ match_results table created');
+    
+    // Streaming tables
+    console.log('\n📋 Creating Streaming tables...');
+    
+    // Stream Sessions
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_sessions (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT DEFAULT 'scheduled',
+        streamer_id TEXT NOT NULL,
+        event_id TEXT,
+        scheduled_start INTEGER,
+        actual_start INTEGER,
+        actual_end INTEGER,
+        viewer_count INTEGER DEFAULT 0,
+        peak_viewers INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ stream_sessions table created');
+    
+    // Stream Session Co-Hosts
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_session_co_hosts (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT DEFAULT 'co_host',
+        joined_at INTEGER NOT NULL,
+        left_at INTEGER,
+        UNIQUE(session_id, user_id)
+      )
+    `;
+    console.log('  ✅ stream_session_co_hosts table created');
+    
+    // Stream Session Platforms
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_session_platforms (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        stream_url TEXT,
+        stream_key TEXT,
+        status TEXT DEFAULT 'idle',
+        viewer_count INTEGER DEFAULT 0,
+        started_at INTEGER,
+        ended_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ stream_session_platforms table created');
+    
+    // Collaboration Requests
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS collaboration_requests (
+        id TEXT PRIMARY KEY,
+        from_user_id TEXT NOT NULL,
+        to_user_id TEXT NOT NULL,
+        event_id TEXT,
+        message TEXT,
+        status TEXT DEFAULT 'pending',
+        expires_at INTEGER,
+        created_at INTEGER NOT NULL,
+        responded_at INTEGER
+      )
+    `;
+    console.log('  ✅ collaboration_requests table created');
+    
+    // Collaborative Stream Events
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS collaborative_stream_events (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        scheduled_start_time INTEGER NOT NULL,
+        estimated_duration INTEGER,
+        community_id TEXT,
+        organizer_id TEXT NOT NULL,
+        status TEXT DEFAULT 'planned',
+        streaming_platforms TEXT DEFAULT '[]',
+        content_type TEXT,
+        target_audience TEXT,
+        max_collaborators INTEGER,
+        requires_approval INTEGER DEFAULT 1,
+        is_private INTEGER DEFAULT 0,
+        tags TEXT DEFAULT '[]',
+        actual_start_time INTEGER,
+        actual_end_time INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ collaborative_stream_events table created');
+    
+    // Stream Collaborators
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_collaborators (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        platform_handles TEXT DEFAULT '{}',
+        streaming_capabilities TEXT DEFAULT '[]',
+        invited_by TEXT,
+        invited_at INTEGER NOT NULL,
+        responded_at INTEGER,
+        joined_at INTEGER,
+        left_at INTEGER,
+        UNIQUE(event_id, user_id)
+      )
+    `;
+    console.log('  ✅ stream_collaborators table created');
+    
+    // Stream Coordination Sessions
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_coordination_sessions (
+        id TEXT PRIMARY KEY,
+        event_id TEXT NOT NULL,
+        current_phase TEXT DEFAULT 'preparation',
+        current_host_id TEXT,
+        active_collaborators TEXT DEFAULT '[]',
+        stream_metrics TEXT DEFAULT '{}',
+        phase_history TEXT DEFAULT '[]',
+        notes TEXT,
+        started_at INTEGER,
+        ended_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ stream_coordination_sessions table created');
+    
+    // Forum tables
+    console.log('\n📋 Creating Forum tables...');
+    
+    // Forum Posts
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS forum_posts (
+        id TEXT PRIMARY KEY,
+        author_id TEXT NOT NULL,
+        community_id TEXT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL,
+        tags TEXT DEFAULT '[]',
+        is_pinned INTEGER DEFAULT 0,
+        is_locked INTEGER DEFAULT 0,
+        view_count INTEGER DEFAULT 0,
+        like_count INTEGER DEFAULT 0,
+        reply_count INTEGER DEFAULT 0,
+        last_activity_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ forum_posts table created');
+    
+    // Forum Replies
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS forum_replies (
+        id TEXT PRIMARY KEY,
+        post_id TEXT NOT NULL,
+        author_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        parent_reply_id TEXT,
+        like_count INTEGER DEFAULT 0,
+        is_edited INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ forum_replies table created');
+    
+    // Forum Post Likes
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS forum_post_likes (
+        id TEXT PRIMARY KEY,
+        post_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(post_id, user_id)
+      )
+    `;
+    console.log('  ✅ forum_post_likes table created');
+    
+    // Forum Reply Likes
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS forum_reply_likes (
+        id TEXT PRIMARY KEY,
+        reply_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(reply_id, user_id)
+      )
+    `;
+    console.log('  ✅ forum_reply_likes table created');
+    
+    // Analytics tables
+    console.log('\n📋 Creating Analytics tables...');
+    
+    // Stream Analytics
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS stream_analytics (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        viewer_count INTEGER DEFAULT 0,
+        peak_viewers INTEGER DEFAULT 0,
+        average_viewers INTEGER DEFAULT 0,
+        chat_messages INTEGER DEFAULT 0,
+        likes INTEGER DEFAULT 0,
+        shares INTEGER DEFAULT 0,
+        duration_minutes INTEGER DEFAULT 0,
+        timestamp INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ stream_analytics table created');
+    
+    // User Activity Analytics
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_activity_analytics (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        activity_type TEXT NOT NULL,
+        count INTEGER DEFAULT 1,
+        metadata TEXT DEFAULT '{}',
+        date TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(user_id, activity_type, date)
+      )
+    `;
+    console.log('  ✅ user_activity_analytics table created');
+    
+    // Community Analytics
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS community_analytics (
+        id TEXT PRIMARY KEY,
+        community_id TEXT NOT NULL,
+        metric_type TEXT NOT NULL,
+        value INTEGER DEFAULT 0,
+        metadata TEXT DEFAULT '{}',
+        date TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(community_id, metric_type, date)
+      )
+    `;
+    console.log('  ✅ community_analytics table created');
+    
+    // Platform Metrics
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS platform_metrics (
+        id TEXT PRIMARY KEY,
+        metric_name TEXT NOT NULL,
+        metric_value REAL NOT NULL,
+        metric_type TEXT NOT NULL,
+        tags TEXT DEFAULT '{}',
+        timestamp INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ platform_metrics table created');
+    
+    // Event Tracking
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS event_tracking (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        event_name TEXT NOT NULL,
+        event_category TEXT NOT NULL,
+        event_properties TEXT DEFAULT '{}',
+        session_id TEXT,
+        ip_address TEXT,
+        user_agent TEXT,
+        timestamp INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ event_tracking table created');
+    
+    // Conversion Funnels
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS conversion_funnels (
+        id TEXT PRIMARY KEY,
+        funnel_name TEXT NOT NULL,
+        step_name TEXT NOT NULL,
+        step_order INTEGER NOT NULL,
+        user_id TEXT,
+        session_id TEXT,
+        completed INTEGER DEFAULT 0,
+        completed_at INTEGER,
+        metadata TEXT DEFAULT '{}',
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ conversion_funnels table created');
+    
+    // Email Management tables
+    console.log('\n📋 Creating Email Management tables...');
+    
+    // Email Change Requests
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS email_change_requests (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        current_email TEXT NOT NULL,
+        new_email TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        verification_code TEXT,
+        expires_at INTEGER NOT NULL,
+        initiated_at INTEGER NOT NULL,
+        completed_at INTEGER
+      )
+    `;
+    console.log('  ✅ email_change_requests table created');
+    
+    // Email Change Tokens
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS email_change_tokens (
+        id TEXT PRIMARY KEY,
+        request_id TEXT NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        type TEXT NOT NULL,
+        is_used INTEGER DEFAULT 0,
+        expires_at INTEGER NOT NULL,
+        used_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ email_change_tokens table created');
+    
+    // User Settings tables
+    console.log('\n📋 Creating User Settings tables...');
+    
+    // User Settings
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_settings (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL UNIQUE,
+        notifications_enabled INTEGER DEFAULT 1,
+        email_notifications INTEGER DEFAULT 1,
+        push_notifications INTEGER DEFAULT 0,
+        notification_types TEXT DEFAULT '{}',
+        privacy_settings TEXT DEFAULT '{}',
+        display_preferences TEXT DEFAULT '{}',
+        language TEXT DEFAULT 'en',
+        timezone TEXT DEFAULT 'UTC',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ user_settings table created');
+    
+    // User Social Links
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_social_links (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        url TEXT NOT NULL,
+        display_name TEXT,
+        is_verified INTEGER DEFAULT 0,
+        is_public INTEGER DEFAULT 1,
+        order_index INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ user_social_links table created');
+    
+    // User Gaming Profiles
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_gaming_profiles (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        game_type TEXT NOT NULL,
+        player_id TEXT,
+        username TEXT,
+        skill_level TEXT,
+        preferred_formats TEXT DEFAULT '[]',
+        achievements TEXT DEFAULT '[]',
+        statistics TEXT DEFAULT '{}',
+        is_public INTEGER DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        UNIQUE(user_id, game_type)
+      )
+    `;
+    console.log('  ✅ user_gaming_profiles table created');
+    
+    // Matchmaking Preferences
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS matchmaking_preferences (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL UNIQUE,
+        game_type TEXT NOT NULL,
+        preferred_formats TEXT DEFAULT '[]',
+        skill_level_range TEXT DEFAULT '[]',
+        availability_schedule TEXT DEFAULT '{}',
+        max_travel_distance INTEGER,
+        preferred_location TEXT,
+        play_style TEXT,
+        communication_preferences TEXT DEFAULT '{}',
+        blocked_users TEXT DEFAULT '[]',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ matchmaking_preferences table created');
+    
+    // MFA & Security Extension tables
+    console.log('\n📋 Creating MFA & Security Extension tables...');
+    
+    // User MFA Attempts
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS user_mfa_attempts (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        attempt_type TEXT NOT NULL,
+        success INTEGER NOT NULL,
+        ip_address TEXT NOT NULL,
+        user_agent TEXT,
+        failure_reason TEXT,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ user_mfa_attempts table created');
+    
+    // Device Fingerprints
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS device_fingerprints (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        fingerprint_hash TEXT NOT NULL,
+        device_info TEXT DEFAULT '{}',
+        first_seen INTEGER NOT NULL,
+        last_seen INTEGER NOT NULL,
+        trust_score REAL DEFAULT 0.5,
+        is_blocked INTEGER DEFAULT 0,
+        UNIQUE(user_id, fingerprint_hash)
+      )
+    `;
+    console.log('  ✅ device_fingerprints table created');
+    
+    // MFA Security Context
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS mfa_security_context (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        context_type TEXT NOT NULL,
+        ip_address TEXT NOT NULL,
+        location TEXT,
+        device_fingerprint TEXT,
+        risk_level TEXT DEFAULT 'low',
+        requires_mfa INTEGER DEFAULT 0,
+        mfa_completed INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ mfa_security_context table created');
+    
+    // Trusted Devices
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS trusted_devices (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        device_fingerprint_id TEXT NOT NULL,
+        device_name TEXT,
+        trusted_at INTEGER NOT NULL,
+        last_used INTEGER NOT NULL,
+        expires_at INTEGER,
+        is_revoked INTEGER DEFAULT 0,
+        revoked_at INTEGER,
+        revoked_reason TEXT,
+        UNIQUE(user_id, device_fingerprint_id)
+      )
+    `;
+    console.log('  ✅ trusted_devices table created');
+    
+    // Refresh Tokens
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        device_info TEXT DEFAULT '{}',
+        ip_address TEXT NOT NULL,
+        expires_at INTEGER NOT NULL,
+        last_used INTEGER NOT NULL,
+        is_revoked INTEGER DEFAULT 0,
+        revoked_at INTEGER,
+        created_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ refresh_tokens table created');
+    
+    // Revoked JWT Tokens
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS revoked_jwt_tokens (
+        id TEXT PRIMARY KEY,
+        jti TEXT NOT NULL UNIQUE,
+        user_id TEXT NOT NULL,
+        expires_at INTEGER NOT NULL,
+        revoked_at INTEGER NOT NULL,
+        reason TEXT
+      )
+    `;
+    console.log('  ✅ revoked_jwt_tokens table created');
     
     // Admin & Moderation tables
     console.log('\n📋 Creating Admin & Moderation tables...');
@@ -174,16 +979,16 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_roles (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
+        user_id TEXT NOT NULL,
         role TEXT NOT NULL,
         permissions TEXT NOT NULL DEFAULT '[]',
-        communityId TEXT,
-        assignedBy TEXT NOT NULL,
-        isActive INTEGER DEFAULT 1,
-        expiresAt INTEGER,
+        community_id TEXT,
+        assigned_by TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        expires_at INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
-        UNIQUE(userId, role, communityId)
+        UNIQUE(user_id, role, community_id)
       )
     `;
     console.log('  ✅ user_roles table created');
@@ -192,15 +997,15 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_reputation (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
+        user_id TEXT NOT NULL,
         score INTEGER DEFAULT 100,
         level TEXT DEFAULT 'new',
-        positiveActions INTEGER DEFAULT 0,
-        negativeActions INTEGER DEFAULT 0,
-        reportsMade INTEGER DEFAULT 0,
-        reportsAccurate INTEGER DEFAULT 0,
-        moderationHistory TEXT DEFAULT '[]',
-        lastCalculated INTEGER NOT NULL,
+        positive_actions INTEGER DEFAULT 0,
+        negative_actions INTEGER DEFAULT 0,
+        reports_made INTEGER DEFAULT 0,
+        reports_accurate INTEGER DEFAULT 0,
+        moderation_history TEXT DEFAULT '[]',
+        last_calculated INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -211,24 +1016,24 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS content_reports (
         id TEXT PRIMARY KEY,
-        reporterUserId TEXT,
-        reportedUserId TEXT,
-        contentType TEXT NOT NULL,
-        contentId TEXT NOT NULL,
+        reporter_user_id TEXT,
+        reported_user_id TEXT,
+        content_type TEXT NOT NULL,
+        content_id TEXT NOT NULL,
         reason TEXT NOT NULL,
         description TEXT,
         evidence TEXT,
-        isSystemGenerated INTEGER DEFAULT 0,
-        automatedFlags TEXT,
-        confidenceScore REAL,
+        is_system_generated INTEGER DEFAULT 0,
+        automated_flags TEXT,
+        confidence_score REAL,
         status TEXT DEFAULT 'pending',
         priority TEXT DEFAULT 'medium',
-        assignedModerator TEXT,
-        moderationNotes TEXT,
+        assigned_moderator TEXT,
+        moderation_notes TEXT,
         resolution TEXT,
-        actionTaken TEXT,
+        action_taken TEXT,
         created_at INTEGER NOT NULL,
-        resolvedAt INTEGER
+        resolved_at INTEGER
       )
     `;
     console.log('  ✅ content_reports table created');
@@ -237,25 +1042,25 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS moderation_actions (
         id TEXT PRIMARY KEY,
-        moderatorId TEXT NOT NULL,
-        targetUserId TEXT NOT NULL,
+        moderator_id TEXT NOT NULL,
+        target_user_id TEXT NOT NULL,
         action TEXT NOT NULL,
         reason TEXT NOT NULL,
         duration INTEGER,
-        relatedContentType TEXT,
-        relatedContentId TEXT,
-        relatedReportId TEXT,
-        isReversible INTEGER DEFAULT 1,
-        isPublic INTEGER DEFAULT 0,
+        related_content_type TEXT,
+        related_content_id TEXT,
+        related_report_id TEXT,
+        is_reversible INTEGER DEFAULT 1,
+        is_public INTEGER DEFAULT 0,
         metadata TEXT,
-        ipAddress TEXT,
-        userAgent TEXT,
-        adminNotes TEXT,
-        isActive INTEGER DEFAULT 1,
-        reversedBy TEXT,
-        reversedAt INTEGER,
-        reversalReason TEXT,
-        expiresAt INTEGER,
+        ip_address TEXT,
+        user_agent TEXT,
+        admin_notes TEXT,
+        is_active INTEGER DEFAULT 1,
+        reversed_by TEXT,
+        reversed_at INTEGER,
+        reversal_reason TEXT,
+        expires_at INTEGER,
         created_at INTEGER NOT NULL
       )
     `;
@@ -265,25 +1070,25 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS moderation_queue (
         id TEXT PRIMARY KEY,
-        itemType TEXT NOT NULL,
-        itemId TEXT NOT NULL,
+        item_type TEXT NOT NULL,
+        item_id TEXT NOT NULL,
         priority INTEGER DEFAULT 5,
         status TEXT DEFAULT 'open',
-        assignedModerator TEXT,
-        assignedAt INTEGER,
-        riskScore REAL,
-        userReputationScore INTEGER,
-        reporterReputationScore INTEGER,
-        mlPriority INTEGER,
-        autoGenerated INTEGER DEFAULT 0,
+        assigned_moderator TEXT,
+        assigned_at INTEGER,
+        risk_score REAL,
+        user_reputation_score INTEGER,
+        reporter_reputation_score INTEGER,
+        ml_priority INTEGER,
+        auto_generated INTEGER DEFAULT 0,
         summary TEXT,
         tags TEXT DEFAULT '[]',
-        estimatedTimeMinutes INTEGER,
+        estimated_time_minutes INTEGER,
         metadata TEXT,
         resolution TEXT,
-        actionTaken TEXT,
+        action_taken TEXT,
         created_at INTEGER NOT NULL,
-        completedAt INTEGER
+        completed_at INTEGER
       )
     `;
     console.log('  ✅ moderation_queue table created');
@@ -296,17 +1101,17 @@ async function initializeDatabase() {
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         version INTEGER NOT NULL DEFAULT 1,
-        isPublished INTEGER DEFAULT 0,
-        publishedAt INTEGER,
-        scheduledPublishAt INTEGER,
-        authorId TEXT NOT NULL,
-        lastEditedBy TEXT NOT NULL,
-        approvedBy TEXT,
-        approvedAt INTEGER,
-        changeLog TEXT,
-        previousVersionId TEXT,
-        metaDescription TEXT,
-        metaKeywords TEXT,
+        is_published INTEGER DEFAULT 0,
+        published_at INTEGER,
+        scheduled_publish_at INTEGER,
+        author_id TEXT NOT NULL,
+        last_edited_by TEXT NOT NULL,
+        approved_by TEXT,
+        approved_at INTEGER,
+        change_log TEXT,
+        previous_version_id TEXT,
+        meta_description TEXT,
+        meta_keywords TEXT,
         slug TEXT UNIQUE,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
@@ -318,21 +1123,21 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS ban_evasion_tracking (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
-        ipAddress TEXT NOT NULL,
-        hashedFingerprint TEXT,
-        userAgent TEXT,
-        screenResolution TEXT,
+        user_id TEXT NOT NULL,
+        ip_address TEXT NOT NULL,
+        hashed_fingerprint TEXT,
+        user_agent TEXT,
+        screen_resolution TEXT,
         timezone TEXT,
         language TEXT,
-        loginPatterns TEXT,
-        activitySignature TEXT,
-        detectionMethod TEXT,
-        confidenceScore REAL,
-        relatedBannedUser TEXT,
+        login_patterns TEXT,
+        activity_signature TEXT,
+        detection_method TEXT,
+        confidence_score REAL,
+        related_banned_user TEXT,
         status TEXT DEFAULT 'flagged',
-        investigatedBy TEXT,
-        investigatedAt INTEGER,
+        investigated_by TEXT,
+        investigated_at INTEGER,
         notes TEXT,
         created_at INTEGER NOT NULL
       )
@@ -343,22 +1148,22 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_appeals (
         id TEXT PRIMARY KEY,
-        userId TEXT NOT NULL,
-        moderationActionId TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        moderation_action_id TEXT NOT NULL,
         reason TEXT NOT NULL,
         evidence TEXT,
-        additionalInfo TEXT,
+        additional_info TEXT,
         status TEXT DEFAULT 'pending',
-        reviewedBy TEXT,
-        reviewedAt INTEGER,
-        reviewNotes TEXT,
+        reviewed_by TEXT,
+        reviewed_at INTEGER,
+        review_notes TEXT,
         decision TEXT,
-        decisionReason TEXT,
-        responseToUser TEXT,
-        isUserNotified INTEGER DEFAULT 0,
-        canReappeal INTEGER DEFAULT 0,
-        reappealCooldownUntil INTEGER,
-        resolvedAt INTEGER,
+        decision_reason TEXT,
+        response_to_user TEXT,
+        is_user_notified INTEGER DEFAULT 0,
+        can_reappeal INTEGER DEFAULT 0,
+        reappeal_cooldown_until INTEGER,
+        resolved_at INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -374,10 +1179,10 @@ async function initializeDatabase() {
         subject TEXT,
         content TEXT NOT NULL,
         variables TEXT DEFAULT '[]',
-        isActive INTEGER DEFAULT 1,
-        createdBy TEXT NOT NULL,
-        lastModifiedBy TEXT NOT NULL,
-        usageCount INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_by TEXT NOT NULL,
+        last_modified_by TEXT NOT NULL,
+        usage_count INTEGER DEFAULT 0,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -388,21 +1193,21 @@ async function initializeDatabase() {
     await db.sql`
       CREATE TABLE IF NOT EXISTS admin_audit_log (
         id TEXT PRIMARY KEY,
-        adminUserId TEXT NOT NULL,
+        admin_user_id TEXT NOT NULL,
         action TEXT NOT NULL,
         category TEXT NOT NULL,
-        targetType TEXT,
-        targetId TEXT,
-        targetIdentifier TEXT,
-        oldValues TEXT,
-        newValues TEXT,
+        target_type TEXT,
+        target_id TEXT,
+        target_identifier TEXT,
+        old_values TEXT,
+        new_values TEXT,
         parameters TEXT,
-        ipAddress TEXT NOT NULL,
-        userAgent TEXT,
-        sessionId TEXT,
+        ip_address TEXT NOT NULL,
+        user_agent TEXT,
+        session_id TEXT,
         success INTEGER DEFAULT 1,
-        errorMessage TEXT,
-        impactAssessment TEXT,
+        error_message TEXT,
+        impact_assessment TEXT,
         created_at INTEGER NOT NULL
       )
     `;
@@ -410,29 +1215,215 @@ async function initializeDatabase() {
     
     // Create indexes
     console.log('\n📋 Creating indexes...');
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_accounts_userId ON accounts(userId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_sessions_userId ON sessions(userId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_sessions_sessionToken ON sessions(sessionToken)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_communities_userId ON user_communities(userId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_communities_communityId ON user_communities(communityId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_communityId ON events(communityId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_creatorId ON events(creatorId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_senderId ON messages(senderId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_recipientId ON messages(recipientId)`;
+    
+    // Auth.js table indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_accounts_userId ON accounts(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_sessions_userId ON sessions(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_sessions_sessionToken ON sessions(session_token)`;
+    
+    // Core table indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_primary_community ON users(primary_community)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_communities_userId ON user_communities(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_communities_communityId ON user_communities(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_communities_primary ON user_communities(user_id, is_primary)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_user_id ON user_platform_accounts(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_platform ON user_platform_accounts(platform)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_active ON user_platform_accounts(user_id, is_active)`;
+    
+    // Event indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_communityId ON events(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_creatorId ON events(creator_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_start_time ON events(start_time)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_status ON events(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_events_type ON events(type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_attendees_event ON event_attendees(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_attendees_user ON event_attendees(user_id)`;
+    
+    // Messaging indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_senderId ON messages(sender_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_receiverId ON messages(receiver_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_event ON messages(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at)`;
+    
+    // Game session indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_event ON game_sessions(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_host ON game_sessions(host_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_status ON game_sessions(status)`;
+    
+    // Authentication & Security indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_verification_token ON email_verification_tokens(token)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification_tokens(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_user ON auth_audit_log(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_event ON auth_audit_log(event_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_created ON auth_audit_log(created_at)`;
+    
+    // Social features indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_user ON user_activities(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_type ON user_activities(activity_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_created ON user_activities(created_at)`;
+    
+    // Tournament indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_organizer ON tournaments(organizer_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_community ON tournaments(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_start_date ON tournaments(start_date)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_participants(tournament_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_participants_user ON tournament_participants(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_formats_game ON tournament_formats(game_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_rounds_tournament ON tournament_rounds(tournament_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_rounds_number ON tournament_rounds(tournament_id, round_number)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_matches_tournament ON tournament_matches(tournament_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_matches_round ON tournament_matches(round_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_matches_players ON tournament_matches(player1_id, player2_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_match_results_match ON match_results(match_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_match_results_reporter ON match_results(reported_by)`;
+    
+    // Streaming indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_sessions_streamer ON stream_sessions(streamer_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_sessions_event ON stream_sessions(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_sessions_status ON stream_sessions(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_co_hosts_session ON stream_session_co_hosts(session_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_co_hosts_user ON stream_session_co_hosts(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_platforms_session ON stream_session_platforms(session_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_platforms_platform ON stream_session_platforms(platform)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collaboration_requests_from ON collaboration_requests(from_user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collaboration_requests_to ON collaboration_requests(to_user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collaboration_requests_event ON collaboration_requests(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collaboration_requests_status ON collaboration_requests(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collab_stream_events_organizer ON collaborative_stream_events(organizer_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collab_stream_events_community ON collaborative_stream_events(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collab_stream_events_start ON collaborative_stream_events(scheduled_start_time)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_collab_stream_events_status ON collaborative_stream_events(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_collaborators_event ON stream_collaborators(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_collaborators_user ON stream_collaborators(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_collaborators_status ON stream_collaborators(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_coordination_event ON stream_coordination_sessions(event_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_coordination_phase ON stream_coordination_sessions(current_phase)`;
+    
+    // Forum indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_author ON forum_posts(author_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_community ON forum_posts(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_category ON forum_posts(category)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_activity ON forum_posts(last_activity_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_replies_post ON forum_replies(post_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_replies_author ON forum_replies(author_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_replies_parent ON forum_replies(parent_reply_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_post_likes_post ON forum_post_likes(post_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_post_likes_user ON forum_post_likes(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_reply_likes_reply ON forum_reply_likes(reply_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_reply_likes_user ON forum_reply_likes(user_id)`;
+    
+    // Analytics indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_analytics_session ON stream_analytics(session_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_analytics_user ON stream_analytics(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_analytics_timestamp ON stream_analytics(timestamp)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activity_user ON user_activity_analytics(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activity_type ON user_activity_analytics(activity_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity_analytics(date)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_community_analytics_community ON community_analytics(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_community_analytics_metric ON community_analytics(metric_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_community_analytics_date ON community_analytics(date)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_platform_metrics_name ON platform_metrics(metric_name)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_platform_metrics_timestamp ON platform_metrics(timestamp)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_tracking_user ON event_tracking(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_tracking_name ON event_tracking(event_name)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_tracking_category ON event_tracking(event_category)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_event_tracking_timestamp ON event_tracking(timestamp)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_name ON conversion_funnels(funnel_name)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_user ON conversion_funnels(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_session ON conversion_funnels(session_id)`;
+    
+    // Email management indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_user ON email_change_requests(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_status ON email_change_requests(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_new_email ON email_change_requests(new_email)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_token_request ON email_change_tokens(request_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_token_token ON email_change_tokens(token)`;
+    
+    // User settings indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_settings_user ON user_settings(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_social_links_user ON user_social_links(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_social_links_platform ON user_social_links(platform)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_gaming_profiles_user ON user_gaming_profiles(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_gaming_profiles_game ON user_gaming_profiles(game_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_matchmaking_prefs_user ON matchmaking_preferences(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_matchmaking_prefs_game ON matchmaking_preferences(game_type)`;
+    
+    // MFA & Security indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_attempts_user ON user_mfa_attempts(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_attempts_created ON user_mfa_attempts(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_attempts_success ON user_mfa_attempts(success)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_device_fingerprints_user ON device_fingerprints(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_device_fingerprints_hash ON device_fingerprints(fingerprint_hash)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_context_user ON mfa_security_context(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_context_type ON mfa_security_context(context_type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_context_created ON mfa_security_context(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_trusted_devices_user ON trusted_devices(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_trusted_devices_fingerprint ON trusted_devices(device_fingerprint_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON refresh_tokens(expires_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_jti ON revoked_jwt_tokens(jti)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_user ON revoked_jwt_tokens(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_expires ON revoked_jwt_tokens(expires_at)`;
     
     // Admin & Moderation indexes
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(userId)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_roles_role ON user_roles(role)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_reputation_user_id ON user_reputation(userId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_reporter ON content_reports(reporterUserId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_reported ON content_reports(reportedUserId)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_roles_community ON user_roles(community_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_reputation_user_id ON user_reputation(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_reputation_score ON user_reputation(score)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_reputation_level ON user_reputation(level)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_reporter ON content_reports(reporter_user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_reported ON content_reports(reported_user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_status ON content_reports(status)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_moderator ON moderation_actions(moderatorId)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_target ON moderation_actions(targetUserId)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_priority ON content_reports(priority)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_assigned ON content_reports(assigned_moderator)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_content_reports_content ON content_reports(content_type, content_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_moderator ON moderation_actions(moderator_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_target ON moderation_actions(target_user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_action ON moderation_actions(action)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_active ON moderation_actions(is_active)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_actions_expires ON moderation_actions(expires_at)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_queue_status ON moderation_queue(status)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_queue_priority ON moderation_queue(priority)`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin ON admin_audit_log(adminUserId)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_queue_assigned ON moderation_queue(assigned_moderator)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_queue_created ON moderation_queue(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_queue_item ON moderation_queue(item_type, item_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cms_content_type ON cms_content(type)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cms_content_published ON cms_content(is_published)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cms_content_author ON cms_content(author_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cms_content_scheduled ON cms_content(scheduled_publish_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_ban_evasion_user ON ban_evasion_tracking(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_ban_evasion_ip ON ban_evasion_tracking(ip_address)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_ban_evasion_fingerprint ON ban_evasion_tracking(hashed_fingerprint)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_ban_evasion_status ON ban_evasion_tracking(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_appeals_user ON user_appeals(user_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_appeals_action ON user_appeals(moderation_action_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_appeals_status ON user_appeals(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_user_appeals_reviewer ON user_appeals(reviewed_by)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_templates_category ON moderation_templates(category)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_moderation_templates_active ON moderation_templates(is_active)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin ON admin_audit_log(admin_user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_action ON admin_audit_log(action)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_category ON admin_audit_log(category)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_target ON admin_audit_log(target_type, target_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_created ON admin_audit_log(created_at)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_admin_audit_log_ip ON admin_audit_log(ip_address)`;
     
     console.log('  ✅ All indexes created');
     
