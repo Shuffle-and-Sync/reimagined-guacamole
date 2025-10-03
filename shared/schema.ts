@@ -217,7 +217,9 @@ export const messages = sqliteTable("messages", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   senderId: text("sender_id").notNull().references(() => users.id),
   receiverId: text("receiver_id").references(() => users.id),
+  recipientId: text("recipient_id").references(() => users.id),
   eventId: text("event_id").references(() => events.id),
+  communityId: text("community_id").references(() => communities.id),
   content: text("content").notNull(),
   isRead: integer("is_read", { mode: 'boolean' }).default(false),
   readAt: integer("read_at", { mode: 'timestamp' }),
@@ -350,8 +352,13 @@ export const userActivities = sqliteTable("user_activities", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   activityType: text("activity_type").notNull(),
+  type: text("type"),
+  title: text("title"),
   description: text("description"),
+  data: text("data"), // JSON string
   metadata: text("metadata"), // JSON string
+  communityId: text("community_id").references(() => communities.id),
+  isPublic: integer("is_public", { mode: 'boolean' }).default(true),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_user_activities_user").on(table.userId),
@@ -410,8 +417,11 @@ export const streamSessions = sqliteTable("stream_sessions", {
   description: text("description"),
   status: text("status").default("scheduled"), // 'scheduled', 'live', 'ended', 'cancelled'
   streamerId: text("streamer_id").notNull().references(() => users.id),
+  hostUserId: text("host_user_id").references(() => users.id),
   eventId: text("event_id").references(() => events.id),
+  communityId: text("community_id").references(() => communities.id),
   scheduledStart: integer("scheduled_start", { mode: 'timestamp' }),
+  scheduledStartTime: integer("scheduled_start_time", { mode: 'timestamp' }),
   actualStart: integer("actual_start", { mode: 'timestamp' }),
   actualEnd: integer("actual_end", { mode: 'timestamp' }),
   viewerCount: integer("viewer_count").default(0),
@@ -887,6 +897,8 @@ export const tournamentMatches = sqliteTable("tournament_matches", {
 export const matchResults = sqliteTable("match_results", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   matchId: text("match_id").notNull().unique().references(() => tournamentMatches.id, { onDelete: "cascade" }),
+  winnerId: text("winner_id").references(() => users.id),
+  loserId: text("loser_id").references(() => users.id),
   player1Score: integer("player1_score"),
   player2Score: integer("player2_score"),
   player1Deck: text("player1_deck"),
@@ -894,8 +906,10 @@ export const matchResults = sqliteTable("match_results", {
   durationMinutes: integer("duration_minutes"),
   notes: text("notes"),
   reportedBy: text("reported_by").notNull().references(() => users.id),
+  reportedById: text("reported_by_id").references(() => users.id),
   isVerified: integer("is_verified", { mode: 'boolean' }).default(false),
   verifiedBy: text("verified_by").references(() => users.id),
+  verifiedById: text("verified_by_id").references(() => users.id),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_match_results_match").on(table.matchId),
