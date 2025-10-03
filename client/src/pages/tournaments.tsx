@@ -16,7 +16,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
-import type { Tournament, TournamentParticipant, User } from '@shared/schema';
+import type { Tournament, User } from '@shared/schema';
+// TODO: TournamentParticipant doesn't exist in schema
+type TournamentParticipant = any;
 import { format } from "date-fns";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 
@@ -172,11 +174,11 @@ export default function Tournaments() {
     setEditForm({
       name: tournament.name || "",
       description: tournament.description || "",
-      gameFormat: tournament.gameFormat || "",
+      gameFormat: tournament.gameType || "",
       maxParticipants: tournament.maxParticipants || 8,
-      startDate: startDate,
-      prizePool: tournament.prizePool || "",
-      rules: tournament.rules || ""
+      startDate: String(startDate),
+      prizePool: tournament.prizePool != null ? String(tournament.prizePool) : "",
+      rules: (tournament as any).rules || ""
     });
     setIsEditModalOpen(true);
   };
@@ -589,7 +591,7 @@ export default function Tournaments() {
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <CardTitle className="text-lg">{tournament.name}</CardTitle>
-                          <CardDescription>{formatGameName(tournament.gameFormat)}</CardDescription>
+                          <CardDescription>{formatGameName(tournament.gameType)}</CardDescription>
                         </div>
                         <Badge variant={getStatusBadgeVariant(tournament.status)}>
                           {tournament.status}
