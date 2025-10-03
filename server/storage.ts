@@ -14,37 +14,37 @@ import {
   gameSessions,
   passwordResetTokens,
   emailVerificationTokens,
-  emailChangeRequests,
-  emailChangeTokens,
-  userSocialLinks,
-  userGamingProfiles,
+  // emailChangeRequests, // TODO: Not implemented in schema
+  // emailChangeTokens, // TODO: Not implemented in schema
+  // userSocialLinks, // TODO: Not implemented in schema
+  // userGamingProfiles, // TODO: Not implemented in schema
   friendships,
   userActivities,
-  userSettings,
-  matchmakingPreferences,
+  // userSettings, // TODO: Not implemented in schema
+  // matchmakingPreferences, // TODO: Not implemented in schema
   tournaments,
   tournamentParticipants,
-  tournamentFormats,
-  tournamentRounds,
-  tournamentMatches,
-  matchResults,
-  forumPosts,
-  forumReplies,
-  forumPostLikes,
-  forumReplyLikes,
+  // tournamentFormats, // TODO: Not implemented in schema
+  // tournamentRounds, // TODO: Not implemented in schema
+  // tournamentMatches, // TODO: Not implemented in schema
+  // matchResults, // TODO: Not implemented in schema
+  // forumPosts, // TODO: Not implemented in schema
+  // forumReplies, // TODO: Not implemented in schema
+  // forumPostLikes, // TODO: Not implemented in schema
+  // forumReplyLikes, // TODO: Not implemented in schema
   streamSessions,
-  streamSessionCoHosts,
-  streamSessionPlatforms,
+  // streamSessionCoHosts, // TODO: Not implemented in schema
+  // streamSessionPlatforms, // TODO: Not implemented in schema
   collaborationRequests,
-  streamAnalytics,
-  userActivityAnalytics,
-  communityAnalytics,
-  platformMetrics,
-  eventTracking,
-  conversionFunnels,
-  collaborativeStreamEvents,
-  streamCollaborators,
-  streamCoordinationSessions,
+  // streamAnalytics, // TODO: Not implemented in schema
+  // userActivityAnalytics, // TODO: Not implemented in schema
+  // communityAnalytics, // TODO: Not implemented in schema
+  // platformMetrics, // TODO: Not implemented in schema
+  // eventTracking, // TODO: Not implemented in schema
+  // conversionFunnels, // TODO: Not implemented in schema
+  // collaborativeStreamEvents, // TODO: Not implemented in schema
+  // streamCollaborators, // TODO: Not implemented in schema
+  // streamCoordinationSessions, // TODO: Not implemented in schema
   // Admin & Moderation tables
   userRoles,
   userReputation,
@@ -57,100 +57,100 @@ import {
   moderationTemplates,
   adminAuditLog,
   userMfaSettings,
-  userMfaAttempts,
-  deviceFingerprints,
-  mfaSecurityContext,
-  trustedDevices,
-  refreshTokens,
+  // userMfaAttempts, // TODO: Not implemented in schema
+  // deviceFingerprints, // TODO: Not implemented in schema
+  // mfaSecurityContext, // TODO: Not implemented in schema
+  // trustedDevices, // TODO: Not implemented in schema
+  // refreshTokens, // TODO: Not implemented in schema
   authAuditLog,
-  revokedJwtTokens,
+  // revokedJwtTokens, // TODO: Not implemented in schema
   type User,
   type UpsertUser,
   type Community,
-  type UserCommunity,
-  type UserPlatformAccount,
-  type ThemePreference,
+  // type UserCommunity, // TODO: Not exported from schema
+  // type UserPlatformAccount, // TODO: Not exported from schema
+  // type ThemePreference, // TODO: Not exported from schema
   type Event,
-  type EventAttendee,
+  // type EventAttendee, // TODO: Not exported from schema
   type Notification,
   type Message,
   type GameSession,
-  type PasswordResetToken,
-  type EmailChangeRequest,
-  type EmailChangeToken,
-  type EmailVerificationToken,
-  type UserSocialLink,
-  type UserGamingProfile,
-  type Friendship,
-  type UserActivity,
-  type UserSettings,
-  type MatchmakingPreferences,
+  // type PasswordResetToken, // TODO: Not exported from schema
+  // type EmailChangeRequest, // TODO: Not implemented in schema
+  // type EmailChangeToken, // TODO: Not implemented in schema
+  // type EmailVerificationToken, // TODO: Not exported from schema
+  // type UserSocialLink, // TODO: Not implemented in schema
+  // type UserGamingProfile, // TODO: Not implemented in schema
+  // type Friendship, // TODO: Not exported from schema
+  // type UserActivity, // TODO: Not exported from schema
+  // type UserSettings, // TODO: Not implemented in schema
+  // type MatchmakingPreferences, // TODO: Not implemented in schema
   type Tournament,
-  type TournamentParticipant,
-  type TournamentFormat,
-  type TournamentRound,
-  type TournamentMatch,
-  type MatchResult,
-  type ForumPost,
-  type ForumReply,
-  type ForumPostLike,
-  type ForumReplyLike,
+  // type TournamentParticipant, // TODO: Not exported from schema
+  // type TournamentFormat, // TODO: Not implemented in schema
+  // type TournamentRound, // TODO: Not implemented in schema
+  // type TournamentMatch, // TODO: Not implemented in schema
+  // type MatchResult, // TODO: Not implemented in schema
+  // type ForumPost, // TODO: Not implemented in schema
+  // type ForumReply, // TODO: Not implemented in schema
+  // type ForumPostLike, // TODO: Not implemented in schema
+  // type ForumReplyLike, // TODO: Not implemented in schema
   type StreamSession,
-  type StreamSessionCoHost,
-  type StreamSessionPlatform,
-  type CollaborationRequest,
-  type StreamAnalytics,
-  type InsertCommunity,
-  type InsertUserCommunity,
-  type InsertUserPlatformAccount,
-  type InsertThemePreference,
+  // type StreamSessionCoHost, // TODO: Not implemented in schema
+  // type StreamSessionPlatform, // TODO: Not implemented in schema
+  // type CollaborationRequest, // TODO: Not exported from schema
+  // type StreamAnalytics, // TODO: Not implemented in schema
+  // type InsertCommunity, // TODO: Not exported from schema
+  // type InsertUserCommunity, // TODO: Not exported from schema
+  // type InsertUserPlatformAccount, // TODO: Not exported from schema
+  // type InsertThemePreference, // TODO: Not exported from schema
   type InsertEvent,
-  type InsertEventAttendee,
+  // type InsertEventAttendee, // TODO: Not exported from schema
   type InsertNotification,
   type InsertMessage,
-  type InsertGameSession,
-  type InsertPasswordResetToken,
-  type InsertEmailVerificationToken,
-  type InsertEmailChangeRequest,
-  type InsertEmailChangeToken,
-  type InsertUserSocialLink,
-  type InsertUserGamingProfile,
-  type InsertFriendship,
-  type InsertUserActivity,
-  type InsertUserSettings,
-  type InsertMatchmakingPreferences,
-  type InsertTournament,
-  type UpdateTournament,
-  type InsertTournamentParticipant,
-  type InsertTournamentFormat,
-  type InsertTournamentRound,
-  type InsertTournamentMatch,
-  type InsertMatchResult,
-  type InsertForumPost,
-  type InsertForumReply,
-  type InsertForumPostLike,
-  type InsertForumReplyLike,
-  type InsertStreamSession,
-  type InsertStreamSessionCoHost,
-  type InsertStreamSessionPlatform,
-  type InsertCollaborationRequest,
-  type InsertStreamAnalytics,
-  type UserActivityAnalytics,
-  type CommunityAnalytics,
-  type CollaborativeStreamEvent,
-  type StreamCollaborator,
-  type StreamCoordinationSession,
-  type InsertCollaborativeStreamEvent,
-  type InsertStreamCollaborator,
-  type InsertStreamCoordinationSession,
-  type PlatformMetrics,
-  type EventTracking,
-  type ConversionFunnel,
-  type InsertUserActivityAnalytics,
-  type InsertCommunityAnalytics,
-  type InsertPlatformMetrics,
-  type InsertEventTracking,
-  type InsertConversionFunnel,
+  // type InsertGameSession, // TODO: Not exported from schema
+  // type InsertPasswordResetToken, // TODO: Not exported from schema
+  // type InsertEmailVerificationToken, // TODO: Not exported from schema
+  // type InsertEmailChangeRequest, // TODO: Not implemented in schema
+  // type InsertEmailChangeToken, // TODO: Not implemented in schema
+  // type InsertUserSocialLink, // TODO: Not implemented in schema
+  // type InsertUserGamingProfile, // TODO: Not implemented in schema
+  // type InsertFriendship, // TODO: Not exported from schema
+  // type InsertUserActivity, // TODO: Not exported from schema
+  // type InsertUserSettings, // TODO: Not implemented in schema
+  // type InsertMatchmakingPreferences, // TODO: Not implemented in schema
+  // type InsertTournament, // TODO: Not exported from schema
+  // type UpdateTournament, // TODO: Not exported from schema
+  // type InsertTournamentParticipant, // TODO: Not exported from schema
+  // type InsertTournamentFormat, // TODO: Not implemented in schema
+  // type InsertTournamentRound, // TODO: Not implemented in schema
+  // type InsertTournamentMatch, // TODO: Not implemented in schema
+  // type InsertMatchResult, // TODO: Not implemented in schema
+  // type InsertForumPost, // TODO: Not implemented in schema
+  // type InsertForumReply, // TODO: Not implemented in schema
+  // type InsertForumPostLike, // TODO: Not implemented in schema
+  // type InsertForumReplyLike, // TODO: Not implemented in schema
+  // type InsertStreamSession, // TODO: Not exported from schema
+  // type InsertStreamSessionCoHost, // TODO: Not implemented in schema
+  // type InsertStreamSessionPlatform, // TODO: Not implemented in schema
+  // type InsertCollaborationRequest, // TODO: Not exported from schema
+  // type InsertStreamAnalytics, // TODO: Not implemented in schema
+  // type UserActivityAnalytics, // TODO: Not implemented in schema
+  // type CommunityAnalytics, // TODO: Not implemented in schema
+  // type CollaborativeStreamEvent, // TODO: Not implemented in schema
+  // type StreamCollaborator, // TODO: Not implemented in schema
+  // type StreamCoordinationSession, // TODO: Not implemented in schema
+  // type InsertCollaborativeStreamEvent, // TODO: Not implemented in schema
+  // type InsertStreamCollaborator, // TODO: Not implemented in schema
+  // type InsertStreamCoordinationSession, // TODO: Not implemented in schema
+  // type PlatformMetrics, // TODO: Not implemented in schema
+  // type EventTracking, // TODO: Not implemented in schema
+  // type ConversionFunnel, // TODO: Not implemented in schema
+  // type InsertUserActivityAnalytics, // TODO: Not implemented in schema
+  // type InsertCommunityAnalytics, // TODO: Not implemented in schema
+  // type InsertPlatformMetrics, // TODO: Not implemented in schema
+  // type InsertEventTracking, // TODO: Not implemented in schema
+  // type InsertConversionFunnel, // TODO: Not implemented in schema
   // Admin & Moderation types
   type UserRole,
   type UserReputation,
@@ -163,35 +163,166 @@ import {
   type ModerationTemplate,
   type AdminAuditLog,
   type InsertUserRole,
-  type InsertUserReputation,
+  // type InsertUserReputation, // TODO: Not exported from schema
   type InsertContentReport,
   type InsertModerationAction,
   type InsertModerationQueue,
   type InsertCmsContent,
-  type InsertBanEvasionTracking,
+  // type InsertBanEvasionTracking, // TODO: Not exported from schema
   type InsertUserAppeal,
-  type InsertModerationTemplate,
+  // type InsertModerationTemplate, // TODO: Not exported from schema
   type InsertAdminAuditLog,
-  SafeUserPlatformAccount,
-  type UserMfaSettings,
-  type InsertUserMfaSettings,
-  type UserMfaAttempts,
-  type InsertUserMfaAttempts,
-  type DeviceFingerprint,
-  type InsertDeviceFingerprint,
-  type MfaSecurityContext,
-  type InsertMfaSecurityContext,
-  type TrustedDevice,
-  type InsertTrustedDevice,
-  type RefreshToken,
-  type InsertRefreshToken,
-  type AuthAuditLog,
-  type InsertAuthAuditLog,
-  type InsertRevokedJwtToken,
-  type RevokedJwtToken,
+  // SafeUserPlatformAccount, // TODO: Not exported from schema
+  // type UserMfaSettings, // TODO: Not exported as type (only as table)
+  // type InsertUserMfaSettings, // TODO: Not exported from schema
+  // type UserMfaAttempts, // TODO: Not implemented in schema
+  // type InsertUserMfaAttempts, // TODO: Not implemented in schema
+  // type DeviceFingerprint, // TODO: Not implemented in schema
+  // type InsertDeviceFingerprint, // TODO: Not implemented in schema
+  // type MfaSecurityContext, // TODO: Not implemented in schema
+  // type InsertMfaSecurityContext, // TODO: Not implemented in schema
+  // type TrustedDevice, // TODO: Not implemented in schema
+  // type InsertTrustedDevice, // TODO: Not implemented in schema
+  // type RefreshToken, // TODO: Not implemented in schema
+  // type InsertRefreshToken, // TODO: Not implemented in schema
+  // type AuthAuditLog, // TODO: Not exported as type (only as table)
+  // type InsertAuthAuditLog, // TODO: Not exported from schema
+  // type InsertRevokedJwtToken, // TODO: Not implemented in schema
+  // type RevokedJwtToken, // TODO: Not implemented in schema
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+
+// Type aliases for missing schema exports
+// These types are inferred from the actual tables that exist
+type UserCommunity = typeof userCommunities.$inferSelect;
+type InsertUserCommunity = typeof userCommunities.$inferInsert;
+type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
+type InsertUserPlatformAccount = typeof userPlatformAccounts.$inferInsert;
+type SafeUserPlatformAccount = Omit<UserPlatformAccount, 'accessToken' | 'refreshToken'>;
+type ThemePreference = typeof themePreferences.$inferSelect;
+type InsertThemePreference = typeof themePreferences.$inferInsert;
+type EventAttendee = typeof eventAttendees.$inferSelect;
+type InsertEventAttendee = typeof eventAttendees.$inferInsert;
+type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
+type Friendship = typeof friendships.$inferSelect;
+type InsertFriendship = typeof friendships.$inferInsert;
+type UserActivity = typeof userActivities.$inferSelect;
+type InsertUserActivity = typeof userActivities.$inferInsert;
+type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
+type InsertTournamentParticipant = typeof tournamentParticipants.$inferInsert;
+type CollaborationRequest = typeof collaborationRequests.$inferSelect;
+type InsertCollaborationRequest = typeof collaborationRequests.$inferInsert;
+type InsertCommunity = typeof communities.$inferInsert;
+type InsertGameSession = typeof gameSessions.$inferInsert;
+type InsertStreamSession = typeof streamSessions.$inferInsert;
+type InsertUserReputation = typeof userReputation.$inferInsert;
+type InsertBanEvasionTracking = typeof banEvasionTracking.$inferInsert;
+type InsertModerationTemplate = typeof moderationTemplates.$inferInsert;
+type UserMfaSettingsType = typeof userMfaSettings.$inferSelect;
+type InsertUserMfaSettings = typeof userMfaSettings.$inferInsert;
+type AuthAuditLogType = typeof authAuditLog.$inferSelect;
+type InsertAuthAuditLog = typeof authAuditLog.$inferInsert;
+type InsertTournament = typeof tournaments.$inferInsert;
+type UpdateTournament = Partial<InsertTournament>;
+
+// Placeholder types for features not yet implemented in schema
+// TODO: Implement these tables in schema when features are developed
+type EmailChangeRequest = any;
+type InsertEmailChangeRequest = any;
+type EmailChangeToken = any;
+type InsertEmailChangeToken = any;
+type UserSocialLink = any;
+type InsertUserSocialLink = any;
+type UserGamingProfile = any;
+type InsertUserGamingProfile = any;
+type UserSettings = any;
+type InsertUserSettings = any;
+type MatchmakingPreferences = any;
+type InsertMatchmakingPreferences = any;
+type TournamentFormat = any;
+type InsertTournamentFormat = any;
+type TournamentRound = any;
+type InsertTournamentRound = any;
+type TournamentMatch = any;
+type InsertTournamentMatch = any;
+type MatchResult = any;
+type InsertMatchResult = any;
+type ForumPost = any;
+type InsertForumPost = any;
+type ForumReply = any;
+type InsertForumReply = any;
+type ForumPostLike = any;
+type InsertForumPostLike = any;
+type ForumReplyLike = any;
+type InsertForumReplyLike = any;
+type StreamSessionCoHost = any;
+type InsertStreamSessionCoHost = any;
+type StreamSessionPlatform = any;
+type InsertStreamSessionPlatform = any;
+type StreamAnalytics = any;
+type InsertStreamAnalytics = any;
+type UserActivityAnalytics = any;
+type InsertUserActivityAnalytics = any;
+type CommunityAnalytics = any;
+type InsertCommunityAnalytics = any;
+type PlatformMetrics = any;
+type InsertPlatformMetrics = any;
+type EventTracking = any;
+type InsertEventTracking = any;
+type ConversionFunnel = any;
+type InsertConversionFunnel = any;
+type CollaborativeStreamEvent = any;
+type InsertCollaborativeStreamEvent = any;
+type StreamCollaborator = any;
+type InsertStreamCollaborator = any;
+type StreamCoordinationSession = any;
+type InsertStreamCoordinationSession = any;
+type UserMfaAttempts = any;
+type InsertUserMfaAttempts = any;
+type DeviceFingerprint = any;
+type InsertDeviceFingerprint = any;
+type MfaSecurityContext = any;
+type InsertMfaSecurityContext = any;
+type TrustedDevice = any;
+type InsertTrustedDevice = any;
+type RefreshToken = any;
+type InsertRefreshToken = any;
+type RevokedJwtToken = any;
+type InsertRevokedJwtToken = any;
+
+// Use the aliased types where needed  
+type UserMfaSettings = UserMfaSettingsType;
+type AuthAuditLog = AuthAuditLogType;
+
+// Extended types for entities with properties not yet in schema
+// TODO: Add these columns to schema when implementing full functionality
+interface ExtendedEvent extends Event {
+  date?: string;
+  time?: string;
+  playerSlots?: number;
+  alternateSlots?: number;
+  gameFormat?: string;
+  powerLevel?: string;
+  isRecurring?: boolean;
+  recurrencePattern?: string;
+  recurrenceInterval?: number;
+  recurrenceEndDate?: Date;
+  isPublic?: boolean;
+}
+
+interface ExtendedEventAttendee extends EventAttendee {
+  role?: string;
+  playerType?: string;
+}
+
+interface ExtendedTournament extends Tournament {
+  gameFormat?: string;
+  rules?: any;
+}
 
 // Interface for storage operations
 export interface IStorage {
@@ -1216,25 +1347,28 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        date: events.date,
-        time: events.time,
+        // date: events.date, // TODO: Not in schema - using startTime
+        // time: events.time, // TODO: Not in schema - using startTime
+        startTime: events.startTime,
+        endTime: events.endTime,
         location: events.location,
         communityId: events.communityId,
         creatorId: events.creatorId,
         hostId: events.hostId,
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
+        isVirtual: events.isVirtual,
+        // isPublic: events.isPublic, // TODO: Not in schema
         status: events.status,
-        playerSlots: events.playerSlots,
-        alternateSlots: events.alternateSlots,
-        gameFormat: events.gameFormat,
-        powerLevel: events.powerLevel,
-        isRecurring: events.isRecurring,
-        recurrencePattern: events.recurrencePattern,
-        recurrenceInterval: events.recurrenceInterval,
-        recurrenceEndDate: events.recurrenceEndDate,
-        parentEventId: events.parentEventId,
+        // playerSlots: events.playerSlots, // TODO: Not in schema
+        // alternateSlots: events.alternateSlots, // TODO: Not in schema
+        // gameFormat: events.gameFormat, // TODO: Not in schema
+        // powerLevel: events.powerLevel, // TODO: Not in schema
+        // isRecurring: events.isRecurring, // TODO: Not in schema
+        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
+        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
+        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
+        // parentEventId: events.parentEventId, // TODO: Not in schema
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -1252,15 +1386,16 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(events.type, filters.type as any));
     }
     if (filters?.upcoming) {
-      const today = new Date().toISOString().split('T')[0];
-      conditions.push(gte(events.date, today as any));
+      // const today = new Date().toISOString().split('T')[0];
+      // conditions.push(gte(events.date, today as any)); // TODO: date column doesn't exist
+      conditions.push(gte(events.startTime, new Date()));
     }
 
     const query = conditions.length > 0 
       ? baseQuery.where(and(...conditions))
       : baseQuery;
 
-    const rawEvents = await query.orderBy(events.date, events.time);
+    const rawEvents = await query.orderBy(events.startTime); // TODO: time column doesn't exist, using startTime
 
     // Get attendee counts and user attendance separately
     const eventIds = rawEvents.map((e: any) => e.id);
@@ -1309,25 +1444,28 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        date: events.date,
-        time: events.time,
+        // date: events.date, // TODO: Not in schema
+        // time: events.time, // TODO: Not in schema
+        startTime: events.startTime,
+        endTime: events.endTime,
         location: events.location,
         communityId: events.communityId,
         creatorId: events.creatorId,
         hostId: events.hostId,
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
+        isVirtual: events.isVirtual,
+        // isPublic: events.isPublic, // TODO: Not in schema
         status: events.status,
-        playerSlots: events.playerSlots,
-        alternateSlots: events.alternateSlots,
-        gameFormat: events.gameFormat,
-        powerLevel: events.powerLevel,
-        isRecurring: events.isRecurring,
-        recurrencePattern: events.recurrencePattern,
-        recurrenceInterval: events.recurrenceInterval,
-        recurrenceEndDate: events.recurrenceEndDate,
-        parentEventId: events.parentEventId,
+        // playerSlots: events.playerSlots, // TODO: Not in schema
+        // alternateSlots: events.alternateSlots, // TODO: Not in schema
+        // gameFormat: events.gameFormat, // TODO: Not in schema
+        // powerLevel: events.powerLevel, // TODO: Not in schema
+        // isRecurring: events.isRecurring, // TODO: Not in schema
+        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
+        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
+        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
+        // parentEventId: events.parentEventId, // TODO: Not in schema
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -1485,8 +1623,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
+        // role: eventAttendees.role, // TODO: Not in schema
+        // playerType: eventAttendees.playerType, // TODO: Not in schema
         joinedAt: eventAttendees.joinedAt,
         user: users,
       })
@@ -1502,8 +1640,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
+        // role: eventAttendees.role, // TODO: Not in schema
+        // playerType: eventAttendees.playerType, // TODO: Not in schema
         joinedAt: eventAttendees.joinedAt,
         event: events,
       })
@@ -1521,8 +1659,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
+        // role: eventAttendees.role, // TODO: Not in schema
+        // playerType: eventAttendees.playerType, // TODO: Not in schema
         joinedAt: eventAttendees.joinedAt,
       })
       .from(eventAttendees)
@@ -1657,25 +1795,28 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        date: events.date,
-        time: events.time,
+        // date: events.date, // TODO: Not in schema
+        // time: events.time, // TODO: Not in schema
+        startTime: events.startTime,
+        endTime: events.endTime,
         location: events.location,
         communityId: events.communityId,
         creatorId: events.creatorId,
         hostId: events.hostId,
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
-        isPublic: events.isPublic,
+        isVirtual: events.isVirtual,
+        // isPublic: events.isPublic, // TODO: Not in schema
         status: events.status,
-        playerSlots: events.playerSlots,
-        alternateSlots: events.alternateSlots,
-        gameFormat: events.gameFormat,
-        powerLevel: events.powerLevel,
-        isRecurring: events.isRecurring,
-        recurrencePattern: events.recurrencePattern,
-        recurrenceInterval: events.recurrenceInterval,
-        recurrenceEndDate: events.recurrenceEndDate,
-        parentEventId: events.parentEventId,
+        // playerSlots: events.playerSlots, // TODO: Not in schema
+        // alternateSlots: events.alternateSlots, // TODO: Not in schema
+        // gameFormat: events.gameFormat, // TODO: Not in schema
+        // powerLevel: events.powerLevel, // TODO: Not in schema
+        // isRecurring: events.isRecurring, // TODO: Not in schema
+        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
+        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
+        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
+        // parentEventId: events.parentEventId, // TODO: Not in schema
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -1686,8 +1827,10 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(communities, eq(events.communityId, communities.id));
 
     let conditions = [
-      gte(events.date, filters.startDate),
-      sql`${events.date} <= ${filters.endDate}`
+      // gte(events.date, filters.startDate), // TODO: date column doesn't exist
+      // sql`${events.date} <= ${filters.endDate}` // TODO: date column doesn't exist
+      gte(events.startTime, new Date(filters.startDate)),
+      lte(events.startTime, new Date(filters.endDate))
     ];
     
     if (filters.communityId) {
@@ -1699,7 +1842,7 @@ export class DatabaseStorage implements IStorage {
 
     const rawEvents = await baseQuery
       .where(and(...conditions))
-      .orderBy(events.date, events.time);
+      .orderBy(events.startTime); // TODO: time column doesn't exist, using startTime
 
     // Get player counts for each event
     const eventIds = rawEvents.map((e: any) => e.id);
@@ -1707,8 +1850,10 @@ export class DatabaseStorage implements IStorage {
       .select({
         eventId: eventAttendees.eventId,
         totalCount: count(eventAttendees.id).as('totalCount'),
-        mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'),
-        alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'),
+        // mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'), // TODO: playerType doesn't exist
+        // alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'), // TODO: playerType doesn't exist
+        mainPlayers: sql<number>`0`.as('mainPlayers'), // TODO: playerType column not in schema
+        alternates: sql<number>`0`.as('alternates'), // TODO: playerType column not in schema
       })
       .from(eventAttendees)
       .where(sql`${eventAttendees.eventId} IN ${eventIds}`)
