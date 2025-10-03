@@ -484,8 +484,8 @@ npm run docker:test
 - **[Database Architecture Guide](./docs/DATABASE_ARCHITECTURE.md)** - Comprehensive guide to database setup, Drizzle vs Prisma, and single PostgreSQL instance architecture
 
 ### Platform Integration Guides
-- **[Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
-- **[Twitch Developer Portal Setup](./TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
+- **[Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
+- **[Twitch Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
 
 ### General Documentation
 - **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Comprehensive testing documentation

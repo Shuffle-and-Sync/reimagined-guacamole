@@ -215,12 +215,12 @@ describe('Documentation Completeness', () => {
   const path = require('path');
   
   test('TWITCH_OAUTH_GUIDE.md should exist', () => {
-    const guidePath = path.join(process.cwd(), 'TWITCH_OAUTH_GUIDE.md');
+    const guidePath = path.join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
     expect(fs.existsSync(guidePath)).toBe(true);
   });
   
   test('TWITCH_OAUTH_GUIDE.md should have comprehensive content', () => {
-    const guidePath = path.join(process.cwd(), 'TWITCH_OAUTH_GUIDE.md');
+    const guidePath = path.join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
     const content = fs.readFileSync(guidePath, 'utf-8');
     
     // Should document key concepts
