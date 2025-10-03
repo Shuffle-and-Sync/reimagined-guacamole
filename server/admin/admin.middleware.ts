@@ -533,14 +533,14 @@ function logResponseForAudit(req: Request, res: Response, responseData: any) {
     category: statusCode >= 400 ? 'system_config' : 'user_management',
     targetType: 'api_response',
     targetId: req.path,
-    parameters: {
+    parameters: JSON.stringify({
       method: req.method,
       statusCode,
       responseData: sanitizedResponse,
       userAgent: req.get('User-Agent') || '',
       query: sanitizedQuery,
       body: sanitizedBody
-    },
+    }),
     ipAddress: req.ip || req.connection.remoteAddress || '127.0.0.1'
   }).catch(error => console.error('Failed to create comprehensive audit log:', error));
 }

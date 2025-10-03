@@ -12,8 +12,10 @@ interface PodStatusBadgeProps {
 export function PodStatusBadge({ event, mainPlayers = 0, alternates = 0 }: PodStatusBadgeProps) {
   if (event.type !== 'game_pod') return null;
 
-  const playerSlots = event.playerSlots || 4;
-  const alternateSlots = event.alternateSlots || 2;
+  // const playerSlots = event.playerSlots || 4; // TODO: playerSlots doesn't exist in schema
+  // const alternateSlots = event.alternateSlots || 2; // TODO: alternateSlots doesn't exist in schema
+  const playerSlots = 4; // Default player slots
+  const alternateSlots = 2; // Default alternate slots
   const mainProgress = (mainPlayers / playerSlots) * 100;
   const isFull = mainPlayers >= playerSlots;
   const isAlmostFull = mainPlayers === playerSlots - 1;

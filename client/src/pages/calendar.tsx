@@ -39,6 +39,10 @@ type ExtendedEvent = Event & {
   isUserAttending?: boolean;
   mainPlayers?: number;
   alternates?: number;
+  // Properties that don't exist in schema but are used by legacy code
+  // TODO: Update code to use startTime/endTime instead
+  date?: string;
+  time?: string;
 };
 
 export default function Calendar() {
@@ -319,9 +323,9 @@ export default function Calendar() {
     // Pre-populate form with existing event data
     setNewEventTitle(event.title);
     setNewEventType(event.type);
-    setNewEventDate(event.date);
-    setNewEventTime(event.time);
-    setNewEventLocation(event.location);
+    setNewEventDate(event.date || ''); // Ensure not null
+    setNewEventTime(event.time || ''); // Ensure not null
+    setNewEventLocation(event.location || ''); // Ensure not null
     setNewEventDescription(event.description || '');
     setNewEventCommunityId(event.communityId || '');
     setEditingEventId(event.id);
@@ -650,8 +654,8 @@ export default function Calendar() {
                               <div>
                                 <h3 className="font-semibold text-lg">{event.title}</h3>
                                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
-                                  <span>📅 {new Date(event.date).toLocaleDateString()}</span>
-                                  <span>🕒 {event.time}</span>
+                                  <span>📅 {event.date ? new Date(event.date).toLocaleDateString() : format(new Date(event.startTime), 'PPP')}</span>
+                                  <span>🕒 {event.time || (event.startTime && format(new Date(event.startTime), 'HH:mm'))}</span>
                                   <span>📍 {event.location}</span>
                                   <Badge variant="outline">{event.community?.name || 'All Communities'}</Badge>
                                 </div>
@@ -843,7 +847,7 @@ export default function Calendar() {
                           <div>
                             <div className="font-medium">{event.title}</div>
                             <div className="text-sm text-muted-foreground">
-                              {new Date(event.date).toLocaleDateString()} at {event.time}
+                              {event.date ? new Date(event.date).toLocaleDateString() : format(new Date(event.startTime), 'PPP')} at {event.time || (event.startTime && format(new Date(event.startTime), 'HH:mm'))}
                             </div>
                           </div>
                           <Badge variant="secondary">Attending</Badge>
