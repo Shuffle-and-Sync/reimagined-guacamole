@@ -926,7 +926,7 @@ export const forumReplies = sqliteTable("forum_replies", {
   postId: text("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
   authorId: text("author_id").notNull().references(() => users.id),
   content: text("content").notNull(),
-  parentReplyId: text("parent_reply_id").references(() => forumReplies.id),
+  parentReplyId: text("parent_reply_id"),
   likeCount: integer("like_count").default(0),
   isEdited: integer("is_edited", { mode: 'boolean' }).default(false),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),

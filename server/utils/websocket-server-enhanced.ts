@@ -474,7 +474,7 @@ export class EnhancedWebSocketServer {
       const collaborators = await storage.getStreamCollaborators(eventId);
       const userCollaborator = collaborators.find(c => c.userId === ws.userId);
       
-      const isHost = event.creatorId === ws.userId;
+      const isHost = event.organizerId === ws.userId; // Note: schema uses organizerId not creatorId
       const isCoHost = userCollaborator?.role === 'co_host';
       
       if (!isHost && !isCoHost) {
