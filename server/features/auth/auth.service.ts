@@ -38,7 +38,7 @@ export class AuthService {
       if (userExists) {
         // Create password reset token
         await storage.createPasswordResetToken({
-          email,
+          userId: userExists.id,
           token,
           expiresAt,
         });
@@ -62,7 +62,13 @@ export class AuthService {
         return null;
       }
 
-      return { email: resetToken.email };
+      // Get user email from userId
+      const user = await storage.getUser(resetToken.userId);
+      if (!user) {
+        return null;
+      }
+
+      return { email: user.email };
     } catch (error) {
       logger.error("Failed to verify reset token in AuthService", error, { token: token.substring(0, 8) + "***" });
       throw error;
@@ -84,10 +90,14 @@ export class AuthService {
       // Mark token as used
       await storage.markTokenAsUsed(token);
 
+      // Get user email for logging
+      const user = await storage.getUser(resetToken.userId);
+      const emailForLog = user ? user.email.substring(0, 3) + "***" : "unknown";
+
       // Password updates are handled by Auth.js credential provider
       // Token cleanup ensures one-time use security
       
-      logger.info("Password reset successful", { email: resetToken.email.substring(0, 3) + "***" });
+      logger.info("Password reset successful", { email: emailForLog });
       return true;
     } catch (error) {
       logger.error("Failed to reset password in AuthService", error, { token: token.substring(0, 8) + "***" });
