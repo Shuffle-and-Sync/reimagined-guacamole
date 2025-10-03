@@ -14,37 +14,37 @@ import {
   gameSessions,
   passwordResetTokens,
   emailVerificationTokens,
-  // emailChangeRequests, // TODO: Not implemented in schema
-  // emailChangeTokens, // TODO: Not implemented in schema
-  // userSocialLinks, // TODO: Not implemented in schema
-  // userGamingProfiles, // TODO: Not implemented in schema
+  emailChangeRequests,
+  emailChangeTokens,
+  userSocialLinks,
+  userGamingProfiles,
   friendships,
   userActivities,
-  // userSettings, // TODO: Not implemented in schema
-  // matchmakingPreferences, // TODO: Not implemented in schema
+  userSettings,
+  matchmakingPreferences,
   tournaments,
   tournamentParticipants,
-  // tournamentFormats, // TODO: Not implemented in schema
-  // tournamentRounds, // TODO: Not implemented in schema
-  // tournamentMatches, // TODO: Not implemented in schema
-  // matchResults, // TODO: Not implemented in schema
-  // forumPosts, // TODO: Not implemented in schema
-  // forumReplies, // TODO: Not implemented in schema
-  // forumPostLikes, // TODO: Not implemented in schema
-  // forumReplyLikes, // TODO: Not implemented in schema
+  tournamentFormats,
+  tournamentRounds,
+  tournamentMatches,
+  matchResults,
+  forumPosts,
+  forumReplies,
+  forumPostLikes,
+  forumReplyLikes,
   streamSessions,
-  // streamSessionCoHosts, // TODO: Not implemented in schema
-  // streamSessionPlatforms, // TODO: Not implemented in schema
+  streamSessionCoHosts,
+  streamSessionPlatforms,
   collaborationRequests,
-  // streamAnalytics, // TODO: Not implemented in schema
-  // userActivityAnalytics, // TODO: Not implemented in schema
-  // communityAnalytics, // TODO: Not implemented in schema
-  // platformMetrics, // TODO: Not implemented in schema
-  // eventTracking, // TODO: Not implemented in schema
-  // conversionFunnels, // TODO: Not implemented in schema
-  // collaborativeStreamEvents, // TODO: Not implemented in schema
-  // streamCollaborators, // TODO: Not implemented in schema
-  // streamCoordinationSessions, // TODO: Not implemented in schema
+  streamAnalytics,
+  userActivityAnalytics,
+  communityAnalytics,
+  platformMetrics,
+  eventTracking,
+  conversionFunnels,
+  collaborativeStreamEvents,
+  streamCollaborators,
+  streamCoordinationSessions,
   // Admin & Moderation tables
   userRoles,
   userReputation,
@@ -57,100 +57,100 @@ import {
   moderationTemplates,
   adminAuditLog,
   userMfaSettings,
-  // userMfaAttempts, // TODO: Not implemented in schema
-  // deviceFingerprints, // TODO: Not implemented in schema
-  // mfaSecurityContext, // TODO: Not implemented in schema
-  // trustedDevices, // TODO: Not implemented in schema
-  // refreshTokens, // TODO: Not implemented in schema
+  userMfaAttempts,
+  deviceFingerprints,
+  mfaSecurityContext,
+  trustedDevices,
+  refreshTokens,
   authAuditLog,
-  // revokedJwtTokens, // TODO: Not implemented in schema
+  revokedJwtTokens,
   type User,
   type UpsertUser,
   type Community,
-  // type UserCommunity, // TODO: Not exported from schema
-  // type UserPlatformAccount, // TODO: Not exported from schema
-  // type ThemePreference, // TODO: Not exported from schema
+  type UserCommunity,
+  type UserPlatformAccount,
+  type ThemePreference,
   type Event,
-  // type EventAttendee, // TODO: Not exported from schema
+  type EventAttendee,
   type Notification,
   type Message,
   type GameSession,
-  // type PasswordResetToken, // TODO: Not exported from schema
-  // type EmailChangeRequest, // TODO: Not implemented in schema
-  // type EmailChangeToken, // TODO: Not implemented in schema
-  // type EmailVerificationToken, // TODO: Not exported from schema
-  // type UserSocialLink, // TODO: Not implemented in schema
-  // type UserGamingProfile, // TODO: Not implemented in schema
-  // type Friendship, // TODO: Not exported from schema
-  // type UserActivity, // TODO: Not exported from schema
-  // type UserSettings, // TODO: Not implemented in schema
-  // type MatchmakingPreferences, // TODO: Not implemented in schema
+  type PasswordResetToken,
+  type EmailChangeRequest,
+  type EmailChangeToken,
+  type EmailVerificationToken,
+  type UserSocialLink,
+  type UserGamingProfile,
+  type Friendship,
+  type UserActivity,
+  type UserSettings,
+  type MatchmakingPreferences,
   type Tournament,
-  // type TournamentParticipant, // TODO: Not exported from schema
-  // type TournamentFormat, // TODO: Not implemented in schema
-  // type TournamentRound, // TODO: Not implemented in schema
-  // type TournamentMatch, // TODO: Not implemented in schema
-  // type MatchResult, // TODO: Not implemented in schema
-  // type ForumPost, // TODO: Not implemented in schema
-  // type ForumReply, // TODO: Not implemented in schema
-  // type ForumPostLike, // TODO: Not implemented in schema
-  // type ForumReplyLike, // TODO: Not implemented in schema
+  type TournamentParticipant,
+  type TournamentFormat,
+  type TournamentRound,
+  type TournamentMatch,
+  type MatchResult,
+  type ForumPost,
+  type ForumReply,
+  type ForumPostLike,
+  type ForumReplyLike,
   type StreamSession,
-  // type StreamSessionCoHost, // TODO: Not implemented in schema
-  // type StreamSessionPlatform, // TODO: Not implemented in schema
-  // type CollaborationRequest, // TODO: Not exported from schema
-  // type StreamAnalytics, // TODO: Not implemented in schema
-  // type InsertCommunity, // TODO: Not exported from schema
-  // type InsertUserCommunity, // TODO: Not exported from schema
-  // type InsertUserPlatformAccount, // TODO: Not exported from schema
-  // type InsertThemePreference, // TODO: Not exported from schema
+  type StreamSessionCoHost,
+  type StreamSessionPlatform,
+  type CollaborationRequest,
+  type StreamAnalytics,
+  type InsertCommunity,
+  type InsertUserCommunity,
+  type InsertUserPlatformAccount,
+  type InsertThemePreference,
   type InsertEvent,
-  // type InsertEventAttendee, // TODO: Not exported from schema
+  type InsertEventAttendee,
   type InsertNotification,
   type InsertMessage,
-  // type InsertGameSession, // TODO: Not exported from schema
-  // type InsertPasswordResetToken, // TODO: Not exported from schema
-  // type InsertEmailVerificationToken, // TODO: Not exported from schema
-  // type InsertEmailChangeRequest, // TODO: Not implemented in schema
-  // type InsertEmailChangeToken, // TODO: Not implemented in schema
-  // type InsertUserSocialLink, // TODO: Not implemented in schema
-  // type InsertUserGamingProfile, // TODO: Not implemented in schema
-  // type InsertFriendship, // TODO: Not exported from schema
-  // type InsertUserActivity, // TODO: Not exported from schema
-  // type InsertUserSettings, // TODO: Not implemented in schema
-  // type InsertMatchmakingPreferences, // TODO: Not implemented in schema
-  // type InsertTournament, // TODO: Not exported from schema
-  // type UpdateTournament, // TODO: Not exported from schema
-  // type InsertTournamentParticipant, // TODO: Not exported from schema
-  // type InsertTournamentFormat, // TODO: Not implemented in schema
-  // type InsertTournamentRound, // TODO: Not implemented in schema
-  // type InsertTournamentMatch, // TODO: Not implemented in schema
-  // type InsertMatchResult, // TODO: Not implemented in schema
-  // type InsertForumPost, // TODO: Not implemented in schema
-  // type InsertForumReply, // TODO: Not implemented in schema
-  // type InsertForumPostLike, // TODO: Not implemented in schema
-  // type InsertForumReplyLike, // TODO: Not implemented in schema
-  // type InsertStreamSession, // TODO: Not exported from schema
-  // type InsertStreamSessionCoHost, // TODO: Not implemented in schema
-  // type InsertStreamSessionPlatform, // TODO: Not implemented in schema
-  // type InsertCollaborationRequest, // TODO: Not exported from schema
-  // type InsertStreamAnalytics, // TODO: Not implemented in schema
-  // type UserActivityAnalytics, // TODO: Not implemented in schema
-  // type CommunityAnalytics, // TODO: Not implemented in schema
-  // type CollaborativeStreamEvent, // TODO: Not implemented in schema
-  // type StreamCollaborator, // TODO: Not implemented in schema
-  // type StreamCoordinationSession, // TODO: Not implemented in schema
-  // type InsertCollaborativeStreamEvent, // TODO: Not implemented in schema
-  // type InsertStreamCollaborator, // TODO: Not implemented in schema
-  // type InsertStreamCoordinationSession, // TODO: Not implemented in schema
-  // type PlatformMetrics, // TODO: Not implemented in schema
-  // type EventTracking, // TODO: Not implemented in schema
-  // type ConversionFunnel, // TODO: Not implemented in schema
-  // type InsertUserActivityAnalytics, // TODO: Not implemented in schema
-  // type InsertCommunityAnalytics, // TODO: Not implemented in schema
-  // type InsertPlatformMetrics, // TODO: Not implemented in schema
-  // type InsertEventTracking, // TODO: Not implemented in schema
-  // type InsertConversionFunnel, // TODO: Not implemented in schema
+  type InsertGameSession,
+  type InsertPasswordResetToken,
+  type InsertEmailVerificationToken,
+  type InsertEmailChangeRequest,
+  type InsertEmailChangeToken,
+  type InsertUserSocialLink,
+  type InsertUserGamingProfile,
+  type InsertFriendship,
+  type InsertUserActivity,
+  type InsertUserSettings,
+  type InsertMatchmakingPreferences,
+  type InsertTournament,
+  type UpdateTournament,
+  type InsertTournamentParticipant,
+  type InsertTournamentFormat,
+  type InsertTournamentRound,
+  type InsertTournamentMatch,
+  type InsertMatchResult,
+  type InsertForumPost,
+  type InsertForumReply,
+  type InsertForumPostLike,
+  type InsertForumReplyLike,
+  type InsertStreamSession,
+  type InsertStreamSessionCoHost,
+  type InsertStreamSessionPlatform,
+  type InsertCollaborationRequest,
+  type InsertStreamAnalytics,
+  type UserActivityAnalytics,
+  type CommunityAnalytics,
+  type CollaborativeStreamEvent,
+  type StreamCollaborator,
+  type StreamCoordinationSession,
+  type InsertCollaborativeStreamEvent,
+  type InsertStreamCollaborator,
+  type InsertStreamCoordinationSession,
+  type PlatformMetrics,
+  type EventTracking,
+  type ConversionFunnel,
+  type InsertUserActivityAnalytics,
+  type InsertCommunityAnalytics,
+  type InsertPlatformMetrics,
+  type InsertEventTracking,
+  type InsertConversionFunnel,
   // Admin & Moderation types
   type UserRole,
   type UserReputation,
@@ -163,140 +163,35 @@ import {
   type ModerationTemplate,
   type AdminAuditLog,
   type InsertUserRole,
-  // type InsertUserReputation, // TODO: Not exported from schema
+  type InsertUserReputation,
   type InsertContentReport,
   type InsertModerationAction,
   type InsertModerationQueue,
   type InsertCmsContent,
-  // type InsertBanEvasionTracking, // TODO: Not exported from schema
+  type InsertBanEvasionTracking,
   type InsertUserAppeal,
-  // type InsertModerationTemplate, // TODO: Not exported from schema
+  type InsertModerationTemplate,
   type InsertAdminAuditLog,
-  // SafeUserPlatformAccount, // TODO: Not exported from schema
-  // type UserMfaSettings, // TODO: Not exported as type (only as table)
-  // type InsertUserMfaSettings, // TODO: Not exported from schema
-  // type UserMfaAttempts, // TODO: Not implemented in schema
-  // type InsertUserMfaAttempts, // TODO: Not implemented in schema
-  // type DeviceFingerprint, // TODO: Not implemented in schema
-  // type InsertDeviceFingerprint, // TODO: Not implemented in schema
-  // type MfaSecurityContext, // TODO: Not implemented in schema
-  // type InsertMfaSecurityContext, // TODO: Not implemented in schema
-  // type TrustedDevice, // TODO: Not implemented in schema
-  // type InsertTrustedDevice, // TODO: Not implemented in schema
-  // type RefreshToken, // TODO: Not implemented in schema
-  // type InsertRefreshToken, // TODO: Not implemented in schema
-  // type AuthAuditLog, // TODO: Not exported as type (only as table)
-  // type InsertAuthAuditLog, // TODO: Not exported from schema
-  // type InsertRevokedJwtToken, // TODO: Not implemented in schema
-  // type RevokedJwtToken, // TODO: Not implemented in schema
+  SafeUserPlatformAccount,
+  type UserMfaSettings,
+  type InsertUserMfaSettings,
+  type UserMfaAttempts,
+  type InsertUserMfaAttempts,
+  type DeviceFingerprint,
+  type InsertDeviceFingerprint,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
+  type TrustedDevice,
+  type InsertTrustedDevice,
+  type RefreshToken,
+  type InsertRefreshToken,
+  type AuthAuditLog,
+  type InsertAuthAuditLog,
+  type InsertRevokedJwtToken,
+  type RevokedJwtToken,
 } from "@shared/schema";
 import { eq, and, gte, lte, count, sql, or, desc, not, asc, ilike, isNotNull, inArray, lt } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-
-// Type aliases for missing schema exports
-// These types are inferred from the actual tables that exist
-type UserCommunity = typeof userCommunities.$inferSelect;
-type InsertUserCommunity = typeof userCommunities.$inferInsert;
-type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
-type InsertUserPlatformAccount = typeof userPlatformAccounts.$inferInsert;
-type SafeUserPlatformAccount = Omit<UserPlatformAccount, 'accessToken' | 'refreshToken'>;
-type ThemePreference = typeof themePreferences.$inferSelect;
-type InsertThemePreference = typeof themePreferences.$inferInsert;
-type EventAttendee = typeof eventAttendees.$inferSelect;
-type InsertEventAttendee = typeof eventAttendees.$inferInsert;
-type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
-type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
-type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
-type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
-type Friendship = typeof friendships.$inferSelect;
-type InsertFriendship = typeof friendships.$inferInsert;
-type UserActivity = typeof userActivities.$inferSelect;
-type InsertUserActivity = typeof userActivities.$inferInsert;
-type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
-type InsertTournamentParticipant = typeof tournamentParticipants.$inferInsert;
-type CollaborationRequest = typeof collaborationRequests.$inferSelect;
-type InsertCollaborationRequest = typeof collaborationRequests.$inferInsert;
-type InsertCommunity = typeof communities.$inferInsert;
-type InsertGameSession = typeof gameSessions.$inferInsert;
-type InsertStreamSession = typeof streamSessions.$inferInsert;
-type InsertUserReputation = typeof userReputation.$inferInsert;
-type InsertBanEvasionTracking = typeof banEvasionTracking.$inferInsert;
-type InsertModerationTemplate = typeof moderationTemplates.$inferInsert;
-type UserMfaSettingsType = typeof userMfaSettings.$inferSelect;
-type InsertUserMfaSettings = typeof userMfaSettings.$inferInsert;
-type AuthAuditLogType = typeof authAuditLog.$inferSelect;
-type InsertAuthAuditLog = typeof authAuditLog.$inferInsert;
-type InsertTournament = typeof tournaments.$inferInsert;
-type UpdateTournament = Partial<InsertTournament>;
-
-// Placeholder types for features not yet implemented in schema
-// TODO: Implement these tables in schema when features are developed
-type EmailChangeRequest = any;
-type InsertEmailChangeRequest = any;
-type EmailChangeToken = any;
-type InsertEmailChangeToken = any;
-type UserSocialLink = any;
-type InsertUserSocialLink = any;
-type UserGamingProfile = any;
-type InsertUserGamingProfile = any;
-type UserSettings = any;
-type InsertUserSettings = any;
-type MatchmakingPreferences = any;
-type InsertMatchmakingPreferences = any;
-type TournamentFormat = any;
-type InsertTournamentFormat = any;
-type TournamentRound = any;
-type InsertTournamentRound = any;
-type TournamentMatch = any;
-type InsertTournamentMatch = any;
-type MatchResult = any;
-type InsertMatchResult = any;
-type ForumPost = any;
-type InsertForumPost = any;
-type ForumReply = any;
-type InsertForumReply = any;
-type ForumPostLike = any;
-type InsertForumPostLike = any;
-type ForumReplyLike = any;
-type InsertForumReplyLike = any;
-type StreamSessionCoHost = any;
-type InsertStreamSessionCoHost = any;
-type StreamSessionPlatform = any;
-type InsertStreamSessionPlatform = any;
-type StreamAnalytics = any;
-type InsertStreamAnalytics = any;
-type UserActivityAnalytics = any;
-type InsertUserActivityAnalytics = any;
-type CommunityAnalytics = any;
-type InsertCommunityAnalytics = any;
-type PlatformMetrics = any;
-type InsertPlatformMetrics = any;
-type EventTracking = any;
-type InsertEventTracking = any;
-type ConversionFunnel = any;
-type InsertConversionFunnel = any;
-type CollaborativeStreamEvent = any;
-type InsertCollaborativeStreamEvent = any;
-type StreamCollaborator = any;
-type InsertStreamCollaborator = any;
-type StreamCoordinationSession = any;
-type InsertStreamCoordinationSession = any;
-type UserMfaAttempts = any;
-type InsertUserMfaAttempts = any;
-type DeviceFingerprint = any;
-type InsertDeviceFingerprint = any;
-type MfaSecurityContext = any;
-type InsertMfaSecurityContext = any;
-type TrustedDevice = any;
-type InsertTrustedDevice = any;
-type RefreshToken = any;
-type InsertRefreshToken = any;
-type RevokedJwtToken = any;
-type InsertRevokedJwtToken = any;
-
-// Use the aliased types where needed  
-type UserMfaSettings = UserMfaSettingsType;
-type AuthAuditLog = AuthAuditLogType;
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
@@ -2036,96 +1931,102 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Email change operations implementation
-  // TODO: These tables don't exist in schema
   async createEmailChangeRequest(data: InsertEmailChangeRequest): Promise<EmailChangeRequest> {
-    // const [request] = await db
-    //   .insert(emailChangeRequests)
-    //   .values(data)
-    throw new Error('EmailChangeRequest feature not implemented in schema');
+    const [request] = await db
+      .insert(emailChangeRequests)
+      .values(data)
+      .returning();
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
+    return request;
   }
 
   async getEmailChangeRequest(id: string): Promise<EmailChangeRequest | undefined> {
-    // return await db
-    //   .select()
-    //   .from(emailChangeRequests)
-    //   .where(eq(emailChangeRequests.id, id));
-    throw new Error('EmailChangeRequest feature not implemented in schema');
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(eq(emailChangeRequests.id, id));
+    return request;
   }
 
   async getUserEmailChangeRequest(userId: string): Promise<EmailChangeRequest | undefined> {
-    // const [request] = await db
-    //   .select()
-    //   .from(emailChangeRequests)
-    //   .where(
-    //     and(
-    //       eq(emailChangeRequests.userId, userId),
-    //       eq(emailChangeRequests.status, "pending"),
-    //       gte(emailChangeRequests.expiresAt, new Date())
-    //     )
-    //   )
-    //   .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);
-    throw new Error('EmailChangeRequest feature not implemented in schema');
+    const [request] = await db
+      .select()
+      .from(emailChangeRequests)
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending"),
+          gte(emailChangeRequests.expiresAt, new Date())
+        )
+      )
+      .orderBy(sql`${emailChangeRequests.initiatedAt} DESC`);
+    return request;
   }
 
   async updateEmailChangeRequest(id: string, data: Partial<InsertEmailChangeRequest>): Promise<EmailChangeRequest> {
-    // const [request] = await db
-    //   .update(emailChangeRequests)
-    //   .set(data)
-    //   .where(eq(emailChangeRequests.id, id))
-    //   .returning();
-    throw new Error('EmailChangeRequest feature not implemented in schema');
+    const [request] = await db
+      .update(emailChangeRequests)
+      .set(data)
+      .where(eq(emailChangeRequests.id, id))
+      .returning();
+    if (!request) {
+      throw new Error('Database operation failed');
+    }
+    return request;
   }
 
   async createEmailChangeToken(data: InsertEmailChangeToken): Promise<EmailChangeToken> {
-    // const [token] = await db
-    //   .insert(emailChangeTokens)
-    //   .values(data)
-    //   .returning();
-    throw new Error('EmailChangeToken feature not implemented in schema');
+    const [token] = await db
+      .insert(emailChangeTokens)
+      .values(data)
+      .returning();
+    if (!token) {
+      throw new Error('Database operation failed');
+    }
+    return token;
   }
 
   async getEmailChangeToken(token: string): Promise<EmailChangeToken | undefined> {
-    // const [changeToken] = await db
-    //   .select()
-    //   .from(emailChangeTokens)
-    //   .where(
-    //     and(
-    //       eq(emailChangeTokens.token, token),
-    //       eq(emailChangeTokens.isUsed, false),
-    //       gte(emailChangeTokens.expiresAt, new Date())
-    //     )
-    //   );
-    throw new Error('EmailChangeToken feature not implemented in schema');
+    const [changeToken] = await db
+      .select()
+      .from(emailChangeTokens)
+      .where(
+        and(
+          eq(emailChangeTokens.token, token),
+          eq(emailChangeTokens.isUsed, false),
+          gte(emailChangeTokens.expiresAt, new Date())
+        )
+      );
+    return changeToken;
   }
 
   async markEmailChangeTokenAsUsed(token: string): Promise<void> {
-    // await db
-    //   .update(emailChangeTokens)
-    //   .set({ isUsed: true })
-    //   .where(eq(emailChangeTokens.token, token));
-    throw new Error('EmailChangeToken feature not implemented in schema');
+    await db
+      .update(emailChangeTokens)
+      .set({ isUsed: true, usedAt: new Date() })
+      .where(eq(emailChangeTokens.token, token));
   }
 
   async cleanupExpiredEmailChangeTokens(): Promise<void> {
-    // await db
-    //   .delete(emailChangeTokens)
-    //   .where(
-    //     sql`${emailChangeTokens.expiresAt} < ${new Date()}`
-    //   );
-    // No-op since tables don't exist
+    await db
+      .delete(emailChangeTokens)
+      .where(
+        sql`${emailChangeTokens.expiresAt} < ${new Date()}`
+      );
   }
 
   async cancelEmailChangeRequest(userId: string): Promise<void> {
-    // await db
-    //   .update(emailChangeRequests)
-    //   .set({ status: "cancelled" })
-    //   .where(
-    //     and(
-    //       eq(emailChangeRequests.userId, userId),
-    //       eq(emailChangeRequests.status, "pending")
-    //     )
-    //   );
-    // No-op since tables don't exist
+    await db
+      .update(emailChangeRequests)
+      .set({ status: "cancelled" })
+      .where(
+        and(
+          eq(emailChangeRequests.userId, userId),
+          eq(emailChangeRequests.status, "pending")
+        )
+      );
   }
 
   // MFA operations implementation

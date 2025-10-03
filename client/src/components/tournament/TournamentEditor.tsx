@@ -15,10 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-// import type { Tournament, TournamentParticipant, User } from '@shared/schema';
-import type { Tournament, User } from '@shared/schema';
-// TODO: TournamentParticipant doesn't exist in schema
-type TournamentParticipant = any;
+import type { Tournament, TournamentParticipant, User } from '@shared/schema';
 import { format } from "date-fns";
 
 interface TournamentEditorProps {

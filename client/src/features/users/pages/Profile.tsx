@@ -18,13 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { getGameName } from '@/lib/gameNames';
-// import type { User, UserSocialLink, UserGamingProfile, Friendship } from '@shared/schema';
-import type { User } from '@shared/schema';
-
-// TODO: These types don't exist in schema
-type UserSocialLink = any;
-type UserGamingProfile = any;
-type Friendship = any;
+import type { User, UserSocialLink, UserGamingProfile, Friendship } from '@shared/schema';
 
 interface ExtendedUser extends User {
   socialLinks?: UserSocialLink[];

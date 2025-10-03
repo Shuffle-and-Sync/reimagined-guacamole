@@ -12,9 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth";
 import TournamentBracket from "@/components/tournament/TournamentBracket";
 import TournamentEditor from "@/components/tournament/TournamentEditor";
-import type { Tournament, User } from '@shared/schema';
-// TODO: TournamentParticipant doesn't exist in schema
-type TournamentParticipant = any;
+import type { Tournament, TournamentParticipant, User } from '@shared/schema';
 import { format } from "date-fns";
 
 export default function TournamentDetail() {

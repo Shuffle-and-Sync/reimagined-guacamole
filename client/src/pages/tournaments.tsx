@@ -16,9 +16,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
-import type { Tournament, User } from '@shared/schema';
-// TODO: TournamentParticipant doesn't exist in schema
-type TournamentParticipant = any;
+import type { Tournament, TournamentParticipant, User } from '@shared/schema';
 import { format } from "date-fns";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 

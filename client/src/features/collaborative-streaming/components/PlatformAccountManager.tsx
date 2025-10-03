@@ -25,9 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/features/auth';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { SafeUserPlatformAccount } from '@shared/schema';
-// TODO: SafeUserPlatformAccount doesn't exist in schema
-type SafeUserPlatformAccount = any;
+import { SafeUserPlatformAccount } from '@shared/schema';
 
 type PlatformAccount = SafeUserPlatformAccount;
 
