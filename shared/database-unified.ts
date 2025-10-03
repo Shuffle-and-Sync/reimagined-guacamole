@@ -8,12 +8,13 @@ config({ path: resolve(process.cwd(), '.env.local') });
 
 import { sql } from 'drizzle-orm';
 import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import * as schema from "./schema";
 
 // Export schema and transaction types for use in repositories
 export type Schema = typeof schema;
-export type Database = BaseSQLiteDatabase<'async', any, Schema>;
+export type Database = BetterSQLite3Database<Schema>;
 export type Transaction = any; // SQLite transaction type
 
 // Handle missing DATABASE_URL gracefully for Cloud Run health checks
@@ -72,11 +73,11 @@ export const connectionInfo = {
 
 // Add development logging  
 if (process.env.NODE_ENV === 'development' && process.env.DB_LOG_QUERIES === 'true') {
-  console.log(`[DB] 🔍 Query logging enabled for ${connectionType} connection`);
+  console.log(`[DB] 🔍 Query logging enabled for SQLite Cloud connection`);
 }
 
-// Export the database instances
-export { pool, db };
+// Export the database instance
+export { db };
 
 // Database performance monitoring
 export class DatabaseMonitor {
@@ -262,8 +263,8 @@ export const preparedQueries = {
         title: schema.events.title,
         description: schema.events.description,
         type: schema.events.type,
-        date: schema.events.date,
-        time: schema.events.time,
+        startTime: schema.events.startTime,
+        endTime: schema.events.endTime,
         location: schema.events.location,
         status: schema.events.status,
         communityName: schema.communities.name,
@@ -273,8 +274,8 @@ export const preparedQueries = {
       .from(schema.events)
       .leftJoin(schema.communities, sql`events.community_id = communities.id`)
       .leftJoin(schema.users, sql`events.host_id = users.id`)
-      .where(sql`events.date >= $1 AND events.status = 'active'`)
-      .orderBy(schema.events.date, schema.events.time)
+      .where(sql`events.start_time >= $1 AND events.status = 'active'`)
+      .orderBy(schema.events.startTime)
       .limit(50)
     );
   },
@@ -286,7 +287,7 @@ export const preparedQueries = {
       db.select()
       .from(schema.events)
       .where(sql`community_id = $1 AND status = 'active'`)
-      .orderBy(schema.events.date, schema.events.time)
+      .orderBy(schema.events.startTime)
     );
   }
 };
@@ -344,7 +345,7 @@ export async function applyCompositeIndexes(): Promise<void> {
 
 // Enhanced transaction wrapper with better error handling and retry logic
 export async function withTransaction<T>(
-  operation: (tx: PgTransaction<any, any, any>) => Promise<T>,
+  operation: (tx: Transaction) => Promise<T>,
   operationName: string = 'transaction',
   maxRetries: number = 3
 ): Promise<T> {
@@ -353,7 +354,7 @@ export async function withTransaction<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await withQueryTiming(`${operationName}:attempt_${attempt}`, async () => {
-        return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+        return await db.transaction(async (tx: Transaction) => {
           return await operation(tx);
         });
       });
