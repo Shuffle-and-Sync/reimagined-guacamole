@@ -2106,8 +2106,8 @@ export class DatabaseStorage implements IStorage {
       .update(userMfaSettings)
       .set({
         enabled: false,
-        secret: null,
-        backupCodes: null, // NULL instead of empty array
+        secret: '', // Empty string instead of null since it's notNull
+        backupCodes: null,
         updatedAt: new Date(),
       })
       .where(eq(userMfaSettings.userId, userId));
@@ -2182,7 +2182,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(),
       });
     } else {
-      const record = existing[0];
+      const record = existing[0]!; // Safe: we checked existing.length === 0 above
       const windowStart = record.windowStartedAt ? record.windowStartedAt.getTime() : 0;
       const isWindowExpired = (now - windowStart) > windowDurationMs;
       const isCurrentlyLocked = record.lockedUntil && record.lockedUntil.getTime() > now;
@@ -2284,7 +2284,7 @@ export class DatabaseStorage implements IStorage {
         eq(deviceFingerprints.userId, userId),
         eq(deviceFingerprints.isActive, true)
       ))
-      .orderBy(desc(deviceFingerprints.lastSeenAt));
+      .orderBy(desc(deviceFingerprints.lastSeen)); // Changed from lastSeenAt to lastSeen
   }
 
   async createDeviceFingerprint(data: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
@@ -2301,10 +2301,7 @@ export class DatabaseStorage implements IStorage {
   async updateDeviceFingerprint(id: string, data: Partial<InsertDeviceFingerprint>): Promise<void> {
     await db
       .update(deviceFingerprints)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(deviceFingerprints.id, id));
   }
 
@@ -2313,18 +2310,15 @@ export class DatabaseStorage implements IStorage {
       .update(deviceFingerprints)
       .set({
         isActive: false,
-        updatedAt: new Date(),
       })
       .where(eq(deviceFingerprints.id, id));
   }
 
   async updateDeviceLastSeen(fingerprintHash: string): Promise<void> {
-    const now = new Date();
     await db
       .update(deviceFingerprints)
       .set({
-        lastSeenAt: now,
-        updatedAt: now,
+        lastSeen: new Date(), // Changed from lastSeenAt to lastSeen
       })
       .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash));
   }
