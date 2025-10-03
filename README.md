@@ -444,15 +444,18 @@ npm run docker:test
 
 ## 📚 Documentation
 
+### Build and Deployment
+- **[Build Initialization Guide](./docs/BUILD_INITIALIZATION.md)** - Comprehensive build process and initialization documentation
+- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
+- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
+
 ### Platform Integration Guides
 - **[Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
 - **[Twitch Developer Portal Setup](./TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
 
 ### General Documentation
 - **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Comprehensive testing documentation
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
 - **[API Documentation](./API_DOCUMENTATION.md)** - API endpoints and usage
-- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
 
 ### Platform OAuth Integration
 
