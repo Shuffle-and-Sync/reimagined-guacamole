@@ -904,6 +904,232 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ============================================================================
+// UNIVERSAL DECK-BUILDING FRAMEWORK (PRD v3.0)
+// ============================================================================
+
+// User-defined games for the universal framework
+export const games = pgTable("games", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  isOfficial: boolean("is_official").default(false), // Official vs. community-created
+  isPublished: boolean("is_published").default(false),
+  version: varchar("version").default("1.0.0"),
+  
+  // Game metadata
+  playerCount: jsonb("player_count").default({ min: 2, max: 4 }), // Min/max players
+  avgGameDuration: integer("avg_game_duration"), // Minutes
+  complexity: integer("complexity"), // 1-5 scale
+  ageRating: varchar("age_rating"), // "7+", "13+", etc.
+  
+  // Game mechanics configuration
+  cardTypes: jsonb("card_types").default([]), // ["Creature", "Instant", etc.]
+  resourceTypes: jsonb("resource_types").default([]), // [{ name: "Mana", colors: [...] }]
+  zones: jsonb("zones").default([]), // ["Hand", "Battlefield", "Graveyard"]
+  phaseStructure: jsonb("phase_structure").default([]), // ["Untap", "Draw", etc.]
+  
+  // Validation rules (JSON schema or custom format)
+  deckRules: jsonb("deck_rules").default({
+    minDeckSize: 60,
+    maxDeckSize: null,
+    maxCopies: 4,
+    allowedSets: null,
+  }),
+  
+  // Visual customization
+  theme: jsonb("theme").default({
+    primaryColor: "#1a1a1a",
+    accentColor: "#ffd700",
+    cardBackUrl: null,
+  }),
+  
+  // Statistics
+  totalCards: integer("total_cards").default(0),
+  totalPlayers: integer("total_players").default(0),
+  totalGamesPlayed: integer("total_games_played").default(0),
+  
+  // Moderation
+  moderationStatus: varchar("moderation_status").default("pending"), // pending, approved, rejected
+  approvedAt: timestamp("approved_at"),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_games_creator_id").on(table.creatorId),
+  index("idx_games_published").on(table.isPublished),
+  index("idx_games_official").on(table.isOfficial),
+  index("idx_games_name").on(table.name),
+  index("idx_games_moderation_status").on(table.moderationStatus),
+]);
+
+// Universal card data storage for all games
+export const cards = pgTable("cards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  
+  // Core identifiers
+  setCode: varchar("set_code"),
+  setName: varchar("set_name"),
+  collectorNumber: varchar("collector_number"),
+  rarity: varchar("rarity"),
+  
+  // External references (for official games)
+  externalId: varchar("external_id"), // Scryfall ID, Pokemon TCG ID, etc.
+  externalSource: varchar("external_source"), // "scryfall", "pokemontcg", "custom"
+  
+  // Card attributes (flexible JSON storage)
+  attributes: jsonb("attributes").default({}), // { mana_cost: "{R}", power: "3", etc. }
+  
+  // Visual data
+  imageUris: jsonb("image_uris").default({}),
+  
+  // Metadata
+  createdBy: varchar("created_by").references(() => users.id), // For UGC
+  isOfficial: boolean("is_official").default(false),
+  isCommunitySubmitted: boolean("is_community_submitted").default(false),
+  
+  // Moderation
+  moderationStatus: varchar("moderation_status").default("approved"), // For UGC
+  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  
+  // Analytics
+  searchCount: integer("search_count").default(0),
+  
+  // Cache management
+  cachedAt: timestamp("cached_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_cards_game_id").on(table.gameId),
+  index("idx_cards_name").on(table.name),
+  index("idx_cards_external_id").on(table.externalId),
+  index("idx_cards_set_code").on(table.setCode),
+  index("idx_cards_moderation_status").on(table.moderationStatus),
+  // Full-text search index on name
+  index("idx_cards_name_tsvector").on(sql`to_tsvector('english', ${table.name})`),
+  unique().on(table.gameId, table.externalId), // Prevent duplicates from same source
+]);
+
+// Define what attributes cards can have for each game
+export const gameCardAttributes = pgTable("game_card_attributes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  attributeName: varchar("attribute_name").notNull(), // "mana_cost", "power", "type", etc.
+  displayName: varchar("display_name").notNull(), // "Mana Cost", "Power", "Type"
+  dataType: varchar("data_type").notNull(), // "string", "integer", "array", "object"
+  isRequired: boolean("is_required").default(false),
+  
+  // Validation rules
+  validationRules: jsonb("validation_rules").default({}), // { min: 0, max: 20, pattern: "..." }
+  
+  // UI hints
+  displayOrder: integer("display_order").default(0),
+  category: varchar("category"), // "stats", "costs", "mechanics", "flavor"
+  helpText: text("help_text"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_game_card_attributes_game_id").on(table.gameId),
+  unique().on(table.gameId, table.attributeName),
+]);
+
+// Game formats (e.g., Commander, Standard, Limited)
+export const gameFormats = pgTable("game_formats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  
+  // Format-specific rules
+  deckRules: jsonb("deck_rules").default({
+    minDeckSize: 60,
+    maxDeckSize: null,
+    sideboard: false,
+    sideboardSize: 0,
+  }),
+  
+  // Card legality
+  bannedCards: jsonb("banned_cards").default([]), // Array of card IDs
+  restrictedCards: jsonb("restricted_cards").default([]),
+  allowedSets: jsonb("allowed_sets").default([]), // Array of set codes
+  
+  isOfficial: boolean("is_official").default(false),
+  createdBy: varchar("created_by").references(() => users.id),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_game_formats_game_id").on(table.gameId),
+  unique().on(table.gameId, table.name),
+]);
+
+// Community card submissions (UGC)
+export const cardSubmissions = pgTable("card_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  submittedBy: varchar("submitted_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Card data being submitted
+  cardName: varchar("card_name").notNull(),
+  cardData: jsonb("card_data").notNull(), // All card attributes
+  imageUrl: varchar("image_url"),
+  
+  // Submission metadata
+  submissionNotes: text("submission_notes"),
+  source: varchar("source"), // "manual", "ocr", "import"
+  
+  // Moderation workflow
+  status: varchar("status").default("pending"), // pending, approved, rejected, needs_revision
+  moderatorId: varchar("moderator_id").references(() => users.id),
+  moderationNotes: text("moderation_notes"),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Peer review
+  upvotes: integer("upvotes").default(0),
+  downvotes: integer("downvotes").default(0),
+  
+  // If approved, link to created card
+  approvedCardId: varchar("approved_card_id").references(() => cards.id),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_card_submissions_game_id").on(table.gameId),
+  index("idx_card_submissions_submitted_by").on(table.submittedBy),
+  index("idx_card_submissions_status").on(table.status),
+  index("idx_card_submissions_moderator_id").on(table.moderatorId),
+]);
+
+// Game analytics for tracking usage and engagement
+export const gameAnalytics = pgTable("game_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  
+  // Daily metrics
+  sessionsStarted: integer("sessions_started").default(0),
+  uniquePlayers: integer("unique_players").default(0),
+  totalPlaytime: integer("total_playtime").default(0), // minutes
+  cardsSearched: integer("cards_searched").default(0),
+  cardsAdded: integer("cards_added").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_game_analytics_game_date").on(table.gameId, table.date),
+  unique().on(table.gameId, table.date),
+]);
+
+// ============================================================================
+// END UNIVERSAL FRAMEWORK TABLES
+// ============================================================================
+
 // Matchmaking preferences
 export const matchmakingPreferences = pgTable("matchmaking_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -2468,6 +2694,83 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog, {
   createdAt: true,
 });
 
+// Universal Framework Insert Schemas
+export const insertGameSchema = createInsertSchema(games, {
+  playerCount: z.any().optional(),
+  avgGameDuration: z.number().int().min(1).optional(),
+  complexity: z.number().int().min(1).max(5).optional(),
+  cardTypes: z.array(z.string()).optional(),
+  resourceTypes: z.any().optional(),
+  zones: z.array(z.string()).optional(),
+  phaseStructure: z.array(z.string()).optional(),
+  deckRules: z.any().optional(),
+  theme: z.any().optional(),
+  moderationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
+  totalCards: z.number().int().min(0).optional(),
+  totalPlayers: z.number().int().min(0).optional(),
+  totalGamesPlayed: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCardSchema = createInsertSchema(cards, {
+  attributes: z.any().optional(),
+  imageUris: z.any().optional(),
+  moderationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
+  searchCount: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  cachedAt: true,
+});
+
+export const insertGameCardAttributeSchema = createInsertSchema(gameCardAttributes, {
+  dataType: z.enum(["string", "integer", "number", "boolean", "array", "object"]),
+  validationRules: z.any().optional(),
+  displayOrder: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGameFormatSchema = createInsertSchema(gameFormats, {
+  deckRules: z.any().optional(),
+  bannedCards: z.array(z.string()).optional(),
+  restrictedCards: z.array(z.string()).optional(),
+  allowedSets: z.array(z.string()).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCardSubmissionSchema = createInsertSchema(cardSubmissions, {
+  cardData: z.any(),
+  status: z.enum(["pending", "approved", "rejected", "needs_revision"]).optional(),
+  source: z.enum(["manual", "ocr", "import"]).optional(),
+  upvotes: z.number().int().min(0).optional(),
+  downvotes: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGameAnalyticsSchema = createInsertSchema(gameAnalytics, {
+  date: z.coerce.date(),
+  sessionsStarted: z.number().int().min(0).optional(),
+  uniquePlayers: z.number().int().min(0).optional(),
+  totalPlaytime: z.number().int().min(0).optional(),
+  cardsSearched: z.number().int().min(0).optional(),
+  cardsAdded: z.number().int().min(0).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -2630,3 +2933,18 @@ export const selectRevokedJwtTokenSchema = revokedJwtTokens;
 
 export type InsertRevokedJwtToken = z.infer<typeof insertRevokedJwtTokenSchema>;
 export type RevokedJwtToken = typeof revokedJwtTokens.$inferSelect;
+
+// Universal Framework Types
+export type Game = typeof games.$inferSelect;
+export type InsertGame = z.infer<typeof insertGameSchema>;
+export type Card = typeof cards.$inferSelect;
+export type InsertCard = z.infer<typeof insertCardSchema>;
+export type GameCardAttribute = typeof gameCardAttributes.$inferSelect;
+export type InsertGameCardAttribute = z.infer<typeof insertGameCardAttributeSchema>;
+export type GameFormat = typeof gameFormats.$inferSelect;
+export type InsertGameFormat = z.infer<typeof insertGameFormatSchema>;
+export type CardSubmission = typeof cardSubmissions.$inferSelect;
+export type InsertCardSubmission = z.infer<typeof insertCardSubmissionSchema>;
+export type GameAnalytics = typeof gameAnalytics.$inferSelect;
+export type InsertGameAnalytics = z.infer<typeof insertGameAnalyticsSchema>;
+
