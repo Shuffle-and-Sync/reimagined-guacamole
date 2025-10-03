@@ -204,7 +204,13 @@ export class SessionSecurityService {
         return { score: 0.0, factors: [] }; // No previous data
       }
       
-      const previousLocation = recentLogins[0]?.location;
+      // Parse details JSON to get location
+      const recentLoginDetails = recentLogins[0]?.details 
+        ? (typeof recentLogins[0].details === 'string' 
+          ? JSON.parse(recentLogins[0].details) 
+          : recentLogins[0].details)
+        : {};
+      const previousLocation = recentLoginDetails.location;
       const previousIp = recentLogins[0]?.ipAddress;
       const previousTime = recentLogins[0]?.createdAt;
       
@@ -273,20 +279,24 @@ export class SessionSecurityService {
         factors.push('new_device_detected');
         score += 0.4; // New devices are higher risk
       } else {
-        // Assess existing device risk
-        if (existingDevice.riskScore) {
-          score += parseFloat(existingDevice.riskScore.toString());
+        // Assess existing device risk using trustScore (0.0 - 1.0, lower is riskier)
+        if (existingDevice.trustScore !== null && existingDevice.trustScore !== undefined) {
+          // Invert trust score to get risk score (1.0 - trustScore)
+          const riskScore = 1.0 - existingDevice.trustScore;
+          score += riskScore * 0.5; // Weight the risk score
         }
         
-        if (!existingDevice.isTrusted) {
-          factors.push('device_not_trusted');
-          score += 0.2;
+        // Check if device is blocked
+        if (existingDevice.isBlocked) {
+          factors.push('device_blocked');
+          score += 0.8;
         }
         
-        // Check for device behavior patterns
-        const failureRate = (existingDevice.failedMfaAttempts || 0) / 
-                           Math.max(existingDevice.totalSessions || 1, 1);
-        if (failureRate > 0.1) { // More than 10% failure rate
+        // Low trust score is a risk factor
+        if (existingDevice.trustScore !== null && existingDevice.trustScore < 0.3) {
+          factors.push('device_low_trust');
+          score += 0.3;
+        }
           factors.push('high_device_failure_rate');
           score += 0.2;
         }
@@ -407,11 +417,17 @@ export class SessionSecurityService {
       const recentActivity = await storage.getAuthAuditLogs(userId, { hours: 24 });
       
       if (recentActivity.length > 0) {
-        // Check for new location
+        // Check for new location - parse from details JSON
         const recentLocations = new Set(
           recentActivity
-            .filter(activity => activity.location)
-            .map(activity => activity.location)
+            .filter(activity => activity.details)
+            .map(activity => {
+              const details = typeof activity.details === 'string' 
+                ? JSON.parse(activity.details) 
+                : activity.details;
+              return details?.location;
+            })
+            .filter(Boolean)
         );
         flags.newLocation = deviceContext.location ? !recentLocations.has(deviceContext.location) : false;
         
@@ -495,21 +511,22 @@ export class SessionSecurityService {
       const device = await storage.getDeviceFingerprint(deviceHash);
       
       if (device) {
-        // Trust increases with device age and successful usage
-     
-        
-        // Trust based on successful MFA history
-        if ((device.successfulMfaAttempts || 0) > 10) trustScore += 0.2;
-        
-        // Trust based on overall success rate
-        const totalAttempts = (device.successfulMfaAttempts || 0) + (device.failedMfaAttempts || 0);
-        if (totalAttempts > 0) {
-          const successRate = (device.successfulMfaAttempts || 0) / totalAttempts;
-          trustScore += successRate * 0.1;
+        // Use the existing trustScore from the device
+        if (device.trustScore !== null && device.trustScore !== undefined) {
+          trustScore = device.trustScore;
         }
         
-        // Check if device is explicitly trusted
-        if (device.isTrusted) trustScore += 0.3;
+        // Device age factor - devices seen longer ago are more trusted
+        if (device.firstSeen) {
+          const ageInDays = (Date.now() - device.firstSeen.getTime()) / (1000 * 60 * 60 * 24);
+          if (ageInDays > 90) trustScore += 0.1;
+          else if (ageInDays > 30) trustScore += 0.05;
+        }
+        
+        // Check if device is blocked
+        if (device.isBlocked) {
+          trustScore = Math.min(trustScore, 0.2); // Cap trust at 0.2 for blocked devices
+        }
       }
       
       // Account trust (user behavior)
@@ -649,7 +666,7 @@ export class SessionSecurityService {
       
       // Get MFA status
       const mfaSettings = await storage.getUserMfaSettings(userId);
-      const mfaEnabled = mfaSettings?.isEnabled || false;
+      const mfaEnabled = mfaSettings?.enabled || false;
       
       // Get recent failure count
       const recentFailures = await storage.getRecentAuthFailures(userId, 24); // 24 hours
