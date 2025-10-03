@@ -297,9 +297,6 @@ export class SessionSecurityService {
           factors.push('device_low_trust');
           score += 0.3;
         }
-          factors.push('high_device_failure_rate');
-          score += 0.2;
-        }
       }
       
       // Validate device context for suspicious patterns

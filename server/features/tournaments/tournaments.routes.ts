@@ -2,7 +2,6 @@ import { Router } from "express";
 import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from "../../auth";
 import { tournamentsService } from "./tournaments.service";
 import { logger } from "../../logger";
-import { updateTournamentSchema } from "@shared/schema";
 import { assertRouteParam } from "../../shared/utils";
 
 const router = Router();
