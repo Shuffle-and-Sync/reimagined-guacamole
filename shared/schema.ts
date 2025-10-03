@@ -43,16 +43,58 @@ export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'under_revie
 export const collaborativeStreamStatusEnum = pgEnum('collaborative_stream_status', ['planning', 'recruiting', 'scheduled', 'live', 'completed', 'cancelled']);
 export const streamCollaboratorStatusEnum = pgEnum('stream_collaborator_status', ['invited', 'accepted', 'declined', 'removed']);
 
-// Session storage table.
-// (IMPORTANT) This table is used for authentication session management, don't drop it.
-export const sessions = pgTable(
-  "sessions",
+// Legacy Express session storage table.
+// (IMPORTANT) This table is used for legacy session management, don't drop it.
+export const legacySessions = pgTable(
+  "legacy_sessions",
   {
     sid: varchar("sid").primaryKey(),
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Auth.js tables for OAuth and session management
+// These tables are used by @auth/drizzle-adapter
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: varchar("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    type: varchar("type").notNull(),
+    provider: varchar("provider").notNull(),
+    providerAccountId: varchar("provider_account_id").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: varchar("token_type"),
+    scope: varchar("scope"),
+    id_token: text("id_token"),
+    session_state: varchar("session_state"),
+  },
+  (table) => [
+    unique().on(table.provider, table.providerAccountId),
+  ]
+);
+
+export const sessions = pgTable("sessions", {
+  id: varchar("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionToken: varchar("session_token").notNull().unique(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires").notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verification_tokens",
+  {
+    identifier: varchar("identifier").notNull(),
+    token: varchar("token").notNull().unique(),
+    expires: timestamp("expires").notNull(),
+  },
+  (table) => [
+    unique().on(table.identifier, table.token),
+  ]
 );
 
 // User storage table.
@@ -1349,6 +1391,23 @@ export const usersRelations = relations(users, ({ many }) => ({
   forumReplies: many(forumReplies),
   forumPostLikes: many(forumPostLikes),
   forumReplyLikes: many(forumReplyLikes),
+  accounts: many(accounts),
+  sessions: many(sessions),
+}));
+
+// Auth.js table relations
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
 }));
 
 export const communitiesRelations = relations(communities, ({ many }) => ({
@@ -2774,6 +2833,9 @@ export const insertGameAnalyticsSchema = createInsertSchema(gameAnalytics, {
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type Account = typeof accounts.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type VerificationToken = typeof verificationTokens.$inferSelect;
 export type Community = typeof communities.$inferSelect;
 export type UserCommunity = typeof userCommunities.$inferSelect;
 export type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;

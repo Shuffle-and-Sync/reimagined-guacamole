@@ -114,10 +114,15 @@ Application Code
 
 ### 🔄 Optional Future Improvements (Low Priority)
 
-When Auth.js Drizzle adapter becomes stable:
-- Remove `@auth/prisma-adapter`
-- Remove `prisma` dependency
-- Remove `prisma/schema.prisma`
+**UPDATE: COMPLETED** ✅
+
+Auth.js Drizzle adapter has been implemented:
+- ✅ Installed `@auth/drizzle-adapter@1.10.0`
+- ✅ Removed `@auth/prisma-adapter` dependency
+- ✅ Added Auth.js tables to Drizzle schema (accounts, sessions, verification_tokens)
+- ✅ Switched from JWT to database sessions
+- ✅ Unified all database access through Drizzle ORM
+- ⚠️ Prisma still present for build compatibility (can be removed later)
 
 **Benefit**: Slightly cleaner dependencies  
 **Effort**: 3-5 hours  

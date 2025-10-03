@@ -77,11 +77,11 @@ npm run test:coverage
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
 - **Database**: PostgreSQL (single instance)
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: JWT-based sessions (stateless, no database)
+- **Session Storage**: Database sessions via Drizzle adapter (stateful, secure)
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
 
-> **Note**: The project uses Drizzle ORM as the primary database layer. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
+> **Note**: The project uses Drizzle ORM exclusively with Auth.js Drizzle adapter. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
 
 ## 📋 Quick Start
 
