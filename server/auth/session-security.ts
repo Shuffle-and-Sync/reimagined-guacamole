@@ -449,8 +449,12 @@ export class SessionSecurityService {
         
         // Check for rapid location changes
         if (recentActivity.length >= 2) {
-          const lastLocation = recentActivity[0]?.location;
-          const previousLocation = recentActivity[1]?.location;
+          const lastDetails = recentActivity[0]?.details ? 
+            (typeof recentActivity[0].details === 'string' ? JSON.parse(recentActivity[0].details) : recentActivity[0].details) : null;
+          const previousDetails = recentActivity[1]?.details ? 
+            (typeof recentActivity[1].details === 'string' ? JSON.parse(recentActivity[1].details) : recentActivity[1].details) : null;
+          const lastLocation = lastDetails?.location;
+          const previousLocation = previousDetails?.location;
           const lastTime = new Date(recentActivity[0]?.createdAt || 0);
           const previousTime = new Date(recentActivity[1]?.createdAt || 0);
           
@@ -696,18 +700,18 @@ export class SessionSecurityService {
         eventType: 'security_assessment',
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
-        location: context.location,
-        riskScore: assessment.riskScore,
         isSuccessful: !assessment.requiresAction,
         failureReason: assessment.requiresAction ? 'high_risk_detected' : undefined,
-        details: {
+        details: JSON.stringify({
+          location: context.location,
+          riskScore: assessment.riskScore,
           riskLevel: assessment.riskLevel,
           trustScore: assessment.trustScore,
           riskFactors: assessment.riskFactors,
           suspiciousFlags,
           recommendedActions: assessment.recommendedActions,
           sessionId: context.sessionId
-        }
+        })
       });
       
       // Log high-risk events with additional detail
@@ -887,7 +891,7 @@ export class EnhancedSessionManager {
         eventType: 'session_terminated',
         isSuccessful: true,
         failureReason: 'security_policy',
-        details: { sessionId, reason: 'high_security_risk' }
+        details: JSON.stringify({ sessionId, reason: 'high_security_risk' })
       });
       
     } catch (error) {
@@ -930,11 +934,11 @@ export class EnhancedSessionManager {
         title: 'Security Alert',
         message: 'Unusual activity detected on your account. Please review your recent activity.',
         priority: 'high',
-        data: {
+        data: JSON.stringify({
           ipAddress: context.ipAddress?.substring(0, 8) + '***',
           location: context.location,
           timestamp: context.timestamp.toISOString()
-        }
+        })
       });
       
       logger.info('Security notification sent to user', { userId });
@@ -963,9 +967,11 @@ export class EnhancedSessionManager {
         eventType: 'device_verification_requested',
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
-        location: context.location,
         isSuccessful: true,
-        details: { reason: 'new_device_detected' }
+        details: JSON.stringify({ 
+          location: context.location,
+          reason: 'new_device_detected' 
+        })
       });
       
     } catch (error) {

@@ -4863,10 +4863,10 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(userActivityAnalytics.userId, userId),
-            gte(userActivityAnalytics.timestamp, startDate)
+            gte(userActivityAnalytics.createdAt, startDate)
           )
         )
-        .orderBy(userActivityAnalytics.timestamp);
+        .orderBy(userActivityAnalytics.createdAt);
     } catch (error) {
       console.error('Error getting user activity analytics:', error);
       throw error;
@@ -4899,7 +4899,7 @@ export class DatabaseStorage implements IStorage {
             sql`DATE(${communityAnalytics.date}) <= ${endDate.toISOString().split('T')[0]}`
           )
         )
-        .orderBy(communityAnalytics.date, communityAnalytics.hour);
+        .orderBy(communityAnalytics.date);
     } catch (error) {
       console.error('Error getting community analytics:', error);
       throw error;
@@ -4931,9 +4931,7 @@ export class DatabaseStorage implements IStorage {
       if (metricType) {
         conditions.push(eq(platformMetrics.metricType, metricType));
       }
-      if (timeWindow) {
-        conditions.push(eq(platformMetrics.timeWindow, timeWindow));
-      }
+      // Note: timeWindow parameter is not used as schema doesn't have this field
       if (startDate) {
         conditions.push(gte(platformMetrics.timestamp, startDate));
       }
@@ -5022,17 +5020,17 @@ export class DatabaseStorage implements IStorage {
     try {
       const conditions = [eq(conversionFunnels.funnelName, funnelName)];
       if (startDate) {
-        conditions.push(gte(conversionFunnels.timestamp, startDate));
+        conditions.push(gte(conversionFunnels.createdAt, startDate));
       }
       if (endDate) {
-        conditions.push(sql`${conversionFunnels.timestamp} <= ${endDate}`);
+        conditions.push(sql`${conversionFunnels.createdAt} <= ${endDate}`);
       }
 
       return await db
         .select()
         .from(conversionFunnels)
         .where(and(...conditions))
-        .orderBy(conversionFunnels.timestamp, conversionFunnels.stepOrder);
+        .orderBy(conversionFunnels.createdAt, conversionFunnels.stepOrder);
     } catch (error) {
       console.error('Error getting conversion funnel data:', error);
       throw error;
@@ -5087,7 +5085,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserCollaborativeStreamEvents(userId: string): Promise<CollaborativeStreamEvent[]> {
     try {
-      return await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.creatorId, userId));
+      return await db.select().from(collaborativeStreamEvents).where(eq(collaborativeStreamEvents.organizerId, userId));
     } catch (error) {
       logger.error("Failed to get user collaborative stream events", error, { userId });
       throw error;
@@ -5142,7 +5140,7 @@ export class DatabaseStorage implements IStorage {
 
   async getStreamCollaborators(streamEventId: string): Promise<StreamCollaborator[]> {
     try {
-      return await db.select().from(streamCollaborators).where(eq(streamCollaborators.streamEventId, streamEventId));
+      return await db.select().from(streamCollaborators).where(eq(streamCollaborators.eventId, streamEventId));
     } catch (error) {
       logger.error("Failed to get stream collaborators", error, { streamEventId });
       throw error;
