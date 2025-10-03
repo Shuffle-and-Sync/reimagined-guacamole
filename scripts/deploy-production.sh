@@ -69,16 +69,35 @@ run_tests() {
     print_success "All tests passed"
 }
 
-# Build the application
+# Build the application with proper initialization
 build_application() {
-    print_status "Building application..."
+    print_status "Building application with full initialization..."
     
+    # Run pre-build checks
+    if [ -f "./scripts/pre-build.sh" ]; then
+        print_status "Running pre-build initialization..."
+        ./scripts/pre-build.sh || {
+            print_error "Pre-build initialization failed"
+            exit 1
+        }
+    fi
+    
+    # Run the build
     npm run build || {
         print_error "Build failed! Please fix build errors before deploying."
         exit 1
     }
     
-    print_success "Application built successfully"
+    # Verify build artifacts
+    if [ -f "./scripts/verify-build.sh" ]; then
+        print_status "Verifying build artifacts..."
+        ./scripts/verify-build.sh || {
+            print_error "Build verification failed"
+            exit 1
+        }
+    fi
+    
+    print_success "Application built and verified successfully"
 }
 
 # Deploy backend service
