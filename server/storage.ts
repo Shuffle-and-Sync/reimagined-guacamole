@@ -2255,7 +2255,6 @@ export class DatabaseStorage implements IStorage {
         failedAttempts: 0,
         lastFailedAt: null,
         lockedUntil: null,
-        updatedAt: now,
       })
       .where(and(
         isNotNull(userMfaAttempts.lockedUntil),
@@ -2378,8 +2377,8 @@ export class DatabaseStorage implements IStorage {
         expiresAt: trustedDevices.expiresAt,
         verifiedAt: trustedDevices.verifiedAt,
         verificationMethod: trustedDevices.verificationMethod,
-        createdAt: trustedDevices.createdAt,
-        updatedAt: trustedDevices.updatedAt,
+        trustedAt: trustedDevices.trustedAt,
+        lastUsed: trustedDevices.lastUsed,
         deviceFingerprint: deviceFingerprints,
       })
       .from(trustedDevices)
@@ -2409,10 +2408,7 @@ export class DatabaseStorage implements IStorage {
   async updateTrustedDevice(id: string, data: Partial<InsertTrustedDevice>): Promise<void> {
     await db
       .update(trustedDevices)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(data)
       .where(eq(trustedDevices.id, id));
   }
 
@@ -2422,9 +2418,9 @@ export class DatabaseStorage implements IStorage {
       .update(trustedDevices)
       .set({
         isActive: false,
+        isRevoked: true,
         revokedAt: now,
         revokedReason: reason,
-        updatedAt: now,
       })
       .where(eq(trustedDevices.id, id));
   }
@@ -2435,8 +2431,8 @@ export class DatabaseStorage implements IStorage {
       .update(trustedDevices)
       .set({
         isActive: false,
+        isRevoked: true,
         revokedReason: "expired",
-        updatedAt: now,
       })
       .where(and(
         eq(trustedDevices.isActive, true),
