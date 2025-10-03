@@ -656,6 +656,29 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud builds log BUILD_ID
 ```
 
+#### npm Dependency Resolution Errors
+
+**Symptom**: `npm ci` fails with ERESOLVE errors related to `@sqlitecloud/drivers` and React Native peer dependencies
+
+**Root Cause**: The `@sqlitecloud/drivers` package declares React Native peer dependencies (react-native-quick-base64, react-native-tcp-socket, etc.) which conflict with React 18.3.1 used by the web application. These React Native dependencies are not required for Node.js server usage.
+
+**Solution**: The Dockerfile has been updated to use `--legacy-peer-deps` flag which instructs npm to ignore peer dependency conflicts:
+
+```dockerfile
+RUN npm ci --legacy-peer-deps
+RUN npm prune --production --legacy-peer-deps
+```
+
+This is safe because:
+- The application only uses `@sqlitecloud/drivers` in Node.js server context
+- React Native peer dependencies are only needed for mobile apps
+- The package functions correctly in Node.js despite the peer dependency warnings
+
+**For local development**: If you encounter this error locally, use:
+```bash
+npm install --legacy-peer-deps
+```
+
 #### Memory Issues
 
 **Symptom**: Container crashes with out-of-memory errors

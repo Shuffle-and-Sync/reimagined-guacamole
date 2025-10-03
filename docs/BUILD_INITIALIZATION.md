@@ -246,6 +246,33 @@ RUN npm prune --production
 2. Use nvm to manage Node.js versions: `nvm use 18`
 3. In Docker, ensure base image is `node:18` or higher
 
+### npm Dependency Resolution Errors
+
+**Problem:** `npm ci` or `npm install` fails with ERESOLVE errors related to peer dependencies
+
+**Common Error:**
+```
+npm error ERESOLVE could not resolve
+npm error While resolving: @sqlitecloud/drivers@1.0.507
+npm error Could not resolve dependency:
+npm error peer react-native-quick-base64@"*"
+```
+
+**Solutions:**
+1. **For CI/CD and Docker builds:** Use `--legacy-peer-deps` flag:
+   ```bash
+   npm ci --legacy-peer-deps
+   ```
+
+2. **For local development:** Install with legacy peer deps:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+3. **Root Cause:** The `@sqlitecloud/drivers` package declares React Native peer dependencies which conflict with the web application's React 18.3.1. These are not needed for Node.js server usage and can be safely ignored.
+
+**Note:** The Dockerfile has been updated to use `--legacy-peer-deps` by default to prevent deployment failures.
+
 ## CI/CD Integration
 
 ### GitHub Actions Example
