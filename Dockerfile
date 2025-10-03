@@ -9,7 +9,9 @@ RUN git config --global init.defaultBranch main
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies needed for build)
-RUN npm ci
+# Use --legacy-peer-deps to handle @sqlitecloud/drivers React Native peer deps
+# (The package works fine in Node.js despite the peer dependency warnings)
+RUN npm ci --legacy-peer-deps
 
 # Copy application code
 COPY . .
@@ -19,7 +21,7 @@ COPY . .
 RUN npm run build
 
 # Remove devDependencies to reduce image size (but keep production deps)
-RUN npm prune --production
+RUN npm prune --production --legacy-peer-deps
 
 # Set production environment
 ENV NODE_ENV=production
