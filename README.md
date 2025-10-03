@@ -328,8 +328,33 @@ Time:        0.926 s
 ├── scripts/            # Development and deployment scripts
 │   └── test-agent.ts   # Unit testing generation agent
 └── docs/              # Documentation
-    └── TESTING_AGENT.md # Comprehensive testing guide
+    ├── README.md       # Documentation index
+    ├── api/           # API documentation
+    ├── database/      # Database guides
+    ├── deployment/    # Deployment guides
+    ├── development/   # Development guides
+    ├── backend/       # Backend agent docs
+    └── features/      # Feature-specific documentation
+        ├── tablesync/    # TableSync documentation
+        ├── matchmaking/  # AI matchmaking docs
+        └── twitch/       # Twitch integration docs
 ```
+
+## 📚 Documentation
+
+Complete documentation is organized in the [docs/](docs/) directory:
+
+- **[Documentation Index](docs/README.md)** - Central documentation hub
+- **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Getting started with development
+- **[Database Architecture](docs/database/DATABASE_ARCHITECTURE.md)** - Database design and setup
+- **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
+- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
+- **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
+
+### Feature Documentation
+- **[TableSync Universal Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
+- **[AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
+- **[Twitch OAuth Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform integration
 
 ### Development Scripts
 
@@ -478,14 +503,14 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 
 **Quick Start:**
 1. Create Twitch application at https://dev.twitch.tv/console/apps
-2. Configure OAuth redirect URLs (see [Developer Portal Setup](./TWITCH_DEVELOPER_PORTAL_SETUP.md))
+2. Configure OAuth redirect URLs (see [Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md))
 3. Set environment variables:
    ```bash
    TWITCH_CLIENT_ID=your_client_id
    TWITCH_CLIENT_SECRET=your_client_secret
    TWITCH_EVENTSUB_SECRET=$(openssl rand -hex 16)
    ```
-4. See [Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md) for detailed implementation
+4. See [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed implementation
 
 #### YouTube Integration 📺
 - **PKCE Support**: Full PKCE implementation for secure authorization
@@ -506,8 +531,8 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 - ✅ Single-use authorization codes
 
 **See Also:**
-- [Platform OAuth API Documentation](./API_DOCUMENTATION.md#platform-oauth-api)
-- [Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
+- [Platform OAuth API Documentation](docs/api/API_DOCUMENTATION.md#platform-oauth-api)
+- [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
 
 ## 🤖 Testing Agent Features
 
