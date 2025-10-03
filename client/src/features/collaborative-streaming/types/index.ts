@@ -1,12 +1,20 @@
 // Collaborative streaming types
-export type {
-  CollaborativeStreamEvent,
-  StreamCollaborator, 
-  StreamCoordinationSession,
-  InsertCollaborativeStreamEvent,
-  InsertStreamCollaborator,
-  InsertStreamCoordinationSession
-} from '@shared/schema';
+// export type {
+//   CollaborativeStreamEvent,
+//   StreamCollaborator, 
+//   StreamCoordinationSession,
+//   InsertCollaborativeStreamEvent,
+//   InsertStreamCollaborator,
+//   InsertStreamCoordinationSession
+// } from '@shared/schema';
+
+// TODO: These types don't exist in schema
+export type CollaborativeStreamEvent = any;
+export type StreamCollaborator = any;
+export type StreamCoordinationSession = any;
+export type InsertCollaborativeStreamEvent = any;
+export type InsertStreamCollaborator = any;
+export type InsertStreamCoordinationSession = any;
 
 // Frontend-specific types for UI components
 export interface StreamEventFormData {
