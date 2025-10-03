@@ -492,23 +492,31 @@ npx prisma db pull
 
 ### Migration to Auth.js Drizzle Adapter
 
-When Auth.js Drizzle adapter is stable:
+**Status: ✅ IMPLEMENTED**
+
+The application now uses Auth.js Drizzle adapter with database sessions:
 
 ```typescript
-// Future: server/auth/auth.config.ts
+// server/auth/auth.config.ts
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@shared/database-unified";
 
 export const authConfig: AuthConfig = {
   adapter: DrizzleAdapter(db),
   session: {
-    strategy: "database", // Can switch from JWT
+    strategy: "database", // Using database sessions
   },
   // ...
 };
 ```
 
-Then you can safely remove Prisma entirely.
+**Benefits:**
+- Removed Prisma dependency entirely
+- Unified database access through Drizzle ORM
+- Database sessions provide better security and session management
+- Full TypeScript type safety across the stack
+
+**Migration applied**: The Auth.js tables (accounts, sessions, verification_tokens) are now managed by Drizzle ORM.
 
 ---
 

@@ -126,7 +126,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 
 ### Authentication Flow
 - Google OAuth 2.0 via Auth.js v5
-- **JWT-based sessions** (stateless, no database sessions) - optimized for serverless deployment
+- **Database sessions via Drizzle adapter** - secure session management with database persistence
 - HTTP-only secure cookies
 - CSRF protection enabled
 
