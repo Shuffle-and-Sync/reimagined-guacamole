@@ -187,7 +187,7 @@ export default function TournamentDetail() {
                   </div>
                   <CardTitle className="text-3xl">{tournament.name}</CardTitle>
                   <CardDescription className="text-lg">
-                    {formatGameName(tournament.gameFormat)} Tournament
+                    {formatGameName(tournament.gameType)} Tournament
                   </CardDescription>
                 </div>
                 <div className="flex flex-col items-end space-y-2">
@@ -332,7 +332,7 @@ export default function TournamentDetail() {
                   <CardContent className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Format:</span>
-                      <span className="font-medium">{formatGameName(tournament.gameFormat)}</span>
+                      <span className="font-medium">{formatGameName(tournament.gameType)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Max Participants:</span>
@@ -351,14 +351,14 @@ export default function TournamentDetail() {
                   </CardContent>
                 </Card>
 
-                {tournament.rules && (
+                {(tournament as any).rules && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Tournament Rules</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {tournament.rules}
+                        {(tournament as any).rules}
                       </p>
                     </CardContent>
                   </Card>

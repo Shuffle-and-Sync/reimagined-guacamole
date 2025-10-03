@@ -40,12 +40,14 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
   const [generalForm, setGeneralForm] = useState({
     name: tournament.name || "",
     description: tournament.description || "",
-    gameFormat: tournament.gameFormat || "",
+    // gameFormat: tournament.gameFormat || "", // TODO: gameFormat doesn't exist in schema
+    gameFormat: tournament.gameType || "", // Use gameType instead
     maxParticipants: tournament.maxParticipants || 8,
     startDate: tournament.startDate ? format(new Date(tournament.startDate), "yyyy-MM-dd'T'HH:mm") : "",
     endDate: tournament.endDate ? format(new Date(tournament.endDate), "yyyy-MM-dd'T'HH:mm") : "",
     prizePool: tournament.prizePool || "",
-    rules: tournament.rules || ""
+    // rules: tournament.rules || "" // TODO: rules doesn't exist in schema
+    rules: "" // Placeholder
   });
 
   const [activeTab, setActiveTab] = useState("general");
@@ -160,7 +162,9 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                 Edit Tournament
               </CardTitle>
               <CardDescription className="text-lg">
-                {tournament.name} - {gameFormats.find(f => f.value === tournament.gameFormat)?.label}
+                {/* {tournament.name} - {gameFormats.find(f => f.value === tournament.gameFormat)?.label} */}
+                {/* TODO: gameFormat doesn't exist in schema */}
+                {tournament.name} - {gameFormats.find(f => f.value === tournament.gameType)?.label}
               </CardDescription>
             </div>
             <div className="flex flex-col items-end space-y-2">
@@ -402,7 +406,9 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                 <i className="fas fa-sitemap text-4xl mb-4"></i>
                 <p className="text-lg font-medium">Interactive Bracket Editor</p>
                 <p>Advanced bracket editing tools coming soon!</p>
-                <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameFormat)?.label}</p>
+                {/* <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameFormat)?.label}</p> */}
+                {/* TODO: gameFormat doesn't exist in schema */}
+                <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameType)?.label}</p>
               </div>
             </CardContent>
           </Card>

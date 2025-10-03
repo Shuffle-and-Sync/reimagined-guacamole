@@ -172,11 +172,11 @@ export default function Tournaments() {
     setEditForm({
       name: tournament.name || "",
       description: tournament.description || "",
-      gameFormat: tournament.gameFormat || "",
+      gameFormat: tournament.gameType || "",
       maxParticipants: tournament.maxParticipants || 8,
-      startDate: startDate,
-      prizePool: tournament.prizePool || "",
-      rules: tournament.rules || ""
+      startDate: String(startDate),
+      prizePool: tournament.prizePool != null ? String(tournament.prizePool) : "",
+      rules: (tournament as any).rules || ""
     });
     setIsEditModalOpen(true);
   };
@@ -589,7 +589,7 @@ export default function Tournaments() {
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <CardTitle className="text-lg">{tournament.name}</CardTitle>
-                          <CardDescription>{formatGameName(tournament.gameFormat)}</CardDescription>
+                          <CardDescription>{formatGameName(tournament.gameType)}</CardDescription>
                         </div>
                         <Badge variant={getStatusBadgeVariant(tournament.status)}>
                           {tournament.status}
