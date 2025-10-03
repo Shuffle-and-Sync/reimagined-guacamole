@@ -257,12 +257,15 @@ export const gameSessions = sqliteTable("game_sessions", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   eventId: text("event_id").references(() => events.id, { onDelete: "cascade" }),
   gameType: text("game_type").notNull(),
+  communityId: text("community_id").references(() => communities.id),
   status: text("status").default("waiting"), // 'waiting', 'active', 'paused', 'completed', 'cancelled'
   maxPlayers: integer("max_players"),
   currentPlayers: integer("current_players").default(0),
+  spectators: text("spectators").default("[]"), // JSON array of user IDs
   hostId: text("host_id").notNull().references(() => users.id),
   coHostId: text("co_host_id").references(() => users.id),
   boardState: text("board_state"), // JSON string
+  gameData: text("game_data"), // JSON string
   startedAt: integer("started_at", { mode: 'timestamp' }),
   endedAt: integer("ended_at", { mode: 'timestamp' }),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -854,6 +857,7 @@ export const tournamentFormats = sqliteTable("tournament_formats", {
   structure: text("structure").notNull(), // 'single_elimination', 'double_elimination', 'round_robin', 'swiss'
   defaultRounds: integer("default_rounds"),
   isOfficial: integer("is_official", { mode: 'boolean' }).default(false),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_tournament_formats_game").on(table.gameType),
@@ -988,6 +992,7 @@ export const forumReplyLikes = sqliteTable("forum_reply_likes", {
 export const streamSessionCoHosts = sqliteTable("stream_session_co_hosts", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   sessionId: text("session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  streamSessionId: text("stream_session_id").references(() => streamSessions.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: text("role").default("co_host"), // 'co_host', 'moderator', 'guest'
   joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -1001,6 +1006,7 @@ export const streamSessionCoHosts = sqliteTable("stream_session_co_hosts", {
 export const streamSessionPlatforms = sqliteTable("stream_session_platforms", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   sessionId: text("session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  streamSessionId: text("stream_session_id").references(() => streamSessions.id, { onDelete: "cascade" }),
   platform: text("platform").notNull(), // 'twitch', 'youtube', 'facebook', 'kick'
   streamUrl: text("stream_url"),
   streamKey: text("stream_key"),
@@ -1231,6 +1237,7 @@ export const mfaSecurityContext = sqliteTable("mfa_security_context", {
   riskLevel: text("risk_level").default("low"), // 'low', 'medium', 'high'
   requiresMfa: integer("requires_mfa", { mode: 'boolean' }).default(false),
   mfaCompleted: integer("mfa_completed", { mode: 'boolean' }).default(false),
+  isSuccessful: integer("is_successful", { mode: 'boolean' }),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_mfa_context_user").on(table.userId),
