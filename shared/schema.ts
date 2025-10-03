@@ -333,9 +333,12 @@ export const friendships = sqliteTable("friendships", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   friendId: text("friend_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requesterId: text("requester_id").notNull().references(() => users.id),
+  addresseeId: text("addressee_id").notNull().references(() => users.id),
   status: text("status").default("pending"), // 'pending', 'accepted', 'declined', 'blocked'
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   respondedAt: integer("responded_at", { mode: 'timestamp' }),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique().on(table.userId, table.friendId),
   index("idx_friendships_user").on(table.userId),
@@ -768,13 +771,18 @@ export const userGamingProfiles = sqliteTable("user_gaming_profiles", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   gameType: text("game_type").notNull(), // 'MTG', 'Pokemon', 'Lorcana', 'Yu-Gi-Oh'
+  communityId: text("community_id").references(() => communities.id),
   playerId: text("player_id"),
   username: text("username"),
   skillLevel: text("skill_level"), // 'beginner', 'intermediate', 'advanced', 'competitive'
+  rank: text("rank"),
+  experience: integer("experience").default(0),
+  favoriteDeck: text("favorite_deck"),
   preferredFormats: text("preferred_formats").default("[]"), // JSON array
   achievements: text("achievements").default("[]"), // JSON array
   statistics: text("statistics").default("{}"), // JSON object
   isPublic: integer("is_public", { mode: 'boolean' }).default(true),
+  isVisible: integer("is_visible", { mode: 'boolean' }).default(true),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -1172,6 +1180,10 @@ export const userMfaAttempts = sqliteTable("user_mfa_attempts", {
   ipAddress: text("ip_address").notNull(),
   userAgent: text("user_agent"),
   failureReason: text("failure_reason"),
+  failedAttempts: integer("failed_attempts").default(0),
+  lockedUntil: integer("locked_until", { mode: 'timestamp' }),
+  windowStartedAt: integer("window_started_at", { mode: 'timestamp' }),
+  lastFailedAt: integer("last_failed_at", { mode: 'timestamp' }),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_mfa_attempts_user").on(table.userId),
@@ -1188,6 +1200,7 @@ export const deviceFingerprints = sqliteTable("device_fingerprints", {
   lastSeen: integer("last_seen", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   trustScore: real("trust_score").default(0.5),
   isBlocked: integer("is_blocked", { mode: 'boolean' }).default(false),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
 }, (table) => [
   index("idx_device_fingerprints_user").on(table.userId),
   index("idx_device_fingerprints_hash").on(table.fingerprintHash),
@@ -1216,8 +1229,18 @@ export const trustedDevices = sqliteTable("trusted_devices", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   deviceFingerprintId: text("device_fingerprint_id").notNull().references(() => deviceFingerprints.id, { onDelete: "cascade" }),
   deviceName: text("device_name"),
+  name: text("name"),
+  description: text("description"),
+  trustLevel: text("trust_level").default("standard"), // 'low', 'standard', 'high'
+  autoTrustMfa: integer("auto_trust_mfa", { mode: 'boolean' }).default(false),
+  trustDurationDays: integer("trust_duration_days").default(30),
+  totalLogins: integer("total_logins").default(0),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
+  verifiedAt: integer("verified_at", { mode: 'timestamp' }),
+  verificationMethod: text("verification_method"),
   trustedAt: integer("trusted_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   lastUsed: integer("last_used", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  lastUsedAt: integer("last_used_at", { mode: 'timestamp' }),
   expiresAt: integer("expires_at", { mode: 'timestamp' }),
   isRevoked: integer("is_revoked", { mode: 'boolean' }).default(false),
   revokedAt: integer("revoked_at", { mode: 'timestamp' }),
