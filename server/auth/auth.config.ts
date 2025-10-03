@@ -127,11 +127,11 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'rate_limited',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 retryAfter: rateLimitCheck.retryAfter,
                 reason: 'too_many_attempts'
-              }
+              })
             });
             throw new Error(`Too many failed attempts. Try again in ${rateLimitCheck.retryAfter} seconds.`);
           }
@@ -148,10 +148,10 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'invalid_password',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 reason: 'user_not_found'
-              }
+              })
             });
             throw new Error("Invalid email or password");
           }
@@ -166,11 +166,11 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'account_locked',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 lockTimeRemaining,
                 reason: 'account_temporarily_locked'
-              }
+              })
             });
             throw new Error(`Account is temporarily locked. Try again in ${Math.ceil(lockTimeRemaining / 60)} minutes.`);
           }
@@ -184,10 +184,10 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'email_not_verified',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 reason: 'email_verification_required'
-              }
+              })
             });
             throw new Error("Please verify your email address before signing in. Check your inbox for the verification link.");
           }
@@ -202,10 +202,10 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'invalid_password',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 reason: 'oauth_account_attempted_password_login'
-              }
+              })
             });
             throw new Error("This account uses OAuth authentication. Please sign in with Google or Twitch.");
           }
@@ -238,12 +238,12 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'invalid_password',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 failedAttempts: newFailedAttempts,
                 accountLocked: shouldLockAccount,
                 reason: 'invalid_password_provided'
-              }
+              })
             });
             
             if (shouldLockAccount) {
@@ -271,12 +271,12 @@ export const authConfig: AuthConfig = {
               userAgent,
               isSuccessful: false,
               failureReason: 'mfa_required',
-              details: { 
+              details: JSON.stringify({ 
                 email: email.toLowerCase(),
                 mfaRequired: true,
                 loginMethod: 'credentials',
                 reason: 'password_verified_but_mfa_required'
-              }
+              })
             });
             
             // SECURITY: Do NOT return user object - this prevents session creation
@@ -301,12 +301,12 @@ export const authConfig: AuthConfig = {
             ipAddress,
             userAgent,
             isSuccessful: true,
-            details: { 
+            details: JSON.stringify({ 
               email: email.toLowerCase(),
               mfaEnabled: user.mfaEnabled || false,
               loginMethod: 'credentials',
               reason: 'password_verified_successfully'
-            }
+            })
           });
 
           // Return user object for session
