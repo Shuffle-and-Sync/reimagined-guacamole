@@ -12,18 +12,17 @@ if (cwd && process.env.NODE_ENV !== 'production') {
   }
 }
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://csyr8uyqnk.g1.sqlite.cloud:8860/auth.sqlitecloud?apikey=kA7BSyqAjUIkqpeujL0Z1WqW1VLvzXCJhHyTbahwhUs";
+
+if (!databaseUrl) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
-
-// Use direct database URL for migrations if available, otherwise fall back to DATABASE_URL
-const migrationUrl = process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL;
 
 export default defineConfig({
   out: "./migrations",
   schema: "./shared/schema.ts",
-  dialect: "postgresql",
+  dialect: "sqlite",
   dbCredentials: {
-    url: migrationUrl,
+    url: databaseUrl,
   },
 });

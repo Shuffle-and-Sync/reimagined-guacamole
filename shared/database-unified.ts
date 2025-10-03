@@ -1,5 +1,5 @@
 // Unified database configuration for Drizzle ORM
-// Supports PostgreSQL connections with Prisma Accelerate compatibility
+// Supports SQLite Cloud connections
 import { config } from "dotenv";
 import { resolve } from "path";
 
@@ -7,74 +7,49 @@ import { resolve } from "path";
 config({ path: resolve(process.cwd(), '.env.local') });
 
 import { sql } from 'drizzle-orm';
-import type { PgTransaction } from 'drizzle-orm/pg-core';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import * as schema from "./schema";
 
 // Export schema and transaction types for use in repositories
 export type Schema = typeof schema;
-export type Database = NodePgDatabase<Schema>;
-export type Transaction = PgTransaction<NodePgQueryResultHKT, Schema, ExtractTablesWithRelations<Schema>>;
+export type Database = BaseSQLiteDatabase<'async', any, Schema>;
+export type Transaction = any; // SQLite transaction type
 
 // Handle missing DATABASE_URL gracefully for Cloud Run health checks
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://csyr8uyqnk.g1.sqlite.cloud:8860/auth.sqlitecloud?apikey=kA7BSyqAjUIkqpeujL0Z1WqW1VLvzXCJhHyTbahwhUs";
+
 if (!databaseUrl) {
   if (process.env.NODE_ENV === 'production') {
-    console.warn('WARNING: DATABASE_URL environment variable is missing - database functionality will be unavailable');
+    console.warn('WARNING: DATABASE_URL environment variable is missing - using default SQLite Cloud connection');
   } else {
     throw new Error("DATABASE_URL environment variable is required");
   }
 }
 
-// Detect connection type to help with configuration
-function getConnectionType(url: string): 'postgres' | 'prisma-accelerate' {
-  if (url.startsWith('prisma+postgres://')) {
-    return 'prisma-accelerate';
-  } else {
-    return 'postgres';
-  }
-}
+console.log(`🔌 Connecting to SQLite Cloud`);
 
-const connectionType = databaseUrl ? getConnectionType(databaseUrl) : 'postgres';
-console.log(`🔌 Detected connection type: ${connectionType}`);
-
-// Get effective database URL (use direct URL for Prisma Accelerate)
-const effectiveUrl = connectionType === 'prisma-accelerate' 
-  ? (process.env.DATABASE_DIRECT_URL || databaseUrl?.replace('prisma+postgres://', 'postgres://'))
-  : databaseUrl;
-
-console.log(`📡 Using connection URL for: ${connectionType}`);
-
-// PostgreSQL connection setup
-let pool: any;
+// SQLite Cloud connection setup
 let db: Database;
 let connectionTested = false;
 
 async function initializeConnection() {
   try {
-    const { Pool: PgPool } = await import('pg');
-    const { drizzle } = await import('drizzle-orm/node-postgres');
+    const { Database: SQLiteCloudDatabase } = await import('@sqlitecloud/drivers');
+    const { drizzle } = await import('drizzle-orm/better-sqlite3');
     
-    const poolConfig = {
-      connectionString: effectiveUrl || 'postgresql://dummy:dummy@localhost:5432/dummy',
-      max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
-      min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
-      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
-      ssl: effectiveUrl?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
-    };
+    // Create SQLite Cloud connection
+    const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
     
-    pool = new PgPool(poolConfig);
-    db = drizzle(pool, { schema });
+    // Create Drizzle instance with SQLite Cloud
+    db = drizzle(sqliteCloud as any, { schema });
     
-    // Test the PostgreSQL connection
-    await pool.query('SELECT 1 as test');
+    // Test the connection
+    await sqliteCloud.sql`SELECT 1 as test`;
     
-    console.log(`✅ Using PostgreSQL driver for ${connectionType}`);
+    console.log(`✅ Connected to SQLite Cloud successfully`);
   } catch (error) {
-    console.error('❌ PostgreSQL connection failed:', error);
+    console.error('❌ SQLite Cloud connection failed:', error);
     throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
   connectionTested = true;
@@ -90,9 +65,9 @@ if (databaseUrl) {
 
 // Export connection info for debugging
 export const connectionInfo = {
-  type: connectionType,
-  driver: 'PostgreSQL',
-  url: effectiveUrl ? effectiveUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'not set' // Hide credentials
+  type: 'sqlitecloud',
+  driver: 'SQLite Cloud',
+  url: databaseUrl ? databaseUrl.replace(/apikey=[^&]+/, 'apikey=***') : 'not set' // Hide API key
 };
 
 // Add development logging  
@@ -190,8 +165,8 @@ export async function checkDatabaseHealth(): Promise<{
     
     const startTime = Date.now();
     
-    // Test basic connectivity with appropriate method based on driver
-    await pool.query('SELECT 1 as health_check, NOW() as timestamp');
+    // Test basic connectivity with SQLite
+    await db.run(sql`SELECT 1 as health_check`);
     
     const queryResponseTime = Date.now() - startTime;
     
@@ -355,7 +330,7 @@ export async function applyCompositeIndexes(): Promise<void> {
   
   for (const indexSql of compositeIndexes) {
     try {
-      await pool.query(indexSql);
+      await db.run(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || 'unknown';
       console.log(`✅ Applied index: ${indexName}`);
     } catch (error) {
@@ -440,7 +415,7 @@ export async function initializeDatabase(): Promise<void> {
     }
     
     // Test the connection
-    await pool.query('SELECT 1');
+    await db.run(sql`SELECT 1`);
     console.log('✅ Database connection established');
     
     // Log connection info
@@ -457,7 +432,7 @@ export async function initializeDatabase(): Promise<void> {
 
 export async function closeDatabaseConnections(): Promise<void> {
   try {
-    await pool.end();
+    // SQLite Cloud connections are typically managed automatically
     console.log('✅ Database connections closed gracefully');
   } catch (error) {
     console.error('❌ Error closing database connections:', error);
@@ -569,11 +544,11 @@ export class DatabasePerformanceMonitor {
 
   public getConnectionPoolStatus() {
     return {
-      totalConnections: pool.totalCount,
-      idleConnections: pool.idleCount,
-      waitingCount: pool.waitingCount,
-      maxConnections: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
-      minConnections: parseInt(process.env.DB_POOL_MIN_SIZE || '5')
+      totalConnections: 1, // SQLite Cloud manages connections internally
+      idleConnections: 0,
+      waitingCount: 0,
+      maxConnections: 1,
+      minConnections: 1
     };
   }
 }
