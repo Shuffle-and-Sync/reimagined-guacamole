@@ -78,22 +78,22 @@ export const users = sqliteTable("users", {
   statusMessage: text("status_message"),
   timezone: text("timezone"),
   dateOfBirth: text("date_of_birth"),
-  isPrivate: integer("is_private", { mode: 'boolean' }).default(0),
+  isPrivate: integer("is_private", { mode: 'boolean' }).default(false),
   showOnlineStatus: text("show_online_status").default("everyone"), // 'everyone', 'friends_only', 'private'
   allowDirectMessages: text("allow_direct_messages").default("everyone"),
   passwordHash: text("password_hash"),
-  isEmailVerified: integer("is_email_verified", { mode: 'boolean' }).default(0),
+  isEmailVerified: integer("is_email_verified", { mode: 'boolean' }).default(false),
   emailVerifiedAt: integer("email_verified_at", { mode: 'timestamp' }),
   failedLoginAttempts: integer("failed_login_attempts").default(0),
   lastFailedLogin: integer("last_failed_login", { mode: 'timestamp' }),
   accountLockedUntil: integer("account_locked_until", { mode: 'timestamp' }),
   passwordChangedAt: integer("password_changed_at", { mode: 'timestamp' }),
-  mfaEnabled: integer("mfa_enabled", { mode: 'boolean' }).default(0),
+  mfaEnabled: integer("mfa_enabled", { mode: 'boolean' }).default(false),
   mfaEnabledAt: integer("mfa_enabled_at", { mode: 'timestamp' }),
   lastLoginAt: integer("last_login_at", { mode: 'timestamp' }),
   lastActiveAt: integer("last_active_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_users_email").on(table.email),
   index("idx_users_username").on(table.username),
@@ -118,10 +118,10 @@ export const userPlatformAccounts = sqliteTable("user_platform_accounts", {
   refreshToken: text("refresh_token"),
   tokenExpiresAt: integer("token_expires_at", { mode: 'timestamp' }),
   scopes: text("scopes"), // JSON string
-  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
   lastVerified: integer("last_verified", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique().on(table.userId, table.platform),
   index("idx_user_platform_user_id").on(table.userId),
@@ -142,16 +142,16 @@ export const communities = sqliteTable("communities", {
   description: text("description"),
   themeColor: text("theme_color").notNull(),
   iconClass: text("icon_class").notNull(),
-  isActive: integer("is_active", { mode: 'boolean' }).default(1),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
 export const userCommunities = sqliteTable("user_communities", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   communityId: text("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
-  isPrimary: integer("is_primary", { mode: 'boolean' }).default(0),
-  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  isPrimary: integer("is_primary", { mode: 'boolean' }).default(false),
+  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique("unique_user_community").on(table.userId, table.communityId),
   index("idx_user_communities_user_id").on(table.userId),
@@ -165,7 +165,7 @@ export const themePreferences = sqliteTable("theme_preferences", {
   communityId: text("community_id").references(() => communities.id),
   themeMode: text("theme_mode").default("dark"),
   customColors: text("custom_colors"), // JSON string
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
 // ======================
@@ -181,14 +181,14 @@ export const events = sqliteTable("events", {
   startTime: integer("start_time", { mode: 'timestamp' }).notNull(),
   endTime: integer("end_time", { mode: 'timestamp' }),
   location: text("location"),
-  isVirtual: integer("is_virtual", { mode: 'boolean' }).default(0),
+  isVirtual: integer("is_virtual", { mode: 'boolean' }).default(false),
   maxAttendees: integer("max_attendees"),
   creatorId: text("creator_id").notNull().references(() => users.id),
   hostId: text("host_id").references(() => users.id),
   coHostId: text("co_host_id").references(() => users.id),
   communityId: text("community_id").references(() => communities.id),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_events_creator").on(table.creatorId),
   index("idx_events_community").on(table.communityId),
@@ -202,7 +202,7 @@ export const eventAttendees = sqliteTable("event_attendees", {
   eventId: text("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").default("attending"), // 'attending', 'maybe', 'not_attending'
-  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique().on(table.eventId, table.userId),
   index("idx_event_attendees_event").on(table.eventId),
@@ -219,9 +219,9 @@ export const messages = sqliteTable("messages", {
   receiverId: text("receiver_id").references(() => users.id),
   eventId: text("event_id").references(() => events.id),
   content: text("content").notNull(),
-  isRead: integer("is_read", { mode: 'boolean' }).default(0),
+  isRead: integer("is_read", { mode: 'boolean' }).default(false),
   readAt: integer("read_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_messages_sender").on(table.senderId),
   index("idx_messages_receiver").on(table.receiverId),
@@ -237,9 +237,9 @@ export const notifications = sqliteTable("notifications", {
   title: text("title").notNull(),
   message: text("message"),
   data: text("data"), // JSON string
-  isRead: integer("is_read", { mode: 'boolean' }).default(0),
+  isRead: integer("is_read", { mode: 'boolean' }).default(false),
   readAt: integer("read_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_notifications_user").on(table.userId),
   index("idx_notifications_type").on(table.type),
@@ -263,7 +263,7 @@ export const gameSessions = sqliteTable("game_sessions", {
   boardState: text("board_state"), // JSON string
   startedAt: integer("started_at", { mode: 'timestamp' }),
   endedAt: integer("ended_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_game_sessions_event").on(table.eventId),
   index("idx_game_sessions_host").on(table.hostId),
@@ -280,7 +280,7 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   token: text("token").notNull().unique(),
   expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
   usedAt: integer("used_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_password_reset_token").on(table.token),
   index("idx_password_reset_user").on(table.userId),
@@ -293,7 +293,7 @@ export const emailVerificationTokens = sqliteTable("email_verification_tokens", 
   token: text("token").notNull().unique(),
   expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
   verifiedAt: integer("verified_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_email_verification_token").on(table.token),
   index("idx_email_verification_user").on(table.userId),
@@ -304,9 +304,9 @@ export const userMfaSettings = sqliteTable("user_mfa_settings", {
   userId: text("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
   secret: text("secret").notNull(),
   backupCodes: text("backup_codes"), // JSON string array
-  enabled: integer("enabled", { mode: 'boolean' }).default(0),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  enabled: integer("enabled", { mode: 'boolean' }).default(false),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
 export const authAuditLog = sqliteTable("auth_audit_log", {
@@ -318,7 +318,7 @@ export const authAuditLog = sqliteTable("auth_audit_log", {
   isSuccessful: integer("is_successful", { mode: 'boolean' }),
   failureReason: text("failure_reason"),
   details: text("details"), // JSON string
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_auth_audit_user").on(table.userId),
   index("idx_auth_audit_event").on(table.eventType),
@@ -334,7 +334,7 @@ export const friendships = sqliteTable("friendships", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   friendId: text("friend_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").default("pending"), // 'pending', 'accepted', 'declined', 'blocked'
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   respondedAt: integer("responded_at", { mode: 'timestamp' }),
 }, (table) => [
   unique().on(table.userId, table.friendId),
@@ -349,7 +349,7 @@ export const userActivities = sqliteTable("user_activities", {
   activityType: text("activity_type").notNull(),
   description: text("description"),
   metadata: text("metadata"), // JSON string
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_user_activities_user").on(table.userId),
   index("idx_user_activities_type").on(table.activityType),
@@ -374,8 +374,8 @@ export const tournaments = sqliteTable("tournaments", {
   communityId: text("community_id").references(() => communities.id),
   startDate: integer("start_date", { mode: 'timestamp' }).notNull(),
   endDate: integer("end_date", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_tournaments_organizer").on(table.organizerId),
   index("idx_tournaments_community").on(table.communityId),
@@ -390,7 +390,7 @@ export const tournamentParticipants = sqliteTable("tournament_participants", {
   status: text("status").default("registered"), // 'registered', 'active', 'eliminated', 'winner'
   seed: integer("seed"),
   finalRank: integer("final_rank"),
-  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique().on(table.tournamentId, table.userId),
   index("idx_tournament_participants_tournament").on(table.tournamentId),
@@ -413,8 +413,8 @@ export const streamSessions = sqliteTable("stream_sessions", {
   actualEnd: integer("actual_end", { mode: 'timestamp' }),
   viewerCount: integer("viewer_count").default(0),
   peakViewers: integer("peak_viewers").default(0),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_stream_sessions_streamer").on(table.streamerId),
   index("idx_stream_sessions_event").on(table.eventId),
@@ -429,7 +429,7 @@ export const collaborationRequests = sqliteTable("collaboration_requests", {
   message: text("message"),
   status: text("status").default("pending"), // 'pending', 'accepted', 'declined', 'expired', 'cancelled'
   expiresAt: integer("expires_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   respondedAt: integer("responded_at", { mode: 'timestamp' }),
 }, (table) => [
   index("idx_collaboration_requests_from").on(table.fromUserId),
@@ -450,10 +450,10 @@ export const userRoles = sqliteTable("user_roles", {
   permissions: text("permissions").notNull().default("[]"), // JSON array of permission strings
   communityId: text("community_id").references(() => communities.id),
   assignedBy: text("assigned_by").notNull().references(() => users.id),
-  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
   expiresAt: integer("expires_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_user_roles_user_id").on(table.userId),
   index("idx_user_roles_role").on(table.role),
@@ -472,9 +472,9 @@ export const userReputation = sqliteTable("user_reputation", {
   reportsMade: integer("reports_made").default(0),
   reportsAccurate: integer("reports_accurate").default(0),
   moderationHistory: text("moderation_history").default("[]"), // JSON array
-  lastCalculated: integer("last_calculated", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  lastCalculated: integer("last_calculated", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_user_reputation_user_id").on(table.userId),
   index("idx_user_reputation_score").on(table.score),
@@ -491,7 +491,7 @@ export const contentReports = sqliteTable("content_reports", {
   reason: text("reason").notNull(), // 'hate_speech', 'harassment', 'spam', 'inappropriate_content'
   description: text("description"),
   evidence: text("evidence"), // JSON
-  isSystemGenerated: integer("is_system_generated", { mode: 'boolean' }).default(0),
+  isSystemGenerated: integer("is_system_generated", { mode: 'boolean' }).default(false),
   automatedFlags: text("automated_flags"), // JSON
   confidenceScore: real("confidence_score"),
   status: text("status").default("pending"), // 'pending', 'investigating', 'resolved', 'dismissed'
@@ -500,7 +500,7 @@ export const contentReports = sqliteTable("content_reports", {
   moderationNotes: text("moderation_notes"),
   resolution: text("resolution"),
   actionTaken: text("action_taken"),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   resolvedAt: integer("resolved_at", { mode: 'timestamp' }),
 }, (table) => [
   index("idx_content_reports_reporter").on(table.reporterUserId),
@@ -523,18 +523,18 @@ export const moderationActions = sqliteTable("moderation_actions", {
   relatedContentType: text("related_content_type"),
   relatedContentId: text("related_content_id"),
   relatedReportId: text("related_report_id").references(() => contentReports.id),
-  isReversible: integer("is_reversible", { mode: 'boolean' }).default(1),
-  isPublic: integer("is_public", { mode: 'boolean' }).default(0),
+  isReversible: integer("is_reversible", { mode: 'boolean' }).default(true),
+  isPublic: integer("is_public", { mode: 'boolean' }).default(false),
   metadata: text("metadata"), // JSON
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   adminNotes: text("admin_notes"),
-  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
   reversedBy: text("reversed_by").references(() => users.id),
   reversedAt: integer("reversed_at", { mode: 'timestamp' }),
   reversalReason: text("reversal_reason"),
   expiresAt: integer("expires_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_moderation_actions_moderator").on(table.moderatorId),
   index("idx_moderation_actions_target").on(table.targetUserId),
@@ -558,14 +558,14 @@ export const moderationQueue = sqliteTable("moderation_queue", {
   userReputationScore: integer("user_reputation_score"),
   reporterReputationScore: integer("reporter_reputation_score"),
   mlPriority: integer("ml_priority"),
-  autoGenerated: integer("auto_generated", { mode: 'boolean' }).default(0),
+  autoGenerated: integer("auto_generated", { mode: 'boolean' }).default(false),
   summary: text("summary"),
   tags: text("tags").default("[]"), // JSON array
   estimatedTimeMinutes: integer("estimated_time_minutes"),
   metadata: text("metadata"), // JSON
   resolution: text("resolution"),
   actionTaken: text("action_taken"),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   completedAt: integer("completed_at", { mode: 'timestamp' }),
 }, (table) => [
   index("idx_moderation_queue_status").on(table.status),
@@ -583,7 +583,7 @@ export const cmsContent = sqliteTable("cms_content", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   version: integer("version").notNull().default(1),
-  isPublished: integer("is_published", { mode: 'boolean' }).default(0),
+  isPublished: integer("is_published", { mode: 'boolean' }).default(false),
   publishedAt: integer("published_at", { mode: 'timestamp' }),
   scheduledPublishAt: integer("scheduled_publish_at", { mode: 'timestamp' }),
   authorId: text("author_id").notNull().references(() => users.id),
@@ -595,8 +595,8 @@ export const cmsContent = sqliteTable("cms_content", {
   metaDescription: text("meta_description"),
   metaKeywords: text("meta_keywords"),
   slug: text("slug").unique(),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_cms_content_type").on(table.type),
   index("idx_cms_content_published").on(table.isPublished),
@@ -624,7 +624,7 @@ export const banEvasionTracking = sqliteTable("ban_evasion_tracking", {
   investigatedBy: text("investigated_by").references(() => users.id),
   investigatedAt: integer("investigated_at", { mode: 'timestamp' }),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_ban_evasion_user").on(table.userId),
   index("idx_ban_evasion_ip").on(table.ipAddress),
@@ -648,12 +648,12 @@ export const userAppeals = sqliteTable("user_appeals", {
   decision: text("decision"),
   decisionReason: text("decision_reason"),
   responseToUser: text("response_to_user"),
-  isUserNotified: integer("is_user_notified", { mode: 'boolean' }).default(0),
-  canReappeal: integer("can_reappeal", { mode: 'boolean' }).default(0),
+  isUserNotified: integer("is_user_notified", { mode: 'boolean' }).default(false),
+  canReappeal: integer("can_reappeal", { mode: 'boolean' }).default(false),
   reappealCooldownUntil: integer("reappeal_cooldown_until", { mode: 'timestamp' }),
   resolvedAt: integer("resolved_at", { mode: 'timestamp' }),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_user_appeals_user").on(table.userId),
   index("idx_user_appeals_action").on(table.moderationActionId),
@@ -670,12 +670,12 @@ export const moderationTemplates = sqliteTable("moderation_templates", {
   subject: text("subject"),
   content: text("content").notNull(),
   variables: text("variables").default("[]"), // JSON array
-  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
   createdBy: text("created_by").notNull().references(() => users.id),
   lastModifiedBy: text("last_modified_by").notNull().references(() => users.id),
   usageCount: integer("usage_count").default(0),
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_moderation_templates_category").on(table.category),
   index("idx_moderation_templates_active").on(table.isActive),
@@ -697,10 +697,10 @@ export const adminAuditLog = sqliteTable("admin_audit_log", {
   ipAddress: text("ip_address").notNull(),
   userAgent: text("user_agent"),
   sessionId: text("session_id"),
-  success: integer("success", { mode: 'boolean' }).default(1),
+  success: integer("success", { mode: 'boolean' }).default(true),
   errorMessage: text("error_message"),
   impactAssessment: text("impact_assessment"), // 'low', 'medium', 'high', 'critical'
-  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_admin_audit_log_admin").on(table.adminUserId),
   index("idx_admin_audit_log_action").on(table.action),
