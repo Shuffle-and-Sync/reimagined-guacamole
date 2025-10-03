@@ -185,7 +185,7 @@ Since SQLite doesn't support native enums, all enum values are documented in the
 ### Connection String
 
 ```
-sqlitecloud://csyr8uyqnk.g1.sqlite.cloud:8860/auth.sqlitecloud?apikey=kA7BSyqAjUIkqpeujL0Z1WqW1VLvzXCJhHyTbahwhUs
+sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ
 ```
 
 ### Benefits of SQLite Cloud

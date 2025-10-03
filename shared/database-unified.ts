@@ -17,7 +17,7 @@ export type Database = BaseSQLiteDatabase<'async', any, Schema>;
 export type Transaction = any; // SQLite transaction type
 
 // Handle missing DATABASE_URL gracefully for Cloud Run health checks
-const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://csyr8uyqnk.g1.sqlite.cloud:8860/auth.sqlitecloud?apikey=kA7BSyqAjUIkqpeujL0Z1WqW1VLvzXCJhHyTbahwhUs";
+const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
 
 if (!databaseUrl) {
   if (process.env.NODE_ENV === 'production') {
