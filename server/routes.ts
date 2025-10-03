@@ -121,6 +121,8 @@ import {
   eventCreationRateLimit 
 } from "./rate-limiting";
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
+import { universalCardRoutes } from "./features/cards/universal-cards.routes";
+import { gamesCrudRoutes } from "./features/games/games-crud.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers middleware
@@ -894,7 +896,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Real-time matching and AI recommendations
   app.use('/api/matching', matchingRouter);
   
-  // Card recognition routes for MTG and other TCG cards
+  // Universal Deck-Building routes (new)
+  app.use('/api/games', gamesCrudRoutes); // Game CRUD operations
+  app.use('/api/games', universalCardRoutes); // Game-scoped card operations
+  
+  // Card recognition routes for MTG and other TCG cards (legacy, maintained for backward compatibility)
   app.use('/api/cards', cardRecognitionRoutes);
 
   // ========================================
