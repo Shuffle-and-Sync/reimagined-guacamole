@@ -17,15 +17,26 @@ export type Schema = typeof schema;
 export type Database = BetterSQLite3Database<Schema>;
 export type Transaction = any; // SQLite transaction type
 
-// Handle missing DATABASE_URL gracefully for Cloud Run health checks
-const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
+// Handle missing or invalid DATABASE_URL gracefully for Cloud Run health checks
+// Default SQLite Cloud URL
+const defaultSQLiteCloudUrl = "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
 
-if (!databaseUrl) {
-  if (process.env.NODE_ENV === 'production') {
-    console.warn('WARNING: DATABASE_URL environment variable is missing - using default SQLite Cloud connection');
-  } else {
-    throw new Error("DATABASE_URL environment variable is required");
-  }
+// Check if DATABASE_URL is set and is a valid SQLite Cloud URL
+const envDatabaseUrl = process.env.DATABASE_URL;
+let databaseUrl: string;
+
+if (!envDatabaseUrl) {
+  // No DATABASE_URL set, use default
+  databaseUrl = defaultSQLiteCloudUrl;
+  console.log('ℹ️  DATABASE_URL not set, using default SQLite Cloud connection');
+} else if (envDatabaseUrl.startsWith('sqlitecloud://')) {
+  // Valid SQLite Cloud URL
+  databaseUrl = envDatabaseUrl;
+} else {
+  // DATABASE_URL is set but not a SQLite Cloud URL (e.g., Prisma Accelerate)
+  // Use default SQLite Cloud URL instead
+  databaseUrl = defaultSQLiteCloudUrl;
+  console.log('ℹ️  DATABASE_URL is not a SQLite Cloud URL, using default SQLite Cloud connection');
 }
 
 console.log(`🔌 Connecting to SQLite Cloud`);
