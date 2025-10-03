@@ -368,7 +368,7 @@ Leave a community.
 
 Platform OAuth endpoints allow users to connect their streaming platform accounts (Twitch, YouTube, Facebook Gaming) to enable stream coordination features.
 
-**See also:** [Twitch OAuth Guide](./TWITCH_OAUTH_GUIDE.md) for detailed Twitch integration documentation.
+**See also:** [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch integration documentation.
 
 ### GET /platforms/:platform/oauth/initiate
 

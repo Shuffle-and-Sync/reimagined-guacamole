@@ -13,7 +13,7 @@
  * - Automatic token refresh
  * - CSRF protection via state validation
  * 
- * @see TWITCH_OAUTH_GUIDE.md for detailed Twitch OAuth documentation
+ * @see docs/features/twitch/TWITCH_OAUTH_GUIDE.md for detailed Twitch OAuth documentation
  */
 
 import { randomBytes, createHash } from 'crypto';
