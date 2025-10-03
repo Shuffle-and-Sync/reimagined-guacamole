@@ -1,0 +1,712 @@
+openapi: 3.0.3
+info:
+  title: Shuffle & Sync - Universal Deck-Building API
+  description: |
+    API for managing multiple trading card games and their cards through the Universal Deck-Building framework.
+    
+    This API enables:
+    - Creating and managing user-defined games
+    - Game-scoped card operations
+    - Multi-game support with adapter pattern
+    - Backward compatibility with legacy MTG endpoints
+  version: 1.0.0
+  contact:
+    name: Shuffle & Sync Team
+    url: https://shuffleandsync.org
+  license:
+    name: MIT
+
+servers:
+  - url: https://shuffleandsync.org/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Games
+    description: Game management operations
+  - name: Cards
+    description: Game-scoped card operations
+  - name: Legacy Cards
+    description: Deprecated MTG-only card endpoints (maintained for backward compatibility)
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+
+  schemas:
+    Game:
+      type: object
+      required:
+        - id
+        - name
+        - displayName
+        - creatorId
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          description: Unique game identifier (lowercase alphanumeric with hyphens)
+        displayName:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        creatorId:
+          type: string
+        isOfficial:
+          type: boolean
+          default: false
+        isPublished:
+          type: boolean
+          default: false
+        version:
+          type: string
+          default: "1.0.0"
+        playerCount:
+          type: object
+          properties:
+            min:
+              type: integer
+              minimum: 1
+            max:
+              type: integer
+              minimum: 1
+        avgGameDuration:
+          type: integer
+          description: Average game duration in minutes
+        complexity:
+          type: integer
+          minimum: 1
+          maximum: 5
+        ageRating:
+          type: string
+        cardTypes:
+          type: array
+          items:
+            type: string
+        resourceTypes:
+          type: array
+          items:
+            type: object
+        zones:
+          type: array
+          items:
+            type: string
+        phaseStructure:
+          type: array
+          items:
+            type: string
+        deckRules:
+          type: object
+          properties:
+            minDeckSize:
+              type: integer
+            maxDeckSize:
+              type: integer
+              nullable: true
+            maxCopies:
+              type: integer
+            allowedSets:
+              type: array
+              items:
+                type: string
+              nullable: true
+        theme:
+          type: object
+          properties:
+            primaryColor:
+              type: string
+            accentColor:
+              type: string
+            cardBackUrl:
+              type: string
+              nullable: true
+        totalCards:
+          type: integer
+        totalPlayers:
+          type: integer
+        totalGamesPlayed:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UniversalCard:
+      type: object
+      required:
+        - id
+        - gameId
+        - name
+      properties:
+        id:
+          type: string
+        gameId:
+          type: string
+        name:
+          type: string
+        setCode:
+          type: string
+        setName:
+          type: string
+        collectorNumber:
+          type: string
+        rarity:
+          type: string
+        externalId:
+          type: string
+        externalSource:
+          type: string
+          enum: [scryfall, pokemontcg, custom]
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Flexible game-specific attributes
+        imageUris:
+          type: object
+          additionalProperties:
+            type: string
+        isOfficial:
+          type: boolean
+        isCommunitySubmitted:
+          type: boolean
+
+    CardSearchResult:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/UniversalCard'
+        total:
+          type: integer
+        page:
+          type: integer
+        hasMore:
+          type: boolean
+
+    AutocompleteResult:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+
+    GameStats:
+      type: object
+      properties:
+        totalCards:
+          type: integer
+        totalPlayers:
+          type: integer
+        totalGamesPlayed:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+
+paths:
+  /games:
+    get:
+      tags:
+        - Games
+      summary: List all games
+      description: Get a list of all games with optional filters
+      parameters:
+        - name: published
+          in: query
+          schema:
+            type: boolean
+          description: Filter by published status
+        - name: official
+          in: query
+          schema:
+            type: boolean
+          description: Filter by official status
+        - name: creator
+          in: query
+          schema:
+            type: string
+          description: Filter by creator ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Games
+      summary: Create a new game
+      description: Create a new user-defined game
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - displayName
+              properties:
+                name:
+                  type: string
+                  pattern: '^[a-z0-9-]+$'
+                displayName:
+                  type: string
+                description:
+                  type: string
+                cardTypes:
+                  type: array
+                  items:
+                    type: string
+                deckRules:
+                  type: object
+      responses:
+        '201':
+          description: Game created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /games/{id}:
+    get:
+      tags:
+        - Games
+      summary: Get game by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+    put:
+      tags:
+        - Games
+      summary: Update game
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                description:
+                  type: string
+                cardTypes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Game updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not game creator
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+    delete:
+      tags:
+        - Games
+      summary: Delete game
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not game creator
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /games/{id}/publish:
+    post:
+      tags:
+        - Games
+      summary: Publish game
+      description: Make game publicly available
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not game creator
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /games/{id}/stats:
+    get:
+      tags:
+        - Games
+      summary: Get game statistics
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStats'
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /games/{game_id}/cards/search:
+    get:
+      tags:
+        - Cards
+      summary: Search cards in a specific game
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: set
+          in: query
+          schema:
+            type: string
+          description: Filter by set code
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [standard, modern, commander, legacy, vintage, pioneer, pauper]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardSearchResult'
+        '400':
+          description: Invalid request
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /games/{game_id}/cards/{id}:
+    get:
+      tags:
+        - Cards
+      summary: Get card by ID in a specific game
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalCard'
+        '404':
+          description: Card or game not found
+        '500':
+          description: Server error
+
+  /games/{game_id}/cards/named:
+    get:
+      tags:
+        - Cards
+      summary: Get card by name in a specific game
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: exact
+          in: query
+          schema:
+            type: string
+          description: Exact card name
+        - name: fuzzy
+          in: query
+          schema:
+            type: string
+          description: Fuzzy card name search
+        - name: set
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalCard'
+        '400':
+          description: Invalid request - exact or fuzzy required
+        '404':
+          description: Card or game not found
+        '500':
+          description: Server error
+
+  /games/{game_id}/cards/autocomplete:
+    get:
+      tags:
+        - Cards
+      summary: Autocomplete card names in a specific game
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutocompleteResult'
+        '400':
+          description: Invalid request
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /games/{game_id}/cards/random:
+    get:
+      tags:
+        - Cards
+      summary: Get random card from a specific game
+      parameters:
+        - name: game_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: set
+          in: query
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [standard, modern, commander, legacy, vintage, pioneer, pauper]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalCard'
+        '404':
+          description: Game not found
+        '500':
+          description: Server error
+
+  /cards/search:
+    get:
+      tags:
+        - Legacy Cards
+      summary: Search MTG cards (Deprecated)
+      deprecated: true
+      description: |
+        **DEPRECATED**: Use `/api/games/{game_id}/cards/search` instead.
+        
+        This endpoint maintains backward compatibility by internally redirecting to MTG Official game.
+        Responses include deprecation warnings.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: set
+          in: query
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with deprecation warning
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/CardSearchResult'
+                  - type: object
+                    properties:
+                      _deprecated:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          migrationGuide:
+                            type: string
+                          newEndpoint:
+                            type: string
