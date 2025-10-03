@@ -2359,7 +2359,7 @@ export class DatabaseStorage implements IStorage {
 
   // Trusted device management implementation
   async getUserTrustedDevices(userId: string): Promise<(TrustedDevice & { deviceFingerprint: DeviceFingerprint })[]> {
-    return await db
+    return (await db
       .select({
         id: trustedDevices.id,
         userId: trustedDevices.userId,
@@ -2391,7 +2391,7 @@ export class DatabaseStorage implements IStorage {
           gte(trustedDevices.expiresAt, new Date())
         )
       ))
-      .orderBy(desc(trustedDevices.lastUsedAt));
+      .orderBy(desc(trustedDevices.lastUsedAt))) as unknown as (TrustedDevice & { deviceFingerprint: DeviceFingerprint })[];
   }
 
   async createTrustedDevice(data: InsertTrustedDevice): Promise<TrustedDevice> {
@@ -2698,13 +2698,10 @@ export class DatabaseStorage implements IStorage {
     await db.insert(revokedJwtTokens).values({
       jti,
       userId,
-      tokenType,
       reason,
-      expiresAt,
-      originalExpiry,
-      ipAddress,
-      userAgent,
-      revokedBy: 'system',
+      expiresAt
+      // Note: tokenType, originalExpiry, ipAddress, userAgent, revokedBy are not in schema
+      // These could be added to metadata if needed
     });
     logger.info(`JWT token revoked for user`, { userId, hasJti: !!jti });
   }
@@ -3132,7 +3129,7 @@ export class DatabaseStorage implements IStorage {
     if (!profiles) {
       throw new Error('Database operation failed');
     }
-    return profiles;
+    return profiles as unknown as (UserGamingProfile & { community: Community })[];
   }
 
   async upsertUserGamingProfile(data: InsertUserGamingProfile): Promise<UserGamingProfile> {
@@ -3263,6 +3260,8 @@ export class DatabaseStorage implements IStorage {
     const [friendship] = await db
       .insert(friendships)
       .values({
+        userId: requesterId,
+        friendId: addresseeId,
         requesterId,
         addresseeId,
         status: 'pending',
@@ -4830,7 +4829,7 @@ export class DatabaseStorage implements IStorage {
         peakViewers: result?.maxViewers || 0,
         averageViewers: Math.round(result?.avgViewers || 0),
         totalChatMessages: result?.totalMessages || 0,
-        platforms: result?.platforms || []
+        platforms: (result?.platforms || []) as string[]
       };
     } catch (error) {
       console.error('Error getting stream analytics summary:', error);
@@ -5502,7 +5501,9 @@ export class DatabaseStorage implements IStorage {
     // Record in moderation history
     const moderationHistory = Array.isArray(reputation?.moderationHistory) 
       ? reputation.moderationHistory as any[] 
-      : [];
+      : (typeof reputation?.moderationHistory === 'string' && reputation.moderationHistory)
+        ? JSON.parse(reputation.moderationHistory) 
+        : [];
     
     moderationHistory.push({
       type: 'positive_action',
@@ -5512,7 +5513,7 @@ export class DatabaseStorage implements IStorage {
     });
 
     await this.updateUserReputation(userId, {
-      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+      moderationHistory: JSON.stringify(moderationHistory.slice(-20)) // Keep last 20 entries
     });
 
     // Recalculate reputation score
@@ -5532,7 +5533,9 @@ export class DatabaseStorage implements IStorage {
     // Record in moderation history with severity
     const moderationHistory = Array.isArray(reputation?.moderationHistory) 
       ? reputation.moderationHistory as any[] 
-      : [];
+      : (typeof reputation?.moderationHistory === 'string' && reputation.moderationHistory)
+        ? JSON.parse(reputation.moderationHistory) 
+        : [];
     
     moderationHistory.push({
       type: 'negative_action',
@@ -5543,7 +5546,7 @@ export class DatabaseStorage implements IStorage {
     });
 
     await this.updateUserReputation(userId, {
-      moderationHistory: moderationHistory.slice(-20) // Keep last 20 entries
+      moderationHistory: JSON.stringify(moderationHistory.slice(-20)) // Keep last 20 entries
     });
 
     // Recalculate reputation score
@@ -5588,10 +5591,10 @@ export class DatabaseStorage implements IStorage {
 
   // Content report operations
   async createContentReport(data: InsertContentReport): Promise<ContentReport> {
-    // Convert confidenceScore from number to string if present (decimal type requires string)
+    // confidenceScore should be a number (real type in schema)
     const insertData = {
       ...data,
-      confidenceScore: data.confidenceScore !== undefined ? String(data.confidenceScore) : undefined
+      confidenceScore: data.confidenceScore !== undefined ? Number(data.confidenceScore) : undefined
     };
     
     const [report] = await db.insert(contentReports).values(insertData).returning();
@@ -6409,7 +6412,7 @@ export class DatabaseStorage implements IStorage {
       targetId: content.id,
       targetType: 'cms_content',
       category: 'content_moderation',
-      parameters: { contentType: data.type, title: data.title },
+      parameters: JSON.stringify({ contentType: data.type, title: data.title }),
       ipAddress: ''
     });    
     
