@@ -438,6 +438,278 @@ export const collaborationRequests = sqliteTable("collaboration_requests", {
   index("idx_collaboration_requests_status").on(table.status),
 ]);
 
+// ===============================
+// ADMIN & MODERATION TABLES
+// ===============================
+
+// User roles for admin platform - hierarchical role-based access control
+export const userRoles = sqliteTable("user_roles", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // 'admin', 'moderator', 'trust_safety', 'community_manager'
+  permissions: text("permissions").notNull().default("[]"), // JSON array of permission strings
+  communityId: text("community_id").references(() => communities.id),
+  assignedBy: text("assigned_by").notNull().references(() => users.id),
+  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_user_roles_user_id").on(table.userId),
+  index("idx_user_roles_role").on(table.role),
+  index("idx_user_roles_community").on(table.communityId),
+  unique("unique_user_role_community").on(table.userId, table.role, table.communityId),
+]);
+
+// User reputation - tracks user trustworthiness and behavior
+export const userReputation = sqliteTable("user_reputation", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  score: integer("score").default(100),
+  level: text("level").default("new"), // 'new', 'trusted', 'veteran', 'flagged', 'restricted'
+  positiveActions: integer("positive_actions").default(0),
+  negativeActions: integer("negative_actions").default(0),
+  reportsMade: integer("reports_made").default(0),
+  reportsAccurate: integer("reports_accurate").default(0),
+  moderationHistory: text("moderation_history").default("[]"), // JSON array
+  lastCalculated: integer("last_calculated", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_user_reputation_user_id").on(table.userId),
+  index("idx_user_reputation_score").on(table.score),
+  index("idx_user_reputation_level").on(table.level),
+]);
+
+// Content reports - user and system generated reports for moderation
+export const contentReports = sqliteTable("content_reports", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  reporterUserId: text("reporter_user_id").references(() => users.id, { onDelete: "set null" }),
+  reportedUserId: text("reported_user_id").references(() => users.id, { onDelete: "cascade" }),
+  contentType: text("content_type").notNull(), // 'forum_post', 'forum_reply', 'message', 'profile', 'stream'
+  contentId: text("content_id").notNull(),
+  reason: text("reason").notNull(), // 'hate_speech', 'harassment', 'spam', 'inappropriate_content'
+  description: text("description"),
+  evidence: text("evidence"), // JSON
+  isSystemGenerated: integer("is_system_generated", { mode: 'boolean' }).default(0),
+  automatedFlags: text("automated_flags"), // JSON
+  confidenceScore: real("confidence_score"),
+  status: text("status").default("pending"), // 'pending', 'investigating', 'resolved', 'dismissed'
+  priority: text("priority").default("medium"), // 'low', 'medium', 'high', 'urgent'
+  assignedModerator: text("assigned_moderator").references(() => users.id),
+  moderationNotes: text("moderation_notes"),
+  resolution: text("resolution"),
+  actionTaken: text("action_taken"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  resolvedAt: integer("resolved_at", { mode: 'timestamp' }),
+}, (table) => [
+  index("idx_content_reports_reporter").on(table.reporterUserId),
+  index("idx_content_reports_reported").on(table.reportedUserId),
+  index("idx_content_reports_status").on(table.status),
+  index("idx_content_reports_priority").on(table.priority),
+  index("idx_content_reports_assigned").on(table.assignedModerator),
+  index("idx_content_reports_content").on(table.contentType, table.contentId),
+  index("idx_content_reports_status_type_created").on(table.status, table.contentType, table.createdAt),
+]);
+
+// Moderation actions - comprehensive log of all moderation activities
+export const moderationActions = sqliteTable("moderation_actions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  moderatorId: text("moderator_id").notNull().references(() => users.id),
+  targetUserId: text("target_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // 'warn', 'mute', 'restrict', 'shadowban', 'ban', 'unban'
+  reason: text("reason").notNull(),
+  duration: integer("duration"), // Duration in hours for temporary actions
+  relatedContentType: text("related_content_type"),
+  relatedContentId: text("related_content_id"),
+  relatedReportId: text("related_report_id").references(() => contentReports.id),
+  isReversible: integer("is_reversible", { mode: 'boolean' }).default(1),
+  isPublic: integer("is_public", { mode: 'boolean' }).default(0),
+  metadata: text("metadata"), // JSON
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  adminNotes: text("admin_notes"),
+  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  reversedBy: text("reversed_by").references(() => users.id),
+  reversedAt: integer("reversed_at", { mode: 'timestamp' }),
+  reversalReason: text("reversal_reason"),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_moderation_actions_moderator").on(table.moderatorId),
+  index("idx_moderation_actions_target").on(table.targetUserId),
+  index("idx_moderation_actions_action").on(table.action),
+  index("idx_moderation_actions_active").on(table.isActive),
+  index("idx_moderation_actions_expires").on(table.expiresAt),
+  index("idx_moderation_actions_created").on(table.createdAt),
+  index("idx_moderation_actions_target_action_active").on(table.targetUserId, table.action, table.isActive),
+]);
+
+// Moderation queue - centralized queue for all moderation tasks
+export const moderationQueue = sqliteTable("moderation_queue", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  itemType: text("item_type").notNull(), // 'report', 'auto_flag', 'appeal', 'ban_evasion'
+  itemId: text("item_id").notNull(),
+  priority: integer("priority").default(5), // 1-10, higher = more urgent
+  status: text("status").default("open"), // 'open', 'assigned', 'in_progress', 'completed', 'skipped'
+  assignedModerator: text("assigned_moderator").references(() => users.id),
+  assignedAt: integer("assigned_at", { mode: 'timestamp' }),
+  riskScore: real("risk_score"),
+  userReputationScore: integer("user_reputation_score"),
+  reporterReputationScore: integer("reporter_reputation_score"),
+  mlPriority: integer("ml_priority"),
+  autoGenerated: integer("auto_generated", { mode: 'boolean' }).default(0),
+  summary: text("summary"),
+  tags: text("tags").default("[]"), // JSON array
+  estimatedTimeMinutes: integer("estimated_time_minutes"),
+  metadata: text("metadata"), // JSON
+  resolution: text("resolution"),
+  actionTaken: text("action_taken"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  completedAt: integer("completed_at", { mode: 'timestamp' }),
+}, (table) => [
+  index("idx_moderation_queue_status").on(table.status),
+  index("idx_moderation_queue_priority").on(table.priority),
+  index("idx_moderation_queue_assigned").on(table.assignedModerator),
+  index("idx_moderation_queue_created").on(table.createdAt),
+  index("idx_moderation_queue_item").on(table.itemType, table.itemId),
+  index("idx_moderation_queue_status_priority_created").on(table.status, table.priority, table.createdAt),
+]);
+
+// CMS content management - for Terms of Service, Privacy Policy, etc.
+export const cmsContent = sqliteTable("cms_content", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  type: text("type").notNull(), // 'terms_of_service', 'privacy_policy', 'community_guidelines'
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  version: integer("version").notNull().default(1),
+  isPublished: integer("is_published", { mode: 'boolean' }).default(0),
+  publishedAt: integer("published_at", { mode: 'timestamp' }),
+  scheduledPublishAt: integer("scheduled_publish_at", { mode: 'timestamp' }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  lastEditedBy: text("last_edited_by").notNull().references(() => users.id),
+  approvedBy: text("approved_by").references(() => users.id),
+  approvedAt: integer("approved_at", { mode: 'timestamp' }),
+  changeLog: text("change_log"),
+  previousVersionId: text("previous_version_id"),
+  metaDescription: text("meta_description"),
+  metaKeywords: text("meta_keywords"),
+  slug: text("slug").unique(),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_cms_content_type").on(table.type),
+  index("idx_cms_content_published").on(table.isPublished),
+  index("idx_cms_content_author").on(table.authorId),
+  index("idx_cms_content_scheduled").on(table.scheduledPublishAt),
+  index("idx_cms_content_version").on(table.type, table.version),
+]);
+
+// Ban evasion tracking - tracks IP addresses and device fingerprints
+export const banEvasionTracking = sqliteTable("ban_evasion_tracking", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  ipAddress: text("ip_address").notNull(),
+  hashedFingerprint: text("hashed_fingerprint"),
+  userAgent: text("user_agent"),
+  screenResolution: text("screen_resolution"),
+  timezone: text("timezone"),
+  language: text("language"),
+  loginPatterns: text("login_patterns"), // JSON
+  activitySignature: text("activity_signature"), // JSON
+  detectionMethod: text("detection_method"),
+  confidenceScore: real("confidence_score"),
+  relatedBannedUser: text("related_banned_user").references(() => users.id),
+  status: text("status").default("flagged"), // 'flagged', 'investigating', 'confirmed', 'false_positive'
+  investigatedBy: text("investigated_by").references(() => users.id),
+  investigatedAt: integer("investigated_at", { mode: 'timestamp' }),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_ban_evasion_user").on(table.userId),
+  index("idx_ban_evasion_ip").on(table.ipAddress),
+  index("idx_ban_evasion_fingerprint").on(table.hashedFingerprint),
+  index("idx_ban_evasion_status").on(table.status),
+  index("idx_ban_evasion_confidence").on(table.confidenceScore),
+]);
+
+// User appeals - system for users to appeal moderation actions
+export const userAppeals = sqliteTable("user_appeals", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moderationActionId: text("moderation_action_id").notNull().references(() => moderationActions.id),
+  reason: text("reason").notNull(),
+  evidence: text("evidence"), // JSON
+  additionalInfo: text("additional_info"),
+  status: text("status").default("pending"), // 'pending', 'under_review', 'approved', 'denied', 'withdrawn', 'resolved'
+  reviewedBy: text("reviewed_by").references(() => users.id),
+  reviewedAt: integer("reviewed_at", { mode: 'timestamp' }),
+  reviewNotes: text("review_notes"),
+  decision: text("decision"),
+  decisionReason: text("decision_reason"),
+  responseToUser: text("response_to_user"),
+  isUserNotified: integer("is_user_notified", { mode: 'boolean' }).default(0),
+  canReappeal: integer("can_reappeal", { mode: 'boolean' }).default(0),
+  reappealCooldownUntil: integer("reappeal_cooldown_until", { mode: 'timestamp' }),
+  resolvedAt: integer("resolved_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_user_appeals_user").on(table.userId),
+  index("idx_user_appeals_action").on(table.moderationActionId),
+  index("idx_user_appeals_status").on(table.status),
+  index("idx_user_appeals_reviewer").on(table.reviewedBy),
+  index("idx_user_appeals_created").on(table.createdAt),
+]);
+
+// Saved moderation templates - for consistent communication
+export const moderationTemplates = sqliteTable("moderation_templates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // 'warning', 'ban_notice', 'appeal_response'
+  subject: text("subject"),
+  content: text("content").notNull(),
+  variables: text("variables").default("[]"), // JSON array
+  isActive: integer("is_active", { mode: 'boolean' }).default(1),
+  createdBy: text("created_by").notNull().references(() => users.id),
+  lastModifiedBy: text("last_modified_by").notNull().references(() => users.id),
+  usageCount: integer("usage_count").default(0),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_moderation_templates_category").on(table.category),
+  index("idx_moderation_templates_active").on(table.isActive),
+  index("idx_moderation_templates_creator").on(table.createdBy),
+]);
+
+// Admin audit log - comprehensive logging of all admin actions
+export const adminAuditLog = sqliteTable("admin_audit_log", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adminUserId: text("admin_user_id").notNull().references(() => users.id),
+  action: text("action").notNull(), // 'login', 'role_assign', 'user_ban', 'content_delete'
+  category: text("category").notNull(), // 'authentication', 'user_management', 'content_moderation', 'system_config'
+  targetType: text("target_type"),
+  targetId: text("target_id"),
+  targetIdentifier: text("target_identifier"),
+  oldValues: text("old_values"), // JSON
+  newValues: text("new_values"), // JSON
+  parameters: text("parameters"), // JSON
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  sessionId: text("session_id"),
+  success: integer("success", { mode: 'boolean' }).default(1),
+  errorMessage: text("error_message"),
+  impactAssessment: text("impact_assessment"), // 'low', 'medium', 'high', 'critical'
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => Date.now()),
+}, (table) => [
+  index("idx_admin_audit_log_admin").on(table.adminUserId),
+  index("idx_admin_audit_log_action").on(table.action),
+  index("idx_admin_audit_log_category").on(table.category),
+  index("idx_admin_audit_log_target").on(table.targetType, table.targetId),
+  index("idx_admin_audit_log_created").on(table.createdAt),
+  index("idx_admin_audit_log_ip").on(table.ipAddress),
+]);
+
 // ======================
 // RELATIONS
 // ======================
@@ -497,6 +769,18 @@ export type GameSession = typeof gameSessions.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type StreamSession = typeof streamSessions.$inferSelect;
 
+// Admin & Moderation types
+export type UserRole = typeof userRoles.$inferSelect;
+export type UserReputation = typeof userReputation.$inferSelect;
+export type ContentReport = typeof contentReports.$inferSelect;
+export type ModerationAction = typeof moderationActions.$inferSelect;
+export type ModerationQueue = typeof moderationQueue.$inferSelect;
+export type CmsContent = typeof cmsContent.$inferSelect;
+export type BanEvasionTracking = typeof banEvasionTracking.$inferSelect;
+export type UserAppeal = typeof userAppeals.$inferSelect;
+export type ModerationTemplate = typeof moderationTemplates.$inferSelect;
+export type AdminAuditLog = typeof adminAuditLog.$inferSelect;
+
 // Insert schemas with Zod validation
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email(),
@@ -529,7 +813,53 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+// Admin & Moderation insert schemas
+export const insertUserRoleSchema = createInsertSchema(userRoles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContentReportSchema = createInsertSchema(contentReports).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertModerationActionSchema = createInsertSchema(moderationActions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertModerationQueueSchema = createInsertSchema(moderationQueue).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCmsContentSchema = createInsertSchema(cmsContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserAppealSchema = createInsertSchema(userAppeals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+export type InsertContentReport = z.infer<typeof insertContentReportSchema>;
+export type InsertModerationAction = z.infer<typeof insertModerationActionSchema>;
+export type InsertModerationQueue = z.infer<typeof insertModerationQueueSchema>;
+export type InsertCmsContent = z.infer<typeof insertCmsContentSchema>;
+export type InsertUserAppeal = z.infer<typeof insertUserAppealSchema>;
+export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
