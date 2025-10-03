@@ -208,11 +208,6 @@ interface ExtendedEvent extends Event {
   isPublic?: boolean;
 }
 
-interface ExtendedEventAttendee extends EventAttendee {
-  role?: string;
-  playerType?: string;
-}
-
 interface ExtendedTournament extends Tournament {
   gameFormat?: string;
   rules?: any;
