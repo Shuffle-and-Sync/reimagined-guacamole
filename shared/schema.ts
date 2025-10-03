@@ -711,6 +711,554 @@ export const adminAuditLog = sqliteTable("admin_audit_log", {
 ]);
 
 // ======================
+// EMAIL CHANGE MANAGEMENT
+// ======================
+
+export const emailChangeRequests = sqliteTable("email_change_requests", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  currentEmail: text("current_email").notNull(),
+  newEmail: text("new_email").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'verified', 'completed', 'cancelled', 'expired'
+  verificationCode: text("verification_code"),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
+  initiatedAt: integer("initiated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  completedAt: integer("completed_at", { mode: 'timestamp' }),
+}, (table) => [
+  index("idx_email_change_user").on(table.userId),
+  index("idx_email_change_status").on(table.status),
+  index("idx_email_change_new_email").on(table.newEmail),
+]);
+
+export const emailChangeTokens = sqliteTable("email_change_tokens", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  requestId: text("request_id").notNull().references(() => emailChangeRequests.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  type: text("type").notNull(), // 'current_email', 'new_email'
+  isUsed: integer("is_used", { mode: 'boolean' }).default(false),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
+  usedAt: integer("used_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_email_change_token_request").on(table.requestId),
+  index("idx_email_change_token_token").on(table.token),
+]);
+
+// ======================
+// USER PROFILES & SOCIAL
+// ======================
+
+export const userSocialLinks = sqliteTable("user_social_links", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(), // 'twitter', 'instagram', 'tiktok', 'discord', 'website'
+  url: text("url").notNull(),
+  displayName: text("display_name"),
+  isVerified: integer("is_verified", { mode: 'boolean' }).default(false),
+  isPublic: integer("is_public", { mode: 'boolean' }).default(true),
+  orderIndex: integer("order_index").default(0),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_user_social_links_user").on(table.userId),
+  index("idx_user_social_links_platform").on(table.platform),
+]);
+
+export const userGamingProfiles = sqliteTable("user_gaming_profiles", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  gameType: text("game_type").notNull(), // 'MTG', 'Pokemon', 'Lorcana', 'Yu-Gi-Oh'
+  playerId: text("player_id"),
+  username: text("username"),
+  skillLevel: text("skill_level"), // 'beginner', 'intermediate', 'advanced', 'competitive'
+  preferredFormats: text("preferred_formats").default("[]"), // JSON array
+  achievements: text("achievements").default("[]"), // JSON array
+  statistics: text("statistics").default("{}"), // JSON object
+  isPublic: integer("is_public", { mode: 'boolean' }).default(true),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_user_gaming_profiles_user").on(table.userId),
+  index("idx_user_gaming_profiles_game").on(table.gameType),
+  unique().on(table.userId, table.gameType),
+]);
+
+// ======================
+// USER SETTINGS & PREFERENCES
+// ======================
+
+export const userSettings = sqliteTable("user_settings", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  notificationsEnabled: integer("notifications_enabled", { mode: 'boolean' }).default(true),
+  emailNotifications: integer("email_notifications", { mode: 'boolean' }).default(true),
+  pushNotifications: integer("push_notifications", { mode: 'boolean' }).default(false),
+  notificationTypes: text("notification_types").default("{}"), // JSON object
+  privacySettings: text("privacy_settings").default("{}"), // JSON object
+  displayPreferences: text("display_preferences").default("{}"), // JSON object
+  language: text("language").default("en"),
+  timezone: text("timezone").default("UTC"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_user_settings_user").on(table.userId),
+]);
+
+export const matchmakingPreferences = sqliteTable("matchmaking_preferences", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  gameType: text("game_type").notNull(),
+  preferredFormats: text("preferred_formats").default("[]"), // JSON array
+  skillLevelRange: text("skill_level_range").default("[]"), // JSON array [min, max]
+  availabilitySchedule: text("availability_schedule").default("{}"), // JSON object
+  maxTravelDistance: integer("max_travel_distance"),
+  preferredLocation: text("preferred_location"),
+  playStyle: text("play_style"), // 'casual', 'competitive', 'social'
+  communicationPreferences: text("communication_preferences").default("{}"), // JSON object
+  blockedUsers: text("blocked_users").default("[]"), // JSON array of user IDs
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_matchmaking_prefs_user").on(table.userId),
+  index("idx_matchmaking_prefs_game").on(table.gameType),
+]);
+
+// ======================
+// TOURNAMENT STRUCTURES
+// ======================
+
+export const tournamentFormats = sqliteTable("tournament_formats", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  gameType: text("game_type").notNull(),
+  description: text("description"),
+  rules: text("rules").default("{}"), // JSON object
+  structure: text("structure").notNull(), // 'single_elimination', 'double_elimination', 'round_robin', 'swiss'
+  defaultRounds: integer("default_rounds"),
+  isOfficial: integer("is_official", { mode: 'boolean' }).default(false),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_tournament_formats_game").on(table.gameType),
+  unique().on(table.name, table.gameType),
+]);
+
+export const tournamentRounds = sqliteTable("tournament_rounds", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  tournamentId: text("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+  roundNumber: integer("round_number").notNull(),
+  name: text("name"),
+  status: text("status").default("pending"), // 'pending', 'in_progress', 'completed'
+  startTime: integer("start_time", { mode: 'timestamp' }),
+  endTime: integer("end_time", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_tournament_rounds_tournament").on(table.tournamentId),
+  index("idx_tournament_rounds_number").on(table.tournamentId, table.roundNumber),
+  unique().on(table.tournamentId, table.roundNumber),
+]);
+
+export const tournamentMatches = sqliteTable("tournament_matches", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  tournamentId: text("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+  roundId: text("round_id").notNull().references(() => tournamentRounds.id, { onDelete: "cascade" }),
+  matchNumber: integer("match_number").notNull(),
+  player1Id: text("player1_id").references(() => users.id),
+  player2Id: text("player2_id").references(() => users.id),
+  winnerId: text("winner_id").references(() => users.id),
+  status: text("status").default("pending"), // 'pending', 'in_progress', 'completed', 'bye'
+  tableNumber: integer("table_number"),
+  startTime: integer("start_time", { mode: 'timestamp' }),
+  endTime: integer("end_time", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_tournament_matches_tournament").on(table.tournamentId),
+  index("idx_tournament_matches_round").on(table.roundId),
+  index("idx_tournament_matches_players").on(table.player1Id, table.player2Id),
+]);
+
+export const matchResults = sqliteTable("match_results", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  matchId: text("match_id").notNull().unique().references(() => tournamentMatches.id, { onDelete: "cascade" }),
+  player1Score: integer("player1_score"),
+  player2Score: integer("player2_score"),
+  player1Deck: text("player1_deck"),
+  player2Deck: text("player2_deck"),
+  durationMinutes: integer("duration_minutes"),
+  notes: text("notes"),
+  reportedBy: text("reported_by").notNull().references(() => users.id),
+  isVerified: integer("is_verified", { mode: 'boolean' }).default(false),
+  verifiedBy: text("verified_by").references(() => users.id),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_match_results_match").on(table.matchId),
+  index("idx_match_results_reporter").on(table.reportedBy),
+]);
+
+// ======================
+// FORUM FEATURES
+// ======================
+
+export const forumPosts = sqliteTable("forum_posts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  authorId: text("author_id").notNull().references(() => users.id),
+  communityId: text("community_id").references(() => communities.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull(),
+  tags: text("tags").default("[]"), // JSON array
+  isPinned: integer("is_pinned", { mode: 'boolean' }).default(false),
+  isLocked: integer("is_locked", { mode: 'boolean' }).default(false),
+  viewCount: integer("view_count").default(0),
+  likeCount: integer("like_count").default(0),
+  replyCount: integer("reply_count").default(0),
+  lastActivityAt: integer("last_activity_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_forum_posts_author").on(table.authorId),
+  index("idx_forum_posts_community").on(table.communityId),
+  index("idx_forum_posts_category").on(table.category),
+  index("idx_forum_posts_activity").on(table.lastActivityAt),
+]);
+
+export const forumReplies = sqliteTable("forum_replies", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  postId: text("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  parentReplyId: text("parent_reply_id").references(() => forumReplies.id),
+  likeCount: integer("like_count").default(0),
+  isEdited: integer("is_edited", { mode: 'boolean' }).default(false),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_forum_replies_post").on(table.postId),
+  index("idx_forum_replies_author").on(table.authorId),
+  index("idx_forum_replies_parent").on(table.parentReplyId),
+]);
+
+export const forumPostLikes = sqliteTable("forum_post_likes", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  postId: text("post_id").notNull().references(() => forumPosts.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_forum_post_likes_post").on(table.postId),
+  index("idx_forum_post_likes_user").on(table.userId),
+  unique().on(table.postId, table.userId),
+]);
+
+export const forumReplyLikes = sqliteTable("forum_reply_likes", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  replyId: text("reply_id").notNull().references(() => forumReplies.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_forum_reply_likes_reply").on(table.replyId),
+  index("idx_forum_reply_likes_user").on(table.userId),
+  unique().on(table.replyId, table.userId),
+]);
+
+// ======================
+// STREAMING EXTENSIONS
+// ======================
+
+export const streamSessionCoHosts = sqliteTable("stream_session_co_hosts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text("session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").default("co_host"), // 'co_host', 'moderator', 'guest'
+  joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  leftAt: integer("left_at", { mode: 'timestamp' }),
+}, (table) => [
+  index("idx_stream_co_hosts_session").on(table.sessionId),
+  index("idx_stream_co_hosts_user").on(table.userId),
+  unique().on(table.sessionId, table.userId),
+]);
+
+export const streamSessionPlatforms = sqliteTable("stream_session_platforms", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text("session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(), // 'twitch', 'youtube', 'facebook', 'kick'
+  streamUrl: text("stream_url"),
+  streamKey: text("stream_key"),
+  status: text("status").default("idle"), // 'idle', 'live', 'offline', 'error'
+  viewerCount: integer("viewer_count").default(0),
+  startedAt: integer("started_at", { mode: 'timestamp' }),
+  endedAt: integer("ended_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_stream_platforms_session").on(table.sessionId),
+  index("idx_stream_platforms_platform").on(table.platform),
+]);
+
+// ======================
+// ANALYTICS
+// ======================
+
+export const streamAnalytics = sqliteTable("stream_analytics", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text("session_id").notNull().references(() => streamSessions.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  platform: text("platform").notNull(),
+  viewerCount: integer("viewer_count").default(0),
+  peakViewers: integer("peak_viewers").default(0),
+  averageViewers: integer("average_viewers").default(0),
+  chatMessages: integer("chat_messages").default(0),
+  likes: integer("likes").default(0),
+  shares: integer("shares").default(0),
+  durationMinutes: integer("duration_minutes").default(0),
+  timestamp: integer("timestamp", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_stream_analytics_session").on(table.sessionId),
+  index("idx_stream_analytics_user").on(table.userId),
+  index("idx_stream_analytics_timestamp").on(table.timestamp),
+]);
+
+export const userActivityAnalytics = sqliteTable("user_activity_analytics", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  activityType: text("activity_type").notNull(), // 'login', 'stream_view', 'event_join', 'forum_post'
+  count: integer("count").default(1),
+  metadata: text("metadata").default("{}"), // JSON object
+  date: text("date").notNull(), // YYYY-MM-DD
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_user_activity_user").on(table.userId),
+  index("idx_user_activity_type").on(table.activityType),
+  index("idx_user_activity_date").on(table.date),
+  unique().on(table.userId, table.activityType, table.date),
+]);
+
+export const communityAnalytics = sqliteTable("community_analytics", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  communityId: text("community_id").notNull().references(() => communities.id, { onDelete: "cascade" }),
+  metricType: text("metric_type").notNull(), // 'members', 'events', 'posts', 'streams'
+  value: integer("value").default(0),
+  metadata: text("metadata").default("{}"), // JSON object
+  date: text("date").notNull(), // YYYY-MM-DD
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_community_analytics_community").on(table.communityId),
+  index("idx_community_analytics_metric").on(table.metricType),
+  index("idx_community_analytics_date").on(table.date),
+  unique().on(table.communityId, table.metricType, table.date),
+]);
+
+export const platformMetrics = sqliteTable("platform_metrics", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  metricName: text("metric_name").notNull(),
+  metricValue: real("metric_value").notNull(),
+  metricType: text("metric_type").notNull(), // 'counter', 'gauge', 'histogram'
+  tags: text("tags").default("{}"), // JSON object
+  timestamp: integer("timestamp", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_platform_metrics_name").on(table.metricName),
+  index("idx_platform_metrics_timestamp").on(table.timestamp),
+]);
+
+export const eventTracking = sqliteTable("event_tracking", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").references(() => users.id),
+  eventName: text("event_name").notNull(),
+  eventCategory: text("event_category").notNull(),
+  eventProperties: text("event_properties").default("{}"), // JSON object
+  sessionId: text("session_id"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: integer("timestamp", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_event_tracking_user").on(table.userId),
+  index("idx_event_tracking_name").on(table.eventName),
+  index("idx_event_tracking_category").on(table.eventCategory),
+  index("idx_event_tracking_timestamp").on(table.timestamp),
+]);
+
+export const conversionFunnels = sqliteTable("conversion_funnels", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  funnelName: text("funnel_name").notNull(),
+  stepName: text("step_name").notNull(),
+  stepOrder: integer("step_order").notNull(),
+  userId: text("user_id").references(() => users.id),
+  sessionId: text("session_id"),
+  completed: integer("completed", { mode: 'boolean' }).default(false),
+  completedAt: integer("completed_at", { mode: 'timestamp' }),
+  metadata: text("metadata").default("{}"), // JSON object
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_conversion_funnel_name").on(table.funnelName),
+  index("idx_conversion_funnel_user").on(table.userId),
+  index("idx_conversion_funnel_session").on(table.sessionId),
+]);
+
+// ======================
+// COLLABORATIVE STREAMING
+// ======================
+
+export const collaborativeStreamEvents = sqliteTable("collaborative_stream_events", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description"),
+  scheduledStartTime: integer("scheduled_start_time", { mode: 'timestamp' }).notNull(),
+  estimatedDuration: integer("estimated_duration"), // in minutes
+  communityId: text("community_id").references(() => communities.id),
+  organizerId: text("organizer_id").notNull().references(() => users.id),
+  status: text("status").default("planned"), // 'planned', 'live', 'completed', 'cancelled'
+  streamingPlatforms: text("streaming_platforms").default("[]"), // JSON array
+  contentType: text("content_type"), // 'gameplay', 'tournament', 'discussion', 'showcase'
+  targetAudience: text("target_audience"),
+  maxCollaborators: integer("max_collaborators"),
+  requiresApproval: integer("requires_approval", { mode: 'boolean' }).default(true),
+  isPrivate: integer("is_private", { mode: 'boolean' }).default(false),
+  tags: text("tags").default("[]"), // JSON array
+  actualStartTime: integer("actual_start_time", { mode: 'timestamp' }),
+  actualEndTime: integer("actual_end_time", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_collab_stream_events_organizer").on(table.organizerId),
+  index("idx_collab_stream_events_community").on(table.communityId),
+  index("idx_collab_stream_events_start").on(table.scheduledStartTime),
+  index("idx_collab_stream_events_status").on(table.status),
+]);
+
+export const streamCollaborators = sqliteTable("stream_collaborators", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // 'host', 'co_host', 'guest', 'moderator'
+  status: text("status").default("pending"), // 'pending', 'accepted', 'declined', 'removed'
+  platformHandles: text("platform_handles").default("{}"), // JSON object
+  streamingCapabilities: text("streaming_capabilities").default("[]"), // JSON array
+  invitedBy: text("invited_by").references(() => users.id),
+  invitedAt: integer("invited_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  respondedAt: integer("responded_at", { mode: 'timestamp' }),
+  joinedAt: integer("joined_at", { mode: 'timestamp' }),
+  leftAt: integer("left_at", { mode: 'timestamp' }),
+}, (table) => [
+  index("idx_stream_collaborators_event").on(table.eventId),
+  index("idx_stream_collaborators_user").on(table.userId),
+  index("idx_stream_collaborators_status").on(table.status),
+  unique().on(table.eventId, table.userId),
+]);
+
+export const streamCoordinationSessions = sqliteTable("stream_coordination_sessions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  currentPhase: text("current_phase").default("preparation"), // 'preparation', 'live', 'break', 'wrap_up', 'ended'
+  currentHostId: text("current_host_id").references(() => users.id),
+  activeCollaborators: text("active_collaborators").default("[]"), // JSON array of user IDs
+  streamMetrics: text("stream_metrics").default("{}"), // JSON object
+  phaseHistory: text("phase_history").default("[]"), // JSON array
+  notes: text("notes"),
+  startedAt: integer("started_at", { mode: 'timestamp' }),
+  endedAt: integer("ended_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_stream_coordination_event").on(table.eventId),
+  index("idx_stream_coordination_phase").on(table.currentPhase),
+]);
+
+// ======================
+// MFA & SECURITY EXTENSIONS
+// ======================
+
+export const userMfaAttempts = sqliteTable("user_mfa_attempts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  attemptType: text("attempt_type").notNull(), // 'totp', 'backup_code', 'recovery'
+  success: integer("success", { mode: 'boolean' }).notNull(),
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  failureReason: text("failure_reason"),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_mfa_attempts_user").on(table.userId),
+  index("idx_mfa_attempts_created").on(table.createdAt),
+  index("idx_mfa_attempts_success").on(table.success),
+]);
+
+export const deviceFingerprints = sqliteTable("device_fingerprints", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  fingerprintHash: text("fingerprint_hash").notNull(),
+  deviceInfo: text("device_info").default("{}"), // JSON object
+  firstSeen: integer("first_seen", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  lastSeen: integer("last_seen", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  trustScore: real("trust_score").default(0.5),
+  isBlocked: integer("is_blocked", { mode: 'boolean' }).default(false),
+}, (table) => [
+  index("idx_device_fingerprints_user").on(table.userId),
+  index("idx_device_fingerprints_hash").on(table.fingerprintHash),
+  unique().on(table.userId, table.fingerprintHash),
+]);
+
+export const mfaSecurityContext = sqliteTable("mfa_security_context", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  contextType: text("context_type").notNull(), // 'login', 'sensitive_action', 'settings_change'
+  ipAddress: text("ip_address").notNull(),
+  location: text("location"),
+  deviceFingerprint: text("device_fingerprint"),
+  riskLevel: text("risk_level").default("low"), // 'low', 'medium', 'high'
+  requiresMfa: integer("requires_mfa", { mode: 'boolean' }).default(false),
+  mfaCompleted: integer("mfa_completed", { mode: 'boolean' }).default(false),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_mfa_context_user").on(table.userId),
+  index("idx_mfa_context_type").on(table.contextType),
+  index("idx_mfa_context_created").on(table.createdAt),
+]);
+
+export const trustedDevices = sqliteTable("trusted_devices", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  deviceFingerprintId: text("device_fingerprint_id").notNull().references(() => deviceFingerprints.id, { onDelete: "cascade" }),
+  deviceName: text("device_name"),
+  trustedAt: integer("trusted_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  lastUsed: integer("last_used", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }),
+  isRevoked: integer("is_revoked", { mode: 'boolean' }).default(false),
+  revokedAt: integer("revoked_at", { mode: 'timestamp' }),
+  revokedReason: text("revoked_reason"),
+}, (table) => [
+  index("idx_trusted_devices_user").on(table.userId),
+  index("idx_trusted_devices_fingerprint").on(table.deviceFingerprintId),
+  unique().on(table.userId, table.deviceFingerprintId),
+]);
+
+export const refreshTokens = sqliteTable("refresh_tokens", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  deviceInfo: text("device_info").default("{}"), // JSON object
+  ipAddress: text("ip_address").notNull(),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
+  lastUsed: integer("last_used", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  isRevoked: integer("is_revoked", { mode: 'boolean' }).default(false),
+  revokedAt: integer("revoked_at", { mode: 'timestamp' }),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_refresh_tokens_user").on(table.userId),
+  index("idx_refresh_tokens_token").on(table.token),
+  index("idx_refresh_tokens_expires").on(table.expiresAt),
+]);
+
+export const revokedJwtTokens = sqliteTable("revoked_jwt_tokens", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  jti: text("jti").notNull().unique(), // JWT ID
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
+  revokedAt: integer("revoked_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  reason: text("reason"),
+}, (table) => [
+  index("idx_revoked_jwt_jti").on(table.jti),
+  index("idx_revoked_jwt_user").on(table.userId),
+  index("idx_revoked_jwt_expires").on(table.expiresAt),
+]);
+
+// ======================
 // RELATIONS
 // ======================
 
@@ -853,6 +1401,7 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog).omit(
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertCommunity = typeof communities.$inferInsert;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
@@ -863,3 +1412,117 @@ export type InsertModerationQueue = z.infer<typeof insertModerationQueueSchema>;
 export type InsertCmsContent = z.infer<typeof insertCmsContentSchema>;
 export type InsertUserAppeal = z.infer<typeof insertUserAppealSchema>;
 export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+
+// Email change types
+export type EmailChangeRequest = typeof emailChangeRequests.$inferSelect;
+export type InsertEmailChangeRequest = typeof emailChangeRequests.$inferInsert;
+export type EmailChangeToken = typeof emailChangeTokens.$inferSelect;
+export type InsertEmailChangeToken = typeof emailChangeTokens.$inferInsert;
+
+// User profile types
+export type UserSocialLink = typeof userSocialLinks.$inferSelect;
+export type InsertUserSocialLink = typeof userSocialLinks.$inferInsert;
+export type UserGamingProfile = typeof userGamingProfiles.$inferSelect;
+export type InsertUserGamingProfile = typeof userGamingProfiles.$inferInsert;
+
+// Settings types
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = typeof userSettings.$inferInsert;
+export type MatchmakingPreferences = typeof matchmakingPreferences.$inferSelect;
+export type InsertMatchmakingPreferences = typeof matchmakingPreferences.$inferInsert;
+
+// Tournament structure types
+export type TournamentFormat = typeof tournamentFormats.$inferSelect;
+export type InsertTournamentFormat = typeof tournamentFormats.$inferInsert;
+export type TournamentRound = typeof tournamentRounds.$inferSelect;
+export type InsertTournamentRound = typeof tournamentRounds.$inferInsert;
+export type TournamentMatch = typeof tournamentMatches.$inferSelect;
+export type InsertTournamentMatch = typeof tournamentMatches.$inferInsert;
+export type MatchResult = typeof matchResults.$inferSelect;
+export type InsertMatchResult = typeof matchResults.$inferInsert;
+
+// Forum types
+export type ForumPost = typeof forumPosts.$inferSelect;
+export type InsertForumPost = typeof forumPosts.$inferInsert;
+export type ForumReply = typeof forumReplies.$inferSelect;
+export type InsertForumReply = typeof forumReplies.$inferInsert;
+export type ForumPostLike = typeof forumPostLikes.$inferSelect;
+export type InsertForumPostLike = typeof forumPostLikes.$inferInsert;
+export type ForumReplyLike = typeof forumReplyLikes.$inferSelect;
+export type InsertForumReplyLike = typeof forumReplyLikes.$inferInsert;
+
+// Stream extension types
+export type StreamSessionCoHost = typeof streamSessionCoHosts.$inferSelect;
+export type InsertStreamSessionCoHost = typeof streamSessionCoHosts.$inferInsert;
+export type StreamSessionPlatform = typeof streamSessionPlatforms.$inferSelect;
+export type InsertStreamSessionPlatform = typeof streamSessionPlatforms.$inferInsert;
+
+// Analytics types
+export type StreamAnalytics = typeof streamAnalytics.$inferSelect;
+export type InsertStreamAnalytics = typeof streamAnalytics.$inferInsert;
+export type UserActivityAnalytics = typeof userActivityAnalytics.$inferSelect;
+export type InsertUserActivityAnalytics = typeof userActivityAnalytics.$inferInsert;
+export type CommunityAnalytics = typeof communityAnalytics.$inferSelect;
+export type InsertCommunityAnalytics = typeof communityAnalytics.$inferInsert;
+export type PlatformMetrics = typeof platformMetrics.$inferSelect;
+export type InsertPlatformMetrics = typeof platformMetrics.$inferInsert;
+export type EventTracking = typeof eventTracking.$inferSelect;
+export type InsertEventTracking = typeof eventTracking.$inferInsert;
+export type ConversionFunnel = typeof conversionFunnels.$inferSelect;
+export type InsertConversionFunnel = typeof conversionFunnels.$inferInsert;
+
+// Collaborative streaming types
+export type CollaborativeStreamEvent = typeof collaborativeStreamEvents.$inferSelect;
+export type InsertCollaborativeStreamEvent = typeof collaborativeStreamEvents.$inferInsert;
+export type StreamCollaborator = typeof streamCollaborators.$inferSelect;
+export type InsertStreamCollaborator = typeof streamCollaborators.$inferInsert;
+export type StreamCoordinationSession = typeof streamCoordinationSessions.$inferSelect;
+export type InsertStreamCoordinationSession = typeof streamCoordinationSessions.$inferInsert;
+
+// MFA & Security types
+export type UserMfaAttempts = typeof userMfaAttempts.$inferSelect;
+export type InsertUserMfaAttempts = typeof userMfaAttempts.$inferInsert;
+export type DeviceFingerprint = typeof deviceFingerprints.$inferSelect;
+export type InsertDeviceFingerprint = typeof deviceFingerprints.$inferInsert;
+export type MfaSecurityContext = typeof mfaSecurityContext.$inferSelect;
+export type InsertMfaSecurityContext = typeof mfaSecurityContext.$inferInsert;
+export type TrustedDevice = typeof trustedDevices.$inferSelect;
+export type InsertTrustedDevice = typeof trustedDevices.$inferInsert;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type InsertRefreshToken = typeof refreshTokens.$inferInsert;
+export type RevokedJwtToken = typeof revokedJwtTokens.$inferSelect;
+export type InsertRevokedJwtToken = typeof revokedJwtTokens.$inferInsert;
+
+// Additional commonly used types that were missing
+export type UserCommunity = typeof userCommunities.$inferSelect;
+export type InsertUserCommunity = typeof userCommunities.$inferInsert;
+export type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
+export type InsertUserPlatformAccount = typeof userPlatformAccounts.$inferInsert;
+export type SafeUserPlatformAccount = Omit<UserPlatformAccount, 'accessToken' | 'refreshToken'>;
+export type ThemePreference = typeof themePreferences.$inferSelect;
+export type InsertThemePreference = typeof themePreferences.$inferInsert;
+export type EventAttendee = typeof eventAttendees.$inferSelect;
+export type InsertEventAttendee = typeof eventAttendees.$inferInsert;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
+export type Friendship = typeof friendships.$inferSelect;
+export type InsertFriendship = typeof friendships.$inferInsert;
+export type UserActivity = typeof userActivities.$inferSelect;
+export type InsertUserActivity = typeof userActivities.$inferInsert;
+export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
+export type InsertTournamentParticipant = typeof tournamentParticipants.$inferInsert;
+export type InsertTournament = typeof tournaments.$inferInsert;
+export type UpdateTournament = Partial<InsertTournament>;
+export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
+export type InsertCollaborationRequest = typeof collaborationRequests.$inferInsert;
+export type InsertGameSession = typeof gameSessions.$inferInsert;
+export type InsertStreamSession = typeof streamSessions.$inferInsert;
+export type InsertUserReputation = typeof userReputation.$inferInsert;
+export type InsertBanEvasionTracking = typeof banEvasionTracking.$inferInsert;
+export type InsertModerationTemplate = typeof moderationTemplates.$inferInsert;
+export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
+export type InsertUserMfaSettings = typeof userMfaSettings.$inferInsert;
+export type AuthAuditLog = typeof authAuditLog.$inferSelect;
+export type InsertAuthAuditLog = typeof authAuditLog.$inferInsert;

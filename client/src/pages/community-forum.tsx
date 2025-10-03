@@ -19,12 +19,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-// import type { ForumPost, ForumReply, User, Community } from "@shared/schema";
-import type { User, Community } from "@shared/schema";
-
-// TODO: Forum types don't exist in schema
-type ForumPost = any;
-type ForumReply = any;
+import type { User, Community, ForumPost, ForumReply } from "@shared/schema";
 
 const FORUM_CATEGORIES = [
   { id: "strategy", name: "Strategy & Tactics", icon: "fas fa-chess", color: "bg-blue-500" },

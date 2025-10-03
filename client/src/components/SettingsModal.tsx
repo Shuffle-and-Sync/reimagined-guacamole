@@ -14,8 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-// import type { UserSettings } from '@shared/schema'; // TODO: Not in schema
-type UserSettings = any; // Placeholder until schema is updated
+import type { UserSettings } from '@shared/schema';
 
 interface SettingsModalProps {
   isOpen: boolean;

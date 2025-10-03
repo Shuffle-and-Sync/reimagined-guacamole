@@ -7,12 +7,7 @@ import { useAuth } from "@/features/auth";
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from "@/hooks/use-toast";
-// import type { Tournament, TournamentMatch, TournamentRound, User } from '@shared/schema';
-import type { Tournament, User } from '@shared/schema';
-
-// TODO: These types don't exist in schema
-type TournamentMatch = any;
-type TournamentRound = any;
+import type { Tournament, TournamentMatch, TournamentRound, User } from '@shared/schema';
 
 interface TournamentBracketProps {
   tournament: Tournament & { 
