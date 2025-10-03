@@ -1,15 +1,36 @@
 /**
- * Card Recognition Routes
+ * Card Recognition Routes (Legacy - Deprecated)
  * 
  * API endpoints for Magic: The Gathering card recognition and lookup
+ * 
+ * DEPRECATED: These endpoints are maintained for backward compatibility.
+ * New integrations should use /api/games/:game_id/cards/* endpoints instead.
  */
 
 import { Router } from 'express';
 import { z } from 'zod';
+import { universalCardService } from '../../services/card-recognition/index';
 import { cardRecognitionService } from '../../services/card-recognition';
 import { logger } from '../../logger';
 
 const router = Router();
+
+// Default game ID for backward compatibility (MTG Official)
+const DEFAULT_GAME_ID = 'mtg-official';
+
+/**
+ * Add deprecation warning to response
+ */
+function addDeprecationWarning(data: any) {
+  return {
+    ...data,
+    _deprecated: {
+      message: 'This endpoint is deprecated. Please use /api/games/:game_id/cards/* endpoints instead.',
+      migrationGuide: 'https://docs.shuffleandsync.org/api/migration-guide',
+      newEndpoint: `/api/games/${DEFAULT_GAME_ID}/cards/`,
+    },
+  };
+}
 
 // Validation schemas
 const searchCardsSchema = z.object({
@@ -39,21 +60,24 @@ const randomCardSchema = z.object({
 /**
  * Search for cards
  * GET /api/cards/search?q=lightning+bolt&set=lea&format=modern&page=1&limit=20
+ * 
+ * DEPRECATED: Use /api/games/:game_id/cards/search instead
  */
 router.get('/search', async (req, res) => {
   try {
     const params = searchCardsSchema.parse(req.query);
     
-    logger.info('Card search request', { query: params.q, set: params.set, format: params.format });
+    logger.info('Legacy card search request (deprecated)', { query: params.q, set: params.set, format: params.format });
     
-    const result = await cardRecognitionService.searchCards(params.q, {
+    // Internally redirect to MTG game using Universal Card Service
+    const result = await universalCardService.searchCards(DEFAULT_GAME_ID, params.q, {
       set: params.set,
       format: params.format,
       page: params.page,
       limit: params.limit,
     });
     
-    return res.json(result);
+    return res.json(addDeprecationWarning(result));
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -70,6 +94,8 @@ router.get('/search', async (req, res) => {
 /**
  * Get card by ID
  * GET /api/cards/:id
+ * 
+ * DEPRECATED: Use /api/games/:game_id/cards/:id instead
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -79,15 +105,16 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ message: 'Invalid card ID' });
     }
     
-    logger.info('Get card by ID request', { id });
+    logger.info('Legacy get card by ID request (deprecated)', { id });
     
-    const card = await cardRecognitionService.getCardById(id);
+    // Internally redirect to MTG game using Universal Card Service
+    const card = await universalCardService.getCardById(DEFAULT_GAME_ID, id);
     
     if (!card) {
       return res.status(404).json({ message: 'Card not found' });
     }
     
-    return res.json(card);
+    return res.json(addDeprecationWarning(card));
   } catch (error) {
     logger.error('Error fetching card by ID', error, { id: req.params.id });
     return res.status(500).json({ message: 'Failed to fetch card' });
@@ -98,6 +125,8 @@ router.get('/:id', async (req, res) => {
  * Get card by exact or fuzzy name
  * GET /api/cards/named?exact=Lightning+Bolt
  * GET /api/cards/named?fuzzy=bolt&set=lea
+ * 
+ * DEPRECATED: Use /api/games/:game_id/cards/named instead
  */
 router.get('/named', async (req, res) => {
   try {
@@ -110,9 +139,10 @@ router.get('/named', async (req, res) => {
     }
     
     const cardName = params.exact || params.fuzzy || '';
-    logger.info('Get card by name request', { name: cardName, set: params.set });
+    logger.info('Legacy get card by name request (deprecated)', { name: cardName, set: params.set });
     
-    const card = await cardRecognitionService.getCardByName(cardName, {
+    // Internally redirect to MTG game using Universal Card Service
+    const card = await universalCardService.getCardByName(DEFAULT_GAME_ID, cardName, {
       set: params.set,
     });
     
@@ -120,7 +150,7 @@ router.get('/named', async (req, res) => {
       return res.status(404).json({ message: 'Card not found' });
     }
     
-    return res.json(card);
+    return res.json(addDeprecationWarning(card));
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -137,16 +167,19 @@ router.get('/named', async (req, res) => {
 /**
  * Autocomplete card names
  * GET /api/cards/autocomplete?q=light&limit=10
+ * 
+ * DEPRECATED: Use /api/games/:game_id/cards/autocomplete instead
  */
 router.get('/autocomplete', async (req, res) => {
   try {
     const params = autocompleteSchema.parse(req.query);
     
-    logger.info('Autocomplete request', { query: params.q });
+    logger.info('Legacy autocomplete request (deprecated)', { query: params.q });
     
-    const result = await cardRecognitionService.autocomplete(params.q, params.limit);
+    // Internally redirect to MTG game using Universal Card Service
+    const result = await universalCardService.autocomplete(DEFAULT_GAME_ID, params.q, params.limit);
     
-    return res.json(result);
+    return res.json(addDeprecationWarning(result));
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -163,19 +196,22 @@ router.get('/autocomplete', async (req, res) => {
 /**
  * Get random card
  * GET /api/cards/random?set=lea&format=modern
+ * 
+ * DEPRECATED: Use /api/games/:game_id/cards/random instead
  */
 router.get('/random', async (req, res) => {
   try {
     const params = randomCardSchema.parse(req.query);
     
-    logger.info('Random card request', { set: params.set, format: params.format });
+    logger.info('Legacy random card request (deprecated)', { set: params.set, format: params.format });
     
-    const card = await cardRecognitionService.getRandomCard({
+    // Internally redirect to MTG game using Universal Card Service
+    const card = await universalCardService.getRandomCard(DEFAULT_GAME_ID, {
       set: params.set,
       format: params.format,
     });
     
-    return res.json(card);
+    return res.json(addDeprecationWarning(card));
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -192,6 +228,8 @@ router.get('/random', async (req, res) => {
 /**
  * Get cache statistics (for monitoring/debugging)
  * GET /api/cards/cache/stats
+ * 
+ * NOTE: This endpoint is not deprecated as it's for internal monitoring
  */
 router.get('/cache/stats', async (req, res) => {
   try {
