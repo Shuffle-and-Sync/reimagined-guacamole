@@ -64,7 +64,7 @@ export class AuthService {
 
       // Get user email from userId
       const user = await storage.getUser(resetToken.userId);
-      if (!user) {
+      if (!user || !user.email) {
         return null;
       }
 
@@ -92,7 +92,7 @@ export class AuthService {
 
       // Get user email for logging
       const user = await storage.getUser(resetToken.userId);
-      const emailForLog = user ? user.email.substring(0, 3) + "***" : "unknown";
+      const emailForLog = (user && user.email) ? user.email.substring(0, 3) + "***" : "unknown";
 
       // Password updates are handled by Auth.js credential provider
       // Token cleanup ensures one-time use security

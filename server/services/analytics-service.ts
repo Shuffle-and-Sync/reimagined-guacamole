@@ -206,6 +206,10 @@ export class AnalyticsService {
    */
   async aggregateCommunityMetrics(communityId: string, date: Date, hour?: number): Promise<void> {
     try {
+      if (!date) {
+        throw new Error('Date parameter is required');
+      }
+      
       const metrics = await this.calculateCommunityMetrics(communityId, date, hour);
       
       // Store metrics as separate records for each metric type
@@ -224,8 +228,8 @@ export class AnalyticsService {
         const communityAnalytics: InsertCommunityAnalytics = {
           communityId,
           metricType: metric.metricType,
-          value: metric.value,
-          date: date.toISOString().split('T')[0], // YYYY-MM-DD format
+          value: metric.value ?? 0,
+          date: date.toISOString().split('T')[0]!, // YYYY-MM-DD format
           metadata: JSON.stringify({
             calculatedAt: new Date().toISOString(),
             hour,
