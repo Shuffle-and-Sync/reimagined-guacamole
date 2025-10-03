@@ -1,96 +1,71 @@
 import { sql } from 'drizzle-orm';
 import {
   index,
-  jsonb,
-  pgTable,
-  timestamp,
-  varchar,
+  sqliteTable,
   text,
   integer,
-  boolean,
-  date,
-  decimal,
+  real,
   unique,
-  pgEnum,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// PostgreSQL enums for better type safety and performance
-export const userStatusEnum = pgEnum('user_status', ['online', 'offline', 'away', 'busy', 'gaming']);
-export const privacyLevelEnum = pgEnum('privacy_level', ['everyone', 'friends_only', 'private']);
-export const eventTypeEnum = pgEnum('event_type', ['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']);
-export const eventStatusEnum = pgEnum('event_status', ['active', 'cancelled', 'completed', 'draft']);
-export const attendeeStatusEnum = pgEnum('attendee_status', ['attending', 'maybe', 'not_attending']);
-export const gameSessionStatusEnum = pgEnum('game_session_status', ['waiting', 'active', 'paused', 'completed', 'cancelled']);
-export const notificationTypeEnum = pgEnum('notification_type', ['event_join', 'event_leave', 'game_invite', 'message', 'system', 'friend_request', 'friend_accepted', 'pod_filled', 'pod_almost_full', 'spectator_join']);
-export const notificationPriorityEnum = pgEnum('notification_priority', ['low', 'normal', 'high', 'urgent']);
-export const streamSessionStatusEnum = pgEnum('stream_session_status', ['scheduled', 'live', 'ended', 'cancelled']);
-export const collaborationRequestStatusEnum = pgEnum('collaboration_request_status', ['pending', 'accepted', 'declined', 'expired', 'cancelled']);
-
-// Additional enums for database improvements - high priority
-export const emailVerificationStatusEnum = pgEnum('email_verification_status', ['pending', 'verified', 'expired', 'cancelled']);
-export const friendRequestStatusEnum = pgEnum('friend_request_status', ['pending', 'accepted', 'declined', 'blocked']);
-export const tournamentStatusEnum = pgEnum('tournament_status', ['upcoming', 'active', 'completed', 'cancelled']);
-export const tournamentParticipantStatusEnum = pgEnum('tournament_participant_status', ['registered', 'active', 'eliminated', 'winner']);
-export const tournamentRoundStatusEnum = pgEnum('tournament_round_status', ['pending', 'active', 'completed']);
-export const tournamentMatchStatusEnum = pgEnum('tournament_match_status', ['pending', 'active', 'completed', 'bye']);
-export const moderationCaseStatusEnum = pgEnum('moderation_case_status', ['pending', 'investigating', 'resolved', 'dismissed']);
-export const moderationTaskStatusEnum = pgEnum('moderation_task_status', ['open', 'assigned', 'in_progress', 'completed', 'skipped']);
-export const bannedUserStatusEnum = pgEnum('banned_user_status', ['flagged', 'investigating', 'confirmed', 'false_positive']);
-export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'under_review', 'approved', 'denied', 'withdrawn', 'resolved']);
-export const collaborativeStreamStatusEnum = pgEnum('collaborative_stream_status', ['planning', 'recruiting', 'scheduled', 'live', 'completed', 'cancelled']);
-export const streamCollaboratorStatusEnum = pgEnum('stream_collaborator_status', ['invited', 'accepted', 'declined', 'removed']);
+// SQLite doesn't support native enums, so we use text with validation
+// User status values: 'online', 'offline', 'away', 'busy', 'gaming'
+// Privacy level values: 'everyone', 'friends_only', 'private'
+// Event type values: 'tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod'
+// Event status values: 'active', 'cancelled', 'completed', 'draft'
+// etc.
 
 // Legacy Express session storage table.
 // (IMPORTANT) This table is used for legacy session management, don't drop it.
-export const legacySessions = pgTable(
+export const legacySessions = sqliteTable(
   "legacy_sessions",
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
+    sid: text("sid").primaryKey(),
+    sess: text("sess").notNull(), // JSON string
+    expire: integer("expire", { mode: 'timestamp' }).notNull(),
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // Auth.js tables for OAuth and session management
 // These tables are used by @auth/drizzle-adapter
-export const accounts = pgTable(
+export const accounts = sqliteTable(
   "accounts",
   {
-    id: varchar("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    type: varchar("type").notNull(),
-    provider: varchar("provider").notNull(),
-    providerAccountId: varchar("provider_account_id").notNull(),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
     expires_at: integer("expires_at"),
-    token_type: varchar("token_type"),
-    scope: varchar("scope"),
+    token_type: text("token_type"),
+    scope: text("scope"),
     id_token: text("id_token"),
-    session_state: varchar("session_state"),
+    session_state: text("session_state"),
   },
   (table) => [
     unique().on(table.provider, table.providerAccountId),
   ]
 );
 
-export const sessions = pgTable("sessions", {
-  id: varchar("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  sessionToken: varchar("session_token").notNull().unique(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires").notNull(),
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionToken: text("session_token").notNull().unique(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expires: integer("expires", { mode: 'timestamp' }).notNull(),
 });
 
-export const verificationTokens = pgTable(
+export const verificationTokens = sqliteTable(
   "verification_tokens",
   {
-    identifier: varchar("identifier").notNull(),
-    token: varchar("token").notNull().unique(),
-    expires: timestamp("expires").notNull(),
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull().unique(),
+    expires: integer("expires", { mode: 'timestamp' }).notNull(),
   },
   (table) => [
     unique().on(table.identifier, table.token),
