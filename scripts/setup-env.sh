@@ -142,28 +142,29 @@ check_prerequisites() {
 # Setup database
 setup_database() {
     print_info "Database setup options:"
-    echo "1. Use existing PostgreSQL database"
-    echo "2. Set up local PostgreSQL with Docker"
-    echo "3. Use cloud database (Supabase, AWS RDS, etc.)"
-    echo "4. Skip database setup"
+    echo "1. Use SQLite Cloud (recommended for production)"
+    echo "2. Use local SQLite file (./dev.db)"
+    echo "3. Skip database setup"
     
-    read -p "Choose option (1-4): " -n 1 -r db_choice
+    read -p "Choose option (1-3): " -n 1 -r db_choice
     echo
     
     case $db_choice in
         1)
-            print_info "Please update DATABASE_URL in .env.local with your existing database connection string"
-            print_info "Format: postgresql://username:password@host:port/database_name"
+            print_info "Please update DATABASE_URL in .env.local with your SQLite Cloud connection string"
+            print_info "Format: sqlitecloud://host:port/database?apikey=YOUR_API_KEY"
+            print_info "Get credentials from: https://sqlitecloud.io"
             ;;
         2)
-            if ! command_exists docker; then
-                print_error "Docker not found. Please install Docker first."
-                return 1
+            print_info "Using local SQLite file: ./dev.db"
+            if [[ -f .env.local ]]; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s|DATABASE_URL=.*|DATABASE_URL=./dev.db|g" .env.local
+                else
+                    sed -i "s|DATABASE_URL=.*|DATABASE_URL=./dev.db|g" .env.local
+                fi
             fi
-            print_info "Starting PostgreSQL with Docker..."
-            docker run --name shufflesync-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=shufflesync_dev -p 5432:5432 -d postgres:15
-            print_success "PostgreSQL started on localhost:5432"
-            print_info "Database URL: postgresql://postgres:password@localhost:5432/shufflesync_dev"
+            print_success "Database configured to use local SQLite file"
             ;;
         3)
             print_info "Skipping database setup. Update DATABASE_URL in .env.local manually."

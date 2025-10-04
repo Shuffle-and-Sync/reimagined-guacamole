@@ -29,7 +29,7 @@ The Shuffle & Sync platform uses a role-based access control (RBAC) system with 
 
 ### Prerequisites
 
-- PostgreSQL database configured and accessible
+- SQLite Cloud database or local SQLite file configured and accessible
 - Application environment variables configured
 - Admin email address (preferably a dedicated admin email)
 
@@ -101,7 +101,7 @@ npm run admin:verify
 
 ```bash
 # .env.local
-DATABASE_URL=postgresql://localhost:5432/shufflesync_dev
+DATABASE_URL=./dev.db
 AUTH_SECRET=dev-secret-minimum-32-characters-long
 AUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=your-google-client-id
@@ -116,7 +116,7 @@ MASTER_ADMIN_PASSWORD=DevAdminPassword123!
 
 ```bash
 # .env.production (via Secret Manager)
-DATABASE_URL=postgresql://user:pass@prod-host:5432/shufflesync_prod
+DATABASE_URL=sqlitecloud://prod-host.sqlite.cloud:8860/db?apikey=prod_key
 AUTH_SECRET=production-secret-min-32-chars-generated-securely
 AUTH_URL=https://shuffleandsync.com
 GOOGLE_CLIENT_ID=production-google-client-id
