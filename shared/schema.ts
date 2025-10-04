@@ -1408,11 +1408,44 @@ export const insertUserSchema = createInsertSchema(users, {
   updatedAt: true,
 });
 
+export const insertCommunitySchema = createInsertSchema(communities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertEventSchema = createInsertSchema(events, {
   title: z.string().min(1).max(200),
   type: z.enum(['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']),
   status: z.enum(['active', 'cancelled', 'completed', 'draft']).optional(),
 }).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCollaborativeStreamEventSchema = createInsertSchema(collaborativeStreamEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStreamCollaboratorSchema = createInsertSchema(streamCollaborators).omit({
+  id: true,
+  invitedAt: true,
+});
+
+export const insertStreamCoordinationSessionSchema = createInsertSchema(streamCoordinationSessions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
