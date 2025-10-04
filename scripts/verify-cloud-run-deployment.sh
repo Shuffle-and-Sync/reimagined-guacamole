@@ -15,6 +15,10 @@ REGION="${REGION:-us-central1}"
 FRONTEND_SERVICE="${FRONTEND_SERVICE:-shuffle-sync-frontend}"
 BACKEND_SERVICE="${BACKEND_SERVICE:-shuffle-sync-backend}"
 
+# Try alternative service names if defaults not found
+FRONTEND_SERVICE_ALT="${FRONTEND_SERVICE_ALT:-shuffle-sync-front}"
+BACKEND_SERVICE_ALT="${BACKEND_SERVICE_ALT:-shuffle-sync-back}"
+
 echo "========================================="
 echo "Cloud Run Deployment Verification"
 echo "========================================="
@@ -41,13 +45,23 @@ print_info() {
 echo "Step 1: Checking Backend Service..."
 echo "-----------------------------------"
 
-# Get backend URL
+# Get backend URL - try default name first, then alternative
 BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE \
     --region=$REGION \
     --format='value(status.url)' 2>/dev/null)
 
 if [ -z "$BACKEND_URL" ]; then
-    print_status 1 "Backend service not found: $BACKEND_SERVICE"
+    # Try alternative service name
+    BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE_ALT \
+        --region=$REGION \
+        --format='value(status.url)' 2>/dev/null)
+    if [ -z "$BACKEND_URL" ]; then
+        print_status 1 "Backend service not found: tried both '$BACKEND_SERVICE' and '$BACKEND_SERVICE_ALT'"
+    else
+        BACKEND_SERVICE=$BACKEND_SERVICE_ALT
+        print_status 0 "Backend service found: $BACKEND_SERVICE"
+        print_info "Backend URL: $BACKEND_URL"
+    fi
 else
     print_status 0 "Backend service found: $BACKEND_SERVICE"
     print_info "Backend URL: $BACKEND_URL"
@@ -91,13 +105,23 @@ echo ""
 echo "Step 3: Checking Frontend Service..."
 echo "-------------------------------------"
 
-# Get frontend URL
+# Get frontend URL - try default name first, then alternative
 FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE \
     --region=$REGION \
     --format='value(status.url)' 2>/dev/null)
 
 if [ -z "$FRONTEND_URL" ]; then
-    print_status 1 "Frontend service not found: $FRONTEND_SERVICE"
+    # Try alternative service name
+    FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE_ALT \
+        --region=$REGION \
+        --format='value(status.url)' 2>/dev/null)
+    if [ -z "$FRONTEND_URL" ]; then
+        print_status 1 "Frontend service not found: tried both '$FRONTEND_SERVICE' and '$FRONTEND_SERVICE_ALT'"
+    else
+        FRONTEND_SERVICE=$FRONTEND_SERVICE_ALT
+        print_status 0 "Frontend service found: $FRONTEND_SERVICE"
+        print_info "Frontend URL: $FRONTEND_URL"
+    fi
 else
     print_status 0 "Frontend service found: $FRONTEND_SERVICE"
     print_info "Frontend URL: $FRONTEND_URL"
