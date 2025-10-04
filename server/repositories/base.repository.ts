@@ -5,11 +5,8 @@
  * following Copilot best practices for database interaction patterns.
  */
 
-import { PgDatabase } from 'drizzle-orm/pg-core';
-import { PgTableWithColumns, TableConfig } from 'drizzle-orm/pg-core';
 import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from 'drizzle-orm';
-import { PgTransaction } from 'drizzle-orm/pg-core';
-import type { PgTable } from 'drizzle-orm/pg-core';
+import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
 import { withQueryTiming, type Database, type Transaction } from '@shared/database-unified';
@@ -55,7 +52,7 @@ export interface PaginatedResult<T> {
  * Provides common CRUD operations and utilities for database entities
  */
 export abstract class BaseRepository<
-  TTable extends PgTable,
+  TTable extends SQLiteTable,
   TEntity = TTable['$inferSelect'],
   TInsert = TTable['$inferInsert'],
   TUpdate = Partial<TInsert>
