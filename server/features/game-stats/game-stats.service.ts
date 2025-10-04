@@ -259,7 +259,7 @@ class GameStatsService {
       }
 
       // Use database transaction for data consistency
-      return await db.transaction(async (tx: PgTransaction<any, any, any>) => {
+      return await db.transaction(async (tx) => {
         // Mock creating game result (would insert into game_results table)
         const newResult: GameResult = {
           id: `result-${Date.now()}`,
