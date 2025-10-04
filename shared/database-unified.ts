@@ -455,9 +455,6 @@ export async function closeDatabaseConnections(): Promise<void> {
 // Export the unified database instance
 export { db as database };
 
-// Legacy compatibility exports (to ease migration)
-export const prisma = null; // Prisma is not used in this unified configuration
-
 // Custom error types for different database scenarios - low priority improvement
 export class DatabaseConnectionError extends Error {
   constructor(message: string, public cause?: Error) {
