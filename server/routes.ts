@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'friend_request',
         title: 'New Friend Request',
         message: `You have a new friend request`,
-        data: { friendshipId: friendship.id, requesterId },
+        data: JSON.stringify({ friendshipId: friendship.id, requesterId }),
       });
       
       return res.status(201).json(friendship);
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'friend_accepted',
           title: 'Friend Request Accepted',
           message: `Your friend request was accepted`,
-          data: { friendshipId: friendship.id },
+          data: JSON.stringify({ friendshipId: friendship.id }),
         });
       }
       
@@ -572,16 +572,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create default preferences if none exist
         preferences = await storage.upsertMatchmakingPreferences({
           userId,
-          selectedGames: req.body.selectedGames || ["MTG"],
-          selectedFormats: req.body.selectedFormats || ["commander"],
-          powerLevelMin: req.body.powerLevelMin || 1,
-          powerLevelMax: req.body.powerLevelMax || 10,
-          playstyle: req.body.playstyle || "any",
-          location: req.body.location || null,
-          onlineOnly: req.body.onlineOnly || false,
-          availability: req.body.availability || "any",
-          language: req.body.language || "english",
-          maxDistance: req.body.maxDistance || 50,
+          gameType: req.body.selectedGames?.[0] || "MTG", // Take first game as gameType
+          preferredFormats: JSON.stringify(req.body.selectedFormats || ["commander"]),
+          skillLevelRange: JSON.stringify([req.body.powerLevelMin || 1, req.body.powerLevelMax || 10]),
+          playStyle: req.body.playstyle || "casual",
+          preferredLocation: req.body.location || null,
+          maxTravelDistance: req.body.maxDistance || 50,
+          availabilitySchedule: JSON.stringify(req.body.availability || {}),
+          communicationPreferences: JSON.stringify({ language: req.body.language || "english", onlineOnly: req.body.onlineOnly || false }),
         });
       }
       
@@ -1283,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store token in database
         const expiresAt = new Date(Date.now() + TOKEN_EXPIRY.PASSWORD_RESET * 1000);
         await storage.createPasswordResetToken({
-          email,
+          userId: userExists.id,
           token: resetToken,
           expiresAt,
         });
@@ -1310,7 +1308,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
 
-      return res.json({ message: "Token is valid", email: resetToken.email });
+      // Get user email from userId
+      const user = await storage.getUser(resetToken.userId);
+      return res.json({ message: "Token is valid", email: user?.email });
     } catch (error) {
       logger.error("Failed to verify reset token", error, { token: req.body.token });
       return res.status(500).json({ message: "Failed to verify reset token" });
@@ -1346,8 +1346,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
       
-      // Find user by email from token
-      const user = await storage.getUserByEmail(resetToken.email);
+      // Find user by userId from token
+      const user = await storage.getUser(resetToken.userId);
       if (!user) {
         return res.status(400).json({ message: "Invalid reset request" });
       }
@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if MFA is already enabled
       const existingMfa = await storage.getUserMfaSettings(userId);
-      if (existingMfa?.isEnabled) {
+      if (existingMfa?.enabled) {
         return res.status(400).json({ message: "MFA is already enabled for this account" });
       }
       
@@ -1481,11 +1481,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_enabled',
-        details: { 
+        details: JSON.stringify({ 
           method: 'totp',
           backupCodesGenerated: newBackupCodes.length,
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1530,10 +1530,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_disabled',
-        details: { 
+        details: JSON.stringify({ 
           method: 'password_confirmation',
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1573,7 +1573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user MFA settings
       const mfaSettings = await storage.getUserMfaSettings(userId);
-      if (!mfaSettings || !mfaSettings.isEnabled) {
+      if (!mfaSettings || !mfaSettings.enabled) {
         return res.status(400).json({ message: "MFA is not enabled for this account" });
       }
       
@@ -1581,7 +1581,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isBackupCode) {
         // Verify backup code with Argon2id
-        const backupResult = await verifyBackupCode(code, mfaSettings.backupCodes || []);
+        const backupCodes = mfaSettings.backupCodes ? JSON.parse(mfaSettings.backupCodes) : [];
+        const backupResult = await verifyBackupCode(code, backupCodes);
         if (backupResult.isValid && backupResult.codeIndex !== undefined) {
           // Mark backup code as used by removing it from the array
           await storage.markBackupCodeAsUsed(userId, backupResult.codeIndex);
@@ -1589,11 +1590,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // Verify TOTP code
-        if (!mfaSettings.totpSecret) {
+        if (!mfaSettings.secret) {
           return res.status(400).json({ message: "TOTP secret not found" });
         }
         
-        const totpResult = verifyTOTPCode(code, mfaSettings.totpSecret);
+        const totpResult = verifyTOTPCode(code, mfaSettings.secret);
         isValid = totpResult.isValid;
       }
       
@@ -1604,18 +1605,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store MFA security context for this verification
         await storage.createMfaSecurityContext({
           userId,
-          deviceFingerprintId: deviceValidation.deviceFingerprint?.id || null,
-          verificationMethod: isBackupCode ? 'backup_code' : 'totp',
-          riskScore: riskAssessment.riskScore,
-          trustScore: deviceValidation.trustScore,
+          deviceFingerprint: deviceValidation.deviceFingerprint?.id || null,
+          contextType: 'login',
           ipAddress: deviceContext.ipAddress,
           location: deviceContext.location || null,
-          riskFactors: riskAssessment.riskFactors.length > 0 ? riskAssessment.riskFactors : undefined,
-          isSuccessful: true,
-          newDevice: !deviceValidation.deviceFingerprint,
-          newLocation: riskAssessment.riskFactors.includes('location_change'),
-          newIpRange: riskAssessment.riskFactors.includes('ip_change'),
-          suspiciousActivity: riskAssessment.riskScore > 0.8
+          riskLevel: riskAssessment.riskScore > 0.7 ? 'high' : riskAssessment.riskScore > 0.4 ? 'medium' : 'low',
+          requiresMfa: true,
+          mfaCompleted: true,
+          isSuccessful: true
         });
 
         // Update device fingerprint with successful verification
@@ -1623,9 +1620,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateDeviceLastSeen(deviceFingerprint.hash);
           // Increment successful verifications via updateDeviceFingerprint
           await storage.updateDeviceFingerprint(deviceValidation.deviceFingerprint.id, {
-            successfulMfaAttempts: (deviceValidation.deviceFingerprint.successfulMfaAttempts || 0) + 1,
-            totalSessions: (deviceValidation.deviceFingerprint.totalSessions || 0) + 1,
-            lastSeenAt: new Date()
+            lastSeen: new Date(),
+            trustScore: Math.min(1.0, (deviceValidation.deviceFingerprint.trustScore || 0.5) + 0.1)
           });
         }
         
@@ -1642,12 +1638,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
-          details: { 
+          details: JSON.stringify({ 
             method: isBackupCode ? 'backup_code' : 'totp',
             userAgent: req.get('User-Agent') || 'Unknown',
             deviceTrustScore: deviceValidation.trustScore,
             riskScore: riskAssessment.riskScore
-          },
+          }),
           ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
           isSuccessful: true
         });
@@ -1668,10 +1664,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
-          details: { 
+          details: JSON.stringify({ 
             method: isBackupCode ? 'backup_code' : 'totp',
             userAgent: req.get('User-Agent') || 'Unknown'
-          },
+          }),
           ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
           isSuccessful: false,
           failureReason: 'invalid_mfa_code'
@@ -1710,7 +1706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if MFA is enabled
       const mfaSettings = await storage.getUserMfaSettings(userId);
-      if (!mfaSettings || !mfaSettings.isEnabled) {
+      if (!mfaSettings || !mfaSettings.enabled) {
         return res.status(400).json({ message: "MFA is not enabled for this account" });
       }
       
@@ -1721,7 +1717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       // Update backup codes in database
-      await storage.updateUserMfaSettings(userId, { backupCodes: hashedBackupCodes });
+      await storage.updateUserMfaSettings(userId, { backupCodes: JSON.stringify(hashedBackupCodes) });
       
       // Log backup codes regeneration with audit trail
       logger.info('MFA backup codes regenerated', { userId });
@@ -1730,11 +1726,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_verified', // Using existing enum, could add 'mfa_backup_codes_regenerated'
-        details: { 
+        details: JSON.stringify({ 
           action: 'backup_codes_regenerated',
           codesGenerated: newBackupCodes.length,
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1759,9 +1755,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mfaSettings = await storage.getUserMfaSettings(userId);
       
       return res.json({
-        mfaEnabled: mfaSettings?.isEnabled || false,
-        enabledAt: mfaSettings?.enabledAt || null,
-        lastVerifiedAt: mfaSettings?.lastVerifiedAt || null,
+        mfaEnabled: mfaSettings?.enabled || false,
+        enabledAt: mfaSettings?.createdAt || null, // Use createdAt since schema doesn't have enabledAt
+        lastVerifiedAt: mfaSettings?.updatedAt || null, // Use updatedAt since schema doesn't have lastVerifiedAt
         backupCodesCount: mfaSettings?.backupCodes?.length || 0,
       });
       
@@ -1814,7 +1810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: false,
           failureReason: 'security_policy', // Use valid enum value instead
-          details: { tokenId: payload.jti, revokedAllTokens: true }
+          details: JSON.stringify({ tokenId: payload.jti, revokedAllTokens: true })
         });
         return res.status(401).json({ message: "Security violation detected - all tokens revoked" });
       }
@@ -1847,7 +1843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           token: newRefreshTokenJWT,
           userAgent: req.headers['user-agent'] || null,
-          ipAddress: req.ip || null,
+          ipAddress: req.ip || 'unknown',
           expiresAt: new Date(Date.now() + TOKEN_EXPIRY.REFRESH_TOKEN * 1000),
         };
         
@@ -1863,7 +1859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ipAddress: req.ip || 'unknown', 
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: true,
-          details: { oldTokenId: payload.jti, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' }
+          details: JSON.stringify({ oldTokenId: payload.jti, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' })
         });
         
         logger.info('Refresh token rotation completed successfully', {
@@ -1991,12 +1987,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format tokens for response (hide sensitive data)
       const tokenList = activeTokens.map(token => ({
         id: token.id,
-        userAgent: token.userAgent,
+        userAgent: (() => {
+          try {
+            const deviceInfo = JSON.parse(token.deviceInfo || '{}');
+            return deviceInfo.userAgent || 'Unknown';
+          } catch {
+            return 'Unknown';
+          }
+        })(),
         ipAddress: token.ipAddress,
         createdAt: token.createdAt,
         lastUsed: token.lastUsed,
         expiresAt: token.expiresAt,
-        isCurrentSession: req.headers['user-agent'] === token.userAgent // Basic heuristic
+        isCurrentSession: (() => {
+          try {
+            const deviceInfo = JSON.parse(token.deviceInfo || '{}');
+            return req.headers['user-agent'] === deviceInfo.userAgent;
+          } catch {
+            return false;
+          }
+        })()
       }));
       
       return res.json({
@@ -2116,11 +2126,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userAgent: req.headers['user-agent'] || 'unknown',
             isSuccessful: false,
             failureReason: 'transaction_error',
-            details: { 
+            details: JSON.stringify({ 
               email: normalizedEmail, 
               username: normalizedUsername,
               error: transactionError instanceof Error ? transactionError.message : 'Unknown error' 
-            }
+            })
           });
         } catch (auditError) {
           logger.error('Failed to log registration failure', auditError);
@@ -2144,10 +2154,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: false,
           failureReason: 'email_send_failed',
-          details: { 
+          details: JSON.stringify({ 
             email: normalizedEmail,
             reason: 'email_service_error'
-          }
+          })
         });
         // Don't fail registration if email fails, user can resend later
       } else {
@@ -2158,10 +2168,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: true,
-          details: { 
+          details: JSON.stringify({ 
             email: normalizedEmail,
             action: 'verification_email_sent'
-          }
+          })
         });
       }
       
@@ -2172,13 +2182,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ipAddress: req.ip || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown',
         isSuccessful: true,
-        details: { 
+        details: JSON.stringify({ 
           email: normalizedEmail, 
           username: normalizedUsername,
           emailSent,
           userAgent: req.headers['user-agent'],
           registrationMethod: 'email_password'
-        }
+        })
       });
       
       logger.info('User registered successfully', {
@@ -2221,10 +2231,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userAgent: req.headers['user-agent'] || 'unknown',
             isSuccessful: false,
             failureReason: 'registration_error',
-            details: { 
+            details: JSON.stringify({ 
               email: req.body.email, 
               error: error instanceof Error ? error.message : 'Unknown error' 
-            }
+            })
           });
         } catch (auditError) {
           logger.error('Failed to log registration failure', auditError);
@@ -2432,8 +2442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send update notifications
       const changes: string[] = [];
-      if (eventData.date && eventData.date !== existingEvent.date) changes.push('date');
-      if (eventData.time && eventData.time !== existingEvent.time) changes.push('time');
+      if (eventData.startTime && eventData.startTime !== existingEvent.startTime) changes.push('schedule');
       if (eventData.location && eventData.location !== existingEvent.location) changes.push('location');
       
       if (changes.length > 0) {
@@ -2510,7 +2519,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: `${joiningUser.firstName || joiningUser.email} joined your ${updatedEvent.title} game pod`,
             data: JSON.stringify({ eventId, playerType, joinedUserId: userId }),
             priority: 'normal',
-            communityId: updatedEvent.communityId,
           });
         }
 
@@ -2528,9 +2536,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 type: 'pod_filled',
                 title: 'Game Pod is Full!',
                 message: `${updatedEvent.title} is now at full capacity`,
-                data: { eventId },
+                data: JSON.stringify({ eventId }),
                 priority: 'high',
-                communityId: updatedEvent.communityId,
               });
             }
           }
@@ -2541,9 +2548,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: 'pod_almost_full',
             title: 'Game Pod Almost Full',
             message: `${updatedEvent.title} needs 1 more player`,
-            data: { eventId },
+            data: JSON.stringify({ eventId }),
             priority: 'normal',
-            communityId: updatedEvent.communityId,
           });
         }
       }
@@ -2586,9 +2592,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_leave',
           title: 'Player Left Your Pod',
           message: `${leavingUser.firstName || leavingUser.email} left your ${event.title} game pod`,
-          data: { eventId, leftUserId: userId },
+          data: JSON.stringify({ eventId, leftUserId: userId }),
           priority: 'normal',
-          communityId: event.communityId,
         });
       }
       
@@ -2868,7 +2873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_join',
           title: 'Player Joined Game',
           message: `${user?.name || user?.email || 'A player'} joined your game session`,
-          data: { gameSessionId: id, playerId: userId },
+          data: JSON.stringify({ gameSessionId: id, playerId: userId }),
         });
       }
       
@@ -2913,7 +2918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_leave',
           title: 'Player Left Game',
           message: `${user?.name || user?.email || 'A player'} left your game session`,
-          data: { gameSessionId: id, playerId: userId },
+          data: JSON.stringify({ gameSessionId: id, playerId: userId }),
         });
       }
       
@@ -2940,7 +2945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'spectator_join',
           title: 'New Spectator',
           message: `${user?.name || user?.email || 'Someone'} is now spectating your game`,
-          data: { gameSessionId: id, spectatorId: userId },
+          data: JSON.stringify({ gameSessionId: id, spectatorId: userId }),
         });
       }
       
