@@ -13,41 +13,15 @@ if (!process.env.AUTH_SECRET) {
   throw new Error('AUTH_SECRET environment variable is required');
 }
 
-// In production, require AUTH_URL or NEXTAUTH_URL
+// In production, AUTH_URL is optional when trustHost is enabled
+// Auth.js will auto-detect the host from request headers
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
-    throw new Error('AUTH_URL or NEXTAUTH_URL environment variable is required in production');
+    console.warn('[AUTH] No AUTH_URL set - relying on trustHost for URL detection');
   }
-}
-
-// Dynamic URL configuration for Auth.js
-function getBaseUrl(): string {
-  // In development, use dynamic domain or localhost
-  if (process.env.NODE_ENV === 'development') {
-    const dynamicDomains = process.env.REPLIT_DOMAINS;
-    if (dynamicDomains) {
-      const computedUrl = `https://${dynamicDomains}`;
-      console.log(`[AUTH] getBaseUrl() returning: ${computedUrl}`);
-      return computedUrl;
-    }
-    console.log(`[AUTH] getBaseUrl() returning: http://localhost:5000`);
-    return 'http://localhost:5000';
-  }
-  
-  // In production, use AUTH_URL if available, otherwise construct from dynamic domains
-  const prodUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || `https://${process.env.REPLIT_DOMAINS}`;
-  console.log(`[AUTH] getBaseUrl() production returning: ${prodUrl}`);
-  return prodUrl;
 }
 
 export const authConfig: AuthConfig = {
-  // CRITICAL: Use dynamic URL and disable AUTH_URL in development to fix URL conflicts
-  ...(process.env.NODE_ENV === 'development' && { 
-    useSecureCookies: false,
-    // Force Auth.js to use the actual server URL, not AUTH_URL
-    url: getBaseUrl(),
-  }),
-  
   // Secret configuration
   secret: process.env.AUTH_SECRET,
   
@@ -62,7 +36,13 @@ export const authConfig: AuthConfig = {
     strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  trustHost: true, // Trust host for both development and production deployment
+  
+  // CRITICAL: Enable trustHost to allow Auth.js to detect the correct URL from request headers
+  // This is essential for Cloud Run and other proxy/load balancer environments
+  trustHost: true,
+  
+  // Use secure cookies in production
+  useSecureCookies: process.env.NODE_ENV === 'production',
   
   
   // Enhanced cookie settings for production security
@@ -389,16 +369,26 @@ export const authConfig: AuthConfig = {
     },
     // Add redirect callback to control where users go after authentication
     async redirect({ url, baseUrl }) {
-      // CRITICAL FIX: In development, ignore AUTH_URL and use actual server baseUrl
-      const preferredBase = process.env.NODE_ENV === 'development' 
-        ? baseUrl  // Use actual server URL in development
-        : (process.env.AUTH_URL || baseUrl); // Use AUTH_URL in production
+      // CRITICAL FIX: Always use baseUrl from Auth.js - it's already resolved from request headers
+      // This prevents redirect loops when AUTH_URL doesn't match the actual Cloud Run URL
+      // trustHost: true ensures baseUrl is correctly detected from X-Forwarded-Host header
       
       // Redirect to home page after successful sign in
-      if (url.startsWith('/')) return `${preferredBase}${url}`;
-      if (url.startsWith(preferredBase)) return url;
-      if (url.startsWith(baseUrl)) return url.replace(baseUrl, preferredBase);
-      return `${preferredBase}/home`; // Default redirect to home for authenticated users
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      
+      // For absolute URLs, validate they're for the same domain
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+        if (urlObj.hostname === baseUrlObj.hostname) {
+          return url;
+        }
+      } catch (e) {
+        // Invalid URL, fall through to default
+      }
+      
+      return `${baseUrl}/home`; // Default redirect to home for authenticated users
     },
   },
   
