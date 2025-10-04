@@ -53,7 +53,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 # 1. Clone and install
 git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
 cd reimagined-guacamole
-npm install
+npm install --legacy-peer-deps
 
 # 2. Environment setup (automated)
 ./scripts/setup-env.sh

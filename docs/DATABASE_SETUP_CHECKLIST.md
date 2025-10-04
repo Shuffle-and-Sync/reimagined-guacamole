@@ -31,7 +31,7 @@ Complete checklist for setting up and validating the Shuffle & Sync database arc
 
 - [ ] All dependencies installed
   ```bash
-  npm install
+  npm install --legacy-peer-deps
   # Should complete without errors
   ```
 
@@ -223,7 +223,7 @@ Complete checklist for setting up and validating the Shuffle & Sync database arc
 
 - [ ] Dependencies are installed
   ```bash
-  npm install
+  npm install --legacy-peer-deps
   # Reinstall all dependencies
   ```
 

@@ -28,7 +28,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 
 1. **Fork** the repository
 2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/reimagined-guacamole.git`
-3. **Install** dependencies: `npm install`
+3. **Install** dependencies: `npm install --legacy-peer-deps`
 4. **Set up** environment: `npm run env:setup`
 5. **Explore** the codebase: `npm run test:generate`
 6. **Start** development: `npm run dev`
@@ -321,7 +321,7 @@ We recognize contributions through:
 **TypeScript errors**:
 - Run `npm run check` to see all type errors
 - Check import paths and type definitions
-- Ensure dependencies are installed (`npm install`)
+- Ensure dependencies are installed (`npm install --legacy-peer-deps`)
 
 **Test failures**:
 - Run `npm run test:generate` to create missing tests

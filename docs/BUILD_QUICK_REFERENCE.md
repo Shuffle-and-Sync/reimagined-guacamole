@@ -107,7 +107,7 @@ The Dockerfile uses the same enhanced build:
 
 ```dockerfile
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Build with full initialization
 RUN npm run build

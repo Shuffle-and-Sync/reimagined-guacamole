@@ -231,7 +231,7 @@ npm run db:push
 **Check:**
 1. Are all dependencies installed?
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 2. Is TypeScript compilation working?
