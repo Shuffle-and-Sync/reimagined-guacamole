@@ -1,154 +1,72 @@
 # Database Setup Checklist
 
-Use this checklist to verify your database setup is correct for Shuffle & Sync.
+Complete checklist for setting up and validating the Shuffle & Sync database architecture.
 
 ---
 
-## ✅ Development Environment
+## ✅ Initial Setup
 
-### Prerequisites
-- [ ] PostgreSQL installed locally
+### Environment Variables
+
+- [ ] DATABASE_URL is set
   ```bash
-  # Check: psql --version
-  # Should output: psql (PostgreSQL) 14.x or higher
+  echo $DATABASE_URL
+  # Should output: sqlitecloud://...
   ```
 
-- [ ] Database created
+- [ ] DATABASE_URL is valid SQLite Cloud connection string
   ```bash
-  createdb shufflesync_dev
-  # Or: psql -c "CREATE DATABASE shufflesync_dev;"
+  # Format: sqlitecloud://instance.sqlite.cloud:8860/database?apikey=key
   ```
 
-### Environment Configuration
-- [ ] `.env.local` file exists
+- [ ] AUTH_SECRET is set (for Auth.js)
   ```bash
-  # Check: ls -la .env.local
-  ```
-
-- [ ] `DATABASE_URL` is set correctly
-  ```bash
-  # Should be: DATABASE_URL=postgresql://localhost:5432/shufflesync_dev
-  # Or with credentials: DATABASE_URL=postgresql://user:pass@localhost:5432/shufflesync_dev
-  ```
-
-- [ ] Can connect to database
-  ```bash
-  psql $DATABASE_URL -c "SELECT 1;"
-  # Should output: 1 (1 row)
-  ```
-
-### Schema & Migrations
-- [ ] Drizzle schema applied
-  ```bash
-  npm run db:push
-  # Should output: ✅ Schema pushed successfully
-  ```
-
-- [ ] Prisma client generated (for build)
-  ```bash
-  npx prisma generate
-  # Should output: ✅ Generated Prisma Client
-  ```
-
-- [ ] Database health check passes
-  ```bash
-  npm run db:health
-  # Should output:
-  # ✅ Using PostgreSQL driver for postgres
-  # ✅ Database connection established
-  ```
-
-### Verification
-- [ ] Tables exist in database
-  ```bash
-  psql $DATABASE_URL -c "\dt"
-  # Should list tables: users, communities, events, etc.
-  ```
-
-- [ ] Application starts successfully
-  ```bash
-  npm run dev
-  # Should start without database errors
+  echo $AUTH_SECRET
+  # Should be at least 32 characters
   ```
 
 ---
 
-## ✅ Production Environment (Cloud SQL)
+## ✅ Dependencies Installation
 
-### Cloud SQL Setup
-- [ ] Cloud SQL instance created
+- [ ] All dependencies installed
   ```bash
-  gcloud sql instances describe shuffle-sync-db
-  # Should output instance details
+  npm install
+  # Should complete without errors
   ```
 
-- [ ] Application database created
+- [ ] Drizzle ORM installed
   ```bash
-  gcloud sql databases list --instance=shuffle-sync-db
-  # Should include: shufflesync_prod
+  npm list drizzle-orm
+  # Should show: drizzle-orm@...
   ```
 
-- [ ] Application user created
+- [ ] SQLite Cloud driver installed
   ```bash
-  gcloud sql users list --instance=shuffle-sync-db
-  # Should include: app_user
+  npm list @sqlitecloud/drivers
+  # Should show: @sqlitecloud/drivers@...
   ```
 
-### Connection Configuration
-- [ ] Connection name obtained
+---
+
+## ✅ Build Process
+
+- [ ] TypeScript compiles without critical errors
   ```bash
-  gcloud sql instances describe shuffle-sync-db --format="value(connectionName)"
-  # Should output: PROJECT:REGION:INSTANCE
+  npx tsc --noEmit
+  # Some optional service errors are acceptable
   ```
 
-- [ ] `DATABASE_URL` configured for Cloud Run
+- [ ] Build completes successfully
   ```bash
-  # Format: postgresql://app_user:password@/shufflesync_prod?host=/cloudsql/CONNECTION_NAME
+  npm run build
+  # Should output: ✅ Build completed successfully!
   ```
 
-- [ ] Secret Manager configured (recommended)
+- [ ] Build artifacts created
   ```bash
-  gcloud secrets list | grep database-url
-  # Should show: database-url
-  ```
-
-### Deployment Configuration
-- [ ] Cloud Run service has Cloud SQL connection
-  ```bash
-  gcloud run services describe shuffle-sync-backend --format="yaml(spec.template.metadata.annotations)"
-  # Should include: run.googleapis.com/cloudsql-instances
-  ```
-
-- [ ] Database URL secret mounted
-  ```bash
-  gcloud run services describe shuffle-sync-backend --format="yaml(spec.template.spec.containers[0].env)"
-  # Should show DATABASE_URL from secret
-  ```
-
-### Migrations & Schema
-- [ ] Production migrations applied
-  ```bash
-  npm run db:migrate:production
-  # Should apply all pending migrations
-  ```
-
-- [ ] Build artifacts include Prisma client
-  ```bash
-  ls -la generated/prisma/
-  # Should show generated client files
-  ```
-
-### Verification
-- [ ] Production health check passes
-  ```bash
-  curl -f https://your-domain.com/api/health
-  # Should return: {"status":"ok",...}
-  ```
-
-- [ ] Database connection works in production
-  ```bash
-  npm run verify:production
-  # Should show successful database connection
+  ls -la dist/index.js dist/public/index.html
+  # Both files should exist
   ```
 
 ---
@@ -156,6 +74,7 @@ Use this checklist to verify your database setup is correct for Shuffle & Sync.
 ## ✅ Architecture Validation
 
 ### Drizzle ORM (Primary)
+
 - [ ] Drizzle schema exists
   ```bash
   ls -la shared/schema.ts
@@ -174,42 +93,94 @@ Use this checklist to verify your database setup is correct for Shuffle & Sync.
   # Should be > 0 (many imports)
   ```
 
-- [ ] No Prisma client usage in server code
+### Database Sessions
+
+- [ ] Auth config uses database sessions
   ```bash
-  grep -r "from '@prisma/client'" server/ | grep -v node_modules | wc -l
-  # Should be 0 (no imports)
+  grep 'strategy.*"database"' server/auth/auth.config.ts
+  # Should output: strategy: "database"
   ```
 
-### Prisma (Build Compatibility)
-- [ ] Prisma schema exists
+- [ ] Drizzle adapter is used
   ```bash
-  ls -la prisma/schema.prisma
-  # Should exist
+  grep "DrizzleAdapter" server/auth/auth.config.ts
+  # Should output: adapter: DrizzleAdapter(db)
   ```
 
-- [ ] Prisma marked as unused in code
+---
+
+## ✅ Database Connection
+
+- [ ] Database health check passes
   ```bash
-  grep "export const prisma = null" shared/database-unified.ts
-  # Should output the line
+  npm run db:health
+  # Should output: ✅ Connected to SQLite Cloud successfully
   ```
 
-- [ ] Prisma client generated (build artifact)
+- [ ] Connection info is correct
   ```bash
-  ls -la generated/prisma/
-  # Should exist after build
+  npm run db:health
+  # Should show: type: 'sqlitecloud', driver: 'SQLite Cloud'
   ```
 
-### JWT Sessions
-- [ ] Auth config uses JWT
+---
+
+## ✅ Schema Management
+
+- [ ] Schema push works (development)
   ```bash
-  grep 'strategy.*"jwt"' server/auth/auth.config.ts
-  # Should output: strategy: "jwt"
+  npm run db:push
+  # Should apply schema to database
   ```
 
-- [ ] No database session usage
+- [ ] Schema is up to date
   ```bash
-  grep -r "PrismaAdapter\|database.*session" server/auth/ | grep -v "//" | wc -l
-  # Should be 0 or minimal (not actively used)
+  npm run db:push
+  # Should output: No schema changes detected
+  ```
+
+---
+
+## ✅ Runtime Verification
+
+- [ ] Server starts without errors
+  ```bash
+  npm run dev
+  # Server should start on port 5000
+  ```
+
+- [ ] Health endpoint responds
+  ```bash
+  curl http://localhost:5000/health
+  # Should return: {"status":"ok"}
+  ```
+
+- [ ] Database queries work
+  ```bash
+  # Check logs for successful database operations
+  # Should see: ✅ Connected to SQLite Cloud successfully
+  ```
+
+---
+
+## ✅ Authentication Flow
+
+- [ ] Auth.js initialization succeeds
+  ```bash
+  # Check server logs for auth initialization
+  # Should see: [AUTH] Auth.js configured
+  ```
+
+- [ ] Session creation works
+  ```bash
+  # Test login flow
+  # Sessions should be stored in database
+  ```
+
+- [ ] Session retrieval works
+  ```bash
+  # Refresh page after login
+  # Session should persist
   ```
 
 ---
@@ -217,187 +188,89 @@ Use this checklist to verify your database setup is correct for Shuffle & Sync.
 ## ✅ Common Issues Checklist
 
 ### Issue: "Can't connect to database"
-- [ ] PostgreSQL is running
-  ```bash
-  pg_isready
-  # Should output: accepting connections
-  ```
 
-- [ ] DATABASE_URL is correct
+- [ ] DATABASE_URL is set correctly
   ```bash
   echo $DATABASE_URL
   # Should show valid connection string
   ```
 
+- [ ] SQLite Cloud instance is accessible
+  ```bash
+  # Check if instance exists and API key is correct
+  ```
+
 - [ ] Network/firewall allows connection
   ```bash
-  psql $DATABASE_URL -c "SELECT 1;"
-  # Should connect successfully
-  ```
-
-### Issue: "Prisma client not found"
-- [ ] Build has been run
-  ```bash
-  npm run build
-  # Includes: npx prisma generate
-  ```
-
-- [ ] Generated directory exists
-  ```bash
-  ls generated/prisma/index.js
-  # Should exist
+  # SQLite Cloud uses port 8860
   ```
 
 ### Issue: "Schema out of sync"
-- [ ] Drizzle schema pushed
+
+- [ ] Run schema push
   ```bash
   npm run db:push
+  # Should sync schema with database
   ```
 
-- [ ] Migrations applied
+- [ ] Check for migration files
   ```bash
-  drizzle-kit migrate
+  ls -la migrations/
+  # Should contain migration files
   ```
 
-- [ ] Check for pending migrations
+### Issue: "Build fails"
+
+- [ ] Dependencies are installed
   ```bash
-  drizzle-kit check
+  npm install
+  # Reinstall all dependencies
   ```
 
-### Issue: "Two databases needed?"
-- [ ] Read documentation
+- [ ] TypeScript configuration is correct
   ```bash
-  cat docs/DATABASE_FAQ.md | grep "Do I need both"
-  # Answer: No, one database
+  cat tsconfig.json
+  # Verify configuration
   ```
 
-- [ ] Verify single DATABASE_URL
+### Issue: "Authentication not working"
+
+- [ ] AUTH_SECRET is set
   ```bash
-  env | grep DATABASE_URL | wc -l
-  # Should be 1 (not multiple)
+  echo $AUTH_SECRET
+  # Should be at least 32 characters
+  ```
+
+- [ ] Database sessions are enabled
+  ```bash
+  grep 'strategy.*"database"' server/auth/auth.config.ts
+  # Should output: strategy: "database"
   ```
 
 ---
 
-## ✅ Performance Checklist
+## ✅ Production Deployment Checklist
 
-### Connection Pooling
-- [ ] Pool size configured
-  ```bash
-  echo $DB_POOL_MAX_SIZE
-  # Should be set (default: 20)
-  ```
-
-- [ ] Pool is being used
-  ```bash
-  # Check logs for: ✅ Using PostgreSQL driver
-  npm run dev 2>&1 | grep "PostgreSQL driver"
-  ```
-
-### Query Performance
-- [ ] Indexes exist on common queries
-  ```bash
-  psql $DATABASE_URL -c "\di"
-  # Should show indexes on frequently queried columns
-  ```
-
-- [ ] No N+1 query issues
-  ```bash
-  # Check logs for excessive queries
-  # Enable query logging: DB_LOG_QUERIES=true
-  ```
+- [ ] DATABASE_URL points to production SQLite Cloud instance
+- [ ] All environment variables are set in production
+- [ ] Schema migrations are applied
+- [ ] Build artifacts are deployed
+- [ ] Health check passes in production
+- [ ] Authentication flow works in production
 
 ---
 
-## ✅ Security Checklist
+## Quick Reference
 
-### Credentials
-- [ ] `.env.local` not committed
-  ```bash
-  git ls-files | grep .env.local | wc -l
-  # Should be 0
-  ```
-
-- [ ] Production secrets in Secret Manager
-  ```bash
-  gcloud secrets list | grep -E "database-url|auth-secret"
-  # Should show both secrets
-  ```
-
-### Access Control
-- [ ] Database user has minimal permissions
-  ```bash
-  # Production user should NOT be superuser
-  psql $DATABASE_URL -c "SELECT usesuper FROM pg_user WHERE usename = current_user;"
-  # Should be: f (false)
-  ```
-
-- [ ] SSL enabled for production
-  ```bash
-  # DATABASE_URL should include: sslmode=require
-  ```
-
-### Backups
-- [ ] Automated backups enabled (Cloud SQL)
-  ```bash
-  gcloud sql instances describe shuffle-sync-db --format="value(settings.backupConfiguration.enabled)"
-  # Should be: True
-  ```
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Schema | `shared/schema.ts` | Database schema definition |
+| Database | `shared/database-unified.ts` | Database connection and utilities |
+| Migrations | `migrations/` | Schema migration files |
+| Auth Config | `server/auth/auth.config.ts` | Authentication configuration |
 
 ---
 
-## Quick Commands Summary
+**Remember**: One SQLite Cloud database, Drizzle ORM for all operations, database sessions for Auth.js.
 
-```bash
-# Development Setup
-createdb shufflesync_dev
-echo "DATABASE_URL=postgresql://localhost:5432/shufflesync_dev" >> .env.local
-npm run db:push
-npm run build
-npm run dev
-
-# Production Setup
-gcloud sql instances create shuffle-sync-db --database-version=POSTGRES_15
-gcloud sql databases create shufflesync_prod --instance=shuffle-sync-db
-npm run db:migrate:production
-npm run deploy:production
-
-# Verification
-npm run db:health           # Check connection
-npm run verify:production   # Production check
-psql $DATABASE_URL -c "\dt" # List tables
-```
-
----
-
-## Need Help?
-
-If any checklist items fail:
-
-1. **Check Documentation**
-   - [DATABASE_FAQ.md](DATABASE_FAQ.md) - Quick answers
-   - [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) - Detailed guide
-
-2. **Check Logs**
-   ```bash
-   npm run dev  # Development logs
-   gcloud run services logs read shuffle-sync-backend  # Production logs
-   ```
-
-3. **Verify Environment**
-   ```bash
-   npm run env:validate
-   ```
-
-4. **Test Connection**
-   ```bash
-   psql $DATABASE_URL -c "SELECT version();"
-   ```
-
----
-
-**Remember**: One database, Drizzle for queries, Prisma for build compatibility only.
-
-✅ = Checked and verified  
-❌ = Not checked or failed  
-⚠️ = Needs attention
+**Need Help?** See [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) for detailed documentation.

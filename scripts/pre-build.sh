@@ -63,7 +63,7 @@ fi
 
 # Verify critical dependencies
 print_status "Verifying critical dependencies..."
-CRITICAL_DEPS=("typescript" "vite" "esbuild" "prisma" "drizzle-orm")
+CRITICAL_DEPS=("typescript" "vite" "esbuild" "drizzle-orm")
 for dep in "${CRITICAL_DEPS[@]}"; do
     if ! npm list "$dep" --depth=0 > /dev/null 2>&1; then
         print_error "Critical dependency missing: $dep"
@@ -79,13 +79,6 @@ if [ ! -f "tsconfig.json" ]; then
 fi
 print_success "tsconfig.json found"
 
-# Check Prisma schema
-if [ ! -f "prisma/schema.prisma" ]; then
-    print_error "prisma/schema.prisma not found"
-    exit 1
-fi
-print_success "Prisma schema found"
-
 # Check environment template files
 print_status "Checking environment configuration..."
 if [ ! -f ".env.example" ]; then
@@ -97,7 +90,7 @@ fi
 # Clean previous build artifacts if requested
 if [ "$CLEAN_BUILD" = "true" ]; then
     print_status "Cleaning previous build artifacts..."
-    rm -rf dist generated/prisma
+    rm -rf dist
     print_success "Build artifacts cleaned"
 fi
 
