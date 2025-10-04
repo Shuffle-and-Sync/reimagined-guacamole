@@ -98,7 +98,7 @@ npm run env:validate
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection | `postgresql://localhost:5432/shufflesync_dev` |
+| `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` |
 | `AUTH_SECRET` | Auth secret (32+ chars) | `openssl rand -base64 32` |
 | `GOOGLE_CLIENT_ID` | Google OAuth ID | From [Google Console](https://console.developers.google.com) |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From [Google Console](https://console.developers.google.com) |

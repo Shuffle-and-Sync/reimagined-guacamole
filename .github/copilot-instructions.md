@@ -230,7 +230,9 @@ npm run dev
 ### Required Variables
 ```bash
 # Database
-DATABASE_URL=postgresql://...
+DATABASE_URL=sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
+# Or for local development:
+DATABASE_URL=./dev.db
 
 # Authentication
 GOOGLE_CLIENT_ID=your_google_client_id

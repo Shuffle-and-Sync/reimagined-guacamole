@@ -14,13 +14,13 @@ Shuffle & Sync uses SQLite Cloud as its database backend, accessed through Drizz
 
 ---
 
-## Q: Do I need both a local database and Cloud SQL?
+## Q: Do I need a local database or SQLite Cloud?
 
-**A: No.** 
-- **Local Development**: Use SQLite Cloud instance
+**A: Either works.** 
+- **Local Development**: Use local SQLite file (`./dev.db`)
 - **Production**: Use SQLite Cloud instance
 
-You just need one SQLite Cloud connection string in your DATABASE_URL environment variable.
+You just need one connection string (or file path) in your DATABASE_URL environment variable.
 
 ---
 
