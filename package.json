@@ -48,7 +48,6 @@
     "deploy:backend": "./scripts/deploy-production.sh --backend-only",
     "deploy:frontend": "./scripts/deploy-production.sh --frontend-only",
     "verify:production": "./scripts/verify-production.sh",
-    "verify:cloudrun": "./scripts/verify-cloud-run-deployment.sh",
     "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
     "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
     "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'"
