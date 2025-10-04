@@ -6,39 +6,29 @@ Quick answers to common questions about the database architecture in Shuffle & S
 
 ---
 
-## Q: Do I need both Prisma and Drizzle databases?
+## Q: What database does Shuffle & Sync use?
 
-**A: No.** There is only ONE PostgreSQL database. Both Prisma and Drizzle are just different tools that connect to the SAME database instance.
+**A: SQLite Cloud** (with Drizzle ORM)
 
-Think of it like having two different keys to the same house - Drizzle is the key you use daily, Prisma is a spare key kept for compatibility.
+Shuffle & Sync uses SQLite Cloud as its database backend, accessed through Drizzle ORM for type-safe database operations.
 
 ---
 
-## Q: Do I need both a local PostgreSQL and Cloud SQL?
+## Q: Do I need both a local database and Cloud SQL?
 
 **A: No.** 
-- **Local Development**: Use local PostgreSQL (one instance)
-- **Production**: Use Cloud SQL PostgreSQL (one instance)
+- **Local Development**: Use SQLite Cloud instance
+- **Production**: Use SQLite Cloud instance
 
-You never need both simultaneously. Choose based on your environment.
-
----
-
-## Q: Why do both `prisma/` and `shared/` folders have schema definitions?
-
-**A: Historical migration.**
-- `shared/schema.ts` (Drizzle) - **Primary schema**, actively used for all queries
-- `prisma/schema.prisma` (Prisma) - **Legacy schema**, kept for build compatibility only
-
-The application migrated from Prisma to Drizzle but maintains Prisma for Auth.js compatibility.
+You just need one SQLite Cloud connection string in your DATABASE_URL environment variable.
 
 ---
 
-## Q: Which ORM is actually being used?
+## Q: Which ORM is being used?
 
-**A: Drizzle ORM** for 95% of database operations.
+**A: Drizzle ORM** for 100% of database operations.
 
-Prisma is only used during the build process (`npx prisma generate`) for compatibility. At runtime, ALL database queries use Drizzle.
+All database queries use Drizzle ORM with the schema defined in `shared/schema.ts`.
 
 ---
 
@@ -47,75 +37,30 @@ Prisma is only used during the build process (`npx prisma generate`) for compati
 **A: Just ONE.**
 
 ```bash
-# This single connection string is used by both Drizzle and Prisma
+# SQLite Cloud connection string
+DATABASE_URL=sqlitecloud://example.sqlite.cloud:8860/database?apikey=xyz
+```
+
+Optionally, `DATABASE_DIRECT_URL` can be set if you need separate connection pools.
+
+---
 DATABASE_URL=postgresql://user:password@host:5432/database_name
 ```
 
-Optionally, `DATABASE_DIRECT_URL` if using Prisma Accelerate caching.
-
----
-
-## Q: Will removing Prisma save costs?
-
-**A: No.** 
-
-Prisma doesn't add any database costs - it's just a schema definition tool. The cost is the PostgreSQL instance itself, which you need regardless of which ORM you use.
-
-Removing Prisma might save a few MB in build artifacts but provides no runtime cost savings.
-
----
-
-## Q: Does Auth.js require a Prisma database?
-
-**A: No.**
-
-The application uses **JWT sessions**, which don't require any database storage. The `@auth/prisma-adapter` is configured but not actively used because of the JWT session strategy.
-
-```typescript
-// server/auth/auth.config.ts
-session: {
-  strategy: "jwt",  // <-- No database needed
-}
-```
-
----
-
-## Q: Should I run Prisma migrations?
-
-**A: No, use Drizzle migrations.**
-
-```bash
-# ✅ Correct - Use Drizzle for schema changes
-npm run db:push              # Development
-drizzle-kit migrate          # Production
-
-# ❌ Don't use - Prisma migrations not maintained
-npx prisma migrate dev       # Don't use this
-```
-
-The Prisma schema is kept in sync manually for build compatibility only.
+Optionally, `DATABASE_DIRECT_URL` can be set if you need separate connection pools.
 
 ---
 
 ## Q: How do I set up the database for production?
 
-**A: Create ONE Cloud SQL instance.**
+**A: Use SQLite Cloud.**
 
 ```bash
-# 1. Create PostgreSQL instance
-gcloud sql instances create shuffle-sync-db \
-  --database-version=POSTGRES_15 \
-  --tier=db-f1-micro
-
-# 2. Create ONE database
-gcloud sql databases create shufflesync_prod \
-  --instance=shuffle-sync-db
-
-# 3. Set DATABASE_URL (used by both Drizzle and Prisma)
-DATABASE_URL="postgresql://user:pass@/shufflesync_prod?host=/cloudsql/PROJECT:REGION:shuffle-sync-db"
+# Set your DATABASE_URL to your SQLite Cloud connection string
+DATABASE_URL="sqlitecloud://your-instance.sqlite.cloud:8860/database?apikey=your-key"
 ```
 
-That's it! Both Drizzle and Prisma will use this same connection.
+The schema is managed through Drizzle migrations.
 
 ---
 
@@ -127,47 +72,18 @@ npm run build
 
 **Steps:**
 1. ✅ Type checking (TypeScript)
-2. ✅ **Prisma generate** - Creates Prisma client (for compatibility)
-3. ✅ Frontend build (Vite)
-4. ✅ Backend build (esbuild)
+2. ✅ Frontend build (Vite)
+3. ✅ Backend build (esbuild)
 
-The Prisma client is generated but **NOT actively used** at runtime. It's kept for Auth.js compatibility.
-
----
-
-## Q: Can I completely remove Prisma?
-
-**A: Yes, but not recommended.**
-
-**Pros:**
-- Slightly smaller build artifacts
-- One less dependency
-
-**Cons:**
-- Need to create custom Auth.js adapter
-- More development time
-- Potential for bugs
-- No performance benefit
-
-**Recommendation**: Keep Prisma for now. Wait for official Auth.js Drizzle adapter (in development).
+The build process compiles both frontend and backend code for production deployment.
 
 ---
 
 ## Q: What's the connection pooling strategy?
 
-**A: Single connection pool via Drizzle.**
+**A: Managed automatically by SQLite Cloud.**
 
-```typescript
-// shared/database-unified.ts
-const poolConfig = {
-  max: parseInt(process.env.DB_POOL_MAX_SIZE || '20'),
-  min: parseInt(process.env.DB_POOL_MIN_SIZE || '5'),
-  idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
-  connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
-};
-```
-
-One pool, one database, managed by Drizzle.
+SQLite Cloud handles connection pooling internally. You just need to provide the connection string.
 
 ---
 
@@ -178,42 +94,17 @@ One pool, one database, managed by Drizzle.
 npm run db:health
 
 # Expected output:
-# ✅ Using PostgreSQL driver for postgres
-# ✅ Database connection established
-# 📊 Connection info: { type: 'postgres', driver: 'PostgreSQL', url: '***' }
+# ✅ Connected to SQLite Cloud successfully
+# 📊 Connection info: { type: 'sqlitecloud', driver: 'SQLite Cloud', url: '***' }
 ```
 
-If you see this output, your single PostgreSQL database is correctly configured.
-
----
-
-## Q: What if I see "Prisma client not found" error?
-
-**A: Run the build process.**
-
-```bash
-npm run build
-```
-
-This generates the Prisma client in `generated/prisma/`. Even though it's not used at runtime, it's required for the build to complete.
-
----
-
-## Q: Why does the deployment guide mention Cloud SQL if Prisma exists?
-
-**A: Cloud SQL is the PostgreSQL instance, not related to Prisma vs Drizzle.**
-
-- **Cloud SQL** = Where your PostgreSQL database runs (Google Cloud)
-- **Drizzle** = How you query that database (ORM)
-- **Prisma** = Alternative way to define schema (for compatibility)
-
-All three work together: Cloud SQL hosts PostgreSQL → Drizzle queries it → Prisma validates schema at build time.
+If you see this output, your SQLite Cloud database is correctly configured.
 
 ---
 
 ## Q: Summary in one sentence?
 
-**A:** You need ONE PostgreSQL database (local or Cloud SQL), accessed via Drizzle ORM at runtime, with Prisma schema maintained for build compatibility only.
+**A:** Shuffle & Sync uses SQLite Cloud as its database, accessed via Drizzle ORM for all database operations.
 
 ---
 
@@ -221,14 +112,11 @@ All three work together: Cloud SQL hosts PostgreSQL → Drizzle queries it → P
 
 | Component | Purpose | Active Use |
 |-----------|---------|------------|
-| PostgreSQL Database | Data storage | ✅ Always |
+| SQLite Cloud | Data storage | ✅ Always |
 | Drizzle ORM | Query builder | ✅ Runtime |
 | Drizzle Schema | Schema definition | ✅ Active |
 | Drizzle Migrations | Schema changes | ✅ Active |
-| Prisma Schema | Legacy schema | ⚠️ Build only |
-| Prisma Client | Legacy client | ⚠️ Generated, not used |
-| Prisma Migrations | Schema changes | ❌ Not used |
-| @auth/prisma-adapter | Session storage | ❌ Configured, not used (JWT) |
+| @auth/drizzle-adapter | Session storage | ✅ Active |
 
 ---
 
@@ -244,4 +132,4 @@ See the comprehensive [Database Architecture Guide](DATABASE_ARCHITECTURE.md) fo
 ---
 
 **Last Updated**: 2024  
-**Quick Answer**: One database, Drizzle ORM, Prisma for compatibility only
+**Quick Answer**: One SQLite Cloud database, Drizzle ORM for all operations
