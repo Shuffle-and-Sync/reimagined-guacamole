@@ -259,7 +259,7 @@ export abstract class BaseRepository<
           .where(eq((this.table as any).id, id))
           .returning();
 
-        return (result as TEntity[])[0] || null;
+        return (result as unknown as TEntity[])[0] || null;
       } catch (error) {
         logger.error(`Failed to update ${this.tableName}`, error, { id, data });
         throw new DatabaseError(`Failed to update ${this.tableName}`);
@@ -517,6 +517,7 @@ export abstract class BaseRepository<
         const sqlQuery = params && params.length > 0 
           ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
           : sql.raw(query);
+        // @ts-ignore: Temporary workaround for SQLite vs PostgreSQL type mismatch
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
