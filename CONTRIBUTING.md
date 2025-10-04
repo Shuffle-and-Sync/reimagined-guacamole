@@ -308,7 +308,7 @@ We recognize contributions through:
 
 1. **[Development Guide](./docs/development/DEVELOPMENT_GUIDE.md)** - Comprehensive development info
 2. **[API Documentation](./docs/api/API_DOCUMENTATION.md)** - Complete API reference
-3. **[Database Architecture](./docs/database/DATABASE_ARCHITECTURE.md)** - Database design
+3. **[Database Architecture](./docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
 4. **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Testing framework details
 
 ### Common Issues
