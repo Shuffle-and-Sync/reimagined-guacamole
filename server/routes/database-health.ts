@@ -3,8 +3,7 @@ import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../au
 import { generalRateLimit } from '../rate-limiting';
 import { 
   checkDatabaseHealth, 
-  DatabaseMonitor, 
-  pool 
+  DatabaseMonitor 
 } from '@shared/database-unified';
 import { logger } from '../logger';
 
@@ -74,10 +73,9 @@ router.get('/stats', async (req, res)=> {
     const allStats = monitor.getStats();
     const slowQueries = monitor.getSlowQueries(500); // Queries >500ms
     
+    // SQLite doesn't have a connection pool like PostgreSQL
     const poolStats = {
-      totalConnections: pool.totalCount,
-      idleConnections: pool.idleCount,
-      waitingClients: pool.waitingCount,
+      note: 'SQLite uses single connection, pool stats not applicable'
     };
 
     return res.json({
@@ -154,14 +152,10 @@ router.get('/pool', async (req, res)=> {
       return res.status(403).json({ success: false, error: 'Admin access required' });
     }
 
+    // SQLite doesn't have a connection pool like PostgreSQL
     const poolInfo = {
-      totalConnections: pool.totalCount,
-      idleConnections: pool.idleCount,
-      waitingClients: pool.waitingCount,
-      maxConnections: process.env.DB_POOL_MAX_SIZE || '20',
-      minConnections: process.env.DB_POOL_MIN_SIZE || '5',
-      idleTimeout: process.env.DB_IDLE_TIMEOUT || '30000',
-      connectionTimeout: process.env.DB_CONNECT_TIMEOUT || '10000',
+      note: 'SQLite uses single connection, pool configuration not applicable',
+      databaseType: 'SQLite Cloud'
     };
     
     return res.json({

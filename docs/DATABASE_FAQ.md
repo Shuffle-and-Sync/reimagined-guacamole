@@ -44,12 +44,6 @@ DATABASE_URL=sqlitecloud://example.sqlite.cloud:8860/database?apikey=xyz
 Optionally, `DATABASE_DIRECT_URL` can be set if you need separate connection pools.
 
 ---
-DATABASE_URL=postgresql://user:password@host:5432/database_name
-```
-
-Optionally, `DATABASE_DIRECT_URL` can be set if you need separate connection pools.
-
----
 
 ## Q: How do I set up the database for production?
 

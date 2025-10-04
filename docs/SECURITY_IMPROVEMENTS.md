@@ -287,7 +287,6 @@ A comprehensive administrator account management system has been implemented to 
 5. **Community Manager** (`community_manager`) - CMS and analytics
 
 See `server/admin/admin.middleware.ts` for complete role and permission definitions.
-```
 
 **Impact:** Prevents credential and sensitive data exposure in logs.
 
