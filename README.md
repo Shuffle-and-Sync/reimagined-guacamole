@@ -568,21 +568,21 @@ The application is configured for Cloud Run deployment with:
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Generate tests for your changes (`npm run test:generate`)
-4. Run tests to ensure they pass (`npm run test`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+We welcome contributions from developers of all skill levels! Please see our **[Contributing Guide](CONTRIBUTING.md)** for detailed information on:
 
-### Testing Requirements
+- **[Quick Start](CONTRIBUTING.md#-quick-start)** - Get up and running in minutes
+- **[Development Setup](CONTRIBUTING.md#-development-setup)** - Complete setup instructions
+- **[Code Standards](CONTRIBUTING.md#-code-standards)** - Quality guidelines and patterns
+- **[Testing Requirements](CONTRIBUTING.md#-testing-requirements)** - Mandatory testing procedures
+- **[Pull Request Process](CONTRIBUTING.md#-pull-request-process)** - How to submit changes
 
-All contributions must include:
-- ✅ Generated unit tests using the testing agent
-- ✅ All tests passing
-- ✅ Code coverage meeting minimum thresholds (70%)
-- ✅ TypeScript type safety compliance
+### Quick Contribution Steps
+
+1. Fork the repository and create a feature branch
+2. Run `npm run test:generate` to explore the codebase
+3. Make your changes following our [code standards](CONTRIBUTING.md#-code-standards)
+4. Ensure all [tests pass](CONTRIBUTING.md#-testing-requirements) (70% coverage required)
+5. Submit a [pull request](CONTRIBUTING.md#-pull-request-process) with clear description
 
 ## 📝 License
 
