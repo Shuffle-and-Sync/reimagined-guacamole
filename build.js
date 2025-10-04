@@ -48,8 +48,7 @@ async function build() {
       'package.json',
       'tsconfig.json',
       'vite.config.ts',
-      'esbuild.config.js',
-      'prisma/schema.prisma'
+      'esbuild.config.js'
     ];
     
     for (const file of requiredFiles) {
@@ -79,19 +78,8 @@ async function build() {
       console.log('Note: Remaining errors are in optional services and do not affect core functionality');
     }
 
-    // Step 5: Generate Prisma client
-    logStep('Step 5: Generating Prisma client...');
-    execSync('npx prisma generate', { stdio: 'inherit' });
-    
-    // Verify Prisma client was generated
-    if (!existsSync(resolve(process.cwd(), 'generated/prisma'))) {
-      logError('Prisma client generation failed');
-      process.exit(1);
-    }
-    logSuccess('Prisma client generated successfully');
-    
-    // Step 6: Build frontend
-    logStep('Step 6: Building frontend with Vite...');
+    // Step 5: Build frontend
+    logStep('Step 5: Building frontend with Vite...');
     execSync('npx vite build', { stdio: 'inherit' });
     
     // Verify frontend build output
@@ -101,8 +89,8 @@ async function build() {
     }
     logSuccess('Frontend built successfully');
     
-    // Step 7: Build backend
-    logStep('Step 7: Building backend with esbuild...');
+    // Step 6: Build backend
+    logStep('Step 6: Building backend with esbuild...');
     await esbuild.build(config);
     
     // Verify backend build output
@@ -112,13 +100,11 @@ async function build() {
     }
     logSuccess('Backend built successfully');
     
-    // Step 8: Post-build verification
-    logStep('Step 8: Running post-build verification...');
+    // Step 7: Post-build verification
+    logStep('Step 7: Running post-build verification...');
     const buildArtifacts = [
       'dist/index.js',
-      'dist/public/index.html',
-      'generated/prisma/index.js',
-      'generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node'
+      'dist/public/index.html'
     ];
     
     let allArtifactsPresent = true;
@@ -142,14 +128,12 @@ async function build() {
     console.log('\n📦 Build Artifacts:');
     console.log('  - dist/index.js (backend)');
     console.log('  - dist/public/ (frontend)');
-    console.log('  - generated/prisma/ (database client)');
     console.log('\n🚀 Deployment Instructions:');
     console.log('  1. Deploy dist/ directory');
-    console.log('  2. Deploy generated/prisma/ directory');
-    console.log('  3. Deploy node_modules/ (production dependencies)');
-    console.log('  4. Set NODE_ENV=production');
-    console.log('  5. Set PORT environment variable');
-    console.log('  6. Ensure all required environment variables are configured');
+    console.log('  2. Deploy node_modules/ (production dependencies)');
+    console.log('  3. Set NODE_ENV=production');
+    console.log('  4. Set PORT environment variable');
+    console.log('  5. Ensure all required environment variables are configured');
     console.log('\n✓ Build initialization complete\n');
   } catch (error) {
     logError('Build failed');

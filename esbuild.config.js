@@ -33,12 +33,7 @@ const externalizeNodeModulesPlugin = {
       
       // Externalize real node_modules packages (normal and scoped)
       if (args.path.match(/^[^@./]/) || // matches normal package names like 'express'
-          args.path.match(/^@[^/]+\/[^/]+/)) { // matches scoped packages like @prisma/client
-        return { path: args.path, external: true };
-      }
-      
-      // Externalize relative paths to generated directories
-      if (args.path.includes('generated/prisma')) {
+          args.path.match(/^@[^/]+\/[^/]+/)) { // matches scoped packages
         return { path: args.path, external: true };
       }
     });
@@ -93,16 +88,7 @@ global.__dirname = __dirname;
     '@replit/vite-*',
     '../vite.config.js',
     './vite.js', 
-    './vite',
-    // Prisma related
-    '@prisma/client',
-    '@prisma/client/*',
-    '@prisma/client/runtime/library',
-    '@prisma/client/runtime/query_engine*',
-    '@prisma/engines',
-    '@prisma/engines-version',
-    'prisma/libquery_engine*',
-    'generated/prisma/*'
+    './vite'
   ]
 };
 

@@ -30,11 +30,11 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
 - **Database**: SQLite Cloud (production) / SQLite (development)
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: JWT sessions (stateless, secure)
+- **Session Storage**: Database sessions via Drizzle adapter
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
 
-> **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
+> **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
 
 ## 📋 Quick Start
 
