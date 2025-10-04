@@ -2,14 +2,20 @@
 
 ## Overview
 
-This document explains the dependency management strategy for Drizzle ORM in this project, specifically regarding database drivers and type definitions.
+This document explains the Drizzle ORM dependencies used in Shuffle & Sync after migrating to SQLite Cloud.
 
 ## Current Configuration
 
-### Drizzle ORM Packages
+### Core ORM
 - **drizzle-orm**: `^0.44.6` (dependencies)
+  - Core ORM functionality
+  - Type-safe query builder
+  - SQLite dialect support
+  
 - **drizzle-kit**: `^0.31.5` (devDependencies)
-- **drizzle-zod**: `^0.7.1` (dependencies) - Note: 0.8.x has breaking changes
+  - Schema migration tool
+  - Push schema changes to database
+  - Generate migration files
 
 ### Database Drivers
 
@@ -23,232 +29,66 @@ This document explains the dependency management strategy for Drizzle ORM in thi
   - Used with SQLite Cloud connection
   - Provides SQLite database interface
 
-#### PostgreSQL (Not Used)
-- **pg**: NOT IN USE (installed but not active)
-  - Only needed if using PostgreSQL database
-  - Currently installed for legacy compatibility
-  - Can be removed if not planning to use PostgreSQL
-  
-- **@types/pg**: NOT IN USE (installed but not active)
-  - TypeScript type definitions for pg
-  - Only needed if using PostgreSQL
-  - Can be removed if not planning to use PostgreSQL
+### Auth.js Integration
+- **@auth/drizzle-adapter**: `^1.10.0` (dependencies)
+  - Connects Auth.js with Drizzle ORM
+  - Manages database sessions
+  - Handles user/account tables
 
-#### MySQL (Not Used)
-- **mysql2**: NOT INSTALLED
-  - This is CORRECT - we don't use MySQL
-  - It's an optional peer dependency of drizzle-orm
-  - Only needed if using MySQL database
-  - Including it would add unnecessary dependencies
+### Validation Integration
+- **drizzle-zod**: `^0.7.1` (dependencies)
+  - Integrates Zod validation with Drizzle schemas
+  - Enables type-safe schema validation
 
-- **@types/mysql2**: DOES NOT EXIST
-  - mysql2 package includes its own TypeScript type definitions
-  - No separate @types package is needed
+## Migration Notes
 
-## Dependency Placement Rationale
+### Removed PostgreSQL Dependencies
+The following PostgreSQL-specific packages have been removed:
+- ~~pg~~ (PostgreSQL driver - not needed)
+- ~~@types/pg~~ (TypeScript types for pg - not needed)
+- ~~connect-pg-simple~~ (PostgreSQL session store - replaced by @auth/drizzle-adapter)
 
-### Why better-sqlite3 is in dependencies (not devDependencies)
+### Active Database Stack
+✅ **SQLite Cloud via @sqlitecloud/drivers**
+✅ **Local SQLite via better-sqlite3**
+✅ **Drizzle ORM for all queries**
+✅ **Database sessions via @auth/drizzle-adapter**
 
-```typescript
-// In shared/database-unified.ts
-export type Database = BetterSQLite3Database<Schema>;
-export type Transaction = any; // SQLite transaction type
+## Common Commands
 
-// These types from drizzle-orm/better-sqlite3 work with SQLite Cloud
-// When other modules import Database or Transaction types, they need compatible types
-```
-
-If better-sqlite3 were in devDependencies:
-- ❌ Type errors in production builds
-- ❌ Missing driver for Drizzle ORM's better-sqlite3 adapter
-- ❌ Runtime errors when connecting to SQLite Cloud
-
-With better-sqlite3 in dependencies:
-- ✅ Full type safety in all environments
-- ✅ Proper type inference for database operations
-- ✅ Compatible with SQLite Cloud via @sqlitecloud/drivers
-
-## Drizzle ORM Peer Dependencies
-
-Drizzle ORM declares many database drivers as optional peer dependencies:
-
-```json
-{
-  "peerDependencies": {
-    "pg": ">=8",
-    "mysql2": ">=2",
-    "@types/pg": "*",
-    "better-sqlite3": ">=7",
-    // ... and many more
-  },
-  "peerDependenciesMeta": {
-    "pg": { "optional": true },
-    "mysql2": { "optional": true },
-    "@types/pg": { "optional": true },
-    // ... all are optional
-  }
-}
-```
-
-**Key Points:**
-- All peer dependencies are marked as optional
-- Only install the drivers you actually use
-- Each driver is only loaded when the corresponding dialect is used
-- Tree-shaking ensures unused code is not bundled
-
-## Type Checking Behavior
-
-### With skipLibCheck: true (Default)
-TypeScript skips type checking of declaration files in node_modules. This is our default configuration and is recommended.
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "skipLibCheck": true
-  }
-}
-```
-
-**Result:**
-- ✅ No type errors from unused drizzle-orm dialects (MySQL, SQLite, etc.)
-- ✅ Fast type checking
-- ✅ No need to install mysql2 or other unused drivers
-- ✅ Our application code is fully type-checked
-
-### Without skipLibCheck
-TypeScript type-checks all declaration files, including those in node_modules.
-
-**Result:**
-- ❌ Type errors from mysql2 missing types in drizzle-orm/mysql-core
-- ❌ Type errors from other unused dialects
-- ❌ Slower type checking
-- ℹ️ These errors don't affect runtime or our application code
-
-## Testing Database Connectivity
-
-### SQLite Cloud Connection Test
 ```bash
+# Push schema changes to database (development)
+npm run db:push
+
+# Initialize SQLite Cloud database
+npm run db:init
+
+# Check database health
 npm run db:health
+
+# Generate migration files (production)
+drizzle-kit generate
+
+# View database schema
+drizzle-kit studio
 ```
 
-This command tests:
-- SQLite Cloud database connection
-- Connection configuration
-- Query execution
-- Type safety of database operations
+## Troubleshooting
 
-### Build Test
-```bash
-npm run build
-```
+### Build Errors
+If you see Drizzle-related build errors:
+1. Ensure all required packages are installed: `npm install --legacy-peer-deps`
+2. Check TypeScript compilation: `npm run check`
+3. Verify database connection in `shared/database-unified.ts`
 
-Verifies:
-- All TypeScript compiles correctly
-- Dependencies are correctly resolved
-- No runtime errors in production build
+### Runtime Errors
+If you see runtime database errors:
+1. Check `DATABASE_URL` environment variable
+2. Ensure SQLite Cloud credentials are valid
+3. Run `npm run db:health` to test connection
 
-## Migration Guide
+## See Also
 
-### Updating Drizzle ORM
-
-When updating drizzle-orm:
-
-1. Check compatibility with drizzle-kit:
-   ```bash
-   npm view drizzle-orm@latest peerDependencies
-   npm view drizzle-kit@latest
-   ```
-
-2. Update both packages together:
-   ```bash
-   npm update drizzle-orm drizzle-kit
-   ```
-
-3. Test the database connection:
-   ```bash
-   npm run db:health
-   ```
-
-4. Run the build:
-   ```bash
-   npm run build
-   ```
-
-### Adding Support for Another Database
-
-If you need to add PostgreSQL or MySQL:
-
-1. Install the appropriate driver:
-   ```bash
-   # For PostgreSQL
-   npm install pg @types/pg
-   
-   # For MySQL
-   npm install mysql2
-   ```
-
-2. Update database configuration in `shared/database-unified.ts`
-
-3. For PostgreSQL: Install @types/pg (pg requires separate types)
-   For MySQL: No separate types needed (mysql2 includes types)
-
-4. Test the connection with both databases
-
-## Common Issues
-
-### "Cannot find module 'better-sqlite3'"
-**Cause:** better-sqlite3 is missing or not installed correctly
-
-**Solution:** Install better-sqlite3 as a dependency:
-```bash
-npm install better-sqlite3 --legacy-peer-deps
-```
-
-### "Module '@sqlitecloud/drivers' not found"
-**Cause:** SQLite Cloud driver is missing
-
-**Solution:** Install the SQLite Cloud driver:
-```bash
-npm install @sqlitecloud/drivers --legacy-peer-deps
-```
-
-**Note:** Use `--legacy-peer-deps` to resolve React Native peer dependency warnings from @sqlitecloud/drivers (these warnings are safe to ignore for Node.js server usage)
-
-## Best Practices
-
-1. **Only install drivers you use**
-   - Keeps bundle size small
-   - Reduces dependency maintenance
-   - Faster install times
-
-2. **Keep better-sqlite3 in dependencies**
-   - Required for Drizzle ORM's better-sqlite3 adapter
-   - Needed by SQLite Cloud connections
-   - Small package size
-
-3. **Use skipLibCheck: true**
-   - Fast type checking
-   - Avoids false positives from library internals
-   - Focuses on your application code
-
-4. **Update regularly**
-   - drizzle-orm improves type safety with each release
-   - Check release notes for breaking changes
-   - Test thoroughly after updates
-
-## Related Documentation
-
-- [Drizzle ORM Type System Fixes](./DRIZZLE_TYPE_SYSTEM_FIXES.md)
-- [Drizzle ORM Optimizations](./DRIZZLE_OPTIMIZATIONS.md)
-- [Database Migration Guide](../deployment/DATABASE_MIGRATIONS.md)
-
-## Version History
-
-- **2025-01**: Updated drizzle-orm from 0.44.5 to 0.44.6
-- **2025-01**: Kept drizzle-zod at 0.7.1 (0.8.x has breaking changes requiring code updates)
-- **2025-01**: Fixed type mismatches - changed from PostgreSQL types to SQLite types
-- **2025-01**: Updated documentation to reflect SQLite Cloud as primary database
-- **2024-12**: Updated drizzle-orm from 0.39.3 to 0.44.5
-- **2024-12**: Documented dependency management strategy
-- **2024-12**: Clarified @types/pg placement in dependencies
+- [Optional Dependencies](./OPTIONAL_DEPENDENCIES.md) - Overview of all database dependencies
+- [Database Architecture](../DATABASE_ARCHITECTURE.md) - Complete architecture guide
+- [Drizzle ORM Documentation](https://orm.drizzle.team/) - Official Drizzle docs
