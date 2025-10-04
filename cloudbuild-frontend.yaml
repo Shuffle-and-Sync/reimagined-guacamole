@@ -54,6 +54,8 @@ steps:
       - '5'
       - '--timeout'
       - '60'
+      - '--set-env-vars'
+      - 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
     id: 'deploy-frontend'
     waitFor: ['push-frontend']
 

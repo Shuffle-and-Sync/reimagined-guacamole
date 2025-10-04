@@ -267,6 +267,8 @@ npm run db:migrate:production
 - **[Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
 - **[Environment Template](.env.production.template)** - Required environment variables
 - **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Technical deployment details
+- **[Cloud Run Frontend-Backend Setup](docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)** - Split deployment architecture
+- **[Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - Troubleshooting ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 
 ## 🔒 Security
 
