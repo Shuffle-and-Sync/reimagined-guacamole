@@ -198,6 +198,35 @@ OAuth callbacks go to `/api/auth/callback/google`, which is handled by:
 
 ## Verification
 
+### Quick Verification
+
+Run the automated verification script:
+
+```bash
+# Verify both frontend and backend are properly configured
+npm run verify:cloudrun
+
+# Or run directly with custom service names
+./scripts/verify-cloud-run-deployment.sh
+
+# With custom configuration
+REGION=us-central1 \
+FRONTEND_SERVICE=my-frontend \
+BACKEND_SERVICE=my-backend \
+./scripts/verify-cloud-run-deployment.sh
+```
+
+The script checks:
+- ✅ Backend service is deployed and accessible
+- ✅ Backend has required environment variables (GOOGLE_CLIENT_ID, AUTH_SECRET, etc.)
+- ✅ Frontend service is deployed and accessible
+- ✅ Frontend has BACKEND_URL configured correctly
+- ✅ Frontend BACKEND_URL matches actual backend URL
+- ✅ Health endpoints are accessible
+- ✅ Frontend correctly proxies /api/ requests to backend
+
+### Manual Verification
+
 ### 1. Check Frontend Environment
 
 ```bash
