@@ -9,9 +9,10 @@ documentation:
     Alerts include:
     - High error rates on Cloud Run services
     - High response latency
-    - Database connection issues
     - Memory and CPU usage thresholds
     - SSL certificate expiration
+    
+    Note: Database (SQLite Cloud) is monitored separately via SQLite Cloud dashboard.
   mimeType: "text/markdown"
 
 conditions:
@@ -96,22 +97,9 @@ conditions:
           groupByFields:
             - "resource.labels.service_name"
 
-  # Database connection alert
-  - displayName: "Database Connection Issues"
-    documentation:
-      content: "Cloud SQL database is experiencing connection issues"
-      mimeType: "text/plain"
-    conditionThreshold:
-      filter: |
-        resource.type="cloudsql_database"
-        metric.type="cloudsql.googleapis.com/database/up"
-      comparison: COMPARISON_LESS_THAN
-      thresholdValue: 1
-      duration: 60s  # 1 minute
-      aggregations:
-        - alignmentPeriod: 60s
-          perSeriesAligner: ALIGN_MEAN
-          crossSeriesReducer: REDUCE_MEAN
+  # Note: Database monitoring removed as SQLite Cloud metrics
+  # are not available via Google Cloud Monitoring.
+  # Monitor SQLite Cloud health through their dashboard.
 
 # Notification channels (configure with actual values)
 notificationChannels:

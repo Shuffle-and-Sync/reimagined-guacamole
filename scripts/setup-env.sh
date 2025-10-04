@@ -127,10 +127,6 @@ check_prerequisites() {
         missing_deps+=("npm")
     fi
     
-    if ! command_exists psql && ! command_exists docker; then
-        print_warning "Neither PostgreSQL nor Docker found. You'll need a database."
-    fi
-    
     if [[ ${#missing_deps[@]} -eq 0 ]]; then
         print_success "All prerequisites met"
         return 0
@@ -170,11 +166,10 @@ setup_database() {
             print_info "Database URL: postgresql://postgres:password@localhost:5432/shufflesync_dev"
             ;;
         3)
-            print_info "Please sign up for a cloud database service and update DATABASE_URL in .env.local"
-            print_info "Recommended: Supabase (https://supabase.com) or AWS RDS"
+            print_info "Skipping database setup. Update DATABASE_URL in .env.local manually."
             ;;
-        4)
-            print_warning "Skipping database setup. You'll need to configure it manually."
+        *)
+            print_warning "Invalid choice. Skipping database setup."
             ;;
     esac
 }

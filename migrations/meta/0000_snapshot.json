@@ -2,7 +2,7 @@
   "id": "f9c092e7-6725-4771-b464-6d0d053558ff",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "tables": {
     "public.collaboration_requests": {
       "name": "collaboration_requests",
