@@ -572,16 +572,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create default preferences if none exist
         preferences = await storage.upsertMatchmakingPreferences({
           userId,
-          selectedGames: req.body.selectedGames || ["MTG"],
-          selectedFormats: req.body.selectedFormats || ["commander"],
-          powerLevelMin: req.body.powerLevelMin || 1,
-          powerLevelMax: req.body.powerLevelMax || 10,
-          playstyle: req.body.playstyle || "any",
-          location: req.body.location || null,
-          onlineOnly: req.body.onlineOnly || false,
-          availability: req.body.availability || "any",
-          language: req.body.language || "english",
-          maxDistance: req.body.maxDistance || 50,
+          gameType: req.body.selectedGames?.[0] || "MTG", // Take first game as gameType
+          preferredFormats: JSON.stringify(req.body.selectedFormats || ["commander"]),
+          skillLevelRange: JSON.stringify([req.body.powerLevelMin || 1, req.body.powerLevelMax || 10]),
+          playStyle: req.body.playstyle || "casual",
+          preferredLocation: req.body.location || null,
+          maxTravelDistance: req.body.maxDistance || 50,
+          availabilitySchedule: JSON.stringify(req.body.availability || {}),
+          communicationPreferences: JSON.stringify({ language: req.body.language || "english", onlineOnly: req.body.onlineOnly || false }),
         });
       }
       
@@ -1283,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store token in database
         const expiresAt = new Date(Date.now() + TOKEN_EXPIRY.PASSWORD_RESET * 1000);
         await storage.createPasswordResetToken({
-          email,
+          userId: userExists.id,
           token: resetToken,
           expiresAt,
         });
@@ -1310,7 +1308,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
 
-      return res.json({ message: "Token is valid", email: resetToken.email });
+      // Get user email from userId
+      const user = await storage.getUser(resetToken.userId);
+      return res.json({ message: "Token is valid", email: user?.email });
     } catch (error) {
       logger.error("Failed to verify reset token", error, { token: req.body.token });
       return res.status(500).json({ message: "Failed to verify reset token" });
@@ -1346,8 +1346,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
       
-      // Find user by email from token
-      const user = await storage.getUserByEmail(resetToken.email);
+      // Find user by userId from token
+      const user = await storage.getUser(resetToken.userId);
       if (!user) {
         return res.status(400).json({ message: "Invalid reset request" });
       }
@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if MFA is already enabled
       const existingMfa = await storage.getUserMfaSettings(userId);
-      if (existingMfa?.isEnabled) {
+      if (existingMfa?.enabled) {
         return res.status(400).json({ message: "MFA is already enabled for this account" });
       }
       
@@ -1481,11 +1481,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_enabled',
-        details: { 
+        details: JSON.stringify({ 
           method: 'totp',
           backupCodesGenerated: newBackupCodes.length,
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1530,10 +1530,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_disabled',
-        details: { 
+        details: JSON.stringify({ 
           method: 'password_confirmation',
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1573,7 +1573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user MFA settings
       const mfaSettings = await storage.getUserMfaSettings(userId);
-      if (!mfaSettings || !mfaSettings.isEnabled) {
+      if (!mfaSettings || !mfaSettings.enabled) {
         return res.status(400).json({ message: "MFA is not enabled for this account" });
       }
       
@@ -1581,7 +1581,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isBackupCode) {
         // Verify backup code with Argon2id
-        const backupResult = await verifyBackupCode(code, mfaSettings.backupCodes || []);
+        const backupCodes = mfaSettings.backupCodes ? JSON.parse(mfaSettings.backupCodes) : [];
+        const backupResult = await verifyBackupCode(code, backupCodes);
         if (backupResult.isValid && backupResult.codeIndex !== undefined) {
           // Mark backup code as used by removing it from the array
           await storage.markBackupCodeAsUsed(userId, backupResult.codeIndex);
@@ -1589,11 +1590,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // Verify TOTP code
-        if (!mfaSettings.totpSecret) {
+        if (!mfaSettings.secret) {
           return res.status(400).json({ message: "TOTP secret not found" });
         }
         
-        const totpResult = verifyTOTPCode(code, mfaSettings.totpSecret);
+        const totpResult = verifyTOTPCode(code, mfaSettings.secret);
         isValid = totpResult.isValid;
       }
       
@@ -1604,7 +1605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store MFA security context for this verification
         await storage.createMfaSecurityContext({
           userId,
-          deviceFingerprintId: deviceValidation.deviceFingerprint?.id || null,
+          deviceFingerprint: deviceValidation.deviceFingerprint?.id || null,
           verificationMethod: isBackupCode ? 'backup_code' : 'totp',
           riskScore: riskAssessment.riskScore,
           trustScore: deviceValidation.trustScore,
@@ -1623,9 +1624,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateDeviceLastSeen(deviceFingerprint.hash);
           // Increment successful verifications via updateDeviceFingerprint
           await storage.updateDeviceFingerprint(deviceValidation.deviceFingerprint.id, {
-            successfulMfaAttempts: (deviceValidation.deviceFingerprint.successfulMfaAttempts || 0) + 1,
-            totalSessions: (deviceValidation.deviceFingerprint.totalSessions || 0) + 1,
-            lastSeenAt: new Date()
+            lastSeen: new Date(),
+            trustScore: Math.min(1.0, (deviceValidation.deviceFingerprint.trustScore || 0.5) + 0.1)
           });
         }
         
@@ -1642,12 +1642,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
-          details: { 
+          details: JSON.stringify({ 
             method: isBackupCode ? 'backup_code' : 'totp',
             userAgent: req.get('User-Agent') || 'Unknown',
             deviceTrustScore: deviceValidation.trustScore,
             riskScore: riskAssessment.riskScore
-          },
+          }),
           ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
           isSuccessful: true
         });
@@ -1668,10 +1668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAuthAuditLog({
           userId,
           eventType: 'mfa_verified',
-          details: { 
+          details: JSON.stringify({ 
             method: isBackupCode ? 'backup_code' : 'totp',
             userAgent: req.get('User-Agent') || 'Unknown'
-          },
+          }),
           ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
           isSuccessful: false,
           failureReason: 'invalid_mfa_code'
@@ -1710,7 +1710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if MFA is enabled
       const mfaSettings = await storage.getUserMfaSettings(userId);
-      if (!mfaSettings || !mfaSettings.isEnabled) {
+      if (!mfaSettings || !mfaSettings.enabled) {
         return res.status(400).json({ message: "MFA is not enabled for this account" });
       }
       
@@ -1721,7 +1721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       // Update backup codes in database
-      await storage.updateUserMfaSettings(userId, { backupCodes: hashedBackupCodes });
+      await storage.updateUserMfaSettings(userId, { backupCodes: JSON.stringify(hashedBackupCodes) });
       
       // Log backup codes regeneration with audit trail
       logger.info('MFA backup codes regenerated', { userId });
@@ -1730,11 +1730,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuthAuditLog({
         userId,
         eventType: 'mfa_verified', // Using existing enum, could add 'mfa_backup_codes_regenerated'
-        details: { 
+        details: JSON.stringify({ 
           action: 'backup_codes_regenerated',
           codesGenerated: newBackupCodes.length,
           userAgent: req.get('User-Agent') || 'Unknown'
-        },
+        }),
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
@@ -1759,9 +1759,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mfaSettings = await storage.getUserMfaSettings(userId);
       
       return res.json({
-        mfaEnabled: mfaSettings?.isEnabled || false,
-        enabledAt: mfaSettings?.enabledAt || null,
-        lastVerifiedAt: mfaSettings?.lastVerifiedAt || null,
+        mfaEnabled: mfaSettings?.enabled || false,
+        enabledAt: mfaSettings?.createdAt || null, // Use createdAt since schema doesn't have enabledAt
+        lastVerifiedAt: mfaSettings?.updatedAt || null, // Use updatedAt since schema doesn't have lastVerifiedAt
         backupCodesCount: mfaSettings?.backupCodes?.length || 0,
       });
       
@@ -1814,7 +1814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: false,
           failureReason: 'security_policy', // Use valid enum value instead
-          details: { tokenId: payload.jti, revokedAllTokens: true }
+          details: JSON.stringify({ tokenId: payload.jti, revokedAllTokens: true })
         });
         return res.status(401).json({ message: "Security violation detected - all tokens revoked" });
       }
@@ -1847,7 +1847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           token: newRefreshTokenJWT,
           userAgent: req.headers['user-agent'] || null,
-          ipAddress: req.ip || null,
+          ipAddress: req.ip || 'unknown',
           expiresAt: new Date(Date.now() + TOKEN_EXPIRY.REFRESH_TOKEN * 1000),
         };
         
@@ -1863,7 +1863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ipAddress: req.ip || 'unknown', 
           userAgent: req.headers['user-agent'] || 'unknown',
           isSuccessful: true,
-          details: { oldTokenId: payload.jti, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' }
+          details: JSON.stringify({ oldTokenId: payload.jti, newTokenId: newRefreshTokenId, refreshType: 'token_rotation' })
         });
         
         logger.info('Refresh token rotation completed successfully', {
