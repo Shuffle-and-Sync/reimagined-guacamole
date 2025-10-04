@@ -22,6 +22,15 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ### Deployment & Operations
 - [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment instructions
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
+- [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step Cloud Run deployment
+- [Cloud Run Frontend-Backend Setup](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Split architecture guide
+- [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Auth.js configuration for Cloud Run
+
+### Troubleshooting
+- [🔧 Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Fix "Configuration" errors
+- [⚡ Quick Fix: Auth Errors](QUICK_FIX_AUTH_ERROR.md) - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
+- [📋 Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick reference card
+- [Cloud Run Startup Fix](CLOUD_RUN_STARTUP_FIX.md) - Container startup issues
 
 ### Development
 - [Development Guide](development/DEVELOPMENT_GUIDE.md) - Getting started with development
@@ -68,8 +77,14 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 4. Read [Express Patterns](EXPRESS_PATTERNS.md)
 
 ### For Deployment
-1. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
-2. [Deployment Guide](deployment/DEPLOYMENT.md)
+1. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
+2. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
+3. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
+
+### For Troubleshooting
+1. [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick fix commands
+2. [Troubleshooting Configuration Error](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Deep troubleshooting
+3. [Quick Fix: Auth Errors](QUICK_FIX_AUTH_ERROR.md) - 5-minute fix
 
 ### For API Development
 1. [API Documentation](api/API_DOCUMENTATION.md)
