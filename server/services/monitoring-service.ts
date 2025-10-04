@@ -3,6 +3,7 @@ import { logger } from '../logger';
 import os from 'os';
 import fs from 'fs/promises';
 import { db } from '@shared/database-unified';
+import { sql } from 'drizzle-orm';
 import { redisClient } from './redis-client';
 
 export interface SystemMetrics {
@@ -335,7 +336,7 @@ class MonitoringService extends EventEmitter {
     
     try {
       // Simple connectivity test
-      await db.execute('SELECT 1 as health_check');
+      await db.run(sql`SELECT 1 as health_check`);
       
       const latency = Date.now() - startTime;
       
