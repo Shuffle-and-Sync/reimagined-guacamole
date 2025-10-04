@@ -349,7 +349,7 @@ Complete documentation is organized in the [docs/](docs/) directory:
 
 - **[Documentation Index](docs/README.md)** - Central documentation hub
 - **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Getting started with development
-- **[Database Architecture](docs/database/DATABASE_ARCHITECTURE.md)** - Database design and setup
+- **[Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
 - **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
 - **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
