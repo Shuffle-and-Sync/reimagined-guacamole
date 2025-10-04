@@ -992,6 +992,152 @@ async function initializeDatabase() {
     `;
     console.log('  ✅ revoked_jwt_tokens table created');
     
+    // TableSync Universal Framework tables
+    console.log('\n📋 Creating TableSync Universal Framework tables...');
+    
+    // Games table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS games (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        description TEXT,
+        creator_id TEXT NOT NULL,
+        is_official INTEGER DEFAULT 0,
+        is_published INTEGER DEFAULT 0,
+        version TEXT DEFAULT '1.0.0',
+        player_count TEXT DEFAULT '{"min":2,"max":4}',
+        avg_game_duration INTEGER,
+        complexity INTEGER,
+        age_rating TEXT,
+        card_types TEXT DEFAULT '[]',
+        resource_types TEXT DEFAULT '[]',
+        zones TEXT DEFAULT '[]',
+        phase_structure TEXT DEFAULT '[]',
+        deck_rules TEXT DEFAULT '{"minDeckSize":60,"maxDeckSize":null,"maxCopies":4,"allowedSets":null}',
+        theme TEXT DEFAULT '{"primaryColor":"#1a1a1a","accentColor":"#ffd700","cardBackUrl":null}',
+        total_cards INTEGER DEFAULT 0,
+        total_players INTEGER DEFAULT 0,
+        total_games_played INTEGER DEFAULT 0,
+        moderation_status TEXT DEFAULT 'pending',
+        approved_at INTEGER,
+        approved_by TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ games table created');
+    
+    // Cards table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS cards (
+        id TEXT PRIMARY KEY,
+        game_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        set_code TEXT,
+        set_name TEXT,
+        collector_number TEXT,
+        rarity TEXT,
+        external_id TEXT,
+        external_source TEXT,
+        attributes TEXT DEFAULT '{}',
+        image_uris TEXT DEFAULT '{}',
+        created_by TEXT,
+        is_official INTEGER DEFAULT 0,
+        is_community_submitted INTEGER DEFAULT 0,
+        moderation_status TEXT DEFAULT 'approved',
+        approved_by TEXT,
+        approved_at INTEGER,
+        search_count INTEGER DEFAULT 0,
+        cached_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        UNIQUE(game_id, external_id)
+      )
+    `;
+    console.log('  ✅ cards table created');
+    
+    // Game card attributes table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS game_card_attributes (
+        id TEXT PRIMARY KEY,
+        game_id TEXT NOT NULL,
+        attribute_name TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        data_type TEXT NOT NULL,
+        is_required INTEGER DEFAULT 0,
+        validation_rules TEXT DEFAULT '{}',
+        display_order INTEGER DEFAULT 0,
+        category TEXT,
+        help_text TEXT,
+        created_at INTEGER NOT NULL,
+        UNIQUE(game_id, attribute_name)
+      )
+    `;
+    console.log('  ✅ game_card_attributes table created');
+    
+    // Game formats table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS game_formats (
+        id TEXT PRIMARY KEY,
+        game_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        description TEXT,
+        deck_rules TEXT DEFAULT '{"minDeckSize":60,"maxDeckSize":null,"sideboard":false,"sideboardSize":0}',
+        banned_cards TEXT DEFAULT '[]',
+        restricted_cards TEXT DEFAULT '[]',
+        allowed_sets TEXT DEFAULT '[]',
+        is_official INTEGER DEFAULT 0,
+        created_by TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        UNIQUE(game_id, name)
+      )
+    `;
+    console.log('  ✅ game_formats table created');
+    
+    // Card submissions table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS card_submissions (
+        id TEXT PRIMARY KEY,
+        game_id TEXT NOT NULL,
+        submitted_by TEXT NOT NULL,
+        card_name TEXT NOT NULL,
+        card_data TEXT NOT NULL,
+        image_url TEXT,
+        submission_notes TEXT,
+        source TEXT,
+        status TEXT DEFAULT 'pending',
+        moderator_id TEXT,
+        moderation_notes TEXT,
+        reviewed_at INTEGER,
+        upvotes INTEGER DEFAULT 0,
+        downvotes INTEGER DEFAULT 0,
+        approved_card_id TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    console.log('  ✅ card_submissions table created');
+    
+    // Game analytics table
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS game_analytics (
+        id TEXT PRIMARY KEY,
+        game_id TEXT,
+        date TEXT NOT NULL,
+        sessions_started INTEGER DEFAULT 0,
+        unique_players INTEGER DEFAULT 0,
+        total_playtime INTEGER DEFAULT 0,
+        cards_searched INTEGER DEFAULT 0,
+        cards_added INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        UNIQUE(game_id, date)
+      )
+    `;
+    console.log('  ✅ game_analytics table created');
+    
     // Admin & Moderation tables
     console.log('\n📋 Creating Admin & Moderation tables...');
     
@@ -1380,6 +1526,22 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_jti ON revoked_jwt_tokens(jti)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_user ON revoked_jwt_tokens(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_expires ON revoked_jwt_tokens(expires_at)`;
+    
+    // TableSync Universal Framework indexes
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_games_creator_id ON games(creator_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_games_published ON games(is_published)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_games_official ON games(is_official)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_games_name ON games(name)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cards_game_id ON cards(game_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cards_name ON cards(name)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cards_external_id ON cards(external_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_cards_set_code ON cards(set_code)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_card_attributes_game_id ON game_card_attributes(game_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_formats_game_id ON game_formats(game_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_card_submissions_game_id ON card_submissions(game_id)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_card_submissions_submitted_by ON card_submissions(submitted_by)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_card_submissions_status ON card_submissions(status)`;
+    await db.sql`CREATE INDEX IF NOT EXISTS idx_game_analytics_game_date ON game_analytics(game_id, date)`;
     
     // Admin & Moderation indexes (existing tables - may have legacy schemas)
     // Skip creating indexes on these tables to avoid schema conflicts
