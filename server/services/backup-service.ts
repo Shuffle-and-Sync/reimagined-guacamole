@@ -1,4 +1,5 @@
 import { db } from '@shared/database-unified';
+import { sql } from 'drizzle-orm';
 import { logger } from '../logger';
 import path from 'path';
 import fs from 'fs/promises';
@@ -409,14 +410,15 @@ class BackupService {
 
   private async getAllTableNames(): Promise<string[]> {
     try {
-      const result = await db.execute(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_type = 'BASE TABLE'
+      // SQLite query to get all tables
+      const result = await db.all(sql`
+        SELECT name as table_name 
+        FROM sqlite_master 
+        WHERE type = 'table' 
+        AND name NOT LIKE 'sqlite_%'
       `);
       
-      return result.rows.map((row: any) => row.table_name);
+      return result.map((row: any) => row.table_name);
     } catch (error) {
       logger.error('Failed to get table names', error);
       return [];

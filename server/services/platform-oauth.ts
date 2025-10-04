@@ -455,7 +455,7 @@ async function handleFacebookCallback(code: string, userId: string): Promise<any
     accessToken: tokenData.access_token,
     refreshToken: null, // Facebook uses long-lived token exchange instead of refresh tokens
     tokenExpiresAt: expiresAt,
-    scopes: [],
+    scopes: JSON.stringify([]),
     isActive: true,
   });
 }

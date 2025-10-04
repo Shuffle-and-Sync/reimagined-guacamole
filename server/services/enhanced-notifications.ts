@@ -25,10 +25,9 @@ export class EnhancedNotificationService {
             userId: attendee.userId,
             type: 'event_reminder' as any,
             title: `Event Starting in ${hoursBeforeEvent} Hours`,
-            message: `${event.title} starts at ${event.time}`,
-            data: { eventId, hoursBeforeEvent },
+            message: `${event.title} starts at ${new Date(event.startTime).toLocaleString()}`,
+            data: JSON.stringify({ eventId, hoursBeforeEvent, communityId: event.communityId }),
             priority: hoursBeforeEvent <= 1 ? 'high' : 'normal',
-            communityId: event.communityId,
           });
         }
       }
@@ -56,9 +55,8 @@ export class EnhancedNotificationService {
             type: 'event_updated' as any,
             title: 'Event Updated',
             message: `${event.title} has been updated: ${changes.join(', ')}`,
-            data: { eventId, changes },
+            data: JSON.stringify({ eventId, changes, communityId: event.communityId }),
             priority: 'normal',
-            communityId: event.communityId,
           });
         }
       }
@@ -85,9 +83,8 @@ export class EnhancedNotificationService {
           type: 'event_cancelled' as any,
           title: 'Event Cancelled',
           message: `${event.title} has been cancelled`,
-          data: { eventId },
+          data: JSON.stringify({ eventId, communityId: event.communityId }),
           priority: 'high',
-          communityId: event.communityId,
         });
       }
 
@@ -114,9 +111,8 @@ export class EnhancedNotificationService {
             type: 'event_starting_soon' as any,
             title: 'Event Starting Soon!',
             message: `${event.title} starts in ${minutesUntilStart} minutes`,
-            data: { eventId, minutesUntilStart },
+            data: JSON.stringify({ eventId, minutesUntilStart, communityId: event.communityId }),
             priority: 'urgent',
-            communityId: event.communityId,
           });
         }
       }
@@ -140,9 +136,8 @@ export class EnhancedNotificationService {
         type: 'waitlist_promoted' as any,
         title: 'Promoted from Waitlist!',
         message: `You've been promoted to a main player slot in ${event.title}`,
-        data: { eventId },
+        data: JSON.stringify({ eventId, communityId: event.communityId }),
         priority: 'high',
-        communityId: event.communityId,
       });
 
       logger.info('Waitlist promotion notification sent', { eventId, userId });
