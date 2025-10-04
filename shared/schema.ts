@@ -1499,6 +1499,42 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog).omit(
   createdAt: true,
 });
 
+// Additional insert schemas for important tables
+export const insertTournamentSchema = createInsertSchema(tournaments, {
+  name: z.string().min(1).max(200),
+  gameType: z.string().min(1),
+  format: z.string().min(1),
+  status: z.enum(['upcoming', 'active', 'completed', 'cancelled']).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants, {
+  status: z.enum(['registered', 'active', 'eliminated', 'winner']).optional(),
+}).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertFriendshipSchema = createInsertSchema(friendships, {
+  status: z.enum(['pending', 'accepted', 'declined', 'blocked']).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStreamSessionSchema = createInsertSchema(streamSessions, {
+  title: z.string().min(1).max(200),
+  status: z.enum(['scheduled', 'live', 'ended', 'cancelled']).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCommunity = typeof communities.$inferInsert;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -1511,6 +1547,7 @@ export type InsertModerationQueue = z.infer<typeof insertModerationQueueSchema>;
 export type InsertCmsContent = z.infer<typeof insertCmsContentSchema>;
 export type InsertUserAppeal = z.infer<typeof insertUserAppealSchema>;
 export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+
 
 // Email change types
 export type EmailChangeRequest = typeof emailChangeRequests.$inferSelect;
@@ -1607,17 +1644,17 @@ export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
 export type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
 export type Friendship = typeof friendships.$inferSelect;
-export type InsertFriendship = typeof friendships.$inferInsert;
+export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 export type UserActivity = typeof userActivities.$inferSelect;
 export type InsertUserActivity = typeof userActivities.$inferInsert;
 export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
-export type InsertTournamentParticipant = typeof tournamentParticipants.$inferInsert;
-export type InsertTournament = typeof tournaments.$inferInsert;
+export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
+export type InsertTournament = z.infer<typeof insertTournamentSchema>;
 export type UpdateTournament = Partial<InsertTournament>;
 export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
 export type InsertCollaborationRequest = typeof collaborationRequests.$inferInsert;
 export type InsertGameSession = typeof gameSessions.$inferInsert;
-export type InsertStreamSession = typeof streamSessions.$inferInsert;
+export type InsertStreamSession = z.infer<typeof insertStreamSessionSchema>;
 export type InsertUserReputation = typeof userReputation.$inferInsert;
 export type InsertBanEvasionTracking = typeof banEvasionTracking.$inferInsert;
 export type InsertModerationTemplate = typeof moderationTemplates.$inferInsert;
