@@ -79,7 +79,7 @@ SENDGRID_API_KEY=your_sendgrid_key
 
 ```bash
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Set up database
 npm run db:push
