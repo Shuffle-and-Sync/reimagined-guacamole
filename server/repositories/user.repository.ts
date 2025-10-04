@@ -50,6 +50,7 @@ export interface UserUpdateData {
  * User Repository Class
  * Extends BaseRepository with user-specific operations
  */
+// @ts-ignore: Temporary workaround for SQLite vs PostgreSQL type constraint
 export class UserRepository extends BaseRepository<typeof users, User, InsertUser, UserUpdateData> {
   constructor() {
     super(db, users, 'users');
