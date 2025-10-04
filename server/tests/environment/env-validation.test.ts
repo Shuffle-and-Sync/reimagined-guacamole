@@ -42,7 +42,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should pass with minimal required variables for development', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
 
       const result = validateEnvironmentVariables();
@@ -63,7 +63,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should fail with missing AUTH_SECRET', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
 
       const result = validateEnvironmentVariables();
       
@@ -73,7 +73,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should warn about missing recommended variables', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
 
       const result = validateEnvironmentVariables();
@@ -90,7 +90,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should pass with all required production variables', () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@host:5432/db';
+      process.env.DATABASE_URL = 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key';
       process.env.AUTH_SECRET = 'a-very-long-secure-secret-key-for-production-use-with-sufficient-length';
       process.env.AUTH_URL = 'https://production-domain.com';
       process.env.GOOGLE_CLIENT_ID = 'valid-google-client-id';
@@ -104,7 +104,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should fail with missing production-specific variables', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
       // Missing AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
@@ -117,7 +117,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should detect security issues with demo values', () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@host:5432/db';
+      process.env.DATABASE_URL = 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key';
       process.env.AUTH_SECRET = 'demo-secret-key-for-development-only-not-for-production';
       process.env.AUTH_URL = 'https://production-domain.com';
       process.env.GOOGLE_CLIENT_ID = 'demo-google-client-id';
@@ -130,7 +130,7 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should warn about HTTP URLs in production', () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@host:5432/db';
+      process.env.DATABASE_URL = 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key';
       process.env.AUTH_SECRET = 'a-very-long-secure-secret-key-for-production-use-with-sufficient-length';
       process.env.AUTH_URL = 'http://production-domain.com'; // HTTP instead of HTTPS
       process.env.GOOGLE_CLIENT_ID = 'valid-google-client-id';
@@ -148,21 +148,19 @@ describe('Environment Variable Validation', () => {
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
     });
 
-    it('should accept standard PostgreSQL URLs', () => {
-      process.env.DATABASE_URL = 'postgresql://user:pass@host:5432/db';
-      
-      const result = validateEnvironmentVariables();
-      expect(result.isValid).toBe(true);
-    });
-
-    it('should accept postgres:// URLs', () => {
-      process.env.DATABASE_URL = 'postgres://user:pass@host:5432/db';
-      
-      const result = validateEnvironmentVariables();
-      expect(result.isValid).toBe(true);
-    });
-
     it('should accept SQLite Cloud URLs', () => {
+      process.env.DATABASE_URL = 'sqlitecloud://host.sqlite.cloud:8860/db?apikey=key';
+      
+      const result = validateEnvironmentVariables();
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept local SQLite file paths', () => {
+      process.env.DATABASE_URL = './dev.db';
+      
+      const result = validateEnvironmentVariables();
+      expect(result.isValid).toBe(true);
+    });
       process.env.DATABASE_URL = 'sqlitecloud://example.sqlite.cloud:8860/database?apikey=xyz';
       
       const result = validateEnvironmentVariables();
@@ -189,7 +187,7 @@ describe('Environment Variable Validation', () => {
   describe('AUTH_SECRET Validation', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'development';
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
     });
 
     it('should accept sufficiently long secrets', () => {
@@ -223,7 +221,7 @@ describe('Environment Variable Validation', () => {
   describe('Stream Encryption Key Validation', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'development';
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
     });
 
@@ -245,7 +243,7 @@ describe('Environment Variable Validation', () => {
   describe('Google OAuth Validation', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production';
-      process.env.DATABASE_URL = 'postgresql://user:pass@host:5432/db';
+      process.env.DATABASE_URL = 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key';
       process.env.AUTH_SECRET = 'a-very-long-secure-secret-key-for-production-use-with-sufficient-length';
       process.env.AUTH_URL = 'https://production-domain.com';
     });
@@ -272,7 +270,7 @@ describe('Environment Variable Validation', () => {
   describe('SendGrid API Key Validation', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'development';
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
     });
 
@@ -333,7 +331,7 @@ describe('Environment Variable Validation', () => {
 
     it('should provide environment status for health checks', () => {
       process.env.NODE_ENV = 'development';
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
 
       const status = getEnvironmentStatus();
@@ -348,13 +346,13 @@ describe('Environment Variable Validation', () => {
   describe('New Variable Validations', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'development';
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
+      process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
       process.env.AUTH_SECRET = 'a-very-long-secret-key-for-development-testing-purposes';
     });
 
     describe('DATABASE_DIRECT_URL', () => {
-      it('should accept valid PostgreSQL URLs', () => {
-        process.env.DATABASE_DIRECT_URL = 'postgresql://user:pass@host:5432/db';
+      it('should accept valid SQLite Cloud URLs', () => {
+        process.env.DATABASE_DIRECT_URL = 'sqlitecloud://prod.sqlite.cloud:8860/db?apikey=key';
         
         const result = validateEnvironmentVariables();
         expect(result.warnings.some(w => w.includes('DATABASE_DIRECT_URL') && w.includes('not set'))).toBe(false);

@@ -248,7 +248,7 @@ describe('Admin Account Initialization', () => {
   describe('Production Deployment', () => {
     it('should validate production environment setup', () => {
       const productionChecklist = {
-        DATABASE_URL: 'postgresql://prod-db',
+        DATABASE_URL: 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key',
         AUTH_SECRET: 'secure-secret-min-64-chars-example-value',
         MASTER_ADMIN_EMAIL: 'admin@production.com',
         NODE_ENV: 'production'

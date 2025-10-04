@@ -21,7 +21,7 @@ These variables **must** be set for the application to function properly.
 
 | Variable | Description | Example | Validation |
 |----------|-------------|---------|------------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` | Must start with `postgres://`, `postgresql://`, or `prisma+postgres://` |
+| `DATABASE_URL` | SQLite Cloud connection string | `sqlitecloud://host:port/db?apikey=key` | Must start with `sqlitecloud://` |
 | `AUTH_SECRET` | Authentication secret key | Generate with `openssl rand -base64 32` | Min 32 characters, cannot be demo value in production |
 | `AUTH_URL` | Application base URL | `https://your-domain.com` | Must be valid URL with http/https protocol, HTTPS recommended for production |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Cloud Console | Cannot contain 'demo-' or 'your-' |
@@ -31,7 +31,7 @@ These variables **must** be set for the application to function properly.
 
 | Variable | Description | Example | Validation |
 |----------|-------------|---------|------------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://localhost:5432/shufflesync_dev` | Must start with `postgres://`, `postgresql://`, or `prisma+postgres://` |
+| `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` | Must start with `sqlitecloud://` or be a valid file path |
 | `AUTH_SECRET` | Authentication secret key | Generate with `openssl rand -base64 32` | Min 32 characters |
 
 ---
@@ -50,7 +50,7 @@ These variables are optional but **highly recommended** for full functionality.
 | `YOUTUBE_API_KEY` | YouTube Data API key | From Google Cloud Console | Cannot contain 'demo-' or 'your-', min 10 chars | YouTube integration |
 | `DISCORD_BOT_TOKEN` | Discord bot token | From Discord Developer Portal | Cannot contain 'demo-' or 'your-', min 10 chars | Discord integration |
 | `SENTRY_DSN` | Sentry error tracking DSN | `https://xxx@sentry.io/123` | Must start with 'https://' or 'http://' | Error tracking |
-| `DATABASE_DIRECT_URL` | Direct database URL for migrations | `postgresql://user:pass@host:5432/db` | Must be valid PostgreSQL URL | Database migrations |
+| `DATABASE_DIRECT_URL` | Direct database URL for migrations | `sqlitecloud://host:port/db?apikey=key` | Must be valid SQLite Cloud URL or file path | Database migrations |
 | `AUTH_TRUST_HOST` | Trust host header for Auth.js | `true` or `false` | Must be boolean (true/false/1/0) | OAuth callbacks |
 | `LOG_LEVEL` | Application log level | `info`, `warn`, `error`, `debug` | Must be one of: error, warn, info, debug | Logging control |
 | `ALLOWED_ORIGINS` | CORS allowed origins | `https://example.com,https://app.example.com` or `*` | Comma-separated valid URLs or `*` | CORS security |
