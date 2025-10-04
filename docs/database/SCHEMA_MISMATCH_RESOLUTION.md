@@ -59,6 +59,11 @@ Created `scripts/validate-schema-fixes.ts` to verify:
 - ✅ Enum definitions match between schema and application code  
 - ✅ Type consistency across the application
 - ✅ Tournament service functionality
+- ✅ Insert schema validation for important tables
+
+**Run validation:** `npm run validate:schema`
+
+See [Schema Validation Guide](./SCHEMA_VALIDATION.md) for detailed documentation.
 
 ### Test Results
 - **43/43 feature tests passed** ✅
