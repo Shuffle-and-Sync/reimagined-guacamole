@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package",
-  "name": "rest-express",
+  "name": "shuffle-and-sync",
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
