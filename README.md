@@ -75,24 +75,24 @@ npm run test:coverage
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
-- **Database**: PostgreSQL (single instance)
+- **Database**: SQLite Cloud (production) / SQLite (development)
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: Database sessions via Drizzle adapter (stateful, secure)
+- **Session Storage**: JWT sessions (stateless, secure)
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
 
-> **Note**: The project uses Drizzle ORM exclusively with Auth.js Drizzle adapter. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
+> **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
 
 ## 📋 Quick Start
 
 ### Prerequisites
 
-- Node.js 20+ 
-- npm or yarn
-- PostgreSQL database (local, Cloud SQL, Neon, or any PostgreSQL provider)
+- Node.js 20.19+ 
+- npm 10+ 
+- SQLite Cloud database or local SQLite database
 - Google OAuth 2.0 credentials
 
-> **Database Note**: You need only ONE PostgreSQL database instance. The application uses Drizzle ORM for all data access, with Prisma maintained for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md).
+> **Database Note**: The application uses SQLite Cloud for production and local SQLite for development. All data access is handled via Drizzle ORM. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md).
 
 ### Installation
 
@@ -108,7 +108,8 @@ npm install
 cp .env.example .env.local
 # Edit .env.local with your configuration
 
-# Push database schema
+# Initialize and push database schema
+npm run db:init
 npm run db:push
 
 # Generate unit tests
@@ -145,7 +146,7 @@ npm run env:validate
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` |
 | `AUTH_SECRET` | Authentication secret (32+ chars) | Generate with: `openssl rand -base64 32` |
 | `AUTH_URL` | Application base URL | `http://localhost:3000` (dev) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
@@ -183,6 +184,8 @@ npm run env:help
 - **Recommended:** 12 variables (email, streaming, caching, platform integrations)
 - **Optional Platform:** 8 variables (Facebook, YouTube, Twitch advanced features)
 
+> **Note**: For development, DATABASE_URL can be a simple file path like `./dev.db`. For production, use SQLite Cloud connection string.
+
 #### Security Best Practices
 
 - 🔒 Never commit `.env.local` to version control
@@ -196,14 +199,14 @@ npm run env:help
 **Development:**
 ```bash
 NODE_ENV=development
-DATABASE_URL=postgresql://localhost:5432/shufflesync_dev
+DATABASE_URL=./dev.db
 AUTH_URL=http://localhost:3000
 ```
 
 **Production:**
 ```bash
 NODE_ENV=production
-DATABASE_URL=postgresql://user:pass@prod-host:5432/db
+DATABASE_URL=sqlitecloud://hostname:port/database?apikey=your_key
 AUTH_URL=https://your-domain.com
 ```
 
@@ -212,7 +215,7 @@ AUTH_URL=https://your-domain.com
 | Issue | Solution |
 |-------|----------|
 | Server won't start | Run `npm run env:validate` to check config |
-| Database errors | Verify `DATABASE_URL` connection |
+| Database errors | Verify `DATABASE_URL` path or SQLite Cloud connection |
 | Auth failures | Check Google OAuth credentials |
 | "Demo values" warning | Replace all demo/test values |
 
@@ -386,7 +389,7 @@ npm run test:coverage    # Coverage analysis
 
 This application is designed for deployment on Google Cloud Platform with the following architecture:
 - **Cloud Run**: Backend and frontend services
-- **Cloud SQL**: PostgreSQL database 
+- **SQLite Cloud**: Database hosting (or local SQLite files)
 - **Secret Manager**: Environment variables and credentials
 - **Cloud Build**: CI/CD pipeline
 - **Cloud Storage**: Static assets and backups
@@ -450,9 +453,9 @@ npm run docker:test
 
 ### Production Documentation
 
-- **[Production Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
-- **[Environment Template](./.env.production.template)** - Required environment variables
-- **[Deployment Guide](./DEPLOYMENT.md)** - Technical deployment details
+- **[Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[Environment Template](.env.production.template)** - Required environment variables
+- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Technical deployment details
 
 ## 🔒 Security
 
@@ -460,36 +463,18 @@ npm run docker:test
 1. **Sign In**: Users click "Sign in with Google" button
 2. **OAuth Redirect**: Redirected to Google for authentication
 3. **Callback Processing**: Google redirects back with authorization code
-4. **Session Creation**: Auth.js creates database session and HTTP-only cookies
-5. **User Access**: Protected routes verify session and provide user data
+4. **JWT Session Creation**: Auth.js creates JWT-based session with HTTP-only cookies
+5. **User Access**: Protected routes verify JWT tokens and provide user data
 
 ### Security Features
-- HTTP-only secure cookies
+- JWT-based sessions with HTTP-only secure cookies
 - CSRF protection enabled
 - Rate limiting on all API endpoints
 - Input validation and sanitization
-- SQL injection prevention via Drizzle ORM
+- SQL injection prevention via Drizzle ORM parameterized queries
 - Secure environment variable management
 
-## 📚 Documentation
 
-### Build and Deployment
-- **[Build Quick Reference](./BUILD_QUICK_REFERENCE.md)** - Quick reference for build commands and troubleshooting ⚡
-- **[Build Initialization Guide](./docs/BUILD_INITIALIZATION.md)** - Comprehensive build process and initialization documentation
-- **[Build Initialization Summary](./BUILD_INITIALIZATION_SUMMARY.md)** - Summary of all initialization improvements
-- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
-
-### Database and Architecture
-- **[Database Architecture Guide](./docs/DATABASE_ARCHITECTURE.md)** - Comprehensive guide to database setup, Drizzle vs Prisma, and single PostgreSQL instance architecture
-
-### Platform Integration Guides
-- **[Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
-- **[Twitch Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
-
-### General Documentation
-- **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Comprehensive testing documentation
-- **[API Documentation](./API_DOCUMENTATION.md)** - API endpoints and usage
 
 ### Platform OAuth Integration
 
