@@ -162,8 +162,8 @@ describe('Environment Variable Validation', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should accept Prisma format URLs', () => {
-      process.env.DATABASE_URL = 'prisma+postgres://accelerate.prisma-data.net/?api_key=xyz';
+    it('should accept SQLite Cloud URLs', () => {
+      process.env.DATABASE_URL = 'sqlitecloud://example.sqlite.cloud:8860/database?apikey=xyz';
       
       const result = validateEnvironmentVariables();
       expect(result.isValid).toBe(true);

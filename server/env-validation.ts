@@ -52,11 +52,11 @@ const VALIDATION_RULES = {
     return true;
   },
   DATABASE_URL: (value: string) => {
-    // Allow both standard PostgreSQL URLs and Prisma format
+    // Allow both standard PostgreSQL URLs and SQLite Cloud
     if (!value.startsWith('postgres://') && 
         !value.startsWith('postgresql://') && 
-        !value.startsWith('prisma+postgres://')) {
-      throw new Error('DATABASE_URL must be a valid PostgreSQL connection string (postgres:// or postgresql:// or prisma+postgres://)');
+        !value.startsWith('sqlitecloud://')) {
+      throw new Error('DATABASE_URL must be a valid PostgreSQL or SQLite Cloud connection string (postgres://, postgresql://, or sqlitecloud://)');
     }
     return true;
   },
@@ -151,8 +151,8 @@ const VALIDATION_RULES = {
     // Same validation as DATABASE_URL
     if (!value.startsWith('postgres://') && 
         !value.startsWith('postgresql://') && 
-        !value.startsWith('prisma+postgres://')) {
-      throw new Error('DATABASE_DIRECT_URL must be a valid PostgreSQL connection string (postgres:// or postgresql:// or prisma+postgres://)');
+        !value.startsWith('sqlitecloud://')) {
+      throw new Error('DATABASE_DIRECT_URL must be a valid PostgreSQL or SQLite Cloud connection string (postgres://, postgresql://, or sqlitecloud://)');
     }
     return true;
   },

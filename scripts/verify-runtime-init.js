@@ -97,24 +97,8 @@ try {
   allPassed = false;
 }
 
-// Check 7: Prisma client
-console.log('\n7. Checking Prisma client...');
-try {
-  const prismaModule = await import(`${projectRoot}/generated/prisma/index.js`);
-  if (prismaModule.PrismaClient) {
-    console.log('   ✅ Prisma client available');
-  } else {
-    console.log('   ❌ Prisma client incomplete');
-    allPassed = false;
-  }
-} catch (error) {
-  console.error('   ❌ Prisma client missing:', error.message);
-  console.error('   Run: npm run build (includes prisma generate)');
-  allPassed = false;
-}
-
-// Check 8: Feature routes
-console.log('\n8. Checking feature routes...');
+// Check 7: Feature routes
+console.log('\n7. Checking feature routes...');
 try {
   const communitiesModule = await import(`${projectRoot}/server/features/communities/communities.routes`);
   const eventsModule = await import(`${projectRoot}/server/features/events/events.routes`);
