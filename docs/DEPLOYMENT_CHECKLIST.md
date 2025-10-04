@@ -4,6 +4,30 @@ Use this checklist to ensure proper deployment of Shuffle & Sync to Google Cloud
 
 ## Pre-Deployment Checklist
 
+### Automated Deployment
+
+**Recommended**: Use the automated deployment script for a guided deployment:
+
+```bash
+npm run deploy:cloudrun
+
+# Or run directly:
+./scripts/deploy-cloud-run.sh
+```
+
+This script will:
+- Guide you through the entire deployment process
+- Check prerequisites and required APIs
+- Deploy backend service first
+- Configure all environment variables
+- Deploy frontend service with correct backend URL
+- Verify the deployment automatically
+- Provide next steps and documentation links
+
+### Manual Deployment
+
+If you prefer manual deployment, follow the checklist below.
+
 ### 1. Prerequisites
 
 - [ ] Google Cloud Project created

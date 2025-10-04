@@ -10,6 +10,16 @@ When clicking "Sign In" on the deployed frontend:
 
 **Important**: If your URL shows `shuffle-sync-front-` (not `shuffle-sync-frontend-`), your service name is different than the default. See [Service Name Mismatch](#service-name-mismatch) below.
 
+## Quick Diagnosis
+
+**Fastest way**: Run the automated diagnostic script:
+
+```bash
+npm run diagnose:auth
+```
+
+This will identify all issues and provide specific fix commands. Continue reading for manual fixes.
+
 ## Root Cause
 
 The **frontend and backend are deployed as separate services**, but the frontend doesn't know how to reach the backend.
