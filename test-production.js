@@ -17,7 +17,7 @@ try {
   
   // Set minimal environment variables needed for the test
   process.env.NODE_ENV = 'production';
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+  process.env.DATABASE_URL = 'sqlitecloud://test.sqlite.cloud:8860/test?apikey=test_key';
   
   console.log('Attempting to import server module...');
   
