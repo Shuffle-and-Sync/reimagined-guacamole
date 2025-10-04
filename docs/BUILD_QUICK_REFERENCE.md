@@ -36,10 +36,9 @@ The `npm run build` command now includes:
 2. ✅ **File Validation** - Required config files
 3. ✅ **Dependency Check** - node_modules, critical packages
 4. ✅ **Type Checking** - TypeScript compilation
-5. ✅ **Prisma Generation** - Database client
-6. ✅ **Frontend Build** - React app (Vite)
-7. ✅ **Backend Build** - Server (esbuild)
-8. ✅ **Post-Build Verification** - All artifacts
+5. ✅ **Frontend Build** - React app (Vite)
+6. ✅ **Backend Build** - Server (esbuild)
+7. ✅ **Post-Build Verification** - All artifacts
 
 ## 🔍 Verification Scripts
 
@@ -50,7 +49,6 @@ npm run build:verify
 Checks:
 - Backend bundle exists (dist/index.js)
 - Frontend assets built (dist/public/)
-- Prisma client generated (generated/prisma/)
 - Runtime dependencies present
 
 ### Runtime Verification
@@ -75,11 +73,6 @@ dist/
     ├── index.html
     └── assets/
 
-generated/
-└── prisma/           # Database client (~20MB)
-    ├── index.js
-    └── libquery_engine-*.so.node
-
 node_modules/         # Production dependencies
 package.json          # For deployment
 ```
@@ -92,22 +85,13 @@ package.json          # For deployment
 npm run check
 ```
 
-### Build Fails at Prisma Generation
-```bash
-# Check schema
-cat prisma/schema.prisma
-
-# Manually generate
-npx prisma generate
-```
-
 ### Build Artifacts Missing
 ```bash
 # Verify what was created
 npm run build:verify
 
 # Clean and rebuild
-rm -rf dist generated/prisma
+rm -rf dist
 npm run build
 ```
 
@@ -151,7 +135,6 @@ npm run build:verify-runtime
 
 ### Required Files for Deployment
 - ✅ `dist/` - Backend and frontend
-- ✅ `generated/prisma/` - Database client
 - ✅ `node_modules/` - Production dependencies
 - ✅ `package.json` - Dependency manifest
 
@@ -160,14 +143,13 @@ npm run build:verify-runtime
 ### Minimum Requirements
 - Node.js 18+
 - npm 9+
-- PostgreSQL database (or connection URL)
+- SQLite Cloud database (or connection URL)
 
 ### Required Files
 - `package.json`
 - `tsconfig.json`
 - `vite.config.ts`
 - `esbuild.config.js`
-- `prisma/schema.prisma`
 
 ## 📚 Full Documentation
 
