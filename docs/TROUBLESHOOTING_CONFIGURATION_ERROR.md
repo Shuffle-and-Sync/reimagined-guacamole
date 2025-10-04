@@ -19,6 +19,27 @@ The "Configuration" error from Auth.js indicates that **authentication is not pr
 
 ## Quick Diagnosis (5 minutes)
 
+### Automated Diagnostic
+
+The fastest way to identify the issue is to run the automated diagnostic script:
+
+```bash
+npm run diagnose:auth
+
+# Or run directly:
+./scripts/diagnose-auth-error.sh
+```
+
+This script will:
+- Automatically find your Cloud Run services (handles naming variations)
+- Check all required environment variables
+- Test endpoint connectivity
+- Provide specific fix commands for any issues found
+
+### Manual Diagnosis
+
+If you prefer to diagnose manually, follow these steps:
+
 ### Step 1: Identify Your Service Names
 
 ```bash
