@@ -400,7 +400,7 @@ npm run env:validate
 ### Common Issues
 
 **Build Failures**
-- Check dependencies are installed: `npm install`
+- Check dependencies are installed: `npm install --legacy-peer-deps`
 - Verify Node.js version matches requirements
 - Check for TypeScript errors: `npm run check`
 - Review build logs for specific errors

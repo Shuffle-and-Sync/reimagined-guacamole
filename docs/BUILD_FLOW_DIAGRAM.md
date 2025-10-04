@@ -204,7 +204,7 @@ This document provides a visual overview of the complete build initialization pr
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  RUN npm ci                                                      │
+│  RUN npm ci --legacy-peer-deps                                   │
 │  (Install all dependencies including devDependencies)            │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
