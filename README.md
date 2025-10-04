@@ -2,599 +2,199 @@
 
 A comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
 
-## 🚀 Features
+## 🚀 Key Features
 
-### Core Platform Features
-- **Community-based Organization**: Users can join and participate in different TCG communities
-- **Collaborative Streaming**: Real-time coordination tools for multi-streamer events
-- **TableSync**: Remote TCG gameplay coordination with real-time board state synchronization
-- **Authentication System**: Secure Google OAuth 2.0 integration
-- **Tournament Management**: Create and manage TCG tournaments
-- **AI-Powered Matchmaking**: Intelligent matchmaking for players and streamers
-- **Calendar Integration**: Event scheduling and coordination
-- **Real-time Messaging**: Communication tools for coordination
-
-### 🧪 **Unit Testing Agent**
-
-This repository includes a comprehensive **Unit Testing Agent** that automatically generates and maintains unit tests for all major platform features.
-
-#### Quick Start with Testing
-
-```bash
-# Generate comprehensive unit tests
-npm run test:generate
-
-# Run all tests
-npm run test
-
-# Run specific feature tests
-npm run test:auth          # Authentication tests
-npm run test:tournaments   # Tournament management tests
-npm run test:matchmaking   # AI matchmaking tests
-npm run test:calendar      # Calendar integration tests
-npm run test:messaging     # Real-time messaging tests
-
-# Generate coverage report
-npm run test:coverage
-```
-
-#### Testing Features
-
-✅ **Comprehensive Coverage**
-- Authentication: Google OAuth, session management, security validation
-- Tournament Management: CRUD operations, business logic, participant management
-- AI Matchmaking: Compatibility algorithms, edge case handling
-- Calendar Integration: Event management, timezone handling, scheduling conflicts
-- Real-time Messaging: WebSocket communication, message delivery, persistence
-
-✅ **Best Practices**
-- Jest with TypeScript for robust testing
-- Mock implementations for external dependencies
-- Comprehensive error handling and edge case testing
-- Automated test generation and maintenance
-- Code coverage reporting with configurable thresholds
-
-✅ **Development Integration**
-- NPM scripts for easy test execution
-- Watch mode for development
-- Feature-specific test suites
-- Coverage reporting and analysis
+- **🎮 Multi-TCG Support**: Magic, Pokemon, Lorcana, Yu-Gi-Oh, and more
+- **📺 Streaming Coordination**: Real-time tools for collaborative multi-streamer events
+- **🎯 TableSync**: Remote gameplay coordination with real-time board state sync
+- **🏆 Tournament Management**: Full tournament lifecycle with AI-powered matchmaking
+- **📅 Calendar Integration**: Event scheduling with timezone handling
+- **💬 Real-time Messaging**: WebSocket-based communication system
+- **🔐 Secure Authentication**: Google OAuth 2.0 with session management
+- **🤖 Testing Agent**: Automated unit test generation and maintenance
 
 ## 🛠️ Technology Stack
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **UI Library**: Shadcn/ui components built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens and dark theme support
-- **State Management**: TanStack React Query for server state, Zustand for client state
-- **Routing**: Wouter for lightweight client-side routing
-- **Forms**: React Hook Form with Zod validation
+**Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + Shadcn/ui  
+**Backend**: Node.js + Express + TypeScript + Drizzle ORM  
+**Database**: PostgreSQL (single instance architecture)  
+**Auth**: Auth.js v5 with Google OAuth 2.0  
+**Real-time**: WebSocket + React Query  
+**Testing**: Jest + TypeScript with automated test generation  
+**Deployment**: Docker + Google Cloud Run
 
-### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript with ES modules
-- **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
-- **Database**: PostgreSQL (single instance)
-- **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: Database sessions via Drizzle adapter (stateful, secure)
-- **Email**: SendGrid for transactional emails
-- **Real-time**: WebSocket support for live features
-
-> **Note**: The project uses Drizzle ORM exclusively with Auth.js Drizzle adapter. Prisma schema exists for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
-
-## 📋 Quick Start
+## ⚡ Quick Start
 
 ### Prerequisites
-
-- Node.js 20+ 
-- npm or yarn
-- PostgreSQL database (local, Cloud SQL, Neon, or any PostgreSQL provider)
-- Google OAuth 2.0 credentials
-
-> **Database Note**: You need only ONE PostgreSQL database instance. The application uses Drizzle ORM for all data access, with Prisma maintained for build compatibility only. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md).
+- Node.js 20+ and npm
+- PostgreSQL database 
+- Google OAuth 2.0 credentials ([setup guide](https://console.developers.google.com))
 
 ### Installation
 
 ```bash
-# Clone the repository
+# 1. Clone and install
 git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
 cd reimagined-guacamole
-
-# Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your configuration
+# 2. Environment setup (automated)
+./scripts/setup-env.sh
+# Or manual: cp .env.example .env.local (then edit .env.local)
 
-# Push database schema
+# 3. Database setup
 npm run db:push
 
-# Generate unit tests
-npm run test:generate
-
-# Run tests to verify setup
-npm run test
-
-# Start development server
+# 4. Start development
 npm run dev
 ```
 
-### Environment Variables
+🌐 **Application**: http://localhost:3000  
+📋 **Health Check**: http://localhost:3000/health
 
-The application requires proper environment variable configuration to function correctly. 
+## ⚙️ Configuration
 
-📖 **[Complete Environment Variables Documentation →](./ENVIRONMENT_VARIABLES.md)**
+### Required Environment Variables
 
-All variables are also documented in `.env.example` with inline comments and examples.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection | `postgresql://localhost:5432/shufflesync_dev` |
+| `AUTH_SECRET` | Auth secret (32+ chars) | `openssl rand -base64 32` |
+| `GOOGLE_CLIENT_ID` | Google OAuth ID | From [Google Console](https://console.developers.google.com) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From [Google Console](https://console.developers.google.com) |
 
-#### Quick Setup
+### Configuration Help
 
 ```bash
-# Copy template and run setup script
-cp .env.example .env.local
+# Validate configuration
+npm run env:validate
+
+# Automated setup
 ./scripts/setup-env.sh
 
-# Or manually configure
-npm run env:setup
-npm run env:validate
+# Copy template manually  
+cp .env.example .env.local
 ```
 
-#### Required Variables (🔴 Critical)
+📖 **Full Configuration Guide**: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)  
+🔧 **Template File**: [.env.example](./.env.example) (includes all optional variables)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `AUTH_SECRET` | Authentication secret (32+ chars) | Generate with: `openssl rand -base64 32` |
-| `AUTH_URL` | Application base URL | `http://localhost:3000` (dev) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Console |
+## 🧪 Testing
 
-#### Recommended Variables (🟡 Optional)
+### Automated Testing Agent
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SENDGRID_API_KEY` | Email service API key | `SG.xxx` from SendGrid |
-| `STREAM_KEY_ENCRYPTION_KEY` | Stream encryption (32 chars) | Generate with: `openssl rand -hex 16` |
-| `REDIS_URL` | Redis cache connection | `redis://localhost:6379` |
-| `SENTRY_DSN` | Error tracking (Sentry) | `https://abc@sentry.io/123` |
-| `TWITCH_CLIENT_ID` | Twitch API credentials | From Twitch Developer Console |
-| `YOUTUBE_API_KEY` | YouTube API key | From Google Cloud Console |
-
-#### Environment Validation
-
-All environment variables are automatically validated at startup. For comprehensive documentation of all variables, validation rules, and security best practices, see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md).
+This project features an **automated testing agent** that generates comprehensive unit tests:
 
 ```bash
-# Validate current configuration
-npm run env:validate
+# Generate tests for all features
+npm run test:generate
 
-# Show all variable definitions  
-npm run env:definitions
-
-# Get setup help
-npm run env:help
+# Run tests
+npm run test                    # All tests
+npm run test:auth              # Authentication only
+npm run test:tournaments       # Tournament management
+npm run test:coverage          # With coverage report
 ```
 
-**Quick Reference:**
-- **Required (Production):** 5 variables (DATABASE_URL, AUTH_SECRET, AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-- **Required (Development):** 2 variables (DATABASE_URL, AUTH_SECRET)
-- **Recommended:** 12 variables (email, streaming, caching, platform integrations)
-- **Optional Platform:** 8 variables (Facebook, YouTube, Twitch advanced features)
+**Coverage Standards**: 70% minimum for branches, functions, lines, and statements.
 
-#### Security Best Practices
-
-- 🔒 Never commit `.env.local` to version control
-- 🔑 Use strong, unique secrets (32+ characters)
-- 🔄 Rotate secrets regularly (every 90 days)
-- ⚠️ Change all demo values before production
-- 🔐 Use HTTPS in production (`AUTH_URL`)
-
-#### Environment-Specific Configuration
-
-**Development:**
-```bash
-NODE_ENV=development
-DATABASE_URL=postgresql://localhost:5432/shufflesync_dev
-AUTH_URL=http://localhost:3000
-```
-
-**Production:**
-```bash
-NODE_ENV=production
-DATABASE_URL=postgresql://user:pass@prod-host:5432/db
-AUTH_URL=https://your-domain.com
-```
-
-#### Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Server won't start | Run `npm run env:validate` to check config |
-| Database errors | Verify `DATABASE_URL` connection |
-| Auth failures | Check Google OAuth credentials |
-| "Demo values" warning | Replace all demo/test values |
-
-For complete setup instructions, see `.env.example`.
-
-### Administrator Setup
-
-After setting up the environment and database, initialize the master administrator account:
+### Admin Setup
 
 ```bash
-# Set admin email in .env.local
-MASTER_ADMIN_EMAIL=admin@localhost
-
-# Initialize admin account
+# Set admin email in .env.local then:
 npm run admin:init
-
-# Verify admin setup
 npm run admin:verify
 ```
 
-For production deployment and comprehensive admin configuration, see [docs/ADMIN_SETUP.md](docs/ADMIN_SETUP.md).
+## 🏗️ Development & Architecture
 
-## 🧪 Testing Guide
-
-### Test Structure
-
-```
-server/tests/
-├── features/                    # Feature-specific tests
-│   ├── authentication.test.ts  # OAuth, sessions, security
-│   ├── tournaments.test.ts     # Tournament CRUD, validation
-│   ├── matchmaking.test.ts     # AI algorithms, compatibility
-│   ├── calendar.test.ts        # Events, timezones, scheduling
-│   └── messaging.test.ts       # WebSocket, real-time features
-├── helpers/                    # Test utilities
-│   ├── mock-factories.ts       # Test data factories
-│   └── test-utils.ts          # Testing utilities
-└── utils/                     # Utility function tests
-    └── database.utils.test.ts
-```
-
-### Available Test Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run test:generate` | Generate all unit tests using the testing agent |
-| `npm run test` | Run all tests |
-| `npm run test:watch` | Run tests in watch mode for development |
-| `npm run test:coverage` | Generate detailed coverage report |
-| `npm run test:features` | Run all feature tests |
-| `npm run test:auth` | Run authentication tests only |
-| `npm run test:tournaments` | Run tournament management tests |
-| `npm run test:matchmaking` | Run AI matchmaking tests |
-| `npm run test:calendar` | Run calendar integration tests |
-| `npm run test:messaging` | Run real-time messaging tests |
-
-### Test Coverage
-
-The testing agent maintains high code coverage standards:
-
-- **Branches**: 70% minimum coverage
-- **Functions**: 70% minimum coverage
-- **Lines**: 70% minimum coverage
-- **Statements**: 70% minimum coverage
-
-### Example Test Output
-
-```bash
-$ npm run test:features
-
- PASS  server/tests/features/authentication.test.ts
-  Authentication
-    ✓ should handle successful Google OAuth sign in
-    ✓ should validate email format
-    ✓ should handle session validation
-    ✓ should reject expired sessions
-
- PASS  server/tests/features/tournaments.test.ts
-  Tournament Management
-    ✓ should validate tournament creation data
-    ✓ should reject invalid tournament data
-    ✓ should handle tournament status updates
-    ✓ should calculate prize distribution
-
-Test Suites: 5 passed, 5 total
-Tests:       22 passed, 22 total
-Snapshots:   0 total
-Time:        0.926 s
-```
-
-## 🏗️ Development
-
-### Project Structure
-
-```
-/
-├── client/src/           # Frontend React application
-│   ├── components/       # Reusable UI components
-│   ├── features/         # Feature-based modules
-│   ├── pages/           # Route components
-│   ├── hooks/           # Custom React hooks
-│   └── lib/             # Utility functions and configurations
-├── server/              # Backend Express application
-│   ├── features/        # Feature-based API routes and services
-│   ├── auth/           # Authentication configuration
-│   ├── middleware/     # Express middleware
-│   ├── services/       # Business logic services
-│   ├── tests/          # Unit tests (generated by testing agent)
-│   └── utils/          # Shared utilities
-├── shared/             # Code shared between client and server
-│   ├── schema.ts       # Database schema definitions
-│   └── database.ts     # Database connection and utilities
-├── scripts/            # Development and deployment scripts
-│   └── test-agent.ts   # Unit testing generation agent
-└── docs/              # Documentation
-    ├── README.md       # Documentation index
-    ├── api/           # API documentation
-    ├── database/      # Database guides
-    ├── deployment/    # Deployment guides
-    ├── development/   # Development guides
-    ├── backend/       # Backend agent docs
-    └── features/      # Feature-specific documentation
-        ├── tablesync/    # TableSync documentation
-        ├── matchmaking/  # AI matchmaking docs
-        └── twitch/       # Twitch integration docs
-```
-
-## 📚 Documentation
-
-Complete documentation is organized in the [docs/](docs/) directory:
-
-- **[Documentation Index](docs/README.md)** - Central documentation hub
-- **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Getting started with development
-- **[Database Architecture](docs/database/DATABASE_ARCHITECTURE.md)** - Database design and setup
-- **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
-- **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
-
-### Feature Documentation
-- **[TableSync Universal Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
-- **[AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
-- **[Twitch OAuth Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform integration
-
-### Development Scripts
+**Structure**: React frontend + Express backend + Drizzle ORM + PostgreSQL  
+**Organization**: Feature-based modules, shared schema, comprehensive documentation
 
 ```bash
 # Development
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run start            # Start production server
+npm run dev              # Start dev server (http://localhost:3000)
+npm run build            # Production build
+npm run check            # TypeScript type checking
 
 # Database
-npm run db:push          # Push schema changes to database
-npm run db:health        # Check database connection
-
-# Code Quality
-npm run check            # TypeScript type checking
-npm run lint             # ESLint code linting
-npm run format           # Prettier code formatting
+npm run db:push          # Apply schema changes  
+npm run db:health        # Connection test
 
 # Testing
-npm run test:generate    # Generate unit tests
-npm run test             # Run all tests
-npm run test:watch       # Watch mode for development
-npm run test:coverage    # Coverage analysis
+npm run test:generate    # Auto-generate tests
+npm run test             # Run all tests (70%+ coverage required)
+npm run test:watch       # Watch mode
+
+# Code Quality
+npm run lint && npm run format    # ESLint + Prettier
 ```
-
-## 🚀 Production Deployment
-
-### Google Cloud Platform Setup
-
-This application is designed for deployment on Google Cloud Platform with the following architecture:
-- **Cloud Run**: Backend and frontend services
-- **Cloud SQL**: PostgreSQL database 
-- **Secret Manager**: Environment variables and credentials
-- **Cloud Build**: CI/CD pipeline
-- **Cloud Storage**: Static assets and backups
-
-### Quick Production Deployment
-
-```bash
-# 1. Set up environment
-export PROJECT_ID="your-gcp-project-id"
-export REGION="us-central1"
-
-# 2. Configure production environment
-cp .env.production.template .env.production
-# Edit .env.production with your values
-
-# 3. Deploy everything
-npm run deploy:production
-
-# 4. Verify deployment
-npm run verify:production
-```
-
-### Individual Service Deployment
-
-```bash
-# Deploy backend only
-npm run deploy:backend
-
-# Deploy frontend only
-npm run deploy:frontend
-
-# Migrate database safely
-npm run db:migrate:production
-
-# Test locally with production containers
-npm run docker:test
-```
-
-### Production Features
-
-✅ **Containerized Deployment**
-- Docker containers for backend (Node.js) and frontend (NGINX)
-- Multi-stage builds for optimized image sizes
-- Health checks and graceful shutdowns
-
-✅ **Automated CI/CD**
-- Cloud Build pipelines for backend and frontend
-- Automated testing before deployment
-- Rollback capabilities
-
-✅ **Database Management**
-- Safe migration scripts with automatic backups
-- Connection pooling for serverless architecture
-- Performance monitoring and optimization
-
-✅ **Monitoring & Observability**
-- Comprehensive health checks
-- Google Cloud Monitoring integration
-- Custom dashboards and alerting
-- Error tracking and performance metrics
-
-### Production Documentation
-
-- **[Production Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
-- **[Environment Template](./.env.production.template)** - Required environment variables
-- **[Deployment Guide](./DEPLOYMENT.md)** - Technical deployment details
-
-## 🔒 Security
-
-### Authentication Flow
-1. **Sign In**: Users click "Sign in with Google" button
-2. **OAuth Redirect**: Redirected to Google for authentication
-3. **Callback Processing**: Google redirects back with authorization code
-4. **Session Creation**: Auth.js creates database session and HTTP-only cookies
-5. **User Access**: Protected routes verify session and provide user data
-
-### Security Features
-- HTTP-only secure cookies
-- CSRF protection enabled
-- Rate limiting on all API endpoints
-- Input validation and sanitization
-- SQL injection prevention via Drizzle ORM
-- Secure environment variable management
 
 ## 📚 Documentation
 
-### Build and Deployment
-- **[Build Quick Reference](./BUILD_QUICK_REFERENCE.md)** - Quick reference for build commands and troubleshooting ⚡
-- **[Build Initialization Guide](./docs/BUILD_INITIALIZATION.md)** - Comprehensive build process and initialization documentation
-- **[Build Initialization Summary](./BUILD_INITIALIZATION_SUMMARY.md)** - Summary of all initialization improvements
-- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development best practices and patterns
+Comprehensive documentation is organized in the **[docs/](docs/)** directory:
 
-### Database and Architecture
-- **[Database Architecture Guide](./docs/DATABASE_ARCHITECTURE.md)** - Comprehensive guide to database setup, Drizzle vs Prisma, and single PostgreSQL instance architecture
+### Core Guides
+- **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
+- **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
+- **[🗄️ Database Architecture](docs/database/DATABASE_ARCHITECTURE.md)** - Database design & setup  
+- **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
+- **[🌐 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment
 
-### Platform Integration Guides
-- **[Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Comprehensive Twitch OAuth implementation and security documentation
-- **[Twitch Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md)** - Step-by-step Twitch application configuration
-
-### General Documentation
-- **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Comprehensive testing documentation
-- **[API Documentation](./API_DOCUMENTATION.md)** - API endpoints and usage
-
-### Platform OAuth Integration
-
-The platform supports secure OAuth 2.0 integration with major streaming platforms:
-
-#### Twitch Integration 🎮
-- **PKCE Security**: Implements Proof Key for Code Exchange (RFC 7636) for enhanced security
-- **Automatic Token Refresh**: Handles token expiration and renewal automatically
-- **EventSub Webhooks**: Real-time stream status notifications
-- **Comprehensive Scopes**: Stream management, analytics, and user data access
-
-**Quick Start:**
-1. Create Twitch application at https://dev.twitch.tv/console/apps
-2. Configure OAuth redirect URLs (see [Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md))
-3. Set environment variables:
-   ```bash
-   TWITCH_CLIENT_ID=your_client_id
-   TWITCH_CLIENT_SECRET=your_client_secret
-   TWITCH_EVENTSUB_SECRET=$(openssl rand -hex 16)
-   ```
-4. See [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed implementation
-
-#### YouTube Integration 📺
-- **PKCE Support**: Full PKCE implementation for secure authorization
-- **Channel Management**: Access to channel data and live stream settings
-- **Automatic Refresh**: Seamless token renewal
-
-#### Facebook Gaming Integration 🎯
-- **Page Management**: Access to gaming pages and posts
-- **Video Publishing**: Upload and manage video content
-- **Engagement Metrics**: Read page engagement data
-
-**Security Features:**
-- ✅ PKCE (Proof Key for Code Exchange) for all platforms
-- ✅ Cryptographically secure state parameters
-- ✅ Encrypted token storage in PostgreSQL
-- ✅ Automatic token refresh with 5-minute buffer
-- ✅ CSRF protection via state validation
-- ✅ Single-use authorization codes
-
-**See Also:**
-- [Platform OAuth API Documentation](docs/api/API_DOCUMENTATION.md#platform-oauth-api)
-- [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
-
-## 🤖 Testing Agent Features
-
-The Unit Testing Agent is a key feature of this repository that provides:
-
-### Automated Test Generation
-- **Feature Coverage**: Automatically generates tests for all major platform features
-- **Best Practices**: Follows Jest and TypeScript testing best practices
-- **Mock Management**: Creates comprehensive mock implementations
-- **Edge Cases**: Includes error handling and edge case scenarios
-
-### Test Categories
-1. **Authentication Tests**: OAuth flows, session management, security validation
-2. **Tournament Tests**: CRUD operations, business logic, participant management
-3. **Matchmaking Tests**: AI algorithms, compatibility scoring, filtering
-4. **Calendar Tests**: Event management, timezone handling, conflict detection
-5. **Messaging Tests**: WebSocket communication, real-time delivery, persistence
-
-### Development Integration
-- **NPM Scripts**: Easy-to-use commands for test execution
-- **Watch Mode**: Continuous testing during development
-- **Coverage Reports**: Detailed analysis of code coverage
-- **CI/CD Ready**: Configured for continuous integration environments
+### Key Features
+- **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay
+- **[🤖 AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent matching
+- **[📺 Twitch Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform OAuth
 
 ## 🚀 Deployment
 
-The application is configured for Cloud Run deployment with:
+### Production (Google Cloud Platform)
 
-- Health check endpoint at `/health`
-- Environment variable configuration
-- Graceful shutdown and startup optimization
-- Database migration support
+**Architecture**: Cloud Run + Cloud SQL + Secret Manager + Cloud Build
+
+```bash
+# Quick deployment
+cp .env.production.template .env.production
+npm run deploy:production
+npm run verify:production
+
+# Individual services
+npm run deploy:backend
+npm run deploy:frontend
+npm run db:migrate:production
+```
+
+**Features**: Docker containers, automated CI/CD, health monitoring, automatic backups
+
+📖 **Production Guides**: [Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md) • [Environment Template](./.env.production.template)
+
+## 🔒 Security
+
+**Authentication**: Google OAuth 2.0 → Database sessions → HTTP-only cookies  
+**Protection**: CSRF, rate limiting, input validation, SQL injection prevention  
+**Storage**: Encrypted tokens, secure environment variables
+
+## 🌐 Platform Integrations
+
+**Streaming Platforms**: Twitch, YouTube, Facebook Gaming  
+**Security**: PKCE OAuth 2.0, encrypted token storage, automatic refresh  
+**Features**: Real-time webhooks, channel management, engagement metrics
+
+📋 **Setup Guides**: [Twitch OAuth](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) • [Platform API Docs](docs/api/API_DOCUMENTATION.md#platform-oauth-api)
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Generate tests for your changes (`npm run test:generate`)
-4. Run tests to ensure they pass (`npm run test`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+1. Fork → Create feature branch → Make changes
+2. Generate tests: `npm run test:generate`
+3. Ensure tests pass: `npm run test`
+4. Submit pull request
 
-### Testing Requirements
+**Requirements**: ✅ Tests pass ✅ 70%+ coverage ✅ TypeScript compliance
 
-All contributions must include:
-- ✅ Generated unit tests using the testing agent
-- ✅ All tests passing
-- ✅ Code coverage meeting minimum thresholds (70%)
-- ✅ TypeScript type safety compliance
+## 📄 License
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with modern web technologies and best practices
-- Comprehensive testing coverage with automated generation
-- Community-driven development approach
-- Focus on security, performance, and developer experience
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Ready to contribute?** Start by running `npm run test:generate` to explore the codebase through comprehensive unit tests, then dive into the development workflow!
+**🚀 Ready to start?** Run `npm run test:generate` to explore the codebase through automated tests!
