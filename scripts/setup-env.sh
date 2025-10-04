@@ -230,7 +230,7 @@ install_dependencies() {
     print_info "Installing dependencies..."
     
     cd "$PROJECT_ROOT"
-    if npm install; then
+    if npm install --legacy-peer-deps; then
         print_success "Dependencies installed"
         return 0
     else
