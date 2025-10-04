@@ -197,8 +197,6 @@ import { alias } from "drizzle-orm/sqlite-core";
 interface ExtendedEvent extends Event {
   date?: string;
   time?: string;
-  playerSlots?: number;
-  alternateSlots?: number;
   gameFormat?: string;
   powerLevel?: string;
   isRecurring?: boolean;
@@ -206,11 +204,6 @@ interface ExtendedEvent extends Event {
   recurrenceInterval?: number;
   recurrenceEndDate?: Date;
   isPublic?: boolean;
-}
-
-interface ExtendedEventAttendee extends EventAttendee {
-  role?: string;
-  playerType?: string;
 }
 
 interface ExtendedTournament extends Tournament {
@@ -1526,8 +1519,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        // role: eventAttendees.role, // TODO: Not in schema
-        // playerType: eventAttendees.playerType, // TODO: Not in schema
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
         joinedAt: eventAttendees.joinedAt,
         user: users,
       })
@@ -1543,8 +1536,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        // role: eventAttendees.role, // TODO: Not in schema
-        // playerType: eventAttendees.playerType, // TODO: Not in schema
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
         joinedAt: eventAttendees.joinedAt,
         event: events,
       })
@@ -1562,8 +1555,8 @@ export class DatabaseStorage implements IStorage {
         eventId: eventAttendees.eventId,
         userId: eventAttendees.userId,
         status: eventAttendees.status,
-        // role: eventAttendees.role, // TODO: Not in schema
-        // playerType: eventAttendees.playerType, // TODO: Not in schema
+        role: eventAttendees.role,
+        playerType: eventAttendees.playerType,
         joinedAt: eventAttendees.joinedAt,
       })
       .from(eventAttendees)
@@ -1705,8 +1698,6 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        // date: events.date, // TODO: Not in schema
-        // time: events.time, // TODO: Not in schema
         startTime: events.startTime,
         endTime: events.endTime,
         location: events.location,
@@ -1715,18 +1706,10 @@ export class DatabaseStorage implements IStorage {
         hostId: events.hostId,
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
         isVirtual: events.isVirtual,
-        // isPublic: events.isPublic, // TODO: Not in schema
         status: events.status,
-        // playerSlots: events.playerSlots, // TODO: Not in schema
-        // alternateSlots: events.alternateSlots, // TODO: Not in schema
-        // gameFormat: events.gameFormat, // TODO: Not in schema
-        // powerLevel: events.powerLevel, // TODO: Not in schema
-        // isRecurring: events.isRecurring, // TODO: Not in schema
-        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
-        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
-        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
-        // parentEventId: events.parentEventId, // TODO: Not in schema
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -1737,8 +1720,6 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(communities, eq(events.communityId, communities.id));
 
     let conditions = [
-      // gte(events.date, filters.startDate), // TODO: date column doesn't exist
-      // sql`${events.date} <= ${filters.endDate}` // TODO: date column doesn't exist
       gte(events.startTime, new Date(filters.startDate)),
       lte(events.startTime, new Date(filters.endDate))
     ];
@@ -1752,7 +1733,7 @@ export class DatabaseStorage implements IStorage {
 
     const rawEvents = await baseQuery
       .where(and(...conditions))
-      .orderBy(events.startTime); // TODO: time column doesn't exist, using startTime
+      .orderBy(events.startTime);
 
     // Get player counts for each event
     const eventIds = rawEvents.map((e: any) => e.id);
@@ -1760,10 +1741,8 @@ export class DatabaseStorage implements IStorage {
       .select({
         eventId: eventAttendees.eventId,
         totalCount: count(eventAttendees.id).as('totalCount'),
-        // mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'), // TODO: playerType doesn't exist
-        // alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'), // TODO: playerType doesn't exist
-        mainPlayers: sql<number>`0`.as('mainPlayers'), // TODO: playerType column not in schema
-        alternates: sql<number>`0`.as('alternates'), // TODO: playerType column not in schema
+        mainPlayers: count(sql`CASE WHEN ${eventAttendees.playerType} = 'main' THEN 1 END`).as('mainPlayers'),
+        alternates: count(sql`CASE WHEN ${eventAttendees.playerType} = 'alternate' THEN 1 END`).as('alternates'),
       })
       .from(eventAttendees)
       .where(sql`${eventAttendees.eventId} IN ${eventIds}`)

@@ -183,6 +183,8 @@ export const events = sqliteTable("events", {
   location: text("location"),
   isVirtual: integer("is_virtual", { mode: 'boolean' }).default(false),
   maxAttendees: integer("max_attendees"),
+  playerSlots: integer("player_slots"), // For game pods - number of main player slots
+  alternateSlots: integer("alternate_slots"), // For game pods - number of alternate/waitlist slots
   creatorId: text("creator_id").notNull().references(() => users.id),
   hostId: text("host_id").references(() => users.id),
   coHostId: text("co_host_id").references(() => users.id),
@@ -202,6 +204,8 @@ export const eventAttendees = sqliteTable("event_attendees", {
   eventId: text("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").default("attending"), // 'attending', 'maybe', 'not_attending'
+  role: text("role").default("participant"), // 'participant', 'organizer', 'moderator'
+  playerType: text("player_type").default("main"), // 'main', 'alternate' (for game pods with waitlist)
   joinedAt: integer("joined_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   unique().on(table.eventId, table.userId),
@@ -1130,7 +1134,8 @@ export const collaborativeStreamEvents = sqliteTable("collaborative_stream_event
   scheduledStartTime: integer("scheduled_start_time", { mode: 'timestamp' }).notNull(),
   estimatedDuration: integer("estimated_duration"), // in minutes
   communityId: text("community_id").references(() => communities.id),
-  organizerId: text("organizer_id").notNull().references(() => users.id),
+  creatorId: text("creator_id").notNull().references(() => users.id), // Changed from organizerId to creatorId for consistency
+  organizerId: text("organizer_id").notNull().references(() => users.id), // Keep for backward compatibility
   status: text("status").default("planned"), // 'planned', 'live', 'completed', 'cancelled'
   streamingPlatforms: text("streaming_platforms").default("[]"), // JSON array
   contentType: text("content_type"), // 'gameplay', 'tournament', 'discussion', 'showcase'
@@ -1145,6 +1150,7 @@ export const collaborativeStreamEvents = sqliteTable("collaborative_stream_event
   updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index("idx_collab_stream_events_organizer").on(table.organizerId),
+  index("idx_collab_stream_events_creator").on(table.creatorId),
   index("idx_collab_stream_events_community").on(table.communityId),
   index("idx_collab_stream_events_start").on(table.scheduledStartTime),
   index("idx_collab_stream_events_status").on(table.status),
@@ -1152,18 +1158,24 @@ export const collaborativeStreamEvents = sqliteTable("collaborative_stream_event
 
 export const streamCollaborators = sqliteTable("stream_collaborators", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  streamEventId: text("stream_event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }), // Primary field name
+  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }), // Alias for compatibility
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: text("role").notNull(), // 'host', 'co_host', 'guest', 'moderator'
   status: text("status").default("pending"), // 'pending', 'accepted', 'declined', 'removed'
   platformHandles: text("platform_handles").default("{}"), // JSON object
   streamingCapabilities: text("streaming_capabilities").default("[]"), // JSON array
-  invitedBy: text("invited_by").references(() => users.id),
+  availableTimeSlots: text("available_time_slots").default("{}"), // JSON object for availability scheduling
+  contentSpecialties: text("content_specialties").default("[]"), // JSON array for content expertise
+  technicalSetup: text("technical_setup").default("{}"), // JSON object for equipment/setup details
+  invitedByUserId: text("invited_by_user_id").references(() => users.id), // Primary field name
+  invitedBy: text("invited_by").references(() => users.id), // Alias for compatibility
   invitedAt: integer("invited_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   respondedAt: integer("responded_at", { mode: 'timestamp' }),
   joinedAt: integer("joined_at", { mode: 'timestamp' }),
   leftAt: integer("left_at", { mode: 'timestamp' }),
 }, (table) => [
+  index("idx_stream_collaborators_stream_event").on(table.streamEventId),
   index("idx_stream_collaborators_event").on(table.eventId),
   index("idx_stream_collaborators_user").on(table.userId),
   index("idx_stream_collaborators_status").on(table.status),
@@ -1172,18 +1184,29 @@ export const streamCollaborators = sqliteTable("stream_collaborators", {
 
 export const streamCoordinationSessions = sqliteTable("stream_coordination_sessions", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }),
+  streamEventId: text("stream_event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }), // Primary field name
+  eventId: text("event_id").notNull().references(() => collaborativeStreamEvents.id, { onDelete: "cascade" }), // Alias for compatibility
   currentPhase: text("current_phase").default("preparation"), // 'preparation', 'live', 'break', 'wrap_up', 'ended'
-  currentHostId: text("current_host_id").references(() => users.id),
+  currentHost: text("current_host").references(() => users.id), // Primary field name used by service
+  currentHostId: text("current_host_id").references(() => users.id), // Alias for compatibility
   activeCollaborators: text("active_collaborators").default("[]"), // JSON array of user IDs
+  platformStatuses: text("platform_statuses").default("{}"), // JSON object for platform-specific statuses
+  viewerCounts: text("viewer_counts").default("{}"), // JSON object for viewer counts per platform
+  coordinationEvents: text("coordination_events").default("[]"), // JSON array of coordination event logs
+  chatModerationActive: integer("chat_moderation_active", { mode: 'boolean' }).default(false),
+  streamQualitySettings: text("stream_quality_settings").default("{}"), // JSON object for quality settings
+  audioCoordination: text("audio_coordination").default("{}"), // JSON object for audio setup
   streamMetrics: text("stream_metrics").default("{}"), // JSON object
   phaseHistory: text("phase_history").default("[]"), // JSON array
   notes: text("notes"),
+  actualStartTime: integer("actual_start_time", { mode: 'timestamp' }),
+  actualEndTime: integer("actual_end_time", { mode: 'timestamp' }),
   startedAt: integer("started_at", { mode: 'timestamp' }),
   endedAt: integer("ended_at", { mode: 'timestamp' }),
   createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
+  index("idx_stream_coordination_stream_event").on(table.streamEventId),
   index("idx_stream_coordination_event").on(table.eventId),
   index("idx_stream_coordination_phase").on(table.currentPhase),
 ]);
@@ -1385,11 +1408,44 @@ export const insertUserSchema = createInsertSchema(users, {
   updatedAt: true,
 });
 
+export const insertCommunitySchema = createInsertSchema(communities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertEventSchema = createInsertSchema(events, {
   title: z.string().min(1).max(200),
   type: z.enum(['tournament', 'convention', 'release', 'stream', 'community', 'personal', 'game_pod']),
   status: z.enum(['active', 'cancelled', 'completed', 'draft']).optional(),
 }).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCollaborativeStreamEventSchema = createInsertSchema(collaborativeStreamEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStreamCollaboratorSchema = createInsertSchema(streamCollaborators).omit({
+  id: true,
+  invitedAt: true,
+});
+
+export const insertStreamCoordinationSessionSchema = createInsertSchema(streamCoordinationSessions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
