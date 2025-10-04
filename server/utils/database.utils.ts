@@ -5,8 +5,8 @@
  * following Copilot best practices for database interaction optimization.
  */
 
-import { SQL, sql, eq, and, or, inArray, isNull, isNotNull, gte, lte, gt, lt, like, ilike } from 'drizzle-orm';
-import { PgColumn } from 'drizzle-orm/pg-core';
+import { SQL, sql, eq, and, or, inArray, isNull, isNotNull, gte, lte, gt, lt, like } from 'drizzle-orm';
+import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { logger } from '../logger';
 import { DatabaseError } from '../middleware/error-handling.middleware';
 
@@ -44,7 +44,7 @@ export interface QueryBuilder {
  */
 export function buildWhereConditions(
   filters: FilterCondition[],
-  tableColumns: Record<string, PgColumn>
+  tableColumns: Record<string, SQLiteColumn>
 ): SQL[] {
   const conditions: SQL[] = [];
 
@@ -72,7 +72,7 @@ export function buildWhereConditions(
 /**
  * Build a single WHERE condition
  */
-function buildSingleCondition(column: PgColumn, filter: FilterCondition): SQL | null {
+function buildSingleCondition(column: SQLiteColumn, filter: FilterCondition): SQL | null {
   const { operator, value, values } = filter;
 
   switch (operator) {
@@ -98,7 +98,8 @@ function buildSingleCondition(column: PgColumn, filter: FilterCondition): SQL | 
       return like(column, `%${value}%`);
     
     case 'ilike':
-      return ilike(column, `%${value}%`);
+      // SQLite's LIKE is case-insensitive by default
+      return like(column, `%${value}%`);
     
     case 'in':
       if (!values || values.length === 0) return null;
@@ -134,7 +135,7 @@ function buildSingleCondition(column: PgColumn, filter: FilterCondition): SQL | 
 export function buildSearchConditions(
   searchFields: string[],
   searchTerm: string,
-  tableColumns: Record<string, PgColumn>
+  tableColumns: Record<string, SQLiteColumn>
 ): SQL | null {
   if (!searchTerm.trim()) return null;
 
@@ -144,8 +145,9 @@ export function buildSearchConditions(
   for (const fieldName of searchFields) {
     const column = tableColumns[fieldName];
     if (column) {
+      // SQLite's LIKE is case-insensitive by default
       searchConditions.push(
-        ilike(column, `%${term}%`)
+        like(column, `%${term}%`)
       );
     }
   }
@@ -159,7 +161,7 @@ export function buildSearchConditions(
  */
 export function buildOrderBy(
   sortOptions: { field: string; direction: 'asc' | 'desc' }[],
-  tableColumns: Record<string, PgColumn>
+  tableColumns: Record<string, SQLiteColumn>
 ): SQL[] {
   const orderClauses: SQL[] = [];
 
@@ -528,7 +530,7 @@ export class CursorPagination {
    */
   static buildCursorCondition(
     cursor: string | undefined,
-    sortField: PgColumn,
+    sortField: SQLiteColumn,
     sortDirection: 'asc' | 'desc' = 'desc'
   ): SQL | null {
     if (!cursor) return null;
