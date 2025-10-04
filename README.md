@@ -137,7 +137,7 @@ Comprehensive documentation is organized in the **[docs/](docs/)** directory:
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
-- **[🗄️ Database Architecture](docs/database/DATABASE_ARCHITECTURE.md)** - Database design & setup  
+- **[🗄️ Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design & setup  
 - **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment
 
