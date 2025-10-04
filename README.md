@@ -264,11 +264,13 @@ npm run db:migrate:production
 
 ### Production Documentation
 
-- **[Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
-- **[Environment Template](.env.production.template)** - Required environment variables
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Technical deployment details
-- **[Cloud Run Frontend-Backend Setup](docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)** - Split deployment architecture
-- **[Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - Troubleshooting ERR_TOO_MANY_ACCEPT_CH_RESTARTS
+- **[🚀 Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment guide with verification
+- **[🔧 Troubleshooting Configuration Errors](docs/TROUBLESHOOTING_CONFIGURATION_ERROR.md)** - Fix "Configuration" errors and service issues
+- **[⚡ Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
+- **[🏗️ Cloud Run Frontend-Backend Setup](docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)** - Split deployment architecture
+- **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[🔐 Environment Template](.env.production.template)** - Required environment variables
+- **[📖 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Technical deployment details
 
 ## 🔒 Security
 
