@@ -2508,7 +2508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: 'event_join',
             title: 'New Player Joined Your Pod',
             message: `${joiningUser.firstName || joiningUser.email} joined your ${updatedEvent.title} game pod`,
-            data: { eventId, playerType, joinedUserId: userId },
+            data: JSON.stringify({ eventId, playerType, joinedUserId: userId }),
             priority: 'normal',
             communityId: updatedEvent.communityId,
           });
