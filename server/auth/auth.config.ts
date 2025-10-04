@@ -51,8 +51,11 @@ export const authConfig: AuthConfig = {
   // Secret configuration
   secret: process.env.AUTH_SECRET,
   
-  // Use Drizzle adapter for database sessions
-  adapter: DrizzleAdapter(db),
+  // LAZY: Use a getter to delay adapter creation until first access
+  // This prevents accessing db before it's initialized
+  get adapter() {
+    return DrizzleAdapter(db);
+  },
   
   // Use database sessions with Drizzle adapter
   session: {

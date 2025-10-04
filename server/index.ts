@@ -36,8 +36,8 @@ import { securityHeaders } from "./validation";
 
 // Import Auth.js configuration and webhook routes
 import { ExpressAuth } from "@auth/express";
-import { authConfig } from "./auth/auth.config";
-import authRoutesFixed from "./auth/auth.routes";
+// LAZY: Import auth routes after database initialization to avoid accessing db before it's ready
+// import authRoutesFixed from "./auth/auth.routes";
 import webhooksRouter from "./routes/webhooks";
 import notificationPreferencesRouter from "./routes/notification-preferences";
 import monitoringRouter from "./routes/monitoring";
@@ -65,14 +65,89 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Set up Auth.js routes AFTER body parsers so req.body is populated  
-// AUTH_URL and AUTH_TRUST_HOST environment variables handle domain configuration
-// CRITICAL FIX: Use the corrected auth routes instead of direct ExpressAuth mounting
-app.use("/api/auth", authRoutesFixed);
-
 // Apply security headers (including CSP) before other routes
 app.use(securityHeaders);
 
+// Track initialization state for health checks
+let initializationStatus = {
+  status: 'initializing' as 'initializing' | 'ready' | 'degraded',
+  startupTime: new Date(),
+  env: false,
+  security: false,
+  database: false,
+  routes: false,
+};
+
+// CRITICAL: Set up a basic health check IMMEDIATELY before any async initialization
+// This ensures Cloud Run sees the container as healthy while initialization proceeds
+app.get('/api/health', async (_req, res) => {
+  const uptime = Date.now() - initializationStatus.startupTime.getTime();
+  const envStatus = getEnvironmentStatus();
+  
+  // Check database connectivity - but don't fail health check if DB is unavailable
+  let dbStatus = 'unknown';
+  if (initializationStatus.database) {
+    try {
+      if (process.env.DATABASE_URL) {
+        await db.select({ count: sql`COUNT(*)` }).from(sql`(SELECT 1)`).limit(1);
+        dbStatus = 'connected';
+      } else {
+        dbStatus = 'not_configured';
+      }
+    } catch (error) {
+      dbStatus = 'disconnected';
+      logger.warn('Database health check failed', error);
+    }
+  } else {
+    dbStatus = 'initializing';
+  }
+  
+  // For Cloud Run compatibility, always return 200 OK if server is running
+  // Even during initialization or with degraded services, the container is "healthy" for TCP probe
+  const overallStatus = initializationStatus.status === 'initializing' ? 'initializing' : 'ok';
+  
+  res.json({ 
+    status: overallStatus,
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(uptime / 1000), // seconds
+    initialization: initializationStatus.status,
+    environment: {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      valid: envStatus.valid,
+      requiredVars: envStatus.requiredCount,
+      missingRequired: envStatus.missingRequired,
+      missingRecommended: envStatus.missingRecommended
+    },
+    services: {
+      database: dbStatus,
+      port: process.env.PORT || 'default',
+    }
+  });
+});
+
+// Create HTTP server immediately
+const { createServer } = await import('http');
+const server = createServer(app);
+
+// CRITICAL: Start listening on PORT immediately BEFORE initialization
+// This allows Cloud Run to detect the container as healthy while initialization proceeds in background
+const port = parseInt(
+  process.env.PORT ?? 
+  (app.get('env') === 'development' ? '5000' : (() => {
+    throw new Error("PORT environment variable must be set in production");
+  })())
+, 10);
+
+server.listen({
+  port,
+  host: "0.0.0.0",
+  reusePort: true,
+}, () => {
+  logger.info(`Server listening on port ${port} - starting initialization`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
+  log(`serving on port ${port}`);
+});
+
+// Run initialization asynchronously AFTER server starts listening
 (async () => {
   // Log memory configuration recommendations
   logMemoryConfiguration();
@@ -84,10 +159,15 @@ app.use(securityHeaders);
   try {
     validateAndLogEnvironment();
     endTimer('env-validation');
+    initializationStatus.env = true;
   } catch (error) {
     endTimer('env-validation');
     logger.error('Environment validation failed during startup', error);
-    process.exit(1);
+    initializationStatus.status = 'degraded';
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('Environment validation failed - cannot continue');
+      process.exit(1);
+    }
   }
   
   // Run security audit
@@ -98,16 +178,19 @@ app.use(securityHeaders);
     
     if (!securityAudit.passed) {
       logger.warn('Security audit found issues', { issues: securityAudit.issues });
+      initializationStatus.security = false;
       if (process.env.NODE_ENV === 'production') {
         logger.error('Security audit failed in production - stopping server', { issues: securityAudit.issues });
         process.exit(1);
       }
     } else {
       logger.info('Security audit passed');
+      initializationStatus.security = true;
     }
   } catch (error) {
     endTimer('security-audit');
     logger.error('Security audit failed during startup', error);
+    initializationStatus.status = 'degraded';
     if (process.env.NODE_ENV === 'production') {
       process.exit(1);
     }
@@ -119,9 +202,12 @@ app.use(securityHeaders);
     await initializeDatabase();
     endTimer('database-init');
     logger.info('Database initialized successfully');
+    initializationStatus.database = true;
   } catch (error) {
     endTimer('database-init');
     logger.error('Failed to initialize database', error);
+    initializationStatus.database = false;
+    initializationStatus.status = 'degraded';
     if (process.env.NODE_ENV === 'production') {
       logger.warn('Continuing startup with database unavailable - some endpoints will be degraded');
     } else {
@@ -131,6 +217,11 @@ app.use(securityHeaders);
 
   // Warm up critical paths for faster initial requests
   await warmupCriticalPaths();
+
+  // Set up Auth.js routes AFTER database initialization
+  // This ensures db is ready when DrizzleAdapter is accessed
+  const { default: authRoutesFixed } = await import("./auth/auth.routes");
+  app.use("/api/auth", authRoutesFixed);
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
@@ -519,55 +610,6 @@ app.use(securityHeaders);
     }
   });
 
-  // Enhanced health check route with environment status and database connectivity
-  const startupTime = new Date();
-  app.get('/api/health', async (_req, res) => {
-    const envStatus = getEnvironmentStatus();
-    const uptime = Date.now() - startupTime.getTime();
-    
-    // Check database connectivity - but don't fail health check if DB is unavailable
-    let dbStatus = 'connected';
-    try {
-      // Only test database if DATABASE_URL is configured
-      if (process.env.DATABASE_URL) {
-        const dbInstance = db;
-        // Simple connectivity check using raw SQL
-        // Simple health check - check if we can query the users table
-        await db.select({ count: sql`COUNT(*)` }).from(sql`(SELECT 1)`).limit(1);
-      } else {
-        dbStatus = 'not_configured';
-      }
-    } catch (error) {
-      dbStatus = 'disconnected';
-      logger.warn('Database health check failed', error);
-    }
-    
-    // For Cloud Run compatibility, always return 200 OK if server is running
-    // Even with degraded services, the container is "healthy" for TCP probe
-    const overallStatus = 'ok'; // Always OK if server responds
-    
-    res.json({ 
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      uptime: Math.floor(uptime / 1000), // seconds
-      environment: {
-        nodeEnv: process.env.NODE_ENV || 'development',
-        valid: envStatus.valid,
-        requiredVars: envStatus.requiredCount,
-        missingRequired: envStatus.missingRequired,
-        missingRecommended: envStatus.missingRecommended
-      },
-      services: {
-        database: dbStatus,
-        port: process.env.PORT || 'default',
-      }
-    });
-  });
-
-  // Create server for the remaining setup
-  const { createServer } = await import('http');
-  const server = createServer(app);
-
   // Basic error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error('Server error:', err.message);
@@ -591,34 +633,24 @@ app.use(securityHeaders);
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Cloud Run and other platforms set PORT. In production, require PORT to be set.
-  // In development, default to 5000 for local testing.
-  const port = parseInt(
-    process.env.PORT ?? 
-    (app.get('env') === 'development' ? '5000' : (() => {
-      throw new Error("PORT environment variable must be set in production");
-    })())
-  , 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, async () => {
-    endTimer('total-startup');
-    logger.info(`Server started successfully`, { port, host: "0.0.0.0", environment: process.env.NODE_ENV });
-    log(`serving on port ${port}`); // Keep Vite's log for development
-    
-    // Setup graceful shutdown handlers with server and database references
-    const { closeDatabaseConnections } = await import("@shared/database-unified");
-    setupGracefulShutdown(server, { drizzle: db, closeDatabaseConnections });
-    
-    // Start monitoring service after server is running
-    try {
-      monitoringService.start();
-      logger.info('Monitoring service started');
-    } catch (error) {
-      logger.error('Failed to start monitoring service', error);
-    }
-  });
-})();
+  // Mark routes as initialized
+  initializationStatus.routes = true;
+  initializationStatus.status = 'ready';
+  endTimer('total-startup');
+  logger.info('Server initialization complete', { status: initializationStatus.status });
+  
+  // Setup graceful shutdown handlers with server and database references
+  const { closeDatabaseConnections } = await import("@shared/database-unified");
+  setupGracefulShutdown(server, { drizzle: db, closeDatabaseConnections });
+  
+  // Start monitoring service after server is running
+  try {
+    monitoringService.start();
+    logger.info('Monitoring service started');
+  } catch (error) {
+    logger.warn('Failed to start monitoring service', error);
+  }
+})().catch((error) => {
+  logger.error('Fatal error during server initialization', error);
+  process.exit(1);
+});
