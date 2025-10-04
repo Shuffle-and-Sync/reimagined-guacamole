@@ -9,7 +9,25 @@ ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 
 This error occurs at `/api/auth/error` and prevents users from logging in or signing up.
 
-## Root Cause
+## Quick Fix
+
+⚡ **For split frontend/backend deployments**, see [QUICK_FIX_AUTH_ERROR.md](./QUICK_FIX_AUTH_ERROR.md) for a 5-minute fix.
+
+📚 **For complete architecture documentation**, see [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md).
+
+## Root Causes
+
+### Cause 1: Frontend/Backend Split Without Proxy (Most Common)
+
+When frontend and backend are deployed as **separate Cloud Run services**:
+- Frontend: `https://shuffle-sync-frontend-*.us-central1.run.app` (NGINX serving React SPA)
+- Backend: `https://shuffle-sync-backend-*.us-central1.run.app` (Express + Auth.js)
+
+The frontend makes requests to `/api/auth/*` (relative URLs), but without proper proxy configuration, these return 404 on the frontend service.
+
+**Solution:** Configure frontend NGINX to proxy `/api/*` requests to backend service. See [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md).
+
+### Cause 2: Auth.js Redirect Loop (When Backend Deployed Alone)
 
 The issue was caused by a mismatch between the configured `AUTH_URL` and the actual Cloud Run service URL, combined with conditional redirect logic that tried to use different base URLs in development vs production. This created a redirect loop:
 
@@ -18,6 +36,8 @@ The issue was caused by a mismatch between the configured `AUTH_URL` and the act
 3. Cloud Run receives request at actual service URL (different from `AUTH_URL`)
 4. Redirect callback tries to normalize URLs, causing another redirect
 5. Browser detects loop and shows `ERR_TOO_MANY_ACCEPT_CH_RESTARTS`
+
+**Solution:** Use `trustHost: true` to auto-detect URL from request headers. See Technical Changes below.
 
 ## Technical Changes
 
