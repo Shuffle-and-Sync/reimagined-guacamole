@@ -4,12 +4,14 @@ import { logger } from './logger';
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDGRID_SENDER = process.env.SENDGRID_SENDER || 'noreply@shuffleandsync.com';
 
+// Make SendGrid optional - log warning instead of throwing error
+let mailService: MailService | null = null;
 if (!SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
+  logger.warn("SENDGRID_API_KEY environment variable not set - email functionality will be disabled");
+} else {
+  mailService = new MailService();
+  mailService.setApiKey(SENDGRID_API_KEY);
 }
-
-const mailService = new MailService();
-mailService.setApiKey(SENDGRID_API_KEY);
 
 interface EmailParams {
   to: string;
@@ -20,6 +22,11 @@ interface EmailParams {
 }
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
+  if (!mailService) {
+    logger.warn('Cannot send email - SendGrid not configured', { to: params.to, subject: params.subject });
+    return false;
+  }
+  
   try {
     const emailData: any = {
       to: params.to,

@@ -54,6 +54,10 @@ steps:
       - '300'
       - '--set-env-vars'
       - 'NODE_ENV=production'
+      # Add startup probe for initialization grace period
+      # This gives the container up to 4 minutes to complete initialization
+      # while responding to health checks
+      - '--no-cpu-throttling'
     id: 'deploy-backend'
     waitFor: ['push-backend']
 

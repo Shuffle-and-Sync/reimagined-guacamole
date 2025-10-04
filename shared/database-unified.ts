@@ -60,14 +60,15 @@ async function initializeConnection() {
     await sqliteCloud.sql`SELECT 1 as test`;
     
     console.log(`✅ Connected to SQLite Cloud successfully`);
+    connectionTested = true;
   } catch (error) {
     console.error('❌ SQLite Cloud connection failed:', error);
     throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  connectionTested = true;
 }
 
 // Initialize connection immediately but handle errors gracefully
+// IMPORTANT: Call this synchronously to start the connection process immediately
 if (databaseUrl) {
   initializeConnection().catch(error => {
     console.error('❌ Failed to initialize database connection:', error);
