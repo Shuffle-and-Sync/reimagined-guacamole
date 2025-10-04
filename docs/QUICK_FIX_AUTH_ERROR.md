@@ -8,15 +8,41 @@ When clicking "Sign In" on the deployed frontend:
 ❌ Redirects to: /api/auth/error?error=Configuration
 ```
 
+**Important**: If your URL shows `shuffle-sync-front-` (not `shuffle-sync-frontend-`), your service name is different than the default. See [Service Name Mismatch](#service-name-mismatch) below.
+
+## Quick Diagnosis
+
+**Fastest way**: Run the automated diagnostic script:
+
+```bash
+npm run diagnose:auth
+```
+
+This will identify all issues and provide specific fix commands. Continue reading for manual fixes.
+
 ## Root Cause
 
 The **frontend and backend are deployed as separate services**, but the frontend doesn't know how to reach the backend.
 
 ## Quick Fix (5 minutes)
 
+### Step 0: Identify Your Service Names (Important!)
+
+```bash
+# List all Cloud Run services to find your actual service names
+gcloud run services list --region=us-central1 | grep shuffle-sync
+
+# Common patterns:
+# - shuffle-sync-frontend OR shuffle-sync-front
+# - shuffle-sync-backend OR shuffle-sync-back
+```
+
+**Note down your actual service names** and use them in the commands below!
+
 ### Step 1: Get Your Backend URL
 
 ```bash
+# Replace with YOUR actual backend service name
 gcloud run services describe shuffle-sync-backend \
   --region=us-central1 \
   --format='value(status.url)'
@@ -27,12 +53,21 @@ Example output: `https://shuffle-sync-backend-683555795974.us-central1.run.app`
 ### Step 2: Configure Frontend to Proxy to Backend
 
 ```bash
+# Replace 'shuffle-sync-frontend' with YOUR actual frontend service name
+# (might be 'shuffle-sync-front' based on your error URL)
 gcloud run services update shuffle-sync-frontend \
   --region=us-central1 \
   --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
 ```
 
 Replace the URL with your actual backend URL from Step 1.
+
+**If your service is named `shuffle-sync-front`** (check your error URL), use:
+```bash
+gcloud run services update shuffle-sync-front \
+  --region=us-central1 \
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+```
 
 ### Step 3: Verify Google OAuth is Configured on Backend
 
@@ -68,9 +103,28 @@ gcloud run services update shuffle-sync-backend \
 
 ### Step 5: Test
 
-1. Open your frontend URL: `https://shuffle-sync-frontend-683555795974.us-central1.run.app`
+1. Open your frontend URL: `https://shuffle-sync-frontend-683555795974.us-central1.run.app` (or `shuffle-sync-front-...`)
 2. Click "Sign In"
 3. Should now work! ✅
+
+## Service Name Mismatch
+
+If your error URL shows `shuffle-sync-front-` instead of `shuffle-sync-frontend-`, your services have different names than expected.
+
+**To fix this**:
+
+1. **Find your actual service names**:
+   ```bash
+   gcloud run services list --region=us-central1 | grep shuffle
+   ```
+
+2. **Use your actual names in all commands**:
+   - Replace `shuffle-sync-frontend` with `shuffle-sync-front`
+   - Replace `shuffle-sync-backend` with `shuffle-sync-back` (if applicable)
+
+3. **Update cloudbuild files** to use consistent names:
+   - Edit `cloudbuild-frontend.yaml`
+   - Update the service name in the deploy step to match your actual service
 
 ## What Changed?
 
@@ -93,6 +147,15 @@ User → Frontend (NGINX)
 See [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) for complete documentation.
 
 ## Still Not Working?
+
+See the comprehensive troubleshooting guide: [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md)
+
+This guide covers:
+- Service naming mismatches
+- Missing OAuth credentials
+- Frontend proxy configuration issues
+- Complete diagnostic workflow
+- Container log analysis
 
 ### Error: "Configuration" at /api/auth/error
 
@@ -132,14 +195,15 @@ gcloud run services update shuffle-sync-frontend \
 Run this diagnostic command:
 
 ```bash
-# Check both services
-echo "=== FRONTEND ==="
-gcloud run services describe shuffle-sync-frontend --region=us-central1 --format='value(status.url)'
-gcloud run services describe shuffle-sync-frontend --region=us-central1 --format="value(spec.template.spec.containers[0].env)" | grep BACKEND
+# Use your actual service names
+FRONTEND_SERVICE=shuffle-sync-front \
+BACKEND_SERVICE=shuffle-sync-backend \
+./scripts/verify-cloud-run-deployment.sh
+```
 
-echo -e "\n=== BACKEND ==="
-gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
-gcloud run services describe shuffle-sync-backend --region=us-central1 --format="value(spec.template.spec.containers[0].env)" | grep -E "GOOGLE|AUTH_"
+Or use the npm script (for default service names):
+```bash
+npm run verify:cloudrun
 ```
 
 Expected output:
@@ -155,3 +219,5 @@ GOOGLE_CLIENT_SECRET=GOCSPX-***
 AUTH_SECRET=***
 AUTH_TRUST_HOST=true
 ```
+
+For detailed troubleshooting, see [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md)
