@@ -77,7 +77,7 @@ Edit `.env.production` and configure the following **critical** variables:
 
 | Variable | Description | How to Generate |
 |----------|-------------|-----------------|
-| `DATABASE_URL` | PostgreSQL connection string | From Cloud SQL or your database provider |
+| `DATABASE_URL` | SQLite Cloud connection string | From SQLite Cloud dashboard |
 | `AUTH_SECRET` | Authentication secret (64+ chars) | `openssl rand -base64 64` |
 | `AUTH_URL` | Production domain URL | `https://your-domain.com` |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From [Google Cloud Console](https://console.cloud.google.com) |
@@ -106,28 +106,25 @@ This validates that all required variables are set and properly formatted.
 
 ### 2. Database Setup
 
-> **Important**: The application requires **ONE PostgreSQL database instance** only. Both Drizzle ORM (primary) and Prisma (build compatibility) connect to the same database. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for detailed explanation.
+> **Important**: The application requires a SQLite Cloud instance for production. Drizzle ORM handles all database operations. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for detailed explanation.
 
-#### Cloud SQL PostgreSQL Instance
+#### SQLite Cloud Setup
 
-Create a single Cloud SQL PostgreSQL instance for the entire application:
+Set up a SQLite Cloud database for the application:
 
 ```bash
-# Set variables
-export PROJECT_ID="your-gcp-project-id"
-export REGION="us-central1"
-export INSTANCE_NAME="shuffle-sync-db"
+# Sign up for SQLite Cloud at https://sqlitecloud.io
+# Create a new database instance
+# Copy the connection string (includes API key)
+# Set DATABASE_URL in your environment
 
-# Create Cloud SQL instance (this is your ONLY database instance)
-gcloud sql instances create $INSTANCE_NAME \
-  --database-version=POSTGRES_15 \
-  --tier=db-f1-micro \
-  --region=$REGION \
-  --root-password="your-secure-root-password" \
-  --backup-start-time="03:00" \
-  --enable-bin-log \
-  --maintenance-window-day=SUN \
-  --maintenance-window-hour=03
+# Example connection string format:
+# sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
+
+# Initialize database schema
+npm run db:init
+npm run db:push
+```
 ```
 
 #### Create Production Database
