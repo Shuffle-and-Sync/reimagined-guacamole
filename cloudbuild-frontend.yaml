@@ -1,4 +1,15 @@
 # Cloud Build configuration for frontend deployment
+# 
+# IMPORTANT: Frontend requires BACKEND_URL to proxy /api/* requests
+# 
+# To configure:
+# 1. Deploy backend service first: gcloud builds submit --config cloudbuild.yaml
+# 2. Get backend URL: gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
+# 3. Update BACKEND_URL below with your actual backend URL
+# 4. Deploy frontend: gcloud builds submit --config cloudbuild-frontend.yaml
+#
+# See docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md for detailed instructions
+
 steps:
   # Build frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -54,6 +65,9 @@ steps:
       - '5'
       - '--timeout'
       - '60'
+      # CRITICAL: Set BACKEND_URL to your actual backend service URL
+      # Update this URL with your deployed backend service
+      # Get it with: gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
       - '--set-env-vars'
       - 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
     id: 'deploy-frontend'
