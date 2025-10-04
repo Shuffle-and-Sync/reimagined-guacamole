@@ -289,11 +289,13 @@ export class TwitchAPIService {
   private messageIdCleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.clientId = process.env.TWITCH_CLIENT_ID!;
-    this.clientSecret = process.env.TWITCH_CLIENT_SECRET!;
+    this.clientId = process.env.TWITCH_CLIENT_ID || '';
+    this.clientSecret = process.env.TWITCH_CLIENT_SECRET || '';
     
     if (!this.clientId || !this.clientSecret) {
-      throw new Error('Twitch API credentials not configured. Please set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET environment variables.');
+      logger.warn('Twitch API credentials not configured. Twitch integration will be disabled.');
+      // Don't throw error - allow server to start without Twitch integration
+      return;
     }
 
     // Clean up old message IDs every hour to prevent memory leaks
