@@ -47,7 +47,6 @@
     "deploy:production": "./scripts/deploy-production.sh",
     "deploy:backend": "./scripts/deploy-production.sh --backend-only",
     "deploy:frontend": "./scripts/deploy-production.sh --frontend-only",
-    "db:migrate:production": "./scripts/migrate-production-db.sh",
     "verify:production": "./scripts/verify-production.sh",
     "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
     "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
