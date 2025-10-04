@@ -1431,7 +1431,6 @@ export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit
 export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 });
 
 export const insertCollaborativeStreamEventSchema = createInsertSchema(collaborativeStreamEvents).omit({
