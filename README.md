@@ -184,10 +184,23 @@ npm run db:migrate:production
 
 ## 🤝 Contributing
 
-1. Fork → Create feature branch → Make changes
-2. Generate tests: `npm run test:generate`
-3. Ensure tests pass: `npm run test`
-4. Submit pull request
+We welcome contributions from developers of all skill levels! Please see our **[Contributing Guide](CONTRIBUTING.md)** for detailed information on:
+
+- **[Quick Start](CONTRIBUTING.md#-quick-start)** - Get up and running in minutes
+- **[Development Setup](CONTRIBUTING.md#-development-setup)** - Complete setup instructions
+- **[Code Standards](CONTRIBUTING.md#-code-standards)** - Quality guidelines and patterns
+- **[Testing Requirements](CONTRIBUTING.md#-testing-requirements)** - Mandatory testing procedures
+- **[Pull Request Process](CONTRIBUTING.md#-pull-request-process)** - How to submit changes
+
+### Quick Contribution Steps
+
+1. Fork the repository and create a feature branch
+2. Run `npm run test:generate` to explore the codebase
+3. Make your changes following our [code standards](CONTRIBUTING.md#-code-standards)
+4. Ensure all [tests pass](CONTRIBUTING.md#-testing-requirements) (70% coverage required)
+5. Submit a [pull request](CONTRIBUTING.md#-pull-request-process) with clear description
+
+## 📝 License
 
 **Requirements**: ✅ Tests pass ✅ 70%+ coverage ✅ TypeScript compliance
 
