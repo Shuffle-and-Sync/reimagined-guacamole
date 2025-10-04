@@ -137,23 +137,71 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 
 ## Development Workflow
 
-### Local Development
-- Use `npm run dev` for development server with hot reload
-- Database migrations with `npm run db:push`
-- TypeScript checking with `npm run check`
+### Prerequisites
+- Node.js 18+ and npm
+- Git
+- SQLite Cloud account or local SQLite database
 
-### Code Quality
+### Initial Setup
+```bash
+# 1. Clone and install dependencies
+git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
+cd reimagined-guacamole
+npm install --legacy-peer-deps
+
+# 2. Environment setup
+cp .env.example .env.local
+# Edit .env.local with your configuration (see Environment Variables section)
+
+# 3. Initialize database
+npm run db:init
+npm run db:push
+
+# 4. Start development server
+npm run dev
+```
+
+### Development Commands
+- **Development server**: `npm run dev` - Start server with hot reload at http://localhost:3000
+- **Build**: `npm run build` - Build the application for production
+- **Type checking**: `npm run check` - Run TypeScript type checking
+- **Database migrations**: `npm run db:push` - Push schema changes to database
+- **Health check**: `npm run health` - Check application health status
+
+### Testing Commands
+- **Run all tests**: `npm test` - Execute all test suites
+- **Watch mode**: `npm run test:watch` - Run tests in watch mode
+- **Coverage**: `npm run test:coverage` - Generate test coverage report
+- **Feature tests**: `npm run test:features` - Run feature-specific tests
+- **Individual suites**: 
+  - `npm run test:auth` - Authentication tests
+  - `npm run test:tournaments` - Tournament tests
+  - `npm run test:matchmaking` - Matchmaking tests
+  - `npm run test:calendar` - Calendar tests
+  - `npm run test:messaging` - Messaging tests
+
+### Code Quality Commands
+- **Lint**: `npm run lint` - Run ESLint and auto-fix issues
+- **Format**: `npm run format` - Format code with Prettier
+- **Copilot analysis**: `npm run copilot:analyze` - Run backend code analysis
+- **Auto-fix**: `npm run copilot:fix` - Apply automated fixes
+
+### Code Quality Standards
 - Follow existing patterns in the codebase
 - Use TypeScript strict mode
 - Implement proper error handling
 - Add appropriate logging for debugging
 - Consider performance implications for real-time features
+- Run `npm run lint` and `npm run format` before committing
+- Ensure all tests pass with `npm test`
 
 ### Testing Considerations
 - Test authentication flows thoroughly
 - Validate real-time features work correctly
 - Test cross-platform streaming coordination
 - Ensure mobile responsiveness
+- Write tests for new features before implementing
+- Maintain test coverage above 80%
 
 ## Feature-Specific Context
 
