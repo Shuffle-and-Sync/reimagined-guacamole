@@ -7,12 +7,12 @@ const router = Router();
 
 // Use proper Express.js integration for Auth.js
 // This handles all Auth.js routes automatically and fixes UnknownAction errors
-// CRITICAL FIX: Use basePath "/" since router is mounted at "/api/auth"
+// CRITICAL FIX: Use basePath "/api/auth" for proper URL resolution in Cloud Run
 router.use("*", ExpressAuth({
   ...authConfig,
-  // FIXED: basePath "/" prevents double-path issue (/api/auth/api/auth)
-  basePath: "/", // Router already mounted at /api/auth, so basePath should be "/"
-  trustHost: true, // Trust X-Forwarded-Host header for domain detection
+  // basePath must be the full path where auth routes are mounted
+  // This ensures Auth.js correctly resolves callback URLs and redirects
+  basePath: "/api/auth",
 }));
 
 export default router;

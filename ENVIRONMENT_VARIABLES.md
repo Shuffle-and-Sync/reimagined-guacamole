@@ -23,9 +23,8 @@ These variables **must** be set for the application to function properly.
 |----------|-------------|---------|------------|
 | `DATABASE_URL` | SQLite Cloud connection string | `sqlitecloud://host:port/db?apikey=key` | Must start with `sqlitecloud://` |
 | `AUTH_SECRET` | Authentication secret key | Generate with `openssl rand -base64 32` | Min 32 characters, cannot be demo value in production |
-| `AUTH_URL` | Application base URL | `https://your-domain.com` | Must be valid URL with http/https protocol, HTTPS recommended for production |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Cloud Console | Cannot contain 'demo-' or 'your-' |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Cloud Console | Cannot contain 'demo-' or 'your-' |
+
+**Note:** `AUTH_URL` is now **optional** in production when deployed to Cloud Run or behind a proxy. The application uses `trustHost: true` to automatically detect the correct URL from request headers (`X-Forwarded-Host`, `X-Forwarded-Proto`). You only need to set `AUTH_URL` if you want to explicitly override this behavior.
 
 ### Development Environment
 
@@ -43,10 +42,14 @@ These variables are optional but **highly recommended** for full functionality.
 | Variable | Description | Example | Validation | Required For |
 |----------|-------------|---------|------------|--------------|
 | `SENDGRID_API_KEY` | SendGrid email service API key | `SG.xxxxx...` | Must start with 'SG.', cannot contain 'demo-' | Email notifications |
+| `AUTH_URL` | Application base URL (optional in Cloud Run/proxy environments) | `https://your-domain.com` | Must be valid URL with http/https protocol, HTTPS in production | OAuth callbacks (auto-detected by default) |
+| `AUTH_TRUST_HOST` | Trust proxy headers for URL detection | `true` | Must be boolean value (`true`, `false`, `1`, `0`) | Cloud Run/proxy deployments (defaults to `true`) |
 | `STREAM_KEY_ENCRYPTION_KEY` | Encryption key for stream data | Generate with `openssl rand -hex 16` | **Must be exactly 32 characters** | Streaming features |
 | `REDIS_URL` | Redis cache connection string | `redis://localhost:6379` | Must start with 'redis://' | Caching and performance |
 | `TWITCH_CLIENT_ID` | Twitch API client ID | From Twitch Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Twitch integration |
 | `TWITCH_CLIENT_SECRET` | Twitch API client secret | From Twitch Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Twitch integration |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID (optional) | From Google Cloud Console | Cannot contain 'demo-' or 'your-' | Google OAuth authentication |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (optional) | From Google Cloud Console | Cannot contain 'demo-' or 'your-' | Google OAuth authentication |
 | `YOUTUBE_API_KEY` | YouTube Data API key | From Google Cloud Console | Cannot contain 'demo-' or 'your-', min 10 chars | YouTube integration |
 | `DISCORD_BOT_TOKEN` | Discord bot token | From Discord Developer Portal | Cannot contain 'demo-' or 'your-', min 10 chars | Discord integration |
 | `SENTRY_DSN` | Sentry error tracking DSN | `https://xxx@sentry.io/123` | Must start with 'https://' or 'http://' | Error tracking |
