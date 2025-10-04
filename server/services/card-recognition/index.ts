@@ -2,11 +2,13 @@
  * Universal Card Service
  * 
  * Main service that routes card requests to appropriate adapters based on game ID
+ * NOTE: games table not yet implemented in schema - custom games disabled
  */
 
 import { eq } from 'drizzle-orm';
 import { db } from '../../../shared/database-unified';
-import { games } from '../../../shared/schema';
+// TODO: Re-enable when games table is added to schema
+// import { games } from '../../../shared/schema';
 import { logger } from '../../logger';
 import { ICardAdapter, UniversalCard, CardSearchResult, AutocompleteResult } from './adapters/base.adapter';
 import { scryfallAdapter } from './adapters/scryfall.adapter';
@@ -34,6 +36,9 @@ export class UniversalCardService {
       return this.adapters.get(gameId)!;
     }
 
+    // TODO: Re-enable when games table is added to schema
+    // For now, only support official games
+    /* Original implementation - disabled until games table exists
     // Load game configuration
     const [game] = await db
       .select()
@@ -44,6 +49,7 @@ export class UniversalCardService {
     if (!game) {
       throw new Error(`Game not found: ${gameId}`);
     }
+    */
 
     // Determine which adapter to use
     let adapter: ICardAdapter;
@@ -56,8 +62,10 @@ export class UniversalCardService {
     } else if (gameId === 'yugioh-tcg') {
       adapter = yugiohAdapter;
     } else {
+      // Custom games not supported until games table is implemented
+      throw new Error(`Custom games not yet supported - games table missing from schema. Supported games: mtg-official, pokemon-tcg, yugioh-tcg`);
       // Default to custom game adapter for all user-defined games
-      adapter = new CustomGameAdapter(gameId);
+      // adapter = new CustomGameAdapter(gameId);
     }
 
     // Cache the adapter

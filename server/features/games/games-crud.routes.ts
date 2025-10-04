@@ -103,13 +103,13 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const game = await gameService.getGameById(id);
-
-    if (!game) {
-      return res.status(404).json({ message: 'Game not found' });
-    }
-
+    // Note: gameService.getGameById currently throws not implemented error
     return res.json(game);
   } catch (error) {
+    // Check if it's the "not implemented" error
+    if (error instanceof Error && error.message.includes('not yet implemented')) {
+      return res.status(501).json({ message: 'Game service not yet implemented - games table missing from schema' });
+    }
     logger.error('Failed to fetch game', error, { gameId: req.params.id });
     return res.status(500).json({ message: 'Failed to fetch game' });
   }
