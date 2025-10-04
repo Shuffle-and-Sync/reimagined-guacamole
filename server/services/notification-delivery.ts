@@ -329,11 +329,12 @@ export class NotificationDeliveryService {
       showPreview: true
     };
 
-    if (!userSettings?.notificationSettings) {
+    if (!userSettings?.notificationTypes) {
       return defaultPreferences;
     }
 
-    return { ...defaultPreferences, ...userSettings.notificationSettings as any };
+    const notificationSettings = JSON.parse(userSettings.notificationTypes as string);
+    return { ...defaultPreferences, ...notificationSettings };
   }
 
   /**

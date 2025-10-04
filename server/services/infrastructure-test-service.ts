@@ -3,6 +3,7 @@ import { monitoringService } from './monitoring-service';
 import { cacheService } from './cache-service';
 import { backupService } from './backup-service';
 import { db } from '@shared/database-unified';
+import { sql } from 'drizzle-orm';
 import { redisClient } from './redis-client';
 import { storage } from '../storage';
 
@@ -252,7 +253,7 @@ class InfrastructureTestService {
     // Test database connectivity
     suite.tests.push(await this.runTest('database', 'connectivity', async () => {
       const queryStart = Date.now();
-      await db.execute('SELECT 1 as health_check');
+      await db.run(sql`SELECT 1 as health_check`);
       const queryTime = Date.now() - queryStart;
       return { connected: true, queryTime };
     }));
@@ -275,13 +276,13 @@ class InfrastructureTestService {
     suite.tests.push(await this.runTest('database', 'connection_pool', async () => {
       // Test multiple concurrent queries to verify pool functionality
       const queries = Array(5).fill(null).map(() => 
-        db.execute('SELECT current_timestamp as now')
+        db.run(sql`SELECT current_timestamp as now`)
       );
       
       const results = await Promise.all(queries);
       return { 
         concurrentQueries: results.length,
-        allSuccessful: results.every(r => r.rows.length > 0)
+        allSuccessful: results.every((r: any) => r !== null)
       };
     }));
 
@@ -390,10 +391,11 @@ class InfrastructureTestService {
     suite.tests.push(await this.runTest('analytics', 'data_models', async () => {
       // Test that analytics tables exist and are accessible
       try {
-        await db.execute(`
+        const result = await db.all(sql`
           SELECT COUNT(*) as count 
-          FROM information_schema.tables 
-          WHERE table_name IN ('user_activity_logs', 'system_metrics', 'events')
+          FROM sqlite_master 
+          WHERE type = 'table' 
+          AND name IN ('user_activity_logs', 'system_metrics', 'events')
         `);
         return { analyticsTablesExists: true };
       } catch (error) {
@@ -459,12 +461,13 @@ class InfrastructureTestService {
     suite.tests.push(await this.runTest('notifications', 'data_models', async () => {
       try {
         // Test notification-related storage operations
-        const result = await db.execute(`
+        const result = await db.all(sql`
           SELECT COUNT(*) as count 
-          FROM information_schema.tables 
-          WHERE table_name IN ('notifications', 'notification_preferences', 'messages')
+          FROM sqlite_master 
+          WHERE type = 'table' 
+          AND name IN ('notifications', 'notification_preferences', 'messages')
         `);
-        return { notificationTablesExist: true, count: result.rows[0] };
+        return { notificationTablesExist: true, count: result[0] };
       } catch (error) {
         return { notificationTablesExist: false, error: 'Tables may not be created yet' };
       }
@@ -660,7 +663,7 @@ class InfrastructureTestService {
       // Test that systems work together even when Redis is down
       const cacheStatus = await cacheService.getStats();
       const monitoringStatus = monitoringService.getStatus();
-      const dbConnectivity = await db.execute('SELECT 1');
+      const dbConnectivity = await db.run(sql`SELECT 1`);
       
       return {
         redisDown: !cacheStatus.connected,

@@ -217,6 +217,7 @@ npm run db:health        # Check database connection
 npm run check            # TypeScript type checking
 npm run lint             # ESLint code linting
 npm run format           # Prettier code formatting
+```
 
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub

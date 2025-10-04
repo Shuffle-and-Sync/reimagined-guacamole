@@ -39,9 +39,7 @@ export class EnhancedNotificationService {
         title: template.title,
         message: template.message,
         priority: options?.priority || template.priority,
-        communityId: options?.communityId,
-        expiresAt: options?.expiresAt,
-        data: {
+        data: JSON.stringify({
           actionUrl: template.actionUrl,
           actionText: template.actionText,
           emailSubject: template.emailSubject,
@@ -49,8 +47,9 @@ export class EnhancedNotificationService {
           pushTitle: template.pushTitle,
           pushBody: template.pushBody,
           smsMessage: template.smsMessage,
-          context
-        }
+          context,
+          communityId: options?.communityId // Include in data instead
+        })
       };
 
       const notification = await storage.createNotification(notificationData);
@@ -326,15 +325,25 @@ export class EnhancedNotificationService {
     try {
       const currentSettings = await storage.getUserSettings(userId);
       
+      // Parse JSON strings from database
+      const currentNotificationSettings = currentSettings?.notificationTypes 
+        ? JSON.parse(currentSettings.notificationTypes as string) 
+        : {};
+      const currentPrivacySettings = currentSettings?.privacySettings 
+        ? JSON.parse(currentSettings.privacySettings as string) 
+        : {};
+      const currentDisplayPreferences = currentSettings?.displayPreferences 
+        ? JSON.parse(currentSettings.displayPreferences as string) 
+        : {};
+      
       const updatedSettings = {
         userId,
-        theme: currentSettings?.theme || 'system',
-        notificationSettings: {
-          ...(currentSettings?.notificationSettings || {}),
+        notificationTypes: JSON.stringify({
+          ...currentNotificationSettings,
           ...preferences
-        },
-        privacySettings: currentSettings?.privacySettings || {},
-        streamingSettings: currentSettings?.streamingSettings || {}
+        }),
+        privacySettings: JSON.stringify(currentPrivacySettings),
+        displayPreferences: JSON.stringify(currentDisplayPreferences)
       };
 
       await storage.upsertUserSettings(updatedSettings);
@@ -359,7 +368,10 @@ export class EnhancedNotificationService {
   async getNotificationPreferences(userId: string): Promise<any> {
     try {
       const userSettings = await storage.getUserSettings(userId);
-      return userSettings?.notificationSettings || {};
+      if (!userSettings?.notificationTypes) {
+        return {};
+      }
+      return JSON.parse(userSettings.notificationTypes as string);
     } catch (error) {
       logger.error('Failed to get notification preferences', {
         error,
