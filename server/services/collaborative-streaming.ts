@@ -67,15 +67,16 @@ export class CollaborativeStreamingService {
 
       // Add creator as the primary host
       await this.addCollaborator(event.id, {
+        eventId: event.id, // Required field for compatibility
         userId: creatorId,
         role: 'host',
         status: 'accepted',
         invitedByUserId: creatorId,
-        platformHandles: {},
-        streamingCapabilities: ['host', 'co_stream'],
-        availableTimeSlots: {},
-        contentSpecialties: [],
-        technicalSetup: {}
+        platformHandles: JSON.stringify({}),
+        streamingCapabilities: JSON.stringify(['host', 'co_stream']),
+        availableTimeSlots: JSON.stringify({}),
+        contentSpecialties: JSON.stringify([]),
+        technicalSetup: JSON.stringify({})
       });
 
       // Initialize event subscription tracking
@@ -145,7 +146,7 @@ export class CollaborativeStreamingService {
       // Use AI matching to find potential collaborators
       const matchingResults = await aiStreamingMatcher.findStreamingPartners({
         userId: requesterId,
-        games: [event.contentType],
+        games: [event.contentType || 'general'],
         maxResults: 10,
         urgency: 'low'
         // Note: platforms removed as not part of MatchingCriteria type
@@ -184,27 +185,29 @@ export class CollaborativeStreamingService {
       // Create coordination session
       const session = await storage.createStreamCoordinationSession({
         streamEventId: eventId,
+        eventId: eventId, // Required field for compatibility
         actualStartTime: new Date(),
         currentPhase: 'preparation',
         currentHost: hostUserId,
-        activeCollaborators: [hostUserId],
-        platformStatuses: {},
-        viewerCounts: {},
-        coordinationEvents: [],
+        activeCollaborators: JSON.stringify([hostUserId]),
+        platformStatuses: JSON.stringify({}),
+        viewerCounts: JSON.stringify({}),
+        coordinationEvents: JSON.stringify([]),
         chatModerationActive: false,
-        streamQualitySettings: {},
-        audioCoordination: {}
+        streamQualitySettings: JSON.stringify({}),
+        audioCoordination: JSON.stringify({})
       });
 
       // Cache active session
       this.activeCoordinationSessions.set(eventId, session);
 
       // Create stream session for all platforms
+      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
       await streamingCoordinator.createStreamSession({
         title: event.title,
         description: event.description || '',
-        category: event.contentType,
-        platforms: event.streamingPlatforms.map(p => ({
+        category: event.contentType || 'general',
+        platforms: streamingPlatforms.map((p: string) => ({
           id: p,
           name: p.charAt(0).toUpperCase() + p.slice(1),
           isConnected: true
@@ -212,7 +215,7 @@ export class CollaborativeStreamingService {
         hostUserId,
         coHostUserIds: [], // Will be populated as collaborators join
         scheduledStartTime: event.scheduledStartTime,
-        tags: ['collaborative', event.targetAudience],
+        tags: ['collaborative', event.targetAudience || 'general'],
         isPublic: true,
         autoStartEnabled: false,
         crossPlatformChat: true,
@@ -290,14 +293,14 @@ export class CollaborativeStreamingService {
       let activeViewers = 0;
 
       if (session) {
-        platformStatuses = session.platformStatuses as Record<string, string> || {};
-        const viewerCounts = session.viewerCounts as Record<string, number> || {};
-        activeViewers = Object.values(viewerCounts).reduce((sum, count) => sum + count, 0);
+        platformStatuses = session.platformStatuses ? JSON.parse(session.platformStatuses) : {};
+        const viewerCounts: Record<string, number> = session.viewerCounts ? JSON.parse(session.viewerCounts) : {};
+        activeViewers = Object.values(viewerCounts).reduce((sum: number, count: number) => sum + count, 0);
       }
 
       const coordinationMetrics = {
         totalCollaborators: collaborators.length,
-        activeCollaborators: session?.activeCollaborators?.length || 0,
+        activeCollaborators: session ? (JSON.parse(session.activeCollaborators || '[]')).length : 0,
         averageResponseTime: this.calculateAverageResponseTime(eventId),
         coordinationHealth: this.calculateCoordinationHealth(session, collaborators)
       };
@@ -330,17 +333,17 @@ export class CollaborativeStreamingService {
       }
 
       // Update active collaborators
-      const activeCollaborators = session.activeCollaborators || [];
+      const activeCollaborators = JSON.parse(session.activeCollaborators || '[]');
       if (!activeCollaborators.includes(userId)) {
         activeCollaborators.push(userId);
         
         await storage.updateStreamCoordinationSession(session.id, {
-          activeCollaborators,
+          activeCollaborators: JSON.stringify(activeCollaborators),
           updatedAt: new Date()
         });
 
         // Update cached session
-        session.activeCollaborators = activeCollaborators;
+        session.activeCollaborators = JSON.stringify(activeCollaborators);
         this.activeCoordinationSessions.set(eventId, session);
       }
 
@@ -383,7 +386,8 @@ export class CollaborativeStreamingService {
     }
 
     // Platform strategy
-    if (event.streamingPlatforms.length > 1) {
+    const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+    if (streamingPlatforms.length > 1) {
       recommendations.push("Multi-platform streaming: Coordinate chat moderation and ensure consistent branding");
     }
 
@@ -479,7 +483,8 @@ export class CollaborativeStreamingService {
       const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
 
       // Start streaming on each configured platform
-      for (const platformName of event.streamingPlatforms) {
+      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
             case 'youtube':
@@ -656,22 +661,22 @@ export class CollaborativeStreamingService {
 
       // Persist platform statuses and viewer counts to storage
       await storage.updateStreamCoordinationSession(session.id, {
-        platformStatuses,
-        viewerCounts,
-        coordinationEvents: [
-          ...(session.coordinationEvents as any[] || []),
+        platformStatuses: JSON.stringify(platformStatuses),
+        viewerCounts: JSON.stringify(viewerCounts),
+        coordinationEvents: JSON.stringify([
+          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
           {
             type: 'platform_sync_started',
             timestamp: new Date().toISOString(),
             data: { platformResults, errors: platformErrors }
           }
-        ],
+        ]),
         updatedAt: new Date()
       });
 
       // Update cached session with persisted data
-      session.platformStatuses = platformStatuses;
-      session.viewerCounts = viewerCounts;
+      session.platformStatuses = JSON.stringify(platformStatuses);
+      session.viewerCounts = JSON.stringify(viewerCounts);
       this.activeCoordinationSessions.set(eventId, session);
 
       logger.info('Cross-platform streaming coordination initiated', { 
@@ -710,7 +715,8 @@ export class CollaborativeStreamingService {
       const breakResults: Record<string, any> = {};
 
       // Coordinate break on each active platform with real API calls
-      for (const platformName of event.streamingPlatforms) {
+      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
             case 'youtube':
@@ -789,20 +795,20 @@ export class CollaborativeStreamingService {
       }, {} as Record<string, string>);
 
       await storage.updateStreamCoordinationSession(session.id, {
-        platformStatuses,
-        coordinationEvents: [
-          ...(session.coordinationEvents as any[] || []),
+        platformStatuses: JSON.stringify(platformStatuses),
+        coordinationEvents: JSON.stringify([
+          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
           {
             type: 'break_coordinated',
             timestamp: new Date().toISOString(),
             data: { breakResults }
           }
-        ],
+        ]),
         updatedAt: new Date()
       });
 
       // Update cached session
-      session.platformStatuses = platformStatuses;
+      session.platformStatuses = JSON.stringify(platformStatuses);
       this.activeCoordinationSessions.set(eventId, session);
 
       logger.info('Break coordination completed across platforms', { 
@@ -843,7 +849,8 @@ export class CollaborativeStreamingService {
       const errors: string[] = [];
 
       // End streaming on each platform with real API calls
-      for (const platformName of event.streamingPlatforms) {
+      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
             case 'youtube':
@@ -949,24 +956,24 @@ export class CollaborativeStreamingService {
       await storage.updateStreamCoordinationSession(session.id, {
         currentPhase: 'ended',
         actualEndTime: new Date(),
-        platformStatuses,
-        viewerCounts: finalViewerCounts,
-        coordinationEvents: [
-          ...(session.coordinationEvents as any[] || []),
+        platformStatuses: JSON.stringify(platformStatuses),
+        viewerCounts: JSON.stringify(finalViewerCounts),
+        coordinationEvents: JSON.stringify([
+          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
           {
             type: 'streaming_ended',
             timestamp: new Date().toISOString(),
             data: { endResults, errors }
           }
-        ],
+        ]),
         updatedAt: new Date()
       });
 
       // Update cached session with final data
       session.currentPhase = 'ended';
       session.actualEndTime = new Date();
-      session.platformStatuses = platformStatuses;
-      session.viewerCounts = finalViewerCounts;
+      session.platformStatuses = JSON.stringify(platformStatuses);
+      session.viewerCounts = JSON.stringify(finalViewerCounts);
       this.activeCoordinationSessions.set(eventId, session);
 
       // Clean up active session after brief delay for final status retrieval
@@ -998,11 +1005,11 @@ export class CollaborativeStreamingService {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
       if (session) {
-        const events = (session.coordinationEvents as any[]) || [];
+        const events = session.coordinationEvents ? JSON.parse(session.coordinationEvents) : [];
         events.push(event);
         
         await storage.updateStreamCoordinationSession(session.id, {
-          coordinationEvents: events,
+          coordinationEvents: JSON.stringify(events),
           updatedAt: new Date()
         });
       }

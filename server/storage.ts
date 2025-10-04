@@ -197,8 +197,6 @@ import { alias } from "drizzle-orm/sqlite-core";
 interface ExtendedEvent extends Event {
   date?: string;
   time?: string;
-  playerSlots?: number;
-  alternateSlots?: number;
   gameFormat?: string;
   powerLevel?: string;
   isRecurring?: boolean;
