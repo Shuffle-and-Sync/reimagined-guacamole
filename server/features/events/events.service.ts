@@ -216,14 +216,19 @@ export class EventsService {
         throw new Error("Events array is required");
       }
 
-      // Add creator and host information to each event
-      const eventData = events.map((event) => ({
-        ...event,
-        creatorId: userId,
-        hostId: userId,
-        type: event.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
-        // Note: events schema doesn't have recurrencePattern fields - those would be handled separately
-      }));
+      // Add creator and host information to each event and transform date/time to startTime
+      const eventData = events.map((event) => {
+        const { date, time, recurrencePattern, recurrenceInterval, recurrenceEndDate, ...eventProps } = event;
+        const startTime = new Date(`${date}T${time || '12:00'}`);
+        
+        return {
+          ...eventProps,
+          creatorId: userId,
+          hostId: userId,
+          startTime,
+          type: event.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
+        };
+      });
 
       const createdEvents = await storage.createBulkEvents(eventData);
       logger.info("Bulk events created", { userId, count: createdEvents.length });
@@ -246,17 +251,27 @@ export class EventsService {
         throw new Error(`Invalid recurrence pattern: ${recurringRequest.recurrencePattern}. Must be one of: ${validPatterns.join(', ')}`);
       }
 
-      // Create base event data without recurrence fields (those are handled by storage function)
-      const { recurrencePattern: _pattern, recurrenceInterval: _interval, recurrenceEndDate: _endDate, ...eventBase } = recurringRequest;
+      // Create base event data without recurrence fields and transform date/time to startTime
+      const { 
+        recurrencePattern: _pattern, 
+        recurrenceInterval: _interval, 
+        recurrenceEndDate: _endDate, 
+        date,
+        time,
+        ...eventBase 
+      } = recurringRequest;
+      
+      const startTime = new Date(`${date}T${time || '12:00'}`);
       
       const eventData = {
         ...eventBase,
         creatorId: userId,
         hostId: userId,
+        startTime,
         type: recurringRequest.type as 'tournament' | 'convention' | 'release' | 'community' | 'game_pod' | 'stream' | 'personal',
       };
 
-      const createdEvents = await storage.createRecurringEvents(eventData, recurrencePattern, recurringRequest.recurrenceEndDate);
+      const createdEvents = await storage.createRecurringEvents(eventData, recurringRequest.recurrenceEndDate);
       logger.info("Recurring events created", { userId, count: createdEvents.length, pattern: recurrencePattern });
       return createdEvents;
     } catch (error) {

@@ -418,10 +418,9 @@ app.use(securityHeaders);
       // Store email change token
       const tokenExpiresAt = new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION * 1000);
       await storage.createEmailChangeToken({
-        emailChangeRequestId: emailChangeRequest.id,
-        userId,
-        newEmail,
+        requestId: emailChangeRequest.id,
         token: verificationToken,
+        type: 'new_email', // This is for verifying the new email
         expiresAt: tokenExpiresAt,
       });
 
@@ -466,7 +465,7 @@ app.use(securityHeaders);
       }
 
       // Get the email change request
-      const emailChangeRequest = await storage.getEmailChangeRequest(dbToken.emailChangeRequestId);
+      const emailChangeRequest = await storage.getEmailChangeRequest(dbToken.requestId);
       
       if (!emailChangeRequest || emailChangeRequest.status !== "pending") {
         res.status(400).json({ message: "Invalid or expired email change request" });
@@ -533,7 +532,8 @@ app.use(securityHeaders);
       if (process.env.DATABASE_URL) {
         const dbInstance = db;
         // Simple connectivity check using raw SQL
-        await dbInstance.execute(sql`SELECT 1`);
+        // Simple health check - check if we can query the users table
+        await db.select({ count: sql`COUNT(*)` }).from(sql`(SELECT 1)`).limit(1);
       } else {
         dbStatus = 'not_configured';
       }

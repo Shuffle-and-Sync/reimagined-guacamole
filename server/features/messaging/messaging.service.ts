@@ -38,6 +38,7 @@ export class MessagingService {
     try {
       const notification = await storage.createNotification({
         ...notificationData,
+        data: notificationData.data ? JSON.stringify(notificationData.data) : undefined,
         userId,
       });
       
@@ -118,12 +119,12 @@ export class MessagingService {
             type: 'message',
             title: 'New Message',
             message: `You received a new message from a user`,
-            data: {
+            data: JSON.stringify({
               messageId: message.id,
               senderId: userId,
               messageType: messageData.type,
               conversationId: `${userId}-${messageData.recipientId}`,
-            },
+            }),
             priority: 'normal',
           });
         }

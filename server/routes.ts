@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'friend_request',
         title: 'New Friend Request',
         message: `You have a new friend request`,
-        data: { friendshipId: friendship.id, requesterId },
+        data: JSON.stringify({ friendshipId: friendship.id, requesterId }),
       });
       
       return res.status(201).json(friendship);
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'friend_accepted',
           title: 'Friend Request Accepted',
           message: `Your friend request was accepted`,
-          data: { friendshipId: friendship.id },
+          data: JSON.stringify({ friendshipId: friendship.id }),
         });
       }
       
@@ -2528,7 +2528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 type: 'pod_filled',
                 title: 'Game Pod is Full!',
                 message: `${updatedEvent.title} is now at full capacity`,
-                data: { eventId },
+                data: JSON.stringify({ eventId }),
                 priority: 'high',
                 communityId: updatedEvent.communityId,
               });
@@ -2541,7 +2541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: 'pod_almost_full',
             title: 'Game Pod Almost Full',
             message: `${updatedEvent.title} needs 1 more player`,
-            data: { eventId },
+            data: JSON.stringify({ eventId }),
             priority: 'normal',
             communityId: updatedEvent.communityId,
           });
@@ -2586,7 +2586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_leave',
           title: 'Player Left Your Pod',
           message: `${leavingUser.firstName || leavingUser.email} left your ${event.title} game pod`,
-          data: { eventId, leftUserId: userId },
+          data: JSON.stringify({ eventId, leftUserId: userId }),
           priority: 'normal',
           communityId: event.communityId,
         });
@@ -2868,7 +2868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_join',
           title: 'Player Joined Game',
           message: `${user?.name || user?.email || 'A player'} joined your game session`,
-          data: { gameSessionId: id, playerId: userId },
+          data: JSON.stringify({ gameSessionId: id, playerId: userId }),
         });
       }
       
@@ -2913,7 +2913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'event_leave',
           title: 'Player Left Game',
           message: `${user?.name || user?.email || 'A player'} left your game session`,
-          data: { gameSessionId: id, playerId: userId },
+          data: JSON.stringify({ gameSessionId: id, playerId: userId }),
         });
       }
       
@@ -2940,7 +2940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: 'spectator_join',
           title: 'New Spectator',
           message: `${user?.name || user?.email || 'Someone'} is now spectating your game`,
-          data: { gameSessionId: id, spectatorId: userId },
+          data: JSON.stringify({ gameSessionId: id, spectatorId: userId }),
         });
       }
       
