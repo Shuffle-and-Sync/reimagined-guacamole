@@ -2,7 +2,7 @@
   "id": "f2630650-75d8-4b4a-9f27-57bcaf25b548",
   "prevId": "f9c092e7-6725-4771-b464-6d0d053558ff",
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "tables": {
     "public.admin_audit_log": {
       "name": "admin_audit_log",
