@@ -52,11 +52,9 @@ const VALIDATION_RULES = {
     return true;
   },
   DATABASE_URL: (value: string) => {
-    // Allow both standard PostgreSQL URLs and SQLite Cloud
-    if (!value.startsWith('postgres://') && 
-        !value.startsWith('postgresql://') && 
-        !value.startsWith('sqlitecloud://')) {
-      throw new Error('DATABASE_URL must be a valid PostgreSQL or SQLite Cloud connection string (postgres://, postgresql://, or sqlitecloud://)');
+    // Allow SQLite Cloud URLs or local file paths
+    if (!value.startsWith('sqlitecloud://') && !value.startsWith('./') && !value.startsWith('file:') && !value.includes('.db')) {
+      throw new Error('DATABASE_URL must be a valid SQLite Cloud connection string (sqlitecloud://) or local SQLite file path');
     }
     return true;
   },
@@ -149,10 +147,8 @@ const VALIDATION_RULES = {
   },
   DATABASE_DIRECT_URL: (value: string) => {
     // Same validation as DATABASE_URL
-    if (!value.startsWith('postgres://') && 
-        !value.startsWith('postgresql://') && 
-        !value.startsWith('sqlitecloud://')) {
-      throw new Error('DATABASE_DIRECT_URL must be a valid PostgreSQL or SQLite Cloud connection string (postgres://, postgresql://, or sqlitecloud://)');
+    if (!value.startsWith('sqlitecloud://') && !value.startsWith('./') && !value.startsWith('file:') && !value.includes('.db')) {
+      throw new Error('DATABASE_DIRECT_URL must be a valid SQLite Cloud connection string (sqlitecloud://) or local SQLite file path');
     }
     return true;
   },
@@ -453,8 +449,9 @@ function getEnvironmentSetupHelpMessage(result: EnvValidationResult): string {
     for (const varName of result.missingRequired) {
       switch (varName) {
         case 'DATABASE_URL':
-          messages.push('  • DATABASE_URL: Set up PostgreSQL database connection');
-          messages.push('    Example: postgresql://user:password@localhost:5432/shufflesync_dev');
+          messages.push('  • DATABASE_URL: Set up SQLite Cloud or local SQLite database');
+          messages.push('    Example (Cloud): sqlitecloud://host:port/db?apikey=YOUR_API_KEY');
+          messages.push('    Example (Local): ./dev.db');
           break;
         case 'AUTH_SECRET':
           messages.push('  • AUTH_SECRET: Generate secure secret (32+ characters)');

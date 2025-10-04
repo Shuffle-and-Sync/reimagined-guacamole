@@ -191,7 +191,7 @@ describe('Credential Protection and Security Tests', () => {
         ...originalEnv,
         NODE_ENV: 'production',
         AUTH_SECRET: generateSecureToken(32), // Generate 64-char hex token
-        DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
+        DATABASE_URL: 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key',
         AUTH_URL: 'https://myapp.com',
         GOOGLE_CLIENT_ID: 'fake-google-client-id',
         GOOGLE_CLIENT_SECRET: 'fake-google-client-secret'
@@ -216,7 +216,7 @@ describe('Credential Protection and Security Tests', () => {
         ...originalEnv,
         NODE_ENV: 'production',
         AUTH_SECRET: generateSecureToken(32),
-        DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
+        DATABASE_URL: 'sqlitecloud://prod.sqlite.cloud:8860/prod?apikey=prod_key',
         AUTH_URL: 'https://myapp.com',
         GOOGLE_CLIENT_ID: 'fake-google-client-id',
         GOOGLE_CLIENT_SECRET: 'fake-google-client-secret',

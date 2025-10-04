@@ -168,29 +168,10 @@
         "width": 6,
         "height": 4,
         "widget": {
-          "title": "Database - Connection Count",
-          "xyChart": {
-            "dataSets": [
-              {
-                "timeSeriesQuery": {
-                  "timeSeriesFilter": {
-                    "filter": "resource.type=\"cloudsql_database\" metric.type=\"cloudsql.googleapis.com/database/postgresql/num_backends\"",
-                    "aggregation": {
-                      "alignmentPeriod": "300s",
-                      "perSeriesAligner": "ALIGN_MEAN",
-                      "crossSeriesReducer": "REDUCE_SUM"
-                    }
-                  }
-                },
-                "plotType": "LINE",
-                "targetAxis": "Y1"
-              }
-            ],
-            "timeshiftDuration": "0s",
-            "yAxis": {
-              "label": "Connections",
-              "scale": "LINEAR"
-            }
+          "title": "Database - Note: SQLite Cloud metrics not available via Google Cloud Monitoring",
+          "text": {
+            "content": "SQLite Cloud database metrics are managed separately from Google Cloud Monitoring. Use SQLite Cloud dashboard for database performance metrics.",
+            "format": "MARKDOWN"
           }
         }
       },

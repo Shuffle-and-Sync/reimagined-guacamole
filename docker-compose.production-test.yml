@@ -1,28 +1,10 @@
 # Docker Compose configuration for testing production-like environment locally
 # This file helps test the production Docker images before deploying to Cloud Run
+# Note: Uses SQLite Cloud instead of a local database service
 
 version: '3.8'
 
 services:
-  # PostgreSQL database (similar to Cloud SQL)
-  postgres:
-    image: postgres:15
-    container_name: shuffle-sync-postgres
-    environment:
-      POSTGRES_DB: shuffleandsync_prod
-      POSTGRES_USER: shufflesync
-      POSTGRES_PASSWORD: local_dev_password_123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shufflesync"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
   # Redis for caching (optional)
   redis:
     image: redis:7-alpine
@@ -42,8 +24,8 @@ services:
       dockerfile: Dockerfile
     container_name: shuffle-sync-backend
     environment:
-      # Database connection
-      DATABASE_URL: postgresql://shufflesync:local_dev_password_123@postgres:5432/shuffleandsync_prod
+      # Database connection (SQLite Cloud)
+      DATABASE_URL: sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
       
       # Authentication
       AUTH_SECRET: local-development-secret-key-64-characters-long-for-testing-only
@@ -68,8 +50,6 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
@@ -95,10 +75,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-volumes:
-  postgres_data:
-    driver: local
 
 networks:
   default:
