@@ -12,7 +12,7 @@
  */
 
 import { eq, and, gte, lte, desc, asc, count, sql } from 'drizzle-orm';
-import type { PgTransaction } from 'drizzle-orm/pg-core';
+import type { Transaction } from '@shared/database-unified';
 import { db } from '@shared/database-unified';
 import { users } from '@shared/schema';
 import { NotFoundError, ValidationError } from '../../shared/types';
