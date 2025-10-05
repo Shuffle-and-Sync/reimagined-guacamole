@@ -37,6 +37,7 @@
     "copilot:fix": "tsx scripts/backend-copilot-cli.ts --fix",
     "copilot:report": "tsx scripts/backend-copilot-cli.ts && echo 'Report generated: BACKEND_COPILOT_ANALYSIS.md'",
     "copilot:ci": "tsx scripts/backend-copilot-cli.ts && exit 0",
+    "history:update": "tsx scripts/issue-pr-history-agent.ts",
     "env:validate": "tsx scripts/validate-env.ts",
     "env:help": "tsx scripts/validate-env.ts --help",
     "env:definitions": "tsx scripts/validate-env.ts --definitions",
