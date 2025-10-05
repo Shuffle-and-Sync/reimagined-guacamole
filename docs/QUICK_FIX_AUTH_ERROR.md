@@ -1,5 +1,15 @@
 # Quick Fix: ERR_TOO_MANY_ACCEPT_CH_RESTARTS on Cloud Run
 
+## 🚨 Service Name: shuffle-sync-front vs shuffle-sync-frontend
+
+**If your URL contains `shuffle-sync-front`** (e.g., `https://shuffle-sync-front-683555795974.us-central1.run.app`):
+
+👉 **Use this guide instead**: [FIX_SHUFFLE_SYNC_FRONT_SERVICE.md](./FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)
+
+That guide is specifically written for the `shuffle-sync-front` service name and provides exact commands for your setup.
+
+---
+
 ## The Problem
 
 When clicking "Sign In" on the deployed frontend:
@@ -8,7 +18,7 @@ When clicking "Sign In" on the deployed frontend:
 ❌ Redirects to: /api/auth/error?error=Configuration
 ```
 
-**Important**: If your URL shows `shuffle-sync-front-` (not `shuffle-sync-frontend-`), your service name is different than the default. See [Service Name Mismatch](#service-name-mismatch) below.
+**Important**: If your URL shows `shuffle-sync-front-` (not `shuffle-sync-frontend-`), your service name is different than the default. **See the dedicated fix guide**: [FIX_SHUFFLE_SYNC_FRONT_SERVICE.md](./FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)
 
 ## Quick Diagnosis
 

@@ -41,11 +41,14 @@ steps:
     waitFor: ['build-frontend']
 
   # Deploy to Cloud Run
+  # IMPORTANT: This deploys to the service name specified in substitutions (_SERVICE_NAME)
+  # If your existing service is 'shuffle-sync-front', update _SERVICE_NAME below or use:
+  # gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_SERVICE_NAME=shuffle-sync-front
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'shuffle-sync-frontend'
+      - '${_SERVICE_NAME}'
       - '--image'
       - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
       - '--platform'
@@ -82,9 +85,10 @@ options:
   logging: CLOUD_LOGGING_ONLY
   
 # Substitutions for variables
+# You can override the service name with: --substitutions=_SERVICE_NAME=your-service-name
 substitutions:
   _REGION: us-central1
-  _SERVICE_NAME: shuffle-sync-frontend
+  _SERVICE_NAME: shuffle-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
 
 images:
   - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
