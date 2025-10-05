@@ -267,6 +267,7 @@ npm run db:migrate:production
 - **[🚀 Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment guide with verification
 - **[🔧 Troubleshooting Configuration Errors](docs/TROUBLESHOOTING_CONFIGURATION_ERROR.md)** - Fix "Configuration" errors and service issues
 - **[⚡ Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
+- **[🔧 Fix: shuffle-sync-front Service Issues](docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)** - Specific fix for shuffle-sync-front service name
 - **[🏗️ Cloud Run Frontend-Backend Setup](docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)** - Split deployment architecture
 - **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
 - **[🔐 Environment Template](.env.production.template)** - Required environment variables

@@ -286,6 +286,7 @@ else
 fi
 
 echo -e "\n${BLUE}For more help:${NC}"
+echo "  - docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md (for shuffle-sync-front service issues)"
 echo "  - docs/TROUBLESHOOTING_CONFIGURATION_ERROR.md"
 echo "  - docs/QUICK_FIX_AUTH_ERROR.md"
 echo "  - docs/DEPLOYMENT_CHECKLIST.md"
