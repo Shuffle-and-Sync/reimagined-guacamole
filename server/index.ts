@@ -620,7 +620,9 @@ server.listen({
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  // CRITICAL: Check process.env.NODE_ENV directly (not app.get("env")) for reliability
+  // Only load vite in explicit development mode to avoid module errors in production
+  if (process.env.NODE_ENV === "development") {
     // Use dynamic import with runtime path resolution to avoid bundling vite in production
     try {
       const viteModule = await import(`./vite.js`);
