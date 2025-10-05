@@ -11,7 +11,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **📅 Calendar Integration**: Event scheduling with timezone handling
 - **💬 Real-time Messaging**: WebSocket-based communication system
 - **🔐 Secure Authentication**: Google OAuth 2.0 with session management
-- **🤖 Testing Agent**: Automated unit test generation and maintenance
+- **🤖 Automated Agents**: Testing agent, backend analysis, and documentation maintenance
 
 ## 🛠️ Technology Stack
 
@@ -357,6 +357,29 @@ The Unit Testing Agent is a key feature of this repository that provides:
 - **Watch Mode**: Continuous testing during development
 - **Coverage Reports**: Detailed analysis of code coverage
 - **CI/CD Ready**: Configured for continuous integration environments
+
+## 🤖 Documentation Automation
+
+### Issue & PR History Agent
+
+The repository includes an automated documentation agent that maintains the issue/PR history:
+
+- **Daily Updates**: Runs automatically at end of day (11:59 PM UTC)
+- **GitHub Integration**: Fetches closed issues and PRs via GitHub API
+- **Smart Categorization**: Automatically categorizes by type (bugs, features, docs, etc.)
+- **Template-Based**: Follows the established document format
+- **Manual Enhancement**: Provides foundation for detailed manual updates
+
+**Usage:**
+```bash
+# Manual run
+npm run history:update
+
+# With GitHub token for full functionality
+GITHUB_TOKEN=your_token npm run history:update
+```
+
+See [Issue & PR History Agent Documentation](docs/ISSUE_PR_HISTORY_AGENT.md) for details.
 
 ## 🌐 Platform Integrations
 
