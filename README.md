@@ -243,7 +243,10 @@ This application is designed for deployment on Google Cloud Platform with the fo
 **Architecture**: Cloud Run + Cloud SQL + Secret Manager + Cloud Build
 
 ```bash
-# Quick deployment
+# Automated Cloud Run deployment (interactive)
+npm run deploy:cloudrun
+
+# Quick deployment (production)
 cp .env.production.template .env.production
 npm run deploy:production
 npm run verify:production
@@ -255,6 +258,44 @@ npm run db:migrate:production
 ```
 
 **Features**: Docker containers, automated CI/CD, health monitoring, automatic backups
+
+### Cloud Run Deployment
+
+The `deploy:cloudrun` script provides an interactive, automated deployment to Google Cloud Run:
+
+```bash
+npm run deploy:cloudrun
+```
+
+**What it does:**
+- ✅ Validates prerequisites (gcloud CLI, Docker)
+- ✅ Enables required Google Cloud APIs
+- ✅ Deploys backend service using Cloud Build
+- ✅ Configures backend environment variables (OAuth, database, auth)
+- ✅ Deploys frontend service with backend URL
+- ✅ Runs deployment verification tests
+
+**Environment Variables (optional):**
+- `PROJECT_ID` - Google Cloud Project ID (prompted if not set)
+- `REGION` - Deployment region (default: us-central1)
+- `BACKEND_SERVICE` - Backend service name (default: shuffle-sync-backend)
+- `FRONTEND_SERVICE` - Frontend service name (default: shuffle-sync-frontend)
+
+**Example with environment variables:**
+```bash
+PROJECT_ID=my-project REGION=us-west1 npm run deploy:cloudrun
+```
+
+**Prerequisites:**
+- Google Cloud SDK (gcloud) installed and authenticated
+- Docker installed (optional, Cloud Build used as fallback)
+- Google OAuth 2.0 credentials (Client ID and Secret)
+- Database URL (SQLite Cloud or local)
+
+**Verification:**
+```bash
+npm run verify:cloudrun
+```
 
 ✅ **Monitoring & Observability**
 - Comprehensive health checks
