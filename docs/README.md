@@ -6,6 +6,7 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 
 ### Core Documentation
 - [Issue & PR History](ISSUE_PR_HISTORY.md) - Comprehensive catalog of resolved issues and pull requests
+- [Issue & PR History Agent](ISSUE_PR_HISTORY_AGENT.md) - Automated documentation maintenance agent
 - [Database Architecture](database/DATABASE_ARCHITECTURE.md) - Database design and architecture
 - [Database Setup](database/DATABASE_INITIALIZATION.md) - Database initialization guide
 - [Database FAQ](database/DATABASE_FAQ.md) - Common database questions
