@@ -86,7 +86,19 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 │   ├── schema.ts       # Database schema (Drizzle ORM)
 │   └── database.ts     # Database utilities
 └── docs/              # Documentation
+    ├── README.md         # Documentation index
+    ├── ISSUE_PR_HISTORY.md  # Historical context on resolved work
+    └── features/         # Feature-specific documentation
 ```
+
+### Understanding Past Work
+
+Before starting work on an issue or feature:
+1. **Check [Issue & PR History](./docs/ISSUE_PR_HISTORY.md)** - See how similar issues were resolved
+2. **Review related documentation** - Understand existing patterns and decisions
+3. **Search closed issues** - Learn from past solutions and discussions
+
+This helps avoid duplicating effort and ensures consistency with past architectural decisions.
 
 ## 🎯 Making Contributions
 
