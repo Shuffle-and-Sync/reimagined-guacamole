@@ -1,0 +1,63 @@
+name: Update Issue & PR History
+
+# Run daily at end of day (11:59 PM UTC)
+on:
+  schedule:
+    - cron: '59 23 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  update-history:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write      # Write access to commit changes
+      issues: read         # Read access to fetch issues
+      pull-requests: read  # Read access to fetch PRs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Issue/PR History Update Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run history:update
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code docs/ISSUE_PR_HISTORY.md || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/ISSUE_PR_HISTORY.md
+          git commit -m "chore: update issue/PR history [automated]"
+          git push
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## Issue & PR History Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.git-check.outputs.changed }}" == "true" ]; then
+            echo "✅ ISSUE_PR_HISTORY.md was updated and committed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No changes detected in ISSUE_PR_HISTORY.md" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Workflow completed at: $(date -u)" >> $GITHUB_STEP_SUMMARY
