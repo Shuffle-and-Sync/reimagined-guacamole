@@ -5,6 +5,7 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ## 📚 Documentation Structure
 
 ### Core Documentation
+- [Issue & PR History](ISSUE_PR_HISTORY.md) - Comprehensive catalog of resolved issues and pull requests
 - [Database Architecture](database/DATABASE_ARCHITECTURE.md) - Database design and architecture
 - [Database Setup](database/DATABASE_INITIALIZATION.md) - Database initialization guide
 - [Database FAQ](database/DATABASE_FAQ.md) - Common database questions
@@ -94,6 +95,11 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 1. [Database Architecture](database/DATABASE_ARCHITECTURE.md)
 2. [Database Setup](database/DATABASE_INITIALIZATION.md)
 3. [Drizzle ORM Review](database/DRIZZLE_ORM_REVIEW.md)
+
+### For Historical Context
+1. [Issue & PR History](ISSUE_PR_HISTORY.md) - Comprehensive catalog of resolved work
+2. [Cleanup Summary](../CLEANUP_SUMMARY.md) - Repository reorganization details
+3. [PostgreSQL Migration](../POSTGRESQL_MIGRATION_COMPLETE.md) - Database migration summary
 
 ## 📝 Root Documentation Files
 
