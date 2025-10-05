@@ -220,8 +220,9 @@ server.listen({
 
   // Set up Auth.js routes AFTER database initialization
   // This ensures db is ready when DrizzleAdapter is accessed
+  // CRITICAL: Use "/api/auth/*" pattern to properly handle all Auth.js sub-routes
   const { default: authRoutesFixed } = await import("./auth/auth.routes");
-  app.use("/api/auth", authRoutesFixed);
+  app.use("/api/auth/*", authRoutesFixed);
 
   // Register feature-based routes (skip /api/auth since it's handled by authRouter)
   // app.use('/api/auth', authRoutes); // DISABLED - conflicts with Auth.js
