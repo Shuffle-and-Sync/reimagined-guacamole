@@ -27,6 +27,7 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 - [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step Cloud Run deployment
 - [Cloud Run Frontend-Backend Setup](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Split architecture guide
 - [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Auth.js configuration for Cloud Run
+- [GitHub Pages Deployment Fix](GITHUB_PAGES_DEPLOYMENT_FIX.md) - Fix Pages deployment errors
 
 ### Troubleshooting
 - [🔧 Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Fix "Configuration" errors
