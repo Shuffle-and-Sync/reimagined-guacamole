@@ -16,7 +16,18 @@ export default function AuthError() {
   const getErrorMessage = () => {
     switch (error) {
       case 'Configuration':
-        return 'There is a problem with the server configuration.';
+        return (
+          <div className="space-y-2">
+            <p>There is a problem with the server configuration.</p>
+            <p className="text-sm">This usually means:</p>
+            <ul className="text-sm list-disc list-inside space-y-1 text-left">
+              <li>OAuth credentials are not configured on the backend</li>
+              <li>The backend URL is not set in the frontend</li>
+              <li>Google OAuth redirect URI is not properly configured</li>
+            </ul>
+            <p className="text-sm mt-2">Please contact the administrator to resolve this issue.</p>
+          </div>
+        );
       case 'AccessDenied':
         return 'Access denied. You do not have permission to sign in.';
       case 'Verification':

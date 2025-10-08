@@ -20,6 +20,16 @@ When clicking "Sign In" on the deployed frontend:
 
 **Important**: If your URL shows `shuffle-sync-front-` (not `shuffle-sync-frontend-`), your service name is different than the default. **See the dedicated fix guide**: [FIX_SHUFFLE_SYNC_FRONT_SERVICE.md](./FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)
 
+### What's New (Latest Update)
+
+**Improved Error Handling**: The application now includes better error handling to prevent redirect loops:
+- Authentication errors now redirect to `/auth/error` instead of `/api/auth/error`
+- The error page provides detailed troubleshooting information
+- Startup warnings alert when OAuth credentials are missing
+- Better logging to help diagnose configuration issues
+
+Even with these improvements, you still need to configure the environment variables correctly (see steps below).
+
 ## Quick Diagnosis
 
 **Fastest way**: Run the automated diagnostic script:
