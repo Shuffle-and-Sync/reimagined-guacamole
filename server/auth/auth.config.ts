@@ -19,6 +19,16 @@ if (process.env.NODE_ENV === 'production') {
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
     console.warn('[AUTH] No AUTH_URL set - relying on trustHost for URL detection');
   }
+  
+  // Warn if OAuth providers are not configured in production
+  const hasGoogleOAuth = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+  const hasTwitchOAuth = process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET;
+  
+  if (!hasGoogleOAuth && !hasTwitchOAuth) {
+    console.warn('[AUTH] WARNING: No OAuth providers configured (Google or Twitch)');
+    console.warn('[AUTH] Users will only be able to sign in with credentials');
+    console.warn('[AUTH] Set GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET or TWITCH_CLIENT_ID/TWITCH_CLIENT_SECRET');
+  }
 }
 
 export const authConfig: AuthConfig = {
@@ -66,6 +76,14 @@ export const authConfig: AuthConfig = {
         secure: process.env.NODE_ENV === 'production',
       },
     },
+  },
+  
+  // CRITICAL FIX: Custom error page to prevent redirect loops
+  // Instead of redirecting to /api/auth/error (which can cause loops),
+  // redirect to frontend error page that handles the error display
+  pages: {
+    error: '/auth/error', // Redirect to frontend error page instead of /api/auth/error
+    signIn: '/login',      // Custom sign-in page
   },
   providers: [
     // Only include OAuth providers if properly configured
@@ -372,6 +390,27 @@ export const authConfig: AuthConfig = {
       // CRITICAL FIX: Always use baseUrl from Auth.js - it's already resolved from request headers
       // This prevents redirect loops when AUTH_URL doesn't match the actual Cloud Run URL
       // trustHost: true ensures baseUrl is correctly detected from X-Forwarded-Host header
+      
+      // Log for debugging (helps diagnose redirect issues)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[AUTH] Redirect callback:', { url, baseUrl });
+      }
+      
+      // Handle error redirects - prevent loops by going to frontend error page
+      if (url.includes('/api/auth/error') || url.includes('error=')) {
+        // Extract error parameter if present
+        const urlObj = new URL(url, baseUrl);
+        const error = urlObj.searchParams.get('error');
+        
+        if (error === 'Configuration') {
+          console.error('[AUTH] Configuration error detected - check OAuth credentials');
+          console.error('[AUTH] Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set');
+          console.error('[AUTH] Also verify redirect URI in Google Console matches backend URL');
+        }
+        
+        // Redirect to frontend error page with error details
+        return `${baseUrl}/auth/error?error=${error || 'unknown'}`;
+      }
       
       // Redirect to home page after successful sign in
       if (url.startsWith('/')) return `${baseUrl}${url}`;
