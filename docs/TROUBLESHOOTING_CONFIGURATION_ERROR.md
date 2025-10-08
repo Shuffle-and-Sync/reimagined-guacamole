@@ -1,5 +1,15 @@
 # Troubleshooting: Configuration Error on Cloud Run
 
+## Recent Improvements
+
+**Good News**: The latest version includes improved error handling to prevent redirect loops:
+- Authentication errors now show a user-friendly error page at `/auth/error` instead of causing browser errors
+- Detailed troubleshooting information is displayed on the error page
+- Server logs now include helpful warnings when OAuth credentials are missing
+- Better diagnostics to identify configuration issues quickly
+
+However, you still need to configure environment variables correctly for authentication to work. Follow the steps below.
+
 ## The Error
 
 When accessing the deployed application, you see:
