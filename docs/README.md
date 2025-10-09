@@ -23,6 +23,7 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 
 ### Deployment & Operations
 - [🔧 Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - Comprehensive gcloud CLI command reference
+- [🔐 Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Complete secret management guide
 - [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment instructions
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
 - [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step Cloud Run deployment
@@ -83,10 +84,11 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 
 ### For Deployment
 1. [Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - All gcloud CLI commands used in the project
-2. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
-3. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
-4. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
-5. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
+2. [Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Secure secret management guide
+3. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
+4. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
+5. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
+6. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### For Troubleshooting
 1. [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick fix commands
