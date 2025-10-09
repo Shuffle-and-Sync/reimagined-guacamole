@@ -7,7 +7,7 @@ const externalizeNodeModulesPlugin = {
   setup(build) {
     build.onResolve({ filter: /.*/ }, (args) => {
       // Skip project aliases - let them be resolved by esbuild's alias feature
-      if (args.path.startsWith('@shared') || args.path.startsWith('@assets')) {
+      if (args.path.startsWith('@shared')) {
         return; // Let esbuild handle these
       }
       
@@ -51,7 +51,6 @@ const config = {
 // Use esbuild's built-in alias feature for project aliases
   alias: {
     '@shared': path.resolve(process.cwd(), 'shared'),
-    '@assets': path.resolve(process.cwd(), 'attached_assets'),
   },
   // Handle .node files and other binary modules
   loader: {
