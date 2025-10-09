@@ -305,6 +305,7 @@ npm run verify:cloudrun
 
 ### Production Documentation
 
+- **[☁️ Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
 - **[🚀 Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment guide with verification
 - **[🔧 Troubleshooting Configuration Errors](docs/TROUBLESHOOTING_CONFIGURATION_ERROR.md)** - Fix "Configuration" errors and service issues
 - **[⚡ Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
