@@ -179,6 +179,12 @@ Configure OAuth credentials for authentication:
 
 ### 4. Secret Management
 
+**⚠️ IMPORTANT:** Never commit secrets to version control. Always use Google Secret Manager for production.
+
+See **[Managing Secrets with Google Secret Manager Guide](../MANAGING_SECRETS_GCP.md)** for comprehensive instructions.
+
+#### Quick Setup
+
 Store sensitive configuration in Google Secret Manager:
 
 ```bash
@@ -192,6 +198,10 @@ gcloud secrets add-iam-policy-binding auth-secret \
   --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
+
+For complete secret management workflows including rotation, audit, and TypeScript integration, see:
+- **[Complete Secret Management Guide](../MANAGING_SECRETS_GCP.md)**
+- **[Google Cloud Commands Reference](../GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
 
 ---
 
