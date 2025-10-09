@@ -1,7 +1,5 @@
 # Shuffle & Sync - TCG Streaming Coordination Platform
 
-> **⚠️ Repository Owners**: GitHub Pages deployment is currently failing. [See fix instructions](.github/PAGES_FIX_REQUIRED.md) - takes 2 minutes to resolve.
-
 A comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
 
 ## 🚀 Key Features

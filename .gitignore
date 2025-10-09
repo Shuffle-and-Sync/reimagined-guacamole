@@ -25,7 +25,6 @@ coverage/
 
 # OS files
 Thumbs.db
-.DS_Store
 
 # Logs
 logs/
@@ -37,7 +36,6 @@ yarn-error.log*
 # Test files
 test-results/
 playwright-report/
-coverage/
 
 # Temporary files
 tmp/
@@ -58,7 +56,6 @@ temp_*.txt
 # Production deployment files
 backup_*.sql
 backup_info.txt
-.env.production
 gcp-credentials.json
 
 # Docker volumes
