@@ -22,12 +22,14 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 - [Universal Deck-Building API](api/UNIVERSAL_DECK_BUILDING_API.md) - Universal deck-building framework
 
 ### Deployment & Operations
+- [🔧 Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - Comprehensive gcloud CLI command reference
 - [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment instructions
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
 - [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step Cloud Run deployment
 - [Cloud Run Frontend-Backend Setup](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Split architecture guide
 - [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Auth.js configuration for Cloud Run
 - [GitHub Pages Deployment Fix](GITHUB_PAGES_DEPLOYMENT_FIX.md) - Fix Pages deployment errors
+- [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration file documentation
 
 ### Troubleshooting
 - [🔧 Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Fix "Configuration" errors
@@ -80,9 +82,11 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 4. Read [Express Patterns](EXPRESS_PATTERNS.md)
 
 ### For Deployment
-1. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
-2. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
-3. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
+1. [Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - All gcloud CLI commands used in the project
+2. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
+3. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
+4. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
+5. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### For Troubleshooting
 1. [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick fix commands
