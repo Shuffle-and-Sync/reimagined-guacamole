@@ -194,6 +194,7 @@ Complete documentation is organized in the [docs/](docs/) directory:
 - **[Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
 - **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
+- **[Secret Management Guide](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 - **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
 
 ### Feature Documentation
@@ -225,6 +226,7 @@ npm run format           # Prettier code formatting
 - **[🗄️ Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design & setup  
 - **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment
+- **[🔐 Secret Management](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 
 ### Key Features
 - **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay
