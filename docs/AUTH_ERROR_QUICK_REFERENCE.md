@@ -85,6 +85,7 @@ npm run verify:cloudrun
 
 | Issue | Document |
 |-------|----------|
+| gcloud commands | [GOOGLE_CLOUD_COMMANDS_REFERENCE.md](./GOOGLE_CLOUD_COMMANDS_REFERENCE.md) |
 | 5-min fix | [QUICK_FIX_AUTH_ERROR.md](./QUICK_FIX_AUTH_ERROR.md) |
 | Deep troubleshooting | [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md) |
 | Full deployment | [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) |

@@ -707,6 +707,7 @@ If you encounter issues not covered here:
 
 ### Documentation
 
+- **[Google Cloud Commands Reference](../GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
 - **[Production Deployment Checklist](PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Comprehensive pre-deployment checklist
 - **[Cloud Run Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Platform-specific technical details
 - **[GCP Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Detailed GCP setup instructions
