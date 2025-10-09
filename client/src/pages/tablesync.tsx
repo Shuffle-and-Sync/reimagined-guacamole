@@ -397,16 +397,6 @@ export default function TableSync() {
         <div className="max-w-7xl mx-auto">
           {/* Header Section with New Branding */}
           <div className="text-center mb-12 space-y-6">
-            <div className="flex items-center justify-center mb-6">
-              <img 
-                src="@assets/9_1756664764439.png" 
-                alt="TableSync Logo" 
-                className="h-24 w-auto drop-shadow-lg"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
             <h1 className="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-orange-500 to-purple-600 bg-clip-text text-transparent">
               TableSync
             </h1>
