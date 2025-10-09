@@ -162,6 +162,25 @@ gcloud services enable run.googleapis.com
 - `secretmanager.googleapis.com` - Secret Manager
 - `sqladmin.googleapis.com` - Cloud SQL Administration
 
+#### List Enabled APIs
+
+```bash
+# List all enabled APIs
+gcloud services list --enabled
+
+# Check if specific API is enabled
+gcloud services list --enabled --filter="name:run.googleapis.com"
+
+# List available APIs
+gcloud services list --available
+```
+
+**Purpose:** View enabled or available Google Cloud services  
+**Common filters:**
+- `--enabled` - Show only enabled services
+- `--available` - Show all available services
+- `--filter="name:SERVICE_NAME"` - Filter by service name
+
 ---
 
 ### Cloud Run - Service Management
