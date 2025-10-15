@@ -5,7 +5,7 @@ name: Deploy Documentation to Pages
 # Before this workflow can run successfully, you must:
 # 1. Go to Settings → Pages
 # 2. Set Source to "GitHub Actions" (not "Deploy from a branch")
-# 
+#
 # This workflow is disabled for automatic runs to prevent deployment failures.
 # Once Pages is configured, remove the 'if: false' condition from the job below.
 
