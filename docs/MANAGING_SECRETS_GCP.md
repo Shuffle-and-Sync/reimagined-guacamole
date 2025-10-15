@@ -564,6 +564,8 @@ source scripts/fetch-secrets.sh
 npm run dev
 ```
 
+> **Note**: Windows users with Git Bash should run: `source scripts/fetch-secrets.sh` (the `source` command works in Git Bash).
+
 ### Method 3: Direct Access in Code
 
 Use the Secret Manager client library (see TypeScript integration section below).

@@ -197,6 +197,8 @@ else
 fi
 ```
 
+> **Note**: When running deployment scripts directly on Windows, use: `bash scripts/deploy-production.sh`
+
 ### Verification Checklist
 
 - [ ] `MASTER_ADMIN_EMAIL` configured
@@ -256,7 +258,7 @@ npm run admin:verify
 gcloud secrets create MASTER_ADMIN_EMAIL --data-file=- <<< "admin@yourdomain.com"
 
 # 2. Deploy application
-./scripts/deploy-production.sh
+bash scripts/deploy-production.sh
 
 # 3. Initialize admin (runs automatically in deployment)
 # Or manually:
