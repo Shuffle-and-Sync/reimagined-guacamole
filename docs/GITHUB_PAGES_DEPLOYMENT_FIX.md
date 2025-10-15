@@ -103,15 +103,26 @@ The `.nojekyll` file in the repository root was added to prevent Jekyll processi
 
 ## Implemented Fix
 
-A new GitHub Pages workflow has been created at `.github/workflows/pages.yml` that properly deploys the `docs/` directory to GitHub Pages.
+**Update (2025-10-14)**: The GitHub Pages workflow has been modified to prevent automatic deployment failures:
 
-**To enable this fix:**
+- **Automatic triggers disabled**: The workflow no longer runs on push events
+- **Manual dispatch only**: The workflow can be triggered manually from the Actions tab
+- **Conditional execution**: Added `if: github.event_name == 'workflow_dispatch'` to prevent accidental runs
+- **Clear documentation**: Added inline comments and setup guide in repository root
+
+The workflow at `.github/workflows/pages.yml` is ready to deploy the `docs/` directory to GitHub Pages, but will only run after proper configuration.
+
+**To enable automatic deployment:**
 
 1. Go to repository **Settings** → **Pages**
 2. Under **Build and deployment**:
    - **Source**: Select **GitHub Actions** (instead of "Deploy from a branch")
 3. Save the configuration
-4. The new workflow will automatically deploy documentation from the `docs/` folder
+4. Edit `.github/workflows/pages.yml`:
+   - Remove the line: `if: github.event_name == 'workflow_dispatch'`
+   - Uncomment the `push:` trigger section (lines starting with `# push:`)
+5. Commit and push the changes
+6. The workflow will automatically deploy documentation from the `docs/` folder
 
 **Alternative: Disable GitHub Pages** if not needed:
 
@@ -119,6 +130,7 @@ A new GitHub Pages workflow has been created at `.github/workflows/pages.yml` th
 2. Under **Build and deployment**:
    - **Source**: Select **None**
 3. This will stop all Pages deployment workflows
+4. Optionally delete `.github/workflows/pages.yml`
 
 ## Prevention
 
@@ -136,6 +148,6 @@ To prevent this issue in the future:
 
 ---
 
-**Date**: 2025-10-06  
+**Date**: 2025-10-14 (Updated)  
 **Issue**: GitHub Pages Validation Failed Error  
-**Status**: Awaiting repository settings update
+**Status**: Workflow disabled for automatic runs - awaiting repository settings update
