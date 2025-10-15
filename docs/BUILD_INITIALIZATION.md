@@ -36,8 +36,10 @@ npm run prebuild  # Runs automatically before build
 Or manually:
 
 ```bash
-./scripts/pre-build.sh
+bash scripts/pre-build.sh
 ```
+
+> **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 **Pre-build checks include:**
 - Node.js version validation (requires v18+)
@@ -57,7 +59,7 @@ npm run build:verify
 Or manually:
 
 ```bash
-./scripts/verify-build.sh
+bash scripts/verify-build.sh
 ```
 
 **Verification includes:**

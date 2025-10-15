@@ -310,7 +310,7 @@ gcloud run deploy shuffle-sync-frontend \
 #### 4. Run Database Migrations
 
 ```bash
-./scripts/migrate-production-db.sh
+bash scripts/migrate-production-db.sh
 ```
 
 #### 5. Initialize Administrator Account
@@ -729,6 +729,8 @@ If you encounter issues not covered here:
 - **[migrate-production-db.sh](scripts/migrate-production-db.sh)** - Database migration script
 - **[verify-production.sh](scripts/verify-production.sh)** - Post-deployment verification
 - **[setup-env.sh](scripts/setup-env.sh)** - Environment setup helper
+
+> **Note**: Run scripts with `bash scripts/scriptname.sh` for cross-platform compatibility (especially on Windows with Git Bash/MINGW64).
 
 ### Configuration Files
 

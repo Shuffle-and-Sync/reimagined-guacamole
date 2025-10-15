@@ -218,13 +218,15 @@ Run this diagnostic command:
 # Use your actual service names
 FRONTEND_SERVICE=shuffle-sync-front \
 BACKEND_SERVICE=shuffle-sync-backend \
-./scripts/verify-cloud-run-deployment.sh
+bash scripts/verify-cloud-run-deployment.sh
 ```
 
 Or use the npm script (for default service names):
 ```bash
 npm run verify:cloudrun
 ```
+
+> **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 Expected output:
 ```
