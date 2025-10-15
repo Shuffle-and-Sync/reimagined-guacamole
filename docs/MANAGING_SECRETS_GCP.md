@@ -17,6 +17,7 @@
   - [2. Create Secrets](#2-create-secrets)
   - [3. Configure Access Control](#3-configure-access-control)
   - [4. Access Secrets in Applications](#4-access-secrets-in-applications)
+    - [4.3 Cloud Run Authentication Policy](#43-cloud-run-authentication-policy)
 - [Local Development](#local-development)
 - [CI/CD Integration](#cicd-integration)
 - [Secret Rotation](#secret-rotation)
@@ -376,6 +377,7 @@ Configure Cloud Run to mount secrets as environment variables:
 gcloud run deploy shuffle-sync-backend \
   --region=us-central1 \
   --image=gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+  --no-allow-unauthenticated \
   --set-secrets="AUTH_SECRET=auth-secret:latest" \
   --set-secrets="GOOGLE_CLIENT_SECRET=google-client-secret:latest" \
   --set-secrets="DATABASE_URL=database-url:latest" \
@@ -385,6 +387,8 @@ gcloud run deploy shuffle-sync-backend \
 **Format:** `ENV_VAR_NAME=secret-name:version`
 - `latest` - Always use the latest version
 - `1`, `2`, etc. - Pin to specific version
+
+**🔒 Security Note:** Always use `--no-allow-unauthenticated` for backend services. See [section 4.3](#43-cloud-run-authentication-policy) for detailed security guidance.
 
 #### 4.2 Cloud Build Integration
 
@@ -409,6 +413,106 @@ availableSecrets:
     - versionName: projects/$PROJECT_ID/secrets/auth-secret/versions/latest
       env: 'AUTH_SECRET'
 ```
+
+#### 4.3 Cloud Run Authentication Policy
+
+**🔒 SECURITY CRITICAL: Unauthenticated invocations MUST be disabled for shuffle-sync-backend**
+
+When deploying the shuffle-sync-backend service to Google Cloud Run, **always disable unauthenticated invocations**. This is a critical security requirement to protect your backend endpoints from unauthorized access.
+
+##### Why Disable Unauthenticated Access?
+
+Allowing unauthenticated invocations (`--allow-unauthenticated`) exposes serious security risks:
+
+- **❌ Public Exposure**: Backend endpoints become accessible to anyone on the internet
+- **❌ Bypass Authentication**: Attackers can bypass your Auth.js authentication layer
+- **❌ Data Leakage**: Sensitive data may be exposed through unprotected API endpoints
+- **❌ Resource Abuse**: Services can be abused for DDoS attacks or cryptocurrency mining
+- **❌ Security Compliance**: Violates security best practices and compliance requirements
+
+##### Correct Deployment Configuration
+
+**✅ DO - Disable unauthenticated access for backend:**
+
+```bash
+# Deploy shuffle-sync-backend with authentication required
+gcloud run deploy shuffle-sync-backend \
+  --region=us-central1 \
+  --image=gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+  --no-allow-unauthenticated \
+  --set-secrets="AUTH_SECRET=auth-secret:latest" \
+  --set-secrets="GOOGLE_CLIENT_SECRET=google-client-secret:latest" \
+  --set-secrets="DATABASE_URL=database-url:latest" \
+  --set-secrets="SENDGRID_API_KEY=sendgrid-api-key:latest"
+```
+
+**Note:** The `--no-allow-unauthenticated` flag ensures only authenticated requests can access the backend.
+
+**✅ Frontend services** (shuffle-sync-frontend) should allow unauthenticated access since they serve public web content:
+
+```bash
+# Frontend can allow unauthenticated access
+gcloud run deploy shuffle-sync-frontend \
+  --region=us-central1 \
+  --image=gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest \
+  --allow-unauthenticated
+```
+
+##### Granting Access via IAM
+
+When authentication is required, you must explicitly grant access using IAM policies:
+
+```bash
+# Grant the frontend service account access to invoke the backend
+export PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get-value project) \
+  --format='value(projectNumber)')
+
+# Allow frontend to call backend
+gcloud run services add-iam-policy-binding shuffle-sync-backend \
+  --region=us-central1 \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role="roles/run.invoker"
+
+# Allow specific users (for testing/debugging only)
+gcloud run services add-iam-policy-binding shuffle-sync-backend \
+  --region=us-central1 \
+  --member="user:developer@yourdomain.com" \
+  --role="roles/run.invoker"
+```
+
+##### Verifying Authentication Configuration
+
+Check if authentication is properly configured:
+
+```bash
+# Check current IAM policy
+gcloud run services get-iam-policy shuffle-sync-backend \
+  --region=us-central1
+
+# Verify service configuration
+gcloud run services describe shuffle-sync-backend \
+  --region=us-central1 \
+  --format="value(spec.template.metadata.annotations['run.googleapis.com/ingress'])"
+```
+
+##### Updating Existing Services
+
+If you have an existing service with unauthenticated access enabled, update it immediately:
+
+```bash
+# Remove public access from backend
+gcloud run services update shuffle-sync-backend \
+  --region=us-central1 \
+  --no-allow-unauthenticated
+
+# Grant necessary IAM permissions (see above)
+```
+
+##### References
+
+- [Google Cloud Run: Authenticating Service-to-Service](https://cloud.google.com/run/docs/authenticating/service-to-service)
+- [Google Cloud Run: Managing Access with IAM](https://cloud.google.com/run/docs/securing/managing-access)
+- [Auth.js Security Best Practices](https://authjs.dev/guides/basics/security)
 
 ---
 
@@ -500,6 +604,7 @@ jobs:
           gcloud run deploy shuffle-sync-backend \
             --region=us-central1 \
             --image=gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+            --no-allow-unauthenticated \
             --set-secrets="AUTH_SECRET=auth-secret:latest,DATABASE_URL=database-url:latest"
 ```
 
@@ -521,6 +626,7 @@ steps:
       - 'shuffle-sync-backend'
       - '--image=gcr.io/$PROJECT_ID/app'
       - '--region=us-central1'
+      - '--no-allow-unauthenticated'
       - '--set-secrets=DATABASE_URL=database-url:latest'
 
 availableSecrets:
@@ -594,6 +700,7 @@ echo -n "NEW_VALUE" | gcloud secrets versions add auth-secret --data-file=-
 gcloud run deploy shuffle-sync-backend \
   --region=us-central1 \
   --image=gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+  --no-allow-unauthenticated \
   --set-secrets="AUTH_SECRET=auth-secret:latest" \
   --no-traffic  # Don't route traffic yet
 
