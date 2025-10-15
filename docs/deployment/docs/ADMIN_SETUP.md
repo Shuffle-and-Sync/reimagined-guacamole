@@ -882,6 +882,8 @@ See [Deployment Guide - Rollback Strategies](../DEPLOYMENT.md#rollback-strategie
 - **[init-admin.ts](../../../scripts/init-admin.ts)** - Admin initialization script
 - **[verify-production.sh](../../../scripts/verify-production.sh)** - Post-deployment verification
 
+> **Note**: Run shell scripts with `bash scripts/scriptname.sh` for cross-platform compatibility (especially on Windows with Git Bash/MINGW64).
+
 ### External Resources
 
 - [Google Cloud Run Documentation](https://cloud.google.com/run/docs)

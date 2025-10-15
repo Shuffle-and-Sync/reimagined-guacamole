@@ -37,8 +37,10 @@ The fastest way to identify the issue is to run the automated diagnostic script:
 npm run diagnose:auth
 
 # Or run directly:
-./scripts/diagnose-auth-error.sh
+bash scripts/diagnose-auth-error.sh
 ```
+
+> **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` format for all script invocations.
 
 This script will:
 - Automatically find your Cloud Run services (handles naming variations)
@@ -222,7 +224,7 @@ BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
    # Run with custom service names
    FRONTEND_SERVICE=shuffle-sync-front \
    BACKEND_SERVICE=shuffle-sync-backend \
-   ./scripts/verify-cloud-run-deployment.sh
+   bash scripts/verify-cloud-run-deployment.sh
    ```
 
 ## Complete Fix Workflow
@@ -297,7 +299,7 @@ npm run verify:cloudrun
 # Or manually:
 FRONTEND_SERVICE=shuffle-sync-front \
 BACKEND_SERVICE=shuffle-sync-backend \
-./scripts/verify-cloud-run-deployment.sh
+bash scripts/verify-cloud-run-deployment.sh
 ```
 
 ### Step 6: Test Authentication
@@ -376,7 +378,7 @@ If you've tried all the above and still have issues:
    # Replace with your actual service names
    FRONTEND_SERVICE=shuffle-sync-front \
    BACKEND_SERVICE=shuffle-sync-backend \
-   ./scripts/verify-cloud-run-deployment.sh
+   bash scripts/verify-cloud-run-deployment.sh
    ```
 
 2. Collect the output and include it when asking for help

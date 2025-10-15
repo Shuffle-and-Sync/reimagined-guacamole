@@ -207,14 +207,16 @@ Run the automated verification script:
 npm run verify:cloudrun
 
 # Or run directly with custom service names
-./scripts/verify-cloud-run-deployment.sh
+bash scripts/verify-cloud-run-deployment.sh
 
 # With custom configuration
 REGION=us-central1 \
 FRONTEND_SERVICE=my-frontend \
 BACKEND_SERVICE=my-backend \
-./scripts/verify-cloud-run-deployment.sh
+bash scripts/verify-cloud-run-deployment.sh
 ```
+
+> **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 The script checks:
 - ✅ Backend service is deployed and accessible

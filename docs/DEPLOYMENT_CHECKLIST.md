@@ -12,8 +12,10 @@ Use this checklist to ensure proper deployment of Shuffle & Sync to Google Cloud
 npm run deploy:cloudrun
 
 # Or run directly:
-./scripts/deploy-cloud-run.sh
+bash scripts/deploy-cloud-run.sh
 ```
+
+> **Note**: For Windows users with Git Bash/MINGW64, always use `bash scripts/scriptname.sh` format for cross-platform compatibility.
 
 This script will:
 - Guide you through the entire deployment process
@@ -219,7 +221,7 @@ echo "Frontend URL: $FRONTEND_URL"
 # Update script if using non-default service names
 FRONTEND_SERVICE=$FRONTEND_SERVICE \
 BACKEND_SERVICE=$BACKEND_SERVICE \
-./scripts/verify-cloud-run-deployment.sh
+bash scripts/verify-cloud-run-deployment.sh
 ```
 
 **Manual verification**:

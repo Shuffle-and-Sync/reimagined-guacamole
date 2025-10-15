@@ -56,7 +56,7 @@ cd reimagined-guacamole
 npm install --legacy-peer-deps
 
 # 2. Environment setup (automated)
-./scripts/setup-env.sh
+bash scripts/setup-env.sh
 # Or manual: cp .env.example .env.local (then edit .env.local)
 
 # Initialize and push database schema
@@ -77,7 +77,7 @@ npm run dev
 ```bash
 # Copy template and run setup script
 cp .env.example .env.local
-./scripts/setup-env.sh
+bash scripts/setup-env.sh
 
 # Or manually configure
 npm run env:setup
@@ -110,7 +110,7 @@ npm run env:validate
 npm run env:validate
 
 # Automated setup
-./scripts/setup-env.sh
+bash scripts/setup-env.sh
 
 # Copy template manually  
 cp .env.example .env.local
