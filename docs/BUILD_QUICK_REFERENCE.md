@@ -23,10 +23,12 @@ npm run check
 ### Pre-Build Setup
 ```bash
 # Manual pre-build validation
-./scripts/pre-build.sh
+bash scripts/pre-build.sh
 
 # Automatically runs before npm run build
 ```
+
+> **Note**: For Windows users with Git Bash/MINGW64, always use `bash scripts/scriptname.sh` format.
 
 ## 📋 Build Process Steps
 
@@ -130,7 +132,7 @@ npm run build:verify
 npm run build:verify-runtime
 
 # 4. Deploy
-./scripts/deploy-production.sh
+bash scripts/deploy-production.sh
 ```
 
 ### Required Files for Deployment
