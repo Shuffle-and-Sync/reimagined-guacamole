@@ -86,10 +86,10 @@ npm run verify:cloudrun
 | Issue | Document |
 |-------|----------|
 | gcloud commands | [GOOGLE_CLOUD_COMMANDS_REFERENCE.md](./GOOGLE_CLOUD_COMMANDS_REFERENCE.md) |
-| 5-min fix | [QUICK_FIX_AUTH_ERROR.md](./QUICK_FIX_AUTH_ERROR.md) |
+| 5-min fix | [troubleshooting.md](./troubleshooting.md) |
 | Deep troubleshooting | [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md) |
-| Full deployment | [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) |
-| Architecture | [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) |
+| Full deployment | [deployment/deployment-guide.md](./deployment/deployment-guide.md) |
+| Architecture | [deployment/deployment-guide.md](./deployment/deployment-guide.md) |
 
 ## Checklist
 
