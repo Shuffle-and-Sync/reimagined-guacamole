@@ -348,6 +348,8 @@ npm run admin:verify
 
 For automated deployments via Cloud Build:
 
+**Note:** Both `cloudbuild.yaml` and `cloudbuild-frontend.yaml` use a `_REGION` substitution that defaults to `us-central1`. You can override this by passing `--substitutions=_REGION=your-region` or by setting the `REGION` environment variable in your deployment script.
+
 #### Backend Deployment
 
 ```bash
