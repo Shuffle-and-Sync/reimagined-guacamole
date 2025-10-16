@@ -54,7 +54,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--region'
-      - 'us-central1'
+      - '${_REGION}'
       - '--allow-unauthenticated'
       # Cloud Run automatically sets PORT=8080 environment variable
       # The container's entrypoint script will configure NGINX to listen on that port
@@ -70,7 +70,7 @@ steps:
       - '60'
       # CRITICAL: Set BACKEND_URL to your actual backend service URL
       # Update this URL with your deployed backend service
-      # Get it with: gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
+      # Get it with: gcloud run services describe shuffle-sync-backend --region=${_REGION} --format='value(status.url)'
       - '--set-env-vars'
       - 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
     id: 'deploy-frontend'
@@ -85,7 +85,8 @@ options:
   logging: CLOUD_LOGGING_ONLY
   
 # Substitutions for variables
-# You can override the service name with: --substitutions=_SERVICE_NAME=your-service-name
+# These provide default values that can be overridden with --substitutions flag
+# Example: gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_REGION=us-east1,_SERVICE_NAME=your-service-name
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: shuffle-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
