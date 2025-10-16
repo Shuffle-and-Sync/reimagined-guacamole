@@ -242,7 +242,7 @@ describe('Documentation Completeness', () => {
   });
   
   test('API_DOCUMENTATION.md should include Platform OAuth section', () => {
-    const apiDocPath = path.join(process.cwd(), 'API_DOCUMENTATION.md');
+    const apiDocPath = path.join(process.cwd(), 'docs/api/API_DOCUMENTATION.md');
     const content = fs.readFileSync(apiDocPath, 'utf-8');
     
     // Should have Platform OAuth API section
