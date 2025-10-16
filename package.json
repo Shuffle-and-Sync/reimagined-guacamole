@@ -174,11 +174,9 @@
     "inflight": "npm:@isaacs/inflight@^1.0.8",
     "@esbuild-kit/esm-loader": "npm:tsx@^4.20.6",
     "@esbuild-kit/core-utils": "npm:tsx@^4.20.6",
-    "@sqlitecloud/drivers": {
-      "react-native-quick-base64": "$react-native-quick-base64",
-      "react-native-tcp-socket": "$react-native-tcp-socket",
-      "react-native-url-polyfill": "$react-native-url-polyfill",
-      "@craftzdog/react-native-buffer": "$@craftzdog/react-native-buffer"
-    }
+    "react-native-quick-base64": "npm:noop2@^2.0.0",
+    "react-native-tcp-socket": "npm:noop2@^2.0.0",
+    "react-native-url-polyfill": "npm:noop2@^2.0.0",
+    "@craftzdog/react-native-buffer": "npm:noop2@^2.0.0"
   }
 }
