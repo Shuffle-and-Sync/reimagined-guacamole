@@ -24,7 +24,7 @@ conditions:
     conditionThreshold:
       filter: |
         resource.type="cloud_run_revision"
-        resource.labels.service_name="shuffle-sync-backend"
+        resource.labels.service_name="shuffle-and-sync-backend"
         metric.type="run.googleapis.com/request_count"
         metric.labels.response_code_class!="2xx"
       comparison: COMPARISON_GREATER_THAN
@@ -45,7 +45,7 @@ conditions:
     conditionThreshold:
       filter: |
         resource.type="cloud_run_revision"
-        resource.labels.service_name="shuffle-sync-backend"
+        resource.labels.service_name="shuffle-and-sync-backend"
         metric.type="run.googleapis.com/request_latencies"
       comparison: COMPARISON_GREATER_THAN
       thresholdValue: 2000  # 2 seconds in milliseconds
@@ -65,7 +65,7 @@ conditions:
     conditionThreshold:
       filter: |
         resource.type="cloud_run_revision"
-        resource.labels.service_name="shuffle-sync-backend"
+        resource.labels.service_name="shuffle-and-sync-backend"
         metric.type="run.googleapis.com/container/memory/utilizations"
       comparison: COMPARISON_GREATER_THAN
       thresholdValue: 0.8  # 80%
@@ -85,7 +85,7 @@ conditions:
     conditionThreshold:
       filter: |
         resource.type="cloud_run_revision"
-        resource.labels.service_name="shuffle-sync-backend"
+        resource.labels.service_name="shuffle-and-sync-backend"
         metric.type="run.googleapis.com/container/cpu/utilizations"
       comparison: COMPARISON_GREATER_THAN
       thresholdValue: 0.8  # 80%

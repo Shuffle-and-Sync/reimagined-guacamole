@@ -135,12 +135,12 @@ verify_deployment() {
     print_status "Verifying deployment..."
     
     # Get service URLs
-    BACKEND_URL=$(gcloud run services describe shuffle-sync-backend \
+    BACKEND_URL=$(gcloud run services describe shuffle-and-sync-backend \
         --region="$REGION" \
         --project="$PROJECT_ID" \
         --format="value(status.url)")
     
-    FRONTEND_URL=$(gcloud run services describe shuffle-sync-frontend \
+    FRONTEND_URL=$(gcloud run services describe shuffle-and-sync-frontend \
         --region="$REGION" \
         --project="$PROJECT_ID" \
         --format="value(status.url)")
