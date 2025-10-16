@@ -535,36 +535,28 @@ echo "DATABASE_URL=$(gcloud secrets versions access latest --secret=database-url
 
 ### Method 2: Fetch Secrets on Demand
 
-Create a helper script to fetch secrets:
+You can fetch secrets directly using `gcloud` commands:
 
 ```bash
-#!/bin/bash
-# scripts/fetch-secrets.sh
-
-# Fetch all secrets from Secret Manager
+# Fetch individual secrets
 export AUTH_SECRET=$(gcloud secrets versions access latest --secret=auth-secret)
 export DATABASE_URL=$(gcloud secrets versions access latest --secret=database-url)
 export GOOGLE_CLIENT_SECRET=$(gcloud secrets versions access latest --secret=google-client-secret)
 export SENDGRID_API_KEY=$(gcloud secrets versions access latest --secret=sendgrid-api-key)
 
 echo "✅ Secrets loaded from Google Secret Manager"
-echo "Run: source scripts/fetch-secrets.sh"
 ```
 
 Usage:
 
 ```bash
-# Make executable
-chmod +x scripts/fetch-secrets.sh
-
-# Source to load into current shell
-source scripts/fetch-secrets.sh
+# Load secrets into current shell
+export AUTH_SECRET=$(gcloud secrets versions access latest --secret=auth-secret)
+export DATABASE_URL=$(gcloud secrets versions access latest --secret=database-url)
 
 # Run application
 npm run dev
 ```
-
-> **Note**: Windows users with Git Bash should run: `source scripts/fetch-secrets.sh` (the `source` command works in Git Bash).
 
 ### Method 3: Direct Access in Code
 
