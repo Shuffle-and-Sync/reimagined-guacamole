@@ -257,6 +257,15 @@ npm run db:migrate:production
 
 If you prefer manual control or need to troubleshoot:
 
+Before proceeding with manual deployment, ensure the following environment variables are set. These are required for tagging Docker images and deploying to the correct GCP resources.
+
+```bash
+# Set these variables with your GCP Project ID, Region, and SQL Connection Name
+export PROJECT_ID="your-gcp-project-id"
+export REGION="your-gcp-region" # e.g., us-central1
+export CONNECTION_NAME=$(gcloud sql instances describe your-instance-name --format="value(connectionName)")
+```
+
 #### 1. Build Docker Images
 
 ```bash
