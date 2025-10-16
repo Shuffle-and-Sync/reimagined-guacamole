@@ -38,7 +38,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--region'
-      - 'us-central1'
+      - '${_REGION}'
       - '--allow-unauthenticated'
       - '--port'
       - '8080'
