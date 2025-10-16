@@ -50,10 +50,11 @@ describe('Input Sanitization', () => {
       sanitizeDatabaseInput(maliciousInput);
       
       expect(logger.warn).toHaveBeenCalledWith(
-        'Potential SQL injection attempt detected',
+        'Potential SQL injection attempt detected and sanitized',
         expect.objectContaining({
           input: expect.any(String),
-          pattern: expect.any(String)
+          detectedPatterns: expect.any(Array),
+          timestamp: expect.any(String)
         })
       );
     });
