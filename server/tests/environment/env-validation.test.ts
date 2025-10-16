@@ -161,6 +161,8 @@ describe('Environment Variable Validation', () => {
       const result = validateEnvironmentVariables();
       expect(result.isValid).toBe(true);
     });
+
+    it('should accept SQLite Cloud URLs with parameters', () => {
       process.env.DATABASE_URL = 'sqlitecloud://example.sqlite.cloud:8860/database?apikey=xyz';
       
       const result = validateEnvironmentVariables();
