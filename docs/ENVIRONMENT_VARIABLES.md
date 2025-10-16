@@ -224,4 +224,4 @@ The following variables are **no longer used** and can be removed:
 For environment-specific deployment guides:
 - Production: See `DEPLOYMENT.md`
 - Development: See `DEVELOPMENT_GUIDE.md`
-- Cloud Run: See `docs/deployment/DEPLOYMENT.md`
+- Cloud Run: See `DEPLOYMENT.md` (root directory)
