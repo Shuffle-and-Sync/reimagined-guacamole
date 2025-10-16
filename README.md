@@ -116,7 +116,7 @@ bash scripts/setup-env.sh
 cp .env.example .env.local
 ```
 
-📖 **Full Configuration Guide**: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)  
+📖 **Full Configuration Guide**: [ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)  
 🔧 **Template File**: [.env.example](./.env.example) (includes all optional variables)
 
 > **Note**: For development, DATABASE_URL can be a simple file path like `./dev.db`. For production, use SQLite Cloud connection string.
@@ -308,14 +308,12 @@ npm run verify:cloudrun
 ### Production Documentation
 
 - **[☁️ Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
-- **[🚀 Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment guide with verification
-- **[🔧 Troubleshooting Configuration Errors](docs/TROUBLESHOOTING_CONFIGURATION_ERROR.md)** - Fix "Configuration" errors and service issues
-- **[⚡ Quick Fix: Auth Errors](docs/QUICK_FIX_AUTH_ERROR.md)** - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
-- **[🔧 Fix: shuffle-sync-front Service Issues](docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)** - Specific fix for shuffle-sync-front service name
-- **[🏗️ Cloud Run Frontend-Backend Setup](docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)** - Split deployment architecture
-- **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
-- **[🔐 Environment Template](.env.production.template)** - Required environment variables
-- **[📖 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Technical deployment details
+- **[🚀 Deployment Guide](docs/deployment/deployment-guide.md)** - Complete deployment guide with Cloud Run setup
+- **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Production deployment checklist
+- **[🔧 Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+- **[🔐 Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete environment variable reference
+- **[🔐 Environment Template](.env.production.template)** - Required environment variables template
+- **[📖 Technical Deployment Details](docs/deployment/DEPLOYMENT.md)** - Advanced deployment topics
 
 ## 🔒 Security
 

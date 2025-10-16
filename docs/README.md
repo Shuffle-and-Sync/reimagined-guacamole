@@ -16,6 +16,8 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 - [Build Quick Reference](BUILD_QUICK_REFERENCE.md) - Quick build commands
 - [Testing Agent](TESTING_AGENT.md) - Unit testing agent documentation
 - [TypeScript Strict Mode](TYPESCRIPT_STRICT_MODE.md) - TypeScript configuration
+- [Environment Variables](ENVIRONMENT_VARIABLES.md) - Complete environment variable reference
+- [Deprecated Variables](DEPRECATED_VARIABLES.md) - Legacy variable migration guide
 
 ### API Documentation
 - [API Documentation](api/API_DOCUMENTATION.md) - Complete API reference
@@ -24,19 +26,15 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ### Deployment & Operations
 - [🔧 Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - Comprehensive gcloud CLI command reference
 - [🔐 Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Complete secret management guide
-- [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment instructions
+- [Deployment Guide](deployment/deployment-guide.md) - **Primary deployment guide** - Complete Cloud Run setup
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
-- [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step Cloud Run deployment
-- [Cloud Run Frontend-Backend Setup](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Split architecture guide
-- [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Auth.js configuration for Cloud Run
-- [GitHub Pages Deployment Fix](GITHUB_PAGES_DEPLOYMENT_FIX.md) - Fix Pages deployment errors
+- [Technical Deployment Details](deployment/DEPLOYMENT.md) - Advanced deployment topics
 - [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration file documentation
 
 ### Troubleshooting
-- [🔧 Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Fix "Configuration" errors
-- [⚡ Quick Fix: Auth Errors](QUICK_FIX_AUTH_ERROR.md) - 5-minute fix for ERR_TOO_MANY_ACCEPT_CH_RESTARTS
+- [🔧 Troubleshooting Guide](troubleshooting.md) - **Primary troubleshooting guide** - Common issues and solutions
+- [🔧 Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Fix "Configuration" errors (legacy)
 - [📋 Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick reference card
-- [Cloud Run Startup Fix](CLOUD_RUN_STARTUP_FIX.md) - Container startup issues
 
 ### Development
 - [Development Guide](development/DEVELOPMENT_GUIDE.md) - Getting started with development
@@ -85,15 +83,15 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ### For Deployment
 1. [Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - All gcloud CLI commands used in the project
 2. [Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Secure secret management guide
-3. [Cloud Run Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Complete Cloud Run deployment guide
+3. [Deployment Guide](deployment/deployment-guide.md) - Complete deployment guide
 4. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
-5. [Deployment Guide](deployment/DEPLOYMENT.md) - General deployment
+5. [Technical Deployment Details](deployment/DEPLOYMENT.md) - Advanced topics
 6. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### For Troubleshooting
-1. [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick fix commands
-2. [Troubleshooting Configuration Error](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Deep troubleshooting
-3. [Quick Fix: Auth Errors](QUICK_FIX_AUTH_ERROR.md) - 5-minute fix
+1. [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
+2. [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick fix commands
+3. [Configuration Error Troubleshooting](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Deep troubleshooting
 
 ### For API Development
 1. [API Documentation](api/API_DOCUMENTATION.md)
@@ -113,9 +111,16 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 
 Some documentation remains in the repository root for quick access:
 - `README.md` - Main project README
-- `ENVIRONMENT_VARIABLES.md` - Environment variables reference
-- `DEPRECATED_VARIABLES.md` - Legacy variable migration guide
 - `replit.md` - Replit-specific setup guide
+- `CODE_OF_CONDUCT.md` - Community code of conduct
+- `CONTRIBUTING.md` - Contribution guidelines
+- `SECURITY.md` - Security policy
+
+All other documentation is in the `/docs` directory for better organization.
+
+## 📂 Archived Documentation
+
+Historical and outdated documentation can be found in [archive/](archive/README.md). These files are preserved for reference but have been superseded by current guides.
 
 ## 🤝 Contributing to Documentation
 
