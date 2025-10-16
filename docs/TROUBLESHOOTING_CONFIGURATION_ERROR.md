@@ -365,8 +365,8 @@ gcloud run services describe shuffle-sync-front \
 
 ## Related Documentation
 
-- [QUICK_FIX_AUTH_ERROR.md](./QUICK_FIX_AUTH_ERROR.md) - Quick 5-minute fix
-- [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Complete architecture guide
+- [troubleshooting.md](./troubleshooting.md) - **Primary troubleshooting guide** - Quick 5-minute fix and comprehensive solutions
+- [deployment/deployment-guide.md](./deployment/deployment-guide.md) - Complete architecture and deployment guide
 - [AUTHENTICATION.md](./AUTHENTICATION.md) - Authentication system documentation
 
 ## Get Help

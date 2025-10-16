@@ -209,6 +209,6 @@ This will check all configuration and provide specific fix commands.
 
 - **Google Cloud Commands Reference**: `docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md` - Complete gcloud CLI command reference
 - **Automated deployment script**: `npm run deploy:cloudrun` - Handles all of this automatically
-- **Full deployment checklist**: `docs/DEPLOYMENT_CHECKLIST.md`
-- **Troubleshooting guide**: `docs/QUICK_FIX_AUTH_ERROR.md`
+- **Full deployment checklist**: `docs/deployment/deployment-guide.md`
+- **Troubleshooting guide**: `docs/troubleshooting.md`
 - **Environment variables reference**: `.env.example`

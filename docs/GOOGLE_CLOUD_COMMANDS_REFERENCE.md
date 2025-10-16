@@ -649,7 +649,7 @@ gcloud run services update shuffle-sync-frontend \
 gcloud run services list --region=$REGION
 ```
 
-**Documentation:** [Deployment Checklist](DEPLOYMENT_CHECKLIST.md)
+**Documentation:** [Deployment Guide](deployment/deployment-guide.md)
 
 ### Debugging Failed Deployment
 
@@ -764,7 +764,7 @@ npm run verify:cloudrun
 ```
 
 **Documentation:** 
-- [Quick Fix Auth Error](QUICK_FIX_AUTH_ERROR.md)
+- [Troubleshooting Guide](troubleshooting.md)
 - [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md)
 
 ---
@@ -772,12 +772,12 @@ npm run verify:cloudrun
 ## Related Documentation
 
 ### Deployment & Configuration
-- [Deployment Guide](deployment/DEPLOYMENT.md) - Complete deployment instructions
-- [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Step-by-step deployment guide
+- [Deployment Guide](deployment/deployment-guide.md) - Complete deployment guide
+- [Deployment Details](deployment/DEPLOYMENT.md) - Advanced deployment topics
 - [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### Troubleshooting
-- [Quick Fix Auth Error](QUICK_FIX_AUTH_ERROR.md) - Fast authentication fixes
+- [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
 - [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick reference card
 - [Troubleshooting Configuration Error](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Detailed troubleshooting
 
