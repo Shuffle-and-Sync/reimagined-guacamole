@@ -70,6 +70,8 @@ options:
   logging: CLOUD_LOGGING_ONLY
   
 # Substitutions for variables
+# These provide default values that can be overridden with --substitutions flag
+# Example: gcloud builds submit --config cloudbuild.yaml --substitutions=_REGION=us-east1
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: shuffle-sync-backend
