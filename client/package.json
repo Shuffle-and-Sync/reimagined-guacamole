@@ -1,0 +1,9 @@
+{
+  "name": "shuffle-and-sync-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite preview --port $PORT"
+  }
+}
