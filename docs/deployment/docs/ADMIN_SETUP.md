@@ -729,7 +729,7 @@ If issues persist:
 
 1. **Review logs**: `gcloud run services logs read shuffle-sync-backend --region $REGION`
 2. **Check documentation**:
-   - [Deployment Guide](../DEPLOYMENT.md)
+   - [Deployment Guide](../../../DEPLOYMENT.md)
    - [Production Deployment Checklist](../PRODUCTION_DEPLOYMENT_CHECKLIST.md)
    - [Database Architecture](../../DATABASE_ARCHITECTURE.md)
    - [Administrator Account Setup](../../ADMIN_SETUP.md)
@@ -839,7 +839,7 @@ gcloud run services update-traffic shuffle-sync-backend \
 npm run verify:production
 ```
 
-See [Deployment Guide - Rollback Strategies](../DEPLOYMENT.md#rollback-strategies) for detailed procedures.
+See [Deployment Guide - Rollback Strategies](../../../DEPLOYMENT.md#rollback-strategies) for detailed procedures.
 
 ---
 
@@ -853,7 +853,7 @@ See [Deployment Guide - Rollback Strategies](../DEPLOYMENT.md#rollback-strategie
 
 ### Deployment Documentation
 
-- **[Deployment Guide](../DEPLOYMENT.md)** - Comprehensive deployment procedures
+- **[Deployment Guide](../../../DEPLOYMENT.md)** - Comprehensive deployment procedures
 - **[Production Deployment Checklist](../PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
 - **[Managing Secrets in GCP](../../MANAGING_SECRETS_GCP.md)** - Secret Manager guide
 

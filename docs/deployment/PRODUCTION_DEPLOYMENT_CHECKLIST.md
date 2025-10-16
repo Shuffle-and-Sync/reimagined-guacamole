@@ -444,7 +444,7 @@ npm run env:validate
 
 ## 📚 Additional Resources
 
-- **Detailed Deployment Guide**: [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
+- **Detailed Deployment Guide**: [DEPLOYMENT.md](../../DEPLOYMENT.md)
 - **GCP-Specific Checklist**: [docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
 - **Security Improvements**: [docs/SECURITY_IMPROVEMENTS.md](docs/SECURITY_IMPROVEMENTS.md)
 - **Environment Template**: [.env.production.template](.env.production.template)

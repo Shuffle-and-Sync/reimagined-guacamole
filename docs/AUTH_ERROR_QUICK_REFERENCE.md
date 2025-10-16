@@ -88,8 +88,8 @@ npm run verify:cloudrun
 | gcloud commands | [GOOGLE_CLOUD_COMMANDS_REFERENCE.md](./GOOGLE_CLOUD_COMMANDS_REFERENCE.md) |
 | 5-min fix | [troubleshooting.md](./troubleshooting.md) |
 | Deep troubleshooting | [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md) |
-| Full deployment | [deployment/deployment-guide.md](./deployment/deployment-guide.md) |
-| Architecture | [deployment/deployment-guide.md](./deployment/deployment-guide.md) |
+| Full deployment | [DEPLOYMENT.md](../DEPLOYMENT.md) |
+| Architecture | [DEPLOYMENT.md](../DEPLOYMENT.md) |
 
 ## Checklist
 

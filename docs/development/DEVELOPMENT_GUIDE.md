@@ -635,6 +635,6 @@ logger.error('Database operation failed', error, {
 - [Copilot Instructions](./.github/copilot-instructions.md)
 - [API Documentation](./API_DOCS.md)
 - [Database Schema](./shared/schema.ts)
-- [Deployment Guide](./DEPLOYMENT.md)
+- [Deployment Guide](../../DEPLOYMENT.md)
 
 For questions or support, please create an issue or contact the development team.
