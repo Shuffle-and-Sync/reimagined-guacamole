@@ -142,7 +142,7 @@ gcloud run services describe $BACKEND_SERVICE \
    
    Example:
    ```
-   https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+   https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
    ```
 
 5. **Important Notes**:

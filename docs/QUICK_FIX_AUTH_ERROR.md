@@ -68,7 +68,7 @@ gcloud run services describe shuffle-sync-backend \
   --format='value(status.url)'
 ```
 
-Example output: `https://shuffle-sync-backend-683555795974.us-central1.run.app`
+Example output: `https://shuffle-sync-backend-858080302197.us-central1.run.app`
 
 ### Step 2: Configure Frontend to Proxy to Backend
 
@@ -77,7 +77,7 @@ Example output: `https://shuffle-sync-backend-683555795974.us-central1.run.app`
 # (might be 'shuffle-sync-front' based on your error URL)
 gcloud run services update shuffle-sync-frontend \
   --region=us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 Replace the URL with your actual backend URL from Step 1.
@@ -86,7 +86,7 @@ Replace the URL with your actual backend URL from Step 1.
 ```bash
 gcloud run services update shuffle-sync-front \
   --region=us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ### Step 3: Verify Google OAuth is Configured on Backend
@@ -113,7 +113,7 @@ gcloud run services update shuffle-sync-backend \
 2. Select your OAuth 2.0 Client ID
 3. Add this Authorized Redirect URI:
    ```
-   https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+   https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
    ```
    ⚠️ Use your **BACKEND URL** (from Step 1), not frontend URL
    ⚠️ No trailing slash
@@ -232,10 +232,10 @@ Expected output:
 ```
 === FRONTEND ===
 https://shuffle-sync-frontend-683555795974.us-central1.run.app
-BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 
 === BACKEND ===
-https://shuffle-sync-backend-683555795974.us-central1.run.app
+https://shuffle-sync-backend-858080302197.us-central1.run.app
 GOOGLE_CLIENT_ID=123456789.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-***
 AUTH_SECRET=***
