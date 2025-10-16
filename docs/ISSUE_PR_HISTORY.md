@@ -61,8 +61,8 @@ Split frontend-backend architecture on Cloud Run:
 
 **Documentation:**
 - [FIX_SUMMARY.md](../FIX_SUMMARY.md)
-- [docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)
-- [docs/QUICK_FIX_AUTH_ERROR.md](QUICK_FIX_AUTH_ERROR.md)
+- [docs/deployment/deployment-guide.md](deployment/deployment-guide.md) - Deployment guide (includes frontend-backend setup)
+- [docs/troubleshooting.md](troubleshooting.md) - Troubleshooting guide (includes auth fixes)
 - [docs/AUTH_ERROR_QUICK_REFERENCE.md](AUTH_ERROR_QUICK_REFERENCE.md)
 
 **Lessons Learned:**
