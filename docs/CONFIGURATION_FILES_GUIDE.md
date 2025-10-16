@@ -22,7 +22,7 @@ This guide explains which files need to be updated for the three main configurat
 
 ```yaml
 # BEFORE (example URL - replace with your actual backend URL)
-- 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
+- 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
 
 # AFTER (use your actual backend URL)
 - 'BACKEND_URL=https://YOUR-ACTUAL-BACKEND-URL'
@@ -112,7 +112,7 @@ gcloud run services describe shuffle-sync-backend \
      --format='value(status.url)'
    ```
    
-   Example output: `https://shuffle-sync-backend-683555795974.us-central1.run.app`
+   Example output: `https://shuffle-sync-backend-858080302197.us-central1.run.app`
 
 2. **Go to Google Cloud Console**:
    - Navigate to: https://console.cloud.google.com/apis/credentials
@@ -125,7 +125,7 @@ gcloud run services describe shuffle-sync-backend \
 4. **Add Authorized Redirect URI**:
    - In the "Authorized redirect URIs" section, click "Add URI"
    - Add: `https://YOUR-BACKEND-URL/api/auth/callback/google`
-   - Example: `https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google`
+   - Example: `https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google`
 
 5. **Important Requirements**:
    - ✅ Use the **BACKEND URL** (not frontend URL)
