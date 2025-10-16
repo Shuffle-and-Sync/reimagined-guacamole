@@ -9,6 +9,7 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
   - [Administrator Account Setup](#5-initialize-administrator-account)
 - [Deployment Options](#deployment-options)
 - [Deployment Procedures](#deployment-procedures)
+- [Windows Deployment (Git Bash)](#windows-deployment-git-bash)
 - [Rollback Strategies](#rollback-strategies)
 - [Verification Steps](#verification-steps)
 - [Troubleshooting](#troubleshooting)
@@ -912,6 +913,386 @@ This is configured via:
 
 ---
 
+## Windows Deployment (Git Bash)
+
+This section provides specific guidance for deploying Shuffle & Sync on Windows using Git Bash (MINGW64). While the application is fully deployable from Windows, there are some platform-specific considerations to keep in mind.
+
+### Prerequisites for Windows
+
+Before deploying from Windows, ensure you have the following tools installed:
+
+#### Required Tools
+
+1. **Git for Windows** (includes Git Bash) - [Download](https://git-scm.com/download/win)
+   - Provides the Bash shell environment
+   - Includes Unix-like utilities needed by deployment scripts
+   - Default installation options are usually sufficient
+
+2. **Node.js** (v18 or later) - [Download](https://nodejs.org/)
+   - Use the Windows Installer (.msi)
+   - Verify installation: `node --version` and `npm --version`
+   - Ensure Node.js is added to your system PATH
+
+3. **Google Cloud SDK** - [Download](https://cloud.google.com/sdk/docs/install)
+   - Use the Windows installer
+   - After installation, initialize: `gcloud init`
+   - Authenticate: `gcloud auth login`
+   - Verify: `gcloud --version`
+
+4. **Docker Desktop for Windows** - [Download](https://www.docker.com/products/docker-desktop)
+   - Required for building container images
+   - Enable WSL 2 backend for better performance
+   - Verify: `docker --version`
+   - Ensure Docker is running before deployment
+
+5. **SQLite Cloud CLI** (Optional for local testing)
+   - Install via npm: `npm install -g @sqlitecloud/cli`
+   - Used for database management and testing
+
+#### Optional Tools
+
+- **Windows Terminal** - Recommended for better shell experience
+- **Visual Studio Code** - For editing configuration files
+- **Git Credential Manager** - For easier authentication (usually included with Git for Windows)
+
+### Windows-Specific Environment Setup
+
+#### Path Conventions
+
+Windows uses different path conventions than Unix systems. Git Bash handles most of this automatically, but be aware:
+
+```bash
+# Unix-style paths (use these in Git Bash)
+export PROJECT_ID="your-project-id"
+cd /c/Users/YourName/projects/reimagined-guacamole
+
+# Windows-style paths (converted automatically by Git Bash)
+C:\Users\YourName\projects\reimagined-guacamole
+
+# Git Bash converts Windows paths to Unix format automatically
+cd ~/projects/reimagined-guacamole  # Recommended approach
+```
+
+#### Line Endings Configuration
+
+Configure Git to handle line endings properly:
+
+```bash
+# Set line ending handling for this repository
+git config core.autocrlf input
+
+# Or globally for all repositories
+git config --global core.autocrlf input
+```
+
+This ensures shell scripts maintain Unix-style line endings (LF) even on Windows.
+
+#### Environment Variables Setup
+
+Setting environment variables in Git Bash:
+
+```bash
+# Temporary (current session only)
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
+
+# Verify
+echo $PROJECT_ID
+
+# For permanent environment variables, add to ~/.bashrc:
+echo 'export PROJECT_ID="your-gcp-project-id"' >> ~/.bashrc
+echo 'export REGION="us-central1"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### Creating .env Files
+
+When creating environment files on Windows:
+
+```bash
+# Copy template (works in Git Bash)
+cp .env.production.template .env.production
+
+# Edit with your preferred editor
+notepad .env.production  # Opens in Notepad
+code .env.production     # Opens in VS Code (if installed)
+
+# Or use nano/vim in Git Bash
+nano .env.production
+```
+
+### Running Deployment Scripts on Windows
+
+All deployment scripts are designed to work with Git Bash. Always run scripts using `bash`:
+
+```bash
+# Correct: Use bash explicitly
+bash scripts/deploy-production.sh
+
+# Also correct: Ensure script is executable
+chmod +x scripts/deploy-production.sh
+./scripts/deploy-production.sh
+
+# Avoid: Running without bash may fail
+scripts/deploy-production.sh  # May not work
+```
+
+#### Full Deployment Example (Windows)
+
+```bash
+# 1. Open Git Bash and navigate to project
+cd ~/projects/reimagined-guacamole
+
+# 2. Set required environment variables
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
+
+# 3. Ensure Docker Desktop is running
+# Check Docker status
+docker ps
+
+# 4. Authenticate with Google Cloud
+gcloud auth login
+gcloud config set project $PROJECT_ID
+
+# 5. Configure Docker for GCR
+gcloud auth configure-docker
+
+# 6. Run deployment
+bash scripts/deploy-production.sh
+```
+
+### Windows-Specific Commands
+
+Some commands may need slight adjustments on Windows:
+
+#### Secret Generation
+
+```bash
+# Using openssl (included with Git for Windows)
+openssl rand -base64 64
+
+# Alternative: Using PowerShell (from Git Bash)
+powershell.exe -Command "[Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Maximum 256 }))"
+
+# Using Node.js (cross-platform)
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+```
+
+#### Port Checking
+
+```bash
+# Check if port is in use (Git Bash)
+netstat -ano | grep :3000
+
+# Alternative: Using PowerShell
+powershell.exe -Command "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue"
+```
+
+#### Process Management
+
+```bash
+# Find process by port
+netstat -ano | findstr :3000
+
+# Kill process by PID (use PID from netstat output)
+taskkill //F //PID <process_id>
+```
+
+### Common Windows-Specific Issues
+
+#### Issue: "command not found" errors
+
+**Symptom**: Commands like `gcloud`, `docker`, or `npm` not found in Git Bash
+
+**Solution**:
+1. Ensure tools are installed
+2. Add installation directories to PATH:
+   ```bash
+   # Add to ~/.bashrc
+   export PATH="$PATH:/c/Program Files/Google/Cloud SDK/google-cloud-sdk/bin"
+   export PATH="$PATH:/c/Program Files/Docker/Docker/resources/bin"
+   export PATH="$PATH:/c/Program Files/nodejs"
+   
+   # Reload configuration
+   source ~/.bashrc
+   ```
+
+#### Issue: Permission denied on scripts
+
+**Symptom**: `bash: ./script.sh: Permission denied`
+
+**Solution**:
+```bash
+# Make script executable
+chmod +x scripts/deploy-production.sh
+
+# Or always use bash explicitly
+bash scripts/deploy-production.sh
+```
+
+#### Issue: Line ending issues causing script failures
+
+**Symptom**: Scripts fail with `'\r': command not found` or similar errors
+
+**Solution**:
+```bash
+# Convert line endings for all scripts
+dos2unix scripts/*.sh
+
+# If dos2unix is not available, use sed
+sed -i 's/\r$//' scripts/*.sh
+
+# Or configure Git to handle it automatically
+git config core.autocrlf input
+git rm --cached -r .
+git reset --hard
+```
+
+#### Issue: Docker daemon not running
+
+**Symptom**: `Cannot connect to the Docker daemon`
+
+**Solution**:
+1. Start Docker Desktop from the Start menu
+2. Wait for Docker to fully initialize (check system tray icon)
+3. Verify: `docker ps`
+4. If still failing, restart Docker Desktop
+
+#### Issue: npm install failures with peer dependency errors
+
+**Symptom**: `ERESOLVE unable to resolve dependency tree`
+
+**Solution**:
+```bash
+# Use legacy peer deps flag (as configured in project)
+npm install --legacy-peer-deps
+
+# Clean install
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+```
+
+#### Issue: Path too long errors
+
+**Symptom**: Errors about path lengths exceeding Windows limits
+
+**Solution**:
+1. Enable long paths in Windows:
+   ```powershell
+   # Run in PowerShell as Administrator
+   New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+   ```
+
+2. Or clone repository closer to root:
+   ```bash
+   cd /c/projects  # Instead of /c/Users/YourName/Documents/Projects/...
+   ```
+
+#### Issue: Firewall blocking gcloud or Docker
+
+**Symptom**: Connection timeouts when deploying or pulling images
+
+**Solution**:
+1. Allow gcloud and Docker through Windows Firewall
+2. Check corporate firewall/proxy settings
+3. Configure proxy if needed:
+   ```bash
+   # For gcloud
+   gcloud config set proxy/type http
+   gcloud config set proxy/address proxy.example.com
+   gcloud config set proxy/port 8080
+   
+   # For Docker
+   # Configure in Docker Desktop Settings > Resources > Proxies
+   ```
+
+#### Issue: Script execution policy errors (PowerShell)
+
+**Symptom**: If you accidentally try to run scripts in PowerShell instead of Git Bash
+
+**Solution**:
+Always use Git Bash for running deployment scripts:
+```bash
+# Wrong: PowerShell
+powershell .\scripts\deploy-production.sh
+
+# Correct: Git Bash
+bash scripts/deploy-production.sh
+```
+
+### Windows Deployment Checklist
+
+Use this checklist to ensure Windows-specific setup is complete:
+
+- [ ] Git for Windows installed with Git Bash
+- [ ] Node.js v18+ installed and in PATH
+- [ ] npm working correctly (`npm --version`)
+- [ ] Google Cloud SDK installed and authenticated
+- [ ] Docker Desktop installed and running
+- [ ] Docker daemon accessible (`docker ps` works)
+- [ ] Line endings configured (`git config core.autocrlf input`)
+- [ ] All scripts have Unix line endings (LF, not CRLF)
+- [ ] Environment variables set in Git Bash session
+- [ ] `.env.production` created and configured
+- [ ] Windows Firewall allows gcloud and Docker
+- [ ] Long paths enabled (if needed)
+
+### Testing Your Windows Setup
+
+Before deploying to production, verify your Windows setup:
+
+```bash
+# 1. Check all prerequisites
+node --version    # Should show v18 or higher
+npm --version     # Should show 9.x or higher
+docker --version  # Should show Docker version
+gcloud --version  # Should show Google Cloud SDK version
+
+# 2. Test Docker
+docker run hello-world  # Should pull and run successfully
+
+# 3. Test gcloud authentication
+gcloud auth list  # Should show your authenticated account
+
+# 4. Test local build
+npm install --legacy-peer-deps
+npm run build
+
+# 5. Test environment validation
+npm run env:validate
+
+# 6. Run health check (if server is running)
+npm run health
+```
+
+### Performance Tips for Windows
+
+1. **Use WSL 2 for Docker**: Configure Docker Desktop to use WSL 2 backend for better performance
+2. **Exclude from antivirus**: Add project directory to Windows Defender exclusions
+3. **Use SSD**: Keep project on SSD rather than HDD for faster builds
+4. **Close unnecessary apps**: Free up RAM during builds and deployments
+
+### Additional Windows Resources
+
+- **Git Bash Documentation**: [Git for Windows Wiki](https://github.com/git-for-windows/git/wiki)
+- **Docker Desktop for Windows**: [Docker Windows Documentation](https://docs.docker.com/desktop/windows/)
+- **Google Cloud SDK for Windows**: [Installation Guide](https://cloud.google.com/sdk/docs/install#windows)
+- **Windows Terminal**: [Microsoft Documentation](https://docs.microsoft.com/en-us/windows/terminal/)
+
+### Getting Help on Windows
+
+If you encounter Windows-specific issues:
+
+1. **Check Git Bash version**: `git --version` (use latest)
+2. **Verify PATH configuration**: `echo $PATH`
+3. **Check for WSL/Git Bash conflicts**: Ensure using correct bash
+4. **Review error messages carefully**: Note any Windows-specific paths or errors
+5. **Test in PowerShell**: Some commands work differently - stick to Git Bash
+6. **Community Support**: Include "Windows" in your GitHub issue title
+
+---
+
 ## Support
 
 For deployment support:
@@ -919,6 +1300,7 @@ For deployment support:
 - **Documentation Issues**: Open an issue on GitHub
 - **Deployment Questions**: Check existing documentation first
 - **Critical Production Issues**: Follow your organization's incident response procedures
+- **Windows-Specific Issues**: Include your Git Bash version and Windows version in bug reports
 
 ---
 
