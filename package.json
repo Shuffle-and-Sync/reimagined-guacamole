@@ -48,10 +48,6 @@
     "deploy:production": "bash scripts/deploy-production.sh",
     "deploy:backend": "bash scripts/deploy-production.sh --backend-only",
     "deploy:frontend": "bash scripts/deploy-production.sh --frontend-only",
-    "deploy:cloudrun": "bash scripts/deploy-cloud-run.sh",
-    "verify:production": "bash scripts/verify-production.sh",
-    "verify:cloudrun": "bash scripts/verify-cloud-run-deployment.sh",
-    "diagnose:auth": "bash scripts/diagnose-auth-error.sh",
     "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
     "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
     "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'"
