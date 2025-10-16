@@ -7,10 +7,16 @@ vite.config.ts.*
 *.tar.gz
 
 # Environment files
+# Broad patterns to prevent ANY .env files from being committed
+*.env*
+.env*
 .env
 .env.local
 .env.production
 .env.test
+# Allow .env.example and .env.production.template as they contain no secrets
+!.env.example
+!.env.production.template
 
 # Build artifacts
 build/
