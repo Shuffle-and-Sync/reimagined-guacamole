@@ -81,16 +81,28 @@ export function isSecureToken(token: string): boolean {
   // Must be at least 32 characters
   if (token.length < 32) return false;
   
-  // Must not contain obvious patterns
-  const weakPatterns = [
-    /^(demo|test|example|dev)/i,
-    /\d{10,}/,  // Long sequences of digits (like timestamps)
-    /(.)\1{4,}/, // Repeated characters (5 or more in a row)
-  ];
+  // Check for weak prefixes (demo, test, example, dev)
+  if (/^(demo|test|example|dev)/i.test(token)) {
+    return false;
+  }
   
-  // For hex tokens (from crypto.randomBytes), accept them if they're long enough and don't have weak patterns
+  // Check for repeated characters (5 or more in a row)
+  if (/(.)\1{4,}/.test(token)) {
+    return false;
+  }
+  
+  // For hex tokens (from crypto.randomBytes), they are secure if long enough
+  // and don't have weak patterns like repeating sequences
   if (/^[a-f0-9]+$/.test(token) && token.length >= 32) {
-    return !weakPatterns.some(pattern => pattern.test(token));
+    // Check if it's just repeated digits (like '123456789012345...')
+    // A secure hex token should have variety across the full hex range (0-9, a-f)
+    const uniqueChars = new Set(token).size;
+    // Require at least 12 unique chars (mix of digits and a-f letters)
+    // A token with only 0-9 (10 chars) is weak
+    if (uniqueChars < 12) {
+      return false;
+    }
+    return true;
   }
   
   // For other tokens, require mixed case, numbers, etc.
@@ -102,7 +114,7 @@ export function isSecureToken(token: string): boolean {
   const complexity = [hasUppercase, hasLowercase, hasNumbers].filter(Boolean).length;
   if (complexity < 2) return false;
   
-  return !weakPatterns.some(pattern => pattern.test(token));
+  return true;
 }
 
 /**
@@ -112,7 +124,13 @@ export function validateJWTSecret(secret: string): boolean {
   if (secret.length < 32) return false;
   if (!isSecureToken(secret)) return false;
   
-  // Additional JWT-specific checks
+  // For hex tokens (from crypto.randomBytes), they are already secure
+  // No need for additional complexity requirements as hex provides sufficient entropy
+  if (/^[a-f0-9]+$/.test(secret) && secret.length >= 32) {
+    return true;
+  }
+  
+  // For non-hex secrets, require additional complexity
   const hasUppercase = /[A-Z]/.test(secret);
   const hasLowercase = /[a-z]/.test(secret);
   const hasNumbers = /\d/.test(secret);
@@ -185,9 +203,8 @@ export function auditSecurityConfiguration(): { passed: boolean; issues: string[
     }
   }
   
-  // In production, always pass the security audit to allow Cloud Run health checks
-  // Individual services will gracefully degrade if their dependencies are not available
-  const passed = process.env.NODE_ENV === 'production' ? true : issues.length === 0;
+  // Audit passes only if there are no issues
+  const passed = issues.length === 0;
   
   return {
     passed,
