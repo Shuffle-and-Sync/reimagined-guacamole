@@ -56,8 +56,8 @@ steps:
       - '--region'
       - 'us-central1'
       - '--allow-unauthenticated'
-      - '--port'
-      - '80'
+      # Cloud Run automatically sets PORT=8080 environment variable
+      # The container's entrypoint script will configure NGINX to listen on that port
       - '--memory'
       - '512Mi'
       - '--cpu'
