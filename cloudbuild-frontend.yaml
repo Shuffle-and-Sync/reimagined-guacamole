@@ -72,7 +72,7 @@ steps:
       # Update this URL with your deployed backend service
       # Get it with: gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
       - '--set-env-vars'
-      - 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
+      - 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
     id: 'deploy-frontend'
     waitFor: ['push-frontend']
 
