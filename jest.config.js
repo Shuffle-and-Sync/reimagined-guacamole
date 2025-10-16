@@ -47,9 +47,13 @@ export default {
     }
   },
   
-  // Transform configuration for TypeScript
+  // Transform configuration for TypeScript and ESM JavaScript
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: 'tsconfig.json',
+      useESM: true
+    }],
+    '^.+\\.jsx?$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
       useESM: true
     }]
@@ -59,7 +63,7 @@ export default {
   
   // Transform ignore patterns for node_modules
   transformIgnorePatterns: [
-    'node_modules/(?!(nanoid|@node-rs/argon2)/)'
+    'node_modules/(?!nanoid|@node-rs/argon2)'
   ],
   
   // Module file extensions
