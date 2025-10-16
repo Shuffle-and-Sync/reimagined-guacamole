@@ -99,20 +99,19 @@ Separate services for frontend (NGINX) and backend (Node.js).
 The automated script guides you through the entire process:
 
 ```bash
-npm run deploy:cloudrun
+# Deploy both backend and frontend
+npm run deploy:production
 
-# Or run directly:
-bash scripts/deploy-cloud-run.sh
+# Or deploy individually:
+npm run deploy:backend  # Backend only
+npm run deploy:frontend # Frontend only
 ```
 
-> **Note:** Windows users with Git Bash/MINGW64 should use `bash scripts/` format.
-
-**The script will:**
-1. ✅ Check prerequisites and required APIs
-2. ✅ Deploy backend service first
-3. ✅ Configure all environment variables
-4. ✅ Deploy frontend service with correct backend URL (if split deployment)
-5. ✅ Verify the deployment automatically
+**The deployment process:**
+1. ✅ Runs tests to ensure code quality
+2. ✅ Builds the application
+3. ✅ Deploys to Google Cloud Run
+4. ✅ Verifies deployment health
 6. ✅ Provide next steps and documentation links
 
 ---
