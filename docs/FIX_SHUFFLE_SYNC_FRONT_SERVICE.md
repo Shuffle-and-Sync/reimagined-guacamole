@@ -39,7 +39,7 @@ BACKEND_URL=$(gcloud run services describe shuffle-sync-backend \
   --format='value(status.url)')
 
 echo "Backend URL: $BACKEND_URL"
-# Should show: https://shuffle-sync-backend-683555795974.us-central1.run.app
+# Should show: https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ### Step 3: Configure Frontend to Proxy to Backend
@@ -49,7 +49,7 @@ echo "Backend URL: $BACKEND_URL"
 ```bash
 gcloud run services update shuffle-sync-front \
   --region=us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 **If your frontend service is `shuffle-sync-frontend`:**
@@ -57,7 +57,7 @@ gcloud run services update shuffle-sync-front \
 ```bash
 gcloud run services update shuffle-sync-frontend \
   --region=us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ### Step 4: Configure Backend OAuth Credentials
@@ -80,7 +80,7 @@ gcloud run services update shuffle-sync-backend \
 2. Edit your OAuth 2.0 Client ID
 3. Add this redirect URI:
    ```
-   https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+   https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
    ```
 4. Click **Save**
 
@@ -221,7 +221,7 @@ Error: redirect_uri_mismatch
 
 **Fix**: Make sure you added the redirect URI to Google OAuth Console:
 ```
-https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
 
 **Common mistakes**:

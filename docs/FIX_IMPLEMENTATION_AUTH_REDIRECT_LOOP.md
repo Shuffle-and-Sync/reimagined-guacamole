@@ -148,7 +148,7 @@ fi
    ```bash
    gcloud run services update shuffle-sync-frontend \
      --region=us-central1 \
-     --set-env-vars BACKEND_URL=(https://shuffle-sync-backend-683555795974.us-central1.run.app)
+     --set-env-vars BACKEND_URL=(https://shuffle-sync-backend-858080302197.us-central1.run.app)
    ```
 
 2. Set OAuth credentials on backend service:

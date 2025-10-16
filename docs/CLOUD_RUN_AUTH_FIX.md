@@ -174,7 +174,7 @@ If you want to explicitly set `AUTH_URL`:
 
 ```bash
 # For Cloud Run service URL
-AUTH_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+AUTH_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 
 # For custom domain
 AUTH_URL=https://api.shuffleandsync.com
