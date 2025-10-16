@@ -85,7 +85,8 @@ options:
   logging: CLOUD_LOGGING_ONLY
   
 # Substitutions for variables
-# You can override the service name with: --substitutions=_SERVICE_NAME=your-service-name
+# These provide default values that can be overridden with --substitutions flag
+# Example: gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_REGION=us-east1,_SERVICE_NAME=your-service-name
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: shuffle-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
