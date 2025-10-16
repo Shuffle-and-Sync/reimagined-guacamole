@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: shuffle-sync-backend
+    container_name: shuffle-and-sync-backend
     environment:
       # Database connection (SQLite Cloud)
       DATABASE_URL: sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
@@ -64,7 +64,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: shuffle-sync-frontend
+    container_name: shuffle-and-sync-frontend
     ports:
       - "3000:80"
     depends_on:
