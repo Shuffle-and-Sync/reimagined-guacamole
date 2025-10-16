@@ -193,7 +193,7 @@ Complete documentation is organized in the [docs/](docs/) directory:
 - **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Getting started with development
 - **[Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
 - **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
+- **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions
 - **[Secret Management Guide](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 - **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
 
@@ -225,7 +225,7 @@ npm run format           # Prettier code formatting
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
 - **[🗄️ Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design & setup  
 - **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
-- **[🌐 Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment
+- **[🌐 Deployment Guide](DEPLOYMENT.md)** - Production deployment
 - **[🔐 Secret Management](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 
 ### Key Features
@@ -280,8 +280,8 @@ npm run deploy:cloudrun
 **Environment Variables (optional):**
 - `PROJECT_ID` - Google Cloud Project ID (prompted if not set)
 - `REGION` - Deployment region (default: us-central1)
-- `BACKEND_SERVICE` - Backend service name (default: shuffle-sync-backend)
-- `FRONTEND_SERVICE` - Frontend service name (default: shuffle-sync-frontend)
+- `BACKEND_SERVICE` - Backend service name (default: shuffle-and-sync-backend)
+- `FRONTEND_SERVICE` - Frontend service name (default: shuffle-and-sync-frontend)
 
 **Example with environment variables:**
 ```bash
@@ -308,12 +308,11 @@ npm run verify:cloudrun
 ### Production Documentation
 
 - **[☁️ Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
-- **[🚀 Deployment Guide](docs/deployment/deployment-guide.md)** - Complete deployment guide with Cloud Run setup
+- **[🚀 Deployment Guide](DEPLOYMENT.md)** - Complete deployment guide with Cloud Run setup
 - **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Production deployment checklist
 - **[🔧 Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
 - **[🔐 Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete environment variable reference
 - **[🔐 Environment Template](.env.production.template)** - Required environment variables template
-- **[📖 Technical Deployment Details](docs/deployment/DEPLOYMENT.md)** - Advanced deployment topics
 
 ## 🔒 Security
 

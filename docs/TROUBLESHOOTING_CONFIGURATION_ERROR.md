@@ -370,7 +370,7 @@ gcloud run services describe shuffle-sync-front \
 ## Related Documentation
 
 - [troubleshooting.md](./troubleshooting.md) - **Primary troubleshooting guide** - Quick 5-minute fix and comprehensive solutions
-- [deployment/deployment-guide.md](./deployment/deployment-guide.md) - Complete architecture and deployment guide
+- [DEPLOYMENT.md](../DEPLOYMENT.md) - Complete architecture and deployment guide
 - [AUTHENTICATION.md](./AUTHENTICATION.md) - Authentication system documentation
 
 ## Get Help

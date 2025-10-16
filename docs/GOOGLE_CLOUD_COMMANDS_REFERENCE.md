@@ -146,7 +146,7 @@ gcloud services enable \
 **Purpose:** Enable Google Cloud services needed for the application  
 **When to use:** During initial project setup or when adding new services  
 **Required for:** Cloud Run, Cloud Build, Cloud SQL, Secret Manager  
-**Documentation:** [Deployment Guide](deployment/DEPLOYMENT.md)
+**Documentation:** [Deployment Guide](../DEPLOYMENT.md)
 
 #### Enable Individual API
 
@@ -649,7 +649,7 @@ gcloud run services update shuffle-sync-frontend \
 gcloud run services list --region=$REGION
 ```
 
-**Documentation:** [Deployment Guide](deployment/deployment-guide.md)
+**Documentation:** [Deployment Guide](../DEPLOYMENT.md)
 
 ### Debugging Failed Deployment
 
@@ -772,8 +772,7 @@ npm run verify:cloudrun
 ## Related Documentation
 
 ### Deployment & Configuration
-- [Deployment Guide](deployment/deployment-guide.md) - Complete deployment guide
-- [Deployment Details](deployment/DEPLOYMENT.md) - Advanced deployment topics
+- [Deployment Guide](../DEPLOYMENT.md) - Complete deployment guide
 - [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### Troubleshooting

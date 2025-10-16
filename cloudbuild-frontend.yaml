@@ -4,11 +4,11 @@
 # 
 # To configure:
 # 1. Deploy backend service first: gcloud builds submit --config cloudbuild.yaml
-# 2. Get backend URL: gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
+# 2. Get backend URL: gcloud run services describe shuffle-and-sync-backend --region=us-central1 --format='value(status.url)'
 # 3. Update BACKEND_URL below with your actual backend URL
 # 4. Deploy frontend: gcloud builds submit --config cloudbuild-frontend.yaml
 #
-# See docs/CLOUD_RUN_FRONTEND_BACKEND_SETUP.md for detailed instructions
+# See DEPLOYMENT.md for detailed instructions
 
 steps:
   # Build frontend Docker image
@@ -18,9 +18,9 @@ steps:
       - '-f'
       - 'Dockerfile.frontend'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest'
       - '.'
     id: 'build-frontend'
 
@@ -28,7 +28,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
     id: 'push-frontend'
     waitFor: ['build-frontend']
 
@@ -36,7 +36,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest'
     id: 'push-frontend-latest'
     waitFor: ['build-frontend']
 
@@ -50,7 +50,7 @@ steps:
       - 'deploy'
       - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
       - '--platform'
       - 'managed'
       - '--region'
@@ -70,9 +70,9 @@ steps:
       - '60'
       # CRITICAL: Set BACKEND_URL to your actual backend service URL
       # Update this URL with your deployed backend service
-      # Get it with: gcloud run services describe shuffle-sync-backend --region=${_REGION} --format='value(status.url)'
+      # Get it with: gcloud run services describe shuffle-and-sync-backend --region=${_REGION} --format='value(status.url)'
       - '--set-env-vars'
-      - 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
+      - 'BACKEND_URL=https://shuffle-and-sync-backend-858080302197.us-central1.run.app'
     id: 'deploy-frontend'
     waitFor: ['push-frontend']
 
@@ -89,8 +89,8 @@ options:
 # Example: gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_REGION=us-east1,_SERVICE_NAME=your-service-name
 substitutions:
   _REGION: us-central1
-  _SERVICE_NAME: shuffle-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
+  _SERVICE_NAME: shuffle-and-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
 
 images:
-  - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest'
+  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest'

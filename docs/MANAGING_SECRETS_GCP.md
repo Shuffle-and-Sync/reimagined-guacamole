@@ -1158,7 +1158,7 @@ gcloud secrets add-iam-policy-binding SECRET_NAME \
 
 - [Google Secret Manager Documentation](https://cloud.google.com/secret-manager/docs)
 - [Google Cloud SDK Documentation](https://cloud.google.com/sdk/docs)
-- [Deployment Guide](deployment/DEPLOYMENT.md)
+- [Deployment Guide](../DEPLOYMENT.md)
 - [Environment Variables Documentation](../ENVIRONMENT_VARIABLES.md)
 - [Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md)
 - [Security Improvements Guide](SECURITY_IMPROVEMENTS.md)

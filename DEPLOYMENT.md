@@ -7,6 +7,7 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
 - [Prerequisites](#prerequisites)
 - [Environment Setup](#environment-setup)
   - [Administrator Account Setup](#5-initialize-administrator-account)
+- [Deployment Options](#deployment-options)
 - [Deployment Procedures](#deployment-procedures)
 - [Rollback Strategies](#rollback-strategies)
 - [Verification Steps](#verification-steps)
@@ -23,7 +24,7 @@ Before deploying to production, ensure you have the following prerequisites in p
 ### Required Tools & Access
 
 - [ ] **Google Cloud SDK (gcloud CLI)** - [Installation Guide](https://cloud.google.com/sdk/docs/install)
-- [ ] **Docker** - For building container images
+- [ ] **Docker with BuildKit** - For building container images with multi-architecture support
 - [ ] **Node.js** (v18 or later) and npm
 - [ ] **Git** - For version control
 - [ ] **Production Google Cloud Project** with billing enabled
@@ -125,46 +126,6 @@ Set up a SQLite Cloud database for the application:
 npm run db:init
 npm run db:push
 ```
-```
-
-#### Create Production Database
-
-```bash
-# Create the application database (used by both Drizzle and Prisma)
-gcloud sql databases create shufflesync_prod \
-  --instance=$INSTANCE_NAME
-
-# Create application user (single user for all database access)
-gcloud sql users create app_user \
-  --instance=$INSTANCE_NAME \
-  --password="your-secure-app-password"
-```
-
-> **Note**: This single database is accessed by:
-> - Drizzle ORM (primary) - all application queries
-> - Prisma (build-time only) - schema validation during build
-> - Both use the same `DATABASE_URL` connection string
-
-#### Configure Database Connection
-
-```bash
-# Get the connection name
-CONNECTION_NAME=$(gcloud sql instances describe $INSTANCE_NAME \
-  --format="value(connectionName)")
-
-# For Cloud Run, use Unix socket connection
-# This single DATABASE_URL is used by both Drizzle and Prisma
-DATABASE_URL="postgresql://app_user:password@/shufflesync_prod?host=/cloudsql/$CONNECTION_NAME"
-```
-
-**Database Architecture Summary:**
-- ✅ **One PostgreSQL instance** (Cloud SQL)
-- ✅ **One database** (shufflesync_prod)
-- ✅ **One connection string** (DATABASE_URL)
-- ✅ **Primary ORM**: Drizzle (handles all runtime queries)
-- ✅ **Secondary**: Prisma (build-time schema validation only)
-
-For complete details, see [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md)
 
 ### 3. Google OAuth Configuration
 
@@ -181,7 +142,7 @@ Configure OAuth credentials for authentication:
 
 **⚠️ IMPORTANT:** Never commit secrets to version control. Always use Google Secret Manager for production.
 
-See **[Managing Secrets with Google Secret Manager Guide](../MANAGING_SECRETS_GCP.md)** for comprehensive instructions.
+See **[Managing Secrets with Google Secret Manager Guide](docs/MANAGING_SECRETS_GCP.md)** for comprehensive instructions.
 
 #### Quick Setup
 
@@ -200,8 +161,38 @@ gcloud secrets add-iam-policy-binding auth-secret \
 ```
 
 For complete secret management workflows including rotation, audit, and TypeScript integration, see:
-- **[Complete Secret Management Guide](../MANAGING_SECRETS_GCP.md)**
-- **[Google Cloud Commands Reference](../GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
+- **[Complete Secret Management Guide](docs/MANAGING_SECRETS_GCP.md)**
+- **[Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
+
+---
+
+## Deployment Options
+
+### Option 1: Unified Deployment (Simpler)
+
+Single Cloud Run service serving both frontend and backend.
+
+**Pros:**
+- Simpler configuration
+- Single service to manage
+- No CORS or proxy configuration needed
+
+**Cons:**
+- Cannot scale frontend and backend independently
+- Frontend and backend share resources
+
+### Option 2: Split Deployment (Production Recommended)
+
+Separate services for frontend (NGINX) and backend (Node.js).
+
+**Pros:**
+- Independent scaling for frontend and backend
+- Better performance (NGINX serves static files)
+- Can use CDN for frontend
+
+**Cons:**
+- Requires proxy configuration
+- More complex initial setup
 
 ---
 
@@ -268,31 +259,68 @@ export CONNECTION_NAME=$(gcloud sql instances describe your-instance-name --form
 
 #### 1. Build Docker Images
 
+**Standard Build (Single Architecture)**
+
 ```bash
+# Enable Docker BuildKit for improved build performance
+export DOCKER_BUILDKIT=1
+
 # Build backend image
-docker build -f Dockerfile -t gcr.io/$PROJECT_ID/shuffle-sync-backend:latest .
+docker build -f Dockerfile -t gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest .
 
 # Build frontend image
-docker build -f Dockerfile.frontend -t gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest .
+docker build -f Dockerfile.frontend -t gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest .
 ```
 
-#### 2. Push to Google Container Registry
+**Multi-Architecture Build (Recommended for Production)**
+
+For multi-architecture support (AMD64 and ARM64), use Docker Buildx:
+
+```bash
+# Create and use a new buildx builder (one-time setup)
+docker buildx create --name multiarch-builder --use
+docker buildx inspect --bootstrap
+
+# Build and push backend image for multiple architectures
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -f Dockerfile \
+  -t gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest \
+  --push \
+  .
+
+# Build and push frontend image for multiple architectures
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -f Dockerfile.frontend \
+  -t gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest \
+  --push \
+  .
+```
+
+> **Note**: Multi-architecture builds require `--push` flag as multi-platform images cannot be loaded locally. Images are pushed directly to the registry.
+
+#### 2. Push to Google Container Registry (Single Architecture Only)
+
+If you built for a single architecture, push the images:
 
 ```bash
 # Configure Docker for GCR
 gcloud auth configure-docker
 
 # Push images
-docker push gcr.io/$PROJECT_ID/shuffle-sync-backend:latest
-docker push gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest
+docker push gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest
+docker push gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest
 ```
+
+> **Note**: Skip this step if you used the multi-architecture build command above, as images are already pushed.
 
 #### 3. Deploy to Cloud Run
 
 ```bash
 # Deploy backend
-gcloud run deploy shuffle-sync-backend \
-  --image gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+gcloud run deploy shuffle-and-sync-backend \
+  --image gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
@@ -306,8 +334,8 @@ gcloud run deploy shuffle-sync-backend \
   --min-instances 0
 
 # Deploy frontend
-gcloud run deploy shuffle-sync-frontend \
-  --image gcr.io/$PROJECT_ID/shuffle-sync-frontend:latest \
+gcloud run deploy shuffle-and-sync-frontend \
+  --image gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
@@ -355,7 +383,7 @@ For automated deployments via Cloud Build:
 ```bash
 gcloud builds submit \
   --config cloudbuild.yaml \
-  --substitutions _REGION=$REGION,_SERVICE_NAME=shuffle-sync-backend
+  --substitutions _REGION=$REGION,_SERVICE_NAME=shuffle-and-sync-backend
 ```
 
 #### Frontend Deployment
@@ -363,7 +391,7 @@ gcloud builds submit \
 ```bash
 gcloud builds submit \
   --config cloudbuild-frontend.yaml \
-  --substitutions _REGION=$REGION,_SERVICE_NAME=shuffle-sync-frontend
+  --substitutions _REGION=$REGION,_SERVICE_NAME=shuffle-and-sync-frontend
 ```
 
 ### Domain & SSL Configuration
@@ -373,7 +401,7 @@ gcloud builds submit \
 ```bash
 # Map domain to Cloud Run service
 gcloud run domain-mappings create \
-  --service shuffle-sync-frontend \
+  --service shuffle-and-sync-frontend \
   --domain your-domain.com \
   --region $REGION
 ```
@@ -407,13 +435,13 @@ If issues are detected after deployment, rollback immediately:
 ```bash
 # List revisions for backend
 gcloud run revisions list \
-  --service shuffle-sync-backend \
+  --service shuffle-and-sync-backend \
   --region $REGION \
   --limit 5
 
 # List revisions for frontend
 gcloud run revisions list \
-  --service shuffle-sync-frontend \
+  --service shuffle-and-sync-frontend \
   --region $REGION \
   --limit 5
 ```
@@ -422,12 +450,12 @@ gcloud run revisions list \
 
 ```bash
 # Rollback backend to previous revision
-gcloud run services update-traffic shuffle-sync-backend \
+gcloud run services update-traffic shuffle-and-sync-backend \
   --to-revisions PREVIOUS_REVISION=100 \
   --region $REGION
 
 # Rollback frontend to previous revision
-gcloud run services update-traffic shuffle-sync-frontend \
+gcloud run services update-traffic shuffle-and-sync-frontend \
   --to-revisions PREVIOUS_REVISION=100 \
   --region $REGION
 ```
@@ -458,30 +486,30 @@ For safer deployments, gradually shift traffic to the new revision:
 
 ```bash
 # Deploy new revision without traffic
-gcloud run deploy shuffle-sync-backend \
-  --image gcr.io/$PROJECT_ID/shuffle-sync-backend:latest \
+gcloud run deploy shuffle-and-sync-backend \
+  --image gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest \
   --region $REGION \
   --no-traffic
 
 # Get the new revision name
 NEW_REVISION=$(gcloud run revisions list \
-  --service shuffle-sync-backend \
+  --service shuffle-and-sync-backend \
   --region $REGION \
   --format="value(name)" \
   --limit 1)
 
 # Route 10% traffic to new revision
-gcloud run services update-traffic shuffle-sync-backend \
+gcloud run services update-traffic shuffle-and-sync-backend \
   --to-revisions $NEW_REVISION=10,$OLD_REVISION=90 \
   --region $REGION
 
 # Monitor metrics, then increase gradually
-gcloud run services update-traffic shuffle-sync-backend \
+gcloud run services update-traffic shuffle-and-sync-backend \
   --to-revisions $NEW_REVISION=50,$OLD_REVISION=50 \
   --region $REGION
 
 # If successful, route 100% traffic
-gcloud run services update-traffic shuffle-sync-backend \
+gcloud run services update-traffic shuffle-and-sync-backend \
   --to-revisions $NEW_REVISION=100 \
   --region $REGION
 ```
@@ -499,7 +527,7 @@ After deployment, perform the following verification steps:
 npm run verify:production
 
 # Manual health check
-BACKEND_URL=$(gcloud run services describe shuffle-sync-backend \
+BACKEND_URL=$(gcloud run services describe shuffle-and-sync-backend \
   --region $REGION \
   --format "value(status.url)")
 
@@ -519,7 +547,7 @@ Expected response:
 ### 2. Frontend Accessibility
 
 ```bash
-FRONTEND_URL=$(gcloud run services describe shuffle-sync-frontend \
+FRONTEND_URL=$(gcloud run services describe shuffle-and-sync-frontend \
   --region $REGION \
   --format "value(status.url)")
 
@@ -557,7 +585,7 @@ Test critical user flows:
 curl -w "@curl-format.txt" -o /dev/null -s $BACKEND_URL/api/health
 
 # Monitor Cloud Run metrics
-gcloud run services describe shuffle-sync-backend \
+gcloud run services describe shuffle-and-sync-backend \
   --region $REGION \
   --format "table(status.conditions)"
 ```
@@ -566,12 +594,12 @@ gcloud run services describe shuffle-sync-backend \
 
 ```bash
 # View recent logs
-gcloud run services logs read shuffle-sync-backend \
+gcloud run services logs read shuffle-and-sync-backend \
   --region $REGION \
   --limit 50
 
 # Filter for errors
-gcloud run services logs read shuffle-sync-backend \
+gcloud run services logs read shuffle-and-sync-backend \
   --region $REGION \
   --filter "severity>=ERROR"
 ```
@@ -598,7 +626,7 @@ gcloud run services logs read shuffle-sync-backend \
 
 ```bash
 # Check environment variables
-gcloud run services describe shuffle-sync-backend \
+gcloud run services describe shuffle-and-sync-backend \
   --region $REGION \
   --format "yaml(spec.template.spec.containers[0].env)"
 ```
@@ -611,7 +639,7 @@ gcloud run services describe shuffle-sync-backend \
 
 ```bash
 # Check secret bindings
-gcloud run services describe shuffle-sync-backend \
+gcloud run services describe shuffle-and-sync-backend \
   --region $REGION \
   --format "yaml(spec.template.spec.containers[0].env)"
 
@@ -630,7 +658,7 @@ npm run env:validate
 4. Increase startup timeout if needed:
 
 ```bash
-gcloud run services update shuffle-sync-backend \
+gcloud run services update shuffle-and-sync-backend \
   --region $REGION \
   --timeout 300
 ```
@@ -704,23 +732,108 @@ npm install --legacy-peer-deps
 **Solution**: Increase memory allocation:
 
 ```bash
-gcloud run services update shuffle-sync-backend \
+gcloud run services update shuffle-and-sync-backend \
   --region $REGION \
   --memory 2Gi
 ```
+
+#### Configuration Error on Login
+
+**Symptoms:**
+- Browser shows `ERR_TOO_MANY_ACCEPT_CH_RESTARTS`
+- Redirects to `/api/auth/error?error=Configuration`
+
+**Quick Fix:**
+
+1. Run diagnostics:
+```bash
+npm run diagnose:auth
+```
+
+2. Common issues:
+   - Missing OAuth credentials on backend
+   - Frontend not configured with `BACKEND_URL` (split deployment)
+   - OAuth redirect URIs not matching deployed URLs
+
+See [Troubleshooting Guide](docs/troubleshooting.md) for detailed solutions.
+
+#### Frontend Can't Reach Backend
+
+**For split deployment**, verify:
+
+1. Frontend has `BACKEND_URL` set:
+```bash
+gcloud run services describe shuffle-and-sync-frontend \
+  --region=$REGION \
+  --format="value(spec.template.spec.containers[0].env)" | grep BACKEND_URL
+```
+
+2. Backend URL is accessible:
+```bash
+curl $BACKEND_URL/health
+```
+
+3. NGINX proxy configuration is correct (see `Dockerfile.frontend`)
 
 ### Getting Help
 
 If you encounter issues not covered here:
 
-1. **Check Logs**: `gcloud run services logs read shuffle-sync-backend --region $REGION`
+1. **Check Logs**: `gcloud run services logs read shuffle-and-sync-backend --region $REGION`
 2. **Review Documentation**: 
-   - [Detailed Cloud Run Guide](docs/deployment/DEPLOYMENT.md)
-   - [Production Deployment Checklist](PRODUCTION_DEPLOYMENT_CHECKLIST.md)
-   - [GCP-Specific Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+   - [Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+   - [Troubleshooting Guide](docs/troubleshooting.md)
 3. **Check Environment**: Run `npm run env:validate`
 4. **Verify Prerequisites**: Ensure all required APIs are enabled
 5. **Community Support**: Open an issue on GitHub with detailed error logs
+
+---
+
+## Architecture Details
+
+### Split Deployment Architecture
+
+```
+User Browser
+    ↓
+Frontend Service (NGINX)
+    ├── /          → Static React SPA
+    └── /api/      → Proxy to Backend Service
+             ↓
+        Backend Service (Express + Auth.js)
+             ↓
+        Database (SQLite Cloud)
+```
+
+### How Frontend Proxying Works
+
+The frontend NGINX server is configured to proxy `/api/` requests to the backend:
+
+```nginx
+location /api/ {
+    proxy_pass $BACKEND_URL;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+This is configured via:
+1. `BACKEND_URL` environment variable on frontend service
+2. `Dockerfile.frontend` with NGINX configuration template
+3. Entrypoint script that substitutes environment variables
+
+### Why Split Deployment?
+
+**Performance:**
+- NGINX serves static files faster than Node.js
+- Frontend can be cached by CDN
+- Backend can scale independently based on API load
+
+**Security:**
+- Frontend has no access to database or secrets
+- Backend can have stricter IAM permissions
+- Separation of concerns
 
 ---
 
@@ -728,10 +841,11 @@ If you encounter issues not covered here:
 
 ### Documentation
 
-- **[Google Cloud Commands Reference](../GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
-- **[Production Deployment Checklist](PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Comprehensive pre-deployment checklist
-- **[Cloud Run Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Platform-specific technical details
-- **[GCP Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Detailed GCP setup instructions
+- **[Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
+- **[Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Comprehensive pre-deployment checklist
+- **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** - Complete variable reference
+- **[Configuration Files Guide](docs/CONFIGURATION_FILES_GUIDE.md)** - Config file documentation
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
 - **[README.md](README.md)** - Project overview and quick start
 
 ### Scripts
@@ -758,6 +872,7 @@ If you encounter issues not covered here:
 - [Google Cloud SQL Documentation](https://cloud.google.com/sql/docs)
 - [Google Secret Manager Documentation](https://cloud.google.com/secret-manager/docs)
 - [Auth.js Documentation](https://authjs.dev)
+- [Docker Buildx Documentation](https://docs.docker.com/buildx/working-with-buildx/)
 
 ---
 
@@ -807,6 +922,6 @@ For deployment support:
 
 ---
 
-**Last Updated**: 2024  
-**Version**: 1.0.0  
+**Last Updated**: 2025-10-16  
+**Version**: 2.0.0  
 **Platform**: Google Cloud Platform (Cloud Run)

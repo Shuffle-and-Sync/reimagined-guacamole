@@ -21,7 +21,7 @@ if [ "$BACKEND_URL" = "http://localhost:8080" ]; then
     echo "⚠️  WARNING: BACKEND_URL is using default value (http://localhost:8080)"
     echo "⚠️  This will NOT work in Cloud Run production deployment"
     echo "⚠️  Set BACKEND_URL environment variable to your actual backend service URL"
-    echo "⚠️  Example: https://shuffle-sync-backend-858080302197.us-central1.run.app"
+    echo "⚠️  Example: https://shuffle-and-sync-backend-858080302197.us-central1.run.app"
 fi
 
 # Substitute environment variables in NGINX config
