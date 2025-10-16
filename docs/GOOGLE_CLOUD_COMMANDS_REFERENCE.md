@@ -787,9 +787,9 @@ npm run verify:cloudrun
 - [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Authentication configuration
 
 ### Scripts & Automation
-- **Deployment script**: `scripts/deploy-cloud-run.sh` - Automated deployment
-- **Diagnostics script**: `scripts/diagnose-auth-error.sh` - Troubleshooting automation
-- **Verification script**: `scripts/verify-cloud-run-deployment.sh` - Deployment verification
+- **Deployment script**: `scripts/deploy-production.sh` - Automated deployment with `npm run deploy:production`
+  - Backend only: `npm run deploy:backend`
+  - Frontend only: `npm run deploy:frontend`
 
 ---
 

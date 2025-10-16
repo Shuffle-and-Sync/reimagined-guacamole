@@ -33,20 +33,22 @@ The "Configuration" error from Auth.js indicates that **authentication is not pr
 
 The fastest way to identify the issue is to run the automated diagnostic script:
 
-```bash
-npm run diagnose:auth
-
-# Or run directly:
-bash scripts/diagnose-auth-error.sh
-```
-
-> **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` format for all script invocations.
-
-This script will:
-- Automatically find your Cloud Run services (handles naming variations)
-- Check all required environment variables
+For troubleshooting Cloud Run deployment issues, use the Cloud Console or `gcloud` commands to:
+- Check service environment variables
+- Review service logs
 - Test endpoint connectivity
-- Provide specific fix commands for any issues found
+
+Example diagnostic commands:
+```bash
+# Check backend service configuration
+gcloud run services describe shuffle-sync-backend --region=us-central1
+
+# View logs
+gcloud logging read "resource.type=cloud_run_revision" --limit 50
+
+# Test health endpoint
+curl -f https://your-backend-url/api/health
+```
 
 ### Manual Diagnosis
 
@@ -219,12 +221,13 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
        # ... rest of config
    ```
 
-3. **Update verification script** to use correct names:
+3. **Verify the deployment** using gcloud commands:
    ```bash
-   # Run with custom service names
-   FRONTEND_SERVICE=shuffle-sync-front \
-   BACKEND_SERVICE=shuffle-sync-backend \
-   bash scripts/verify-cloud-run-deployment.sh
+   # Check frontend service
+   gcloud run services describe shuffle-sync-front --region=us-central1
+   
+   # Check backend service
+   gcloud run services describe shuffle-sync-backend --region=us-central1
    ```
 
 ## Complete Fix Workflow
@@ -293,13 +296,14 @@ gcloud run services update shuffle-sync-front \
 ### Step 5: Verify Everything
 
 ```bash
-# Run verification script
-npm run verify:cloudrun
+# Check backend service
+gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'
 
-# Or manually:
-FRONTEND_SERVICE=shuffle-sync-front \
-BACKEND_SERVICE=shuffle-sync-backend \
-bash scripts/verify-cloud-run-deployment.sh
+# Check frontend service
+gcloud run services describe shuffle-sync-front --region=us-central1 --format='value(status.url)'
+
+# Test backend health
+curl -f $(gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)')/api/health
 ```
 
 ### Step 6: Test Authentication
@@ -373,15 +377,16 @@ gcloud run services describe shuffle-sync-front \
 
 If you've tried all the above and still have issues:
 
-1. Run the diagnostic command:
+1. Check service logs:
    ```bash
-   # Replace with your actual service names
-   FRONTEND_SERVICE=shuffle-sync-front \
-   BACKEND_SERVICE=shuffle-sync-backend \
-   bash scripts/verify-cloud-run-deployment.sh
+   # View recent logs
+   gcloud logging read "resource.type=cloud_run_revision" --limit 50
+   
+   # Filter by service
+   gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=shuffle-sync-backend" --limit 50
    ```
 
-2. Collect the output and include it when asking for help
+2. Collect diagnostic information and include it when asking for help
 
 3. Include:
    - Frontend service URL
