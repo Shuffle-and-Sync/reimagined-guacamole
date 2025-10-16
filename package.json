@@ -173,6 +173,12 @@
     "glob": "^10.4.5",
     "inflight": "npm:@isaacs/inflight@^1.0.8",
     "@esbuild-kit/esm-loader": "npm:tsx@^4.20.6",
-    "@esbuild-kit/core-utils": "npm:tsx@^4.20.6"
+    "@esbuild-kit/core-utils": "npm:tsx@^4.20.6",
+    "@sqlitecloud/drivers": {
+      "react-native-quick-base64": "$react-native-quick-base64",
+      "react-native-tcp-socket": "$react-native-tcp-socket",
+      "react-native-url-polyfill": "$react-native-url-polyfill",
+      "@craftzdog/react-native-buffer": "$@craftzdog/react-native-buffer"
+    }
   }
 }
