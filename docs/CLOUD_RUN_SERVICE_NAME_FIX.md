@@ -117,7 +117,7 @@ echo "  - docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md (for shuffle-sync-front service
 ```bash
 gcloud run services update shuffle-sync-front \
   --region=us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ### Step 2: Set Backend OAuth Credentials
@@ -133,7 +133,7 @@ gcloud run services update shuffle-sync-backend \
 ### Step 3: Configure Google OAuth
 Add this redirect URI to [Google OAuth Console](https://console.cloud.google.com/apis/credentials):
 ```
-https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
 
 ### Step 4: Verify

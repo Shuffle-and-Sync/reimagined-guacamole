@@ -113,7 +113,7 @@ gcloud run services describe $FRONTEND_SERVICE \
 
 **Expected output:**
 ```
-BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 **If nothing appears**, the frontend doesn't know where to send API requests! Continue to Step 5.

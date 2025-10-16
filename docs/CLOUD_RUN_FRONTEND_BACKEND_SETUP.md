@@ -83,7 +83,7 @@ The startup script (`/docker-entrypoint.sh`):
     - 'shuffle-sync-frontend'
     # ... other args
     - '--set-env-vars'
-    - 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
+    - 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
 ```
 
 ## Deployment Steps
@@ -102,7 +102,7 @@ The startup script (`/docker-entrypoint.sh`):
      --format='value(status.url)'
    ```
    
-   Example output: `https://shuffle-sync-backend-683555795974.us-central1.run.app`
+   Example output: `https://shuffle-sync-backend-858080302197.us-central1.run.app`
 
 ### Deploy Frontend with Backend URL
 
@@ -111,7 +111,7 @@ The startup script (`/docker-entrypoint.sh`):
 Update `cloudbuild-frontend.yaml` with your backend URL:
 ```yaml
 - '--set-env-vars'
-- 'BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app'
+- 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
 ```
 
 Then deploy:
@@ -128,7 +128,7 @@ gcloud run deploy shuffle-sync-frontend \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 **Option 3: Update Existing Service**
@@ -137,7 +137,7 @@ gcloud run deploy shuffle-sync-frontend \
 # Update just the BACKEND_URL on existing service
 gcloud run services update shuffle-sync-frontend \
   --region us-central1 \
-  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ## Backend Configuration
@@ -155,7 +155,7 @@ GOOGLE_CLIENT_ID=<your-google-client-id>
 GOOGLE_CLIENT_SECRET=<your-google-client-secret>
 
 # Optional - auto-detects if not set
-AUTH_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+AUTH_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 AUTH_TRUST_HOST=true
 ```
 
@@ -178,7 +178,7 @@ gcloud run services update shuffle-sync-backend \
 Add these to your Google OAuth Console:
 
 ```
-https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 https://your-custom-domain.com/api/auth/callback/google
 ```
 
@@ -308,7 +308,7 @@ Should show: `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
 
 Verify redirect URI matches **backend URL**:
 ```
-https://shuffle-sync-backend-683555795974.us-central1.run.app/api/auth/callback/google
+https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
 
 **Fix:** Set environment variables on backend service
@@ -342,7 +342,7 @@ gcloud run services update shuffle-sync-backend \
 # Or set to correct backend URL
 gcloud run services update shuffle-sync-backend \
   --region us-central1 \
-  --set-env-vars AUTH_URL=https://shuffle-sync-backend-683555795974.us-central1.run.app
+  --set-env-vars AUTH_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
 
 ## Custom Domains
