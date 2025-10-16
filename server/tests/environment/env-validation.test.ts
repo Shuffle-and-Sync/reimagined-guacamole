@@ -509,4 +509,3 @@ describe('Environment Variable Validation', () => {
       }).not.toThrow();
     });
   });
-});
