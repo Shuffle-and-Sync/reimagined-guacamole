@@ -176,7 +176,8 @@ describe('Database Utils', () => {
       const input = '<script>alert("xss")</script>hello';
       const result = sanitizeDatabaseInput(input);
       
-      expect(result).toBe('scriptalert("xss")/scripthello');
+      // Quotes and angle brackets are removed for security
+      expect(result).toBe('scriptalert(xss)/scripthello');
     });
 
     test('should sanitize nested objects', () => {

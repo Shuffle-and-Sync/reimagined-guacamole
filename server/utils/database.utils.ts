@@ -455,17 +455,31 @@ export function parsePaginationQuery(query: any): {
   cursor?: string;
   sort?: { field: string; direction: 'asc' | 'desc' };
 } {
-  const page = query.page ? Math.max(1, parseInt(query.page)) : undefined;
-  const limit = query.limit ? Math.min(Math.max(1, parseInt(query.limit)), 100) : undefined;
+  // Parse page with proper NaN handling
+  let page: number | undefined;
+  if (query.page) {
+    const parsed = parseInt(query.page);
+    page = isNaN(parsed) ? 1 : Math.max(1, parsed);
+  }
+  
+  // Parse limit with proper NaN handling
+  let limit: number | undefined;
+  if (query.limit) {
+    const parsed = parseInt(query.limit);
+    limit = isNaN(parsed) ? 1 : Math.min(Math.max(1, parsed), 100);
+  }
+  
   const cursor = query.cursor || undefined;
   
   let sort: { field: string; direction: 'asc' | 'desc' } | undefined;
-  if (query.sort) {
+  if (query.sort && typeof query.sort === 'string' && query.sort.includes(':')) {
     const [field, direction = 'asc'] = query.sort.split(':');
-    sort = { 
-      field, 
-      direction: direction.toLowerCase() === 'desc' ? 'desc' : 'asc' 
-    };
+    if (field) {
+      sort = { 
+        field, 
+        direction: direction.toLowerCase() === 'desc' ? 'desc' : 'asc' 
+      };
+    }
   }
   
   return { page, limit, cursor, sort };
