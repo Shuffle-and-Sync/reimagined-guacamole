@@ -429,7 +429,7 @@ gcloud run services logs read SERVICE_NAME --region=us-central1
 
 ### Documentation Resources
 
-- **[Deployment Guide](deployment/deployment-guide.md)** - Complete deployment instructions
+- **[Deployment Guide](../DEPLOYMENT.md)** - Complete deployment instructions
 - **[Database Architecture](DATABASE_ARCHITECTURE.md)** - Database setup and configuration
 - **[Configuration Guide](CONFIGURATION_FILES_GUIDE.md)** - Environment variables and config
 - **[API Documentation](api/API_DOCUMENTATION.md)** - API reference

@@ -157,7 +157,7 @@ bash scripts/deploy-production.sh
 
 - [BUILD_INITIALIZATION.md](./docs/BUILD_INITIALIZATION.md) - Complete guide
 - [BUILD_INITIALIZATION_SUMMARY.md](./BUILD_INITIALIZATION_SUMMARY.md) - What changed
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment
+- [DEPLOYMENT.md](../DEPLOYMENT.md) - Production deployment
 
 ## 🎯 Quick Checklist
 

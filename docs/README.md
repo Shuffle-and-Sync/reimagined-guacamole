@@ -26,9 +26,8 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ### Deployment & Operations
 - [🔧 Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - Comprehensive gcloud CLI command reference
 - [🔐 Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Complete secret management guide
-- [Deployment Guide](deployment/deployment-guide.md) - **Primary deployment guide** - Complete Cloud Run setup
+- [Deployment Guide](../DEPLOYMENT.md) - **Primary deployment guide** - Complete Cloud Run setup and procedures
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
-- [Technical Deployment Details](deployment/DEPLOYMENT.md) - Advanced deployment topics
 - [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration file documentation
 
 ### Troubleshooting
@@ -83,10 +82,9 @@ Welcome to the Shuffle & Sync documentation! This directory contains all project
 ### For Deployment
 1. [Google Cloud Commands Reference](GOOGLE_CLOUD_COMMANDS_REFERENCE.md) - All gcloud CLI commands used in the project
 2. [Managing Secrets with Google Secret Manager](MANAGING_SECRETS_GCP.md) - Secure secret management guide
-3. [Deployment Guide](deployment/deployment-guide.md) - Complete deployment guide
+3. [Deployment Guide](../DEPLOYMENT.md) - Complete deployment guide
 4. [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production checklist
-5. [Technical Deployment Details](deployment/DEPLOYMENT.md) - Advanced topics
-6. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
+5. [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### For Troubleshooting
 1. [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions

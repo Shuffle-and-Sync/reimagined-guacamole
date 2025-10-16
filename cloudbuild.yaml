@@ -5,9 +5,9 @@ steps:
     args: 
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:$COMMIT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest'
       - '.'
     id: 'build-backend'
 
@@ -15,7 +15,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:$COMMIT_SHA'
     id: 'push-backend'
     waitFor: ['build-backend']
 
@@ -23,7 +23,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest'
     id: 'push-backend-latest'
     waitFor: ['build-backend']
 
@@ -34,7 +34,7 @@ steps:
       - 'deploy'
       - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:$COMMIT_SHA'
       - '--platform'
       - 'managed'
       - '--region'
@@ -74,8 +74,8 @@ options:
 # Example: gcloud builds submit --config cloudbuild.yaml --substitutions=_REGION=us-east1
 substitutions:
   _REGION: us-central1
-  _SERVICE_NAME: shuffle-sync-backend
+  _SERVICE_NAME: shuffle-and-sync-backend
 
 images:
-  - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/shuffle-sync-backend:latest'
+  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-backend:latest'
