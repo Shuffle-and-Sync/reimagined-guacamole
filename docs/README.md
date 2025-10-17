@@ -8,6 +8,8 @@ The documentation is organized into the following categories:
 
 ### 🏗️ Architecture (`/architecture`)
 System design and architectural documentation:
+- **[Project Architecture](architecture/PROJECT_ARCHITECTURE.md)** - Complete project architecture overview
+- **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
 - [Games & Cards Schema](architecture/GAMES_CARDS_SCHEMA.md) - TCG game and card data schema
@@ -18,8 +20,10 @@ System design and architectural documentation:
 ### 📖 Reference (`/reference`)
 Technical reference documentation:
 - **API Documentation**
-  - [API Documentation](reference/api/API_DOCUMENTATION.md) - Complete API reference
+  - [API Overview](reference/api/API_OVERVIEW.md) - Quick reference for all API endpoints
+  - [API Documentation](reference/api/API_DOCUMENTATION.md) - Complete API reference with details
   - [Universal Deck-Building API](reference/api/UNIVERSAL_DECK_BUILDING_API.md) - Universal deck-building framework
+  - [OAuth Documentation](/oauth/README.md) - OAuth 2.0 flow documentation
 - **Configuration**
   - [Configuration Files Guide](reference/CONFIGURATION_FILES_GUIDE.md) - Configuration file documentation
   - [Environment Variables](reference/ENVIRONMENT_VARIABLES.md) - Complete environment variable reference
@@ -63,6 +67,7 @@ Deployment and operations:
 ### 🛠️ Development (`/development`)
 Development setup and tools:
 - [Development Guide](development/DEVELOPMENT_GUIDE.md) - Getting started with development
+- **[Coding Patterns and Conventions](development/CODING_PATTERNS.md)** - Code standards and best practices
 - [Copilot Agent Implementation](development/COPILOT_AGENT_IMPLEMENTATION.md) - Copilot agent setup
 
 ### 🔧 Troubleshooting (`/troubleshooting`)

@@ -1,6 +1,30 @@
 # Shuffle & Sync API Documentation
 
-This document provides comprehensive API documentation for the Shuffle & Sync platform, following OpenAPI 3.0 standards and Copilot best practices.
+This document provides comprehensive API documentation for the Shuffle & Sync platform. It covers all public-facing endpoints that are production-ready and stable.
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-10-17
+
+## Table of Contents
+
+1. [Base URL](#base-url)
+2. [Authentication](#authentication)
+3. [Common Response Format](#common-response-format)
+4. [Rate Limiting](#rate-limiting)
+5. [API Endpoints](#api-endpoints)
+   - [Platform OAuth API](#platform-oauth-api)
+   - [Authentication API](#authentication-api)
+   - [User Management API](#user-management-api)
+   - [Communities API](#communities-api)
+   - [Events API](#events-api)
+   - [Tournaments API](#tournaments-api)
+   - [Messaging & Notifications API](#messaging--notifications-api)
+   - [Game Sessions API](#game-sessions-api)
+   - [Cards API](#cards-api)
+   - [Matchmaking API](#matchmaking-api)
+   - [Friends API](#friends-api)
+6. [Error Codes](#error-codes)
+7. [Webhooks](#webhooks)
 
 ## Base URL
 
@@ -366,9 +390,34 @@ Leave a community.
 
 ## Platform OAuth API
 
-Platform OAuth endpoints allow users to connect their streaming platform accounts (Twitch, YouTube, Facebook Gaming) to enable stream coordination features.
+All endpoints under `/api/platforms/:platform/oauth/*` implement OAuth 2.0 (authorization-code grant) for third-party streaming platforms such as Twitch, YouTube, and Facebook Gaming. These endpoints enable users to connect their streaming platform accounts for collaborative streaming features and stream coordination.
 
-**See also:** [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch integration documentation.
+**Supported Platforms:**
+- `twitch` - Twitch.tv streaming platform
+- `youtube` - YouTube Live streaming platform  
+- `facebook` - Facebook Gaming streaming platform
+
+**Security Features:**
+- OAuth 2.0 authorization code flow with PKCE (Proof Key for Code Exchange)
+- Cryptographically secure state parameters for CSRF protection
+- Token encryption in storage
+- Automatic token refresh
+- 10-minute state expiration
+
+**See also:** For detailed Twitch OAuth documentation, refer to [Twitch OAuth Guide](../../features/twitch/TWITCH_OAUTH_GUIDE.md)
+
+### Platform OAuth Endpoints Summary
+
+| Method | Route | Description | Auth Required |
+|--------|-------|-------------|---------------|
+| GET | `/api/platforms/:platform/oauth/initiate` | Redirect user to the platform's consent screen | Yes |
+| GET | `/api/platforms/:platform/oauth/callback` | OAuth callback – exchanges code for tokens | Yes |
+| GET | `/api/platforms/accounts` | List user's connected platform accounts | Yes |
+| DELETE | `/api/platforms/accounts/:id` | Disconnect a platform account | Yes |
+| GET | `/api/platforms/status` | Get live streaming status across platforms | Yes |
+| POST | `/api/platforms/:platform/refresh` | Manually refresh platform access token | Yes |
+
+Authentication flows are documented in greater detail in the [OAuth Documentation](/docs/oauth) section.
 
 ### GET /platforms/:platform/oauth/initiate
 
