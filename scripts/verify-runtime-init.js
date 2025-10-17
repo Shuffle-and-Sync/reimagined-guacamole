@@ -3,6 +3,12 @@
 /**
  * Runtime Initialization Verification Script
  * Verifies that all runtime services are properly initialized
+ * 
+ * Database Configuration:
+ * - Uses Drizzle ORM exclusively (NOT Prisma)
+ * - No checks for Prisma Client or generated/prisma/ directory
+ * - No checks for pg (PostgreSQL) driver
+ * - Uses SQLite Cloud with Drizzle ORM for all database operations
  */
 
 import { fileURLToPath } from 'url';
@@ -11,6 +17,9 @@ import { dirname, resolve } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '..');
+
+// Configuration flags
+const USING_PRISMA = false; // We use Drizzle ORM exclusively
 
 console.log('🔍 Verifying Runtime Initialization...\n');
 

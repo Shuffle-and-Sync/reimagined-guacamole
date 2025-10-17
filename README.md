@@ -178,6 +178,9 @@ Complete documentation is organized in the [docs/](docs/) directory:
 
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
+- **[🏗️ Project Architecture](docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture and design patterns
+- **[🛠️ Technology Stack](docs/architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology documentation
+- **[📝 Coding Patterns](docs/development/CODING_PATTERNS.md)** - Coding standards and conventions
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
 - **[🗄️ Database Architecture](docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design & setup  
 - **[🔌 API Documentation](docs/reference/api/API_DOCUMENTATION.md)** - Complete API reference

@@ -9,7 +9,16 @@ import config from './esbuild.config.js';
 /**
  * Comprehensive build script with full initialization
  * Ensures all components are properly initialized before building
+ * 
+ * Database Configuration:
+ * - Uses Drizzle ORM exclusively (NOT Prisma)
+ * - No Prisma client generation or migrations
+ * - No PostgreSQL (pg) driver required
+ * - Uses SQLite Cloud with Drizzle ORM
  */
+
+// Configuration flags
+const USING_PRISMA = false; // We use Drizzle ORM exclusively
 
 function logStep(message) {
   console.log(`\n🔧 ${message}`);
