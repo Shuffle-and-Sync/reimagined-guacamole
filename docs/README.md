@@ -8,6 +8,8 @@ The documentation is organized into the following categories:
 
 ### 🏗️ Architecture (`/architecture`)
 System design and architectural documentation:
+- **[Project Architecture](architecture/PROJECT_ARCHITECTURE.md)** - Complete project architecture overview
+- **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
 - [Games & Cards Schema](architecture/GAMES_CARDS_SCHEMA.md) - TCG game and card data schema
@@ -63,6 +65,7 @@ Deployment and operations:
 ### 🛠️ Development (`/development`)
 Development setup and tools:
 - [Development Guide](development/DEVELOPMENT_GUIDE.md) - Getting started with development
+- **[Coding Patterns and Conventions](development/CODING_PATTERNS.md)** - Code standards and best practices
 - [Copilot Agent Implementation](development/COPILOT_AGENT_IMPLEMENTATION.md) - Copilot agent setup
 
 ### 🔧 Troubleshooting (`/troubleshooting`)
