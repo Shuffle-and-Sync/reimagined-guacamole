@@ -14,7 +14,7 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
 - [Verification Steps](#verification-steps)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
-  - [Administrator Setup Guide](docs/ADMIN_SETUP.md)
+  - [Administrator Setup Guide](docs/deployment/ADMIN_SETUP.md)
 
 ---
 
@@ -108,7 +108,7 @@ This validates that all required variables are set and properly formatted.
 
 ### 2. Database Setup
 
-> **Important**: The application requires a SQLite Cloud instance for production. Drizzle ORM handles all database operations. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for detailed explanation.
+> **Important**: The application requires a SQLite Cloud instance for production. Drizzle ORM handles all database operations. See [Database Architecture Guide](docs/architecture/DATABASE_ARCHITECTURE.md) for detailed explanation.
 
 #### SQLite Cloud Setup
 
@@ -143,7 +143,7 @@ Configure OAuth credentials for authentication:
 
 **⚠️ IMPORTANT:** Never commit secrets to version control. Always use Google Secret Manager for production.
 
-See **[Managing Secrets with Google Secret Manager Guide](docs/MANAGING_SECRETS_GCP.md)** for comprehensive instructions.
+See **[Managing Secrets with Google Secret Manager Guide](docs/reference/MANAGING_SECRETS_GCP.md)** for comprehensive instructions.
 
 #### Quick Setup
 
@@ -162,8 +162,8 @@ gcloud secrets add-iam-policy-binding auth-secret \
 ```
 
 For complete secret management workflows including rotation, audit, and TypeScript integration, see:
-- **[Complete Secret Management Guide](docs/MANAGING_SECRETS_GCP.md)**
-- **[Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
+- **[Complete Secret Management Guide](docs/reference/MANAGING_SECRETS_GCP.md)**
+- **[Google Cloud Commands Reference](docs/reference/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
 
 ---
 
@@ -368,7 +368,7 @@ npm run admin:verify
 ```
 
 **Important**: 
-- See [docs/ADMIN_SETUP.md](docs/ADMIN_SETUP.md) for comprehensive admin setup guide
+- See [docs/deployment/ADMIN_SETUP.md](docs/deployment/ADMIN_SETUP.md) for comprehensive admin setup guide
 - Store admin credentials securely in your password manager
 - Enable MFA after first login
 - Use OAuth (Google) for admin access in production when possible
@@ -756,7 +756,7 @@ npm run diagnose:auth
    - Frontend not configured with `BACKEND_URL` (split deployment)
    - OAuth redirect URIs not matching deployed URLs
 
-See [Troubleshooting Guide](docs/troubleshooting.md) for detailed solutions.
+See [Troubleshooting Guide](docs/troubleshooting/README.md) for detailed solutions.
 
 #### Frontend Can't Reach Backend
 
@@ -783,7 +783,7 @@ If you encounter issues not covered here:
 1. **Check Logs**: `gcloud run services logs read shuffle-and-sync-backend --region $REGION`
 2. **Review Documentation**: 
    - [Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
-   - [Troubleshooting Guide](docs/troubleshooting.md)
+   - [Troubleshooting Guide](docs/troubleshooting/README.md)
 3. **Check Environment**: Run `npm run env:validate`
 4. **Verify Prerequisites**: Ensure all required APIs are enabled
 5. **Community Support**: Open an issue on GitHub with detailed error logs
@@ -842,11 +842,11 @@ This is configured via:
 
 ### Documentation
 
-- **[Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
+- **[Google Cloud Commands Reference](docs/reference/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
 - **[Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Comprehensive pre-deployment checklist
-- **[Environment Variables Guide](docs/ENVIRONMENT_VARIABLES.md)** - Complete variable reference
-- **[Configuration Files Guide](docs/CONFIGURATION_FILES_GUIDE.md)** - Config file documentation
-- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+- **[Environment Variables Guide](docs/reference/ENVIRONMENT_VARIABLES.md)** - Complete variable reference
+- **[Configuration Files Guide](docs/reference/CONFIGURATION_FILES_GUIDE.md)** - Config file documentation
+- **[Troubleshooting Guide](docs/troubleshooting/README.md)** - Common issues and solutions
 - **[README.md](README.md)** - Project overview and quick start
 
 ### Scripts
