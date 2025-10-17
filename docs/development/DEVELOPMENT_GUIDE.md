@@ -35,9 +35,9 @@ Shuffle & Sync follows a modern, scalable architecture with clear separation of 
 │   ├── utils/            # Utility functions
 │   └── tests/            # Unit and integration tests
 ├── shared/               # Code shared between client and server
-│   ├── schema.ts         # Database schema definitions
-│   └── database.ts       # Database utilities
-└── prisma/               # Database migrations
+│   ├── schema.ts         # Database schema definitions (Drizzle ORM)
+│   └── database-unified.ts # Database utilities and connection
+└── migrations/           # Database migration scripts
 ```
 
 ### Key Architectural Principles

@@ -17,7 +17,7 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build the application with full initialization
-# This ensures Prisma client generation, type checking, and all build steps
+# This ensures type checking, frontend and backend build steps
 RUN npm run build
 
 # Remove devDependencies to reduce image size (but keep production deps)

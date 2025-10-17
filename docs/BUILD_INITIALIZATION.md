@@ -20,10 +20,9 @@ This command now executes a comprehensive build process that includes:
 2. **File Validation** - Verifies all required configuration files exist
 3. **Dependency Check** - Ensures node_modules is installed
 4. **Type Checking** - Runs TypeScript compiler to catch type errors
-5. **Prisma Client Generation** - Generates the database client
-6. **Frontend Build** - Compiles React application with Vite
-7. **Backend Build** - Bundles server code with esbuild
-8. **Post-Build Verification** - Validates all build artifacts
+5. **Frontend Build** - Compiles React application with Vite
+6. **Backend Build** - Bundles server code with esbuild
+7. **Post-Build Verification** - Validates all build artifacts
 
 ### Pre-Build Initialization
 
@@ -65,7 +64,6 @@ bash scripts/verify-build.sh
 **Verification includes:**
 - Backend bundle exists and is not empty
 - Frontend assets are built
-- Prisma client is generated with query engine
 - Critical runtime dependencies are present
 - Build artifact size reporting
 
@@ -83,32 +81,27 @@ After a successful build, the following artifacts are created:
 - Includes `index.html` and compiled assets
 - Typically ~1-2MB total
 
-### 3. Prisma Client (`generated/prisma/`)
-- Generated database client
-- Query engine binary (~20MB)
-- Required for database operations
-
-### 4. Production Dependencies (`node_modules/`)
+### 3. Production Dependencies (`node_modules/`)
 - Runtime dependencies only (after npm prune)
 - Required for the application to run
 
 ## Initialization Steps by Component
 
-### Database (Prisma)
+### Database (Drizzle ORM)
 
 **Initialization:**
 ```bash
-npx prisma generate
+npm run db:push  # Push schema changes to database
 ```
 
 **What it does:**
-- Generates TypeScript types from schema
-- Downloads and configures query engine
-- Creates client at `generated/prisma/`
+- Uses Drizzle ORM for database operations
+- Schema is defined in `shared/schema.ts`
+- No client generation needed - uses Drizzle's type-safe query builder
 
 **Verification:**
-- Check `generated/prisma/index.js` exists
-- Check query engine binary exists: `generated/prisma/libquery_engine-*.so.node`
+- Database schema is up to date
+- Connection to SQLite Cloud or local SQLite works
 
 ### Frontend (Vite)
 
@@ -172,7 +165,7 @@ npx tsc --noEmit
 - `tsconfig.json` - TypeScript configuration
 - `vite.config.ts` - Frontend build configuration
 - `esbuild.config.js` - Backend build configuration
-- `prisma/schema.prisma` - Database schema
+- `shared/schema.ts` - Database schema (Drizzle ORM)
 
 ### Optional Files
 
@@ -203,15 +196,6 @@ RUN npm prune --production
 
 ## Troubleshooting
 
-### Build Fails at Prisma Generation
-
-**Problem:** Prisma client generation fails
-
-**Solutions:**
-1. Verify `prisma/schema.prisma` exists and is valid
-2. Check database connection string in environment
-3. Ensure Prisma CLI is installed: `npm list prisma`
-
 ### Build Fails at Type Checking
 
 **Problem:** TypeScript compilation errors
@@ -236,7 +220,7 @@ RUN npm prune --production
 
 **Solutions:**
 1. Check disk space availability
-2. Verify write permissions to `dist/` and `generated/`
+2. Verify write permissions to `dist/`
 3. Check for errors in build output
 
 ### Node Version Mismatch
