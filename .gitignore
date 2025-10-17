@@ -13,10 +13,10 @@ vite.config.ts.*
 .env
 .env.local
 .env.production
-.env.test
-# Allow .env.example and .env.production.template as they contain no secrets
+# Allow .env.example, .env.production.template, and .env.test as they contain no production secrets
 !.env.example
 !.env.production.template
+!.env.test
 
 # Build artifacts
 build/
