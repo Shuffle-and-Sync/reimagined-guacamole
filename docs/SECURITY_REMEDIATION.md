@@ -14,6 +14,33 @@ The test suite identified that the following items may exist in Git history:
 
 Even though these files may not exist in the current working tree, they could still be accessible in Git history, which poses a security risk.
 
+## Quick Start for Windows Users
+
+If you're on Windows and have already rotated credentials, here's the streamlined process:
+
+1. **Install Python** (if not already installed): Download from [python.org](https://www.python.org/downloads/)
+2. **Install git-filter-repo**: Open PowerShell and run:
+   ```powershell
+   pip install git-filter-repo
+   ```
+3. **Create a backup clone**:
+   ```powershell
+   cd $env:TEMP
+   git clone --mirror https://github.com/Shuffle-and-Sync/reimagined-guacamole.git repo-cleanup
+   cd repo-cleanup
+   ```
+4. **Remove the problematic commit**:
+   ```powershell
+   git filter-repo --invert-paths --path .env.production --force
+   ```
+5. **Force push** (after team coordination):
+   ```powershell
+   git push --force --all origin
+   git push --force --tags origin
+   ```
+
+For detailed instructions with safety checks, continue reading below.
+
 ## Prerequisites
 
 Before starting this process, ensure you have:
@@ -36,7 +63,45 @@ brew install git-filter-repo
 pip3 install git-filter-repo
 ```
 
-### Manual Installation
+### On Windows
+
+#### Option 1: Using pip (Recommended)
+If you have Python installed on Windows:
+
+```powershell
+# Open PowerShell or Command Prompt
+pip install git-filter-repo
+```
+
+If the command is not found after installation, you may need to add Python Scripts to your PATH:
+```powershell
+# Find where pip installed git-filter-repo
+python -m pip show -f git-filter-repo
+
+# Add Python Scripts directory to PATH (typically):
+# C:\Users\YourUsername\AppData\Local\Programs\Python\Python3x\Scripts
+```
+
+#### Option 2: Manual Installation on Windows
+```powershell
+# Download the script using PowerShell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo" -OutFile "git-filter-repo"
+
+# Move to a directory in your PATH (Git's usr/bin is recommended)
+# Find your Git installation directory (usually C:\Program Files\Git\usr\bin)
+Move-Item -Path "git-filter-repo" -Destination "C:\Program Files\Git\usr\bin\git-filter-repo"
+
+# Or create a batch file wrapper:
+# Create git-filter-repo.bat in C:\Program Files\Git\cmd\
+# with content: @python "C:\Program Files\Git\usr\bin\git-filter-repo" %*
+```
+
+**Note for Windows Users**: 
+- Ensure Python is installed (download from python.org if needed)
+- Run PowerShell as Administrator for installation
+- Git for Windows should be installed (git-scm.com)
+
+### Manual Installation (Linux/macOS)
 ```bash
 # Download the script
 curl -o git-filter-repo https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo
@@ -58,6 +123,7 @@ git filter-repo --version
 ### 2.1 Create a Fresh Clone
 **Important**: Do NOT use your existing working copy. Create a fresh clone specifically for this operation.
 
+**On Linux/macOS:**
 ```bash
 # Navigate to a temporary directory
 cd /tmp
@@ -67,13 +133,33 @@ git clone --mirror https://github.com/Shuffle-and-Sync/reimagined-guacamole.git 
 cd repo-cleanup
 ```
 
+**On Windows (PowerShell):**
+```powershell
+# Navigate to a temporary directory
+cd $env:TEMP
+
+# Create a fresh clone (replace with your repository URL)
+git clone --mirror https://github.com/Shuffle-and-Sync/reimagined-guacamole.git repo-cleanup
+cd repo-cleanup
+```
+
 **Note**: The `--mirror` flag creates a bare repository that includes all branches, tags, and refs.
 
 ### 2.2 Create a Backup
+
+**On Linux/macOS:**
 ```bash
 # Create a backup of the repository
 cd ..
 tar -czf repo-backup-$(date +%Y%m%d-%H%M%S).tar.gz repo-cleanup/
+```
+
+**On Windows (PowerShell):**
+```powershell
+# Create a backup of the repository
+cd ..
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+Compress-Archive -Path repo-cleanup -DestinationPath "repo-backup-$timestamp.zip"
 ```
 
 **Store this backup in a secure location. You can use it to restore if something goes wrong.**
@@ -84,8 +170,17 @@ tar -czf repo-backup-$(date +%Y%m%d-%H%M%S).tar.gz repo-cleanup/
 
 Navigate to your cloned repository and run:
 
+**On Linux/macOS:**
 ```bash
 cd /tmp/repo-cleanup
+
+# Remove .env.production from all commits
+git filter-repo --invert-paths --path .env.production --force
+```
+
+**On Windows (PowerShell):**
+```powershell
+cd $env:TEMP\repo-cleanup
 
 # Remove .env.production from all commits
 git filter-repo --invert-paths --path .env.production --force
@@ -100,6 +195,7 @@ git filter-repo --invert-paths --path .env.production --force
 
 If the commit `452a970b41758f0ae22e9adc578dd49b9adb815a` still exists and contains sensitive data:
 
+**On Linux/macOS:**
 ```bash
 # First, verify the commit exists
 git log --all --oneline | grep 452a970b4175
@@ -110,6 +206,23 @@ git filter-repo --commit-callback '
   if commit.original_id == b"452a970b41758f0ae22e9adc578dd49b9adb815a":
     commit.skip()
 ' --force
+```
+
+**On Windows (PowerShell):**
+```powershell
+# First, verify the commit exists
+git log --all --oneline | Select-String "452a970b4175"
+
+# If it exists, you can remove it by filtering out the specific changes
+# Create a callback script file first for easier execution
+$callback = @'
+if commit.original_id == b"452a970b41758f0ae22e9adc578dd49b9adb815a":
+    commit.skip()
+'@
+$callback | Out-File -FilePath callback.py -Encoding ASCII
+
+# Run git filter-repo with the callback
+git filter-repo --commit-callback "`$(Get-Content callback.py -Raw)" --force
 ```
 
 **Alternative Approach**: If you know the date range when sensitive data was committed:
