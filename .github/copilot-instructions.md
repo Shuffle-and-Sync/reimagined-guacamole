@@ -99,7 +99,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - **Schema Definition**: `shared/schema.ts` (Drizzle) - authoritative schema source
 - **Session Strategy**: Database sessions via Drizzle adapter - Auth.js uses database-backed sessions
 
-> **Important**: The application uses SQLite Cloud accessed via Drizzle ORM for 100% of database operations. See [docs/DATABASE_ARCHITECTURE.md](../docs/DATABASE_ARCHITECTURE.md) for details.
+> **Important**: The application uses SQLite Cloud accessed via Drizzle ORM for 100% of database operations. See [docs/architecture/DATABASE_ARCHITECTURE.md](../docs/architecture/DATABASE_ARCHITECTURE.md) for details.
 
 ### Key Tables
 - **users**: User profiles with TCG community preferences

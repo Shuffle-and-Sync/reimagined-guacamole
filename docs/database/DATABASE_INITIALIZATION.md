@@ -160,6 +160,6 @@ The database is already in the cloud, so no additional deployment steps are need
 ## Support
 
 For issues or questions:
-- Check [DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md) for architecture details
+- Check [DATABASE_ARCHITECTURE.md](../architecture/DATABASE_ARCHITECTURE.md) for architecture details
 - Review [SQLITE_MIGRATION_COMPLETE.md](SQLITE_MIGRATION_COMPLETE.md) for migration info
-- See [DATABASE_FAQ.md](docs/DATABASE_FAQ.md) for common questions
+- See [DATABASE_FAQ.md](DATABASE_FAQ.md) for common questions

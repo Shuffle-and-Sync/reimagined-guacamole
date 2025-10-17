@@ -34,7 +34,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
 
-> **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md) for details.
+> **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. See [Database Architecture Guide](docs/architecture/DATABASE_ARCHITECTURE.md) for details.
 
 ## 📋 Quick Start
 
@@ -45,7 +45,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - SQLite Cloud database or local SQLite database
 - Google OAuth 2.0 credentials
 
-> **Database Note**: The application uses SQLite Cloud for production and local SQLite for development. All data access is handled via Drizzle ORM. See [Database Architecture Guide](docs/DATABASE_ARCHITECTURE.md).
+> **Database Note**: The application uses SQLite Cloud for production and local SQLite for development. All data access is handled via Drizzle ORM. See [Database Architecture Guide](docs/architecture/DATABASE_ARCHITECTURE.md).
 
 ### Installation
 
@@ -223,10 +223,10 @@ npm run format           # Prettier code formatting
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
-- **[🗄️ Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design & setup  
-- **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
+- **[🗄️ Database Architecture](docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design & setup  
+- **[🔌 API Documentation](docs/reference/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](DEPLOYMENT.md)** - Production deployment
-- **[🔐 Secret Management](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
+- **[🔐 Secret Management](docs/reference/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 
 ### Key Features
 - **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay
