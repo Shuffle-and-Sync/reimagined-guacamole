@@ -53,7 +53,7 @@ Shuffle & Sync follows a modern, scalable architecture with clear separation of 
 ### Prerequisites
 
 - Node.js 18+ and npm
-- PostgreSQL 14+ (or Neon serverless)
+- SQLite Cloud account (or local SQLite for development)
 - Git
 
 ### Environment Variables
@@ -62,7 +62,9 @@ Create a `.env.local` file in the project root:
 
 ```bash
 # Database
-DATABASE_URL=postgresql://username:password@localhost:5432/shuffle_sync
+DATABASE_URL=sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
+# Or for local development:
+# DATABASE_URL=./dev.db
 
 # Authentication
 GOOGLE_CLIENT_ID=your_google_client_id
