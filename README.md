@@ -331,6 +331,11 @@ npm run verify:cloudrun
 - SQL injection prevention via Drizzle ORM parameterized queries
 - Secure environment variable management
 
+For comprehensive security documentation, see:
+- [SECURITY.md](./SECURITY.md) - Security policy and vulnerability reporting
+- [docs/SECURITY_IMPROVEMENTS.md](./docs/SECURITY_IMPROVEMENTS.md) - Security enhancements and best practices
+- [docs/SECURITY_REMEDIATION.md](./docs/SECURITY_REMEDIATION.md) - Guide for removing sensitive data from Git history
+
 
 
 ### Platform OAuth Integration
