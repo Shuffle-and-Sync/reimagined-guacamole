@@ -17,8 +17,9 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - [Documentation](#-documentation)
 - [Deployment](#-deployment)
 - [Security](#-security)
+- [Testing Agent Features](#-testing-agent-features)
+- [Documentation Automation](#-documentation-automation)
 - [Platform Integrations](#-platform-integrations)
-- [Testing](#-testing-agent-features)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -79,7 +80,7 @@ npm install --legacy-peer-deps
 bash scripts/setup-env.sh
 # Or manual: cp .env.example .env.local (then edit .env.local)
 
-# Initialize and push database schema
+# 3. Initialize and push database schema
 npm run db:init
 npm run db:push
 
@@ -198,68 +199,22 @@ This application is designed for deployment on Google Cloud Platform with the fo
 - **Cloud Build**: CI/CD pipeline
 - **Cloud Storage**: Static assets and backups
 
-**Architecture**: Cloud Run + Cloud SQL + Secret Manager + Cloud Build
+### Quick Deployment
 
 ```bash
-# Automated Cloud Run deployment (interactive)
-npm run deploy:cloudrun
-
-# Quick deployment (production)
+# Production deployment
 cp .env.production.template .env.production
+# Edit .env.production with your production values
 npm run deploy:production
-npm run verify:production
 
-# Individual services
-npm run deploy:backend
-npm run deploy:frontend
-npm run db:migrate:production
+# Docker testing (test production build locally)
+npm run docker:test
+npm run docker:test:down
 ```
 
 **Features**: Docker containers, automated CI/CD, health monitoring, automatic backups
 
-### Cloud Run Deployment
-
-The `deploy:cloudrun` script provides an interactive, automated deployment to Google Cloud Run:
-
-```bash
-npm run deploy:cloudrun
-```
-
-**What it does:**
-- ✅ Validates prerequisites (gcloud CLI, Docker)
-- ✅ Enables required Google Cloud APIs
-- ✅ Deploys backend service using Cloud Build
-- ✅ Configures backend environment variables (OAuth, database, auth)
-- ✅ Deploys frontend service with backend URL
-- ✅ Runs deployment verification tests
-
-**Environment Variables (optional):**
-- `PROJECT_ID` - Google Cloud Project ID (prompted if not set)
-- `REGION` - Deployment region (default: us-central1)
-- `BACKEND_SERVICE` - Backend service name (default: shuffle-and-sync-backend)
-- `FRONTEND_SERVICE` - Frontend service name (default: shuffle-and-sync-frontend)
-
-**Example with environment variables:**
-```bash
-PROJECT_ID=my-project REGION=us-west1 npm run deploy:cloudrun
-```
-
-**Prerequisites:**
-- Google Cloud SDK (gcloud) installed and authenticated
-- Docker installed (optional, Cloud Build used as fallback)
-- Google OAuth 2.0 credentials (Client ID and Secret)
-- Database URL (SQLite Cloud or local)
-
-**Verification:**
-```bash
-npm run verify:cloudrun
-```
-
-✅ **Monitoring & Observability**
-- Comprehensive health checks
-- Google Cloud Monitoring integration
-- Custom dashboards and alerting
-- Error tracking and performance metrics
+For comprehensive deployment instructions and Google Cloud Platform setup, see the **[Deployment Guide](DEPLOYMENT.md)**.
 
 ### Production Documentation
 
