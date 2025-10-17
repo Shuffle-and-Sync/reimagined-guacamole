@@ -112,10 +112,12 @@ All 63 application tables + 2 system tables = **65 total tables** successfully c
 ## 🔍 Known Issues
 
 ### Database Health Check
-The `npm run db:health` command currently fails due to a DATABASE_URL configuration mismatch in `.env.local`. The file contains a Prisma Accelerate URL instead of the SQLite Cloud URL:
+The `npm run db:health` command currently fails due to a DATABASE_URL configuration mismatch in `.env.local`. The file should contain a valid SQLite Cloud URL:
 
 ```
-DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/..."
+DATABASE_URL="sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY"
+# Or for local development:
+# DATABASE_URL="./dev.db"
 ```
 
 **Impact:** This doesn't affect the `db:init` script which uses its own hardcoded SQLite Cloud URL, but it does prevent the health check from running properly.
