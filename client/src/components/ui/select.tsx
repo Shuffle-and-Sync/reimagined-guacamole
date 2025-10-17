@@ -6,12 +6,52 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Select - Root component for a select dropdown.
+ * 
+ * Built on Radix UI Select primitive, provides accessible dropdown selection with
+ * keyboard navigation, screen reader support, and proper focus management.
+ * 
+ * @see https://www.radix-ui.com/docs/primitives/components/select
+ */
 const Select = SelectPrimitive.Root
 
+/**
+ * SelectGroup - Groups related select options together.
+ * 
+ * Useful for organizing options into categories with optional labels.
+ */
 const SelectGroup = SelectPrimitive.Group
 
+/**
+ * SelectValue - Displays the selected value or placeholder text.
+ * 
+ * Automatically updates when selection changes.
+ */
 const SelectValue = SelectPrimitive.Value
 
+/**
+ * SelectTrigger - The button that opens the select dropdown.
+ * 
+ * Displays the currently selected value and a chevron icon. When clicked or activated
+ * via keyboard (Space or Enter), opens the dropdown menu. Includes proper focus states
+ * and disabled styling.
+ * 
+ * **Accessibility:**
+ * - Keyboard accessible (Space, Enter to open)
+ * - Focus ring for keyboard navigation
+ * - Announces state to screen readers
+ * - Disabled state prevents interaction
+ * 
+ * @example
+ * ```tsx
+ * <Select>
+ *   <SelectTrigger>
+ *     <SelectValue placeholder="Select an option" />
+ *   </SelectTrigger>
+ * </Select>
+ * ```
+ */
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
@@ -32,6 +72,12 @@ const SelectTrigger = React.forwardRef<
 ))
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
+/**
+ * SelectScrollUpButton - Button to scroll up within the select dropdown.
+ * 
+ * Automatically appears when there are more options above the visible area.
+ * Clicking scrolls the dropdown content up.
+ */
 const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
@@ -49,6 +95,12 @@ const SelectScrollUpButton = React.forwardRef<
 ))
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
 
+/**
+ * SelectScrollDownButton - Button to scroll down within the select dropdown.
+ * 
+ * Automatically appears when there are more options below the visible area.
+ * Clicking scrolls the dropdown content down.
+ */
 const SelectScrollDownButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
@@ -67,6 +119,36 @@ const SelectScrollDownButton = React.forwardRef<
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName
 
+/**
+ * SelectContent - The dropdown content container that displays select options.
+ * 
+ * Renders in a portal for proper z-index layering and includes smooth animations.
+ * Automatically positions itself relative to the trigger button and handles overflow
+ * with scroll buttons when needed.
+ * 
+ * **Accessibility:**
+ * - Manages focus within the dropdown
+ * - Keyboard navigation (Arrow keys, Home, End, type to search)
+ * - Escape to close
+ * - Proper ARIA attributes
+ * 
+ * **Dark Theme Support:**
+ * - Uses popover tokens for consistent theming
+ * - Smooth animations work in all themes
+ * 
+ * @example
+ * ```tsx
+ * <Select>
+ *   <SelectTrigger>
+ *     <SelectValue placeholder="Choose..." />
+ *   </SelectTrigger>
+ *   <SelectContent>
+ *     <SelectItem value="option1">Option 1</SelectItem>
+ *     <SelectItem value="option2">Option 2</SelectItem>
+ *   </SelectContent>
+ * </Select>
+ * ```
+ */
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
@@ -99,6 +181,23 @@ const SelectContent = React.forwardRef<
 ))
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
+/**
+ * SelectLabel - Label for a group of select options.
+ * 
+ * Use within SelectGroup to provide a heading for a group of related options.
+ * The label is not selectable.
+ * 
+ * @example
+ * ```tsx
+ * <SelectContent>
+ *   <SelectGroup>
+ *     <SelectLabel>Card Games</SelectLabel>
+ *     <SelectItem value="mtg">Magic: The Gathering</SelectItem>
+ *     <SelectItem value="pokemon">Pokemon TCG</SelectItem>
+ *   </SelectGroup>
+ * </SelectContent>
+ * ```
+ */
 const SelectLabel = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
@@ -111,6 +210,42 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+/**
+ * SelectItem - A selectable option within the select dropdown.
+ * 
+ * Displays a checkmark icon when selected and highlights on focus/hover.
+ * Supports disabled state to prevent selection of certain options.
+ * 
+ * **Accessibility:**
+ * - Keyboard navigable
+ * - Announces selection state to screen readers
+ * - Visual focus indicator
+ * - Disabled items skip focus and indicate unavailability
+ * 
+ * @example
+ * ```tsx
+ * // Basic item
+ * <SelectItem value="option1">Option 1</SelectItem>
+ * 
+ * // Disabled item
+ * <SelectItem value="premium" disabled>
+ *   Premium Feature (Locked)
+ * </SelectItem>
+ * 
+ * // Complete select example
+ * <Select>
+ *   <SelectTrigger>
+ *     <SelectValue placeholder="Select a game" />
+ *   </SelectTrigger>
+ *   <SelectContent>
+ *     <SelectItem value="mtg">Magic: The Gathering</SelectItem>
+ *     <SelectItem value="pokemon">Pokemon TCG</SelectItem>
+ *     <SelectItem value="yugioh">Yu-Gi-Oh!</SelectItem>
+ *     <SelectItem value="lorcana">Disney Lorcana</SelectItem>
+ *   </SelectContent>
+ * </Select>
+ * ```
+ */
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
@@ -134,6 +269,21 @@ const SelectItem = React.forwardRef<
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
+/**
+ * SelectSeparator - Visual separator between select items or groups.
+ * 
+ * Helps organize options into distinct sections for improved scannability.
+ * 
+ * @example
+ * ```tsx
+ * <SelectContent>
+ *   <SelectItem value="option1">Option 1</SelectItem>
+ *   <SelectItem value="option2">Option 2</SelectItem>
+ *   <SelectSeparator />
+ *   <SelectItem value="option3">Option 3</SelectItem>
+ * </SelectContent>
+ * ```
+ */
 const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
