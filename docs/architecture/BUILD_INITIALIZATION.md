@@ -320,10 +320,10 @@ The Dockerfile automatically runs the full build initialization.
 
 ## Related Documentation
 
-- [DEPLOYMENT.md](../DEPLOYMENT.md) - Production deployment guide
-- [DEVELOPMENT_GUIDE.md](../DEVELOPMENT_GUIDE.md) - Local development setup
-- [ENVIRONMENT_VARIABLES.md](../ENVIRONMENT_VARIABLES.md) - Environment configuration
-- [README.md](../README.md) - Project overview and quick start
+- [DEPLOYMENT.md](../../DEPLOYMENT.md) - Production deployment guide
+- [DEVELOPMENT_GUIDE.md](../development/DEVELOPMENT_GUIDE.md) - Local development setup
+- [ENVIRONMENT_VARIABLES.md](../reference/ENVIRONMENT_VARIABLES.md) - Environment configuration
+- [README.md](../../README.md) - Project overview and quick start
 
 ## Summary
 
