@@ -45,9 +45,7 @@
     "env:setup-full": "bash scripts/setup-env.sh",
     "admin:init": "tsx scripts/init-admin.ts",
     "admin:verify": "tsx scripts/init-admin.ts --verify",
-    "deploy:production": "bash scripts/deploy-production.sh",
-    "deploy:backend": "bash scripts/deploy-production.sh --backend-only",
-    "deploy:frontend": "bash scripts/deploy-production.sh --frontend-only",
+    "deploy:production": "node scripts/deploy-production.mjs",
     "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
     "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
     "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'"
