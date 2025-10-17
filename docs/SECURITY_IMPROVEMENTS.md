@@ -427,6 +427,17 @@ While all identified vulnerabilities have been addressed, consider these additio
 4. **Dependency Scanning:** Regular updates and vulnerability scanning of dependencies
 5. **Content Security Policy:** Already implemented but should be regularly reviewed
 
+## Git History Remediation
+
+If sensitive data (such as `.env.production` files or commits with credentials) is discovered in Git history, comprehensive remediation procedures are documented in [SECURITY_REMEDIATION.md](./SECURITY_REMEDIATION.md).
+
+This guide provides:
+- Step-by-step instructions for using `git-filter-repo` to remove sensitive data
+- Safety procedures and backup strategies
+- Credential rotation procedures
+- Team coordination guidelines
+- Verification and testing procedures
+
 ## Security Contact
 
 For security-related questions or to report security issues, please contact the development team through the appropriate channels.
