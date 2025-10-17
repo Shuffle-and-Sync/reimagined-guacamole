@@ -1,5 +1,7 @@
 # Database Improvements Summary
 
+> **Note:** This document describes historical improvements made during the PostgreSQL to SQLite Cloud migration. The project now exclusively uses SQLite Cloud with Drizzle ORM. References to PostgreSQL enums and node-postgres are for historical context only.
+
 This document summarizes the database improvements implemented to enhance performance, type safety, and monitoring capabilities.
 
 ## Overview

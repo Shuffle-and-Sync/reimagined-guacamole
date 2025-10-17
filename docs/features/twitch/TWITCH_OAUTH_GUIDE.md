@@ -105,7 +105,7 @@ Prevents CSRF attacks by:
 
 ### Token Security
 
-- **Encrypted Storage**: Tokens stored encrypted in PostgreSQL
+- **Encrypted Storage**: Tokens stored encrypted in the database
 - **Secure Transmission**: All API calls use HTTPS/TLS
 - **Automatic Expiry**: Tokens automatically expire and refresh
 - **Scope Validation**: Only requested scopes are granted
