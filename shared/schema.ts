@@ -132,6 +132,43 @@ export const userPlatformAccounts = sqliteTable("user_platform_accounts", {
 ]);
 
 // ======================
+// GAME & CARD TABLES
+// ======================
+
+export const games = sqliteTable("games", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull().unique(),
+  code: text("code").notNull().unique(), // Short code like 'MTG', 'POKEMON', 'LORCANA'
+  description: text("description"),
+  isActive: integer("is_active", { mode: 'boolean' }).default(true),
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_games_name").on(table.name),
+  index("idx_games_code").on(table.code),
+  index("idx_games_active").on(table.isActive),
+]);
+
+export const cards = sqliteTable("cards", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  gameId: text("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  type: text("type"), // Card type (e.g., "Creature", "Instant", "Trainer")
+  rarity: text("rarity"), // Card rarity (e.g., "Common", "Rare", "Mythic")
+  setCode: text("set_code"), // Set/expansion code
+  setName: text("set_name"), // Set/expansion name
+  imageUrl: text("image_url"), // Optional image URL
+  metadata: text("metadata"), // JSON string for game-specific properties
+  createdAt: integer("created_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index("idx_cards_game").on(table.gameId),
+  index("idx_cards_name").on(table.name),
+  index("idx_cards_set_code").on(table.setCode),
+  index("idx_cards_game_name").on(table.gameId, table.name),
+]);
+
+// ======================
 // COMMUNITY TABLES
 // ======================
 
@@ -1371,6 +1408,8 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
 // TYPES & SCHEMAS
 // ======================
 
+export type Game = typeof games.$inferSelect;
+export type Card = typeof cards.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
 export type Account = typeof accounts.$inferSelect;
@@ -1397,6 +1436,28 @@ export type ModerationTemplate = typeof moderationTemplates.$inferSelect;
 export type AdminAuditLog = typeof adminAuditLog.$inferSelect;
 
 // Insert schemas with Zod validation
+export const insertGameSchema = createInsertSchema(games, {
+  name: z.string().min(1).max(100),
+  code: z.string().min(1).max(20).toUpperCase(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCardSchema = createInsertSchema(cards, {
+  name: z.string().min(1).max(200),
+  type: z.string().max(50).optional(),
+  rarity: z.string().max(50).optional(),
+  setCode: z.string().max(20).optional(),
+  setName: z.string().max(100).optional(),
+  imageUrl: z.string().url().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email(),
   status: z.enum(['online', 'offline', 'away', 'busy', 'gaming']).optional(),
@@ -1536,6 +1597,8 @@ export const insertStreamSessionSchema = createInsertSchema(streamSessions, {
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertGame = z.infer<typeof insertGameSchema>;
+export type InsertCard = z.infer<typeof insertCardSchema>;
 export type InsertCommunity = typeof communities.$inferInsert;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
