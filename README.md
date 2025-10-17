@@ -1,6 +1,26 @@
 # Shuffle & Sync - TCG Streaming Coordination Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 A comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
+
+## 📑 Table of Contents
+
+- [Key Features](#-key-features)
+- [Technology Stack](#️-technology-stack)
+- [Quick Start](#-quick-start)
+- [Configuration](#️-configuration)
+- [Development & Architecture](#️-development--architecture)
+- [Documentation](#-documentation)
+- [Deployment](#-deployment)
+- [Security](#-security)
+- [Platform Integrations](#-platform-integrations)
+- [Testing](#-testing-agent-features)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🚀 Key Features
 
@@ -40,7 +60,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 
 ### Prerequisites
 
-- Node.js 20.19+ 
+- Node.js 18+ 
 - npm 10+ 
 - SQLite Cloud database or local SQLite database
 - Google OAuth 2.0 credentials
@@ -72,7 +92,7 @@ npm run dev
 
 ## ⚙️ Configuration
 
-#### Quick Setup
+### Quick Setup
 
 ```bash
 # Copy template and run setup script
@@ -84,7 +104,7 @@ npm run env:setup
 npm run env:validate
 ```
 
-#### Required Variables (🔴 Critical)
+### Required Variables (🔴 Critical)
 
 | Variable | Description | Example |
 |----------|-------------|---------|
@@ -93,15 +113,6 @@ npm run env:validate
 | `AUTH_URL` | Application base URL | `http://localhost:3000` (dev) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Console |
-
-#### Recommended Variables (🟡 Optional)
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` |
-| `AUTH_SECRET` | Auth secret (32+ chars) | `openssl rand -base64 32` |
-| `GOOGLE_CLIENT_ID` | Google OAuth ID | From [Google Console](https://console.developers.google.com) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | From [Google Console](https://console.developers.google.com) |
 
 ### Configuration Help
 
@@ -116,40 +127,10 @@ bash scripts/setup-env.sh
 cp .env.example .env.local
 ```
 
-📖 **Full Configuration Guide**: [ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)  
+📖 **Full Configuration Guide**: [ENVIRONMENT_VARIABLES.md](docs/reference/ENVIRONMENT_VARIABLES.md)  
 🔧 **Template File**: [.env.example](./.env.example) (includes all optional variables)
 
 > **Note**: For development, DATABASE_URL can be a simple file path like `./dev.db`. For production, use SQLite Cloud connection string.
-
-#### Security Best Practices
-
-### Automated Testing Agent
-
-This project features an **automated testing agent** that generates comprehensive unit tests:
-
-```bash
-NODE_ENV=development
-DATABASE_URL=./dev.db
-AUTH_URL=http://localhost:3000
-```
-
-**Production:**
-```bash
-NODE_ENV=production
-DATABASE_URL=sqlitecloud://hostname:port/database?apikey=your_key
-AUTH_URL=https://your-domain.com
-```
-
-**Coverage Standards**: 70% minimum for branches, functions, lines, and statements.
-
-| Issue | Solution |
-|-------|----------|
-| Server won't start | Run `npm run env:validate` to check config |
-| Database errors | Verify `DATABASE_URL` path or SQLite Cloud connection |
-| Auth failures | Check Google OAuth credentials |
-| "Demo values" warning | Replace all demo/test values |
-
-For complete setup instructions, see `.env.example`.
 
 ### Administrator Setup
 
@@ -166,6 +147,8 @@ npm run admin:verify
 **Structure**: React frontend + Express backend + Drizzle ORM + SQLite Cloud  
 **Organization**: Feature-based modules, shared schema, comprehensive documentation
 
+### Development Commands
+
 ```bash
 # Development
 npm run dev              # Start dev server (http://localhost:3000)
@@ -175,50 +158,22 @@ npm run check            # TypeScript type checking
 # Database
 npm run db:push          # Apply schema changes  
 npm run db:health        # Connection test
+npm run db:init          # Initialize database
 
 # Testing
 npm run test:generate    # Auto-generate tests
 npm run test             # Run all tests (70%+ coverage required)
 npm run test:watch       # Watch mode
+npm run test:coverage    # Generate coverage report
 
 # Code Quality
-npm run lint && npm run format    # ESLint + Prettier
+npm run lint             # ESLint code linting (auto-fix)
+npm run format           # Prettier code formatting
 ```
 
 ## 📚 Documentation
 
 Complete documentation is organized in the [docs/](docs/) directory:
-
-- **[Documentation Index](docs/README.md)** - Central documentation hub
-- **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Getting started with development
-- **[Database Architecture](docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
-- **[API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
-- **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions
-- **[Secret Management Guide](docs/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
-- **[Testing Agent](docs/TESTING_AGENT.md)** - Unit testing framework
-
-### Feature Documentation
-- **[TableSync Universal Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
-- **[AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
-- **[Twitch OAuth Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform integration
-
-### Development Scripts
-
-```bash
-# Development
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run start            # Start production server
-
-# Database
-npm run db:push          # Push schema changes to database
-npm run db:health        # Check database connection
-
-# Code Quality
-npm run check            # TypeScript type checking
-npm run lint             # ESLint code linting
-npm run format           # Prettier code formatting
-```
 
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
@@ -227,10 +182,11 @@ npm run format           # Prettier code formatting
 - **[🔌 API Documentation](docs/reference/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](DEPLOYMENT.md)** - Production deployment
 - **[🔐 Secret Management](docs/reference/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
+- **[🧪 Testing Agent](docs/maintenance/TESTING_AGENT.md)** - Automated unit testing framework
 
-### Key Features
-- **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay
-- **[🤖 AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent matching
+### Feature Documentation
+- **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
+- **[🤖 AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
 - **[📺 Twitch Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform OAuth
 
 ## 🚀 Deployment
@@ -307,11 +263,11 @@ npm run verify:cloudrun
 
 ### Production Documentation
 
-- **[☁️ Google Cloud Commands Reference](docs/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
+- **[☁️ Google Cloud Commands Reference](docs/reference/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)** - Complete gcloud CLI command reference
 - **[🚀 Deployment Guide](DEPLOYMENT.md)** - Complete deployment guide with Cloud Run setup
 - **[📋 Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - Production deployment checklist
-- **[🔧 Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
-- **[🔐 Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete environment variable reference
+- **[🔧 Troubleshooting Guide](docs/troubleshooting/README.md)** - Common issues and solutions
+- **[🔐 Environment Variables](docs/reference/ENVIRONMENT_VARIABLES.md)** - Complete environment variable reference
 - **[🔐 Environment Template](.env.production.template)** - Required environment variables template
 
 ## 🔒 Security
@@ -333,8 +289,8 @@ npm run verify:cloudrun
 
 For comprehensive security documentation, see:
 - [SECURITY.md](./SECURITY.md) - Security policy and vulnerability reporting
-- [docs/SECURITY_IMPROVEMENTS.md](./docs/SECURITY_IMPROVEMENTS.md) - Security enhancements and best practices
-- [docs/SECURITY_REMEDIATION.md](./docs/SECURITY_REMEDIATION.md) - Guide for removing sensitive data from Git history
+- [docs/security/SECURITY_IMPROVEMENTS.md](./docs/security/SECURITY_IMPROVEMENTS.md) - Security enhancements and best practices
+- [docs/security/SECURITY_REMEDIATION.md](./docs/security/SECURITY_REMEDIATION.md) - Guide for removing sensitive data from Git history
 
 
 
@@ -378,7 +334,7 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 - ✅ Single-use authorization codes
 
 **See Also:**
-- [Platform OAuth API Documentation](docs/api/API_DOCUMENTATION.md#platform-oauth-api)
+- [Platform OAuth API Documentation](docs/reference/api/API_DOCUMENTATION.md#platform-oauth-api)
 - [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
 
 ## 🤖 Testing Agent Features
@@ -425,7 +381,7 @@ npm run history:update
 GITHUB_TOKEN=your_token npm run history:update
 ```
 
-See [Issue & PR History Agent Documentation](docs/ISSUE_PR_HISTORY_AGENT.md) for details.
+See [Issue & PR History Agent Documentation](docs/maintenance/ISSUE_PR_HISTORY_AGENT.md) for details.
 
 ## 🌐 Platform Integrations
 
@@ -433,7 +389,7 @@ See [Issue & PR History Agent Documentation](docs/ISSUE_PR_HISTORY_AGENT.md) for
 **Security**: PKCE OAuth 2.0, encrypted token storage, automatic refresh  
 **Features**: Real-time webhooks, channel management, engagement metrics
 
-📋 **Setup Guides**: [Twitch OAuth](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) • [Platform API Docs](docs/api/API_DOCUMENTATION.md#platform-oauth-api)
+📋 **Setup Guides**: [Twitch OAuth](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) • [Platform API Docs](docs/reference/api/API_DOCUMENTATION.md#platform-oauth-api)
 
 ## 🤝 Contributing
 
@@ -452,8 +408,6 @@ We welcome contributions from developers of all skill levels! Please see our **[
 3. Make your changes following our [code standards](CONTRIBUTING.md#-code-standards)
 4. Ensure all [tests pass](CONTRIBUTING.md#-testing-requirements) (70% coverage required)
 5. Submit a [pull request](CONTRIBUTING.md#-pull-request-process) with clear description
-
-## 📝 License
 
 **Requirements**: ✅ Tests pass ✅ 70%+ coverage ✅ TypeScript compliance
 
