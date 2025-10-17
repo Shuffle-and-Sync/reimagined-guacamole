@@ -57,7 +57,14 @@ else
     VERIFICATION_FAILED=1
 fi
 
-# Drizzle ORM is used for database access (no Prisma client generation needed)
+# Database ORM Configuration
+# This project uses Drizzle ORM exclusively (NOT Prisma)
+# No checks for:
+#   - generated/prisma/ directory
+#   - @prisma/client package
+#   - pg (PostgreSQL) driver
+# Drizzle ORM is used with SQLite Cloud for all database operations
+USING_PRISMA=false
 
 # Check for production dependencies
 print_status "Verifying production dependencies..."
