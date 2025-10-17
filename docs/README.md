@@ -20,8 +20,10 @@ System design and architectural documentation:
 ### 📖 Reference (`/reference`)
 Technical reference documentation:
 - **API Documentation**
-  - [API Documentation](reference/api/API_DOCUMENTATION.md) - Complete API reference
+  - [API Overview](reference/api/API_OVERVIEW.md) - Quick reference for all API endpoints
+  - [API Documentation](reference/api/API_DOCUMENTATION.md) - Complete API reference with details
   - [Universal Deck-Building API](reference/api/UNIVERSAL_DECK_BUILDING_API.md) - Universal deck-building framework
+  - [OAuth Documentation](/oauth/README.md) - OAuth 2.0 flow documentation
 - **Configuration**
   - [Configuration Files Guide](reference/CONFIGURATION_FILES_GUIDE.md) - Configuration file documentation
   - [Environment Variables](reference/ENVIRONMENT_VARIABLES.md) - Complete environment variable reference
