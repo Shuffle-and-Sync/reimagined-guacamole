@@ -163,7 +163,7 @@ npm run admin:verify
 
 ## 🏗️ Development & Architecture
 
-**Structure**: React frontend + Express backend + Drizzle ORM + PostgreSQL  
+**Structure**: React frontend + Express backend + Drizzle ORM + SQLite Cloud  
 **Organization**: Feature-based modules, shared schema, comprehensive documentation
 
 ```bash
@@ -372,7 +372,7 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 **Security Features:**
 - ✅ PKCE (Proof Key for Code Exchange) for all platforms
 - ✅ Cryptographically secure state parameters
-- ✅ Encrypted token storage in PostgreSQL
+- ✅ Encrypted token storage in database
 - ✅ Automatic token refresh with 5-minute buffer
 - ✅ CSRF protection via state validation
 - ✅ Single-use authorization codes

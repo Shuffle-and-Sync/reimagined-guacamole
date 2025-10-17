@@ -20,7 +20,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 ### Prerequisites
 
 - **Node.js** 18+ and npm
-- **PostgreSQL** database (local or cloud)
+- **SQLite Cloud** database (or local SQLite for development)
 - **Git** for version control
 - **TypeScript** knowledge recommended
 
