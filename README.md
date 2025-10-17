@@ -247,8 +247,6 @@ For comprehensive security documentation, see:
 - [docs/security/SECURITY_IMPROVEMENTS.md](./docs/security/SECURITY_IMPROVEMENTS.md) - Security enhancements and best practices
 - [docs/security/SECURITY_REMEDIATION.md](./docs/security/SECURITY_REMEDIATION.md) - Guide for removing sensitive data from Git history
 
-
-
 ### Platform OAuth Integration
 
 The platform supports secure OAuth 2.0 integration with major streaming platforms:
