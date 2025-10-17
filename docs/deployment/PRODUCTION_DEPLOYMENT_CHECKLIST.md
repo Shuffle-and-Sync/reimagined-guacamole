@@ -2,7 +2,7 @@
 
 This checklist ensures a successful and secure production deployment of Shuffle & Sync. Complete all items in order before deploying to production.
 
-> **📋 Platform-Specific Guide**: For detailed Google Cloud Platform deployment instructions, see [docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+> **📋 Deployment Guide**: For detailed deployment instructions, see the main [DEPLOYMENT.md](../../DEPLOYMENT.md) guide.
 
 ---
 
@@ -445,11 +445,11 @@ npm run env:validate
 ## 📚 Additional Resources
 
 - **Detailed Deployment Guide**: [DEPLOYMENT.md](../../DEPLOYMENT.md)
-- **GCP-Specific Checklist**: [docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
-- **Security Improvements**: [docs/SECURITY_IMPROVEMENTS.md](docs/SECURITY_IMPROVEMENTS.md)
-- **Environment Template**: [.env.production.template](.env.production.template)
-- **Deployment Scripts**: [scripts/](scripts/)
-- **Monitoring Configuration**: [monitoring/](monitoring/)
+- **GCP-Specific Checklist**: [PRODUCTION_DEPLOYMENT_CHECKLIST.md](PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+- **Security Improvements**: [SECURITY_IMPROVEMENTS.md](../security/SECURITY_IMPROVEMENTS.md)
+- **Environment Template**: [.env.production.template](../../.env.production.template)
+- **Deployment Scripts**: [scripts/](../../scripts/)
+- **Monitoring Configuration**: [monitoring/](../../monitoring/)
 
 ---
 
