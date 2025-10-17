@@ -44,6 +44,12 @@ Shuffle & Sync implements comprehensive security measures:
 
 For detailed information about our security improvements and measures, see [SECURITY_IMPROVEMENTS.md](./docs/SECURITY_IMPROVEMENTS.md).
 
+### Security Remediation
+
+If sensitive data (such as `.env.production` files or commits with credentials) is discovered in Git history, follow our comprehensive remediation guide: [SECURITY_REMEDIATION.md](./docs/SECURITY_REMEDIATION.md).
+
+This guide provides step-by-step instructions for safely removing sensitive data from Git history using `git-filter-repo`.
+
 ### Supported Versions
 
 We provide security updates for the following versions:
