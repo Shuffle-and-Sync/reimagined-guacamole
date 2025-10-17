@@ -36,8 +36,7 @@ This document provides a visual overview of the complete build initialization pr
 │     ├─ package.json                                             │
 │     ├─ tsconfig.json                                            │
 │     ├─ vite.config.ts                                           │
-│     ├─ esbuild.config.js                                        │
-│     └─ prisma/schema.prisma                                     │
+│     └─ esbuild.config.js                                        │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
                        ▼
@@ -58,17 +57,7 @@ This document provides a visual overview of the complete build initialization pr
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  STEP 5: Generate Prisma Client                                 │
-│     └─ npx prisma generate                                      │
-│        ├─ Generate TypeScript types from schema                 │
-│        ├─ Download query engine binary                          │
-│        ├─ Create client at generated/prisma/                    │
-│        └─ Verify generation succeeded                           │
-└──────────────────────┬──────────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  STEP 6: Build Frontend                                         │
+│  STEP 5: Build Frontend                                         │
 │     └─ npx vite build                                           │
 │        ├─ Compile TypeScript to JavaScript                      │
 │        ├─ Bundle React components                               │
@@ -79,7 +68,7 @@ This document provides a visual overview of the complete build initialization pr
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  STEP 7: Build Backend                                          │
+│  STEP 6: Build Backend                                          │
 │     └─ esbuild server/index.ts                                  │
 │        ├─ Bundle server code                                    │
 │        ├─ Resolve imports                                       │
@@ -90,11 +79,9 @@ This document provides a visual overview of the complete build initialization pr
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  STEP 8: Post-Build Verification                                │
+│  STEP 7: Post-Build Verification                                │
 │     ├─ Check dist/index.js exists and not empty                 │
 │     ├─ Check dist/public/index.html exists                      │
-│     ├─ Check generated/prisma/index.js exists                   │
-│     ├─ Check query engine binary exists                         │
 │     └─ Report artifact sizes                                    │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
@@ -104,8 +91,7 @@ This document provides a visual overview of the complete build initialization pr
 │                                                                  │
 │  📦 Artifacts Created:                                           │
 │     ├─ dist/index.js (~700KB)                                   │
-│     ├─ dist/public/ (~1-2MB)                                    │
-│     └─ generated/prisma/ (~20MB)                                │
+│     └─ dist/public/ (~1-2MB)                                    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -118,8 +104,6 @@ This document provides a visual overview of the complete build initialization pr
 │  ./scripts/verify-build.sh                                      │
 │     ├─ ✅ Backend bundle exists                                  │
 │     ├─ ✅ Frontend assets built                                  │
-│     ├─ ✅ Prisma client generated                                │
-│     ├─ ✅ Query engine binary present                            │
 │     ├─ ✅ Runtime dependencies verified                          │
 │     └─ ✅ Report sizes and deployment readiness                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -134,7 +118,6 @@ This document provides a visual overview of the complete build initialization pr
 │     ├─ ✅ Monitoring service                                     │
 │     ├─ ✅ Express framework                                      │
 │     ├─ ✅ Authentication configuration                           │
-│     ├─ ✅ Prisma client available                                │
 │     └─ ✅ Feature routes loadable                                │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -216,8 +199,7 @@ This document provides a visual overview of the complete build initialization pr
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  RUN npm run build                                               │
-│  ├─ Runs all 8 build steps                                      │
-│  ├─ Includes Prisma generation                                  │
+│  ├─ Runs all 7 build steps                                      │
 │  ├─ Includes type checking                                      │
 │  └─ Includes verification                                       │
 └──────────────────────┬──────────────────────────────────────────┘
@@ -245,13 +227,13 @@ Build Error Detected
 │  At which step did it fail?                                      │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
-       ┌───────────────┼───────────────┐
-       │               │               │
-       ▼               ▼               ▼
-  Type Check    Prisma Gen      Frontend/Backend
-       │               │               │
-       ▼               ▼               ▼
-  Fix types    Check schema    Check syntax/imports
+       ┌───────────────┴───────────────┐
+       │                               │
+       ▼                               ▼
+  Type Check                  Frontend/Backend
+       │                               │
+       ▼                               ▼
+  Fix types                   Check syntax/imports
        │               │               │
        └───────────────┼───────────────┘
                        │
@@ -272,7 +254,7 @@ npm run build:verify
 npm run build:verify-runtime
 
 # Clean build
-rm -rf dist generated/prisma && npm run build
+rm -rf dist && npm run build
 ```
 
 ## Documentation Structure

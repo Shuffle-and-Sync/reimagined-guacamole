@@ -57,26 +57,7 @@ else
     VERIFICATION_FAILED=1
 fi
 
-# Check Prisma client generation
-print_status "Verifying Prisma client generation..."
-if [ -d "generated/prisma" ]; then
-    if [ -f "generated/prisma/index.js" ]; then
-        print_success "Prisma client generated: generated/prisma/"
-        
-        # Check for query engine
-        if ls generated/prisma/libquery_engine-*.so.node 1> /dev/null 2>&1; then
-            print_success "Query engine binary found"
-        else
-            print_warning "Query engine binary may be missing"
-        fi
-    else
-        print_error "Prisma client incomplete: generated/prisma/index.js missing"
-        VERIFICATION_FAILED=1
-    fi
-else
-    print_error "Prisma client missing: generated/prisma/ directory"
-    VERIFICATION_FAILED=1
-fi
+# Drizzle ORM is used for database access (no Prisma client generation needed)
 
 # Check for production dependencies
 print_status "Verifying production dependencies..."
@@ -84,7 +65,7 @@ if [ -d "node_modules" ]; then
     print_success "node_modules directory exists"
     
     # Check for critical runtime dependencies
-    CRITICAL_RUNTIME_DEPS=("express" "drizzle-orm" "pg")
+    CRITICAL_RUNTIME_DEPS=("express" "drizzle-orm")
     for dep in "${CRITICAL_RUNTIME_DEPS[@]}"; do
         if [ -d "node_modules/$dep" ]; then
             print_success "Runtime dependency present: $dep"
@@ -105,9 +86,6 @@ if [ -f "dist/index.js" ]; then
 fi
 if [ -d "dist/public" ]; then
     echo "  Frontend: $(du -sh dist/public | cut -f1)"
-fi
-if [ -d "generated/prisma" ]; then
-    echo "  Prisma: $(du -sh generated/prisma | cut -f1)"
 fi
 
 # Verify build artifacts are not empty
