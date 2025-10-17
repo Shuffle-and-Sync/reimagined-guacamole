@@ -1,5 +1,7 @@
 # Drizzle ORM Implementation Review
 
+> **Note:** This document was written during the PostgreSQL to SQLite Cloud migration. The project now exclusively uses SQLite Cloud with Drizzle ORM. References to PostgreSQL, pgTable, and node-postgres are for historical context only.
+
 ## Executive Summary
 
 This comprehensive review analyzed the Drizzle ORM implementation across the Shuffle & Sync codebase. The implementation demonstrates strong adherence to TypeScript best practices and leverages Drizzle's type safety features effectively. Several areas for optimization were identified and improvements have been implemented.

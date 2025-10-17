@@ -1,5 +1,7 @@
 # Drizzle ORM Type System Fixes
 
+> **Note:** This document describes type system fixes made during the PostgreSQL to SQLite Cloud migration. The project now uses SQLite Cloud. References to NodePgDatabase and PostgreSQL-specific types are for historical context only.
+
 ## Summary
 This document describes the architectural changes made to fix 7 complex Drizzle ORM type system issues in the base repository pattern.
 

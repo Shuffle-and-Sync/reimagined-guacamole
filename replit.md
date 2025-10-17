@@ -28,25 +28,25 @@ Preferred communication style: Simple, everyday language.
 ### Authentication System
 - **Framework**: Auth.js v5 (NextAuth.js) for modern authentication
 - **Provider**: Google OAuth 2.0 for secure user authentication
-- **Database Sessions**: Database-based session storage with Prisma adapter (Auth.js tables)
+- **Database Sessions**: Database-based session storage with Drizzle adapter (Auth.js tables)
 - **Session Management**: HTTP-only cookies with secure session configuration
 - **Security**: CSRF protection, secure cookies, database session persistence
 - **User Management**: Automatic user/account creation with profile data from OAuth provider
 
 ### Data Storage Solutions
-- **Database**: PostgreSQL with Neon serverless for scalability
+- **Database**: SQLite Cloud for scalability and simplicity
 - **ORM**: Drizzle ORM for type-safe database operations and migrations
 - **Schema Design**: 
   - Users table with profile information and community preferences
   - Communities table for the 6 TCG communities (MTG, Pokemon, Lorcana, Yu-Gi-Oh, etc.)
   - User-community relationships with primary community selection
   - Theme preferences for personalized UI customization
-  - Auth.js session and account tables (managed by Prisma adapter)
+  - Auth.js session and account tables (managed by Drizzle adapter)
   - OAuth account linkage for Google authentication
-  - Hybrid approach: Drizzle ORM for app data, Prisma for Auth.js tables
+  - All database operations use Drizzle ORM
 
 ### External Dependencies
-- **Database Hosting**: Neon Serverless PostgreSQL for managed database infrastructure
+- **Database Hosting**: SQLite Cloud for managed database infrastructure
 - **Authentication**: Google OAuth 2.0 via Auth.js v5 for secure user authentication
 - **UI Icons**: Lucide React for modern, consistent iconography across the platform
 - **Fonts**: Google Fonts (Inter, DM Sans, Architects Daughter, Fira Code, Geist Mono) for typography
