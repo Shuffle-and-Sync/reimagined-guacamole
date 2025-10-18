@@ -4,9 +4,373 @@ This document provides comprehensive documentation for the Shuffle & Sync API en
 
 ## Table of Contents
 
-1. [Platform OAuth API](#platform-oauth-api)
+1. [API Overview](#api-overview)
 2. [Authentication](#authentication)
-3. [Error Handling](#error-handling)
+3. [Platform OAuth API](#platform-oauth-api)
+4. [User API](#user-api)
+5. [Community API](#community-api)
+6. [Event API](#event-api)
+7. [Tournament API](#tournament-api)
+8. [Messaging API](#messaging-api)
+9. [Card & Game API](#card--game-api)
+10. [Error Handling](#error-handling)
+11. [Rate Limiting](#rate-limiting)
+12. [Versioning](#versioning)
+
+---
+
+## API Overview
+
+**Base URL:** `https://shuffleandsync.com/api` (production) or `http://localhost:3000/api` (development)
+
+**API Version:** v1 (current)
+
+**Authentication:** All endpoints require authentication unless otherwise specified
+
+**Content Type:** `application/json`
+
+**Response Format:** JSON
+
+### Quick Reference
+
+| Category | Endpoints | Authentication Required |
+|----------|-----------|------------------------|
+| Auth | `/auth/*` | Varies |
+| Users | `/users/*` | Yes |
+| Communities | `/communities/*` | Yes |
+| Events | `/events/*` | Yes |
+| Tournaments | `/tournaments/*` | Yes |
+| Messaging | `/messages/*` | Yes |
+| Cards | `/cards/*` | Yes |
+| Games | `/games/*` | Yes |
+| Platforms | `/platforms/*` | Yes |
+| Admin | `/admin/*` | Admin only |
+
+---
+
+## Authentication
+
+All API endpoints require authentication. Authentication is handled via session cookies set by Auth.js.
+
+### Session Management
+
+- Sessions are stored in the database
+- Session cookies are HTTP-only and secure
+- CSRF protection is enabled for all state-changing operations
+
+### Authentication Endpoints
+
+#### Sign In
+- **Endpoint:** `GET /api/auth/signin`
+- **Description:** Initiates OAuth sign-in flow
+- **Authentication:** No
+- **Response:** Redirects to OAuth provider
+
+#### Sign Out
+- **Endpoint:** `GET /api/auth/signout`
+- **Description:** Signs out current user
+- **Authentication:** Yes
+- **Response:** Redirects to home page
+
+#### Session Status
+- **Endpoint:** `GET /api/auth/session`
+- **Description:** Get current session information
+- **Authentication:** No
+- **Response:**
+```json
+{
+  "user": {
+    "id": "user-uuid",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "image": "https://..."
+  },
+  "expires": "2024-12-31T23:59:59.999Z"
+}
+```
+
+---
+
+## User API
+
+### Get User Profile
+- **Endpoint:** `GET /api/users/:userId`
+- **Authentication:** Yes
+- **Parameters:**
+  - `userId` (string): User ID or "me" for current user
+- **Response:**
+```json
+{
+  "id": "uuid",
+  "username": "johndoe",
+  "email": "john@example.com",
+  "bio": "MTG enthusiast",
+  "primaryCommunityId": "community-uuid",
+  "profileImage": "https://...",
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+
+### Update User Profile
+- **Endpoint:** `PATCH /api/users/:userId`
+- **Authentication:** Yes (own profile only)
+- **Request Body:**
+```json
+{
+  "username": "newusername",
+  "bio": "Updated bio",
+  "primaryCommunityId": "community-uuid"
+}
+```
+
+### Get User Communities
+- **Endpoint:** `GET /api/users/:userId/communities`
+- **Authentication:** Yes
+- **Response:** Array of community objects
+
+---
+
+## Community API
+
+### List Communities
+- **Endpoint:** `GET /api/communities`
+- **Authentication:** No
+- **Query Parameters:**
+  - `game` (string): Filter by game type
+  - `page` (number): Page number (default: 1)
+  - `limit` (number): Results per page (default: 20, max: 100)
+- **Response:**
+```json
+{
+  "communities": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "pages": 5
+  }
+}
+```
+
+### Get Community
+- **Endpoint:** `GET /api/communities/:communityId`
+- **Authentication:** No
+- **Response:**
+```json
+{
+  "id": "uuid",
+  "name": "MTG Commander Hub",
+  "description": "...",
+  "game": "Magic: The Gathering",
+  "memberCount": 1500,
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+
+### Join Community
+- **Endpoint:** `POST /api/communities/:communityId/join`
+- **Authentication:** Yes
+- **Response:** `{ "success": true }`
+
+### Leave Community
+- **Endpoint:** `POST /api/communities/:communityId/leave`
+- **Authentication:** Yes
+- **Response:** `{ "success": true }`
+
+---
+
+## Event API
+
+### List Events
+- **Endpoint:** `GET /api/events`
+- **Authentication:** No
+- **Query Parameters:**
+  - `communityId` (string): Filter by community
+  - `startDate` (ISO date): Events starting after this date
+  - `endDate` (ISO date): Events ending before this date
+  - `type` (string): Event type (tournament, stream, casual)
+  - `page`, `limit`: Pagination
+
+### Create Event
+- **Endpoint:** `POST /api/events`
+- **Authentication:** Yes
+- **Request Body:**
+```json
+{
+  "title": "Weekly Commander Night",
+  "description": "...",
+  "communityId": "uuid",
+  "startTime": "2024-12-25T19:00:00Z",
+  "endTime": "2024-12-25T23:00:00Z",
+  "type": "casual",
+  "maxParticipants": 16
+}
+```
+
+### Get Event
+- **Endpoint:** `GET /api/events/:eventId`
+- **Authentication:** No
+- **Response:** Full event object with participants
+
+### Update Event
+- **Endpoint:** `PATCH /api/events/:eventId`
+- **Authentication:** Yes (creator only)
+- **Request Body:** Partial event object
+
+### Delete Event
+- **Endpoint:** `DELETE /api/events/:eventId`
+- **Authentication:** Yes (creator or admin)
+- **Response:** `{ "success": true }`
+
+### Join Event
+- **Endpoint:** `POST /api/events/:eventId/join`
+- **Authentication:** Yes
+- **Response:** `{ "success": true }`
+
+---
+
+## Tournament API
+
+### Create Tournament
+- **Endpoint:** `POST /api/tournaments`
+- **Authentication:** Yes
+- **Request Body:**
+```json
+{
+  "name": "Summer Championship",
+  "game": "Magic: The Gathering",
+  "format": "Commander",
+  "startTime": "2024-07-01T14:00:00Z",
+  "maxParticipants": 32,
+  "tournamentFormat": "swiss",
+  "rounds": 5,
+  "entryFee": 10.00,
+  "prizePool": 200.00
+}
+```
+
+### Get Tournament
+- **Endpoint:** `GET /api/tournaments/:tournamentId`
+- **Response:** Full tournament details with bracket
+
+### Register for Tournament
+- **Endpoint:** `POST /api/tournaments/:tournamentId/register`
+- **Authentication:** Yes
+- **Request Body:**
+```json
+{
+  "deckList": "...",
+  "paymentMethod": "stripe"
+}
+```
+
+### Submit Match Result
+- **Endpoint:** `POST /api/tournaments/:tournamentId/matches/:matchId/result`
+- **Authentication:** Yes (participant only)
+- **Request Body:**
+```json
+{
+  "winnerId": "user-uuid",
+  "score": "2-1"
+}
+```
+
+### Get Tournament Bracket
+- **Endpoint:** `GET /api/tournaments/:tournamentId/bracket`
+- **Response:** Bracket structure with match pairings
+
+---
+
+## Messaging API
+
+### Get Conversations
+- **Endpoint:** `GET /api/messages/conversations`
+- **Authentication:** Yes
+- **Response:** Array of conversation objects
+
+### Get Messages
+- **Endpoint:** `GET /api/messages/:conversationId`
+- **Authentication:** Yes
+- **Query Parameters:**
+  - `before` (ISO date): Messages before this timestamp
+  - `limit` (number): Max messages to return
+- **Response:** Array of message objects
+
+### Send Message
+- **Endpoint:** `POST /api/messages`
+- **Authentication:** Yes
+- **Request Body:**
+```json
+{
+  "recipientId": "user-uuid",
+  "content": "Hello!",
+  "conversationId": "uuid" // optional
+}
+```
+
+### WebSocket Connection
+- **Endpoint:** `ws://shuffleandsync.com/api/messages/ws`
+- **Authentication:** Session cookie
+- **Events:**
+  - `message:new` - New message received
+  - `message:read` - Message marked as read
+  - `typing` - User typing indicator
+
+---
+
+## Card & Game API
+
+### Search Cards
+- **Endpoint:** `GET /api/cards/search`
+- **Authentication:** No
+- **Query Parameters:**
+  - `q` (string): Search query
+  - `game` (string): Game type (mtg, pokemon, yugioh, lorcana)
+  - `limit` (number): Max results
+- **Response:**
+```json
+{
+  "cards": [
+    {
+      "id": "uuid",
+      "name": "Lightning Bolt",
+      "game": "Magic: The Gathering",
+      "type": "Instant",
+      "manaCost": "{R}",
+      "text": "...",
+      "imageUrl": "https://..."
+    }
+  ]
+}
+```
+
+### Get Card Details
+- **Endpoint:** `GET /api/cards/:cardId`
+- **Authentication:** No
+- **Response:** Full card details
+
+### List Games
+- **Endpoint:** `GET /api/games`
+- **Authentication:** No
+- **Response:** Array of supported games
+
+### Create Deck
+- **Endpoint:** `POST /api/decks`
+- **Authentication:** Yes
+- **Request Body:**
+```json
+{
+  "name": "My Commander Deck",
+  "game": "Magic: The Gathering",
+  "format": "Commander",
+  "cards": [
+    { "cardId": "uuid", "quantity": 1 },
+    { "cardId": "uuid2", "quantity": 1 }
+  ]
+}
+```
+
+---
 
 ## Platform OAuth API
 
@@ -331,3 +695,69 @@ Common HTTP status codes:
 - `500 Internal Server Error` - Server error
 
 For critical errors, check server logs for detailed stack traces and debugging information.
+
+---
+
+## Rate Limiting
+
+**General API:** 100 requests per 15 minutes per user
+
+**Rate Limit Headers:**
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1640000000
+```
+
+**When Rate Limited:**
+```json
+{
+  "error": "Rate limit exceeded",
+  "retryAfter": 900
+}
+```
+HTTP Status: `429 Too Many Requests`
+
+---
+
+## Versioning
+
+**Current Version:** v1
+
+**Version Header:**
+```
+Accept: application/vnd.shuffleandsync.v1+json
+```
+
+**Deprecation Policy:**
+- New versions announced 3 months in advance
+- Old versions supported for 6 months after deprecation
+- Breaking changes only in major versions
+
+**API Changelog:**
+
+### v1.0.0 (Current)
+- Initial API release
+- Platform OAuth integration
+- Core tournament and event APIs
+- Real-time messaging via WebSocket
+
+### Upcoming (v1.1.0)
+- Enhanced analytics endpoints
+- Deck builder improvements
+- Advanced matchmaking algorithms
+
+---
+
+## Additional Resources
+
+For detailed information on specific features:
+- [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md) - Twitch-specific documentation
+- [Universal Deck Building API](UNIVERSAL_DECK_BUILDING_API.md) - Deck management
+- [TableSync API](../features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md) - Remote gameplay
+- [OAuth Documentation](../oauth/README.md) - General OAuth information
+
+---
+
+**Last Updated:** 2025-10-18
+
