@@ -21,7 +21,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "lint": "eslint server client/src --ext .ts,.tsx --fix",
+    "lint": "./node_modules/.bin/eslint server client/src --ext .ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "health": "curl -f http://localhost:3000/health || exit 1",
     "test:generate": "tsx scripts/test-agent.ts",
