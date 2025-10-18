@@ -73,3 +73,19 @@ meta.json
 ".env.production" 
 ".env.production" 
 .env.production
+
+# Terraform state files
+infrastructure/terraform/.terraform/
+infrastructure/terraform/*.tfstate
+infrastructure/terraform/*.tfstate.*
+infrastructure/terraform/*.tfvars
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/terraform/crash.log
+infrastructure/terraform/crash.*.log
+
+# Database backups
+backups/
+*.sql
+*.sql.gz
+*.sha256
+backup-*.json

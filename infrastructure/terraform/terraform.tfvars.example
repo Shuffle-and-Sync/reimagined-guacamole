@@ -1,0 +1,26 @@
+# Example terraform.tfvars file for production deployment
+# Copy this file to terraform.tfvars and configure with your values
+# DO NOT commit terraform.tfvars to version control
+
+# Required Variables
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+
+# Backend Service Configuration
+backend_service_name = "shuffle-and-sync-backend"
+backend_image        = "gcr.io/your-project-id/shuffle-and-sync-backend:latest"
+backend_cpu          = "1"
+backend_memory       = "1Gi"
+backend_min_instances = "1"  # Set to 1 for production to avoid cold starts
+backend_max_instances = "10"
+
+# Frontend Service Configuration
+frontend_service_name = "shuffle-and-sync-frontend"
+frontend_image        = "gcr.io/your-project-id/shuffle-and-sync-frontend:latest"
+frontend_cpu          = "1"
+frontend_memory       = "512Mi"
+frontend_min_instances = "0"  # Can be 0 since static content loads faster
+frontend_max_instances = "5"
+
+# Monitoring - Add notification channel IDs after creating them
+# notification_channels = ["projects/YOUR_PROJECT/notificationChannels/CHANNEL_ID"]
