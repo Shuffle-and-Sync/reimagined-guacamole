@@ -21,6 +21,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:load": "tsx scripts/load-test.ts",
+    "test:stress": "tsx scripts/stress-test.ts",
     "lint": "./node_modules/.bin/eslint server client/src --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "health": "curl -f http://localhost:3000/health || exit 1",
