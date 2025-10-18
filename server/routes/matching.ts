@@ -89,15 +89,15 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
-    return res.json({
-      success: true,
-      data: matches
-    });
-
     logger.info("Real-time matches retrieved successfully", {
       userId,
       matchCount: matches.matches.length,
       processingTime: matches.metadata.processingTime
+    });
+
+    return res.json({
+      success: true,
+      data: matches
     });
 
   } catch (error) {
@@ -142,15 +142,15 @@ matchingRouter.post('/realtime', isAuthenticated, async (req, res) => {
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
-    return res.json({
-      success: true,
-      data: matches
-    });
-
     logger.info("Real-time matches retrieved via POST", {
       userId,
       matchCount: matches.matches.length,
       processingTime: matches.metadata.processingTime
+    });
+
+    return res.json({
+      success: true,
+      data: matches
     });
 
   } catch (error) {
@@ -175,14 +175,14 @@ matchingRouter.get('/trending', isAuthenticated, async (req, res) => {
 
     const opportunities = await realtimeMatchingAPI.getTrendingOpportunities(userId);
 
-    return res.json({
-      success: true,
-      data: opportunities
-    });
-
     logger.info("Trending opportunities retrieved", {
       userId,
       opportunityCount: opportunities.length
+    });
+
+    return res.json({
+      success: true,
+      data: opportunities
     });
 
   } catch (error) {
@@ -220,6 +220,8 @@ matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
       callback
     );
 
+    logger.info("Real-time subscription created", { userId, subscriptionId });
+
     return res.json({
       success: true,
       data: {
@@ -227,8 +229,6 @@ matchingRouter.post('/subscribe', isAuthenticated, async (req, res) => {
         message: 'Subscribed to real-time updates'
       }
     });
-
-    logger.info("Real-time subscription created", { userId, subscriptionId });
 
   } catch (error) {
     logger.error("Failed to create subscription", { error, userId: req.user?.id });
@@ -255,12 +255,12 @@ matchingRouter.delete('/subscribe/:subscriptionId', isAuthenticated, async (req,
     const success = realtimeMatchingAPI.unsubscribe(subscriptionId);
 
     if (success) {
+      logger.info("Real-time subscription removed", { userId, subscriptionId });
+      
       return res.json({
         success: true,
         message: 'Unsubscribed successfully'
       });
-
-      logger.info("Real-time subscription removed", { userId, subscriptionId });
     } else {
       return res.status(404).json({
         error: 'Subscription not found'
@@ -311,16 +311,16 @@ matchingRouter.post('/outcome', isAuthenticated, async (req, res) => {
       feedback: outcome.feedback
     });
 
-    return res.json({
-      success: true,
-      message: 'Collaboration outcome recorded successfully'
-    });
-
     logger.info("Collaboration outcome recorded", {
       userId,
       matchId: outcome.matchId,
       success: outcome.success,
       rating: outcome.rating
+    });
+
+    return res.json({
+      success: true,
+      message: 'Collaboration outcome recorded successfully'
     });
 
   } catch (error) {
@@ -362,12 +362,12 @@ matchingRouter.get('/performance', isAuthenticated, async (req, res) => {
       }
     };
 
+    logger.debug("Performance metrics retrieved", { userId });
+
     return res.json({
       success: true,
       data: metrics
     });
-
-    logger.debug("Performance metrics retrieved", { userId });
 
   } catch (error) {
     logger.error("Failed to get performance metrics", { error, userId: req.user?.id });
