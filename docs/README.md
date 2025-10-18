@@ -9,6 +9,7 @@ The documentation is organized into the following categories:
 ### 🏗️ Architecture (`/architecture`)
 System design and architectural documentation:
 - **[Project Architecture](architecture/PROJECT_ARCHITECTURE.md)** - Complete project architecture overview
+- **[System Architecture Diagrams](architecture/SYSTEM_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams (Mermaid)
 - **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
@@ -96,6 +97,23 @@ Feature-specific documentation:
 #### AI Matchmaking
 - [TCG Synergy AI Matchmaker PRD Audit](features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md) - PRD audit
 - [TCG Synergy AI Matchmaker Summary](features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_SUMMARY.md) - Feature summary
+
+#### User Guides (`/user-guides`)
+Step-by-step guides for end users:
+- [Getting Started Guide](user-guides/GETTING_STARTED.md) - New user onboarding and setup
+- [Streamer Onboarding Guide](user-guides/STREAMER_ONBOARDING_GUIDE.md) - Complete guide for content creators
+- [Tournament Organizer Guide](user-guides/TOURNAMENT_ORGANIZER_GUIDE.md) - Creating and managing tournaments
+- [Community Admin Guide](user-guides/COMMUNITY_ADMIN_GUIDE.md) - Community management and moderation
+
+#### Operations Runbooks (`/operations`)
+Operational procedures for production support:
+- [Database Operations Runbook](operations/DATABASE_OPERATIONS_RUNBOOK.md) - Database management procedures
+- [Deployment Rollback Runbook](operations/DEPLOYMENT_ROLLBACK_RUNBOOK.md) - Deployment and rollback procedures
+- [Monitoring & Alerting Runbook](operations/MONITORING_ALERTING_RUNBOOK.md) - Monitoring and alert response
+- [Incident Response Runbook](operations/INCIDENT_RESPONSE_RUNBOOK.md) - Incident management procedures
+
+#### Known Issues
+- [Known Issues & Workarounds](KNOWN_ISSUES.md) - Current known issues with workarounds and solutions
 
 #### Twitch Integration
 - [Twitch OAuth Guide](features/twitch/TWITCH_OAUTH_GUIDE.md) - OAuth implementation
