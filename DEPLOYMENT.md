@@ -377,7 +377,16 @@ npm run admin:verify
 
 For automated deployments via Cloud Build:
 
-**Note:** Both `cloudbuild.yaml` and `cloudbuild-frontend.yaml` use a `_REGION` substitution that defaults to `us-central1`. You can override this by passing `--substitutions=_REGION=your-region` or by setting the `REGION` environment variable in your deployment script.
+**Note:** Both `cloudbuild.yaml` and `cloudbuild-frontend.yaml` use substitutions with default values:
+- `_REGION`: Defaults to `us-central1`
+- `_IMAGE_TAG`: Defaults to `$BUILD_ID` (Cloud Build's unique build ID)
+- `_SERVICE_NAME`: Defaults to the service name
+
+You can override these by passing `--substitutions` flags. For example, to use a custom image tag:
+
+```bash
+--substitutions=_REGION=your-region,_IMAGE_TAG=v1.2.3
+```
 
 #### Backend Deployment
 
@@ -385,6 +394,13 @@ For automated deployments via Cloud Build:
 gcloud builds submit \
   --config cloudbuild.yaml \
   --substitutions _REGION=$REGION,_SERVICE_NAME=shuffle-and-sync-backend
+```
+
+To use a specific version tag:
+```bash
+gcloud builds submit \
+  --config cloudbuild.yaml \
+  --substitutions _REGION=$REGION,_IMAGE_TAG=v1.0.0
 ```
 
 #### Frontend Deployment
