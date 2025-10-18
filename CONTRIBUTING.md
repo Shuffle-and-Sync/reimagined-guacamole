@@ -29,13 +29,18 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 1. **Fork** the repository
 2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/reimagined-guacamole.git`
 3. **Install** dependencies: `npm install --legacy-peer-deps`
-4. **Set up** environment: `npm run env:setup`
+4. **Set up** environment:
+   - **Linux/macOS**: `npm run env:setup`
+   - **Windows (PowerShell)**: `Copy-Item .env.example .env.local` (then edit `.env.local`)
+   - **Windows (Git Bash)**: `cp .env.example .env.local` (then edit `.env.local`)
 5. **Explore** the codebase: `npm run test:generate`
 6. **Start** development: `npm run dev`
 
 ## 🛠️ Development Setup
 
 ### Environment Configuration
+
+#### Linux/macOS
 
 1. **Copy environment template**:
    ```bash
@@ -57,6 +62,56 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
    npm run env:validate
    npm run health
    ```
+
+#### Windows (PowerShell)
+
+1. **Copy environment template**:
+   ```powershell
+   Copy-Item .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
+
+2. **Configure your `.env.local`** with:
+   - Database connection (`DATABASE_URL`)
+   - Google OAuth credentials (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
+   - Auth secret (`AUTH_SECRET`)
+
+3. **Initialize database**:
+   ```powershell
+   npm run db:push
+   ```
+
+4. **Validate setup**:
+   ```powershell
+   npm run env:validate
+   npm run health
+   ```
+
+#### Windows (Git Bash)
+
+1. **Copy environment template**:
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
+
+2. **Configure your `.env.local`** with:
+   - Database connection (`DATABASE_URL`)
+   - Google OAuth credentials (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
+   - Auth secret (`AUTH_SECRET`)
+
+3. **Initialize database**:
+   ```bash
+   npm run db:push
+   ```
+
+4. **Validate setup**:
+   ```bash
+   npm run env:validate
+   npm run health
+   ```
+
+> **Note for Windows Contributors**: All npm scripts (like `npm run dev`, `npm test`, `npm run build`) work identically across Windows, macOS, and Linux. However, some bash scripts in the `scripts/` directory may require Git Bash on Windows.
 
 ### Development Scripts
 

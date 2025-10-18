@@ -70,6 +70,8 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 
 ### Installation
 
+#### Linux/macOS
+
 ```bash
 # 1. Clone and install
 git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
@@ -87,6 +89,48 @@ npm run db:push
 # 4. Start development
 npm run dev
 ```
+
+#### Windows (PowerShell)
+
+```powershell
+# 1. Clone and install
+git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
+cd reimagined-guacamole
+npm install --legacy-peer-deps
+
+# 2. Environment setup (manual)
+Copy-Item .env.example .env.local
+# Edit .env.local with your configuration
+
+# 3. Initialize and push database schema
+npm run db:init
+npm run db:push
+
+# 4. Start development
+npm run dev
+```
+
+#### Windows (Git Bash)
+
+```bash
+# 1. Clone and install
+git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
+cd reimagined-guacamole
+npm install --legacy-peer-deps
+
+# 2. Environment setup (manual)
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# 3. Initialize and push database schema
+npm run db:init
+npm run db:push
+
+# 4. Start development
+npm run dev
+```
+
+> **Note for Windows Users**: Some bash scripts may not work directly on Windows. Use Git Bash for bash scripts or PowerShell equivalents. For production builds, all npm scripts work across all platforms.
 
 🌐 **Application**: http://localhost:3000  
 📋 **Health Check**: http://localhost:3000/health
