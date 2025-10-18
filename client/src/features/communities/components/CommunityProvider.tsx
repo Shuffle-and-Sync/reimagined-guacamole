@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Community } from '@shared/schema';
 import { getCommunityTheme, applyCommunityTheme, type CommunityTheme } from '../utils/communityThemes';
@@ -16,6 +16,7 @@ const CommunityContext = createContext<CommunityContextType | undefined>(undefin
 export function CommunityProvider({ children }: { children: ReactNode }) {
   const [selectedCommunity, setSelectedCommunityState] = useState<Community | null>(null);
   const [communityTheme, setCommunityTheme] = useState<CommunityTheme>(() => getCommunityTheme(null));
+  const initializedRef = useRef(false);
   
   // Fetch all communities
   const { data: communities = [], isLoading } = useQuery<Community[]>({
@@ -24,7 +25,8 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
 
   // Set initial community (saved preference only, default to All Realms)
   useEffect(() => {
-    if (communities.length > 0 && selectedCommunity === null) {
+    if (communities.length > 0 && selectedCommunity === null && !initializedRef.current) {
+      initializedRef.current = true;
       // Try to get saved community from localStorage
       const savedCommunityId = localStorage.getItem('selectedCommunityId');
       if (savedCommunityId && savedCommunityId !== 'null') {
@@ -37,7 +39,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       // Default to All Realms (null) - don't auto-select a community
       setSelectedCommunityState(null);
     }
-  }, [communities]);
+  }, [communities, selectedCommunity]);
 
   const setSelectedCommunity = (community: Community | null) => {
     setSelectedCommunityState(community);
@@ -46,18 +48,16 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.setItem('selectedCommunityId', 'null'); // Explicitly save "All Realms" choice
     }
-    
-    // Apply community theme
-    const theme = getCommunityTheme(community?.id);
-    applyCommunityTheme(theme);
-    setCommunityTheme(theme);
   };
 
   // Apply theme when community changes
   useEffect(() => {
     const theme = getCommunityTheme(selectedCommunity?.id);
     applyCommunityTheme(theme);
-    setCommunityTheme(theme);
+    // Use requestAnimationFrame to defer state update and avoid cascading renders
+    requestAnimationFrame(() => {
+      setCommunityTheme(theme);
+    });
   }, [selectedCommunity]);
 
   return (
