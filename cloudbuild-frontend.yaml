@@ -18,7 +18,7 @@ steps:
       - '-f'
       - 'Dockerfile.frontend'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:${_IMAGE_TAG}'
       - '-t'
       - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest'
       - '.'
@@ -28,7 +28,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:${_IMAGE_TAG}'
     id: 'push-frontend'
     waitFor: ['build-frontend']
 
@@ -50,7 +50,7 @@ steps:
       - 'deploy'
       - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:${_IMAGE_TAG}'
       - '--platform'
       - 'managed'
       - '--region'
@@ -86,11 +86,13 @@ options:
   
 # Substitutions for variables
 # These provide default values that can be overridden with --substitutions flag
-# Example: gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_REGION=us-east1,_SERVICE_NAME=your-service-name
+# Example: gcloud builds submit --config cloudbuild-frontend.yaml --substitutions=_REGION=us-east1,_SERVICE_NAME=your-service-name,_IMAGE_TAG=v1.2.3
+# _IMAGE_TAG defaults to BUILD_ID which is always available in Cloud Build
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: shuffle-and-sync-frontend  # Change to 'shuffle-sync-front' if that's your deployed service name
+  _IMAGE_TAG: $BUILD_ID
 
 images:
-  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:${_IMAGE_TAG}'
   - 'gcr.io/$PROJECT_ID/shuffle-and-sync-frontend:latest'
