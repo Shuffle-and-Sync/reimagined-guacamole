@@ -223,14 +223,21 @@ Complete documentation is organized in the [docs/](docs/) directory:
 ### Core Guides
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
 - **[🏗️ Project Architecture](docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture and design patterns
+- **[📊 Architecture Diagrams](docs/architecture/SYSTEM_ARCHITECTURE_DIAGRAMS.md)** - Visual system architecture diagrams
 - **[🛠️ Technology Stack](docs/architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology documentation
 - **[📝 Coding Patterns](docs/development/CODING_PATTERNS.md)** - Coding standards and conventions
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
 - **[🗄️ Database Architecture](docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design & setup  
-- **[🔌 API Documentation](docs/reference/api/API_DOCUMENTATION.md)** - Complete API reference
+- **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](DEPLOYMENT.md)** - Production deployment
 - **[🔐 Secret Management](docs/reference/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 - **[🧪 Testing Agent](docs/maintenance/TESTING_AGENT.md)** - Automated unit testing framework
+
+### User Guides
+- **[🎯 Getting Started](docs/user-guides/GETTING_STARTED.md)** - New user onboarding
+- **[🎥 Streamer Guide](docs/user-guides/STREAMER_ONBOARDING_GUIDE.md)** - For content creators
+- **[🏆 Tournament Organizer](docs/user-guides/TOURNAMENT_ORGANIZER_GUIDE.md)** - Running tournaments
+- **[👥 Community Admin](docs/user-guides/COMMUNITY_ADMIN_GUIDE.md)** - Community management
 
 ### Feature Documentation
 - **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
@@ -271,6 +278,14 @@ For comprehensive deployment instructions and Google Cloud Platform setup, see t
 - **[🔧 Troubleshooting Guide](docs/troubleshooting/README.md)** - Common issues and solutions
 - **[🔐 Environment Variables](docs/reference/ENVIRONMENT_VARIABLES.md)** - Complete environment variable reference
 - **[🔐 Environment Template](.env.production.template)** - Required environment variables template
+
+### Operations Runbooks
+
+- **[📊 Database Operations](docs/operations/DATABASE_OPERATIONS_RUNBOOK.md)** - Database management procedures
+- **[🔄 Deployment & Rollback](docs/operations/DEPLOYMENT_ROLLBACK_RUNBOOK.md)** - Deployment and rollback procedures
+- **[📈 Monitoring & Alerting](docs/operations/MONITORING_ALERTING_RUNBOOK.md)** - Monitoring and alert response
+- **[🚨 Incident Response](docs/operations/INCIDENT_RESPONSE_RUNBOOK.md)** - Incident management procedures
+- **[⚠️ Known Issues](docs/KNOWN_ISSUES.md)** - Current known issues with workarounds
 
 ## 🔒 Security
 

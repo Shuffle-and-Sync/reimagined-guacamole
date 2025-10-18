@@ -9,6 +9,7 @@ The documentation is organized into the following categories:
 ### 🏗️ Architecture (`/architecture`)
 System design and architectural documentation:
 - **[Project Architecture](architecture/PROJECT_ARCHITECTURE.md)** - Complete project architecture overview
+- **[System Architecture Diagrams](architecture/SYSTEM_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams (Mermaid)
 - **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
