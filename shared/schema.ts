@@ -1471,7 +1471,6 @@ export const insertUserSchema = createInsertSchema(users, {
 
 export const insertCommunitySchema = createInsertSchema(communities).omit({
   id: true,
-  joinedAt: true,
 });
 
 export const insertEventSchema = createInsertSchema(events, {
