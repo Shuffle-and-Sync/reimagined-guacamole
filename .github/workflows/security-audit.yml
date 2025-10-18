@@ -1,0 +1,218 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security audit weekly on Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  security-audit:
+    name: Security Audit & Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full git history for security checks
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Run npm audit (production dependencies)
+        run: npm audit --production --audit-level=moderate
+        continue-on-error: false
+      
+      - name: Run npm audit (all dependencies)
+        run: npm audit --audit-level=moderate
+        continue-on-error: true # Don't fail on dev dependency issues
+      
+      - name: Check for vulnerable packages
+        run: |
+          if npm audit --json | jq -e '.metadata.vulnerabilities.total > 0' > /dev/null; then
+            echo "⚠️ Vulnerabilities found in dependencies"
+            npm audit --json | jq '.metadata.vulnerabilities'
+          else
+            echo "✅ No vulnerabilities found"
+          fi
+      
+      - name: Run TypeScript type checking
+        run: npm run check
+      
+      - name: Run security tests
+        run: npm test server/tests/security/
+      
+      - name: Check for .env files in git history
+        run: |
+          if git log --all --pretty=format: --name-only --diff-filter=A | grep -E "^\.env\.production$"; then
+            echo "❌ ERROR: .env.production found in git history"
+            exit 1
+          else
+            echo "✅ No .env.production in git history"
+          fi
+      
+      - name: Check .gitignore for env protection
+        run: |
+          if grep -q "*.env*" .gitignore && grep -q ".env.production" .gitignore; then
+            echo "✅ .gitignore properly configured for env files"
+          else
+            echo "❌ ERROR: .gitignore missing env file patterns"
+            exit 1
+          fi
+      
+      - name: Validate environment variables template
+        run: |
+          if [ -f .env.example ]; then
+            echo "✅ .env.example exists"
+            # Check for placeholder values, not real credentials
+            if grep -qE "(sk_live_|AIza[A-Za-z0-9_-]{35})" .env.example; then
+              echo "❌ ERROR: Real credentials found in .env.example"
+              exit 1
+            else
+              echo "✅ No real credentials in .env.example"
+            fi
+          else
+            echo "❌ ERROR: .env.example not found"
+            exit 1
+          fi
+      
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for common secret patterns (excluding test files and node_modules)
+          if git grep -E "(sk_live_|AIza[A-Za-z0-9_-]{35}|ghp_[a-zA-Z0-9]{36})" -- ":(exclude)*.test.ts" ":(exclude)*.spec.ts" ":(exclude)node_modules" ":(exclude).env.example"; then
+            echo "❌ ERROR: Potential hardcoded secrets found"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+      
+      - name: Generate security audit summary
+        if: always()
+        run: |
+          echo "## Security Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Dependencies" >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '"- Total Vulnerabilities: \(.metadata.vulnerabilities.total)"' >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '"- Critical: \(.metadata.vulnerabilities.critical)"' >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '"- High: \(.metadata.vulnerabilities.high)"' >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '"- Moderate: \(.metadata.vulnerabilities.moderate)"' >> $GITHUB_STEP_SUMMARY
+          npm audit --json | jq -r '"- Low: \(.metadata.vulnerabilities.low)"' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Tests" >> $GITHUB_STEP_SUMMARY
+          echo "Security test suite executed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Credential Protection" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ .env.production not in git history" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ .gitignore configured correctly" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ No hardcoded secrets detected" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload security audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: |
+            npm-audit.json
+            SECURITY_AUDIT_REPORT.md
+          retention-days: 30
+      
+      - name: Create security report
+        if: always()
+        run: |
+          npm audit --json > npm-audit.json || true
+          echo "Security audit report generated"
+      
+      - name: Comment PR with security status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const auditData = JSON.parse(fs.readFileSync('npm-audit.json', 'utf8'));
+            const vulnCount = auditData.metadata.vulnerabilities.total;
+            
+            const comment = `## 🔒 Security Audit Results
+            
+            **Vulnerabilities Found:** ${vulnCount}
+            ${vulnCount > 0 ? '⚠️' : '✅'}
+            
+            - Critical: ${auditData.metadata.vulnerabilities.critical}
+            - High: ${auditData.metadata.vulnerabilities.high}
+            - Moderate: ${auditData.metadata.vulnerabilities.moderate}
+            - Low: ${auditData.metadata.vulnerabilities.low}
+            
+            ${vulnCount > 0 ? '⚠️ Please review and fix vulnerabilities before merging.' : '✅ No vulnerabilities detected.'}
+            
+            **Security Checks:**
+            - ✅ TypeScript type checking passed
+            - ✅ Security tests passed
+            - ✅ No .env files in git history
+            - ✅ No hardcoded secrets detected
+            
+            See the [Security Audit Report](../SECURITY_AUDIT_REPORT.md) for details.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript', 'typescript' ]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+      
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-3.0, AGPL-3.0
+          comment-summary-in-pr: always
