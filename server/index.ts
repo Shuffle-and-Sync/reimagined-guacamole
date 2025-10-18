@@ -13,6 +13,11 @@ if (cwd && (process.env.NODE_ENV !== 'production')) {
   }
 }
 
+// CRITICAL: Initialize Sentry BEFORE importing any other modules
+// This ensures error tracking captures all errors including initialization errors
+import { initializeSentry, sentryRequestHandler, sentryTracingHandler, sentryErrorHandler, flushSentry } from "./services/error-tracking";
+initializeSentry();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { serveStatic, log } from "./static-server";
 import { logger } from "./logger";
@@ -60,6 +65,11 @@ const app = express();
 // Trust proxy for correct x-forwarded-* headers (required for Auth.js host validation)
 // Use "1" to trust only the first proxy (safer than "true" for rate limiting)
 app.set('trust proxy', 1);
+
+// CRITICAL: Add Sentry request and tracing handlers FIRST
+// This ensures all requests are tracked for error monitoring and performance
+app.use(sentryRequestHandler());
+app.use(sentryTracingHandler());
 
 // Basic middleware - body parsers MUST come before Auth.js routes
 app.use(express.json());
@@ -611,6 +621,10 @@ server.listen({
     }
   });
 
+  // CRITICAL: Add Sentry error handler BEFORE other error handlers
+  // This ensures all errors are captured by Sentry
+  app.use(sentryErrorHandler());
+
   // Basic error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error('Server error:', err.message);
@@ -645,6 +659,17 @@ server.listen({
   // Setup graceful shutdown handlers with server and database references
   const { closeDatabaseConnections } = await import("@shared/database-unified");
   setupGracefulShutdown(server, { drizzle: db, closeDatabaseConnections });
+  
+  // Add Sentry flush to shutdown process
+  process.on('SIGTERM', async () => {
+    logger.info('SIGTERM received, flushing Sentry events');
+    await flushSentry(2000);
+  });
+  
+  process.on('SIGINT', async () => {
+    logger.info('SIGINT received, flushing Sentry events');
+    await flushSentry(2000);
+  });
   
   // Start monitoring service after server is running
   try {
