@@ -11,7 +11,7 @@
  * - Error boundaries and loading states
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,8 +52,11 @@ export function GameStatsCard({
   // Calculate performance indicators
   const isHighPerformer = winRate >= 70;
   const isActivePlayer = stats.totalGames >= 10;
-  const recentlyPlayed = stats.lastPlayed ? 
-    new Date(stats.lastPlayed).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) : false;
+  // Use useMemo to avoid calling Date.now() during render
+  const recentlyPlayed = useMemo(() => {
+    return stats.lastPlayed ? 
+      new Date(stats.lastPlayed).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) : false;
+  }, [stats.lastPlayed]);
 
   return (
     <Card 
