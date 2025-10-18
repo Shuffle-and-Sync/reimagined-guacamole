@@ -32,12 +32,17 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
       if (savedCommunityId && savedCommunityId !== 'null') {
         const savedCommunity = communities.find(c => c.id === savedCommunityId);
         if (savedCommunity) {
-          setSelectedCommunityState(savedCommunity);
+          // Use requestAnimationFrame to defer state update and avoid cascading renders
+          requestAnimationFrame(() => {
+            setSelectedCommunityState(savedCommunity);
+          });
           return;
         }
       }
       // Default to All Realms (null) - don't auto-select a community
-      setSelectedCommunityState(null);
+      requestAnimationFrame(() => {
+        setSelectedCommunityState(null);
+      });
     }
   }, [communities, selectedCommunity]);
 

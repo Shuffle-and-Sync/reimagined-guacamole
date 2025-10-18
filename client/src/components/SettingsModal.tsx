@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +24,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { user } = useAuth();
   const { selectedCommunity } = useCommunity();
   const { toast } = useToast();
+  const hasInitializedRef = useRef(false);
 
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -57,7 +58,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   // Load settings from backend when available
   useEffect(() => {
-    if (userSettings) {
+    if (userSettings && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       // Parse JSON fields from database
       const notificationTypes = userSettings.notificationTypes 
         ? (typeof userSettings.notificationTypes === 'string' 
