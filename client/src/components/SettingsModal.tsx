@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +22,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { user } = useAuth();
-  const { selectedCommunity, communities } = useCommunity();
+  const { selectedCommunity } = useCommunity();
   const { toast } = useToast();
 
   // User preferences state
@@ -51,7 +50,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   });
 
   // Fetch user settings
-  const { data: userSettings, isLoading: settingsLoading } = useQuery<UserSettings>({
+  const { data: userSettings } = useQuery<UserSettings>({
     queryKey: ['/api/user/settings'],
     enabled: !!user?.id,
   });
@@ -64,40 +63,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         ? (typeof userSettings.notificationTypes === 'string' 
           ? JSON.parse(userSettings.notificationTypes) 
           : userSettings.notificationTypes)
-        : {};
+        : null;
       const privacySettings = userSettings.privacySettings 
         ? (typeof userSettings.privacySettings === 'string' 
           ? JSON.parse(userSettings.privacySettings) 
           : userSettings.privacySettings)
-        : {};
+        : null;
       const displayPreferences = userSettings.displayPreferences 
         ? (typeof userSettings.displayPreferences === 'string' 
           ? JSON.parse(userSettings.displayPreferences) 
           : userSettings.displayPreferences)
-        : {};
+        : null;
       
-      setPreferences({
-        theme: displayPreferences.theme || "system",
-        notifications: notificationTypes || {
-          email: true,
-          browser: true,
-          eventReminders: true,
-          socialUpdates: false,
-          weeklyDigest: true
-        },
-        privacy: privacySettings || {
-          profileVisible: true,
-          showOnlineStatus: true,
-          allowDirectMessages: true,
-          shareStreamingActivity: true
-        },
-        streaming: displayPreferences.streaming || {
-          defaultQuality: "720p",
-          autoStartRecording: false,
-          chatOverlay: true,
-          showViewerCount: true
-        }
-      });
+      setPreferences(prev => ({
+        theme: displayPreferences?.theme || prev.theme,
+        notifications: notificationTypes || prev.notifications,
+        privacy: privacySettings || prev.privacy,
+        streaming: displayPreferences?.streaming || prev.streaming
+      }));
     }
   }, [userSettings]);
 
