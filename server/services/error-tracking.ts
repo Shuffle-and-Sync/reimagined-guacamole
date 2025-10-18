@@ -130,9 +130,9 @@ export function sentryRequestHandler() {
  * Should be added early in the middleware chain
  */
 export function sentryTracingHandler() {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Start transaction for request
-    const transaction = Sentry.startSpan(
+  return (req: Request, _res: Response, next: NextFunction) => {
+    // Start span for request tracing
+    Sentry.startSpan(
       {
         op: 'http.server',
         name: `${req.method} ${req.path}`,
