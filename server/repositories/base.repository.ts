@@ -514,7 +514,7 @@ export abstract class BaseRepository<
         const sqlQuery = params && params.length > 0 
           ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
           : sql.raw(query);
-        // @ts-ignore: Temporary workaround for SQLite vs PostgreSQL type mismatch
+        // @ts-expect-error: Temporary workaround for SQLite vs PostgreSQL type mismatch
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
