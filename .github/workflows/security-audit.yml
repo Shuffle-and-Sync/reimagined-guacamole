@@ -35,7 +35,7 @@ jobs:
         run: npm ci --legacy-peer-deps
       
       - name: Run npm audit (production dependencies)
-        run: npm audit --production --audit-level=moderate
+        run: npm audit --omit=dev --audit-level=moderate
         continue-on-error: false
       
       - name: Run npm audit (all dependencies)
@@ -55,7 +55,7 @@ jobs:
         run: npm run check
       
       - name: Run security tests
-        run: npm test server/tests/security/
+        run: npm test -- server/tests/security/
       
       - name: Check for .env files in git history
         run: |
@@ -185,7 +185,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'typescript' ]
+        language: [ 'javascript-typescript' ]
     
     steps:
       - name: Checkout repository
