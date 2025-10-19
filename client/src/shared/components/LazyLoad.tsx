@@ -98,12 +98,12 @@ interface InViewLazyLoadProps {
 
 export function InViewLazyLoad({
   children,
-  fallback = <LoadingSkeleton />,
-  rootMargin = "100px",
-  threshold = 0.1,
-  triggerOnce = true,
+  fallback: _fallback = <LoadingSkeleton />,
+  rootMargin: _rootMargin = "100px",
+  threshold: _threshold = 0.1,
+  triggerOnce: _triggerOnce = true,
 }: InViewLazyLoadProps) {
-  // Note: In a real implementation, we'd use useIntersectionObserver
+  // Note: In a real implementation, we'd use useIntersectionObserver with these params
   // For now, we'll show the content immediately
   return <>{children}</>;
 }

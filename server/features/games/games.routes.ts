@@ -28,7 +28,6 @@ router.post(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const user = authenticatedReq.user as any;
       const userId = getAuthUserId(authenticatedReq);
       const sessionData = { ...req.body, hostId: userId };
 

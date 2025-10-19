@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -60,7 +60,7 @@ interface GameRoom {
 export default function TableSync() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity } = useCommunity();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [roomName, setRoomName] = useState("");
@@ -255,7 +255,7 @@ export default function TableSync() {
       };
 
       createSessionMutation.mutate(sessionData);
-    } catch (error) {
+    } catch {
       toast({
         title: "Failed to create room",
         description: "Please try again later.",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,14 +28,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
-import type { Tournament, TournamentParticipant, User } from "@shared/schema";
+import type { Tournament } from "@shared/schema";
 import { format } from "date-fns";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 
@@ -44,7 +43,7 @@ export default function Tournaments() {
 
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity } = useCommunity();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

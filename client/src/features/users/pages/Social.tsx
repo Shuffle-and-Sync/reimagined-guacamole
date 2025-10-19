@@ -14,13 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/shared/components";
@@ -90,7 +83,7 @@ const SCHEDULED_POSTS = [
 export default function Social() {
   useDocumentTitle("Social");
 
-  const { user } = useAuth();
+  const { user: _user } = useAuth(); // Will be used for user-specific social features
   const { toast } = useToast();
 
   const [newPostContent, setNewPostContent] = useState("");

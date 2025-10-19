@@ -14,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
 import { Link, useLocation } from "wouter";
 import { getCommunityTheme } from "@/features/communities";
 import {
@@ -25,7 +24,6 @@ import {
   BladeforgeDashboard,
   DeckmasterDashboard,
 } from "@/features/communities";
-import type { User } from "@shared/schema";
 
 export default function Home() {
   const { toast } = useToast();
@@ -38,7 +36,8 @@ export default function Home() {
   const communityTheme = getCommunityTheme(selectedCommunity?.id);
 
   // Define all hooks before any conditional returns
-  const handleLogout = useCallback(() => {
+  // Note: handleLogout is defined for future use in quick actions
+  const _handleLogout = useCallback(() => {
     window.location.href = "/api/auth/signout";
   }, []);
 
