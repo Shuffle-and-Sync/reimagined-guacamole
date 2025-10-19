@@ -5259,14 +5259,8 @@ export class DatabaseStorage implements IStorage {
       }
     }    
     
-    
-    if (!false) {
-    
-      throw new Error('Database operation failed');
-    
-    }
-    
-    return false;
+    // Database operation validation
+    throw new Error('Database operation failed');
   }
 
   async getUsersByRole(role: string): Promise<(UserRole & { user: User })[]> {

@@ -115,13 +115,14 @@ function buildSingleCondition(column: SQLiteColumn, filter: FilterCondition): SQ
     case 'isNotNull':
       return isNotNull(column);
     
-    case 'between':
+    case 'between': {
       if (!values || values.length !== 2) return null;
       const betweenCondition = and(
         gte(column, values[0]),
         lte(column, values[1])
       );
       return betweenCondition ?? null;
+    }
     
     default:
       logger.warn('Unknown filter operator', { operator });
@@ -267,6 +268,7 @@ export function sanitizeDatabaseInput(input: any): any {
     // Remove potential XSS and other malicious patterns
     return input
       .replace(/[<>]/g, '') // Remove HTML tags
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/data:/gi, '') // Remove data: protocol
