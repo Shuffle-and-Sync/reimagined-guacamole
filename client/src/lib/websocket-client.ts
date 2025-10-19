@@ -1,6 +1,95 @@
 import { queryClient } from "@/lib/queryClient";
 import { logger } from "./logger";
 
+// Type definitions for WebSocket message payloads
+export interface GameActionData {
+  [key: string]: unknown;
+}
+
+export interface CollaboratorInfo {
+  id: string;
+  name: string;
+  status?: string;
+  platform?: string;
+}
+
+export interface CoordinationEventData {
+  [key: string]: unknown;
+}
+
+export interface StatusUpdate {
+  status: string;
+  isLive?: boolean;
+  platform?: string;
+  timestamp?: number;
+}
+
+export interface WebRTCOffer {
+  type: 'offer';
+  sdp: string;
+}
+
+export interface WebRTCAnswer {
+  type: 'answer';
+  sdp: string;
+}
+
+export interface WebRTCIceCandidate {
+  candidate: string;
+  sdpMLineIndex?: number | null;
+  sdpMid?: string | null;
+}
+
+// Event callback data types
+export interface CollaboratorJoinedData {
+  type: "collaborator_joined";
+  eventId: string;
+  collaborator: CollaboratorInfo;
+}
+
+export interface CollaboratorLeftData {
+  type: "collaborator_left";
+  eventId: string;
+  collaboratorId: string;
+}
+
+export interface PhaseUpdatedData {
+  type: "phase_updated";
+  eventId: string;
+  newPhase: string;
+  hostUserId?: string;
+}
+
+export interface CoordinationEventBroadcast {
+  type: "coordination_event_broadcast";
+  eventId: string;
+  eventType: string;
+  eventData: CoordinationEventData;
+}
+
+export interface CollaboratorStatusChanged {
+  type: "collaborator_status_changed";
+  eventId: string;
+  userId: string;
+  statusUpdate: StatusUpdate;
+}
+
+export interface PhaseChangeError {
+  type: "phase_change_error";
+  eventId: string;
+  error: string;
+  phase?: string;
+}
+
+export type WebSocketEventData =
+  | CollaboratorJoinedData
+  | CollaboratorLeftData
+  | PhaseUpdatedData
+  | CoordinationEventBroadcast
+  | CollaboratorStatusChanged
+  | PhaseChangeError
+  | WebSocketMessage;
+
 export type WebSocketMessage =
   // Game room messages
   | {
@@ -19,10 +108,10 @@ export type WebSocketMessage =
       sessionId: string;
       action: string;
       user: { id: string; name: string; avatar?: string };
-      data: any;
+      data: GameActionData;
     }
   // Collaborative streaming messages
-  | { type: "join_collab_stream"; eventId: string; collaborator?: any }
+  | { type: "join_collab_stream"; eventId: string; collaborator?: CollaboratorInfo }
   | {
       type: "phase_change";
       eventId: string;
@@ -33,32 +122,32 @@ export type WebSocketMessage =
       type: "coordination_event";
       eventId: string;
       eventType: string;
-      eventData: any;
+      eventData: CoordinationEventData;
     }
   | {
       type: "collaborator_status_update";
       eventId: string;
       userId?: string;
-      statusUpdate: any;
+      statusUpdate: StatusUpdate;
     }
   // WebRTC messages
   | {
       type: "webrtc_offer";
       sessionId: string;
       targetPlayer: string;
-      offer: any;
+      offer: WebRTCOffer;
     }
   | {
       type: "webrtc_answer";
       sessionId: string;
       targetPlayer: string;
-      answer: any;
+      answer: WebRTCAnswer;
     }
   | {
       type: "webrtc_ice_candidate";
       sessionId: string;
       targetPlayer: string;
-      candidate: any;
+      candidate: WebRTCIceCandidate;
     }
   | {
       type: "camera_toggle";
@@ -73,7 +162,7 @@ export type WebSocketMessage =
       micOn: boolean;
     };
 
-export type WebSocketEventListener = (data: any) => void;
+export type WebSocketEventListener<T = WebSocketEventData> = (data: T) => void;
 
 class WebSocketClient {
   private ws: WebSocket | null = null;
@@ -320,18 +409,27 @@ class WebSocketClient {
     }, delay);
   }
 
-  private handleMessage(data: any): void {
+  private handleMessage(data: WebSocketEventData): void {
     logger.debug("WebSocket message received", { type: data.type });
 
     // Handle collaborative streaming specific messages with proper cache invalidation
     switch (data.type) {
       case "collaborator_joined":
+        // Invalidate collaborator queries for the specific event
+        queryClient.invalidateQueries({
+          queryKey: [
+            "/api/collaborative-streams",
+            data.eventId,
+            "collaborators",
+          ],
+        });
+        break;
       case "collaborator_left":
         // Invalidate collaborator queries for the specific event
         queryClient.invalidateQueries({
           queryKey: [
             "/api/collaborative-streams",
-            data.eventId || data.collaborator?.eventId,
+            data.eventId,
             "collaborators",
           ],
         });
@@ -431,9 +529,9 @@ class WebSocketClient {
     }
   }
 
-  addEventListener(
+  addEventListener<T = WebSocketEventData>(
     eventType: string,
-    listener: WebSocketEventListener,
+    listener: WebSocketEventListener<T>,
   ): () => void {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, new Set());
@@ -441,14 +539,14 @@ class WebSocketClient {
 
     const listeners = this.eventListeners.get(eventType);
     if (listeners) {
-      listeners.add(listener);
+      listeners.add(listener as WebSocketEventListener);
     }
 
     // Return unsubscribe function
     return () => {
       const listeners = this.eventListeners.get(eventType);
       if (listeners) {
-        listeners.delete(listener);
+        listeners.delete(listener as WebSocketEventListener);
         if (listeners.size === 0) {
           this.eventListeners.delete(eventType);
         }
@@ -483,13 +581,13 @@ export class CollaborativeStreamingWebSocket {
 
   async joinCollaborativeStream(
     eventId: string,
-    collaborator?: any,
+    collaborator?: CollaboratorInfo,
   ): Promise<void> {
     await this.client.connect();
     this.client.send({
       type: "join_collab_stream",
       eventId,
-      collaborator: collaborator || {},
+      collaborator,
     });
   }
 
@@ -505,7 +603,7 @@ export class CollaborativeStreamingWebSocket {
   sendCoordinationEvent(
     eventId: string,
     eventType: string,
-    eventData: any,
+    eventData: CoordinationEventData,
   ): void {
     this.client.send({
       type: "coordination_event",
@@ -518,7 +616,7 @@ export class CollaborativeStreamingWebSocket {
   updateCollaboratorStatus(
     eventId: string,
     userId: string,
-    statusUpdate: any,
+    statusUpdate: StatusUpdate,
   ): void {
     this.client.send({
       type: "collaborator_status_update",
@@ -528,33 +626,33 @@ export class CollaborativeStreamingWebSocket {
     });
   }
 
-  onCollaboratorJoined(callback: (data: any) => void): () => void {
+  onCollaboratorJoined(callback: (data: CollaboratorJoinedData) => void): () => void {
     return this.client.addEventListener("collaborator_joined", callback);
   }
 
-  onCollaboratorLeft(callback: (data: any) => void): () => void {
+  onCollaboratorLeft(callback: (data: CollaboratorLeftData) => void): () => void {
     return this.client.addEventListener("collaborator_left", callback);
   }
 
-  onPhaseUpdated(callback: (data: any) => void): () => void {
+  onPhaseUpdated(callback: (data: PhaseUpdatedData) => void): () => void {
     return this.client.addEventListener("phase_updated", callback);
   }
 
-  onCoordinationEvent(callback: (data: any) => void): () => void {
+  onCoordinationEvent(callback: (data: CoordinationEventBroadcast) => void): () => void {
     return this.client.addEventListener(
       "coordination_event_broadcast",
       callback,
     );
   }
 
-  onCollaboratorStatusChanged(callback: (data: any) => void): () => void {
+  onCollaboratorStatusChanged(callback: (data: CollaboratorStatusChanged) => void): () => void {
     return this.client.addEventListener(
       "collaborator_status_changed",
       callback,
     );
   }
 
-  onPhaseChangeError(callback: (data: any) => void): () => void {
+  onPhaseChangeError(callback: (data: PhaseChangeError) => void): () => void {
     return this.client.addEventListener("phase_change_error", callback);
   }
 }
