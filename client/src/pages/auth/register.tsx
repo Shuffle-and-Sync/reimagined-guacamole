@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FaGoogle } from "react-icons/fa";
-import { Loader2, Mail, User, Lock, Check, X } from "lucide-react";
+import { Loader2, Check, X } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -194,7 +194,7 @@ export default function Register() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
 
         toast({
           title: "Account created successfully!",

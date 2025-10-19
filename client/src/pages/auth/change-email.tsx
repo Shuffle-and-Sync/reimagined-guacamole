@@ -67,7 +67,7 @@ export default function ChangeEmail() {
       });
 
       if (response.ok) {
-        const user = await response.json();
+        await response.json();
         // Note: We'd need to add a field to track pending email changes
         // For now, we'll just show the form
       }

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -95,9 +94,6 @@ export default function Calendar() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -137,8 +133,6 @@ export default function Calendar() {
   // Fetch events for the selected community only
   const {
     data: events = [],
-    isLoading: eventsLoading,
-    refetch: refetchEvents,
   } = useQuery<ExtendedEvent[]>({
     queryKey: [
       "/api/events",

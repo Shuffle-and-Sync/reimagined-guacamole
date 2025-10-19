@@ -367,7 +367,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
       );
       return response.json();
     },
-    onSuccess: (gameSession, matchId) => {
+    onSuccess: (gameSession) => {
       toast({
         title: "Game room created!",
         description: "Redirecting to the tournament match game room...",
