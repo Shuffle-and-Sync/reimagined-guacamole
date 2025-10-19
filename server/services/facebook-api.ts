@@ -818,8 +818,12 @@ export class FacebookAPIService {
     // Clean expired states
     this.cleanExpiredStates();
 
+    if (!this.appId) {
+      throw new Error("Facebook App ID not configured");
+    }
+    
     const params = new URLSearchParams({
-      client_id: this.appId!,
+      client_id: this.appId,
       redirect_uri: redirectUri,
       scope:
         "pages_manage_posts,pages_read_engagement,publish_video,pages_manage_metadata,pages_read_user_content,pages_show_list",

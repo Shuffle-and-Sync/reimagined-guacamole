@@ -854,8 +854,9 @@ class MonitoringService extends EventEmitter {
     }
 
     if (filters?.since) {
+      const sinceDate = filters.since;
       filteredAlerts = filteredAlerts.filter(
-        (alert) => alert.timestamp >= filters.since!,
+        (alert) => alert.timestamp >= sinceDate,
       );
     }
 
