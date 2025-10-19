@@ -1,6 +1,7 @@
 # Shadcn/ui Component Usage Guide
 
 ## Overview
+
 This guide provides practical examples and best practices for using the Shadcn/ui components in the Shuffle & Sync application. All components are designed to be accessible, themeable, and work seamlessly with React Hook Form and Zod validation.
 
 ---
@@ -12,6 +13,7 @@ This guide provides practical examples and best practices for using the Shadcn/u
 The Button component is the most versatile interactive element in the UI. Use it for all clickable actions.
 
 #### Basic Usage
+
 ```tsx
 import { Button } from "@/components/ui/button"
 
@@ -28,6 +30,7 @@ import { Button } from "@/components/ui/button"
 ```
 
 #### Size Variants
+
 ```tsx
 // Small button (compact spaces)
 <Button size="sm">Small</Button>
@@ -45,6 +48,7 @@ import { Button } from "@/components/ui/button"
 ```
 
 #### Style Variants
+
 ```tsx
 // Outline button (less emphasis)
 <Button variant="outline">Learn More</Button>
@@ -57,6 +61,7 @@ import { Button } from "@/components/ui/button"
 ```
 
 #### Advanced Usage
+
 ```tsx
 // Disabled state
 <Button disabled>Processing...</Button>
@@ -87,21 +92,19 @@ import { Link } from "wouter"
 The Input component handles all text-based form inputs.
 
 #### Basic Usage
+
 ```tsx
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 <div className="space-y-2">
   <Label htmlFor="username">Username</Label>
-  <Input 
-    id="username" 
-    type="text" 
-    placeholder="Enter username" 
-  />
-</div>
+  <Input id="username" type="text" placeholder="Enter username" />
+</div>;
 ```
 
 #### Input Types
+
 ```tsx
 // Email input
 <Input type="email" placeholder="you@example.com" />
@@ -123,20 +126,21 @@ import { Label } from "@/components/ui/label"
 ```
 
 #### With React Hook Form
+
 ```tsx
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const formSchema = z.object({
   username: z.string().min(3).max(20),
   email: z.string().email(),
-})
+});
 
 function MyForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
-  })
+  });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -144,13 +148,21 @@ function MyForm() {
       <Input {...form.register("email")} />
       <Button type="submit">Submit</Button>
     </form>
-  )
+  );
 }
 ```
 
 #### With Form Component (Recommended)
+
 ```tsx
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 <Form {...form}>
   <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -169,7 +181,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
     />
     <Button type="submit">Submit</Button>
   </form>
-</Form>
+</Form>;
 ```
 
 ---
@@ -179,8 +191,15 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 The Select component provides an accessible dropdown for choosing from multiple options.
 
 #### Basic Usage
+
 ```tsx
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 <Select>
   <SelectTrigger className="w-[200px]">
@@ -192,12 +211,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     <SelectItem value="yugioh">Yu-Gi-Oh!</SelectItem>
     <SelectItem value="lorcana">Disney Lorcana</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 #### Grouped Options
+
 ```tsx
-import { SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select"
+import {
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
+} from "@/components/ui/select";
 
 <Select>
   <SelectTrigger>
@@ -216,10 +240,11 @@ import { SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/selec
       <SelectItem value="pandemic">Pandemic</SelectItem>
     </SelectGroup>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 #### With Form Component
+
 ```tsx
 <FormField
   control={form.control}
@@ -245,6 +270,7 @@ import { SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/selec
 ```
 
 #### Disabled Items
+
 ```tsx
 <SelectContent>
   <SelectItem value="free">Free Tier</SelectItem>
@@ -263,33 +289,31 @@ import { SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/selec
 Cards are the primary container for grouped content.
 
 #### Basic Card
+
 ```tsx
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card";
 
 <Card>
-  <CardContent className="p-6">
-    Simple card content
-  </CardContent>
-</Card>
+  <CardContent className="p-6">Simple card content</CardContent>
+</Card>;
 ```
 
 #### Full Card Structure
+
 ```tsx
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent, 
-  CardFooter 
-} from "@/components/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 <Card>
   <CardHeader>
     <CardTitle>Tournament Details</CardTitle>
-    <CardDescription>
-      View and manage tournament information
-    </CardDescription>
+    <CardDescription>View and manage tournament information</CardDescription>
   </CardHeader>
   <CardContent>
     <p>Tournament starts in 2 hours</p>
@@ -299,13 +323,14 @@ import {
     <Button variant="outline">Cancel</Button>
     <Button>Register</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 #### Interactive Card
+
 ```tsx
 // Clickable card with hover effect
-<Card 
+<Card
   className="hover:shadow-lg transition-shadow cursor-pointer"
   onClick={() => navigate(`/tournaments/${id}`)}
 >
@@ -319,6 +344,7 @@ import {
 ```
 
 #### Card Grid Layout
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {tournaments.map((tournament) => (
@@ -343,14 +369,29 @@ import {
 ## Form Integration Patterns
 
 ### Complete Form Example
+
 ```tsx
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -358,9 +399,9 @@ const profileSchema = z.object({
   primaryGame: z.string({
     required_error: "Please select a game",
   }),
-})
+});
 
-type ProfileFormValues = z.infer<typeof profileSchema>
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 function ProfileForm() {
   const form = useForm<ProfileFormValues>({
@@ -369,10 +410,10 @@ function ProfileForm() {
       username: "",
       email: "",
     },
-  })
+  });
 
   function onSubmit(data: ProfileFormValues) {
-    console.log(data)
+    console.log(data);
     // Handle form submission
   }
 
@@ -441,7 +482,7 @@ function ProfileForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
 ```
 
@@ -450,6 +491,7 @@ function ProfileForm() {
 ## Accessibility Best Practices
 
 ### Labels and Inputs
+
 Always associate labels with inputs for screen reader users:
 
 ```tsx
@@ -463,6 +505,7 @@ Always associate labels with inputs for screen reader users:
 ```
 
 ### Button Labels
+
 Icon-only buttons must have accessible labels:
 
 ```tsx
@@ -478,6 +521,7 @@ Icon-only buttons must have accessible labels:
 ```
 
 ### Form Validation
+
 Always show validation errors:
 
 ```tsx
@@ -504,13 +548,14 @@ Always show validation errors:
 All components automatically support dark theme through CSS custom properties. No additional configuration needed.
 
 ### Testing Dark Theme
+
 ```tsx
 // Toggle dark mode (example with next-themes)
-import { useTheme } from "next-themes"
+import { useTheme } from "next-themes";
 
 function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  
+  const { theme, setTheme } = useTheme();
+
   return (
     <Button
       variant="ghost"
@@ -518,12 +563,14 @@ function ThemeToggle() {
     >
       Toggle Theme
     </Button>
-  )
+  );
 }
 ```
 
 ### Custom Theme Colors
+
 Components use these design tokens (defined in `tailwind.config.ts`):
+
 - `background` / `foreground`
 - `card` / `card-foreground`
 - `primary` / `primary-foreground`
@@ -537,10 +584,11 @@ Components use these design tokens (defined in `tailwind.config.ts`):
 ## Performance Tips
 
 ### Memoization
+
 For expensive components or lists, consider memoization:
 
 ```tsx
-import { memo } from "react"
+import { memo } from "react";
 
 const TournamentCard = memo(({ tournament }) => (
   <Card>
@@ -548,23 +596,24 @@ const TournamentCard = memo(({ tournament }) => (
       <CardTitle>{tournament.name}</CardTitle>
     </CardHeader>
   </Card>
-))
+));
 ```
 
 ### Lazy Loading
+
 For heavy components like Calendar or Chart:
 
 ```tsx
-import { lazy, Suspense } from "react"
+import { lazy, Suspense } from "react";
 
-const Calendar = lazy(() => import("@/components/ui/calendar"))
+const Calendar = lazy(() => import("@/components/ui/calendar"));
 
 function MyComponent() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Calendar />
     </Suspense>
-  )
+  );
 }
 ```
 
@@ -573,44 +622,47 @@ function MyComponent() {
 ## Common Patterns
 
 ### Loading State
+
 ```tsx
 function MyForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <form>
       <Input disabled={isLoading} />
-      <Button disabled={isLoading}>
-        {isLoading ? "Saving..." : "Save"}
-      </Button>
+      <Button disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</Button>
     </form>
-  )
+  );
 }
 ```
 
 ### Error State
+
 ```tsx
 function MyInput() {
-  const [error, setError] = useState("")
-  
+  const [error, setError] = useState("");
+
   return (
     <div className="space-y-2">
       <Label htmlFor="username">Username</Label>
-      <Input 
-        id="username"
-        className={error ? "border-destructive" : ""}
-      />
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      <Input id="username" className={error ? "border-destructive" : ""} />
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
-  )
+  );
 }
 ```
 
 ### Confirmation Dialog
+
 ```tsx
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 <Dialog open={isOpen} onOpenChange={setIsOpen}>
   <DialogContent>
@@ -629,7 +681,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
       </Button>
     </DialogFooter>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ---

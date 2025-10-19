@@ -54,11 +54,11 @@ This guide provides step-by-step instructions for safely removing sensitive data
 
 We provide security updates for the following versions:
 
-| Version | Supported |
-|---------|-----------|
-| Latest (main branch) | ✅ |
-| Previous release | ✅ |
-| Older versions | ❌ |
+| Version              | Supported |
+| -------------------- | --------- |
+| Latest (main branch) | ✅        |
+| Previous release     | ✅        |
+| Older versions       | ❌        |
 
 ### Security Contact
 

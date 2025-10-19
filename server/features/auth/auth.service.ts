@@ -2,20 +2,26 @@ import { randomBytes } from "crypto";
 import { storage } from "../../storage";
 import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
-import type { ForgotPasswordRequest, ResetPasswordRequest, AuthenticatedUser } from "./auth.types";
+import type {
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  AuthenticatedUser,
+} from "./auth.types";
 import type { User } from "@shared/schema";
 
 export class AuthService {
-  async getCurrentUser(userId: string): Promise<(User & { communities?: any[] }) | null> {
+  async getCurrentUser(
+    userId: string,
+  ): Promise<(User & { communities?: any[] }) | null> {
     try {
       const user = await storage.getUser(userId);
       if (!user) {
         return null;
       }
-      
+
       // Get user's communities
       const userCommunities = await storage.getUserCommunities(userId);
-      
+
       return {
         ...user,
         communities: userCommunities,
@@ -30,9 +36,9 @@ export class AuthService {
     try {
       // Check if user exists (we check this for security but don't reveal it)
       const userExists = await storage.getUserByEmail(email);
-      
+
       // Always return success to prevent email enumeration attacks
-      const token = randomBytes(32).toString('hex');
+      const token = randomBytes(32).toString("hex");
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
       if (userExists) {
@@ -46,10 +52,16 @@ export class AuthService {
         // Send email
         await sendPasswordResetEmail(email, token, baseUrl);
       }
-      
-      logger.info("Password reset requested", { email: email.substring(0, 3) + "***" });
+
+      logger.info("Password reset requested", {
+        email: email.substring(0, 3) + "***",
+      });
     } catch (error) {
-      logger.error("Failed to process forgot password request in AuthService", error, { email });
+      logger.error(
+        "Failed to process forgot password request in AuthService",
+        error,
+        { email },
+      );
       throw error;
     }
   }
@@ -57,7 +69,7 @@ export class AuthService {
   async verifyResetToken(token: string): Promise<{ email: string } | null> {
     try {
       const resetToken = await storage.getPasswordResetToken(token);
-      
+
       if (!resetToken) {
         return null;
       }
@@ -70,7 +82,9 @@ export class AuthService {
 
       return { email: user.email };
     } catch (error) {
-      logger.error("Failed to verify reset token in AuthService", error, { token: token.substring(0, 8) + "***" });
+      logger.error("Failed to verify reset token in AuthService", error, {
+        token: token.substring(0, 8) + "***",
+      });
       throw error;
     }
   }
@@ -82,7 +96,7 @@ export class AuthService {
       }
 
       const resetToken = await storage.getPasswordResetToken(token);
-      
+
       if (!resetToken) {
         return false;
       }
@@ -92,15 +106,18 @@ export class AuthService {
 
       // Get user email for logging
       const user = await storage.getUser(resetToken.userId);
-      const emailForLog = (user && user.email) ? user.email.substring(0, 3) + "***" : "unknown";
+      const emailForLog =
+        user && user.email ? user.email.substring(0, 3) + "***" : "unknown";
 
       // Password updates are handled by Auth.js credential provider
       // Token cleanup ensures one-time use security
-      
+
       logger.info("Password reset successful", { email: emailForLog });
       return true;
     } catch (error) {
-      logger.error("Failed to reset password in AuthService", error, { token: token.substring(0, 8) + "***" });
+      logger.error("Failed to reset password in AuthService", error, {
+        token: token.substring(0, 8) + "***",
+      });
       throw error;
     }
   }

@@ -1,18 +1,18 @@
 /**
  * Jest Test Setup
- * 
+ *
  * Global test setup and configuration for the test suite.
  */
 
-import { beforeAll, afterAll, jest } from '@jest/globals';
-import { config } from 'dotenv';
-import { resolve } from 'path';
+import { beforeAll, afterAll, jest } from "@jest/globals";
+import { config } from "dotenv";
+import { resolve } from "path";
 
 // Load test environment variables
-config({ path: resolve(process.cwd(), '.env.test') });
+config({ path: resolve(process.cwd(), ".env.test") });
 
 // Set test environment
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = "test";
 
 // Mock console methods to reduce noise in tests
 const originalConsole = { ...console };
@@ -36,16 +36,16 @@ afterAll(() => {
 global.testUtils = {
   // Mock user data factory
   createMockUser: (overrides = {}) => ({
-    id: 'test-user-id',
-    name: 'Test User',
-    email: 'test@example.com',
-    status: 'active',
-    role: 'user',
+    id: "test-user-id",
+    name: "Test User",
+    email: "test@example.com",
+    status: "active",
+    role: "user",
     isEmailVerified: true,
     mfaEnabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
-    ...overrides
+    ...overrides,
   }),
 
   // Mock request object
@@ -55,10 +55,10 @@ global.testUtils = {
     query: {},
     headers: {},
     user: null,
-    ip: '127.0.0.1',
-    method: 'GET',
-    url: '/test',
-    ...overrides
+    ip: "127.0.0.1",
+    method: "GET",
+    url: "/test",
+    ...overrides,
   }),
 
   // Mock response object
@@ -69,13 +69,13 @@ global.testUtils = {
       send: jest.fn().mockReturnThis(),
       setHeader: jest.fn().mockReturnThis(),
       getHeader: jest.fn(),
-      end: jest.fn().mockReturnThis()
+      end: jest.fn().mockReturnThis(),
     };
     return res;
   },
 
   // Sleep utility for async tests
-  sleep: (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+  sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
 
 // Type declarations for global test utilities

@@ -1,34 +1,59 @@
-import { useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { X, Plus, Calendar, Clock, Users, Video } from 'lucide-react';
-import { useCreateCollaborativeStreamEvent } from '../hooks/useCollaborativeStreaming';
-import type { StreamEventFormData } from '../types';
+import { useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, Calendar, Clock, Users, Video } from "lucide-react";
+import { useCreateCollaborativeStreamEvent } from "../hooks/useCollaborativeStreaming";
+import type { StreamEventFormData } from "../types";
 
 const streamEventSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
-  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters"),
+  description: z
+    .string()
+    .max(1000, "Description must be less than 1000 characters")
+    .optional(),
   scheduledStartTime: z.date({
-    required_error: 'Scheduled start time is required',
+    required_error: "Scheduled start time is required",
   }),
-  estimatedDuration: z.number().min(15, 'Duration must be at least 15 minutes').max(480, 'Duration cannot exceed 8 hours'),
+  estimatedDuration: z
+    .number()
+    .min(15, "Duration must be at least 15 minutes")
+    .max(480, "Duration cannot exceed 8 hours"),
   communityId: z.string().optional(),
-  streamingPlatforms: z.array(z.string()).min(1, 'At least one streaming platform is required'),
-  contentType: z.string().min(1, 'Content type is required'),
-  targetAudience: z.string().min(1, 'Target audience is required'),
+  streamingPlatforms: z
+    .array(z.string())
+    .min(1, "At least one streaming platform is required"),
+  contentType: z.string().min(1, "Content type is required"),
+  targetAudience: z.string().min(1, "Target audience is required"),
   maxCollaborators: z.number().min(1).max(10).optional(),
   requiresApproval: z.boolean(),
   isPrivate: z.boolean(),
-  tags: z.array(z.string()).max(10, 'Maximum 10 tags allowed'),
+  tags: z.array(z.string()).max(10, "Maximum 10 tags allowed"),
 });
 
 type StreamEventFormProps = {
@@ -37,46 +62,48 @@ type StreamEventFormProps = {
 };
 
 const STREAMING_PLATFORMS = [
-  { value: 'twitch', label: 'Twitch', icon: '📺' },
-  { value: 'youtube', label: 'YouTube', icon: '▶️' },
-  { value: 'facebook', label: 'Facebook Gaming', icon: '👥' },
-  { value: 'discord', label: 'Discord', icon: '🎮' },
+  { value: "twitch", label: "Twitch", icon: "📺" },
+  { value: "youtube", label: "YouTube", icon: "▶️" },
+  { value: "facebook", label: "Facebook Gaming", icon: "👥" },
+  { value: "discord", label: "Discord", icon: "🎮" },
 ];
 
 const CONTENT_TYPES = [
-  { value: 'gaming', label: 'Gaming' },
-  { value: 'talk_show', label: 'Talk Show' },
-  { value: 'tutorial', label: 'Tutorial' },
-  { value: 'tournament', label: 'Tournament' },
-  { value: 'casual', label: 'Casual Play' },
-  { value: 'review', label: 'Game Review' },
+  { value: "gaming", label: "Gaming" },
+  { value: "talk_show", label: "Talk Show" },
+  { value: "tutorial", label: "Tutorial" },
+  { value: "tournament", label: "Tournament" },
+  { value: "casual", label: "Casual Play" },
+  { value: "review", label: "Game Review" },
 ];
 
 const TARGET_AUDIENCES = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
-  { value: 'all', label: 'All Levels' },
+  { value: "beginner", label: "Beginner" },
+  { value: "intermediate", label: "Intermediate" },
+  { value: "advanced", label: "Advanced" },
+  { value: "all", label: "All Levels" },
 ];
 
 export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
   const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
   const createEvent = useCreateCollaborativeStreamEvent();
 
   // Calculate default start time once using useState with function initializer
-  const [defaultStartTime] = useState(() => new Date(Date.now() + 60 * 60 * 1000));
+  const [defaultStartTime] = useState(
+    () => new Date(Date.now() + 60 * 60 * 1000),
+  );
 
   const form = useForm<StreamEventFormData>({
     resolver: zodResolver(streamEventSchema),
     defaultValues: {
-      title: '',
-      description: '',
+      title: "",
+      description: "",
       scheduledStartTime: defaultStartTime, // 1 hour from now
       estimatedDuration: 120, // 2 hours
       streamingPlatforms: [],
-      contentType: '',
-      targetAudience: '',
+      contentType: "",
+      targetAudience: "",
       maxCollaborators: 4,
       requiresApproval: true,
       isPrivate: false,
@@ -88,15 +115,15 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
     if (newTag.trim() && !tags.includes(newTag.trim()) && tags.length < 10) {
       const updatedTags = [...tags, newTag.trim()];
       setTags(updatedTags);
-      form.setValue('tags', updatedTags);
-      setNewTag('');
+      form.setValue("tags", updatedTags);
+      setNewTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    const updatedTags = tags.filter(tag => tag !== tagToRemove);
+    const updatedTags = tags.filter((tag) => tag !== tagToRemove);
     setTags(updatedTags);
-    form.setValue('tags', updatedTags);
+    form.setValue("tags", updatedTags);
   };
 
   const onSubmit = (data: StreamEventFormData) => {
@@ -105,7 +132,7 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
       description: data.description,
       scheduledStartTime: data.scheduledStartTime,
       estimatedDuration: data.estimatedDuration,
-      organizerId: '', // Will be set by backend
+      organizerId: "", // Will be set by backend
       communityId: data.communityId,
       streamingPlatforms: JSON.stringify(data.streamingPlatforms),
       contentType: data.contentType,
@@ -126,7 +153,10 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto" data-testid="card-stream-event-form">
+    <Card
+      className="w-full max-w-2xl mx-auto"
+      data-testid="card-stream-event-form"
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Video className="h-5 w-5" />
@@ -145,9 +175,9 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                   <FormItem>
                     <FormLabel>Event Title</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Enter stream event title..." 
-                        {...field} 
+                      <Input
+                        placeholder="Enter stream event title..."
+                        {...field}
                         data-testid="input-title"
                       />
                     </FormControl>
@@ -172,7 +202,8 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                       />
                     </FormControl>
                     <FormDescription>
-                      Provide details about the content, goals, and what collaborators can expect.
+                      Provide details about the content, goals, and what
+                      collaborators can expect.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -195,8 +226,19 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                       <Input
                         type="datetime-local"
                         {...field}
-                        value={field.value ? new Date(field.value.getTime() - field.value.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
-                        onChange={(e) => field.onChange(new Date(e.target.value))}
+                        value={
+                          field.value
+                            ? new Date(
+                                field.value.getTime() -
+                                  field.value.getTimezoneOffset() * 60000,
+                              )
+                                .toISOString()
+                                .slice(0, 16)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          field.onChange(new Date(e.target.value))
+                        }
                         data-testid="input-start-time"
                       />
                     </FormControl>
@@ -221,7 +263,9 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                         max="480"
                         placeholder="120"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value, 10))
+                        }
                         data-testid="input-duration"
                       />
                     </FormControl>
@@ -246,19 +290,30 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                       >
                         <input
                           type="checkbox"
-                          checked={field.value?.includes(platform.value) || false}
+                          checked={
+                            field.value?.includes(platform.value) || false
+                          }
                           onChange={(e) => {
                             const currentPlatforms = field.value || [];
                             if (e.target.checked) {
-                              field.onChange([...currentPlatforms, platform.value]);
+                              field.onChange([
+                                ...currentPlatforms,
+                                platform.value,
+                              ]);
                             } else {
-                              field.onChange(currentPlatforms.filter(p => p !== platform.value));
+                              field.onChange(
+                                currentPlatforms.filter(
+                                  (p) => p !== platform.value,
+                                ),
+                              );
                             }
                           }}
                           data-testid={`checkbox-platform-${platform.value}`}
                         />
                         <span className="text-lg">{platform.icon}</span>
-                        <span className="text-sm font-medium">{platform.label}</span>
+                        <span className="text-sm font-medium">
+                          {platform.label}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -275,7 +330,10 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Content Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-content-type">
                           <SelectValue placeholder="Select content type" />
@@ -300,7 +358,10 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target Audience</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-target-audience">
                           <SelectValue placeholder="Select target audience" />
@@ -308,7 +369,10 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                       </FormControl>
                       <SelectContent>
                         {TARGET_AUDIENCES.map((audience) => (
-                          <SelectItem key={audience.value} value={audience.value}>
+                          <SelectItem
+                            key={audience.value}
+                            value={audience.value}
+                          >
                             {audience.label}
                           </SelectItem>
                         ))}
@@ -337,7 +401,9 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                         min="1"
                         max="10"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value, 10))
+                        }
                         data-testid="input-max-collaborators"
                       />
                     </FormControl>
@@ -356,7 +422,9 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Requires Approval</FormLabel>
+                        <FormLabel className="text-base">
+                          Requires Approval
+                        </FormLabel>
                         <FormDescription>
                           Manually approve collaboration requests
                         </FormDescription>
@@ -378,7 +446,9 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Private Event</FormLabel>
+                        <FormLabel className="text-base">
+                          Private Event
+                        </FormLabel>
                         <FormDescription>
                           Only invited collaborators can join
                         </FormDescription>
@@ -404,17 +474,28 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                   placeholder="Add a tag..."
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), handleAddTag())
+                  }
                   data-testid="input-new-tag"
                 />
-                <Button type="button" variant="outline" size="sm" onClick={handleAddTag}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddTag}
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       {tag}
                       <button
                         type="button"
@@ -433,7 +514,12 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
             {/* Form Actions */}
             <div className="flex justify-end space-x-2 pt-4">
               {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel} data-testid="button-cancel">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  data-testid="button-cancel"
+                >
                   Cancel
                 </Button>
               )}
@@ -442,7 +528,7 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
                 disabled={createEvent.isPending}
                 data-testid="button-create-event"
               >
-                {createEvent.isPending ? 'Creating...' : 'Create Stream Event'}
+                {createEvent.isPending ? "Creating..." : "Create Stream Event"}
               </Button>
             </div>
           </form>

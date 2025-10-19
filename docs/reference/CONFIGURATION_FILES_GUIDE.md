@@ -4,11 +4,11 @@ This guide explains which files need to be updated for the three main configurat
 
 ## Quick Reference
 
-| Configuration Task | Files to Update | Method |
-|-------------------|----------------|--------|
-| **1. Set BACKEND_URL on frontend** | `cloudbuild-frontend.yaml` | Edit file directly OR use gcloud command |
-| **2. Set OAuth credentials on backend** | `cloudbuild.yaml` (optional) | Usually set via gcloud command |
-| **3. Configure Google OAuth redirect URI** | Google Cloud Console (web UI) | Online configuration only |
+| Configuration Task                         | Files to Update               | Method                                   |
+| ------------------------------------------ | ----------------------------- | ---------------------------------------- |
+| **1. Set BACKEND_URL on frontend**         | `cloudbuild-frontend.yaml`    | Edit file directly OR use gcloud command |
+| **2. Set OAuth credentials on backend**    | `cloudbuild.yaml` (optional)  | Usually set via gcloud command           |
+| **3. Configure Google OAuth redirect URI** | Google Cloud Console (web UI) | Online configuration only                |
 
 ---
 
@@ -22,13 +22,14 @@ This guide explains which files need to be updated for the three main configurat
 
 ```yaml
 # BEFORE (example URL - replace with your actual backend URL)
-- 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
+- "BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app"
 
 # AFTER (use your actual backend URL)
-- 'BACKEND_URL=https://YOUR-ACTUAL-BACKEND-URL'
+- "BACKEND_URL=https://YOUR-ACTUAL-BACKEND-URL"
 ```
 
 **How to get your backend URL**:
+
 ```bash
 gcloud run services describe shuffle-sync-backend \
   --region=us-central1 \
@@ -36,6 +37,7 @@ gcloud run services describe shuffle-sync-backend \
 ```
 
 **Steps**:
+
 1. Deploy backend first (see Step 2 below)
 2. Get backend URL using command above
 3. Edit `cloudbuild-frontend.yaml` line 75
@@ -43,6 +45,7 @@ gcloud run services describe shuffle-sync-backend \
 5. Deploy frontend: `gcloud builds submit --config cloudbuild-frontend.yaml`
 
 **Alternative method** (without editing file):
+
 ```bash
 # Deploy frontend first
 gcloud builds submit --config cloudbuild-frontend.yaml
@@ -79,16 +82,19 @@ gcloud run services update shuffle-sync-backend \
 ```
 
 **Where to get OAuth credentials**:
+
 1. Go to [Google Cloud Console - Credentials](https://console.cloud.google.com/apis/credentials)
 2. Click "Create Credentials" → "OAuth 2.0 Client ID"
 3. Choose "Web application"
 4. Note the Client ID and Client Secret
 
 **Files that document these variables** (for reference):
+
 - `.env.example` - Shows all available environment variables
 - `ENVIRONMENT_VARIABLES.md` - Full documentation of environment variables
 
 **Verify configuration**:
+
 ```bash
 gcloud run services describe shuffle-sync-backend \
   --region=us-central1 \
@@ -106,12 +112,13 @@ gcloud run services describe shuffle-sync-backend \
 **Steps**:
 
 1. **Get your backend URL**:
+
    ```bash
    gcloud run services describe shuffle-sync-backend \
      --region=us-central1 \
      --format='value(status.url)'
    ```
-   
+
    Example output: `https://shuffle-sync-backend-858080302197.us-central1.run.app`
 
 2. **Go to Google Cloud Console**:
@@ -139,6 +146,7 @@ gcloud run services describe shuffle-sync-backend \
    - Try logging in to test
 
 **Common mistakes to avoid**:
+
 - ❌ Using frontend URL instead of backend URL
 - ❌ Adding trailing slash: `...callback/google/`
 - ❌ Using HTTP instead of HTTPS
@@ -152,11 +160,13 @@ gcloud run services describe shuffle-sync-backend \
 ### Step-by-step deployment order:
 
 - [ ] **Step 1**: Deploy backend
+
   ```bash
   gcloud builds submit --config cloudbuild.yaml
   ```
 
 - [ ] **Step 2**: Get backend URL and save it
+
   ```bash
   export BACKEND_URL=$(gcloud run services describe shuffle-sync-backend \
     --region=us-central1 --format='value(status.url)')
@@ -164,6 +174,7 @@ gcloud run services describe shuffle-sync-backend \
   ```
 
 - [ ] **Step 3**: Set OAuth credentials on backend
+
   ```bash
   gcloud run services update shuffle-sync-backend \
     --region=us-central1 \
@@ -182,6 +193,7 @@ gcloud run services describe shuffle-sync-backend \
   - Edit line 75: `BACKEND_URL=https://YOUR-BACKEND-URL`
 
 - [ ] **Step 6**: Deploy frontend
+
   ```bash
   gcloud builds submit --config cloudbuild-frontend.yaml
   ```

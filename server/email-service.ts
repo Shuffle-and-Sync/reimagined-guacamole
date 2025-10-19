@@ -1,13 +1,16 @@
-import { MailService } from '@sendgrid/mail';
-import { logger } from './logger';
+import { MailService } from "@sendgrid/mail";
+import { logger } from "./logger";
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const SENDGRID_SENDER = process.env.SENDGRID_SENDER || 'noreply@shuffleandsync.com';
+const SENDGRID_SENDER =
+  process.env.SENDGRID_SENDER || "noreply@shuffleandsync.com";
 
 // Make SendGrid optional - log warning instead of throwing error
 let mailService: MailService | null = null;
 if (!SENDGRID_API_KEY) {
-  logger.warn("SENDGRID_API_KEY environment variable not set - email functionality will be disabled");
+  logger.warn(
+    "SENDGRID_API_KEY environment variable not set - email functionality will be disabled",
+  );
 } else {
   mailService = new MailService();
   mailService.setApiKey(SENDGRID_API_KEY);
@@ -23,24 +26,30 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   if (!mailService) {
-    logger.warn('Cannot send email - SendGrid not configured', { to: params.to, subject: params.subject });
+    logger.warn("Cannot send email - SendGrid not configured", {
+      to: params.to,
+      subject: params.subject,
+    });
     return false;
   }
-  
+
   try {
     const emailData: any = {
       to: params.to,
       from: params.from,
       subject: params.subject,
     };
-    
+
     if (params.text) emailData.text = params.text;
     if (params.html) emailData.html = params.html;
-    
+
     await mailService.send(emailData);
     return true;
   } catch (error) {
-    logger.error('Failed to send email via SendGrid', error, { to: params.to, subject: params.subject });
+    logger.error("Failed to send email via SendGrid", error, {
+      to: params.to,
+      subject: params.subject,
+    });
     return false;
   }
 }
@@ -49,15 +58,15 @@ export async function sendPasswordResetEmail(
   email: string,
   resetToken: string,
   baseUrl: string,
-  firstName?: string
+  firstName?: string,
 ): Promise<boolean> {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
-  const displayName = firstName || 'there';
-  
+  const displayName = firstName || "there";
+
   const emailParams: EmailParams = {
     to: email,
     from: SENDGRID_SENDER,
-    subject: 'Reset Your Password - Shuffle & Sync',
+    subject: "Reset Your Password - Shuffle & Sync",
     text: `
 Hello ${displayName},
 
@@ -108,7 +117,7 @@ The Shuffle & Sync Team
   </div>
 </body>
 </html>
-    `
+    `,
   };
 
   return await sendEmail(emailParams);
@@ -121,15 +130,15 @@ export async function sendEmailVerificationEmail(
   email: string,
   verificationToken: string,
   baseUrl: string,
-  userName?: string
+  userName?: string,
 ): Promise<boolean> {
   const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
-  const displayName = userName || 'there';
-  
+  const displayName = userName || "there";
+
   const emailParams: EmailParams = {
     to: email,
     from: SENDGRID_SENDER,
-    subject: 'Verify Your Email - Shuffle & Sync',
+    subject: "Verify Your Email - Shuffle & Sync",
     text: `
 Hello ${displayName},
 
@@ -194,7 +203,7 @@ The Shuffle & Sync Team
   </div>
 </body>
 </html>
-    `
+    `,
   };
 
   return await sendEmail(emailParams);
@@ -207,15 +216,15 @@ export async function sendEmailVerificationReminder(
   email: string,
   verificationToken: string,
   baseUrl: string,
-  userName?: string
+  userName?: string,
 ): Promise<boolean> {
   const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
-  const displayName = userName || 'there';
-  
+  const displayName = userName || "there";
+
   const emailParams: EmailParams = {
     to: email,
     from: SENDGRID_SENDER,
-    subject: 'Reminder: Verify Your Email - Shuffle & Sync',
+    subject: "Reminder: Verify Your Email - Shuffle & Sync",
     text: `
 Hello ${displayName},
 
@@ -273,7 +282,7 @@ The Shuffle & Sync Team
   </div>
 </body>
 </html>
-    `
+    `,
   };
 
   return await sendEmail(emailParams);

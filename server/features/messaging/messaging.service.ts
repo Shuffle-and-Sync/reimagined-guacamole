@@ -2,11 +2,11 @@ import { storage } from "../../storage";
 import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
 import type { Notification, Message } from "@shared/schema";
-import type { 
-  NotificationFilters, 
-  CreateNotificationRequest, 
+import type {
+  NotificationFilters,
+  CreateNotificationRequest,
   MessageFilters,
-  SendMessageRequest
+  SendMessageRequest,
 } from "./messaging.types";
 
 export class MessagingService {
@@ -19,8 +19,8 @@ export class MessagingService {
           unreadOnly: filters.unreadOnly,
           cursor: filters.pagination.cursor,
           limit: filters.pagination.limit || 50,
-          sortField: filters.sort?.field || 'createdAt',
-          sortDirection: filters.sort?.direction || 'desc',
+          sortField: filters.sort?.field || "createdAt",
+          sortDirection: filters.sort?.direction || "desc",
         });
       } else {
         return await storage.getUserNotifications(userId, {
@@ -29,27 +29,37 @@ export class MessagingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch notifications in MessagingService", error, { userId, filters });
+      logger.error("Failed to fetch notifications in MessagingService", error, {
+        userId,
+        filters,
+      });
       throw error;
     }
   }
 
-  async createNotification(userId: string, notificationData: CreateNotificationRequest): Promise<Notification> {
+  async createNotification(
+    userId: string,
+    notificationData: CreateNotificationRequest,
+  ): Promise<Notification> {
     try {
       const notification = await storage.createNotification({
         ...notificationData,
-        data: notificationData.data ? JSON.stringify(notificationData.data) : undefined,
+        data: notificationData.data
+          ? JSON.stringify(notificationData.data)
+          : undefined,
         userId,
       });
-      
-      logger.info("Notification created", { 
-        userId, 
-        type: notificationData.type, 
-        notificationId: notification.id 
+
+      logger.info("Notification created", {
+        userId,
+        type: notificationData.type,
+        notificationId: notification.id,
       });
       return notification;
     } catch (error) {
-      logger.error("Failed to create notification in MessagingService", error, { userId });
+      logger.error("Failed to create notification in MessagingService", error, {
+        userId,
+      });
       throw error;
     }
   }
@@ -59,7 +69,11 @@ export class MessagingService {
       await storage.markNotificationAsRead(notificationId);
       logger.info("Notification marked as read", { notificationId });
     } catch (error) {
-      logger.error("Failed to mark notification as read in MessagingService", error, { notificationId });
+      logger.error(
+        "Failed to mark notification as read in MessagingService",
+        error,
+        { notificationId },
+      );
       throw error;
     }
   }
@@ -69,7 +83,11 @@ export class MessagingService {
       await storage.markAllNotificationsAsRead(userId);
       logger.info("All notifications marked as read", { userId });
     } catch (error) {
-      logger.error("Failed to mark all notifications as read in MessagingService", error, { userId });
+      logger.error(
+        "Failed to mark all notifications as read in MessagingService",
+        error,
+        { userId },
+      );
       throw error;
     }
   }
@@ -86,23 +104,29 @@ export class MessagingService {
           unreadOnly: filters.unreadOnly,
           cursor: filters.pagination.cursor,
           limit: filters.pagination.limit || 50,
-          sortField: filters.sort?.field || 'createdAt', 
-          sortDirection: filters.sort?.direction || 'desc',
+          sortField: filters.sort?.field || "createdAt",
+          sortDirection: filters.sort?.direction || "desc",
         });
       } else {
         return await storage.getUserMessages(userId, {
           eventId: filters.eventId,
-          communityId: filters.communityId,  
+          communityId: filters.communityId,
           limit: filters.pagination?.limit || 50,
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch messages in MessagingService", error, { userId, filters });
+      logger.error("Failed to fetch messages in MessagingService", error, {
+        userId,
+        filters,
+      });
       throw error;
     }
   }
 
-  async sendMessage(userId: string, messageData: SendMessageRequest): Promise<Message> {
+  async sendMessage(
+    userId: string,
+    messageData: SendMessageRequest,
+  ): Promise<Message> {
     try {
       // Use transaction to ensure message and notification are created atomically
       const result = await withTransaction(async (tx) => {
@@ -116,8 +140,8 @@ export class MessagingService {
         if (messageData.recipientId && messageData.recipientId !== userId) {
           await storage.createNotificationWithTransaction(tx, {
             userId: messageData.recipientId,
-            type: 'message',
-            title: 'New Message',
+            type: "message",
+            title: "New Message",
             message: `You received a new message from a user`,
             data: JSON.stringify({
               messageId: message.id,
@@ -125,22 +149,25 @@ export class MessagingService {
               messageType: messageData.type,
               conversationId: `${userId}-${messageData.recipientId}`,
             }),
-            priority: 'normal',
+            priority: "normal",
           });
         }
 
         return message;
-      }, 'send-message-with-notification');
-      
-      logger.info("Message sent with notification", { 
-        senderId: userId, 
+      }, "send-message-with-notification");
+
+      logger.info("Message sent with notification", {
+        senderId: userId,
         recipientId: messageData.recipientId,
-        messageId: result.id 
+        messageId: result.id,
       });
-      
+
       return result;
     } catch (error) {
-      logger.error("Failed to send message in MessagingService", error, { userId, messageData });
+      logger.error("Failed to send message in MessagingService", error, {
+        userId,
+        messageData,
+      });
       throw error;
     }
   }
@@ -150,7 +177,10 @@ export class MessagingService {
     try {
       return await storage.getConversation(currentUserId, targetUserId);
     } catch (error) {
-      logger.error("Failed to fetch conversation in MessagingService", error, { currentUserId, targetUserId });
+      logger.error("Failed to fetch conversation in MessagingService", error, {
+        currentUserId,
+        targetUserId,
+      });
       throw error;
     }
   }

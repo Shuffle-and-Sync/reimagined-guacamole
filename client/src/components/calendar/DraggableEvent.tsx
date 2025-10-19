@@ -1,7 +1,7 @@
-import React from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import type { Event } from '@shared/schema';
+import React from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { Event } from "@shared/schema";
 
 interface DraggableEventProps {
   event: Event;
@@ -22,7 +22,7 @@ export function DraggableEvent({ event, children }: DraggableEventProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    cursor: isDragging ? 'grabbing' : 'grab',
+    cursor: isDragging ? "grabbing" : "grab",
   };
 
   return (

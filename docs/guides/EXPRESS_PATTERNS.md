@@ -9,21 +9,21 @@ This document outlines the improved Express.js patterns implemented in the Shuff
 The application uses custom error classes that extend `AppError` for better error categorization:
 
 ```typescript
-import { errors } from './middleware/error-handling.middleware';
+import { errors } from "./middleware/error-handling.middleware";
 
-const { 
+const {
   ValidationError,
   AuthenticationError,
   AuthorizationError,
   NotFoundError,
   ConflictError,
-  DatabaseError
+  DatabaseError,
 } = errors;
 
 // Usage in routes
-throw new ValidationError('Invalid input data', { field: 'email' });
-throw new NotFoundError('User not found');
-throw new AuthorizationError('Admin access required');
+throw new ValidationError("Invalid input data", { field: "email" });
+throw new NotFoundError("User not found");
+throw new AuthorizationError("Admin access required");
 ```
 
 ### AsyncHandler Wrapper
@@ -31,36 +31,37 @@ throw new AuthorizationError('Admin access required');
 Use the `asyncHandler` wrapper to automatically catch errors in async route handlers:
 
 ```typescript
-import { errorHandlingMiddleware } from './middleware/error-handling.middleware';
+import { errorHandlingMiddleware } from "./middleware/error-handling.middleware";
 const { asyncHandler } = errorHandlingMiddleware;
 
 // Before (manual try-catch)
-app.get('/api/users/:id', async (req, res) => {
+app.get("/api/users/:id", async (req, res) => {
   try {
     const user = await storage.getUser(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     res.json(user);
   } catch (error) {
-    logger.error('Failed to get user', error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error("Failed to get user", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
 // After (with asyncHandler)
-app.get('/api/users/:id', 
+app.get(
+  "/api/users/:id",
   validateParamsWithSchema(uuidParamSchema),
   asyncHandler(async (req, res) => {
     const user = await storage.getUser(req.params.id);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
     res.json({
       success: true,
-      data: user
+      data: user,
     });
-  })
+  }),
 );
 ```
 
@@ -81,25 +82,26 @@ app.use(errorHandlingMiddleware.global);
 Use `validateRequest` middleware with Zod schemas:
 
 ```typescript
-import { validateRequest } from './validation';
-import { z } from 'zod';
+import { validateRequest } from "./validation";
+import { z } from "zod";
 
 const createUserSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  name: z.string().min(1, 'Name is required').max(100),
-  age: z.number().int().min(13, 'Must be at least 13 years old')
+  email: z.string().email("Invalid email format"),
+  name: z.string().min(1, "Name is required").max(100),
+  age: z.number().int().min(13, "Must be at least 13 years old"),
 });
 
-app.post('/api/users',
+app.post(
+  "/api/users",
   validateRequest(createUserSchema),
   asyncHandler(async (req, res) => {
     // req.body is now validated and typed
     const user = await storage.createUser(req.body);
     res.status(201).json({
       success: true,
-      data: user
+      data: user,
     });
-  })
+  }),
 );
 ```
 
@@ -108,34 +110,36 @@ app.post('/api/users',
 Use `validateParamsWithSchema` for URL parameters:
 
 ```typescript
-import { 
+import {
   validateParamsWithSchema,
   uuidParamSchema,
-  userParamSchema 
-} from './validation';
+  userParamSchema,
+} from "./validation";
 
 // Single parameter validation
-app.get('/api/users/:id',
+app.get(
+  "/api/users/:id",
   validateParamsWithSchema(uuidParamSchema),
   asyncHandler(async (req, res) => {
     // req.params.id is validated as UUID
     const user = await storage.getUser(req.params.id);
     res.json({ success: true, data: user });
-  })
+  }),
 );
 
 // Custom parameter schema
 const eventParamSchema = z.object({
-  eventId: z.string().uuid('Invalid event ID'),
-  userId: z.string().uuid('Invalid user ID')
+  eventId: z.string().uuid("Invalid event ID"),
+  userId: z.string().uuid("Invalid user ID"),
 });
 
-app.post('/api/events/:eventId/join/:userId',
+app.post(
+  "/api/events/:eventId/join/:userId",
   validateParamsWithSchema(eventParamSchema),
   asyncHandler(async (req, res) => {
     const { eventId, userId } = req.params;
     // Both parameters are validated
-  })
+  }),
 );
 ```
 
@@ -144,13 +148,14 @@ app.post('/api/events/:eventId/join/:userId',
 Use `validateQuery` for query string parameters:
 
 ```typescript
-import { 
+import {
   validateQuery,
   paginationQuerySchema,
-  searchQuerySchema 
-} from './validation';
+  searchQuerySchema,
+} from "./validation";
 
-app.get('/api/users',
+app.get(
+  "/api/users",
   validateQuery(paginationQuerySchema),
   asyncHandler(async (req, res) => {
     const { page, limit, sortBy, sortOrder } = req.query;
@@ -159,18 +164,19 @@ app.get('/api/users',
     res.json({
       success: true,
       data: users,
-      meta: { page, limit }
+      meta: { page, limit },
     });
-  })
+  }),
 );
 
-app.get('/api/search',
+app.get(
+  "/api/search",
   validateQuery(searchQuerySchema),
   asyncHandler(async (req, res) => {
     const { q, page, limit } = req.query;
     const results = await storage.search(q, { page, limit });
     res.json({ success: true, data: results });
-  })
+  }),
 );
 ```
 
@@ -184,7 +190,7 @@ All successful responses should follow this format:
 // Simple success
 res.json({
   success: true,
-  data: result
+  data: result,
 });
 
 // With metadata (pagination, etc.)
@@ -195,15 +201,15 @@ res.json({
     page: 1,
     limit: 20,
     total: 100,
-    totalPages: 5
-  }
+    totalPages: 5,
+  },
 });
 
 // With message
 res.status(201).json({
   success: true,
   data: createdResource,
-  message: 'Resource created successfully'
+  message: "Resource created successfully",
 });
 ```
 
@@ -238,53 +244,56 @@ Pre-defined schemas for common use cases:
 
 ```typescript
 import {
-  uuidParamSchema,        // { id: uuid }
-  eventParamSchema,       // { eventId: uuid }
-  userParamSchema,        // { userId: uuid }
-  communityParamSchema,   // { communityId: uuid }
-  paginationQuerySchema,  // { page?, limit?, sortBy?, sortOrder? }
-  searchQuerySchema       // { q, ...pagination }
-} from './validation';
+  uuidParamSchema, // { id: uuid }
+  eventParamSchema, // { eventId: uuid }
+  userParamSchema, // { userId: uuid }
+  communityParamSchema, // { communityId: uuid }
+  paginationQuerySchema, // { page?, limit?, sortBy?, sortOrder? }
+  searchQuerySchema, // { q, ...pagination }
+} from "./validation";
 ```
 
 ## Migration Guide
 
 ### Before (Old Pattern)
+
 ```typescript
-app.get('/api/resource/:id', async (req, res) => {
+app.get("/api/resource/:id", async (req, res) => {
   try {
     if (!validateUUID(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid ID format' });
+      return res.status(400).json({ message: "Invalid ID format" });
     }
-    
+
     const resource = await storage.getResource(req.params.id);
     if (!resource) {
-      return res.status(404).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: "Resource not found" });
     }
-    
+
     res.json(resource);
   } catch (error) {
-    logger.error('Failed to get resource', error);
-    res.status(500).json({ message: 'Internal server error' });
+    logger.error("Failed to get resource", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 ```
 
 ### After (New Pattern)
+
 ```typescript
-app.get('/api/resource/:id',
+app.get(
+  "/api/resource/:id",
   validateParamsWithSchema(uuidParamSchema),
   asyncHandler(async (req, res) => {
     const resource = await storage.getResource(req.params.id);
     if (!resource) {
-      throw new NotFoundError('Resource not found');
+      throw new NotFoundError("Resource not found");
     }
-    
+
     res.json({
       success: true,
-      data: resource
+      data: resource,
     });
-  })
+  }),
 );
 ```
 

@@ -26,7 +26,7 @@ export interface AuthState {
 }
 
 // OAuth provider types
-export type OAuthProvider = 'google' | 'github' | 'discord';
+export type OAuthProvider = "google" | "github" | "discord";
 
 export interface AuthProviderConfig {
   id: string;

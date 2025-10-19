@@ -1,8 +1,11 @@
-import { storage } from '../storage';
-import { logger } from '../logger';
-import { notificationDeliveryService } from './notification-delivery';
-import { notificationTemplateService, type TemplateContext } from './notification-templates';
-import type { InsertNotification, Notification } from '@shared/schema';
+import { storage } from "../storage";
+import { logger } from "../logger";
+import { notificationDeliveryService } from "./notification-delivery";
+import {
+  notificationTemplateService,
+  type TemplateContext,
+} from "./notification-templates";
+import type { InsertNotification, Notification } from "@shared/schema";
 
 /**
  * Enhanced notification service with multi-channel delivery and templating
@@ -16,7 +19,7 @@ export class EnhancedNotificationService {
     type: string,
     context: TemplateContext,
     options?: {
-      priority?: 'low' | 'normal' | 'high' | 'urgent';
+      priority?: "low" | "normal" | "high" | "urgent";
       communityId?: string;
       expiresAt?: Date;
       forceChannels?: {
@@ -26,12 +29,15 @@ export class EnhancedNotificationService {
         sms?: boolean;
         webhook?: boolean;
       };
-    }
+    },
   ): Promise<{ notification: Notification; deliveryResults: any[] }> {
     try {
       // Generate notification from template
-      const template = notificationTemplateService.generateNotification(type, context);
-      
+      const template = notificationTemplateService.generateNotification(
+        type,
+        context,
+      );
+
       // Create notification in database
       const notificationData: InsertNotification = {
         userId,
@@ -48,34 +54,35 @@ export class EnhancedNotificationService {
           pushBody: template.pushBody,
           smsMessage: template.smsMessage,
           context,
-          communityId: options?.communityId // Include in data instead
-        })
+          communityId: options?.communityId, // Include in data instead
+        }),
       };
 
       const notification = await storage.createNotification(notificationData);
 
       // Deliver notification through appropriate channels
-      const deliveryResults = await notificationDeliveryService.deliverNotification(
-        userId,
-        notification,
-        options?.forceChannels
-      );
+      const deliveryResults =
+        await notificationDeliveryService.deliverNotification(
+          userId,
+          notification,
+          options?.forceChannels,
+        );
 
-      logger.info('Enhanced notification sent successfully', {
+      logger.info("Enhanced notification sent successfully", {
         userId,
         notificationId: notification.id,
         type,
-        deliveryChannels: deliveryResults.map(r => r.channel),
-        successfulDeliveries: deliveryResults.filter(r => r.success).length
+        deliveryChannels: deliveryResults.map((r) => r.channel),
+        successfulDeliveries: deliveryResults.filter((r) => r.success).length,
       });
 
       return { notification, deliveryResults };
     } catch (error) {
-      logger.error('Failed to send enhanced notification', {
+      logger.error("Failed to send enhanced notification", {
         error,
         userId,
         type,
-        context
+        context,
       });
       throw error;
     }
@@ -86,23 +93,23 @@ export class EnhancedNotificationService {
    */
   async notifyStreamStarted(
     streamSession: any,
-    followers: string[] = []
+    followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: streamSession.hostUserId },
       stream: {
         id: streamSession.id,
         title: streamSession.title,
-        platform: streamSession.platforms?.[0]?.platform || 'streaming'
-      }
+        platform: streamSession.platforms?.[0]?.platform || "streaming",
+      },
     };
 
     // Notify followers
-    const notificationPromises = followers.map(userId =>
-      this.sendNotification(userId, 'streamStarted', context, {
-        priority: 'normal',
-        communityId: streamSession.communityId
-      })
+    const notificationPromises = followers.map((userId) =>
+      this.sendNotification(userId, "streamStarted", context, {
+        priority: "normal",
+        communityId: streamSession.communityId,
+      }),
     );
 
     await Promise.allSettled(notificationPromises);
@@ -114,17 +121,17 @@ export class EnhancedNotificationService {
   async notifyCollaborationInvite(
     fromUserId: string,
     toUserId: string,
-    collaborationRequest: any
+    collaborationRequest: any,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
       stream: { id: collaborationRequest.streamSessionId },
       type: collaborationRequest.type,
-      requestId: collaborationRequest.id
+      requestId: collaborationRequest.id,
     };
 
-    await this.sendNotification(toUserId, 'collaborationInvite', context, {
-      priority: 'high'
+    await this.sendNotification(toUserId, "collaborationInvite", context, {
+      priority: "high",
     });
   }
 
@@ -134,7 +141,7 @@ export class EnhancedNotificationService {
   async notifyEventReminder(
     event: any,
     attendees: string[],
-    reminderTime: string = '15 minutes'
+    reminderTime: string = "15 minutes",
   ): Promise<void> {
     const context: TemplateContext = {
       event: {
@@ -142,16 +149,16 @@ export class EnhancedNotificationService {
         title: event.title,
         date: event.date,
         time: event.time,
-        location: event.location
+        location: event.location,
       },
-      reminderTime
+      reminderTime,
     };
 
-    const notificationPromises = attendees.map(userId =>
-      this.sendNotification(userId, 'eventReminders', context, {
-        priority: 'normal',
-        communityId: event.communityId
-      })
+    const notificationPromises = attendees.map((userId) =>
+      this.sendNotification(userId, "eventReminders", context, {
+        priority: "normal",
+        communityId: event.communityId,
+      }),
     );
 
     await Promise.allSettled(notificationPromises);
@@ -163,15 +170,15 @@ export class EnhancedNotificationService {
   async notifyFriendRequest(
     fromUserId: string,
     toUserId: string,
-    friendship: any
+    friendship: any,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
-      requestId: friendship.id
+      requestId: friendship.id,
     };
 
-    await this.sendNotification(toUserId, 'friendRequests', context, {
-      priority: 'normal'
+    await this.sendNotification(toUserId, "friendRequests", context, {
+      priority: "normal",
     });
   }
 
@@ -182,23 +189,23 @@ export class EnhancedNotificationService {
     tournament: any,
     participants: string[],
     updateType: string,
-    updateMessage: string
+    updateMessage: string,
   ): Promise<void> {
     const context: TemplateContext = {
       tournament: {
         id: tournament.id,
         name: tournament.name,
-        status: tournament.status
+        status: tournament.status,
       },
       updateType,
-      updateMessage
+      updateMessage,
     };
 
-    const notificationPromises = participants.map(userId =>
-      this.sendNotification(userId, 'tournamentUpdates', context, {
-        priority: 'normal',
-        communityId: tournament.communityId
-      })
+    const notificationPromises = participants.map((userId) =>
+      this.sendNotification(userId, "tournamentUpdates", context, {
+        priority: "normal",
+        communityId: tournament.communityId,
+      }),
     );
 
     await Promise.allSettled(notificationPromises);
@@ -212,25 +219,25 @@ export class EnhancedNotificationService {
     title: string,
     message: string,
     options?: {
-      priority?: 'low' | 'normal' | 'high' | 'urgent';
+      priority?: "low" | "normal" | "high" | "urgent";
       actionUrl?: string;
       actionText?: string;
       communityId?: string;
-    }
+    },
   ): Promise<void> {
     const context: TemplateContext = {
       title,
       message,
       actionUrl: options?.actionUrl,
       actionText: options?.actionText,
-      priority: options?.priority || 'normal'
+      priority: options?.priority || "normal",
     };
 
-    const notificationPromises = userIds.map(userId =>
-      this.sendNotification(userId, 'systemAnnouncements', context, {
-        priority: options?.priority || 'normal',
-        communityId: options?.communityId
-      })
+    const notificationPromises = userIds.map((userId) =>
+      this.sendNotification(userId, "systemAnnouncements", context, {
+        priority: options?.priority || "normal",
+        communityId: options?.communityId,
+      }),
     );
 
     await Promise.allSettled(notificationPromises);
@@ -243,37 +250,43 @@ export class EnhancedNotificationService {
     try {
       // Get all users who have weekly digest enabled
       const users = await this.getUsersWithWeeklyDigestEnabled();
-      
+
       for (const user of users) {
         try {
           const weeklyStats = await this.generateWeeklyStats(user.id);
-          
+
           const context: TemplateContext = {
             user: {
               id: user.id,
               firstName: user.firstName,
-              username: user.username
+              username: user.username,
             },
-            weeklyStats
+            weeklyStats,
           };
 
-          await this.sendNotification(user.id, 'weeklyDigest', context, {
-            priority: 'low',
-            forceChannels: { email: true, browser: false, push: false, sms: false, webhook: false }
+          await this.sendNotification(user.id, "weeklyDigest", context, {
+            priority: "low",
+            forceChannels: {
+              email: true,
+              browser: false,
+              push: false,
+              sms: false,
+              webhook: false,
+            },
           });
         } catch (error) {
-          logger.error('Failed to send weekly digest to user', {
+          logger.error("Failed to send weekly digest to user", {
             error,
-            userId: user.id
+            userId: user.id,
           });
         }
       }
 
-      logger.info('Weekly digest notifications completed', {
-        totalUsers: users.length
+      logger.info("Weekly digest notifications completed", {
+        totalUsers: users.length,
       });
     } catch (error) {
-      logger.error('Failed to send weekly digest notifications', { error });
+      logger.error("Failed to send weekly digest notifications", { error });
     }
   }
 
@@ -311,7 +324,7 @@ export class EnhancedNotificationService {
       streamsWatched: 0,
       friendsAdded: 0,
       communitiesJoined: 0,
-      gamesPlayed: 0
+      gamesPlayed: 0,
     };
   }
 
@@ -320,43 +333,43 @@ export class EnhancedNotificationService {
    */
   async updateNotificationPreferences(
     userId: string,
-    preferences: any
+    preferences: any,
   ): Promise<void> {
     try {
       const currentSettings = await storage.getUserSettings(userId);
-      
+
       // Parse JSON strings from database
-      const currentNotificationSettings = currentSettings?.notificationTypes 
-        ? JSON.parse(currentSettings.notificationTypes as string) 
+      const currentNotificationSettings = currentSettings?.notificationTypes
+        ? JSON.parse(currentSettings.notificationTypes as string)
         : {};
-      const currentPrivacySettings = currentSettings?.privacySettings 
-        ? JSON.parse(currentSettings.privacySettings as string) 
+      const currentPrivacySettings = currentSettings?.privacySettings
+        ? JSON.parse(currentSettings.privacySettings as string)
         : {};
-      const currentDisplayPreferences = currentSettings?.displayPreferences 
-        ? JSON.parse(currentSettings.displayPreferences as string) 
+      const currentDisplayPreferences = currentSettings?.displayPreferences
+        ? JSON.parse(currentSettings.displayPreferences as string)
         : {};
-      
+
       const updatedSettings = {
         userId,
         notificationTypes: JSON.stringify({
           ...currentNotificationSettings,
-          ...preferences
+          ...preferences,
         }),
         privacySettings: JSON.stringify(currentPrivacySettings),
-        displayPreferences: JSON.stringify(currentDisplayPreferences)
+        displayPreferences: JSON.stringify(currentDisplayPreferences),
       };
 
       await storage.upsertUserSettings(updatedSettings);
 
-      logger.info('Notification preferences updated', {
+      logger.info("Notification preferences updated", {
         userId,
-        preferences
+        preferences,
       });
     } catch (error) {
-      logger.error('Failed to update notification preferences', {
+      logger.error("Failed to update notification preferences", {
         error,
         userId,
-        preferences
+        preferences,
       });
       throw error;
     }
@@ -373,9 +386,9 @@ export class EnhancedNotificationService {
       }
       return JSON.parse(userSettings.notificationTypes as string);
     } catch (error) {
-      logger.error('Failed to get notification preferences', {
+      logger.error("Failed to get notification preferences", {
         error,
-        userId
+        userId,
       });
       throw error;
     }

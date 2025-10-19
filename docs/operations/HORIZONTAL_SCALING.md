@@ -5,6 +5,7 @@ This guide covers horizontal scaling configuration for Shuffle & Sync on Google 
 ## Overview
 
 Shuffle & Sync uses Google Cloud Run's automatic horizontal scaling to handle varying traffic loads. Cloud Run automatically:
+
 - Creates new container instances as traffic increases
 - Removes instances as traffic decreases
 - Distributes requests across available instances
@@ -15,6 +16,7 @@ Shuffle & Sync uses Google Cloud Run's automatic horizontal scaling to handle va
 ### Current Configuration
 
 **Backend Service** (`shuffle-and-sync-backend`):
+
 ```yaml
 CPU: 1 vCPU
 Memory: 1 GB
@@ -25,6 +27,7 @@ Timeout: 300 seconds
 ```
 
 **Frontend Service** (`shuffle-and-sync-frontend`):
+
 ```yaml
 CPU: 1 vCPU
 Memory: 512 MB
@@ -38,7 +41,7 @@ Timeout: 60 seconds
 
 1. **Request Arrives**: User makes request to Cloud Run service
 2. **Instance Check**: Cloud Run checks if existing instances can handle request
-3. **Scaling Decision**: 
+3. **Scaling Decision**:
    - If `current_requests >= (concurrency * instances)`: Create new instance
    - If `current_requests < (concurrency * (instances - 1))`: Remove instance
 4. **Instance Lifecycle**: Instances start in ~1-3 seconds (cold start) or immediately (warm)
@@ -63,6 +66,7 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **Recommendations**:
+
 - **Production Backend**: `--min-instances 1` to avoid cold starts
 - **Production Frontend**: `--min-instances 0` (static content loads fast)
 - **Development**: `--min-instances 0` for cost savings
@@ -80,12 +84,14 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **Considerations**:
+
 - **Cost Control**: Higher max = higher potential costs
 - **Database Connections**: Ensure database can handle (max_instances × concurrency) connections
 - **Quotas**: Check Cloud Run quotas for your project
 - **Traffic Patterns**: Set based on peak traffic expectations
 
 **Recommendations**:
+
 - **Small Apps**: 5-10 max instances
 - **Medium Apps**: 10-50 max instances
 - **Large Apps**: 50-100+ max instances
@@ -103,6 +109,7 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **Recommendations**:
+
 - **CPU-Intensive**: 20-50 (lower concurrency)
 - **I/O-Intensive**: 50-100 (higher concurrency)
 - **Async Operations**: 100-200 (highest concurrency)
@@ -121,6 +128,7 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **When to Increase CPU**:
+
 - High CPU utilization (>80%)
 - Compute-intensive operations
 - Better cold start performance
@@ -138,6 +146,7 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **When to Increase Memory**:
+
 - Memory errors or OOM kills
 - Large data processing
 - Caching requirements
@@ -155,6 +164,7 @@ gcloud run services update shuffle-and-sync-backend \
 ```
 
 **Recommendations**:
+
 - **API Endpoints**: 60-120 seconds
 - **File Uploads**: 300-600 seconds
 - **Long Operations**: 900-3600 seconds
@@ -182,6 +192,7 @@ frontend_max_instances  = "10"
 ```
 
 Apply changes:
+
 ```bash
 cd infrastructure/terraform
 terraform plan
@@ -197,6 +208,7 @@ Cold starts occur when a new instance is created:
 **Optimization Strategies**:
 
 1. **Keep Minimum Instances Warm**:
+
    ```bash
    gcloud run services update shuffle-and-sync-backend \
      --min-instances 1
@@ -208,10 +220,11 @@ Cold starts occur when a new instance is created:
    - Use smaller base images
 
 3. **Optimize Application Startup**:
+
    ```typescript
    // Lazy load heavy dependencies
-   const heavyModule = await import('./heavy-module');
-   
+   const heavyModule = await import("./heavy-module");
+
    // Initialize only what's needed at startup
    // Defer non-critical initialization
    ```
@@ -229,7 +242,7 @@ Cold starts occur when a new instance is created:
 
 ```typescript
 // Use async/await for I/O operations
-app.get('/api/data', async (req, res) => {
+app.get("/api/data", async (req, res) => {
   const data = await fetchFromDatabase();
   res.json(data);
 });
@@ -246,6 +259,7 @@ const cache = new LRUCache({ max: 500 });
 ```
 
 **Infrastructure-Level**:
+
 - Increase CPU for better parallelism
 - Adjust concurrency based on request complexity
 - Monitor and tune based on metrics
@@ -262,7 +276,7 @@ Critical for preventing connection exhaustion:
 // Configure connection pool per instance
 const poolConfig = {
   max: 20, // Lower than concurrency
-  min: 2,  // Keep some connections warm
+  min: 2, // Keep some connections warm
   idleTimeoutMillis: 30000,
 };
 
@@ -274,7 +288,7 @@ app.use(async (req, res, next) => {
 
 // Release connections after use
 app.use((req, res, next) => {
-  res.on('finish', () => {
+  res.on("finish", () => {
     if (req.dbClient) {
       req.dbClient.release();
     }
@@ -288,6 +302,7 @@ app.use((req, res, next) => {
 ### Calculate Required Capacity
 
 **Formula**:
+
 ```
 Required Instances = (Peak RPS × Average Response Time) / Concurrency
 
@@ -300,6 +315,7 @@ Required = (1000 × 0.2) / 80 = 2.5 ≈ 3 instances
 ```
 
 **Add Buffer**:
+
 - Multiply by 1.5-2x for safety margin
 - Result: 3 × 1.5 = 4.5 ≈ 5 instances minimum
 
@@ -308,50 +324,57 @@ Required = (1000 × 0.2) / 80 = 2.5 ≈ 3 instances
 Consider different traffic patterns:
 
 **Steady Traffic**:
+
 - Min Instances: 25-50% of peak
 - Max Instances: 2× peak requirement
 
 **Spiky Traffic**:
+
 - Min Instances: 0-1
 - Max Instances: 3-4× peak requirement
 - Enable CPU throttling after startup
 
 **Predictable Peaks** (e.g., daily at noon):
+
 - Increase min instances before peak
 - Use Cloud Scheduler to scale preemptively
 
 ### Cost vs Performance Trade-offs
 
-| Configuration | Cost | Performance | Use Case |
-|--------------|------|-------------|----------|
-| Min=0, Max=10 | Low | Cold starts | Development, low-traffic |
-| Min=1, Max=10 | Medium | Good | Production, moderate traffic |
-| Min=3, Max=20 | High | Excellent | Production, high traffic |
-| Min=5, Max=50 | Very High | Best | Enterprise, critical workloads |
+| Configuration | Cost      | Performance | Use Case                       |
+| ------------- | --------- | ----------- | ------------------------------ |
+| Min=0, Max=10 | Low       | Cold starts | Development, low-traffic       |
+| Min=1, Max=10 | Medium    | Good        | Production, moderate traffic   |
+| Min=3, Max=20 | High      | Excellent   | Production, high traffic       |
+| Min=5, Max=50 | Very High | Best        | Enterprise, critical workloads |
 
 ## Monitoring and Tuning
 
 ### Key Metrics to Monitor
 
 1. **Instance Count**:
+
    ```bash
    gcloud monitoring time-series list \
      --filter='metric.type="run.googleapis.com/container/instance_count"'
    ```
 
 2. **Request Count**:
+
    ```bash
    gcloud monitoring time-series list \
      --filter='metric.type="run.googleapis.com/request_count"'
    ```
 
 3. **Request Latency**:
+
    ```bash
    gcloud monitoring time-series list \
      --filter='metric.type="run.googleapis.com/request_latencies"'
    ```
 
 4. **CPU Utilization**:
+
    ```bash
    gcloud monitoring time-series list \
      --filter='metric.type="run.googleapis.com/container/cpu/utilizations"'
@@ -366,22 +389,26 @@ Consider different traffic patterns:
 ### Tuning Guidelines
 
 **If CPU Utilization > 80%**:
+
 - Increase CPU allocation
 - Or reduce concurrency
 - Or optimize application code
 
 **If Memory Utilization > 85%**:
+
 - Increase memory allocation
 - Or reduce concurrency
 - Or optimize memory usage
 
 **If Request Latency High**:
+
 - Check database query performance
 - Increase CPU/memory
 - Reduce concurrency
 - Add caching
 
 **If Instances Not Scaling**:
+
 - Check max instances limit
 - Verify concurrency setting
 - Review request distribution
@@ -456,6 +483,7 @@ artillery run load-test.yml
 ```
 
 Monitor during load test:
+
 - Instance count should increase/decrease appropriately
 - Response times should remain acceptable
 - No errors or timeouts
@@ -477,6 +505,7 @@ Monitor during load test:
 ### Issue: Service Not Scaling Up
 
 **Check**:
+
 ```bash
 # Verify max instances setting
 gcloud run services describe shuffle-and-sync-backend \
@@ -485,6 +514,7 @@ gcloud run services describe shuffle-and-sync-backend \
 ```
 
 **Solutions**:
+
 - Increase max instances
 - Check project quotas
 - Verify no deployment locks
@@ -492,6 +522,7 @@ gcloud run services describe shuffle-and-sync-backend \
 ### Issue: Too Many Cold Starts
 
 **Solutions**:
+
 - Increase minimum instances
 - Optimize container startup time
 - Enable CPU boost for startup
@@ -500,6 +531,7 @@ gcloud run services describe shuffle-and-sync-backend \
 ### Issue: High Costs
 
 **Solutions**:
+
 - Reduce minimum instances
 - Lower max instances
 - Optimize request handling

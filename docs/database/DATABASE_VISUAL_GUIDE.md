@@ -86,12 +86,13 @@ User Action → Server Endpoint → Service Layer → Storage Layer → Drizzle 
 ```
 
 **Example Flow:**
+
 ```
 GET /api/users/123
   └─> userService.getUserById(123)
       └─> storage.getUser(123)
           └─> db.select().from(users).where(eq(users.id, 123))
-              └─> SQLite Database (SELECT * FROM users WHERE id = ?)                         
+              └─> SQLite Database (SELECT * FROM users WHERE id = ?)
                   └─> Return user data
 ```
 
@@ -177,18 +178,23 @@ Dependencies Removed:                  Dependencies Added:
 ## Quick FAQs
 
 ### Do I need multiple databases?
+
 **No.** One SQLite database (Cloud or local) handles everything.
 
 ### Do I need PostgreSQL?
+
 **No.** The app has been migrated to SQLite Cloud.
 
 ### What ORM is used?
+
 **Drizzle ORM** for 100% of database operations.
 
 ### Where is the schema defined?
+
 `shared/schema.ts` contains the complete database schema.
 
 ### How do sessions work?
+
 Database sessions via `@auth/drizzle-adapter` in the SQLite database.
 
 ---

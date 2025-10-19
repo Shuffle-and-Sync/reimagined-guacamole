@@ -13,7 +13,7 @@ export default function HelpCenter() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
@@ -24,7 +24,8 @@ export default function HelpCenter() {
               Help Center
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive support and documentation to help you get the most out of Shuffle & Sync.
+              Comprehensive support and documentation to help you get the most
+              out of Shuffle & Sync.
             </p>
           </div>
 
@@ -37,9 +38,10 @@ export default function HelpCenter() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                Our Help Center is currently under development. When ready, it will include:
+                Our Help Center is currently under development. When ready, it
+                will include:
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
@@ -70,8 +72,12 @@ export default function HelpCenter() {
                   </div>
                 </div>
               </div>
-              
-              <Button onClick={handleGoHome} className="mt-6" data-testid="button-back-home">
+
+              <Button
+                onClick={handleGoHome}
+                className="mt-6"
+                data-testid="button-back-home"
+              >
                 <i className="fas fa-home mr-2"></i>
                 Back to Home
               </Button>
@@ -79,7 +85,7 @@ export default function HelpCenter() {
           </Card>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

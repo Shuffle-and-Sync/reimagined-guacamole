@@ -11,6 +11,7 @@ Shuffle & Sync implements a dual authentication system that supports both **Goog
 **Purpose**: Fastest way for users to sign in using their Google account
 
 **Features**:
+
 - ✅ Instant account creation
 - ✅ No password management required
 - ✅ Automatic email verification
@@ -18,14 +19,16 @@ Shuffle & Sync implements a dual authentication system that supports both **Goog
 - ✅ Profile information pre-populated (name, email, profile picture)
 
 **Implementation Details**:
+
 - Uses Auth.js v5 (NextAuth.js) Google provider
 - Configured in `server/auth/auth.config.ts` (lines 84-89)
 - User creation/update handled in `signIn` callback (lines 340-380)
 - OAuth users have `passwordHash: null` in database
 
 **Flow**:
+
 ```
-User clicks "Continue with Google" 
+User clicks "Continue with Google"
   → Redirected to Google OAuth consent screen
   → User authorizes application
   → Callback to /api/auth/callback/google
@@ -39,6 +42,7 @@ User clicks "Continue with Google"
 **Purpose**: Traditional email/password authentication for users who prefer not to use OAuth
 
 **Features**:
+
 - ✅ Full control over credentials
 - ✅ Email verification requirement for security
 - ✅ Strong password validation (12+ chars, uppercase, lowercase, numbers, symbols)
@@ -47,12 +51,14 @@ User clicks "Continue with Google"
 - ✅ Password reset via email
 
 **Implementation Details**:
+
 - Registration endpoint: `/api/auth/register` (lines 2003-2223 in `server/routes.ts`)
 - Login via Auth.js Credentials provider in `server/auth/auth.config.ts` (lines 97-319)
 - Email verification tokens stored in database
 - Passwords hashed with Argon2id
 
 **Registration Flow**:
+
 ```
 User submits registration form
   → Password strength validation
@@ -65,6 +71,7 @@ User submits registration form
 ```
 
 **Login Flow**:
+
 ```
 User submits email + password
   → CSRF token fetched
@@ -86,6 +93,7 @@ User submits email + password
 ### Email Verification
 
 **Credentials Users**: MUST verify email before first login
+
 - Prevents fake account creation
 - Ensures valid email for password resets
 - Verification link valid for 24 hours
@@ -96,12 +104,14 @@ User submits email + password
 ### Multi-Factor Authentication (MFA/2FA)
 
 Both authentication methods support optional MFA:
+
 - TOTP (Time-based One-Time Password) via authenticator apps
 - Backup codes for recovery
 - Device fingerprinting for trusted devices
 - Risk-based authentication prompts
 
 **MFA Login Flow**:
+
 ```
 User enters email + password
   → Password verified successfully
@@ -114,23 +124,26 @@ User enters email + password
 ### Rate Limiting
 
 **Credentials Login**:
+
 - Per-email rate limiting: 5 attempts per 15 minutes
 - Account lockout: 5 failed attempts = 30 minute lock
 - Failed attempts tracked in database
 - Lock time remaining shown in error messages
 
 **OAuth Login**:
+
 - No rate limiting (handled by OAuth provider)
 - No failed attempt tracking needed
 
 ### Password Requirements
 
 When using credentials authentication:
+
 - Minimum 12 characters
 - At least one uppercase letter (A-Z)
 - At least one lowercase letter (a-z)
 - At least one number (0-9)
-- At least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)
+- At least one special character (!@#$%^&\*()\_+-=[]{}|;:,.<>?)
 
 **Example Valid Password**: `MySecureP@ssw0rd2024!`
 
@@ -140,13 +153,13 @@ When using credentials authentication:
 
 ```typescript
 {
-  id: string;                      // Unique user identifier
-  email: string;                   // User's email address
-  passwordHash: string | null;     // Argon2id hash (null for OAuth users)
-  isEmailVerified: boolean;        // Email verification status
-  mfaEnabled: boolean;             // MFA enabled flag
-  failedLoginAttempts: number;     // Failed login counter
-  lastFailedLogin: Date | null;    // Last failed attempt timestamp
+  id: string; // Unique user identifier
+  email: string; // User's email address
+  passwordHash: string | null; // Argon2id hash (null for OAuth users)
+  isEmailVerified: boolean; // Email verification status
+  mfaEnabled: boolean; // MFA enabled flag
+  failedLoginAttempts: number; // Failed login counter
+  lastFailedLogin: Date | null; // Last failed attempt timestamp
   accountLockedUntil: Date | null; // Account lock expiration
   // ... other fields
 }
@@ -167,6 +180,7 @@ When using credentials authentication:
 
 **What happens**: Password reset flow
 **Process**:
+
 1. User clicks "Forgot your password?" link
 2. Enters email address
 3. Receives password reset email (if account exists)
@@ -175,6 +189,7 @@ When using credentials authentication:
 6. Can now log in with new password
 
 **Endpoints**:
+
 - Request reset: `POST /api/auth/forgot-password`
 - Verify token: `GET /api/auth/verify-reset-token/:token`
 - Reset password: `POST /api/auth/reset-password`
@@ -202,6 +217,7 @@ When using credentials authentication:
 
 **What happens**: Additional verification step
 **Process**:
+
 1. User enters email + password
 2. Password verified successfully
 3. Frontend detects MFA_REQUIRED in response
@@ -216,46 +232,47 @@ When using credentials authentication:
 
 ### Authentication Endpoints
 
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/api/auth/signin/google` | GET | No | Initiate Google OAuth flow |
-| `/api/auth/signin/credentials` | POST | No | Sign in with email/password |
-| `/api/auth/register` | POST | No | Create new account with credentials |
-| `/api/auth/signout` | POST | Yes | Sign out current user |
-| `/api/auth/session` | GET | No | Get current session (null if not authenticated) |
-| `/api/auth/csrf` | GET | No | Get CSRF token for form submission |
+| Endpoint                       | Method | Auth Required | Purpose                                         |
+| ------------------------------ | ------ | ------------- | ----------------------------------------------- |
+| `/api/auth/signin/google`      | GET    | No            | Initiate Google OAuth flow                      |
+| `/api/auth/signin/credentials` | POST   | No            | Sign in with email/password                     |
+| `/api/auth/register`           | POST   | No            | Create new account with credentials             |
+| `/api/auth/signout`            | POST   | Yes           | Sign out current user                           |
+| `/api/auth/session`            | GET    | No            | Get current session (null if not authenticated) |
+| `/api/auth/csrf`               | GET    | No            | Get CSRF token for form submission              |
 
 ### Password Management
 
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/api/auth/forgot-password` | POST | No | Request password reset email |
-| `/api/auth/verify-reset-token/:token` | GET | No | Verify reset token validity |
-| `/api/auth/reset-password` | POST | No | Reset password with token |
+| Endpoint                              | Method | Auth Required | Purpose                      |
+| ------------------------------------- | ------ | ------------- | ---------------------------- |
+| `/api/auth/forgot-password`           | POST   | No            | Request password reset email |
+| `/api/auth/verify-reset-token/:token` | GET    | No            | Verify reset token validity  |
+| `/api/auth/reset-password`            | POST   | No            | Reset password with token    |
 
 ### Email Verification
 
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/api/auth/verify-email` | GET | No | Verify email with token |
-| `/api/auth/resend-verification` | POST | No | Resend verification email |
+| Endpoint                        | Method | Auth Required | Purpose                   |
+| ------------------------------- | ------ | ------------- | ------------------------- |
+| `/api/auth/verify-email`        | GET    | No            | Verify email with token   |
+| `/api/auth/resend-verification` | POST   | No            | Resend verification email |
 
 ### Multi-Factor Authentication
 
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/api/auth/mfa/setup` | POST | Yes | Initialize MFA setup |
-| `/api/auth/mfa/enable` | POST | Yes | Enable MFA after verification |
-| `/api/auth/mfa/disable` | POST | Yes | Disable MFA |
-| `/api/auth/mfa/verify` | POST | No | Verify MFA code during login |
-| `/api/auth/mfa/status` | GET | Yes | Check MFA status |
-| `/api/auth/mfa/backup-codes/regenerate` | POST | Yes | Generate new backup codes |
+| Endpoint                                | Method | Auth Required | Purpose                       |
+| --------------------------------------- | ------ | ------------- | ----------------------------- |
+| `/api/auth/mfa/setup`                   | POST   | Yes           | Initialize MFA setup          |
+| `/api/auth/mfa/enable`                  | POST   | Yes           | Enable MFA after verification |
+| `/api/auth/mfa/disable`                 | POST   | Yes           | Disable MFA                   |
+| `/api/auth/mfa/verify`                  | POST   | No            | Verify MFA code during login  |
+| `/api/auth/mfa/status`                  | GET    | Yes           | Check MFA status              |
+| `/api/auth/mfa/backup-codes/regenerate` | POST   | Yes           | Generate new backup codes     |
 
 ## Frontend Integration
 
 ### Sign-In Page (`client/src/pages/auth/signin.tsx`)
 
 **Features**:
+
 - Google OAuth button ("Continue with Google")
 - Email/Password form (expandable)
 - Forgot password link
@@ -263,6 +280,7 @@ When using credentials authentication:
 - Error handling for various scenarios
 
 **Usage**:
+
 ```tsx
 // Google OAuth
 <Button onClick={handleGoogleSignIn}>
@@ -280,6 +298,7 @@ When using credentials authentication:
 ### Registration Page (`client/src/pages/auth/register.tsx`)
 
 **Features**:
+
 - Name fields (first, last)
 - Username (unique, 3-30 chars)
 - Email (unique, valid format)
@@ -291,6 +310,7 @@ When using credentials authentication:
 ### useAuth Hook (`client/src/features/auth/hooks/useAuth.ts`)
 
 **Provides**:
+
 ```typescript
 {
   session: AuthSession | null;      // Current session data
@@ -333,15 +353,27 @@ export const authConfig: AuthConfig = {
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days
   trustHost: true,
   providers: [
-    Google({ /* ... */ }),      // Optional
-    Credentials({ /* ... */ })  // Always available
+    Google({
+      /* ... */
+    }), // Optional
+    Credentials({
+      /* ... */
+    }), // Always available
   ],
   callbacks: {
-    jwt({ token, user }) { /* ... */ },
-    session({ session, token }) { /* ... */ },
-    signIn({ user, account, profile }) { /* ... */ },
-    redirect({ url, baseUrl }) { /* ... */ }
-  }
+    jwt({ token, user }) {
+      /* ... */
+    },
+    session({ session, token }) {
+      /* ... */
+    },
+    signIn({ user, account, profile }) {
+      /* ... */
+    },
+    redirect({ url, baseUrl }) {
+      /* ... */
+    },
+  },
 };
 ```
 
@@ -360,6 +392,7 @@ npm test -- server/tests/features/auth-credentials-oauth.test.ts
 ### Test Coverage
 
 The test suite covers:
+
 - ✅ Credentials login with verified email
 - ✅ Email verification requirement
 - ✅ MFA requirement handling
@@ -378,12 +411,14 @@ The test suite covers:
 ### "Invalid email or password"
 
 **Possible Causes**:
+
 1. Incorrect email address
 2. Incorrect password
 3. Account doesn't exist
 4. Email typo
 
 **Solutions**:
+
 - Double-check email spelling
 - Try password reset if forgotten
 - Verify account exists (try registration)
@@ -393,6 +428,7 @@ The test suite covers:
 **Causes**: Email not verified after registration
 
 **Solutions**:
+
 1. Check inbox for verification email
 2. Check spam/junk folder
 3. Request new verification email
@@ -409,6 +445,7 @@ The test suite covers:
 **Cause**: 5 failed login attempts
 
 **Solutions**:
+
 - Wait 30 minutes for automatic unlock
 - Ensure you're using correct credentials
 - Try password reset
@@ -418,6 +455,7 @@ The test suite covers:
 **Cause**: Multi-factor authentication enabled on account
 
 **Solutions**:
+
 1. Open authenticator app
 2. Enter 6-digit code
 3. If code doesn't work, use backup code
@@ -500,10 +538,12 @@ Recommendations: All implemented
    - Session validation tests
 
 ### Test Documentation
+
 - **Detailed Findings**: See `REGISTRATION_LOGIN_TEST_FINDINGS.md` for complete test results and API behavior documentation
 - **Audit Summary**: See `AUTHENTICATION_AUDIT_SUMMARY.md` for security audit and recommendations
 
 ### Running Tests
+
 ```bash
 # Run all authentication tests
 npm test -- --testPathPatterns="auth"
@@ -518,6 +558,7 @@ npm test -- server/tests/features/auth-credentials-oauth.test.ts
 ## Support
 
 For authentication issues:
+
 1. Check this documentation
 2. Review error messages carefully
 3. Check test findings: `REGISTRATION_LOGIN_TEST_FINDINGS.md`

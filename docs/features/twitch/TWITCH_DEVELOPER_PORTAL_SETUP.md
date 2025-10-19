@@ -96,21 +96,23 @@ ${AUTH_URL}/api/platforms/twitch/oauth/callback
 
 **Examples:**
 
-| AUTH_URL | Redirect URL |
-|----------|--------------|
-| `http://localhost:3000` | `http://localhost:3000/api/platforms/twitch/oauth/callback` |
-| `http://localhost:5000` | `http://localhost:5000/api/platforms/twitch/oauth/callback` |
+| AUTH_URL                     | Redirect URL                                                     |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `http://localhost:3000`      | `http://localhost:3000/api/platforms/twitch/oauth/callback`      |
+| `http://localhost:5000`      | `http://localhost:5000/api/platforms/twitch/oauth/callback`      |
 | `https://shuffleandsync.com` | `https://shuffleandsync.com/api/platforms/twitch/oauth/callback` |
 
 ### Common Mistakes
 
 ❌ **Don't do this:**
+
 - `http://localhost:3000/api/platforms/twitch/oauth/callback/` (trailing slash)
 - `https://localhost:3000/api/platforms/twitch/oauth/callback` (https on localhost)
 - `http://your-domain.com/api/platforms/twitch/oauth/callback` (http in production)
 - `http://localhost:3000/api/platforms/Twitch/oauth/callback` (wrong case)
 
 ✅ **Do this:**
+
 - `http://localhost:3000/api/platforms/twitch/oauth/callback` (development)
 - `https://your-domain.com/api/platforms/twitch/oauth/callback` (production)
 
@@ -133,6 +135,7 @@ To modify scopes, edit the `PLATFORM_SCOPES.twitch` array in that file.
 ## Step 7: Test OAuth Flow
 
 1. Start your development server:
+
    ```bash
    npm run dev
    ```
@@ -154,16 +157,19 @@ To modify scopes, edit the `PLATFORM_SCOPES.twitch` array in that file.
 ### Troubleshooting
 
 **Error: "Parameter redirect_uri does not match registered URI"**
+
 - Check that `AUTH_URL` in `.env.local` matches your developer console setting
 - Verify no trailing slashes in redirect URLs
 - Ensure exact case match
 
 **Error: "Invalid client credentials"**
+
 - Verify `TWITCH_CLIENT_ID` is correct
 - Verify `TWITCH_CLIENT_SECRET` is correct
 - Make sure you didn't accidentally add spaces or newlines
 
 **Error: "Invalid OAuth state"**
+
 - State expires after 10 minutes - try again
 - Ensure cookies are enabled
 - Clear browser cookies and try again
@@ -175,20 +181,22 @@ For real-time stream status updates:
 1. **Ensure HTTPS endpoint** is publicly accessible (not required for development)
 
 2. **Configure webhook URL** in your application:
+
    ```
    https://your-domain.com/api/webhooks/twitch
    ```
 
 3. **Subscribe to events** using the Twitch API:
+
    ```typescript
-   import { twitchAPI } from './services/twitch-api';
-   
+   import { twitchAPI } from "./services/twitch-api";
+
    await twitchAPI.subscribeToEvent(
-     'stream.online',
-     '1',
-     { broadcaster_user_id: 'USER_ID' },
-     'https://your-domain.com/api/webhooks/twitch',
-     process.env.TWITCH_EVENTSUB_SECRET!
+     "stream.online",
+     "1",
+     { broadcaster_user_id: "USER_ID" },
+     "https://your-domain.com/api/webhooks/twitch",
+     process.env.TWITCH_EVENTSUB_SECRET!,
    );
    ```
 
@@ -241,16 +249,19 @@ For real-time stream status updates:
 ## Support and Resources
 
 ### Documentation
+
 - [TWITCH_OAUTH_GUIDE.md](./TWITCH_OAUTH_GUIDE.md) - Detailed OAuth implementation guide
 - [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) - Platform OAuth API reference
 
 ### Twitch Resources
+
 - [Twitch Developer Portal](https://dev.twitch.tv/)
 - [OAuth Guide](https://dev.twitch.tv/docs/authentication/)
 - [API Reference](https://dev.twitch.tv/docs/api/)
 - [EventSub Guide](https://dev.twitch.tv/docs/eventsub/)
 
 ### Getting Help
+
 - Check server logs for detailed error messages
 - Review troubleshooting section in TWITCH_OAUTH_GUIDE.md
 - Verify all configuration steps above

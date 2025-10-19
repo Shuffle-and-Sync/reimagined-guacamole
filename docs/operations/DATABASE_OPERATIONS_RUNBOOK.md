@@ -88,6 +88,7 @@ npm run db:health
 ```
 
 **Via SQLite Cloud Dashboard:**
+
 1. Log in to SQLite Cloud console
 2. Navigate to your database instance
 3. Use web-based query interface
@@ -95,10 +96,12 @@ npm run db:health
 ### Access Control
 
 **Development:**
+
 - No authentication required for local SQLite files
 - File permissions managed by OS
 
 **Production:**
+
 - API key authentication required
 - Rotate API keys quarterly
 - Use separate keys for different environments
@@ -180,18 +183,18 @@ npm run db:migrate:data -- --script=migrate_user_data --env=production
 
 ```typescript
 // migrations/scripts/example_migration.ts
-import { db } from '../../shared/database-unified';
-import { users } from '../../shared/schema';
+import { db } from "../../shared/database-unified";
+import { users } from "../../shared/schema";
 
 async function migrateData() {
-  console.log('Starting data migration...');
-  
+  console.log("Starting data migration...");
+
   // Perform migration
   const result = await db
     .update(users)
     .set({ updatedAt: new Date() })
     .where(/* conditions */);
-  
+
   console.log(`Migrated ${result.count} records`);
 }
 
@@ -441,10 +444,12 @@ sqlite3 dev.db "ANALYZE;"
 #### Issue: Connection Timeouts
 
 **Symptoms:**
+
 - Database queries timing out
 - Connection pool exhausted errors
 
 **Diagnosis:**
+
 ```bash
 # Check connection pool status
 npm run db:status
@@ -454,6 +459,7 @@ npm run db:status
 ```
 
 **Resolution:**
+
 ```bash
 # Restart application to reset connection pool
 npm run restart
@@ -468,10 +474,12 @@ ping your-host.sqlite.cloud
 #### Issue: Database Locked
 
 **Symptoms:**
+
 - "Database is locked" errors
 - Write operations failing
 
 **Diagnosis:**
+
 ```bash
 # Check for long-running transactions
 # Review application logs for transaction errors
@@ -481,6 +489,7 @@ npm run db:status
 ```
 
 **Resolution:**
+
 ```bash
 # Wait for transactions to complete (up to 30 seconds)
 
@@ -494,11 +503,13 @@ rm dev.db-shm dev.db-wal
 #### Issue: Schema Mismatch
 
 **Symptoms:**
+
 - Type errors in application
 - Column not found errors
 - Migration errors
 
 **Diagnosis:**
+
 ```bash
 # Check schema status
 npx drizzle-kit check
@@ -508,6 +519,7 @@ npm run db:verify-schema
 ```
 
 **Resolution:**
+
 ```bash
 # Push schema to database
 npm run db:push
@@ -529,32 +541,35 @@ npx drizzle-kit migrate
 **Steps:**
 
 1. **Assess Impact:**
+
    ```bash
    # Check database connectivity
    npm run db:health
-   
+
    # Check error logs
    tail -f logs/error.log
    ```
 
 2. **Verify Service Status:**
+
    ```bash
    # SQLite Cloud: Check status page
    # https://status.sqlitecloud.io
-   
+
    # Check Cloud Run service status
    gcloud run services describe shuffle-sync-backend --region=us-central1
    ```
 
 3. **Attempt Quick Fix:**
+
    ```bash
    # Restart application
    gcloud run services update shuffle-sync-backend \
      --region=us-central1 \
      --no-traffic
-   
+
    # Wait 30 seconds
-   
+
    gcloud run services update shuffle-sync-backend \
      --region=us-central1 \
      --traffic=100
@@ -578,40 +593,44 @@ npx drizzle-kit migrate
 **Steps:**
 
 1. **Isolate Issue:**
+
    ```bash
    # Stop application immediately
    npm run stop
-   
+
    # Check integrity
    sqlite3 db.db "PRAGMA integrity_check;"
    ```
 
 2. **Assess Damage:**
+
    ```bash
    # Identify corrupted tables
    # Review integrity check output
-   
+
    # Check recent changes
    git log --since="24 hours ago"
    ```
 
 3. **Restore from Backup:**
+
    ```bash
    # Identify latest good backup
    npm run db:backup:list
-   
+
    # Restore database
    npm run db:restore -- --backup=LATEST_GOOD
-   
+
    # Verify restoration
    npm run db:verify
    ```
 
 4. **Restart Services:**
+
    ```bash
    # Restart application
    npm run start
-   
+
    # Monitor for issues
    tail -f logs/app.log
    ```
@@ -643,7 +662,6 @@ npx drizzle-kit migrate
 
 **Revision History:**
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-10-18 | Initial runbook creation | System |
-
+| Version | Date       | Changes                  | Author |
+| ------- | ---------- | ------------------------ | ------ |
+| 1.0     | 2025-10-18 | Initial runbook creation | System |

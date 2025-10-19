@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
-import { logger } from '../logger';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { Request, Response } from "express";
+import { logger } from "../logger";
+import { createHmac, timingSafeEqual } from "crypto";
 
 // Twitch API configuration
-const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
-const TWITCH_OAUTH_BASE = 'https://id.twitch.tv/oauth2';
+const TWITCH_API_BASE = "https://api.twitch.tv/helix";
+const TWITCH_OAUTH_BASE = "https://id.twitch.tv/oauth2";
 
 // Types for Twitch API responses
 export interface TwitchUser {
@@ -28,7 +28,7 @@ export interface TwitchStream {
   user_name: string;
   game_id: string;
   game_name: string;
-  type: 'live' | '';
+  type: "live" | "";
   title: string;
   tags: string[];
   viewer_count: number;
@@ -55,12 +55,16 @@ export interface TwitchWebhookEvent {
 
 export interface TwitchEventSubSubscription {
   id: string;
-  status: 'enabled' | 'webhook_callback_verification_pending' | 'webhook_callback_verification_failed' | 'notification_failures_exceeded';
+  status:
+    | "enabled"
+    | "webhook_callback_verification_pending"
+    | "webhook_callback_verification_failed"
+    | "notification_failures_exceeded";
   type: string;
   version: string;
   condition: Record<string, any>;
   transport: {
-    method: 'webhook';
+    method: "webhook";
     callback: string;
   };
   created_at: string;
@@ -81,38 +85,44 @@ export class TwitchAPIService {
    */
   private async getAppAccessToken(): Promise<string> {
     // Return cached token if still valid
-    if (this.accessToken && this.tokenExpiresAt && Date.now() < this.tokenExpiresAt) {
+    if (
+      this.accessToken &&
+      this.tokenExpiresAt &&
+      Date.now() < this.tokenExpiresAt
+    ) {
       return this.accessToken;
     }
 
     try {
       const response = await fetch(`${TWITCH_OAUTH_BASE}/token`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
           client_id: this.clientId,
           client_secret: this.clientSecret,
-          grant_type: 'client_credentials',
+          grant_type: "client_credentials",
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to get Twitch access token: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to get Twitch access token: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
       this.accessToken = data.access_token;
-      this.tokenExpiresAt = Date.now() + (data.expires_in * 1000) - 60000; // Subtract 1 minute for safety
+      this.tokenExpiresAt = Date.now() + data.expires_in * 1000 - 60000; // Subtract 1 minute for safety
 
       if (!this.accessToken) {
-        throw new Error('Failed to obtain valid access token from Twitch');
+        throw new Error("Failed to obtain valid access token from Twitch");
       }
 
       return this.accessToken;
     } catch (error) {
-      console.error('Error getting Twitch access token:', error);
+      console.error("Error getting Twitch access token:", error);
       throw error;
     }
   }
@@ -120,21 +130,26 @@ export class TwitchAPIService {
   /**
    * Make authenticated request to Twitch API
    */
-  private async makeAPIRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  private async makeAPIRequest(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<any> {
     const token = await this.getAppAccessToken();
-    
+
     const response = await fetch(`${TWITCH_API_BASE}${endpoint}`, {
       ...options,
       headers: {
-        'Client-ID': this.clientId,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Client-ID": this.clientId,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
         ...options.headers,
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Twitch API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Twitch API request failed: ${response.status} ${response.statusText}`,
+      );
     }
 
     return response.json();
@@ -145,18 +160,18 @@ export class TwitchAPIService {
    */
   async getUser(login?: string, id?: string): Promise<TwitchUser | null> {
     const params = new URLSearchParams();
-    if (login) params.append('login', login);
-    if (id) params.append('id', id);
+    if (login) params.append("login", login);
+    if (id) params.append("id", id);
 
     if (!params.toString()) {
-      throw new Error('Either login or id must be provided');
+      throw new Error("Either login or id must be provided");
     }
 
     try {
       const data = await this.makeAPIRequest(`/users?${params.toString()}`);
       return data.data?.[0] || null;
     } catch (error) {
-      console.error('Error fetching Twitch user:', error);
+      console.error("Error fetching Twitch user:", error);
       return null;
     }
   }
@@ -166,10 +181,12 @@ export class TwitchAPIService {
    */
   async getStream(userLogin: string): Promise<TwitchStream | null> {
     try {
-      const data = await this.makeAPIRequest(`/streams?user_login=${userLogin}`);
+      const data = await this.makeAPIRequest(
+        `/streams?user_login=${userLogin}`,
+      );
       return data.data?.[0] || null;
     } catch (error) {
-      console.error('Error fetching Twitch stream:', error);
+      console.error("Error fetching Twitch stream:", error);
       return null;
     }
   }
@@ -179,14 +196,16 @@ export class TwitchAPIService {
    */
   async getStreams(userLogins: string[]): Promise<TwitchStream[]> {
     if (userLogins.length === 0) return [];
-    
-    const params = userLogins.map(login => `user_login=${encodeURIComponent(login)}`).join('&');
-    
+
+    const params = userLogins
+      .map((login) => `user_login=${encodeURIComponent(login)}`)
+      .join("&");
+
     try {
       const data = await this.makeAPIRequest(`/streams?${params}`);
       return data.data || [];
     } catch (error) {
-      console.error('Error fetching Twitch streams:', error);
+      console.error("Error fetching Twitch streams:", error);
       return [];
     }
   }
@@ -194,20 +213,23 @@ export class TwitchAPIService {
   /**
    * Get game/category information
    */
-  async getCategories(names?: string[], ids?: string[]): Promise<TwitchCategory[]> {
+  async getCategories(
+    names?: string[],
+    ids?: string[],
+  ): Promise<TwitchCategory[]> {
     const params = new URLSearchParams();
-    names?.forEach(name => params.append('name', name));
-    ids?.forEach(id => params.append('id', id));
+    names?.forEach((name) => params.append("name", name));
+    ids?.forEach((id) => params.append("id", id));
 
     if (!params.toString()) {
-      throw new Error('Either names or ids must be provided');
+      throw new Error("Either names or ids must be provided");
     }
 
     try {
       const data = await this.makeAPIRequest(`/games?${params.toString()}`);
       return data.data || [];
     } catch (error) {
-      console.error('Error fetching Twitch categories:', error);
+      console.error("Error fetching Twitch categories:", error);
       return [];
     }
   }
@@ -217,10 +239,12 @@ export class TwitchAPIService {
    */
   async searchCategories(query: string): Promise<TwitchCategory[]> {
     try {
-      const data = await this.makeAPIRequest(`/search/categories?query=${encodeURIComponent(query)}`);
+      const data = await this.makeAPIRequest(
+        `/search/categories?query=${encodeURIComponent(query)}`,
+      );
       return data.data || [];
     } catch (error) {
-      console.error('Error searching Twitch categories:', error);
+      console.error("Error searching Twitch categories:", error);
       return [];
     }
   }
@@ -233,17 +257,17 @@ export class TwitchAPIService {
     version: string,
     condition: Record<string, any>,
     callbackUrl: string,
-    secret: string
+    secret: string,
   ): Promise<TwitchEventSubSubscription | null> {
     try {
-      const data = await this.makeAPIRequest('/eventsub/subscriptions', {
-        method: 'POST',
+      const data = await this.makeAPIRequest("/eventsub/subscriptions", {
+        method: "POST",
         body: JSON.stringify({
           type,
           version,
           condition,
           transport: {
-            method: 'webhook',
+            method: "webhook",
             callback: callbackUrl,
             secret,
           },
@@ -252,7 +276,7 @@ export class TwitchAPIService {
 
       return data.data?.[0] || null;
     } catch (error) {
-      console.error('Error subscribing to Twitch EventSub:', error);
+      console.error("Error subscribing to Twitch EventSub:", error);
       return null;
     }
   }
@@ -262,10 +286,10 @@ export class TwitchAPIService {
    */
   async getSubscriptions(): Promise<TwitchEventSubSubscription[]> {
     try {
-      const data = await this.makeAPIRequest('/eventsub/subscriptions');
+      const data = await this.makeAPIRequest("/eventsub/subscriptions");
       return data.data || [];
     } catch (error) {
-      console.error('Error fetching Twitch EventSub subscriptions:', error);
+      console.error("Error fetching Twitch EventSub subscriptions:", error);
       return [];
     }
   }
@@ -275,12 +299,15 @@ export class TwitchAPIService {
    */
   async deleteSubscription(subscriptionId: string): Promise<boolean> {
     try {
-      await this.makeAPIRequest(`/eventsub/subscriptions?id=${subscriptionId}`, {
-        method: 'DELETE',
-      });
+      await this.makeAPIRequest(
+        `/eventsub/subscriptions?id=${subscriptionId}`,
+        {
+          method: "DELETE",
+        },
+      );
       return true;
     } catch (error) {
-      console.error('Error deleting Twitch EventSub subscription:', error);
+      console.error("Error deleting Twitch EventSub subscription:", error);
       return false;
     }
   }
@@ -290,19 +317,24 @@ export class TwitchAPIService {
   private messageIdCleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.clientId = process.env.TWITCH_CLIENT_ID || '';
-    this.clientSecret = process.env.TWITCH_CLIENT_SECRET || '';
-    
+    this.clientId = process.env.TWITCH_CLIENT_ID || "";
+    this.clientSecret = process.env.TWITCH_CLIENT_SECRET || "";
+
     if (!this.clientId || !this.clientSecret) {
-      logger.warn('Twitch API credentials not configured. Twitch integration will be disabled.');
+      logger.warn(
+        "Twitch API credentials not configured. Twitch integration will be disabled.",
+      );
       // Don't throw error - allow server to start without Twitch integration
       return;
     }
 
     // Clean up old message IDs every hour to prevent memory leaks
-    this.messageIdCleanupInterval = setInterval(() => {
-      this.processedMessageIds.clear();
-    }, 60 * 60 * 1000);
+    this.messageIdCleanupInterval = setInterval(
+      () => {
+        this.processedMessageIds.clear();
+      },
+      60 * 60 * 1000,
+    );
   }
 
   /**
@@ -311,43 +343,45 @@ export class TwitchAPIService {
   verifyWebhookSignature(
     headers: Record<string, string>,
     body: string,
-    secret: string
+    secret: string,
   ): { valid: boolean; error?: string } {
-    const messageId = headers['twitch-eventsub-message-id'];
-    const timestamp = headers['twitch-eventsub-message-timestamp'];
-    const signature = headers['twitch-eventsub-message-signature'];
+    const messageId = headers["twitch-eventsub-message-id"];
+    const timestamp = headers["twitch-eventsub-message-timestamp"];
+    const signature = headers["twitch-eventsub-message-signature"];
 
     if (!messageId || !timestamp || !signature) {
-      return { valid: false, error: 'Missing required headers' };
+      return { valid: false, error: "Missing required headers" };
     }
 
     // Check for replay attacks
     if (this.processedMessageIds.has(messageId)) {
-      return { valid: false, error: 'Message already processed (replay attack)' };
+      return {
+        valid: false,
+        error: "Message already processed (replay attack)",
+      };
     }
 
     // Check timestamp to prevent old message replay (10 minutes tolerance)
     const messageTime = new Date(timestamp).getTime();
     const currentTime = Date.now();
     const timeDifference = Math.abs(currentTime - messageTime);
-    
+
     if (timeDifference > 10 * 60 * 1000) {
-      return { valid: false, error: 'Message timestamp too old' };
+      return { valid: false, error: "Message timestamp too old" };
     }
 
     // Verify HMAC signature
     const message = messageId + timestamp + body;
-    const expectedSignature = 'sha256=' + createHmac('sha256', secret)
-      .update(message)
-      .digest('hex');
+    const expectedSignature =
+      "sha256=" + createHmac("sha256", secret).update(message).digest("hex");
 
     const isValidSignature = timingSafeEqual(
       Buffer.from(signature),
-      Buffer.from(expectedSignature)
+      Buffer.from(expectedSignature),
     );
 
     if (!isValidSignature) {
-      return { valid: false, error: 'Invalid signature' };
+      return { valid: false, error: "Invalid signature" };
     }
 
     // Store message ID to prevent replay
@@ -360,56 +394,64 @@ export class TwitchAPIService {
    * Handle EventSub webhook callback with proper security verification
    */
   handleWebhook(req: Request, res: Response): TwitchWebhookEvent | null {
-    const messageType = req.headers['twitch-eventsub-message-type'] as string;
+    const messageType = req.headers["twitch-eventsub-message-type"] as string;
     const body = JSON.stringify(req.body);
     const secret = process.env.TWITCH_EVENTSUB_SECRET;
 
     if (!secret) {
-      console.error('TWITCH_EVENTSUB_SECRET not configured');
-      res.status(500).send('Server configuration error');
+      console.error("TWITCH_EVENTSUB_SECRET not configured");
+      res.status(500).send("Server configuration error");
       return null;
     }
 
     // Verify signature and prevent replay attacks
-    const verification = this.verifyWebhookSignature(req.headers as Record<string, string>, body, secret);
+    const verification = this.verifyWebhookSignature(
+      req.headers as Record<string, string>,
+      body,
+      secret,
+    );
     if (!verification.valid) {
-      console.warn('Twitch webhook verification failed:', verification.error);
-      res.status(403).send('Forbidden');
+      console.warn("Twitch webhook verification failed:", verification.error);
+      res.status(403).send("Forbidden");
       return null;
     }
 
     // Handle challenge verification (subscription setup)
-    if (messageType === 'webhook_callback_verification') {
+    if (messageType === "webhook_callback_verification") {
       const challenge = req.body.challenge;
-      logger.info('Twitch EventSub challenge verified');
+      logger.info("Twitch EventSub challenge verified");
       res.status(200).send(challenge);
       return null;
     }
 
     // Handle notification
-    if (messageType === 'notification') {
+    if (messageType === "notification") {
       const event: TwitchWebhookEvent = {
-        id: req.body.subscription?.id || '',
-        event_type: req.body.subscription?.type || '',
+        id: req.body.subscription?.id || "",
+        event_type: req.body.subscription?.type || "",
         event_timestamp: req.body.event?.started_at || new Date().toISOString(),
-        version: req.body.subscription?.version || '1',
+        version: req.body.subscription?.version || "1",
         event_data: req.body.event || {},
       };
 
-      logger.info('Twitch EventSub notification received', { eventType: event.event_type });
+      logger.info("Twitch EventSub notification received", {
+        eventType: event.event_type,
+      });
       res.status(204).send();
       return event;
     }
 
     // Handle revocation
-    if (messageType === 'revocation') {
-      logger.info('Twitch EventSub subscription revoked', { subscription: req.body.subscription });
+    if (messageType === "revocation") {
+      logger.info("Twitch EventSub subscription revoked", {
+        subscription: req.body.subscription,
+      });
       res.status(204).send();
       return null;
     }
 
-    logger.warn('Unknown Twitch EventSub message type', { messageType });
-    res.status(400).send('Bad Request');
+    logger.warn("Unknown Twitch EventSub message type", { messageType });
+    res.status(400).send("Bad Request");
     return null;
   }
 

@@ -5,20 +5,20 @@ import type { AuthSession } from "../types";
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  
+
   // Use Auth.js v5 session endpoint
-  const { 
-    data: session, 
-    isLoading, 
+  const {
+    data: session,
+    isLoading,
     isError,
     error,
   } = useQuery<AuthSession | null>({
     queryKey: queryKeys.auth.user(),
     queryFn: async () => {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include',
+      const response = await fetch("/api/auth/session", {
+        credentials: "include",
       });
-      
+
       // Auth.js returns 200 with null for unauthenticated users
       if (!response.ok) {
         if (response.status === 401) {
@@ -26,7 +26,7 @@ export function useAuth() {
         }
         throw new Error(`Authentication failed: ${response.status}`);
       }
-      
+
       const sessionData = await response.json();
       return sessionData;
     },
@@ -46,22 +46,21 @@ export function useAuth() {
     queryClient.prefetchQuery({ queryKey: queryKeys.auth.user() });
   }, [queryClient]);
 
-
   // Prefetch user-related data when user is loaded
   const prefetchUserData = useCallback(async () => {
     if (session?.user?.id) {
       await Promise.all([
-        queryClient.prefetchQuery({ 
+        queryClient.prefetchQuery({
           queryKey: queryKeys.users.profile(session.user.id),
-          staleTime: 1000 * 60 * 10 // 10 minutes
+          staleTime: 1000 * 60 * 10, // 10 minutes
         }),
-        queryClient.prefetchQuery({ 
+        queryClient.prefetchQuery({
           queryKey: queryKeys.messaging.notifications(session.user.id),
-          staleTime: 1000 * 60 * 2 // 2 minutes
+          staleTime: 1000 * 60 * 2, // 2 minutes
         }),
       ]);
     }
-  }, [session?.user?.id, queryClient]);
+  }, [session, queryClient]);
 
   // Auto-prefetch related data when user changes
   useEffect(() => {
@@ -71,25 +70,25 @@ export function useAuth() {
   }, [session?.user?.id, isLoading, prefetchUserData]);
 
   // Auth.js v5 login/logout functions
-  const signIn = useCallback((provider = 'google') => {
+  const signIn = useCallback((provider = "google") => {
     window.location.href = `/api/auth/signin/${provider}`;
   }, []);
 
   const signOut = useCallback(async () => {
     try {
       // POST to signout immediately instead of GET to confirmation page
-      await fetch('/api/auth/signout', { 
-        method: 'POST', 
-        credentials: 'include' 
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
       });
-      
+
       // Invalidate auth query and redirect to home
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       // Fallback to redirect on error
-      window.location.href = '/api/auth/signout';
+      window.location.href = "/api/auth/signout";
     }
   }, [queryClient]);
 

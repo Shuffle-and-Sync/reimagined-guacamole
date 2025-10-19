@@ -23,6 +23,7 @@ This guide will help you create and manage successful TCG tournaments on Shuffle
 ### Prerequisites
 
 Before creating tournaments:
+
 - ✅ Complete Shuffle & Sync profile
 - ✅ Join relevant TCG community
 - ✅ Understand tournament formats
@@ -31,6 +32,7 @@ Before creating tournaments:
 ### Tournament Organizer Role
 
 **Benefits:**
+
 - Create unlimited tournaments
 - Access to bracket management tools
 - Participant management
@@ -39,6 +41,7 @@ Before creating tournaments:
 - Analytics and reporting
 
 **Get Verified:**
+
 - Host 3+ successful tournaments
 - Maintain good community standing
 - Apply for verification in Profile > Settings
@@ -52,6 +55,7 @@ Before creating tournaments:
 **Navigate to:** Events > Create > Tournament
 
 **Step 1: Basic Information**
+
 ```
 Tournament Name: [Creative, descriptive name]
 Game: [Select TCG - MTG, Pokemon, etc.]
@@ -62,6 +66,7 @@ Location: [Online/TableSync]
 ```
 
 **Step 2: Tournament Structure**
+
 ```
 Format: Single Elimination / Swiss / Round Robin
 Rounds: [Number of rounds]
@@ -71,6 +76,7 @@ Max Participants: [Player limit]
 ```
 
 **Step 3: Registration**
+
 ```
 Registration Opens: [Date/time]
 Registration Closes: [Date/time before start]
@@ -79,6 +85,7 @@ Requirements: [Deck restrictions, experience level]
 ```
 
 **Step 4: Rules & Format**
+
 ```
 Format-Specific Rules:
 - Deck construction rules
@@ -95,6 +102,7 @@ Add Rules Document:
 ### Prize Configuration
 
 **Prize Options:**
+
 ```
 1. Prize Pool:
    - Fixed amount
@@ -105,7 +113,7 @@ Add Rules Document:
    - 1st Place: 50%
    - 2nd Place: 30%
    - 3rd-4th: 10% each
-   
+
 3. Alternative Prizes:
    - Product prizes (packs, boxes)
    - Store credit
@@ -123,6 +131,7 @@ Add Rules Document:
 **Rounds:** log₂(participants)
 
 **Setup:**
+
 ```
 Participants: 16
 Rounds: 4 (16→8→4→2→Winner)
@@ -137,6 +146,7 @@ Best For: Quick, decisive results
 **Rounds:** Based on participants (usually log₂(n) + 1)
 
 **Setup:**
+
 ```
 Participants: 32
 Rounds: 5-6 rounds
@@ -152,6 +162,7 @@ Best For: Competitive, fair ranking
 **Rounds:** n-1 (where n = participants)
 
 **Setup:**
+
 ```
 Participants: 8
 Rounds: 7
@@ -163,6 +174,7 @@ Best For: League play, small pods
 ### Specialized Formats
 
 **Draft Tournament:**
+
 ```
 1. Players draft cards
 2. Build decks (40 cards minimum)
@@ -171,6 +183,7 @@ Best For: League play, small pods
 ```
 
 **Commander Pods:**
+
 ```
 1. Players assigned to pods of 4
 2. Round robin within pods
@@ -185,12 +198,14 @@ Best For: League play, small pods
 ### Registration Management
 
 **Monitor Registration:**
+
 - View registered players
 - Check payment status (if applicable)
 - Verify deck submissions
 - Confirm player eligibility
 
 **Participant Actions:**
+
 ```
 ✓ Approve registrations
 ✓ Waitlist management
@@ -202,6 +217,7 @@ Best For: League play, small pods
 ### Check-In Process
 
 **30 Minutes Before Start:**
+
 ```
 1. Open check-in window
 2. Players confirm attendance
@@ -212,6 +228,7 @@ Best For: League play, small pods
 ```
 
 **Check-In Tools:**
+
 - Automated reminders
 - QR code check-in
 - Mobile check-in support
@@ -220,11 +237,13 @@ Best For: League play, small pods
 ### Deck List Management
 
 **Collect Deck Lists:**
+
 - Required for competitive events
 - Deadline: Before registration closes
 - Format: Text list or import
 
 **Verification:**
+
 ```
 ✓ Card legality check
 ✓ Format compliance
@@ -240,6 +259,7 @@ Best For: League play, small pods
 ### Starting the Tournament
 
 **Pre-Start Checklist:**
+
 ```
 ✓ All players checked in
 ✓ Deck lists verified
@@ -250,6 +270,7 @@ Best For: League play, small pods
 ```
 
 **Generate First Round Pairings:**
+
 1. Click "Start Tournament"
 2. Review pairings
 3. Publish pairings to players
@@ -258,6 +279,7 @@ Best For: League play, small pods
 ### Match Management
 
 **During Rounds:**
+
 ```
 Monitor:
 - Match progress
@@ -273,6 +295,7 @@ Actions:
 ```
 
 **Result Reporting:**
+
 ```
 Methods:
 1. Player self-report (requires confirmation)
@@ -288,6 +311,7 @@ Verification:
 ### Between Rounds
 
 **Transition Process:**
+
 ```
 1. Verify all results submitted
 2. Update standings
@@ -297,6 +321,7 @@ Verification:
 ```
 
 **Communication:**
+
 - Announce pairings
 - Share standings
 - Provide updates
@@ -309,6 +334,7 @@ Verification:
 ### Stream Integration
 
 **Enable Streaming:**
+
 ```
 Tournament Settings > Streaming
 ✓ Enable official stream
@@ -319,6 +345,7 @@ Tournament Settings > Streaming
 ```
 
 **Streamer Tools:**
+
 - Live bracket overlay
 - Auto-updating scores
 - Player profiles
@@ -328,6 +355,7 @@ Tournament Settings > Streaming
 ### Prize Pool Management
 
 **Automated Distribution:**
+
 ```
 Setup:
 1. Configure prize distribution
@@ -345,6 +373,7 @@ Distribution:
 ### Analytics & Reporting
 
 **Post-Tournament:**
+
 ```
 Available Reports:
 - Participation statistics
@@ -367,6 +396,7 @@ Export:
 ### Pre-Tournament
 
 **1. Clear Communication:**
+
 ```
 ✓ Post rules 1 week before
 ✓ Send reminder 24 hours before
@@ -375,6 +405,7 @@ Export:
 ```
 
 **2. Test Everything:**
+
 ```
 ✓ Test tournament platform
 ✓ Verify bracket generator
@@ -385,18 +416,21 @@ Export:
 ### During Tournament
 
 **1. Stay Accessible:**
+
 - Monitor tournament chat
 - Respond to questions quickly
 - Be visible on communication channels
 - Have backup judge available
 
 **2. Keep Schedule:**
+
 - Start rounds on time
 - Enforce time limits
 - Minimize delays
 - Communicate any changes
 
 **3. Fair Judging:**
+
 - Consistent rule enforcement
 - Document disputes
 - Be impartial
@@ -405,18 +439,21 @@ Export:
 ### Post-Tournament
 
 **1. Prompt Prize Distribution:**
+
 - Verify winners
 - Process payouts quickly
 - Provide receipts
 - Thank participants
 
 **2. Gather Feedback:**
+
 - Post-tournament survey
 - Review comments
 - Identify improvements
 - Share results
 
 **3. Follow-Up:**
+
 - Post final standings
 - Share highlights
 - Plan next event
@@ -429,6 +466,7 @@ Export:
 ### Late Participants
 
 **Solution:**
+
 ```
 Option 1: Grace period (5-10 minutes)
 Option 2: Assign bye to opponent
@@ -439,6 +477,7 @@ Option 4: Forfeit match
 ### Technical Issues
 
 **TableSync Connection Problems:**
+
 ```
 1. Extend match time
 2. Switch to alternate platform
@@ -449,6 +488,7 @@ Option 4: Forfeit match
 ### Disputes
 
 **Resolution Process:**
+
 ```
 1. Listen to both players
 2. Review evidence (screenshots, logs)
@@ -461,6 +501,7 @@ Option 4: Forfeit match
 ### No-Shows
 
 **Handling:**
+
 ```
 Before Tournament:
 - Use waitlist for replacements
@@ -476,17 +517,20 @@ During Tournament:
 ## Resources
 
 **Tournament Tools:**
+
 - Bracket generators
 - Timer apps
 - Deck verification tools
 - Communication platforms
 
 **Rules References:**
+
 - [MTG Tournament Rules](https://magic.wizards.com/rules)
 - [Pokemon TCG Rules](https://pokemon.com/tcg/rules)
 - [Yu-Gi-Oh Rules](https://yugioh-card.com/rules)
 
 **Support:**
+
 - Tournament organizer Discord
 - Email: tournaments@shuffleandsync.com
 - [FAQ](../troubleshooting/README.md)

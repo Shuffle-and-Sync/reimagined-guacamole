@@ -1,181 +1,187 @@
-import { z } from 'zod';
-import { websocketMessageSchema } from '@shared/websocket-schemas';
-import { logger } from '../logger';
+import { z } from "zod";
+import { websocketMessageSchema } from "@shared/websocket-schemas";
+import { logger } from "../logger";
 
 // Outgoing WebSocket message schemas
 export const outgoingMessageSchemas = {
   // Error messages
   error: z.object({
-    type: z.literal('error'),
+    type: z.literal("error"),
     message: z.string(),
     code: z.string().optional(),
-    details: z.any().optional()
+    details: z.any().optional(),
   }),
 
   // Game room messages
   player_joined: z.object({
-    type: z.literal('player_joined'),
+    type: z.literal("player_joined"),
     player: z.object({
       id: z.string(),
       name: z.string(),
-      avatar: z.string().optional()
+      avatar: z.string().optional(),
     }),
-    players: z.array(z.object({
-      id: z.string(),
-      name: z.string(),
-      avatar: z.string().optional()
-    }))
+    players: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        avatar: z.string().optional(),
+      }),
+    ),
   }),
 
   message: z.object({
-    type: z.literal('message'),
+    type: z.literal("message"),
     message: z.object({
       id: z.string(),
       senderId: z.string(),
       sender: z.object({
         firstName: z.string(),
         email: z.string(),
-        profileImageUrl: z.string().optional()
+        profileImageUrl: z.string().optional(),
       }),
       content: z.string(),
       timestamp: z.string(),
-      type: z.enum(['chat', 'system', 'notification'])
-    })
+      type: z.enum(["chat", "system", "notification"]),
+    }),
   }),
 
   game_action: z.object({
-    type: z.literal('game_action'),
+    type: z.literal("game_action"),
     action: z.string(),
     player: z.string(),
     result: z.any().optional(),
-    data: z.record(z.any())
+    data: z.record(z.any()),
   }),
 
   // WebRTC messages
   webrtc_offer: z.object({
-    type: z.literal('webrtc_offer'),
+    type: z.literal("webrtc_offer"),
     fromPlayer: z.string(),
-    offer: z.any()
+    offer: z.any(),
   }),
 
   webrtc_answer: z.object({
-    type: z.literal('webrtc_answer'),
+    type: z.literal("webrtc_answer"),
     fromPlayer: z.string(),
-    answer: z.any()
+    answer: z.any(),
   }),
 
   webrtc_ice_candidate: z.object({
-    type: z.literal('webrtc_ice_candidate'),
+    type: z.literal("webrtc_ice_candidate"),
     fromPlayer: z.string(),
-    candidate: z.any()
+    candidate: z.any(),
   }),
 
   camera_status: z.object({
-    type: z.literal('camera_status'),
+    type: z.literal("camera_status"),
     playerId: z.string(),
     playerName: z.string(),
-    cameraOn: z.boolean()
+    cameraOn: z.boolean(),
   }),
 
   mic_status: z.object({
-    type: z.literal('mic_status'),
+    type: z.literal("mic_status"),
     playerId: z.string(),
     playerName: z.string(),
-    micOn: z.boolean()
+    micOn: z.boolean(),
   }),
 
   // Collaborative streaming messages
   collaborator_joined: z.object({
-    type: z.literal('collaborator_joined'),
+    type: z.literal("collaborator_joined"),
     collaborator: z.object({
       userId: z.string(),
       userName: z.string(),
       userAvatar: z.string().optional(),
-      role: z.enum(['host', 'co_host', 'participant'])
+      role: z.enum(["host", "co_host", "participant"]),
     }),
-    activeCollaborators: z.array(z.object({
-      userId: z.string(),
-      userName: z.string(),
-      userAvatar: z.string().optional(),
-      status: z.string()
-    }))
+    activeCollaborators: z.array(
+      z.object({
+        userId: z.string(),
+        userName: z.string(),
+        userAvatar: z.string().optional(),
+        status: z.string(),
+      }),
+    ),
   }),
 
   collaborator_left: z.object({
-    type: z.literal('collaborator_left'),
+    type: z.literal("collaborator_left"),
     collaborator: z.object({
       userId: z.string(),
-      userName: z.string()
-    }),
-    activeCollaborators: z.array(z.object({
-      userId: z.string(),
       userName: z.string(),
-      userAvatar: z.string().optional(),
-      status: z.string()
-    }))
+    }),
+    activeCollaborators: z.array(
+      z.object({
+        userId: z.string(),
+        userName: z.string(),
+        userAvatar: z.string().optional(),
+        status: z.string(),
+      }),
+    ),
   }),
 
   phase_updated: z.object({
-    type: z.literal('phase_updated'),
+    type: z.literal("phase_updated"),
     eventId: z.string(),
-    newPhase: z.enum(['preparation', 'live', 'break', 'wrap_up', 'ended']),
+    newPhase: z.enum(["preparation", "live", "break", "wrap_up", "ended"]),
     updatedBy: z.object({
       userId: z.string(),
-      userName: z.string()
+      userName: z.string(),
     }),
-    timestamp: z.string()
+    timestamp: z.string(),
   }),
 
   phase_change_error: z.object({
-    type: z.literal('phase_change_error'),
+    type: z.literal("phase_change_error"),
     eventId: z.string(),
     error: z.string(),
-    code: z.string().optional()
+    code: z.string().optional(),
   }),
 
   coordination_event_broadcast: z.object({
-    type: z.literal('coordination_event_broadcast'),
+    type: z.literal("coordination_event_broadcast"),
     eventId: z.string(),
     eventType: z.string(),
     eventData: z.record(z.any()),
     broadcastBy: z.object({
       userId: z.string(),
-      userName: z.string()
+      userName: z.string(),
     }),
-    timestamp: z.string()
+    timestamp: z.string(),
   }),
 
   collaborator_status_changed: z.object({
-    type: z.literal('collaborator_status_changed'),
+    type: z.literal("collaborator_status_changed"),
     eventId: z.string(),
     userId: z.string(),
     statusUpdate: z.record(z.any()),
-    timestamp: z.string()
+    timestamp: z.string(),
   }),
 
   // Rate limiting messages
   rate_limit_warning: z.object({
-    type: z.literal('rate_limit_warning'),
+    type: z.literal("rate_limit_warning"),
     message: z.string(),
     remaining: z.number(),
-    resetTime: z.number()
+    resetTime: z.number(),
   }),
 
   // Authentication messages
   auth_required: z.object({
-    type: z.literal('auth_required'),
+    type: z.literal("auth_required"),
     reason: z.string(),
-    expiry: z.number().optional()
+    expiry: z.number().optional(),
   }),
 
   auth_refreshed: z.object({
-    type: z.literal('auth_refreshed'),
-    expiresAt: z.number()
-  })
+    type: z.literal("auth_refreshed"),
+    expiresAt: z.number(),
+  }),
 };
 
 // Union of all outgoing message schemas
-export const outgoingWebSocketMessageSchema = z.discriminatedUnion('type', [
+export const outgoingWebSocketMessageSchema = z.discriminatedUnion("type", [
   outgoingMessageSchemas.error,
   outgoingMessageSchemas.player_joined,
   outgoingMessageSchemas.message,
@@ -193,10 +199,12 @@ export const outgoingWebSocketMessageSchema = z.discriminatedUnion('type', [
   outgoingMessageSchemas.collaborator_status_changed,
   outgoingMessageSchemas.rate_limit_warning,
   outgoingMessageSchemas.auth_required,
-  outgoingMessageSchemas.auth_refreshed
+  outgoingMessageSchemas.auth_refreshed,
 ]);
 
-export type OutgoingWebSocketMessage = z.infer<typeof outgoingWebSocketMessageSchema>;
+export type OutgoingWebSocketMessage = z.infer<
+  typeof outgoingWebSocketMessageSchema
+>;
 
 export interface ValidationResult {
   success: boolean;
@@ -212,29 +220,29 @@ export class WebSocketMessageValidator {
   validateIncoming(rawMessage: any): ValidationResult {
     try {
       const validationResult = websocketMessageSchema.safeParse(rawMessage);
-      
+
       if (!validationResult.success) {
-        logger.warn('Invalid incoming WebSocket message', {
+        logger.warn("Invalid incoming WebSocket message", {
           error: validationResult.error,
-          message: rawMessage
+          message: rawMessage,
         });
-        
+
         return {
           success: false,
-          error: 'Invalid message format',
-          details: validationResult.error.format()
+          error: "Invalid message format",
+          details: validationResult.error.format(),
         };
       }
 
       return {
         success: true,
-        data: validationResult.data
+        data: validationResult.data,
       };
     } catch (error) {
-      logger.error('Error validating incoming WebSocket message', error);
+      logger.error("Error validating incoming WebSocket message", error);
       return {
         success: false,
-        error: 'Validation error'
+        error: "Validation error",
       };
     }
   }
@@ -244,31 +252,32 @@ export class WebSocketMessageValidator {
    */
   validateOutgoing(message: any): ValidationResult {
     try {
-      const validationResult = outgoingWebSocketMessageSchema.safeParse(message);
-      
+      const validationResult =
+        outgoingWebSocketMessageSchema.safeParse(message);
+
       if (!validationResult.success) {
-        logger.warn('Invalid outgoing WebSocket message', {
+        logger.warn("Invalid outgoing WebSocket message", {
           error: validationResult.error,
           messageType: message?.type,
-          message: message
+          message: message,
         });
-        
+
         return {
           success: false,
-          error: 'Invalid outgoing message format',
-          details: validationResult.error.format()
+          error: "Invalid outgoing message format",
+          details: validationResult.error.format(),
         };
       }
 
       return {
         success: true,
-        data: validationResult.data
+        data: validationResult.data,
       };
     } catch (error) {
-      logger.error('Error validating outgoing WebSocket message', error);
+      logger.error("Error validating outgoing WebSocket message", error);
       return {
         success: false,
-        error: 'Validation error'
+        error: "Validation error",
       };
     }
   }
@@ -277,26 +286,26 @@ export class WebSocketMessageValidator {
    * Sanitize message content to prevent XSS and other security issues
    */
   sanitizeMessage(message: any): any {
-    if (typeof message !== 'object' || message === null) {
+    if (typeof message !== "object" || message === null) {
       return message;
     }
 
     const sanitized = { ...message };
 
     // Sanitize string fields that might contain user input
-    const stringFields = ['content', 'message', 'error', 'name', 'userName'];
-    
+    const stringFields = ["content", "message", "error", "name", "userName"];
+
     for (const field of stringFields) {
-      if (sanitized[field] && typeof sanitized[field] === 'string') {
+      if (sanitized[field] && typeof sanitized[field] === "string") {
         // Simple and secure approach: HTML entity encoding
         sanitized[field] = sanitized[field]
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#x27;')
-          .replace(/\//g, '&#x2F;');
-        
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#x27;")
+          .replace(/\//g, "&#x2F;");
+
         // Length limiting for safety
         if (sanitized[field].length > 10000) {
           sanitized[field] = sanitized[field].substring(0, 10000);
@@ -306,7 +315,7 @@ export class WebSocketMessageValidator {
 
     // Recursively sanitize nested objects
     for (const [key, value] of Object.entries(sanitized)) {
-      if (typeof value === 'object' && value !== null) {
+      if (typeof value === "object" && value !== null) {
         sanitized[key] = this.sanitizeMessage(value);
       }
     }
@@ -317,35 +326,45 @@ export class WebSocketMessageValidator {
   /**
    * Create standardized error message
    */
-  createErrorMessage(error: string, code?: string, details?: any): OutgoingWebSocketMessage {
+  createErrorMessage(
+    error: string,
+    code?: string,
+    details?: any,
+  ): OutgoingWebSocketMessage {
     return {
-      type: 'error',
+      type: "error",
       message: error,
       ...(code && { code }),
-      ...(details && { details })
+      ...(details && { details }),
     };
   }
 
   /**
    * Create rate limit warning message
    */
-  createRateLimitWarning(remaining: number, resetTime: number): OutgoingWebSocketMessage {
+  createRateLimitWarning(
+    remaining: number,
+    resetTime: number,
+  ): OutgoingWebSocketMessage {
     return {
-      type: 'rate_limit_warning',
+      type: "rate_limit_warning",
       message: `Rate limit exceeded. ${remaining} requests remaining.`,
       remaining,
-      resetTime
+      resetTime,
     };
   }
 
   /**
    * Create authentication required message
    */
-  createAuthRequiredMessage(reason: string, expiry?: number): OutgoingWebSocketMessage {
+  createAuthRequiredMessage(
+    reason: string,
+    expiry?: number,
+  ): OutgoingWebSocketMessage {
     return {
-      type: 'auth_required',
+      type: "auth_required",
       reason,
-      ...(expiry && { expiry })
+      ...(expiry && { expiry }),
     };
   }
 }

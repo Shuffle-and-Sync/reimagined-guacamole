@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,53 +17,65 @@ interface DemoModalProps {
   type?: "platform" | "tablesync";
 }
 
-export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps) {
+export function DemoModal({
+  isOpen,
+  onClose,
+  type = "platform",
+}: DemoModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
   const platformSteps = [
     {
       title: "Choose Your Gaming Realm",
-      content: "Select from 6 specialized communities: MTG's Scry & Gather, Pokemon's PokeStream Hub, Lorcana's Decksong, Yu-Gi-Oh's Duelcraft, Bladeforge, and Deckmaster.",
-      icon: "fas fa-dice-d20"
+      content:
+        "Select from 6 specialized communities: MTG's Scry & Gather, Pokemon's PokeStream Hub, Lorcana's Decksong, Yu-Gi-Oh's Duelcraft, Bladeforge, and Deckmaster.",
+      icon: "fas fa-dice-d20",
     },
     {
       title: "Set Up Your Profile",
-      content: "Create your streamer profile with social links, gaming preferences, and availability schedule.",
-      icon: "fas fa-user-circle"
+      content:
+        "Create your streamer profile with social links, gaming preferences, and availability schedule.",
+      icon: "fas fa-user-circle",
     },
     {
       title: "Connect & Coordinate",
-      content: "Find other streamers, coordinate collaborative sessions, and build your community network.",
-      icon: "fas fa-users"
+      content:
+        "Find other streamers, coordinate collaborative sessions, and build your community network.",
+      icon: "fas fa-users",
     },
     {
       title: "Start Streaming",
-      content: "Launch coordinated streaming sessions with real-time chat and TableSync for remote gameplay.",
-      icon: "fas fa-video"
-    }
+      content:
+        "Launch coordinated streaming sessions with real-time chat and TableSync for remote gameplay.",
+      icon: "fas fa-video",
+    },
   ];
 
   const tablesyncSteps = [
     {
       title: "Create a Game Room",
-      content: "Set up a private room with game type, rules, and player limits for your TCG session.",
-      icon: "fas fa-plus-circle"
+      content:
+        "Set up a private room with game type, rules, and player limits for your TCG session.",
+      icon: "fas fa-plus-circle",
     },
     {
       title: "Invite Players",
-      content: "Share room codes with friends or find players through our matchmaking system.",
-      icon: "fas fa-user-plus"
+      content:
+        "Share room codes with friends or find players through our matchmaking system.",
+      icon: "fas fa-user-plus",
     },
     {
       title: "Sync Your Game",
-      content: "Real-time board state synchronization keeps everyone's view updated during remote play.",
-      icon: "fas fa-sync"
+      content:
+        "Real-time board state synchronization keeps everyone's view updated during remote play.",
+      icon: "fas fa-sync",
     },
     {
       title: "Enhanced Communication",
-      content: "Built-in voice chat, text messaging, and game-specific tools for seamless coordination.",
-      icon: "fas fa-comments"
-    }
+      content:
+        "Built-in voice chat, text messaging, and game-specific tools for seamless coordination.",
+      icon: "fas fa-comments",
+    },
   ];
 
   const steps = type === "tablesync" ? tablesyncSteps : platformSteps;
@@ -87,17 +105,20 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
             {type === "tablesync" ? "TableSync Demo" : "Platform Demo"}
           </DialogTitle>
           <DialogDescription>
-            {type === "tablesync" 
-              ? "See how TableSync revolutionizes remote TCG gameplay" 
-              : "Discover how Shuffle & Sync transforms streaming coordination"
-            }
+            {type === "tablesync"
+              ? "See how TableSync revolutionizes remote TCG gameplay"
+              : "Discover how Shuffle & Sync transforms streaming coordination"}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="walkthrough" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="walkthrough" data-testid="tab-walkthrough">Interactive Walkthrough</TabsTrigger>
-            <TabsTrigger value="features" data-testid="tab-features">Key Features</TabsTrigger>
+            <TabsTrigger value="walkthrough" data-testid="tab-walkthrough">
+              Interactive Walkthrough
+            </TabsTrigger>
+            <TabsTrigger value="features" data-testid="tab-features">
+              Key Features
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="walkthrough" className="space-y-6">
@@ -133,14 +154,16 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                    <i className={`${currentStepData?.icon || 'fas fa-question'} text-white text-lg`}></i>
+                    <i
+                      className={`${currentStepData?.icon || "fas fa-question"} text-white text-lg`}
+                    ></i>
                   </div>
-                  <span>{currentStepData?.title || 'Loading...'}</span>
+                  <span>{currentStepData?.title || "Loading..."}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  {currentStepData?.content || 'Loading content...'}
+                  {currentStepData?.content || "Loading content..."}
                 </p>
               </CardContent>
             </Card>
@@ -150,7 +173,7 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                 <div
                   key={index}
                   className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentStep ? 'bg-primary' : 'bg-muted'
+                    index === currentStep ? "bg-primary" : "bg-muted"
                   }`}
                   data-testid={`demo-step-${index}`}
                 />
@@ -183,11 +206,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Board states, card positions, and game actions synchronize instantly across all players.
+                      Board states, card positions, and game actions synchronize
+                      instantly across all players.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -197,11 +221,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Built-in voice chat with push-to-talk and game-specific audio channels.
+                      Built-in voice chat with push-to-talk and game-specific
+                      audio channels.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -211,11 +236,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Supports Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and custom formats.
+                      Supports Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh,
+                      and custom formats.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -225,7 +251,8 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Built-in verification systems and replay functionality for competitive integrity.
+                      Built-in verification systems and replay functionality for
+                      competitive integrity.
                     </p>
                   </CardContent>
                 </Card>
@@ -241,11 +268,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Coordinate collaborative streams, cross-promotions, and community events seamlessly.
+                      Coordinate collaborative streams, cross-promotions, and
+                      community events seamlessly.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -255,11 +283,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Schedule tournaments, community meetups, and collaborative sessions with integrated calendar.
+                      Schedule tournaments, community meetups, and collaborative
+                      sessions with integrated calendar.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -269,11 +298,12 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Connect with streamers in your gaming community and build lasting partnerships.
+                      Connect with streamers in your gaming community and build
+                      lasting partnerships.
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -283,7 +313,8 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Track collaboration success, audience growth, and community engagement metrics.
+                      Track collaboration success, audience growth, and
+                      community engagement metrics.
                     </p>
                   </CardContent>
                 </Card>
@@ -293,7 +324,11 @@ export function DemoModal({ isOpen, onClose, type = "platform" }: DemoModalProps
         </Tabs>
 
         <div className="flex justify-end space-x-3 mt-6">
-          <Button variant="outline" onClick={onClose} data-testid="button-demo-close">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            data-testid="button-demo-close"
+          >
             Close Demo
           </Button>
           <Button onClick={onClose} data-testid="button-demo-get-started">

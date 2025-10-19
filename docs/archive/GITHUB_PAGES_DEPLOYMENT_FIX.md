@@ -15,6 +15,7 @@ The error `Validation Failed` (status 422) typically indicates one of the follow
 ## Error Details
 
 From workflow run `18291875052`:
+
 ```
 Creating Pages deployment failed
 HttpError: Validation Failed
@@ -52,44 +53,46 @@ If you need Pages but with more control, create a manual workflow:
 
 ``
 `yaml
+
 # .github/workflows/pages-deploy.yml
+
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+push:
+branches: ["main"]
+workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+contents: read
+pages: write
+id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+group: "pages"
+cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
+deploy:
+environment:
+name: github-pages
+url: ${{ steps.deployment.outputs.page_url }}
+runs-on: ubuntu-latest
+steps: - name: Checkout
+uses: actions/checkout@v4
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'docs'  # Or specify the directory you want to deploy
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 ```
 
 ## Application Context
@@ -148,6 +151,7 @@ To prevent this issue in the future:
 
 ---
 
-**Date**: 2025-10-14 (Updated)  
-**Issue**: GitHub Pages Validation Failed Error  
+**Date**: 2025-10-14 (Updated)
+**Issue**: GitHub Pages Validation Failed Error
 **Status**: Workflow disabled for automatic runs - awaiting repository settings update
+```

@@ -7,6 +7,7 @@ This document outlines the comprehensive optimizations implemented for Drizzle O
 ### 1. Database Schema Indexing Improvements
 
 #### Tournaments Table
+
 Added comprehensive indexing to the `tournaments` table to optimize common query patterns:
 
 ```sql
@@ -25,6 +26,7 @@ CREATE INDEX idx_tournaments_community_game_format ON tournaments(community_id, 
 ```
 
 #### User Platform Accounts Table
+
 Enhanced indexing for streaming coordination features:
 
 ```sql
@@ -39,24 +41,28 @@ CREATE INDEX idx_user_platform_token_expires ON user_platform_accounts(token_exp
 ### 2. Transaction Wrapper Enhancements
 
 #### Fixed Type Error in Database-Unified.ts
+
 Resolved the critical transaction wrapper type error that was preventing proper transaction usage:
 
 ```typescript
 // Enhanced transaction wrapper with better error handling and retry logic
 export async function withTransaction<T>(
   operation: (tx: Parameters<typeof db.transaction>[0]) => Promise<T>,
-  operationName: string = 'transaction',
-  maxRetries: number = 3
+  operationName: string = "transaction",
+  maxRetries: number = 3,
 ): Promise<T> {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await withQueryTiming(`${operationName}:attempt_${attempt}`, async () => {
-        return await db.transaction(async (tx) => {
-          return await operation(tx);
-        });
-      });
+      return await withQueryTiming(
+        `${operationName}:attempt_${attempt}`,
+        async () => {
+          return await db.transaction(async (tx) => {
+            return await operation(tx);
+          });
+        },
+      );
     } catch (error) {
       // Enhanced error handling and retry logic
     }
@@ -65,6 +71,7 @@ export async function withTransaction<T>(
 ```
 
 #### Enhanced BaseRepository Transaction Support
+
 Improved the base repository class with better transaction handling:
 
 ```typescript
@@ -104,6 +111,7 @@ async batchOperation<T>(
 ### 3. Service Layer Optimizations
 
 #### Messaging Service - Atomic Operations
+
 Enhanced the messaging service to use transactions for atomic message creation with notifications:
 
 ```typescript
@@ -135,12 +143,13 @@ async sendMessage(userId: string, messageData: SendMessageRequest): Promise<Mess
 
     return message;
   }, 'send-message-with-notification');
-  
+
   return result;
 }
 ```
 
 #### Events Service - Batch Loading for N+1 Prevention
+
 Implemented batch loading to prevent N+1 queries when loading events with attendees:
 
 ```typescript
@@ -150,7 +159,7 @@ Implemented batch loading to prevent N+1 queries when loading events with attend
 async getEventsWithAttendees(filters: EventFilters) {
   // First, get the events
   const events = await storage.getEvents(filters);
-  
+
   if (events.data.length === 0) {
     return events;
   }
@@ -178,6 +187,7 @@ async getEventsWithAttendees(filters: EventFilters) {
 ```
 
 #### Tournament Service - Optimized Data Retrieval
+
 Enhanced tournament service with parallel data loading:
 
 ```typescript
@@ -195,7 +205,7 @@ async getTournamentWithParticipants(tournamentId: string) {
     // Get participants, rounds, and matches in parallel to optimize performance
     const [participants, rounds, matches] = await Promise.all([
       storage.getTournamentParticipantsWithTransaction(tx, tournamentId),
-      storage.getTournamentRoundsWithTransaction(tx, tournamentId), 
+      storage.getTournamentRoundsWithTransaction(tx, tournamentId),
       storage.getTournamentMatchesWithTransaction(tx, tournamentId)
     ]);
 
@@ -213,6 +223,7 @@ async getTournamentWithParticipants(tournamentId: string) {
 ### 4. Advanced Query Utilities
 
 #### Cursor-Based Pagination
+
 Implemented efficient cursor-based pagination for better performance on large datasets:
 
 ```typescript
@@ -223,21 +234,21 @@ export class CursorPagination {
   static buildCursorCondition(
     cursor: string | undefined,
     sortField: PgColumn,
-    sortDirection: 'asc' | 'desc' = 'desc'
+    sortDirection: "asc" | "desc" = "desc",
   ): SQL | null {
     if (!cursor) return null;
-    
+
     try {
       const cursorData = this.parseCursor(cursor);
       if (!cursorData) return null;
-      
-      if (sortDirection === 'desc') {
+
+      if (sortDirection === "desc") {
         return lt(sortField, cursorData.value);
       } else {
         return gt(sortField, cursorData.value);
       }
     } catch (error) {
-      logger.warn('Invalid cursor provided for pagination', { cursor });
+      logger.warn("Invalid cursor provided for pagination", { cursor });
       return null;
     }
   }
@@ -245,6 +256,7 @@ export class CursorPagination {
 ```
 
 #### Batch Query Optimizer
+
 Created a specialized class to prevent N+1 query problems:
 
 ```typescript
@@ -256,22 +268,22 @@ export class BatchQueryOptimizer {
     items: T[],
     keyExtractor: (item: T) => K,
     queryFunction: (keys: K[]) => Promise<R[]>,
-    resultKeyExtractor: (result: R) => K
+    resultKeyExtractor: (result: R) => K,
   ): Promise<Map<K, R[]>> {
     if (items.length === 0) return new Map();
 
     try {
       const keys = items.map(keyExtractor);
       const uniqueKeys = Array.from(new Set(keys));
-      
+
       const results = await queryFunction(uniqueKeys);
       const resultMap = new Map<K, R[]>();
 
       // Initialize empty arrays for all keys
-      uniqueKeys.forEach(key => resultMap.set(key, []));
+      uniqueKeys.forEach((key) => resultMap.set(key, []));
 
       // Group results by key
-      results.forEach(result => {
+      results.forEach((result) => {
         const key = resultKeyExtractor(result);
         const existing = resultMap.get(key) || [];
         existing.push(result);
@@ -280,8 +292,8 @@ export class BatchQueryOptimizer {
 
       return resultMap;
     } catch (error) {
-      logger.error('Batch query failed:', error);
-      throw new DatabaseError('Failed to execute batch query');
+      logger.error("Batch query failed:", error);
+      throw new DatabaseError("Failed to execute batch query");
     }
   }
 }
@@ -290,6 +302,7 @@ export class BatchQueryOptimizer {
 ## 📊 Performance Impact
 
 ### Expected Improvements
+
 - **50-90% reduction** in query time for paginated results
 - **Elimination of N+1 queries** in list endpoints with related data
 - **Improved data consistency** through proper transaction usage
@@ -297,6 +310,7 @@ export class BatchQueryOptimizer {
 - **Enhanced error handling** with automatic retry logic for transient failures
 
 ### Key Metrics to Monitor
+
 - Average query response time
 - 95th percentile response times
 - Database connection pool utilization
@@ -306,6 +320,7 @@ export class BatchQueryOptimizer {
 ## 🔄 Future Enhancements
 
 ### Phase 2 Optimizations
+
 1. **Storage Layer Transaction Methods**: Update the storage layer to support transaction-aware methods
 2. **Read Replicas**: Implement read replica support for read-heavy operations
 3. **Query Result Caching**: Redis-based caching for frequently accessed data
@@ -313,6 +328,7 @@ export class BatchQueryOptimizer {
 5. **Advanced Indexing**: Partial and expression indexes where beneficial
 
 ### Monitoring and Maintenance
+
 1. **Query Performance Monitoring**: Implement comprehensive query performance tracking
 2. **Index Maintenance**: Regular index usage analysis and optimization
 3. **Connection Pool Monitoring**: Track connection pool health and performance
@@ -321,6 +337,7 @@ export class BatchQueryOptimizer {
 ## 🚨 Breaking Changes
 
 ### Required Storage Layer Updates
+
 The following methods need to be implemented in the storage layer to support the optimizations:
 
 - `sendMessageWithTransaction(tx, data)`
@@ -332,6 +349,7 @@ The following methods need to be implemented in the storage layer to support the
 - `getTournamentParticipantsWithTransaction(tx, tournamentId)`
 
 ### Migration Notes
+
 - Database indexes will be created automatically when the schema is pushed
 - No data migration is required for the indexing changes
 - Transaction optimizations are backward compatible

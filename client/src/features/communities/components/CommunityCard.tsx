@@ -9,9 +9,8 @@ interface CommunityCardProps {
 }
 
 export function CommunityCard({ community, onSelect }: CommunityCardProps) {
-
   return (
-    <Card 
+    <Card
       className="community-card p-8 rounded-xl border-2 border-purple-300/30 hover:border-orange-400 group cursor-pointer transition-all duration-300 bg-gradient-to-br from-purple-600/10 via-blue-600/10 to-indigo-600/10 backdrop-blur-sm transform hover:scale-105 hover:-translate-y-2"
       onClick={onSelect}
       data-testid={`card-community-${community.id}`}
@@ -26,23 +25,29 @@ export function CommunityCard({ community, onSelect }: CommunityCardProps) {
               LIVE
             </Badge>
           </div>
-          <div className="text-lg font-bold text-orange-300" data-testid={`text-status-${community.id}`}>
+          <div
+            className="text-lg font-bold text-orange-300"
+            data-testid={`text-status-${community.id}`}
+          >
             Active
           </div>
         </div>
-        
+
         <h3 className="text-2xl font-bold mb-2 text-white group-hover:text-orange-300 transition-colors">
           {community.displayName}
         </h3>
-        
+
         <p className="text-purple-200 mb-4 leading-relaxed">
           {community.description}
         </p>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <i className="fas fa-users text-orange-400 text-sm"></i>
-            <span className="text-sm text-purple-200" data-testid={`text-community-ready-${community.id}`}>
+            <span
+              className="text-sm text-purple-200"
+              data-testid={`text-community-ready-${community.id}`}
+            >
               Ready to explore
             </span>
           </div>

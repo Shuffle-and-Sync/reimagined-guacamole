@@ -3,14 +3,17 @@
 > **Note:** This document describes type system fixes made during the PostgreSQL to SQLite Cloud migration. The project now uses SQLite Cloud. References to NodePgDatabase and PostgreSQL-specific types are for historical context only.
 
 ## Summary
+
 This document describes the architectural changes made to fix 7 complex Drizzle ORM type system issues in the base repository pattern.
 
 ## Issues Fixed
 
 ### 1. Database Type Definitions (shared/database-unified.ts)
+
 **Problem:** The database instance was typed as `any`, losing all type safety benefits.
 
 **Solution:**
+
 - Added proper type exports: `Database`, `Transaction`, and `Schema`
 - `Database` type: `NodePgDatabase<Schema>` - properly typed database instance
 - `Transaction` type: `PgTransaction<NodePgQueryResultHKT, Schema, ExtractTablesWithRelations<Schema>>` - properly typed transaction
@@ -21,22 +24,28 @@ This document describes the architectural changes made to fix 7 complex Drizzle 
 let db: any;
 
 // After
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
-import type { ExtractTablesWithRelations } from 'drizzle-orm';
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
+import type { ExtractTablesWithRelations } from "drizzle-orm";
 import * as schema from "./schema";
 
 export type Schema = typeof schema;
 export type Database = NodePgDatabase<Schema>;
-export type Transaction = PgTransaction<NodePgQueryResultHKT, Schema, ExtractTablesWithRelations<Schema>>;
+export type Transaction = PgTransaction<
+  NodePgQueryResultHKT,
+  Schema,
+  ExtractTablesWithRelations<Schema>
+>;
 
 let db: Database;
 ```
 
 ### 2. Base Repository Constructor (server/repositories/base.repository.ts)
+
 **Problem:** Constructor accepted `PgDatabase<any>` parameter, losing type safety.
 
 **Solution:**
+
 - Updated constructor to accept `Database` type
 - Updated protected `db` field to be typed as `Database`
 
@@ -51,9 +60,11 @@ constructor(db: Database, table: TTable, tableName: string)
 ```
 
 ### 3. Transaction Method Type Constraints (Lines 572, 576, 589)
+
 **Problem:** Transaction types used `Record<string, never>` which doesn't satisfy `PgQueryResultHKT` constraint.
 
 **Solution:**
+
 - Updated transaction method signature to use exported `Transaction` type
 - Updated batchOperation to use exported `Transaction` type
 - Removed type assertions that were masking the underlying issue
@@ -71,9 +82,11 @@ async transaction<T>(
 ```
 
 ### 4. Generate Cursor Type Safety (Line 455)
+
 **Problem:** Type mismatch when passing query results to `generateCursor`.
 
 **Solution:**
+
 - Added null check before calling `generateCursor`
 - Updated method signature to accept `TEntity | Record<string, unknown>`
 - Added proper type casting to `Record<string, unknown>` within the method
@@ -96,9 +109,11 @@ private generateCursor(item: TEntity | Record<string, unknown>, sortField: strin
 ```
 
 ### 5. Execute Raw Query Spread Argument (Line 513)
+
 **Problem:** `sql.raw()` doesn't accept spread arguments.
 
 **Solution:**
+
 - Removed invalid spread operator usage
 - `sql.raw()` only accepts a single string parameter
 - Added type assertion for return value
@@ -115,9 +130,11 @@ return result as unknown as T[];
 ```
 
 ### 6. Query Result Type Assertions
+
 **Problem:** With proper typing, `returning()` returns complex union types that need proper assertions.
 
 **Solution:**
+
 - Added type assertions to handle query result types
 - Updated `.length` checks to cast results to `unknown[]`
 
@@ -132,9 +149,11 @@ return (result as unknown[]).length > 0;
 ```
 
 ### 7. User Repository Type Issues
+
 **Problem:** Several type mismatches in user-specific repository methods.
 
 **Solution:**
+
 - Fixed `UserWithCommunities` interface to allow nullable fields (`isPrimary`, `joinedAt`)
 - Updated `UserSearchOptions` and `UserUpdateData` to use valid `userStatusEnum` values
 - Removed `_customConditions` usage and implemented custom query building

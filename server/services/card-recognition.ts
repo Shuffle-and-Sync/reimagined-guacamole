@@ -1,11 +1,11 @@
 /**
  * Card Recognition Service
- * 
+ *
  * Service for identifying and retrieving Magic: The Gathering card data
  * using the Scryfall API. Implements caching and rate limiting for optimal performance.
  */
 
-import { logger } from '../logger';
+import { logger } from "../logger";
 
 // Card data interface based on Scryfall API structure
 export interface MtgCard {
@@ -64,10 +64,10 @@ export interface AutocompleteResult {
  * Handles all card data retrieval and caching operations
  */
 export class CardRecognitionService {
-  private readonly SCRYFALL_API_BASE = 'https://api.scryfall.com';
+  private readonly SCRYFALL_API_BASE = "https://api.scryfall.com";
   private readonly RATE_LIMIT_DELAY = 100; // 100ms between requests (10 req/sec max)
   private lastRequestTime = 0;
-  
+
   // In-memory cache for frequently accessed cards
   private cardCache = new Map<string, { card: MtgCard; cachedAt: number }>();
   private readonly CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -83,11 +83,11 @@ export class CardRecognitionService {
       format?: string;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<CardSearchResult> {
     try {
       const { set, format, page = 1, limit = 20 } = options;
-      
+
       // Build Scryfall search query
       let searchQuery = query;
       if (set) searchQuery += ` set:${set}`;
@@ -96,12 +96,14 @@ export class CardRecognitionService {
       const params = new URLSearchParams({
         q: searchQuery,
         page: page.toString(),
-        unique: 'cards',
+        unique: "cards",
       });
 
       await this.enforceRateLimit();
-      const response = await fetch(`${this.SCRYFALL_API_BASE}/cards/search?${params}`);
-      
+      const response = await fetch(
+        `${this.SCRYFALL_API_BASE}/cards/search?${params}`,
+      );
+
       if (!response.ok) {
         if (response.status === 404) {
           return { cards: [], total: 0, page: 1, hasMore: false };
@@ -110,12 +112,14 @@ export class CardRecognitionService {
       }
 
       const data = await response.json();
-      
+
       // Transform Scryfall data to our format
-      const cards: MtgCard[] = data.data.map((card: any) => this.transformScryfallCard(card));
-      
+      const cards: MtgCard[] = data.data.map((card: any) =>
+        this.transformScryfallCard(card),
+      );
+
       // Cache results
-      cards.forEach(card => this.cacheCard(card));
+      cards.forEach((card) => this.cacheCard(card));
 
       return {
         cards: cards.slice(0, limit),
@@ -124,7 +128,7 @@ export class CardRecognitionService {
         hasMore: data.has_more || false,
       };
     } catch (error) {
-      logger.error('Error searching cards', error, { query, options });
+      logger.error("Error searching cards", error, { query, options });
       throw error;
     }
   }
@@ -142,7 +146,7 @@ export class CardRecognitionService {
 
       await this.enforceRateLimit();
       const response = await fetch(`${this.SCRYFALL_API_BASE}/cards/${id}`);
-      
+
       if (!response.ok) {
         if (response.status === 404) return null;
         throw new Error(`Scryfall API error: ${response.statusText}`);
@@ -150,13 +154,13 @@ export class CardRecognitionService {
 
       const data = await response.json();
       const card = this.transformScryfallCard(data);
-      
+
       // Cache the result
       this.cacheCard(card);
-      
+
       return card;
     } catch (error) {
-      logger.error('Error fetching card by ID', error, { id });
+      logger.error("Error fetching card by ID", error, { id });
       throw error;
     }
   }
@@ -164,19 +168,24 @@ export class CardRecognitionService {
   /**
    * Get card by exact name
    */
-  async getCardByName(name: string, options: { set?: string } = {}): Promise<MtgCard | null> {
+  async getCardByName(
+    name: string,
+    options: { set?: string } = {},
+  ): Promise<MtgCard | null> {
     try {
       const params = new URLSearchParams({
         exact: name,
       });
-      
+
       if (options.set) {
-        params.append('set', options.set);
+        params.append("set", options.set);
       }
 
       await this.enforceRateLimit();
-      const response = await fetch(`${this.SCRYFALL_API_BASE}/cards/named?${params}`);
-      
+      const response = await fetch(
+        `${this.SCRYFALL_API_BASE}/cards/named?${params}`,
+      );
+
       if (!response.ok) {
         if (response.status === 404) return null;
         throw new Error(`Scryfall API error: ${response.statusText}`);
@@ -184,13 +193,13 @@ export class CardRecognitionService {
 
       const data = await response.json();
       const card = this.transformScryfallCard(data);
-      
+
       // Cache the result
       this.cacheCard(card);
-      
+
       return card;
     } catch (error) {
-      logger.error('Error fetching card by name', error, { name, options });
+      logger.error("Error fetching card by name", error, { name, options });
       throw error;
     }
   }
@@ -209,19 +218,23 @@ export class CardRecognitionService {
       });
 
       await this.enforceRateLimit();
-      const response = await fetch(`${this.SCRYFALL_API_BASE}/cards/autocomplete?${params}`);
-      
+      const response = await fetch(
+        `${this.SCRYFALL_API_BASE}/cards/autocomplete?${params}`,
+      );
+
       if (!response.ok) {
         throw new Error(`Scryfall API error: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       return {
-        suggestions: data.data.slice(0, limit).map((name: string) => ({ name })),
+        suggestions: data.data
+          .slice(0, limit)
+          .map((name: string) => ({ name })),
       };
     } catch (error) {
-      logger.error('Error autocompleting card names', error, { query });
+      logger.error("Error autocompleting card names", error, { query });
       throw error;
     }
   }
@@ -229,21 +242,23 @@ export class CardRecognitionService {
   /**
    * Get a random card (useful for testing and demos)
    */
-  async getRandomCard(options: { set?: string; format?: string } = {}): Promise<MtgCard> {
+  async getRandomCard(
+    options: { set?: string; format?: string } = {},
+  ): Promise<MtgCard> {
     try {
       let url = `${this.SCRYFALL_API_BASE}/cards/random`;
       const params = new URLSearchParams();
-      
-      if (options.set) params.append('q', `set:${options.set}`);
-      if (options.format) params.append('q', `legal:${options.format}`);
-      
+
+      if (options.set) params.append("q", `set:${options.set}`);
+      if (options.format) params.append("q", `legal:${options.format}`);
+
       if (params.toString()) {
         url += `?${params}`;
       }
 
       await this.enforceRateLimit();
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`Scryfall API error: ${response.statusText}`);
       }
@@ -251,7 +266,7 @@ export class CardRecognitionService {
       const data = await response.json();
       return this.transformScryfallCard(data);
     } catch (error) {
-      logger.error('Error fetching random card', error, { options });
+      logger.error("Error fetching random card", error, { options });
       throw error;
     }
   }
@@ -277,14 +292,16 @@ export class CardRecognitionService {
       setName: scryfallCard.set_name,
       collectorNumber: scryfallCard.collector_number,
       rarity: scryfallCard.rarity,
-      imageUris: scryfallCard.image_uris ? {
-        small: scryfallCard.image_uris.small,
-        normal: scryfallCard.image_uris.normal,
-        large: scryfallCard.image_uris.large,
-        png: scryfallCard.image_uris.png,
-        artCrop: scryfallCard.image_uris.art_crop,
-        borderCrop: scryfallCard.image_uris.border_crop,
-      } : undefined,
+      imageUris: scryfallCard.image_uris
+        ? {
+            small: scryfallCard.image_uris.small,
+            normal: scryfallCard.image_uris.normal,
+            large: scryfallCard.image_uris.large,
+            png: scryfallCard.image_uris.png,
+            artCrop: scryfallCard.image_uris.art_crop,
+            borderCrop: scryfallCard.image_uris.border_crop,
+          }
+        : undefined,
       prices: scryfallCard.prices,
       legalities: scryfallCard.legalities,
       releasedAt: scryfallCard.released_at,
@@ -303,7 +320,7 @@ export class CardRecognitionService {
         this.cardCache.delete(oldestKey);
       }
     }
-    
+
     this.cardCache.set(card.id, {
       card,
       cachedAt: Date.now(),
@@ -316,12 +333,12 @@ export class CardRecognitionService {
   private async enforceRateLimit(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.RATE_LIMIT_DELAY) {
       const delay = this.RATE_LIMIT_DELAY - timeSinceLastRequest;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    
+
     this.lastRequestTime = Date.now();
   }
 
@@ -330,7 +347,7 @@ export class CardRecognitionService {
    */
   clearCache(): void {
     this.cardCache.clear();
-    logger.info('Card cache cleared');
+    logger.info("Card cache cleared");
   }
 
   /**

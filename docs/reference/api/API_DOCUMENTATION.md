@@ -50,9 +50,11 @@ Authorization: Bearer <jwt-token>
 ### Authentication Endpoints
 
 #### POST /auth/signin/google
+
 Initiate Google OAuth login flow.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -61,9 +63,11 @@ Initiate Google OAuth login flow.
 ```
 
 #### GET /auth/session
+
 Get current user session.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -85,11 +89,13 @@ Get current user session.
 All API responses follow this format:
 
 ### Success Response
+
 ```json
 {
   "success": true,
   "data": {}, // Response data
-  "meta": {   // Optional pagination/metadata
+  "meta": {
+    // Optional pagination/metadata
     "total": 100,
     "page": 1,
     "limit": 20,
@@ -99,6 +105,7 @@ All API responses follow this format:
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -130,6 +137,7 @@ The API implements rate limiting based on endpoint type:
 - **Messaging**: 20 requests per minute
 
 Rate limit headers are included in responses:
+
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 59
@@ -139,11 +147,13 @@ X-RateLimit-Reset: 1640995200
 ## Users API
 
 ### GET /users
+
 List users with filtering and pagination.
 
 **Authentication:** Optional
 
 **Query Parameters:**
+
 - `page` (integer): Page number (default: 1) - Traditional pagination
 - `limit` (integer): Items per page (max: 100, default: 20)
 - `cursor` (string): Base64-encoded cursor for efficient pagination of large datasets
@@ -154,10 +164,12 @@ List users with filtering and pagination.
 - `sort` (string): Sort field and direction (`name:asc`, `email:desc`, `createdAt:desc`)
 
 **Pagination Methods:**
+
 1. **Traditional Pagination** (smaller datasets): Use `page` and `limit`
 2. **Cursor Pagination** (large datasets): Use `cursor` and `limit` for better performance
 
 **Example Requests:**
+
 ```bash
 # Traditional pagination
 GET /api/users?page=1&limit=20&search=john&status=active&sort=createdAt:desc
@@ -167,6 +179,7 @@ GET /api/users?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCIsInZhbHVlIjoiMjAyNC0wMS0xMCJ9&l
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -199,14 +212,17 @@ GET /api/users?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCIsInZhbHVlIjoiMjAyNC0wMS0xMCJ9&l
 ```
 
 ### GET /users/:id
+
 Get a specific user by ID.
 
 **Authentication:** Optional
 
 **Parameters:**
+
 - `id` (string, required): User UUID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -245,11 +261,13 @@ Get a specific user by ID.
 ```
 
 ### POST /users
+
 Create a new user account.
 
 **Authentication:** Not required (used for registration)
 
 **Request Body:**
+
 ```json
 {
   "name": "John Doe",
@@ -262,6 +280,7 @@ Create a new user account.
 ```
 
 **Validation Rules:**
+
 - `name`: 1-100 characters, required
 - `email`: Valid email format, required, must be unique
 - `password`: 8+ characters (if not OAuth), optional
@@ -270,6 +289,7 @@ Create a new user account.
 - `primaryCommunityId`: Valid UUID, optional
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -290,14 +310,17 @@ Create a new user account.
 ```
 
 ### PUT /users/:id
+
 Update user profile.
 
 **Authentication:** Required (own profile or admin)
 
 **Parameters:**
+
 - `id` (string, required): User UUID
 
 **Request Body:**
+
 ```json
 {
   "name": "John Smith",
@@ -312,6 +335,7 @@ Update user profile.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -332,14 +356,17 @@ Update user profile.
 ```
 
 ### DELETE /users/:id
+
 Soft delete user account.
 
 **Authentication:** Required (own profile or admin)
 
 **Parameters:**
+
 - `id` (string, required): User UUID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -348,14 +375,17 @@ Soft delete user account.
 ```
 
 ### POST /users/:id/communities
+
 Join a community.
 
 **Authentication:** Required
 
 **Parameters:**
+
 - `id` (string, required): User UUID
 
 **Request Body:**
+
 ```json
 {
   "communityId": "456e7890-e89b-12d3-a456-426614174000",
@@ -364,6 +394,7 @@ Join a community.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -372,15 +403,18 @@ Join a community.
 ```
 
 ### DELETE /users/:id/communities/:communityId
+
 Leave a community.
 
 **Authentication:** Required
 
 **Parameters:**
+
 - `id` (string, required): User UUID
 - `communityId` (string, required): Community UUID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -393,11 +427,13 @@ Leave a community.
 All endpoints under `/api/platforms/:platform/oauth/*` implement OAuth 2.0 (authorization-code grant) for third-party streaming platforms such as Twitch, YouTube, and Facebook Gaming. These endpoints enable users to connect their streaming platform accounts for collaborative streaming features and stream coordination.
 
 **Supported Platforms:**
+
 - `twitch` - Twitch.tv streaming platform
-- `youtube` - YouTube Live streaming platform  
+- `youtube` - YouTube Live streaming platform
 - `facebook` - Facebook Gaming streaming platform
 
 **Security Features:**
+
 - OAuth 2.0 authorization code flow with PKCE (Proof Key for Code Exchange)
 - Cryptographically secure state parameters for CSRF protection
 - Token encryption in storage
@@ -408,14 +444,14 @@ All endpoints under `/api/platforms/:platform/oauth/*` implement OAuth 2.0 (auth
 
 ### Platform OAuth Endpoints Summary
 
-| Method | Route | Description | Auth Required |
-|--------|-------|-------------|---------------|
-| GET | `/api/platforms/:platform/oauth/initiate` | Redirect user to the platform's consent screen | Yes |
-| GET | `/api/platforms/:platform/oauth/callback` | OAuth callback – exchanges code for tokens | Yes |
-| GET | `/api/platforms/accounts` | List user's connected platform accounts | Yes |
-| DELETE | `/api/platforms/accounts/:id` | Disconnect a platform account | Yes |
-| GET | `/api/platforms/status` | Get live streaming status across platforms | Yes |
-| POST | `/api/platforms/:platform/refresh` | Manually refresh platform access token | Yes |
+| Method | Route                                     | Description                                    | Auth Required |
+| ------ | ----------------------------------------- | ---------------------------------------------- | ------------- |
+| GET    | `/api/platforms/:platform/oauth/initiate` | Redirect user to the platform's consent screen | Yes           |
+| GET    | `/api/platforms/:platform/oauth/callback` | OAuth callback – exchanges code for tokens     | Yes           |
+| GET    | `/api/platforms/accounts`                 | List user's connected platform accounts        | Yes           |
+| DELETE | `/api/platforms/accounts/:id`             | Disconnect a platform account                  | Yes           |
+| GET    | `/api/platforms/status`                   | Get live streaming status across platforms     | Yes           |
+| POST   | `/api/platforms/:platform/refresh`        | Manually refresh platform access token         | Yes           |
 
 Authentication flows are documented in greater detail in the [OAuth Documentation](/docs/oauth) section.
 
@@ -426,20 +462,24 @@ Initiate OAuth flow for a streaming platform.
 **Authentication:** Required
 
 **Path Parameters:**
+
 - `platform` (string): Platform identifier (`twitch`, `youtube`, `facebook`)
 
 **Security Features:**
+
 - **PKCE (Proof Key for Code Exchange)**: All platforms support PKCE for enhanced security
 - **State Parameter**: Cryptographically random CSRF token (64 hex characters)
 - **10-minute TTL**: OAuth states expire after 10 minutes
 
 **Example Request:**
+
 ```bash
 GET /api/platforms/twitch/oauth/initiate
 Cookie: authjs.session-token=<session-token>
 ```
 
 **Success Response:**
+
 ```json
 {
   "authUrl": "https://id.twitch.tv/oauth2/authorize?client_id=...&redirect_uri=...&response_type=code&scope=user:read:email+channel:read:stream_key&state=...&code_challenge=...&code_challenge_method=S256&force_verify=true"
@@ -447,6 +487,7 @@ Cookie: authjs.session-token=<session-token>
 ```
 
 **Usage Flow:**
+
 1. Frontend calls this endpoint
 2. Backend generates OAuth URL with PKCE
 3. Frontend redirects user to returned `authUrl`
@@ -454,6 +495,7 @@ Cookie: authjs.session-token=<session-token>
 5. Platform redirects to callback URL
 
 **Error Responses:**
+
 ```json
 {
   "message": "Unsupported platform"
@@ -467,14 +509,17 @@ Handle OAuth callback from streaming platform.
 **Authentication:** Required
 
 **Path Parameters:**
+
 - `platform` (string): Platform identifier (`twitch`, `youtube`, `facebook`)
 
 **Query Parameters:**
+
 - `code` (string, required): Authorization code from platform
 - `state` (string, required): State parameter for CSRF protection
 
-**Description:** 
+**Description:**
 This endpoint is called by the OAuth provider after user authorization. It:
+
 1. Validates the state parameter matches stored value
 2. Exchanges authorization code for access/refresh tokens using PKCE
 3. Retrieves user's platform profile information
@@ -482,6 +527,7 @@ This endpoint is called by the OAuth provider after user authorization. It:
 5. Returns success with platform handle
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -491,6 +537,7 @@ This endpoint is called by the OAuth provider after user authorization. It:
 ```
 
 **Error Responses:**
+
 ```json
 // Invalid state parameter
 {
@@ -504,6 +551,7 @@ This endpoint is called by the OAuth provider after user authorization. It:
 ```
 
 **Security Validations:**
+
 - State parameter must match stored value
 - State must not be expired (10-minute TTL)
 - User ID must match between initiate and callback
@@ -519,12 +567,14 @@ Get all connected platform accounts for the authenticated user.
 **Description:** Returns list of streaming platforms the user has connected, including platform handles and connection status.
 
 **Example Request:**
+
 ```bash
 GET /api/platforms/accounts
 Cookie: authjs.session-token=<session-token>
 ```
 
 **Success Response:**
+
 ```json
 [
   {
@@ -552,6 +602,7 @@ Cookie: authjs.session-token=<session-token>
 ```
 
 **Notes:**
+
 - Access tokens are NOT returned for security
 - Use platform-specific APIs to get fresh tokens when needed
 - Tokens are automatically refreshed before expiry
@@ -563,20 +614,24 @@ Disconnect a platform account.
 **Authentication:** Required
 
 **Path Parameters:**
+
 - `id` (string, required): Platform account UUID
 
 **Description:** Removes the connection to a streaming platform account. This:
+
 - Deletes stored access and refresh tokens
 - Removes the account association
 - Does NOT revoke tokens on the platform (user must do this in platform settings)
 
 **Example Request:**
+
 ```bash
 DELETE /api/platforms/accounts/account-uuid-1
 Cookie: authjs.session-token=<session-token>
 ```
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -585,6 +640,7 @@ Cookie: authjs.session-token=<session-token>
 ```
 
 **Error Responses:**
+
 ```json
 // Account not found or not owned by user
 {
@@ -598,6 +654,7 @@ Cookie: authjs.session-token=<session-token>
 ```
 
 **Security:**
+
 - Users can only disconnect their own accounts
 - Account ownership is verified before deletion
 
@@ -606,6 +663,7 @@ Cookie: authjs.session-token=<session-token>
 Each platform requests different OAuth scopes:
 
 **Twitch:**
+
 - `user:read:email` - Read user email address
 - `channel:read:stream_key` - Read stream key
 - `channel:manage:broadcast` - Manage broadcast settings
@@ -615,11 +673,13 @@ Each platform requests different OAuth scopes:
 - `analytics:read:extensions` - Read extension analytics
 
 **YouTube:**
+
 - `https://www.googleapis.com/auth/youtube.readonly` - Read YouTube data
 - `https://www.googleapis.com/auth/youtube.force-ssl` - Manage YouTube account
 - `https://www.googleapis.com/auth/youtube.channel-memberships.creator` - Read channel memberships
 
 **Facebook Gaming:**
+
 - `pages_show_list` - List pages
 - `pages_read_engagement` - Read page engagement
 - `pages_manage_posts` - Manage page posts
@@ -637,6 +697,7 @@ The platform OAuth system automatically handles token lifecycle:
 5. **Revocation**: Users can disconnect at any time
 
 **Refresh Flow:**
+
 - Access tokens typically expire in 1-4 hours
 - System checks expiry before each API call
 - If token expires within 5 minutes, automatic refresh triggered
@@ -647,6 +708,7 @@ The platform OAuth system automatically handles token lifecycle:
 The following redirect URLs must be configured in each platform's developer console:
 
 **Development:**
+
 ```
 http://localhost:3000/api/platforms/twitch/oauth/callback
 http://localhost:3000/api/platforms/youtube/oauth/callback
@@ -654,6 +716,7 @@ http://localhost:3000/api/platforms/facebook/oauth/callback
 ```
 
 **Production:**
+
 ```
 https://your-domain.com/api/platforms/twitch/oauth/callback
 https://your-domain.com/api/platforms/youtube/oauth/callback
@@ -665,11 +728,13 @@ https://your-domain.com/api/platforms/facebook/oauth/callback
 ## Communities API
 
 ### GET /communities
+
 List all communities.
 
 **Authentication:** Optional
 
 **Query Parameters:**
+
 - `page` (integer): Page number (default: 1)
 - `limit` (integer): Items per page (max: 100, default: 20)
 - `search` (string): Search term for name/description
@@ -677,6 +742,7 @@ List all communities.
 - `active` (boolean): Filter by active status
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -704,14 +770,17 @@ List all communities.
 ```
 
 ### GET /communities/:id
+
 Get a specific community.
 
 **Authentication:** Optional
 
 **Parameters:**
+
 - `id` (string, required): Community UUID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -746,11 +815,13 @@ Get a specific community.
 ## Events API
 
 ### GET /events
+
 List events with filtering.
 
 **Authentication:** Optional
 
 **Query Parameters:**
+
 - `page` (integer): Page number (default: 1)
 - `limit` (integer): Items per page (max: 100, default: 20)
 - `communityId` (string): Filter by community
@@ -760,6 +831,7 @@ List events with filtering.
 - `endDate` (string): Filter events before date (ISO 8601)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -776,8 +848,8 @@ List events with filtering.
       "location": "Online via TableSync",
       "maxParticipants": 32,
       "currentParticipants": 18,
-      "prizePool": 100.00,
-      "entryFee": 5.00,
+      "prizePool": 100.0,
+      "entryFee": 5.0,
       "communityId": "456e7890-e89b-12d3-a456-426614174000",
       "organizerId": "123e4567-e89b-12d3-a456-426614174000",
       "isPublic": true,
@@ -795,14 +867,17 @@ List events with filtering.
 ```
 
 ### GET /events/:id
+
 Get a specific event.
 
 **Authentication:** Optional
 
 **Parameters:**
+
 - `id` (string, required): Event UUID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -818,8 +893,8 @@ Get a specific event.
     "location": "Online via TableSync",
     "maxParticipants": 32,
     "currentParticipants": 18,
-    "prizePool": 100.00,
-    "entryFee": 5.00,
+    "prizePool": 100.0,
+    "entryFee": 5.0,
     "communityId": "456e7890-e89b-12d3-a456-426614174000",
     "organizerId": "123e4567-e89b-12d3-a456-426614174000",
     "isPublic": true,
@@ -859,11 +934,13 @@ Get a specific event.
 ```
 
 ### POST /events
+
 Create a new event.
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "title": "Weekly MTG Tournament",
@@ -874,19 +951,17 @@ Create a new event.
   "timezone": "America/New_York",
   "location": "Online via TableSync",
   "maxParticipants": 32,
-  "prizePool": 100.00,
-  "entryFee": 5.00,
+  "prizePool": 100.0,
+  "entryFee": 5.0,
   "communityId": "456e7890-e89b-12d3-a456-426614174000",
   "isPublic": true,
   "requiresApproval": false,
-  "rules": [
-    "Standard format only",
-    "Best of 3 matches"
-  ]
+  "rules": ["Standard format only", "Best of 3 matches"]
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -901,14 +976,17 @@ Create a new event.
 ```
 
 ### POST /events/:id/join
+
 Join an event.
 
 **Authentication:** Required
 
 **Parameters:**
+
 - `id` (string, required): Event UUID
 
 **Request Body:**
+
 ```json
 {
   "message": "Looking forward to participating!"
@@ -916,6 +994,7 @@ Join an event.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -930,11 +1009,13 @@ Join an event.
 ## Messaging API
 
 ### GET /messages
+
 Get messages for authenticated user.
 
 **Authentication:** Required
 
 **Query Parameters:**
+
 - `page` (integer): Page number (default: 1) - Traditional pagination
 - `limit` (integer): Items per page (max: 100, default: 50)
 - `cursor` (string): Base64-encoded cursor for efficient pagination
@@ -945,10 +1026,12 @@ Get messages for authenticated user.
 - `sort` (string): Sort field and direction (`createdAt:desc`, `createdAt:asc`)
 
 **Pagination Methods:**
+
 1. **Traditional Pagination**: Use `page` and `limit` parameters
 2. **Cursor Pagination**: Use `cursor` and `limit` for better performance with large message histories
 
 **Example Requests:**
+
 ```bash
 # Get latest messages with traditional pagination
 GET /api/messages?page=1&limit=50&sort=createdAt:desc
@@ -958,6 +1041,7 @@ GET /api/messages?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCJ9&limit=50&conversationId=co
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -988,11 +1072,13 @@ GET /api/messages?cursor=eyJmaWVsZCI6ImNyZWF0ZWRBdCJ9&limit=50&conversationId=co
 ```
 
 ### POST /messages
+
 Send a message.
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "content": "Hey, are you joining the tournament tonight?",
@@ -1003,6 +1089,7 @@ Send a message.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1021,11 +1108,13 @@ Send a message.
 ## Monitoring & Health API
 
 ### GET /health
+
 Get application health status.
 
 **Authentication:** Not required
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -1061,15 +1150,18 @@ Get application health status.
 ```
 
 ### GET /metrics
+
 Get detailed performance metrics.
 
 **Authentication:** Required (admin only)
 
 **Query Parameters:**
+
 - `timings` (boolean): Include request timing data
 - `limit` (integer): Limit recent requests (default: 50)
 
 **Response:**
+
 ```json
 {
   "summary": {
@@ -1108,46 +1200,46 @@ Get detailed performance metrics.
 
 ## Error Codes
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Invalid input data |
-| `AUTHENTICATION_ERROR` | 401 | Authentication required |
-| `AUTHORIZATION_ERROR` | 403 | Insufficient permissions |
-| `NOT_FOUND_ERROR` | 404 | Resource not found |
-| `CONFLICT_ERROR` | 409 | Resource conflict (e.g., duplicate email) |
-| `RATE_LIMIT_ERROR` | 429 | Rate limit exceeded |
-| `DATABASE_ERROR` | 500 | Database operation failed |
-| `EXTERNAL_SERVICE_ERROR` | 503 | External service unavailable |
-| `INTERNAL_ERROR` | 500 | Internal server error |
+| Code                     | HTTP Status | Description                               |
+| ------------------------ | ----------- | ----------------------------------------- |
+| `VALIDATION_ERROR`       | 400         | Invalid input data                        |
+| `AUTHENTICATION_ERROR`   | 401         | Authentication required                   |
+| `AUTHORIZATION_ERROR`    | 403         | Insufficient permissions                  |
+| `NOT_FOUND_ERROR`        | 404         | Resource not found                        |
+| `CONFLICT_ERROR`         | 409         | Resource conflict (e.g., duplicate email) |
+| `RATE_LIMIT_ERROR`       | 429         | Rate limit exceeded                       |
+| `DATABASE_ERROR`         | 500         | Database operation failed                 |
+| `EXTERNAL_SERVICE_ERROR` | 503         | External service unavailable              |
+| `INTERNAL_ERROR`         | 500         | Internal server error                     |
 
 ## SDK Examples
 
 ### JavaScript/TypeScript
 
 ```typescript
-import { ShuffleSyncAPI } from '@shuffle-sync/api-client';
+import { ShuffleSyncAPI } from "@shuffle-sync/api-client";
 
 const api = new ShuffleSyncAPI({
-  baseURL: 'https://api.shufflesync.com',
-  apiKey: 'your-api-key'
+  baseURL: "https://api.shufflesync.com",
+  apiKey: "your-api-key",
 });
 
 // Get user profile
-const user = await api.users.getById('user-uuid');
+const user = await api.users.getById("user-uuid");
 
 // Search users
 const users = await api.users.search({
-  search: 'john',
+  search: "john",
   limit: 20,
-  communityId: 'community-uuid'
+  communityId: "community-uuid",
 });
 
 // Create event
 const event = await api.events.create({
-  title: 'Weekly Tournament',
-  type: 'tournament',
-  startTime: '2024-01-15T19:00:00.000Z',
-  communityId: 'community-uuid'
+  title: "Weekly Tournament",
+  type: "tournament",
+  startTime: "2024-01-15T19:00:00.000Z",
+  communityId: "community-uuid",
 });
 ```
 

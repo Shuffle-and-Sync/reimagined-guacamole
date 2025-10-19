@@ -1,6 +1,6 @@
 /**
  * Game Statistics Feature Types
- * 
+ *
  * This file demonstrates proper TypeScript usage and type definitions
  * following the Shuffle & Sync repository conventions:
  * - Strict TypeScript configuration
@@ -9,7 +9,7 @@
  * - Zod integration for runtime validation
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Base game statistics interface
 export interface GameStats {
@@ -28,7 +28,13 @@ export interface GameStats {
 }
 
 // TCG community types as defined in the platform
-export type TCGType = 'mtg' | 'pokemon' | 'lorcana' | 'yugioh' | 'flesh-and-blood' | 'keyforge';
+export type TCGType =
+  | "mtg"
+  | "pokemon"
+  | "lorcana"
+  | "yugioh"
+  | "flesh-and-blood"
+  | "keyforge";
 
 // Game session result for statistics tracking
 export interface GameResult {
@@ -36,7 +42,7 @@ export interface GameResult {
   userId: string;
   gameType: TCGType;
   format: string;
-  result: 'win' | 'loss' | 'draw';
+  result: "win" | "loss" | "draw";
   opponentId?: string | null;
   duration: number; // in minutes
   notes?: string | null;
@@ -47,7 +53,7 @@ export interface GameResult {
 export interface CreateGameResultRequest {
   gameType: TCGType;
   format: string;
-  result: 'win' | 'loss' | 'draw';
+  result: "win" | "loss" | "draw";
   opponentId?: string;
   duration: number;
   notes?: string;
@@ -70,7 +76,7 @@ export interface GameStatsFilters {
   format?: string;
   dateFrom?: string;
   dateTo?: string;
-  resultType?: 'win' | 'loss' | 'draw';
+  resultType?: "win" | "loss" | "draw";
 }
 
 export interface GameStatsPagination {
@@ -80,30 +86,49 @@ export interface GameStatsPagination {
 }
 
 export interface GameStatsQuery extends GameStatsFilters, GameStatsPagination {
-  sortBy?: 'createdAt' | 'winRate' | 'totalGames';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "createdAt" | "winRate" | "totalGames";
+  sortOrder?: "asc" | "desc";
 }
 
 // Zod schemas for runtime validation (following repository conventions)
 export const gameResultSchema = z.object({
-  gameType: z.enum(['mtg', 'pokemon', 'lorcana', 'yugioh', 'flesh-and-blood', 'keyforge']),
-  format: z.string().min(1, 'Format is required'),
-  result: z.enum(['win', 'loss', 'draw']),
+  gameType: z.enum([
+    "mtg",
+    "pokemon",
+    "lorcana",
+    "yugioh",
+    "flesh-and-blood",
+    "keyforge",
+  ]),
+  format: z.string().min(1, "Format is required"),
+  result: z.enum(["win", "loss", "draw"]),
   opponentId: z.string().optional(),
-  duration: z.number().min(1, 'Duration must be at least 1 minute'),
-  notes: z.string().max(500, 'Notes must be less than 500 characters').optional(),
+  duration: z.number().min(1, "Duration must be at least 1 minute"),
+  notes: z
+    .string()
+    .max(500, "Notes must be less than 500 characters")
+    .optional(),
 });
 
 export const gameStatsFiltersSchema = z.object({
-  gameType: z.enum(['mtg', 'pokemon', 'lorcana', 'yugioh', 'flesh-and-blood', 'keyforge']).optional(),
+  gameType: z
+    .enum([
+      "mtg",
+      "pokemon",
+      "lorcana",
+      "yugioh",
+      "flesh-and-blood",
+      "keyforge",
+    ])
+    .optional(),
   format: z.string().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
-  resultType: z.enum(['win', 'loss', 'draw']).optional(),
+  resultType: z.enum(["win", "loss", "draw"]).optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(10),
-  sortBy: z.enum(['createdAt', 'winRate', 'totalGames']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z.enum(["createdAt", "winRate", "totalGames"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 // Type inference from Zod schemas

@@ -1,23 +1,26 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import type { 
-  CollaborativeStreamEvent, 
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type {
+  CollaborativeStreamEvent,
   StreamCollaborator,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
   CoordinationStatus,
-  CollaborationSuggestion
-} from '../types';
+  CollaborationSuggestion,
+} from "../types";
 
 // Query keys for consistent cache management
 export const collaborativeStreamingKeys = {
-  all: ['/api/collaborative-streams'] as const,
-  events: ['/api/collaborative-streams'] as const,
-  event: (id: string) => ['/api/collaborative-streams', id] as const,
-  collaborators: (eventId: string) => ['/api/collaborative-streams', eventId, 'collaborators'] as const,
-  suggestions: (eventId: string) => ['/api/collaborative-streams', eventId, 'suggestions'] as const,
-  coordination: (eventId: string) => ['/api/collaborative-streams', eventId, 'coordination', 'status'] as const,
+  all: ["/api/collaborative-streams"] as const,
+  events: ["/api/collaborative-streams"] as const,
+  event: (id: string) => ["/api/collaborative-streams", id] as const,
+  collaborators: (eventId: string) =>
+    ["/api/collaborative-streams", eventId, "collaborators"] as const,
+  suggestions: (eventId: string) =>
+    ["/api/collaborative-streams", eventId, "suggestions"] as const,
+  coordination: (eventId: string) =>
+    ["/api/collaborative-streams", eventId, "coordination", "status"] as const,
 };
 
 // Get user's collaborative streaming events
@@ -63,24 +66,33 @@ export function useCoordinationStatus(eventId: string) {
 // Create collaborative streaming event
 export function useCreateCollaborativeStreamEvent() {
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async (eventData: Omit<InsertCollaborativeStreamEvent, 'creatorId'>) => {
-      const response = await apiRequest('POST', '/api/collaborative-streams', eventData);
+    mutationFn: async (
+      eventData: Omit<InsertCollaborativeStreamEvent, "creatorId">,
+    ) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/collaborative-streams",
+        eventData,
+      );
       return response.json();
     },
     onSuccess: (data: CollaborativeStreamEvent) => {
-      queryClient.invalidateQueries({ queryKey: collaborativeStreamingKeys.events });
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.events,
+      });
       toast({
-        title: 'Stream Event Created',
+        title: "Stream Event Created",
         description: `"${data.title}" has been created successfully.`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Creating Event',
-        description: error.message || 'Failed to create collaborative stream event.',
-        variant: 'destructive',
+        title: "Error Creating Event",
+        description:
+          error.message || "Failed to create collaborative stream event.",
+        variant: "destructive",
       });
     },
   });
@@ -89,31 +101,41 @@ export function useCreateCollaborativeStreamEvent() {
 // Update collaborative streaming event
 export function useUpdateCollaborativeStreamEvent() {
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      eventId, 
-      updates 
-    }: { 
-      eventId: string; 
-      updates: Partial<InsertCollaborativeStreamEvent> 
+    mutationFn: async ({
+      eventId,
+      updates,
+    }: {
+      eventId: string;
+      updates: Partial<InsertCollaborativeStreamEvent>;
     }) => {
-      const response = await apiRequest('PATCH', `/api/collaborative-streams/${eventId}`, updates);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/collaborative-streams/${eventId}`,
+        updates,
+      );
       return response.json();
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: collaborativeStreamingKeys.event(variables.eventId) });
-      queryClient.invalidateQueries({ queryKey: collaborativeStreamingKeys.events });
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.event(variables.eventId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.events,
+      });
       toast({
-        title: 'Event Updated',
-        description: 'Your collaborative stream event has been updated successfully.',
+        title: "Event Updated",
+        description:
+          "Your collaborative stream event has been updated successfully.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Updating Event',
-        description: error.message || 'Failed to update collaborative stream event.',
-        variant: 'destructive',
+        title: "Error Updating Event",
+        description:
+          error.message || "Failed to update collaborative stream event.",
+        variant: "destructive",
       });
     },
   });
@@ -122,25 +144,34 @@ export function useUpdateCollaborativeStreamEvent() {
 // Delete collaborative streaming event
 export function useDeleteCollaborativeStreamEvent() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (eventId: string) => {
-      const response = await apiRequest('DELETE', `/api/collaborative-streams/${eventId}`);
+      const response = await apiRequest(
+        "DELETE",
+        `/api/collaborative-streams/${eventId}`,
+      );
       return response.json();
     },
     onSuccess: (_, eventId) => {
-      queryClient.invalidateQueries({ queryKey: collaborativeStreamingKeys.events });
-      queryClient.removeQueries({ queryKey: collaborativeStreamingKeys.event(eventId) });
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.events,
+      });
+      queryClient.removeQueries({
+        queryKey: collaborativeStreamingKeys.event(eventId),
+      });
       toast({
-        title: 'Event Deleted',
-        description: 'Your collaborative stream event has been deleted successfully.',
+        title: "Event Deleted",
+        description:
+          "Your collaborative stream event has been deleted successfully.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Deleting Event',
-        description: error.message || 'Failed to delete collaborative stream event.',
-        variant: 'destructive',
+        title: "Error Deleting Event",
+        description:
+          error.message || "Failed to delete collaborative stream event.",
+        variant: "destructive",
       });
     },
   });
@@ -149,32 +180,37 @@ export function useDeleteCollaborativeStreamEvent() {
 // Add collaborator to stream event
 export function useAddStreamCollaborator() {
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      eventId, 
-      collaboratorData 
-    }: { 
-      eventId: string; 
-      collaboratorData: Omit<InsertStreamCollaborator, 'streamEventId'> 
+    mutationFn: async ({
+      eventId,
+      collaboratorData,
+    }: {
+      eventId: string;
+      collaboratorData: Omit<InsertStreamCollaborator, "streamEventId">;
     }) => {
-      const response = await apiRequest('POST', `/api/collaborative-streams/${eventId}/collaborators`, collaboratorData);
+      const response = await apiRequest(
+        "POST",
+        `/api/collaborative-streams/${eventId}/collaborators`,
+        collaboratorData,
+      );
       return response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: collaborativeStreamingKeys.collaborators(variables.eventId) 
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.collaborators(variables.eventId),
       });
       toast({
-        title: 'Collaborator Added',
-        description: 'The collaborator has been added to your stream event.',
+        title: "Collaborator Added",
+        description: "The collaborator has been added to your stream event.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Adding Collaborator',
-        description: error.message || 'Failed to add collaborator to stream event.',
-        variant: 'destructive',
+        title: "Error Adding Collaborator",
+        description:
+          error.message || "Failed to add collaborator to stream event.",
+        variant: "destructive",
       });
     },
   });
@@ -183,26 +219,37 @@ export function useAddStreamCollaborator() {
 // Remove collaborator from stream event
 export function useRemoveStreamCollaborator() {
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ eventId, collaboratorId }: { eventId: string; collaboratorId: string }) => {
-      const response = await apiRequest('DELETE', `/api/collaborative-streams/${eventId}/collaborators/${collaboratorId}`);
+    mutationFn: async ({
+      eventId,
+      collaboratorId,
+    }: {
+      eventId: string;
+      collaboratorId: string;
+    }) => {
+      const response = await apiRequest(
+        "DELETE",
+        `/api/collaborative-streams/${eventId}/collaborators/${collaboratorId}`,
+      );
       return response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: collaborativeStreamingKeys.collaborators(variables.eventId) 
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.collaborators(variables.eventId),
       });
       toast({
-        title: 'Collaborator Removed',
-        description: 'The collaborator has been removed from your stream event.',
+        title: "Collaborator Removed",
+        description:
+          "The collaborator has been removed from your stream event.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Removing Collaborator',
-        description: error.message || 'Failed to remove collaborator from stream event.',
-        variant: 'destructive',
+        title: "Error Removing Collaborator",
+        description:
+          error.message || "Failed to remove collaborator from stream event.",
+        variant: "destructive",
       });
     },
   });
@@ -211,26 +258,30 @@ export function useRemoveStreamCollaborator() {
 // Start coordination session
 export function useStartCoordinationSession() {
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (eventId: string) => {
-      const response = await apiRequest('POST', `/api/collaborative-streams/${eventId}/coordination/start`);
+      const response = await apiRequest(
+        "POST",
+        `/api/collaborative-streams/${eventId}/coordination/start`,
+      );
       return response.json();
     },
     onSuccess: (_, eventId) => {
-      queryClient.invalidateQueries({ 
-        queryKey: collaborativeStreamingKeys.coordination(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.coordination(eventId),
       });
       toast({
-        title: 'Coordination Session Started',
-        description: 'Your collaborative stream coordination session is now active.',
+        title: "Coordination Session Started",
+        description:
+          "Your collaborative stream coordination session is now active.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Starting Session',
-        description: error.message || 'Failed to start coordination session.',
-        variant: 'destructive',
+        title: "Error Starting Session",
+        description: error.message || "Failed to start coordination session.",
+        variant: "destructive",
       });
     },
   });
@@ -239,26 +290,36 @@ export function useStartCoordinationSession() {
 // Update coordination phase
 export function useUpdateCoordinationPhase() {
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ eventId, phase }: { eventId: string; phase: string }) => {
-      const response = await apiRequest('PATCH', `/api/collaborative-streams/${eventId}/coordination/phase`, { phase });
+    mutationFn: async ({
+      eventId,
+      phase,
+    }: {
+      eventId: string;
+      phase: string;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/collaborative-streams/${eventId}/coordination/phase`,
+        { phase },
+      );
       return response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ 
-        queryKey: collaborativeStreamingKeys.coordination(variables.eventId) 
+      queryClient.invalidateQueries({
+        queryKey: collaborativeStreamingKeys.coordination(variables.eventId),
       });
       toast({
-        title: 'Phase Updated',
+        title: "Phase Updated",
         description: `Stream phase updated to ${variables.phase}.`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error Updating Phase',
-        description: error.message || 'Failed to update coordination phase.',
-        variant: 'destructive',
+        title: "Error Updating Phase",
+        description: error.message || "Failed to update coordination phase.",
+        variant: "destructive",
       });
     },
   });

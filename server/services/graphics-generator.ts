@@ -1,6 +1,6 @@
 import { storage } from "../storage";
 import { logger } from "../logger";
-import QRCode from 'qrcode';
+import QRCode from "qrcode";
 
 export interface GraphicTemplate {
   name: string;
@@ -9,10 +9,10 @@ export interface GraphicTemplate {
 }
 
 export const GRAPHIC_TEMPLATES: Record<string, GraphicTemplate> = {
-  modern: { name: 'Modern', width: 1200, height: 630 },
-  classic: { name: 'Classic', width: 1200, height: 630 },
-  minimal: { name: 'Minimal', width: 1200, height: 630 },
-  square: { name: 'Square', width: 1080, height: 1080 },
+  modern: { name: "Modern", width: 1200, height: 630 },
+  classic: { name: "Classic", width: 1200, height: 630 },
+  minimal: { name: "Minimal", width: 1200, height: 630 },
+  square: { name: "Square", width: 1080, height: 1080 },
 };
 
 export class GraphicsGeneratorService {
@@ -21,44 +21,52 @@ export class GraphicsGeneratorService {
    */
   async generateEventGraphic(
     eventId: string,
-    template: keyof typeof GRAPHIC_TEMPLATES = 'modern',
-    includeQR: boolean = true
+    template: keyof typeof GRAPHIC_TEMPLATES = "modern",
+    includeQR: boolean = true,
   ): Promise<string> {
     try {
       const event = await storage.getEvent(eventId);
       if (!event) {
-        throw new Error('Event not found');
+        throw new Error("Event not found");
       }
 
       const templateConfig = GRAPHIC_TEMPLATES[template];
       if (!templateConfig) {
-        throw new Error('Invalid template');
+        throw new Error("Invalid template");
       }
-      const eventUrl = `${process.env.AUTH_URL || 'http://localhost:3000'}/calendar?eventId=${eventId}`;
+      const eventUrl = `${process.env.AUTH_URL || "http://localhost:3000"}/calendar?eventId=${eventId}`;
 
       // Generate QR code if requested
-      let qrCodeDataUrl = '';
+      let qrCodeDataUrl = "";
       if (includeQR) {
         qrCodeDataUrl = await QRCode.toDataURL(eventUrl, {
           width: 200,
           margin: 2,
           color: {
-            dark: '#000000',
-            light: '#FFFFFF',
+            dark: "#000000",
+            light: "#FFFFFF",
           },
         });
       }
 
       // Generate SVG graphic (using SVG for simplicity instead of canvas/sharp)
-      const svg = this.generateSVG(event, templateConfig, qrCodeDataUrl, template);
+      const svg = this.generateSVG(
+        event,
+        templateConfig,
+        qrCodeDataUrl,
+        template,
+      );
 
       // Return as data URL
-      const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+      const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 
-      logger.info('Event graphic generated', { eventId, template });
+      logger.info("Event graphic generated", { eventId, template });
       return svgDataUrl;
     } catch (error) {
-      logger.error('Failed to generate event graphic', error, { eventId, template });
+      logger.error("Failed to generate event graphic", error, {
+        eventId,
+        template,
+      });
       throw error;
     }
   }
@@ -67,19 +75,19 @@ export class GraphicsGeneratorService {
     event: any,
     config: GraphicTemplate,
     qrCodeDataUrl: string,
-    template: string
+    template: string,
   ): string {
     const { width, height } = config;
     const backgroundColor = this.getTemplateColor(template);
-    const textColor = template === 'modern' ? '#FFFFFF' : '#000000';
+    const textColor = template === "modern" ? "#FFFFFF" : "#000000";
 
     // Format date
     const eventDate = new Date(event.date);
-    const formattedDate = eventDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    const formattedDate = eventDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
 
     let svg = `
@@ -99,7 +107,7 @@ export class GraphicsGeneratorService {
         <!-- Event Type Badge -->
         <rect x="50" y="50" width="200" height="50" rx="25" fill="${this.getEventTypeColor(event.type)}"/>
         <text x="150" y="82" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" font-weight="bold">
-          ${event.type.toUpperCase().replace('_', ' ')}
+          ${event.type.toUpperCase().replace("_", " ")}
         </text>
         
         <!-- Event Title -->
@@ -122,7 +130,7 @@ export class GraphicsGeneratorService {
     `;
 
     // Add pod info for game_pod events
-    if (event.type === 'game_pod' && event.playerSlots) {
+    if (event.type === "game_pod" && event.playerSlots) {
       svg += `
         <!-- Pod Info -->
         <rect x="${width / 2 - 150}" y="460" width="300" height="60" rx="10" fill="rgba(255,255,255,0.2)"/>
@@ -152,41 +160,48 @@ export class GraphicsGeneratorService {
 
   private getTemplateColor(template: string): string {
     const colors: Record<string, string> = {
-      modern: '#6366f1', // Indigo
-      classic: '#f59e0b', // Amber
-      minimal: '#e5e7eb', // Gray
-      square: '#8b5cf6', // Purple
+      modern: "#6366f1", // Indigo
+      classic: "#f59e0b", // Amber
+      minimal: "#e5e7eb", // Gray
+      square: "#8b5cf6", // Purple
     };
-    return colors[template] || '#6366f1';
+    return colors[template] || "#6366f1";
   }
 
   private getEventTypeColor(type: string): string {
     const colors: Record<string, string> = {
-      tournament: '#eab308', // Yellow
-      convention: '#a855f7', // Purple
-      release: '#3b82f6', // Blue
-      game_pod: '#ef4444', // Red
-      community: '#22c55e', // Green
+      tournament: "#eab308", // Yellow
+      convention: "#a855f7", // Purple
+      release: "#3b82f6", // Blue
+      game_pod: "#ef4444", // Red
+      community: "#22c55e", // Green
     };
-    return colors[type] || '#6b7280';
+    return colors[type] || "#6b7280";
   }
 
   private adjustColor(color: string, percent: number): string {
     // Simple color adjustment (darkens if negative, lightens if positive)
-    const num = parseInt(color.replace('#', ''), 16);
+    const num = parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255))
-      .toString(16).slice(1);
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
+    return (
+      "#" +
+      (
+        0x1000000 +
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+      )
+        .toString(16)
+        .slice(1)
+    );
   }
 
   private truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength - 3) + '...';
+    return text.substring(0, maxLength - 3) + "...";
   }
 }
 

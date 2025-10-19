@@ -16,5 +16,5 @@ export const logger = {
 
   error: (message: string, error?: any, ...args: any[]) => {
     console.error(`[ERROR] ${message}`, error, ...args);
-  }
+  },
 };

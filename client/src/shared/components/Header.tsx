@@ -17,7 +17,8 @@ import { Link, useLocation } from "wouter";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { selectedCommunity, setSelectedCommunity, communities } = useCommunity();
+  const { selectedCommunity, setSelectedCommunity, communities } =
+    useCommunity();
   const [location] = useLocation();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -29,7 +30,7 @@ export function Header() {
   const handleSignOut = () => {
     window.location.href = "/api/auth/signout";
   };
-  
+
   const handleProfile = () => {
     window.location.href = "/profile";
   };
@@ -38,12 +39,14 @@ export function Header() {
     setIsSettingsOpen(true);
   };
 
-  const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCommunityChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const communityId = event.target.value;
     if (communityId === "") {
       setSelectedCommunity(null);
     } else {
-      const community = communities.find(c => c.id === communityId);
+      const community = communities.find((c) => c.id === communityId);
       if (community) {
         setSelectedCommunity(community);
       }
@@ -64,13 +67,15 @@ export function Header() {
         <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2">
             <Logo />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">Shuffle & Sync</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              Shuffle & Sync
+            </span>
           </Link>
-          
+
           {/* Community Switcher */}
           <div className="flex items-center space-x-2">
             <i className="fas fa-dice-d20 text-gray-500 text-sm"></i>
-            <select 
+            <select
               className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
               data-testid="select-community"
               onChange={handleCommunityChange}
@@ -84,7 +89,7 @@ export function Header() {
               ))}
             </select>
             {selectedCommunity && (
-              <div 
+              <div
                 className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
                 style={{ backgroundColor: selectedCommunity.themeColor }}
                 title={`Active: ${selectedCommunity.displayName}`}
@@ -95,36 +100,36 @@ export function Header() {
 
         {/* Center: Main Navigation */}
         <nav className="flex items-center space-x-8">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className={`transition-colors font-medium ${location === "/" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-home"
           >
             Home
           </Link>
-          <Link 
-            href="/tablesync" 
+          <Link
+            href="/tablesync"
             className={`transition-colors font-medium ${location === "/tablesync" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-tablesync"
           >
             TableSync
           </Link>
-          <Link 
-            href="/calendar" 
+          <Link
+            href="/calendar"
             className={`transition-colors font-medium ${location === "/calendar" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-calendar"
           >
             Calendar
           </Link>
-          <Link 
-            href="/tournaments" 
+          <Link
+            href="/tournaments"
             className={`transition-colors font-medium ${location === "/tournaments" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-tournaments"
           >
             Tournaments
           </Link>
-          <Link 
-            href="/community-forum" 
+          <Link
+            href="/community-forum"
             className={`transition-colors font-medium ${location === "/community-forum" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
             data-testid="nav-forum"
           >
@@ -132,8 +137,8 @@ export function Header() {
           </Link>
           {isAuthenticated && (
             <>
-              <Link 
-                href="/profile" 
+              <Link
+                href="/profile"
                 className={`transition-colors font-medium ${location === "/profile" ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
                 data-testid="nav-profile"
               >
@@ -152,7 +157,11 @@ export function Header() {
               <NotificationCenter />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-10 w-10 rounded-full p-0" data-testid="button-user-menu">
+                  <Button
+                    variant="ghost"
+                    className="h-10 w-10 rounded-full p-0"
+                    data-testid="button-user-menu"
+                  >
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user.profileImageUrl || undefined} />
                       <AvatarFallback className="bg-blue-600 text-white">
@@ -161,12 +170,21 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" data-testid="dropdown-user-menu">
-                  <DropdownMenuItem onClick={handleProfile} data-testid="menu-item-profile">
+                <DropdownMenuContent
+                  align="end"
+                  data-testid="dropdown-user-menu"
+                >
+                  <DropdownMenuItem
+                    onClick={handleProfile}
+                    data-testid="menu-item-profile"
+                  >
                     <i className="fas fa-user mr-2"></i>
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSettings} data-testid="menu-item-settings">
+                  <DropdownMenuItem
+                    onClick={handleSettings}
+                    data-testid="menu-item-settings"
+                  >
                     <i className="fas fa-cog mr-2"></i>
                     Settings
                   </DropdownMenuItem>
@@ -179,14 +197,14 @@ export function Header() {
             </>
           ) : (
             <>
-              <Button 
+              <Button
                 onClick={handleSignIn}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 data-testid="button-sign-in"
               >
                 Sign In
               </Button>
-              <Button 
+              <Button
                 onClick={handleSignIn}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 data-testid="button-join-free"
@@ -197,15 +215,15 @@ export function Header() {
           )}
         </div>
       </div>
-      
+
       {/* Profile Dialog */}
-      <UserProfileDialog 
+      <UserProfileDialog
         open={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
       />
-      
+
       {/* Settings Modal */}
-      <SettingsModal 
+      <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
