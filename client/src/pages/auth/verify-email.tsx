@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   Card,
@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, CheckCircle, XCircle, RefreshCw } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Loader2, Mail, CheckCircle, XCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 export default function VerifyEmail() {
@@ -31,18 +31,7 @@ export default function VerifyEmail() {
   const token = urlParams.get("token");
   const emailParam = urlParams.get("email");
 
-  useEffect(() => {
-    if (emailParam) {
-      setEmail(emailParam);
-    }
-
-    // If we have a token, attempt verification immediately
-    if (token) {
-      verifyEmailToken(token);
-    }
-  }, [token, emailParam]);
-
-  const verifyEmailToken = async (verificationToken: string) => {
+  const verifyEmailToken = useCallback(async (verificationToken: string) => {
     setIsLoading(true);
     setError("");
 
@@ -88,7 +77,18 @@ export default function VerifyEmail() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast, setLocation]);
+
+  useEffect(() => {
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+
+    // If we have a token, attempt verification immediately
+    if (token) {
+      verifyEmailToken(token);
+    }
+  }, [token, emailParam, verifyEmailToken]);
 
   const resendVerificationEmail = async () => {
     if (!email) {
@@ -268,7 +268,7 @@ export default function VerifyEmail() {
         <div>
           <h3 className="text-lg font-medium">Check your email</h3>
           <p className="text-sm text-muted-foreground">
-            We've sent you a verification link. Please check your email and
+            We&apos;ve sent you a verification link. Please check your email and
             click the link to verify your account.
           </p>
         </div>
