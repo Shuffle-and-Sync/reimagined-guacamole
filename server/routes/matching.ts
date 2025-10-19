@@ -89,8 +89,7 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
     const matches = await realtimeMatchingAPI.getRealtimeMatches(matchRequest);
 
-    // Log MFA enabled event with audit trail
-    logger.info('Real-time matches retrieved successfully', {
+    // Log real-time matches retrieved event
     logger.info("Real-time matches retrieved successfully", {
       userId,
       matchCount: matches.matches.length,
