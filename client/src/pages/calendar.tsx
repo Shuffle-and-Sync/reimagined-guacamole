@@ -114,7 +114,7 @@ export default function Calendar() {
     const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
     ws.onopen = () => {
-      console.log('WebSocket connected for real-time event updates');
+      // WebSocket connected for real-time event updates
     };
 
     ws.onmessage = (event) => {
@@ -820,7 +820,7 @@ export default function Calendar() {
                       }}
                       onEventClick={(event) => {
                         // Could open event details dialog here
-                        console.log('Event clicked:', event);
+                        // Event clicked: event
                       }}
                     />
                   </CardContent>
