@@ -67,14 +67,23 @@ export class EnhancedWebSocketServer {
       // Validate environment and origin
       const authResult = await this.authenticateConnection(ws, req);
       if (!authResult.success) {
-        this.closeConnectionWithError(ws, authResult.error!, authResult.code);
+        this.closeConnectionWithError(
+          ws,
+          authResult.error || "Authentication failed",
+          authResult.code,
+        );
+        return;
+      }
+
+      if (!authResult.userId) {
+        this.closeConnectionWithError(ws, "User ID not found", "NO_USER_ID");
         return;
       }
 
       // Register connection with manager
       const connectionId = connectionManager.registerConnection(
         ws,
-        authResult.userId!,
+        authResult.userId,
         authResult.token,
       );
 
@@ -225,7 +234,7 @@ export class EnhancedWebSocketServer {
           this.sendMessage(
             ws,
             messageValidator.createErrorMessage(
-              validationResult.error!,
+              validationResult.error || "Validation failed",
               "VALIDATION_ERROR",
               validationResult.details,
             ),

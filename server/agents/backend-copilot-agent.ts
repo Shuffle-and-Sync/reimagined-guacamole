@@ -437,7 +437,10 @@ export class BackendCopilotAgent {
     const issuesByFile = result.issues.reduce(
       (acc, issue) => {
         if (!acc[issue.file]) acc[issue.file] = [];
-        acc[issue.file]!.push(issue);
+        const fileIssues = acc[issue.file];
+        if (fileIssues) {
+          fileIssues.push(issue);
+        }
         return acc;
       },
       {} as Record<string, CodeIssue[]>,

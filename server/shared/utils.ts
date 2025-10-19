@@ -65,7 +65,7 @@ export const retryOperation = async <T>(
   maxRetries: number = 3,
   delayMs: number = 1000,
 ): Promise<T> => {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -82,7 +82,7 @@ export const retryOperation = async <T>(
     }
   }
 
-  throw lastError!;
+  throw lastError || new Error("Operation failed after all retries");
 };
 
 export const chunk = <T>(array: T[], size: number): T[][] => {

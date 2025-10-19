@@ -236,8 +236,12 @@ function generateTwitchOAuthURL(state: string): string {
     storedState.codeVerifier = codeVerifier;
   }
 
+  if (!process.env.TWITCH_CLIENT_ID) {
+    throw new Error("TWITCH_CLIENT_ID not configured");
+  }
+  
   const params = new URLSearchParams({
-    client_id: process.env.TWITCH_CLIENT_ID!,
+    client_id: process.env.TWITCH_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
     response_type: "code",
     scope: PLATFORM_SCOPES.twitch.join(" "),
@@ -264,8 +268,12 @@ function generateYouTubeOAuthURL(state: string): string {
     storedState.codeVerifier = codeVerifier;
   }
 
+  if (!process.env.YOUTUBE_CLIENT_ID) {
+    throw new Error("YOUTUBE_CLIENT_ID not configured");
+  }
+  
   const params = new URLSearchParams({
-    client_id: process.env.YOUTUBE_CLIENT_ID!,
+    client_id: process.env.YOUTUBE_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/youtube/oauth/callback`,
     response_type: "code",
     scope: PLATFORM_SCOPES.youtube.join(" "),
