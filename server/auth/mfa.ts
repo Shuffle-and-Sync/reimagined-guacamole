@@ -36,7 +36,10 @@ export async function generateTOTPSetup(
     });
 
     // Generate QR code for easy setup
-    const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url!);
+    if (!secret.otpauth_url) {
+      throw new Error("Failed to generate OTP auth URL");
+    }
+    const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
 
     // Generate backup recovery codes
     const backupCodes = generateBackupCodes(10);

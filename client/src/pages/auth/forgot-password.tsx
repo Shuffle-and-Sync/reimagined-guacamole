@@ -140,7 +140,7 @@ export default function ForgotPassword() {
               <div>
                 <h3 className="text-lg font-medium">Reset link sent!</h3>
                 <p className="text-sm text-muted-foreground">
-                  We've sent password reset instructions to:
+                  We&apos;ve sent password reset instructions to:
                 </p>
                 <p className="text-sm font-medium text-primary">{email}</p>
               </div>
@@ -153,7 +153,7 @@ export default function ForgotPassword() {
 
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Didn't receive the email? Check your spam folder or try again.
+                  Didn&apos;t receive the email? Check your spam folder or try again.
                 </p>
 
                 <Button
@@ -209,7 +209,7 @@ export default function ForgotPassword() {
             Forgot Password
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your email address and we'll send you a reset link
+            Enter your email address and we&apos;ll send you a reset link
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

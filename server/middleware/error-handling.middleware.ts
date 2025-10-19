@@ -6,6 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from "express";
+import { Server } from "http";
 import { logger } from "../logger";
 import { ZodError } from "zod";
 import { nanoid } from "nanoid";
@@ -15,14 +16,14 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
   public readonly errorCode: string;
-  public readonly context?: Record<string, any>;
+  public readonly context?: Record<string, unknown>;
 
   constructor(
     message: string,
     statusCode: number = 500,
     errorCode: string = "INTERNAL_ERROR",
     isOperational: boolean = true,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(message);
     this.statusCode = statusCode;
@@ -36,7 +37,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, 400, "VALIDATION_ERROR", true, context);
   }
 }
@@ -44,7 +45,7 @@ export class ValidationError extends AppError {
 export class AuthenticationError extends AppError {
   constructor(
     message: string = "Authentication required",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(message, 401, "AUTHENTICATION_ERROR", true, context);
   }
@@ -53,20 +54,20 @@ export class AuthenticationError extends AppError {
 export class AuthorizationError extends AppError {
   constructor(
     message: string = "Insufficient permissions",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(message, 403, "AUTHORIZATION_ERROR", true, context);
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(resource: string = "Resource", context?: Record<string, any>) {
+  constructor(resource: string = "Resource", context?: Record<string, unknown>) {
     super(`${resource} not found`, 404, "NOT_FOUND_ERROR", true, context);
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string, context?: Record<string, any>) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, 409, "CONFLICT_ERROR", true, context);
   }
 }
@@ -74,7 +75,7 @@ export class ConflictError extends AppError {
 export class RateLimitError extends AppError {
   constructor(
     message: string = "Rate limit exceeded",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(message, 429, "RATE_LIMIT_ERROR", true, context);
   }
@@ -83,7 +84,7 @@ export class RateLimitError extends AppError {
 export class DatabaseError extends AppError {
   constructor(
     message: string = "Database operation failed",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(message, 500, "DATABASE_ERROR", true, context);
   }
@@ -93,7 +94,7 @@ export class ExternalServiceError extends AppError {
   constructor(
     service: string,
     message: string = "External service unavailable",
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ) {
     super(
       `${service}: ${message}`,
@@ -114,7 +115,7 @@ interface ErrorResponse {
     statusCode: number;
     requestId: string;
     timestamp: string;
-    details?: any;
+    details?: unknown;
   };
 }
 
@@ -140,7 +141,7 @@ export function globalErrorHandler(
   let statusCode = 500;
   let errorCode = "INTERNAL_ERROR";
   let message = "Internal server error";
-  let details: any = undefined;
+  let details: unknown = undefined;
 
   if (error instanceof AppError) {
     statusCode = error.statusCode;
@@ -188,7 +189,7 @@ export function globalErrorHandler(
     method: req.method,
     userAgent: req.get("User-Agent"),
     ip: req.ip,
-    userId: (req as any).user?.id,
+    userId: (req as Request & { user?: { id: string } }).user?.id,
     body: req.body,
     query: req.query,
     params: req.params,
@@ -249,7 +250,7 @@ export function requestIdMiddleware(
 ): void {
   const requestId = (req.headers["x-request-id"] as string) || nanoid();
   res.setHeader("X-Request-ID", requestId);
-  (req as any).requestId = requestId;
+  (req as Request & { requestId?: string }).requestId = requestId;
   next();
 }
 
@@ -272,7 +273,7 @@ export function notFoundHandler(
  * Graceful shutdown handler
  * Properly closes server connections during shutdown
  */
-export function createGracefulShutdownHandler(server: any) {
+export function createGracefulShutdownHandler(server: Server) {
   return function gracefulShutdown(signal: string) {
     logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
@@ -297,7 +298,7 @@ export function createGracefulShutdownHandler(server: any) {
 /**
  * Database connection error handler
  */
-export function handleDatabaseError(error: any): never {
+export function handleDatabaseError(error: Error & { code?: string }): never {
   logger.error("Database connection error", error);
 
   if (error.code === "ECONNREFUSED") {

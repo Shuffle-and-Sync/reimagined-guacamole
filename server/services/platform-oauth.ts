@@ -236,8 +236,12 @@ function generateTwitchOAuthURL(state: string): string {
     storedState.codeVerifier = codeVerifier;
   }
 
+  if (!process.env.TWITCH_CLIENT_ID) {
+    throw new Error("TWITCH_CLIENT_ID not configured");
+  }
+  
   const params = new URLSearchParams({
-    client_id: process.env.TWITCH_CLIENT_ID!,
+    client_id: process.env.TWITCH_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
     response_type: "code",
     scope: PLATFORM_SCOPES.twitch.join(" "),
@@ -264,8 +268,12 @@ function generateYouTubeOAuthURL(state: string): string {
     storedState.codeVerifier = codeVerifier;
   }
 
+  if (!process.env.YOUTUBE_CLIENT_ID) {
+    throw new Error("YOUTUBE_CLIENT_ID not configured");
+  }
+  
   const params = new URLSearchParams({
-    client_id: process.env.YOUTUBE_CLIENT_ID!,
+    client_id: process.env.YOUTUBE_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/youtube/oauth/callback`,
     response_type: "code",
     scope: PLATFORM_SCOPES.youtube.join(" "),
@@ -283,8 +291,12 @@ function generateYouTubeOAuthURL(state: string): string {
  * Generate Facebook OAuth URL
  */
 function generateFacebookOAuthURL(state: string): string {
+  if (!process.env.FACEBOOK_APP_ID) {
+    throw new Error("FACEBOOK_APP_ID not configured");
+  }
+  
   const params = new URLSearchParams({
-    client_id: process.env.FACEBOOK_APP_ID!,
+    client_id: process.env.FACEBOOK_APP_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/facebook/oauth/callback`,
     response_type: "code",
     scope: PLATFORM_SCOPES.facebook.join(","),
@@ -310,9 +322,13 @@ async function handleTwitchCallback(
   }
 
   // Exchange code for tokens with PKCE verification
+  if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
+    throw new Error("Twitch credentials not configured");
+  }
+  
   const tokenParams: Record<string, string> = {
-    client_id: process.env.TWITCH_CLIENT_ID!,
-    client_secret: process.env.TWITCH_CLIENT_SECRET!,
+    client_id: process.env.TWITCH_CLIENT_ID,
+    client_secret: process.env.TWITCH_CLIENT_SECRET,
     code,
     grant_type: "authorization_code",
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
@@ -338,10 +354,14 @@ async function handleTwitchCallback(
   const tokenData = await response.json();
 
   // Get user info
+  if (!process.env.TWITCH_CLIENT_ID) {
+    throw new Error("TWITCH_CLIENT_ID not configured");
+  }
+  
   const userResponse = await fetch("https://api.twitch.tv/helix/users", {
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
-      "Client-Id": process.env.TWITCH_CLIENT_ID!,
+      "Client-Id": process.env.TWITCH_CLIENT_ID,
     },
   });
 
@@ -507,12 +527,16 @@ async function refreshTwitchToken(
   userId: string,
 ): Promise<string | null> {
   try {
+    if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
+      throw new Error("Twitch credentials not configured");
+    }
+    
     const response = await fetch("https://id.twitch.tv/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id: process.env.TWITCH_CLIENT_ID!,
-        client_secret: process.env.TWITCH_CLIENT_SECRET!,
+        client_id: process.env.TWITCH_CLIENT_ID,
+        client_secret: process.env.TWITCH_CLIENT_SECRET,
         grant_type: "refresh_token",
         refresh_token: refreshToken,
       }),

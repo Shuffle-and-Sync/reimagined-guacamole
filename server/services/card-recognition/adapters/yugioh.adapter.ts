@@ -148,9 +148,10 @@ export class YuGiOhAdapter implements ICardAdapter {
       // Filter by set if specified
       let filteredCards = data.data;
       if (options?.set) {
+        const setFilter = options.set;
         filteredCards = data.data.filter((card) =>
           card.card_sets?.some((set) =>
-            set.set_code.toLowerCase().includes(options.set!.toLowerCase()),
+            set.set_code.toLowerCase().includes(setFilter.toLowerCase()),
           ),
         );
       }
@@ -239,9 +240,10 @@ export class YuGiOhAdapter implements ICardAdapter {
 
       // If set is specified, try to find a version from that set
       if (options?.set) {
+        const setFilter = options.set;
         const cardFromSet = data.data.find((card) =>
           card.card_sets?.some((set) =>
-            set.set_code.toLowerCase().includes(options.set!.toLowerCase()),
+            set.set_code.toLowerCase().includes(setFilter.toLowerCase()),
           ),
         );
         if (cardFromSet) {

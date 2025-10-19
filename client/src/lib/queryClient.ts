@@ -72,7 +72,7 @@ export const queryClient = new QueryClient({
         }
         return failureCount < 2;
       },
-      onError: (error, variables, context) => {
+      onError: (error) => {
         console.error("Mutation error:", error);
       },
     },
