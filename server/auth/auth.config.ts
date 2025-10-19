@@ -12,6 +12,7 @@ import {
   clearAuthFailures,
 } from "./password";
 import { storage } from "../storage";
+import { logger } from "../logger";
 
 // Validate critical environment variables at startup
 if (!process.env.AUTH_SECRET) {
