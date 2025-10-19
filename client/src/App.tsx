@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -6,119 +6,129 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommunityProvider } from "@/features/communities";
 import { RequireAuth } from "@/components/RequireAuth";
-import Landing from "@/pages/landing";
-import Home from "@/pages/home";
-import TableSync from "@/pages/tablesync";
-import TableSyncLanding from "@/pages/tablesync-landing";
-import GameRoom from "@/pages/game-room";
-import { Social, Profile } from "@/features/users";
-import { CollaborativeStreamingDashboard } from "@/features/collaborative-streaming";
-import Calendar from "@/pages/calendar";
-import Matchmaking from "@/pages/matchmaking";
-import Tournaments from "@/pages/tournaments";
-import TournamentDetail from "@/pages/tournament-detail";
-import NotFound from "@/pages/not-found";
-import HelpCenter from "@/pages/help-center";
-import GettingStarted from "@/pages/getting-started";
-import FAQ from "@/pages/faq";
-import APIDocs from "@/pages/api-docs";
-import CommunityForum from "@/pages/community-forum";
-import Contact from "@/pages/contact";
-import Terms from "@/pages/terms";
-import Privacy from "@/pages/privacy";
-import Conduct from "@/pages/conduct";
-import SignIn from "@/pages/auth/signin";
-import Register from "@/pages/auth/register";
-import VerifyEmail from "@/pages/auth/verify-email";
-import ChangeEmail from "@/pages/auth/change-email";
-import ForgotPassword from "@/pages/auth/forgot-password";
-import MfaVerify from "@/pages/auth/mfa-verify";
-import AccountSettings from "@/pages/auth/account-settings";
-import AuthError from "@/pages/auth/error";
+
+// Loading component for lazy routes
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
+
+// Lazy load all pages for better code splitting
+const Landing = lazy(() => import("@/pages/landing"));
+const Home = lazy(() => import("@/pages/home"));
+const TableSync = lazy(() => import("@/pages/tablesync"));
+const TableSyncLanding = lazy(() => import("@/pages/tablesync-landing"));
+const GameRoom = lazy(() => import("@/pages/game-room"));
+const Social = lazy(() => import("@/features/users").then(m => ({ default: m.Social })));
+const Profile = lazy(() => import("@/features/users").then(m => ({ default: m.Profile })));
+const CollaborativeStreamingDashboard = lazy(() => import("@/features/collaborative-streaming").then(m => ({ default: m.CollaborativeStreamingDashboard })));
+const Calendar = lazy(() => import("@/pages/calendar"));
+const Matchmaking = lazy(() => import("@/pages/matchmaking"));
+const Tournaments = lazy(() => import("@/pages/tournaments"));
+const TournamentDetail = lazy(() => import("@/pages/tournament-detail"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+const HelpCenter = lazy(() => import("@/pages/help-center"));
+const GettingStarted = lazy(() => import("@/pages/getting-started"));
+const FAQ = lazy(() => import("@/pages/faq"));
+const APIDocs = lazy(() => import("@/pages/api-docs"));
+const CommunityForum = lazy(() => import("@/pages/community-forum"));
+const Contact = lazy(() => import("@/pages/contact"));
+const Terms = lazy(() => import("@/pages/terms"));
+const Privacy = lazy(() => import("@/pages/privacy"));
+const Conduct = lazy(() => import("@/pages/conduct"));
+const SignIn = lazy(() => import("@/pages/auth/signin"));
+const Register = lazy(() => import("@/pages/auth/register"));
+const VerifyEmail = lazy(() => import("@/pages/auth/verify-email"));
+const ChangeEmail = lazy(() => import("@/pages/auth/change-email"));
+const ForgotPassword = lazy(() => import("@/pages/auth/forgot-password"));
+const MfaVerify = lazy(() => import("@/pages/auth/mfa-verify"));
+const AccountSettings = lazy(() => import("@/pages/auth/account-settings"));
+const AuthError = lazy(() => import("@/pages/auth/error"));
 
 function Router() {
   return (
-    <Switch>
-      {/* Public routes - always available */}
-      <Route path="/" component={Landing} />
-      <Route path="/tablesync" component={TableSyncLanding} />
-      <Route path="/calendar" component={Calendar} />
-      <Route path="/tournaments" component={Tournaments} />
-      <Route path="/tournaments/:id" component={TournamentDetail} />
-      <Route path="/help-center" component={HelpCenter} />
-      <Route path="/getting-started" component={GettingStarted} />
-      <Route path="/faq" component={FAQ} />
-      <Route path="/api-docs" component={APIDocs} />
-      <Route path="/community-forum" component={CommunityForum} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/conduct" component={Conduct} />
-      
-      {/* Auth routes */}
-      <Route path="/auth/signin" component={SignIn} />
-      <Route path="/auth/register" component={Register} />
-      <Route path="/auth/verify-email" component={VerifyEmail} />
-      <Route path="/auth/change-email" component={ChangeEmail} />
-      <Route path="/auth/forgot-password" component={ForgotPassword} />
-      <Route path="/auth/mfa-verify" component={MfaVerify} />
-      <Route path="/auth/error" component={AuthError} />
-      
-      {/* Redirect /login to /auth/signin for compatibility */}
-      <Route path="/login">
-        <SignIn />
-      </Route>
-      
-      {/* Protected routes - require authentication */}
-      <Route path="/home">
-        <RequireAuth redirectTo="/">
-          <Home />
-        </RequireAuth>
-      </Route>
-      <Route path="/app">
-        <RequireAuth redirectTo="/">
-          <TableSync />
-        </RequireAuth>
-      </Route>
-      <Route path="/app/room/:id">
-        <RequireAuth redirectTo="/">
-          <GameRoom />
-        </RequireAuth>
-      </Route>
-      <Route path="/social">
-        <RequireAuth redirectTo="/">
-          <Social />
-        </RequireAuth>
-      </Route>
-      <Route path="/matchmaking">
-        <RequireAuth redirectTo="/">
-          <Matchmaking />
-        </RequireAuth>
-      </Route>
-      <Route path="/profile">
-        <RequireAuth redirectTo="/">
-          <Profile />
-        </RequireAuth>
-      </Route>
-      <Route path="/profile/:userId">
-        <RequireAuth redirectTo="/">
-          <Profile />
-        </RequireAuth>
-      </Route>
-      <Route path="/account/settings">
-        <RequireAuth redirectTo="/auth/signin">
-          <AccountSettings />
-        </RequireAuth>
-      </Route>
-      <Route path="/collaborative-streaming">
-        <RequireAuth redirectTo="/">
-          <CollaborativeStreamingDashboard />
-        </RequireAuth>
-      </Route>
-      
-      {/* Fallback */}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        {/* Public routes - always available */}
+        <Route path="/" component={Landing} />
+        <Route path="/tablesync" component={TableSyncLanding} />
+        <Route path="/calendar" component={Calendar} />
+        <Route path="/tournaments" component={Tournaments} />
+        <Route path="/tournaments/:id" component={TournamentDetail} />
+        <Route path="/help-center" component={HelpCenter} />
+        <Route path="/getting-started" component={GettingStarted} />
+        <Route path="/faq" component={FAQ} />
+        <Route path="/api-docs" component={APIDocs} />
+        <Route path="/community-forum" component={CommunityForum} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/conduct" component={Conduct} />
+        
+        {/* Auth routes */}
+        <Route path="/auth/signin" component={SignIn} />
+        <Route path="/auth/register" component={Register} />
+        <Route path="/auth/verify-email" component={VerifyEmail} />
+        <Route path="/auth/change-email" component={ChangeEmail} />
+        <Route path="/auth/forgot-password" component={ForgotPassword} />
+        <Route path="/auth/mfa-verify" component={MfaVerify} />
+        <Route path="/auth/error" component={AuthError} />
+        
+        {/* Redirect /login to /auth/signin for compatibility */}
+        <Route path="/login" component={SignIn} />
+        
+        {/* Protected routes - require authentication */}
+        <Route path="/home">
+          <RequireAuth redirectTo="/">
+            <Home />
+          </RequireAuth>
+        </Route>
+        <Route path="/app">
+          <RequireAuth redirectTo="/">
+            <TableSync />
+          </RequireAuth>
+        </Route>
+        <Route path="/app/room/:id">
+          <RequireAuth redirectTo="/">
+            <GameRoom />
+          </RequireAuth>
+        </Route>
+        <Route path="/social">
+          <RequireAuth redirectTo="/">
+            <Social />
+          </RequireAuth>
+        </Route>
+        <Route path="/matchmaking">
+          <RequireAuth redirectTo="/">
+            <Matchmaking />
+          </RequireAuth>
+        </Route>
+        <Route path="/profile">
+          <RequireAuth redirectTo="/">
+            <Profile />
+          </RequireAuth>
+        </Route>
+        <Route path="/profile/:userId">
+          <RequireAuth redirectTo="/">
+            <Profile />
+          </RequireAuth>
+        </Route>
+        <Route path="/account/settings">
+          <RequireAuth redirectTo="/auth/signin">
+            <AccountSettings />
+          </RequireAuth>
+        </Route>
+        <Route path="/collaborative-streaming">
+          <RequireAuth redirectTo="/">
+            <CollaborativeStreamingDashboard />
+          </RequireAuth>
+        </Route>
+        
+        {/* Fallback */}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
 import { 
   Activity,
   Users,
@@ -47,13 +46,14 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
   const status = coordinationStatus;
 
   // Mock data for demonstration - only in development
-  const mockCollaborators: CollaboratorStatus[] = import.meta.env.DEV ? [
+  // Use useMemo to avoid calling Date.now() during render
+  const mockCollaborators: CollaboratorStatus[] = useMemo(() => import.meta.env.DEV ? [
     {
       id: '1',
       name: 'StreamMaster',
       role: 'host',
       isLive: true,
-      connectionStatus: 'connected',
+      connectionStatus: 'connected' as ConnectionStatus,
       audioEnabled: true,
       videoEnabled: true,
       lastSeen: new Date(),
@@ -64,7 +64,7 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
       name: 'CoStreamPro',
       role: 'co_host',
       isLive: true,
-      connectionStatus: 'connected',
+      connectionStatus: 'connected' as ConnectionStatus,
       audioEnabled: true,
       videoEnabled: false,
       lastSeen: new Date(Date.now() - 30000),
@@ -75,13 +75,13 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
       name: 'GuestPlayer',
       role: 'guest',
       isLive: false,
-      connectionStatus: 'disconnected',
+      connectionStatus: 'disconnected' as ConnectionStatus,
       audioEnabled: false,
       videoEnabled: false,
       lastSeen: new Date(Date.now() - 120000),
       viewerCount: 0,
     },
-  ] : [];
+  ] : [], []);
 
   const mockMetrics: StreamMetrics = import.meta.env.DEV ? {
     totalViewers: 1247,

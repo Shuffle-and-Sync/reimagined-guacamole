@@ -91,6 +91,7 @@ matchingRouter.get('/realtime', isAuthenticated, async (req, res) => {
 
     // Log MFA enabled event with audit trail
     logger.info('Real-time matches retrieved successfully', {
+    logger.info("Real-time matches retrieved successfully", {
       userId,
       matchCount: matches.matches.length,
       processingTime: matches.metadata.processingTime

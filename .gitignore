@@ -71,7 +71,6 @@ postgres_data/
 cloudbuild-logs/
 meta.json
 ".env.production" 
-".env.production" 
 .env.production
 
 # Terraform state files
