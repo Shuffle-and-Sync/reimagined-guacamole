@@ -227,7 +227,24 @@ interface ExtendedEvent extends Event {
 
 interface ExtendedTournament extends Tournament {
   gameFormat?: string;
-  rules?: any;
+  rules?: Record<string, unknown>;
+}
+
+// Type for matchmaking results
+export interface MatchedPlayer {
+  id: string;
+  username: string;
+  avatar: string | null;
+  games: (string | null)[];
+  formats: string[];
+  powerLevel: number;
+  playstyle: string | null;
+  location: string;
+  availability: Record<string, unknown>;
+  matchScore: number;
+  commonInterests: string[];
+  lastOnline: string;
+  isOnline: boolean;
 }
 
 // Interface for storage operations
@@ -642,7 +659,7 @@ export interface IStorage {
   findMatchingPlayers(
     userId: string,
     preferences: MatchmakingPreferences,
-  ): Promise<{ data: any[]; hasMore: boolean }>;
+  ): Promise<{ data: MatchedPlayer[]; hasMore: boolean }>;
 
   // Tournament operations
   getTournaments(
@@ -974,13 +991,13 @@ export interface IStorage {
   recordPositiveAction(
     userId: string,
     actionType: string,
-    metadata?: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void>;
   recordNegativeAction(
     userId: string,
     actionType: string,
     severity: "minor" | "moderate" | "severe",
-    metadata?: any,
+    metadata?: Record<string, unknown>,
   ): Promise<void>;
   recordReportSubmission(
     userId: string,
@@ -1099,7 +1116,7 @@ export interface IStorage {
     }[]
   >;
   escalateOverdueItems(thresholdHours?: number): Promise<ModerationQueue[]>;
-  calculateAutoPriority(itemType: string, metadata?: any): Promise<number>;
+  calculateAutoPriority(itemType: string, metadata?: Record<string, unknown>): Promise<number>;
   getModerationQueueStats(): Promise<{
     totalOpen: number;
     totalAssigned: number;
@@ -1958,7 +1975,7 @@ export class DatabaseStorage implements IStorage {
     const rawEvents = await query.orderBy(events.startTime); // TODO: time column doesn't exist, using startTime
 
     // Get attendee counts and user attendance separately
-    const eventIds = rawEvents.map((e: any) => e.id);
+    const eventIds = rawEvents.map((e) => e.id);
     const attendeeCounts =
       eventIds.length > 0
         ? await db
@@ -1986,7 +2003,10 @@ export class DatabaseStorage implements IStorage {
             )
         : [];
 
-    const eventsWithDetails = rawEvents.map((event: any) => ({
+    type AttendeeCount = { eventId: string; count: number };
+    type UserAttendance = { eventId: string };
+    
+    const eventsWithDetails = rawEvents.map((event) => ({
       ...event,
       creator: event.creator || {
         id: "",
@@ -2004,18 +2024,18 @@ export class DatabaseStorage implements IStorage {
         timezone: null,
         dateOfBirth: null,
         isPrivate: false,
-        showOnlineStatus: "everyone" as any,
-        allowDirectMessages: "everyone" as any,
+        showOnlineStatus: "everyone",
+        allowDirectMessages: "everyone",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
       community: event.community,
       attendeeCount:
-        attendeeCounts.find(
-          (ac: { eventId: string; count: number }) => ac.eventId === event.id,
+        (attendeeCounts as AttendeeCount[]).find(
+          (ac) => ac.eventId === event.id,
         )?.count || 0,
-      isUserAttending: userAttendance.some(
-        (ua: { eventId: string }) => ua.eventId === event.id,
+      isUserAttending: (userAttendance as UserAttendance[]).some(
+        (ua) => ua.eventId === event.id,
       ),
     }));
     if (!eventsWithDetails) {
@@ -2114,8 +2134,8 @@ export class DatabaseStorage implements IStorage {
         timezone: null,
         dateOfBirth: null,
         isPrivate: false,
-        showOnlineStatus: "everyone" as any,
-        allowDirectMessages: "everyone" as any,
+        showOnlineStatus: "everyone",
+        allowDirectMessages: "everyone",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -2297,7 +2317,7 @@ export class DatabaseStorage implements IStorage {
 
   // Transaction-based event operations
   async getEventWithTransaction(
-    tx: any,
+    tx: Transaction,
     id: string,
   ): Promise<Event | undefined> {
     const [event] = await tx.select().from(events).where(eq(events.id, id));
@@ -2308,7 +2328,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async joinEventWithTransaction(
-    tx: any,
+    tx: Transaction,
     data: InsertEventAttendee,
   ): Promise<EventAttendee> {
     const [attendee] = await tx
@@ -2329,7 +2349,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNotificationWithTransaction(
-    tx: any,
+    tx: Transaction,
     data: InsertNotification,
   ): Promise<Notification> {
     const [notification] = await tx
@@ -2487,7 +2507,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(events.startTime);
 
     // Get player counts for each event
-    const eventIds = rawEvents.map((e: any) => e.id);
+    const eventIds = rawEvents.map((e) => e.id);
     const playerCounts =
       eventIds.length > 0
         ? await db
@@ -2506,7 +2526,7 @@ export class DatabaseStorage implements IStorage {
             .groupBy(eventAttendees.eventId)
         : [];
 
-    return rawEvents.map((event: any) => ({
+    return rawEvents.map((event) => ({
       ...event,
       creator: event.creator || {
         id: "",
@@ -2524,8 +2544,8 @@ export class DatabaseStorage implements IStorage {
         timezone: null,
         dateOfBirth: null,
         isPrivate: false,
-        showOnlineStatus: "everyone" as any,
-        allowDirectMessages: "everyone" as any,
+        showOnlineStatus: "everyone",
+        allowDirectMessages: "everyone",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -3771,7 +3791,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`${messages.createdAt} DESC`)
       .limit(options?.limit || 50);
 
-    return results.map((r: { message: any; sender: any }) => ({
+    return results.map((r: { message: Message; sender: User | null }) => ({
       ...r.message,
       sender: r.sender,
     }));
@@ -3786,7 +3806,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async sendMessageWithTransaction(
-    tx: any,
+    tx: Transaction,
     data: InsertMessage,
   ): Promise<Message> {
     const [message] = await tx.insert(messages).values(data).returning();
@@ -3839,7 +3859,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.createdAt))
       .limit(options?.limit || 50);
 
-    return results.map((r: { message: any; sender: any; event: any }) => ({
+    return results.map((r: { message: Message; sender: User | null; event: Event | null }) => ({
       ...r.message,
       sender: r.sender,
       event: r.event,
@@ -3878,7 +3898,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(sql`${messages.createdAt} ASC`);
 
-    return results.map((r: { message: any; sender: any }) => ({
+    return results.map((r: { message: Message; sender: User | null }) => ({
       ...r.message,
       sender: r.sender,
     }));
@@ -3965,7 +3985,7 @@ export class DatabaseStorage implements IStorage {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map((r: { gameSession: any; host: any; event: any }) => ({
+    return results.map((r: { gameSession: GameSession; host: User | null; event: Event | null }) => ({
       ...r.gameSession,
       host: r.host as User,
       event: r.event as Event,
@@ -4401,7 +4421,7 @@ export class DatabaseStorage implements IStorage {
   async findMatchingPlayers(
     userId: string,
     preferences: MatchmakingPreferences,
-  ): Promise<{ data: any[]; hasMore: boolean }> {
+  ): Promise<{ data: MatchedPlayer[]; hasMore: boolean }> {
     // Optimized AI Matchmaking Algorithm with performance monitoring
     return withQueryTiming("ai_matchmaking", async () => {
       // Pre-filter with indexed query to reduce dataset size
@@ -4432,9 +4452,23 @@ export class DatabaseStorage implements IStorage {
         .limit(100); // Limit candidates for performance optimization
 
       // Calculate match scores
+      type UserProfile = {
+        user: User | null;
+        gamingProfile: UserGamingProfile | null;
+        preferences: MatchmakingPreferences | null;
+        community: Community | null;
+      };
+      
+      type ValidatedProfile = Omit<UserProfile, 'user' | 'gamingProfile'> & {
+        user: User;
+        gamingProfile: UserGamingProfile;
+      };
+      
       const scoredMatches = userProfiles
-        .filter((profile: any) => profile.user && profile.gamingProfile)
-        .map((profile: any) => {
+        .filter((profile): profile is ValidatedProfile => 
+          profile.user !== null && profile.gamingProfile !== null
+        )
+        .map((profile): MatchedPlayer => {
           let score = 0;
           const user = profile.user;
           const gaming = profile.gamingProfile;
@@ -4477,19 +4511,19 @@ export class DatabaseStorage implements IStorage {
             username: user.username || `${user.firstName} ${user.lastName}`,
             avatar: user.profileImageUrl,
             games: [gaming.communityId],
-            formats: userPrefs?.selectedFormats || [],
+            formats: JSON.parse(userPrefs?.preferredFormats || "[]"),
             powerLevel: this.calculatePowerLevel(gaming, userPrefs),
-            playstyle: gaming.experience || "intermediate",
+            playstyle: gaming.skillLevel || "intermediate",
             location: user.location || "Online Only",
-            availability: userPrefs?.availability || "any",
+            availability: JSON.parse(userPrefs?.availabilitySchedule || "{}"),
             matchScore: Math.round(score),
             commonInterests: gaming.favoriteDeck ? [gaming.favoriteDeck] : [],
             lastOnline: user.status === "online" ? "Online now" : "1 hour ago",
             isOnline: user.status === "online",
           };
         })
-        .filter((match: any) => match.matchScore > 20) // Minimum match threshold
-        .sort((a: any, b: any) => b.matchScore - a.matchScore) // Best matches first
+        .filter((match) => match.matchScore > 20) // Minimum match threshold
+        .sort((a, b) => b.matchScore - a.matchScore) // Best matches first
         .slice(0, 20); // Limit results
 
       return {
@@ -4500,11 +4534,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Calculate power level based on gaming experience and stats
-  private calculatePowerLevel(gaming: any, preferences: any): number {
+  private calculatePowerLevel(gaming: UserGamingProfile | null, preferences: MatchmakingPreferences | null): number {
     let powerLevel = 5; // Base level
 
-    // Adjust based on experience
-    switch (gaming?.experience?.toLowerCase()) {
+    // Adjust based on skill level
+    const skillLevel = gaming?.skillLevel?.toLowerCase();
+    switch (skillLevel) {
       case "beginner":
         powerLevel = 2;
         break;
@@ -4514,6 +4549,7 @@ export class DatabaseStorage implements IStorage {
       case "advanced":
         powerLevel = 8;
         break;
+      case "competitive":
       case "expert":
         powerLevel = 10;
         break;
@@ -4521,9 +4557,14 @@ export class DatabaseStorage implements IStorage {
         powerLevel = 5;
     }
 
+    // Add experience bonus (experience is an integer representing total experience)
+    if (gaming?.experience && gaming.experience > 100) {
+      powerLevel += 1;
+    }
+
     // Add slight variance based on preferences
-    if (preferences?.selectedFormats?.length > 3) powerLevel += 1;
-    if (preferences?.competitiveLevel === "competitive") powerLevel += 1;
+    const formats = JSON.parse(preferences?.preferredFormats || "[]") as string[];
+    if (formats.length > 3) powerLevel += 1;
 
     return Math.min(Math.max(powerLevel, 1), 10);
   }
@@ -4983,7 +5024,7 @@ export class DatabaseStorage implements IStorage {
 
   // Tournament transaction operations
   async getTournamentWithTransaction(
-    tx: any,
+    tx: Transaction,
     tournamentId: string,
   ): Promise<
     (Tournament & { organizer: User; community: Community }) | undefined
@@ -5011,7 +5052,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTournamentParticipantsWithTransaction(
-    tx: any,
+    tx: Transaction,
     tournamentId: string,
   ): Promise<(TournamentParticipant & { user: User })[]> {
     return await tx
@@ -5029,7 +5070,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTournamentRoundsWithTransaction(
-    tx: any,
+    tx: Transaction,
     tournamentId: string,
   ): Promise<TournamentRound[]> {
     return await tx
@@ -5040,7 +5081,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTournamentMatchesWithTransaction(
-    tx: any,
+    tx: Transaction,
     tournamentId: string,
   ): Promise<
     (TournamentMatch & { player1?: User; player2?: User; winner?: User })[]
