@@ -59,6 +59,56 @@ export default function ChangeEmail() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
 
+  const confirmEmailChange = useCallback(async (verificationToken: string) => {
+    setIsConfirming(true);
+    setConfirmationError("");
+
+    try {
+      const response = await fetch(
+        `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setConfirmationStatus("success");
+        toast({
+          title: "Email updated successfully!",
+          description: "Your email address has been changed.",
+        });
+
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          setLocation(data.redirectUrl || "/dashboard");
+        }, 3000);
+      } else {
+        if (
+          data.message?.includes("expired") ||
+          data.message?.includes("invalid")
+        ) {
+          setConfirmationStatus("expired");
+        } else {
+          setConfirmationStatus("error");
+          setConfirmationError(
+            data.message || "Email change confirmation failed.",
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Email change confirmation error:", err);
+      setConfirmationStatus("error");
+      setConfirmationError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsConfirming(false);
+    }
+  }, [toast, setLocation]);
+
   const checkPendingRequest = useCallback(async () => {
     try {
       const response = await fetch("/api/user/profile", {
@@ -178,56 +228,6 @@ export default function ChangeEmail() {
       setIsInitiating(false);
     }
   };
-
-  const confirmEmailChange = useCallback(async (verificationToken: string) => {
-    setIsConfirming(true);
-    setConfirmationError("");
-
-    try {
-      const response = await fetch(
-        `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setConfirmationStatus("success");
-        toast({
-          title: "Email updated successfully!",
-          description: "Your email address has been changed.",
-        });
-
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          setLocation(data.redirectUrl || "/dashboard");
-        }, 3000);
-      } else {
-        if (
-          data.message?.includes("expired") ||
-          data.message?.includes("invalid")
-        ) {
-          setConfirmationStatus("expired");
-        } else {
-          setConfirmationStatus("error");
-          setConfirmationError(
-            data.message || "Email change confirmation failed.",
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Email change confirmation error:", err);
-      setConfirmationStatus("error");
-      setConfirmationError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsConfirming(false);
-    }
-  }, [toast, setLocation]);
 
   const cancelEmailChange = async () => {
     setIsCanceling(true);
