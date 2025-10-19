@@ -1,0 +1,35 @@
+File,Line,Code Snippet,Category,Priority,Description,Recommendation,Effort,Security Impact
+shared/database-unified.ts,18,export type Transaction = any,C,Medium,Transaction type uses any instead of specific Drizzle type,Use SQLiteTransaction<async void Schema> type,Medium,None
+shared/database-unified.ts,64,db = drizzle(sqliteCloud as any),E,Acceptable,Type assertion for SQLite Cloud driver compatibility,Leave as-is with documentation,N/A,None
+shared/database-unified.ts,204-209,connectionInfo?: any; performanceMetrics?: any,B,High,Health check return type uses any,Define proper interfaces,Low,Low
+shared/database-unified.ts,245,private statements = new Map<string any>(),D,Low,Prepared statement cache uses any,Consider generic typing,Medium,None
+shared/database-unified.ts,254,getOrPrepare<T = any>(...): any,D,Low,Prepared statement method uses any,Use generic with proper constraints,Medium,None
+server/repositories/base.repository.ts,92-94,.from(this.table as any),D,Low,Generic table access requires type assertion,Accept as generic repository limitation,N/A,None
+server/repositories/base.repository.ts,114+,"Multiple instances of (this.table as any)",D,Low,Repeated pattern across multiple methods,Create helper method to reduce duplication,Low,None
+server/repositories/base.repository.ts,559-579,executeRawQuery with @ts-expect-error,C,Medium,Raw query execution bypasses type safety,Add validation and use parameterized queries,Medium,Medium
+server/repositories/base.repository.ts,586-632,buildWhereConditions column access,D,Low,Dynamic filter building uses type assertion,Accept as generic repository limitation,N/A,Low
+server/utils/database.utils.ts,638-645,parseCursor returns value: any,C,Medium,Cursor value type is any,Add generic typing and validation,Low,Low
+server/routes/database-health.ts,94,(sum stat: any) => sum + stat.count,B,High,Statistics reducer uses any,Use proper QueryStats interface,Very Low,None
+server/storage.ts,N/A,No any usages found,N/A,N/A,Excellent type safety throughout,No changes needed,N/A,None
+
+Summary Totals
+Total Files Audited,5
+Total Any Instances,12
+Category A (Critical),0
+Category B (High Priority),3
+Category C (Medium Priority),4
+Category D (Low Priority),3
+Category E (Acceptable),2
+Overall Grade,A-
+
+Quick Wins (Phase 1)
+Fix statistics reducer,30 minutes
+Define health check interfaces,1 hour
+Add generic cursor typing,1 hour
+Total Phase 1 Effort,2-4 hours
+
+Medium Effort (Phase 2)
+Update Transaction type,2-3 hours
+Improve raw query execution,2-3 hours
+Add documentation,1-2 hours
+Total Phase 2 Effort,4-8 hours
