@@ -11,8 +11,8 @@
  * - Performance optimization with query batching
  */
 
-import { eq, and, gte, lte, desc, asc, count, sql } from "drizzle-orm";
-import type { Transaction } from "@shared/database-unified";
+import { eq, gte, lte, sql } from "drizzle-orm";
+// Note: and, desc, asc, count, Transaction reserved for advanced query features
 import { db } from "@shared/database-unified";
 import { users } from "@shared/schema";
 import { NotFoundError, ValidationError } from "../../shared/types";
@@ -284,7 +284,7 @@ class GameStatsService {
       }
 
       // Use database transaction for data consistency
-      return await db.transaction(async (tx) => {
+      return await db.transaction(async (_tx) => {
         // Mock creating game result (would insert into game_results table)
         const newResult: GameResult = {
           id: `result-${Date.now()}`,
