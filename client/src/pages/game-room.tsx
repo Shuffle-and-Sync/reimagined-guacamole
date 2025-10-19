@@ -1017,7 +1017,7 @@ export default function GameRoom() {
                             </p>
                           ) : (
                             <p className="text-xs text-gray-300">
-                              Click "Enable Camera" to join video chat
+                              Click &quot;Enable Camera&quot; to join video chat
                             </p>
                           )}
                         </div>

@@ -1,0 +1,1041 @@
+{
+  "totalWarnings": 789,
+  "totalFiles": 297,
+  "filesWithWarnings": 137,
+  "ruleBreakdown": {
+    "@typescript-eslint/no-explicit-any": 502,
+    "@typescript-eslint/no-unused-vars": 269,
+    "react/no-unescaped-entities": 18
+  },
+  "fileBreakdown": [
+    {
+      "file": "server/storage.ts",
+      "warnings": 74,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 26,
+        "@typescript-eslint/no-explicit-any": 48
+      }
+    },
+    {
+      "file": "server/services/analytics-service.ts",
+      "warnings": 49,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 24,
+        "@typescript-eslint/no-explicit-any": 25
+      }
+    },
+    {
+      "file": "server/routes.ts",
+      "warnings": 36,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 33,
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/repositories/base.repository.ts",
+      "warnings": 26,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 25
+      }
+    },
+    {
+      "file": "server/services/games/game.service.ts",
+      "warnings": 20,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 16,
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/services/real-time-matching-api.ts",
+      "warnings": 20,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 6,
+        "@typescript-eslint/no-explicit-any": 14
+      }
+    },
+    {
+      "file": "client/src/lib/websocket-client.ts",
+      "warnings": 18,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 18
+      }
+    },
+    {
+      "file": "server/services/youtube-api.ts",
+      "warnings": 17,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 16,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/services/collaborative-streaming.ts",
+      "warnings": 16,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3,
+        "@typescript-eslint/no-explicit-any": 13
+      }
+    },
+    {
+      "file": "client/src/pages/game-room.tsx",
+      "warnings": 15,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 6,
+        "@typescript-eslint/no-unused-vars": 7,
+        "react/no-unescaped-entities": 2
+      }
+    },
+    {
+      "file": "server/services/card-recognition/adapters/custom.adapter.ts",
+      "warnings": 14,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 13,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/features/tournaments/tournaments.service.ts",
+      "warnings": 13,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 11,
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/services/ai-streaming-matcher.ts",
+      "warnings": 13,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 6,
+        "@typescript-eslint/no-explicit-any": 7
+      }
+    },
+    {
+      "file": "server/services/enhanced-notification.ts",
+      "warnings": 13,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 12,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/services/facebook-api.ts",
+      "warnings": 13,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 9,
+        "@typescript-eslint/no-unused-vars": 4
+      }
+    },
+    {
+      "file": "server/tests/features/registration-login-integration.test.ts",
+      "warnings": 13,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 9,
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "client/src/pages/tournaments.tsx",
+      "warnings": 12,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 7,
+        "@typescript-eslint/no-unused-vars": 3,
+        "react/no-unescaped-entities": 2
+      }
+    },
+    {
+      "file": "client/src/shared/utils/performance.ts",
+      "warnings": 11,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 11
+      }
+    },
+    {
+      "file": "client/src/pages/matchmaking.tsx",
+      "warnings": 10,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 4,
+        "@typescript-eslint/no-explicit-any": 4,
+        "react/no-unescaped-entities": 2
+      }
+    },
+    {
+      "file": "server/admin/admin.middleware.ts",
+      "warnings": 10,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 10
+      }
+    },
+    {
+      "file": "server/logger.ts",
+      "warnings": 10,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 10
+      }
+    },
+    {
+      "file": "server/utils/production-logger.ts",
+      "warnings": 10,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 10
+      }
+    },
+    {
+      "file": "server/utils/websocket-server-enhanced.ts",
+      "warnings": 9,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 9
+      }
+    },
+    {
+      "file": "server/agents/automated-fixes.ts",
+      "warnings": 8,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 8
+      }
+    },
+    {
+      "file": "server/middleware/performance.middleware.ts",
+      "warnings": 8,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 8
+      }
+    },
+    {
+      "file": "server/services/ai-algorithm-engine.ts",
+      "warnings": 8,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 8
+      }
+    },
+    {
+      "file": "server/services/infrastructure-test-service.ts",
+      "warnings": 8,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 5,
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/services/notification-delivery.ts",
+      "warnings": 8,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5,
+        "@typescript-eslint/no-unused-vars": 3
+      }
+    },
+    {
+      "file": "client/src/features/collaborative-streaming/hooks/useCollaborativeStreaming.ts",
+      "warnings": 7,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 7
+      }
+    },
+    {
+      "file": "server/routes/analytics.ts",
+      "warnings": 7,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 7
+      }
+    },
+    {
+      "file": "server/services/notification-templates.ts",
+      "warnings": 7,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 6,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/services/platform-oauth.ts",
+      "warnings": 7,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 7
+      }
+    },
+    {
+      "file": "server/utils/websocket-message-validator.ts",
+      "warnings": 7,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 7
+      }
+    },
+    {
+      "file": "client/src/components/tournament/TournamentEditor.tsx",
+      "warnings": 6,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 6
+      }
+    },
+    {
+      "file": "server/services/cache-service.ts",
+      "warnings": 6,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 6
+      }
+    },
+    {
+      "file": "server/services/enhanced-notifications.ts",
+      "warnings": 6,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 6
+      }
+    },
+    {
+      "file": "server/tests/security/gitignore-env-protection.test.ts",
+      "warnings": 6,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "client/src/features/collaborative-streaming/components/PlatformAccountManager.tsx",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4,
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/lib/logger.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "client/src/pages/calendar.tsx",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4,
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/pages/community-forum.tsx",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 4,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/pages/tournament-detail.tsx",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "client/src/shared/constants/queryKeys.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "client/src/shared/hooks/useOptimizedQuery.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "server/features/game-stats/game-stats.routes.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/services/error-tracking.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "server/services/streaming-coordinator.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/tests/features/messaging.test.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "server/tests/setup.ts",
+      "warnings": 5,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 5
+      }
+    },
+    {
+      "file": "client/src/components/SettingsModal.tsx",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "client/src/components/tournament/TournamentBracket.tsx",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/admin/admin.routes.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 4
+      }
+    },
+    {
+      "file": "server/auth/auth.config.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 4
+      }
+    },
+    {
+      "file": "server/auth/session-security.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/features/auth/auth.service.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/index.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/middleware/cache-middleware.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/middleware/index.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/repositories/user.repository.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/routes/webhooks.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/services/backup-service.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/services/twitch-api.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 4
+      }
+    },
+    {
+      "file": "server/shared/utils.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/utils/database.utils.test.ts",
+      "warnings": 4,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/components/calendar/CSVUploadDialog.tsx",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/GamePodCalendar.tsx",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1,
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/DecksongDashboard.tsx",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1,
+        "react/no-unescaped-entities": 2
+      }
+    },
+    {
+      "file": "client/src/pages/tablesync.tsx",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/features/users/users.types.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/middleware/error-handling.middleware.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/middleware/security.middleware.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/services/card-recognition/index.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3
+      }
+    },
+    {
+      "file": "server/services/monitoring-service.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/startup-optimization.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/tests/features/events.integration.test.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3
+      }
+    },
+    {
+      "file": "server/tests/features/matchmaking.test.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/tests/schema/cards-games-schema.test.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/tests/security/security-audit-comprehensive.test.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/utils/database.utils.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/utils/websocket-connection-manager.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 3
+      }
+    },
+    {
+      "file": "server/utils/websocket-env-validation.ts",
+      "warnings": 3,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 3
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/PokeStreamDashboard.tsx",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1,
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/ScryGatherDashboard.tsx",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1,
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/features/events/types/index.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "client/src/lib/queryClient.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "client/src/pages/auth/signin.tsx",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "client/src/pages/contact.tsx",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/pages/privacy.tsx",
+      "warnings": 2,
+      "rules": {
+        "react/no-unescaped-entities": 2
+      }
+    },
+    {
+      "file": "client/src/shared/components/LazyLoad.tsx",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/agents/drizzle-analyzer.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/features/events/events.routes.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/features/events/events.service.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/routes/cache-health.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/routes/database-health.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1,
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/routes/monitoring.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/services/card-recognition.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/services/user.service.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/services/waitlist.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/shared/middleware.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1,
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/shared/types.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    },
+    {
+      "file": "server/tests/admin/admin-initialization.test.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "server/tests/features/universal-deck-building.e2e.test.ts",
+      "warnings": 2,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 2
+      }
+    },
+    {
+      "file": "client/src/features/auth/types/index.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/features/collaborative-streaming/components/SessionMonitor.tsx",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/features/collaborative-streaming/types/index.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/BladeforgeDashboard.tsx",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/DeckmasterDashboard.tsx",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/features/communities/components/realm-dashboards/DuelcraftDashboard.tsx",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "client/src/hooks/use-toast.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "client/src/pages/auth/verify-email.tsx",
+      "warnings": 1,
+      "rules": {
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/pages/getting-started.tsx",
+      "warnings": 1,
+      "rules": {
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/pages/tablesync-landing.tsx",
+      "warnings": 1,
+      "rules": {
+        "react/no-unescaped-entities": 1
+      }
+    },
+    {
+      "file": "client/src/shared/components/OptimizedComponents.tsx",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/agents/backend-copilot-agent.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/auth/auth.middleware.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/auth/auth.routes.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/auth/mfa.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/auth/tokens.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/email-service.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/features/auth/auth.types.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/features/cards/cards.routes.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/features/communities/communities.types.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/features/games/games-crud.routes.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/rate-limiting.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/routes/backup.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/routes/infrastructure-tests.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/routes/matching.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/services/card-recognition/adapters/base.adapter.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/services/card-recognition/adapters/pokemon.adapter.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/services/card-recognition/adapters/scryfall.adapter.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/services/graphics-generator.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 1
+      }
+    },
+    {
+      "file": "server/tests/auth-routes.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/environment/env-validation.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/features/calendar.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/features/card-recognition.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/features/twitch-oauth.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    },
+    {
+      "file": "server/tests/services/game.service.test.ts",
+      "warnings": 1,
+      "rules": {
+        "@typescript-eslint/no-unused-vars": 1
+      }
+    }
+  ],
+  "categoryBreakdown": {
+    "React/Hooks": 0,
+    "TypeScript": 502,
+    "Performance": 0,
+    "Accessibility": 0,
+    "Security": 0,
+    "Code Quality": 287,
+    "Imports": 0,
+    "Testing": 0
+  },
+  "severityBreakdown": {
+    "critical": 0,
+    "high": 502,
+    "medium": 269,
+    "low": 18
+  },
+  "fixComplexity": {
+    "autoFixable": 0,
+    "simple": 287,
+    "moderate": 502,
+    "complex": 0
+  }
+}

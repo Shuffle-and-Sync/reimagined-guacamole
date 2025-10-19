@@ -906,7 +906,7 @@ export default function Tournaments() {
                     <i className="fas fa-trophy text-primary"></i>
                     <span>Participating In</span>
                   </CardTitle>
-                  <CardDescription>Tournaments you've joined</CardDescription>
+                  <CardDescription>Tournaments you&apos;ve joined</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
@@ -927,7 +927,7 @@ export default function Tournaments() {
                     <i className="fas fa-crown text-primary"></i>
                     <span>Organizing</span>
                   </CardTitle>
-                  <CardDescription>Tournaments you've created</CardDescription>
+                  <CardDescription>Tournaments you&apos;ve created</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">

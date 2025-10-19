@@ -330,7 +330,7 @@ export function ScryGatherDashboard({ user }: ScryGatherDashboardProps) {
                       className="text-sm"
                       style={{ color: theme.colors.textSecondary }}
                     >
-                      Your spark has ignited and you've joined the ranks of
+                      Your spark has ignited and you&apos;ve joined the ranks of
                       planeswalkers
                     </p>
                   </div>

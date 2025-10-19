@@ -10,7 +10,73 @@ import { createHmac, timingSafeEqual } from "crypto";
 export interface YouTubeAPIError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
+}
+
+// YouTube API response types
+interface YouTubeSearchItem {
+  id: {
+    videoId: string;
+  };
+  snippet: {
+    title: string;
+    description: string;
+    publishedAt: string;
+    thumbnails: {
+      default?: { url: string };
+      medium?: { url: string };
+      high?: { url: string };
+    };
+  };
+}
+
+interface YouTubeSearchResponse {
+  items?: YouTubeSearchItem[];
+}
+
+interface YouTubeVideoItem {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    publishedAt: string;
+    thumbnails: {
+      default?: { url: string };
+      medium?: { url: string };
+      high?: { url: string };
+    };
+  };
+  statistics: {
+    viewCount?: string;
+    likeCount?: string;
+    commentCount?: string;
+  };
+  contentDetails: {
+    duration: string;
+  };
+}
+
+interface YouTubeVideosResponse {
+  items?: YouTubeVideoItem[];
+}
+
+interface YouTubeBroadcastUpdate {
+  id: string;
+  snippet?: {
+    title?: string;
+    description?: string;
+    scheduledStartTime?: string;
+    actualStartTime?: string;
+    actualEndTime?: string;
+    thumbnails?: {
+      default?: { url: string };
+      medium?: { url: string };
+      high?: { url: string };
+    };
+  };
+  status?: {
+    lifeCycleStatus?: string;
+  };
 }
 
 export interface YouTubeChannel {
@@ -238,7 +304,7 @@ export class YouTubeAPIService {
     const validMaxResults = Math.min(Math.max(1, maxResults), 50);
 
     // Get recent videos from the channel
-    const searchResult = await this.makeAPIRequest<any>(
+    const searchResult = await this.makeAPIRequest<YouTubeSearchResponse>(
       `/search?part=snippet&channelId=${encodeURIComponent(channelId)}&type=video&order=date&maxResults=${validMaxResults}`,
     );
 
@@ -251,14 +317,14 @@ export class YouTubeAPIService {
     }
 
     const videoIds = searchResult.data.items
-      ?.map((item: any) => item.id.videoId)
+      ?.map((item) => item.id.videoId)
       .join(",");
     if (!videoIds) {
       return [];
     }
 
     // Get detailed video information
-    const videosResult = await this.makeAPIRequest<any>(
+    const videosResult = await this.makeAPIRequest<YouTubeVideosResponse>(
       `/videos?part=snippet,statistics,contentDetails&id=${videoIds}`,
     );
 
@@ -271,7 +337,7 @@ export class YouTubeAPIService {
     }
 
     return (
-      videosResult.data.items?.map((video: any) => ({
+      videosResult.data.items?.map((video) => ({
         id: video.id,
         title: video.snippet.title,
         description: video.snippet.description,
@@ -311,7 +377,7 @@ export class YouTubeAPIService {
     const sanitizedQuery = query.trim().slice(0, 1000); // Limit query length
 
     // Search for videos
-    const searchResult = await this.makeAPIRequest<any>(
+    const searchResult = await this.makeAPIRequest<YouTubeSearchResponse>(
       `/search?part=snippet&type=video&q=${encodeURIComponent(sanitizedQuery)}&maxResults=${validMaxResults}`,
     );
 
@@ -321,14 +387,14 @@ export class YouTubeAPIService {
     }
 
     const videoIds = searchResult.data.items
-      ?.map((item: any) => item.id.videoId)
+      ?.map((item) => item.id.videoId)
       .join(",");
     if (!videoIds) {
       return [];
     }
 
     // Get detailed video information
-    const videosResult = await this.makeAPIRequest<any>(
+    const videosResult = await this.makeAPIRequest<YouTubeVideosResponse>(
       `/videos?part=snippet,statistics,contentDetails&id=${videoIds}`,
     );
 
@@ -341,7 +407,7 @@ export class YouTubeAPIService {
     }
 
     return (
-      videosResult.data.items?.map((video: any) => ({
+      videosResult.data.items?.map((video) => ({
         id: video.id,
         title: video.snippet.title,
         description: video.snippet.description,
@@ -442,7 +508,7 @@ export class YouTubeAPIService {
       return null;
     }
 
-    const updateData: any = {
+    const updateData: YouTubeBroadcastUpdate = {
       id: broadcastId,
     };
 
@@ -456,7 +522,7 @@ export class YouTubeAPIService {
       }
     }
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<YouTubeBroadcastUpdate>(
       "/liveBroadcasts?part=snippet,status",
       {
         method: "PUT",
@@ -475,21 +541,21 @@ export class YouTubeAPIService {
 
     return {
       id: data.id,
-      title: data.snippet.title,
-      description: data.snippet.description,
+      title: data.snippet?.title || "",
+      description: data.snippet?.description || "",
       status:
-        data.status.lifeCycleStatus === "live"
+        data.status?.lifeCycleStatus === "live"
           ? "live"
-          : data.status.lifeCycleStatus === "complete"
+          : data.status?.lifeCycleStatus === "complete"
             ? "completed"
             : "upcoming",
-      scheduledStartTime: data.snippet.scheduledStartTime,
-      actualStartTime: data.snippet.actualStartTime,
-      actualEndTime: data.snippet.actualEndTime,
+      scheduledStartTime: data.snippet?.scheduledStartTime,
+      actualStartTime: data.snippet?.actualStartTime,
+      actualEndTime: data.snippet?.actualEndTime,
       thumbnails: {
-        default: { url: data.snippet.thumbnails?.default?.url || "" },
-        medium: { url: data.snippet.thumbnails?.medium?.url || "" },
-        high: { url: data.snippet.thumbnails?.high?.url || "" },
+        default: { url: data.snippet?.thumbnails?.default?.url || "" },
+        medium: { url: data.snippet?.thumbnails?.medium?.url || "" },
+        high: { url: data.snippet?.thumbnails?.high?.url || "" },
       },
     };
   }
@@ -1151,7 +1217,7 @@ export class YouTubeAPIService {
                 error instanceof Error
                   ? error.message
                   : "Unknown request error",
-              details: error,
+              details: error as Record<string, unknown>,
             },
           };
         }
