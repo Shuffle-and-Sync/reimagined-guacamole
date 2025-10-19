@@ -10,7 +10,6 @@ import {
   endOfWeek,
 } from "date-fns";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { Event } from "@shared/schema";
 
 interface CalendarGridProps {
