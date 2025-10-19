@@ -377,11 +377,13 @@ export class EnhancedWebSocketServer {
 
     // Get current room members
     const roomConnections = connectionManager.getGameRoomConnections(sessionId);
-    const players = roomConnections.map((conn) => ({
-      id: conn.userId!,
-      name: conn.userName!,
-      avatar: conn.userAvatar,
-    }));
+    const players = roomConnections
+      .filter((conn) => conn.userId && conn.userName)
+      .map((conn) => ({
+        id: conn.userId as string,
+        name: conn.userName as string,
+        avatar: conn.userAvatar,
+      }));
 
     const joinMessage = {
       type: "player_joined" as const,
@@ -500,18 +502,25 @@ export class EnhancedWebSocketServer {
       // Get active collaborators
       const roomConnections =
         connectionManager.getCollaborativeRoomConnections(eventId);
-      const activeCollaborators = roomConnections.map((conn) => ({
-        userId: conn.userId!,
-        userName: conn.userName!,
-        userAvatar: conn.userAvatar,
-        status: "connected",
-      }));
+      const activeCollaborators = roomConnections
+        .filter((conn) => conn.userId && conn.userName)
+        .map((conn) => ({
+          userId: conn.userId as string,
+          userName: conn.userName as string,
+          userAvatar: conn.userAvatar,
+          status: "connected",
+        }));
+
+      if (!ws.userId || !ws.userName) {
+        logger.error("WebSocket missing userId or userName for collaboration");
+        return;
+      }
 
       const joinMessage = {
         type: "collaborator_joined" as const,
         collaborator: {
-          userId: ws.userId!,
-          userName: ws.userName!,
+          userId: ws.userId,
+          userName: ws.userName,
           userAvatar: ws.userAvatar,
           role: userCollaborator.role,
         },
@@ -570,11 +579,16 @@ export class EnhancedWebSocketServer {
         return;
       }
 
+      if (!ws.userId || !ws.userName) {
+        logger.error("WebSocket missing userId or userName for phase update");
+        return;
+      }
+
       // Update phase in service
       await collaborativeStreaming.updateCoordinationPhase(
         eventId,
         newPhase,
-        ws.userId!,
+        ws.userId,
       );
 
       const phaseMessage = {
@@ -582,8 +596,8 @@ export class EnhancedWebSocketServer {
         eventId,
         newPhase,
         updatedBy: {
-          userId: ws.userId!,
-          userName: ws.userName!,
+          userId: ws.userId,
+          userName: ws.userName,
         },
         timestamp: new Date().toISOString(),
       };
@@ -607,14 +621,19 @@ export class EnhancedWebSocketServer {
   ): Promise<void> {
     const { eventId, eventType, eventData } = message;
 
+    if (!ws.userId || !ws.userName) {
+      logger.error("WebSocket missing userId or userName for coordination event");
+      return;
+    }
+
     const broadcastMessage = {
       type: "coordination_event_broadcast" as const,
       eventId,
       eventType,
       eventData,
       broadcastBy: {
-        userId: ws.userId!,
-        userName: ws.userName!,
+        userId: ws.userId,
+        userName: ws.userName,
       },
       timestamp: new Date().toISOString(),
     };
@@ -629,10 +648,15 @@ export class EnhancedWebSocketServer {
   ): Promise<void> {
     const { eventId, statusUpdate } = message;
 
+    if (!ws.userId) {
+      logger.error("WebSocket missing userId for status update");
+      return;
+    }
+
     const statusMessage = {
       type: "collaborator_status_changed" as const,
       eventId,
-      userId: ws.userId!,
+      userId: ws.userId,
       statusUpdate,
       timestamp: new Date().toISOString(),
     };
