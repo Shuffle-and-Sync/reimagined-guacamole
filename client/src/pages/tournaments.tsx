@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,7 +154,7 @@ export default function Tournaments() {
     }
   });
 
-  const handleCreateTournament = () => {
+  const handleCreateTournament = useCallback(() => {
     if (!tournamentForm.name || !tournamentForm.gameFormat || !tournamentForm.startDate) {
       toast({
         title: "Missing information",
@@ -164,9 +164,9 @@ export default function Tournaments() {
       return;
     }
     createTournamentMutation.mutate(tournamentForm);
-  };
+  }, [tournamentForm, createTournamentMutation, toast]);
 
-  const openEditModal = (tournament: Tournament) => {
+  const openEditModal = useCallback((tournament: Tournament) => {
     setEditingTournament(tournament);
     const startDate = tournament.startDate ? format(new Date(tournament.startDate), "yyyy-MM-dd'T'HH:mm") : "";
     setEditForm({
@@ -179,9 +179,9 @@ export default function Tournaments() {
       rules: (tournament as any).rules || ""
     });
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleEditTournament = () => {
+  const handleEditTournament = useCallback(() => {
     if (!editForm.name || !editForm.gameFormat || !editForm.startDate) {
       toast({
         title: "Missing information",
@@ -206,22 +206,22 @@ export default function Tournaments() {
       tournamentId: editingTournament.id,
       updates
     });
-  };
+  }, [editForm, editingTournament, editTournamentMutation, toast]);
 
-  const isOrganizer = (tournament: Tournament) => {
+  const isOrganizer = useCallback((tournament: Tournament) => {
     return user && tournament.organizerId === user.id;
-  };
+  }, [user]);
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = useCallback((status: string) => {
     switch (status) {
       case 'upcoming': return 'default';
       case 'active': return 'destructive';
       case 'completed': return 'secondary';
       default: return 'outline';
     }
-  };
+  }, []);
 
-  const formatGameName = (format: string) => {
+  const formatGameName = useCallback((format: string) => {
     const gameFormats: Record<string, string> = {
       'commander': 'Commander/EDH',
       'standard': 'Standard',
@@ -234,7 +234,7 @@ export default function Tournaments() {
       'yugioh-advanced': 'Yu-Gi-Oh Advanced'
     };
     return gameFormats[format] || format;
-  };
+  }, []);
 
   // Show login prompt for unauthenticated users (after all hooks are called)
   if (!isLoading && !isAuthenticated) {

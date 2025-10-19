@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -197,7 +197,7 @@ export default function Matchmaking() {
     }
   });
 
-  const handleStartMatching = () => {
+  const handleStartMatching = useCallback(() => {
     setIsSearching(true);
     
     const searchPreferences = {
@@ -213,7 +213,7 @@ export default function Matchmaking() {
     // Save preferences and find matches
     savePreferencesMutation.mutate(searchPreferences);
     findPlayersMutation.mutate(searchPreferences);
-  };
+  }, [selectedGames, selectedFormats, powerLevelRange, playstyle, location, availability, savePreferencesMutation, findPlayersMutation]);
 
   const sendInviteMutation = useMutation({
     mutationFn: async (data: { playerId: string; message?: string }) => {
@@ -229,11 +229,11 @@ export default function Matchmaking() {
     }
   });
   
-  const handleSendInvite = (playerId: string) => {
+  const handleSendInvite = useCallback((playerId: string) => {
     sendInviteMutation.mutate({ playerId });
-  };
+  }, [sendInviteMutation]);
 
-  const handleMessagePlayer = (playerId: string) => {
+  const handleMessagePlayer = useCallback((playerId: string) => {
     const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
     if (player) {
       toast({
@@ -250,27 +250,27 @@ export default function Matchmaking() {
         });
       }, 1000);
     }
-  };
+  }, [toast]);
 
-  const toggleGame = (game: string) => {
+  const toggleGame = useCallback((game: string) => {
     setSelectedGames(prev =>
       prev.includes(game)
         ? prev.filter(g => g !== game)
         : [...prev, game]
     );
-  };
+  }, []);
 
-  const toggleFormat = (format: string) => {
+  const toggleFormat = useCallback((format: string) => {
     setSelectedFormats(prev =>
       prev.includes(format)
         ? prev.filter(f => f !== format)
         : [...prev, format]
     );
-  };
+  }, []);
 
-  const getInitials = (username: string) => {
+  const getInitials = useCallback((username: string) => {
     return username.substring(0, 2).toUpperCase();
-  };
+  }, []);
 
   return (
     <div 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
@@ -61,17 +61,17 @@ export default function Home() {
     return null;
   }
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     window.location.href = "/api/auth/signout";
-  };
+  }, []);
 
-  const getUserInitials = () => {
+  const getUserInitials = useCallback(() => {
     const first = user.firstName?.[0] || "";
     const last = user.lastName?.[0] || "";
     return first + last || user.email?.[0]?.toUpperCase() || "U";
-  };
+  }, [user.firstName, user.lastName, user.email]);
 
-  const handleStartStreaming = () => {
+  const handleStartStreaming = useCallback(() => {
     // Navigate to streaming setup or show streaming options
     if (selectedCommunity) {
       setLocation('/tablesync');
@@ -82,22 +82,22 @@ export default function Home() {
         variant: "default"
       });
     }
-  };
+  }, [selectedCommunity, setLocation, toast]);
 
-  const handleEventsClick = () => {
+  const handleEventsClick = useCallback(() => {
     setLocation('/calendar');
-  };
+  }, [setLocation]);
 
-  const handleAllRealmsClick = () => {
+  const handleAllRealmsClick = useCallback(() => {
     setLocation('/');
     toast({
       title: "Explore all realms",
       description: "Switch between communities using the realm selector in the header."
     });
-  };
+  }, [setLocation, toast]);
 
   // Get realm-specific dashboard content if community is selected
-  const renderDashboardContent = () => {
+  const renderDashboardContent = useCallback(() => {
     if (selectedCommunity) {
       // Convert database User type to dashboard-compatible format
       const dashboardUser = {
@@ -127,7 +127,7 @@ export default function Home() {
       }
     }
     return null;
-  };
+  }, [selectedCommunity, user]);
 
   // Render realm-specific dashboard if selected, otherwise show default dashboard
   const dashboardContent = renderDashboardContent();
