@@ -123,19 +123,19 @@ features/
 
 ```typescript
 // External libraries
-import express from 'express';
-import { z } from 'zod';
+import express from "express";
+import { z } from "zod";
 
 // Internal modules (absolute paths)
-import { logger } from '../logger';
-import { UserRepository } from '../repositories/user.repository';
+import { logger } from "../logger";
+import { UserRepository } from "../repositories/user.repository";
 
 // Shared modules
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
 
 // Types (last)
-import type { User, CreateUserData } from './users.types';
+import type { User, CreateUserData } from "./users.types";
 ```
 
 ## Security Best Practices
@@ -145,23 +145,24 @@ import type { User, CreateUserData } from './users.types';
 Always validate and sanitize inputs using our middleware:
 
 ```typescript
-import { validateRequest, validators } from '../middleware/security.middleware';
-import { z } from 'zod';
+import { validateRequest, validators } from "../middleware/security.middleware";
+import { z } from "zod";
 
 const createUserSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
-  bio: z.string().max(500).optional()
+  bio: z.string().max(500).optional(),
 });
 
 // Apply validation middleware
-router.post('/users', 
+router.post(
+  "/users",
   validateRequest(createUserSchema),
   asyncHandler(async (req, res) => {
     // req.body is now validated and sanitized
     const userData = req.body;
     // ... rest of handler
-  })
+  }),
 );
 ```
 
@@ -170,24 +171,26 @@ router.post('/users',
 Use our authentication middleware:
 
 ```typescript
-import { requireAuth, optionalAuth } from '../auth/auth.middleware';
+import { requireAuth, optionalAuth } from "../auth/auth.middleware";
 
 // Protected route
-router.get('/profile', 
+router.get(
+  "/profile",
   requireAuth,
   asyncHandler(async (req, res) => {
     const userId = req.user!.id; // TypeScript knows user exists
     // ... handler logic
-  })
+  }),
 );
 
 // Optional auth route
-router.get('/public-data',
+router.get(
+  "/public-data",
   optionalAuth,
   asyncHandler(async (req, res) => {
     const userId = req.user?.id; // May or may not exist
     // ... handler logic
-  })
+  }),
 );
 ```
 
@@ -196,16 +199,16 @@ router.get('/public-data',
 Apply appropriate rate limits:
 
 ```typescript
-import { rateLimits } from '../middleware/security.middleware';
+import { rateLimits } from "../middleware/security.middleware";
 
 // API routes
-router.use('/api', rateLimits.api);
+router.use("/api", rateLimits.api);
 
 // Auth routes
-router.use('/auth', rateLimits.auth);
+router.use("/auth", rateLimits.auth);
 
 // Upload routes
-router.use('/upload', rateLimits.upload);
+router.use("/upload", rateLimits.upload);
 ```
 
 ## Database Patterns
@@ -215,12 +218,16 @@ router.use('/upload', rateLimits.upload);
 Create repositories for each major entity:
 
 ```typescript
-import { BaseRepository } from './base.repository';
-import { users, type User, type InsertUser } from '@shared/schema';
+import { BaseRepository } from "./base.repository";
+import { users, type User, type InsertUser } from "@shared/schema";
 
-export class UserRepository extends BaseRepository<typeof users, User, InsertUser> {
+export class UserRepository extends BaseRepository<
+  typeof users,
+  User,
+  InsertUser
+> {
   constructor() {
-    super(db, users, 'users');
+    super(db, users, "users");
   }
 
   // Custom methods specific to users
@@ -231,12 +238,14 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
   async searchUsers(options: UserSearchOptions) {
     return this.find({
       filters: options.filters,
-      search: options.search ? {
-        fields: ['name', 'email'],
-        term: options.search
-      } : undefined,
+      search: options.search
+        ? {
+            fields: ["name", "email"],
+            term: options.search,
+          }
+        : undefined,
       pagination: options.pagination,
-      sort: options.sort
+      sort: options.sort,
     });
   }
 }
@@ -257,20 +266,20 @@ export class UserService {
   async createUser(data: CreateUserData): Promise<User> {
     // Validate business rules
     if (!this.isValidEmail(data.email)) {
-      throw new ValidationError('Invalid email format');
+      throw new ValidationError("Invalid email format");
     }
 
     // Check business constraints
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
-      throw new ConflictError('Email already in use');
+      throw new ConflictError("Email already in use");
     }
 
     // Create user
     const user = await this.userRepository.create({
       ...data,
       email: data.email.toLowerCase(),
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     // Additional business logic (send emails, etc.)
@@ -286,13 +295,13 @@ export class UserService {
 Use our database utilities for complex queries:
 
 ```typescript
-import { dbUtils } from '../utils/database.utils';
+import { dbUtils } from "../utils/database.utils";
 
 // Build complex WHERE conditions
 const filters = [
-  { field: 'status', operator: 'eq', value: 'active' },
-  { field: 'age', operator: 'gte', value: 18 },
-  { field: 'tags', operator: 'in', values: ['premium', 'verified'] }
+  { field: "status", operator: "eq", value: "active" },
+  { field: "age", operator: "gte", value: 18 },
+  { field: "tags", operator: "in", values: ["premium", "verified"] },
 ];
 
 const conditions = dbUtils.buildWhereConditions(filters, tableColumns);
@@ -311,11 +320,28 @@ Follow RESTful conventions:
 // PUT /api/users/:id - Update user
 // DELETE /api/users/:id - Delete user
 
-router.get('/', asyncHandler(getUsersHandler));
-router.get('/:id', validateParams('id', validators.uuid), asyncHandler(getUserHandler));
-router.post('/', validateRequest(createUserSchema), asyncHandler(createUserHandler));
-router.put('/:id', validateParams('id', validators.uuid), validateRequest(updateUserSchema), asyncHandler(updateUserHandler));
-router.delete('/:id', validateParams('id', validators.uuid), asyncHandler(deleteUserHandler));
+router.get("/", asyncHandler(getUsersHandler));
+router.get(
+  "/:id",
+  validateParams("id", validators.uuid),
+  asyncHandler(getUserHandler),
+);
+router.post(
+  "/",
+  validateRequest(createUserSchema),
+  asyncHandler(createUserHandler),
+);
+router.put(
+  "/:id",
+  validateParams("id", validators.uuid),
+  validateRequest(updateUserSchema),
+  asyncHandler(updateUserHandler),
+);
+router.delete(
+  "/:id",
+  validateParams("id", validators.uuid),
+  asyncHandler(deleteUserHandler),
+);
 ```
 
 ### Error Handling
@@ -323,16 +349,20 @@ router.delete('/:id', validateParams('id', validators.uuid), asyncHandler(delete
 Use our custom error classes:
 
 ```typescript
-import { ValidationError, NotFoundError, ConflictError } from '../middleware/error-handling.middleware';
+import {
+  ValidationError,
+  NotFoundError,
+  ConflictError,
+} from "../middleware/error-handling.middleware";
 
 async function getUserHandler(req: Request, res: Response) {
   const { id } = req.params;
-  
+
   const user = await userService.getUserById(id);
   if (!user) {
-    throw new NotFoundError('User');
+    throw new NotFoundError("User");
   }
-  
+
   res.json({ success: true, data: user });
 }
 ```
@@ -360,39 +390,39 @@ throw new ValidationError('Invalid input data', { field: 'email' });
 Test individual functions and classes:
 
 ```typescript
-import { describe, test, expect, beforeEach } from '@jest/globals';
-import { UserService } from '../services/user.service';
+import { describe, test, expect, beforeEach } from "@jest/globals";
+import { UserService } from "../services/user.service";
 
-describe('UserService', () => {
+describe("UserService", () => {
   let userService: UserService;
 
   beforeEach(() => {
     userService = new UserService();
   });
 
-  test('should create user with valid data', async () => {
+  test("should create user with valid data", async () => {
     const userData = {
-      name: 'John Doe',
-      email: 'john@example.com'
+      name: "John Doe",
+      email: "john@example.com",
     };
 
     const user = await userService.createUser(userData);
-    
+
     expect(user.name).toBe(userData.name);
     expect(user.email).toBe(userData.email.toLowerCase());
   });
 
-  test('should throw error for duplicate email', async () => {
+  test("should throw error for duplicate email", async () => {
     const userData = {
-      name: 'John Doe',
-      email: 'john@example.com'
+      name: "John Doe",
+      email: "john@example.com",
     };
 
     await userService.createUser(userData);
-    
-    await expect(userService.createUser(userData))
-      .rejects
-      .toThrow('Email already in use');
+
+    await expect(userService.createUser(userData)).rejects.toThrow(
+      "Email already in use",
+    );
   });
 });
 ```
@@ -402,27 +432,25 @@ describe('UserService', () => {
 Test API endpoints:
 
 ```typescript
-import request from 'supertest';
-import { app } from '../index';
+import request from "supertest";
+import { app } from "../index";
 
-describe('Users API', () => {
-  test('GET /api/users should return user list', async () => {
-    const response = await request(app)
-      .get('/api/users')
-      .expect(200);
+describe("Users API", () => {
+  test("GET /api/users should return user list", async () => {
+    const response = await request(app).get("/api/users").expect(200);
 
     expect(response.body.success).toBe(true);
     expect(Array.isArray(response.body.data)).toBe(true);
   });
 
-  test('POST /api/users should create user', async () => {
+  test("POST /api/users should create user", async () => {
     const userData = {
-      name: 'John Doe',
-      email: 'john@example.com'
+      name: "John Doe",
+      email: "john@example.com",
     };
 
     const response = await request(app)
-      .post('/api/users')
+      .post("/api/users")
       .send(userData)
       .expect(201);
 
@@ -439,16 +467,16 @@ Use factories for test data:
 ```typescript
 export const userFactory = {
   build: (overrides = {}) => ({
-    name: 'Test User',
-    email: 'test@example.com',
-    bio: 'Test bio',
-    ...overrides
+    name: "Test User",
+    email: "test@example.com",
+    bio: "Test bio",
+    ...overrides,
   }),
 
   create: async (overrides = {}) => {
     const userData = userFactory.build(overrides);
     return await userService.createUser(userData);
-  }
+  },
 };
 ```
 
@@ -465,7 +493,7 @@ export const userFactory = {
 // Good: Paginated query
 const users = await userRepository.find({
   pagination: { page: 1, limit: 20 },
-  sort: { field: 'createdAt', direction: 'desc' }
+  sort: { field: "createdAt", direction: "desc" },
 });
 
 // Bad: Loading all users
@@ -477,7 +505,7 @@ const allUsers = await userRepository.find({});
 Use appropriate caching for expensive operations:
 
 ```typescript
-import { cache } from '../utils/cache.utils';
+import { cache } from "../utils/cache.utils";
 
 async function getExpensiveData(key: string) {
   const cached = await cache.get(`expensive:${key}`);
@@ -485,7 +513,7 @@ async function getExpensiveData(key: string) {
 
   const data = await performExpensiveOperation(key);
   await cache.set(`expensive:${key}`, data, 3600); // 1 hour TTL
-  
+
   return data;
 }
 ```
@@ -498,14 +526,14 @@ Monitor memory usage and handle large datasets properly:
 // Process large datasets in chunks
 async function processLargeDataset(dataset: any[]) {
   const chunkSize = 100;
-  
+
   for (let i = 0; i < dataset.length; i += chunkSize) {
     const chunk = dataset.slice(i, i + chunkSize);
     await processChunk(chunk);
-    
+
     // Allow garbage collection
     if (i % 1000 === 0) {
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
     }
   }
 }
@@ -595,18 +623,18 @@ NODE_ENV=development DEBUG=* npm run dev
 Use structured logging throughout the application:
 
 ```typescript
-import { logger } from '../logger';
+import { logger } from "../logger";
 
 // Info logging
-logger.info('User created successfully', { userId, email });
+logger.info("User created successfully", { userId, email });
 
 // Warning logging
-logger.warn('Unusual activity detected', { userId, action });
+logger.warn("Unusual activity detected", { userId, action });
 
 // Error logging
-logger.error('Database operation failed', error, { 
-  operation: 'createUser',
-  userId 
+logger.error("Database operation failed", error, {
+  operation: "createUser",
+  userId,
 });
 ```
 

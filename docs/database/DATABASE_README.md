@@ -55,7 +55,7 @@ Documentation:
 
 ## Quick Start
 
-**Just want a quick answer?** 
+**Just want a quick answer?**
 → Read [DATABASE_FAQ.md](DATABASE_FAQ.md) for one-sentence answers
 
 **Want visual diagrams?**  
@@ -92,20 +92,24 @@ Documentation:
 ## Related Documentation
 
 ### Main Repository Docs
+
 - [../README.md](../README.md) - Project overview
 - [../DEPLOYMENT.md](../DEPLOYMENT.md) - Production deployment
 - [../.github/copilot-instructions.md](../.github/copilot-instructions.md) - Coding guidelines
 
 ### Database Docs
+
 - [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) - Complete architecture
 - [DATABASE_FAQ.md](DATABASE_FAQ.md) - Quick questions and answers
 - [DATABASE_VISUAL_GUIDE.md](DATABASE_VISUAL_GUIDE.md) - Visual diagrams
 
 ### Build & Development
+
 - [BUILD_INITIALIZATION.md](BUILD_INITIALIZATION.md) - Build process
 - [TESTING_AGENT.md](TESTING_AGENT.md) - Testing guide
 
 ### External Resources
+
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
 - [Auth.js Documentation](https://authjs.dev/)
 - [SQLite Cloud Documentation](https://sqlitecloud.io/docs)

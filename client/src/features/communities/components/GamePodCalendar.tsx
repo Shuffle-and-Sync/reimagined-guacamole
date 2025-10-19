@@ -8,7 +8,11 @@ interface GamePodCalendarProps {
   theme?: any;
 }
 
-export function GamePodCalendar({ communityId, communityName, theme }: GamePodCalendarProps) {
+export function GamePodCalendar({
+  communityId,
+  communityName,
+  theme,
+}: GamePodCalendarProps) {
   return (
     <Card>
       <CardHeader>
@@ -21,7 +25,9 @@ export function GamePodCalendar({ communityId, communityName, theme }: GamePodCa
         <div className="text-center py-8 text-muted-foreground">
           <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Event calendar coming soon!</p>
-          <p className="text-sm">Stay tuned for {communityName} events and tournaments.</p>
+          <p className="text-sm">
+            Stay tuned for {communityName} events and tournaments.
+          </p>
         </div>
       </CardContent>
     </Card>

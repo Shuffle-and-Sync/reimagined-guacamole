@@ -23,6 +23,7 @@ SQLite Cloud provides automatic backups at the platform level:
 3. **Retention**: Configure in SQLite Cloud dashboard
 
 **Configuration**:
+
 - Log into [SQLite Cloud Console](https://sqlitecloud.io)
 - Navigate to your database instance
 - Configure backup schedule and retention
@@ -45,6 +46,7 @@ npm run db:backup -- --name="pre-deployment-2024-01-15"
 #### Backup Script Details
 
 The backup script (`scripts/db-backup.ts`):
+
 - Exports entire database to SQL dump
 - Compresses backup file
 - Stores in configured backup location
@@ -52,19 +54,20 @@ The backup script (`scripts/db-backup.ts`):
 
 ### Backup Schedule
 
-| Type | Frequency | Retention | Purpose |
-|------|-----------|-----------|---------|
-| Continuous | Real-time | 7 days | Point-in-time recovery |
-| Daily Snapshot | 00:00 UTC | 30 days | Daily recovery point |
-| Weekly Full | Sunday 00:00 UTC | 90 days | Long-term retention |
-| Pre-Deployment | Before each deployment | 30 days | Rollback safety |
-| On-Demand | As needed | 30 days | Manual checkpoints |
+| Type           | Frequency              | Retention | Purpose                |
+| -------------- | ---------------------- | --------- | ---------------------- |
+| Continuous     | Real-time              | 7 days    | Point-in-time recovery |
+| Daily Snapshot | 00:00 UTC              | 30 days   | Daily recovery point   |
+| Weekly Full    | Sunday 00:00 UTC       | 90 days   | Long-term retention    |
+| Pre-Deployment | Before each deployment | 30 days   | Rollback safety        |
+| On-Demand      | As needed              | 30 days   | Manual checkpoints     |
 
 ## Backup Storage
 
 ### Primary Storage (SQLite Cloud)
 
 SQLite Cloud manages primary backups automatically:
+
 - Encrypted at rest
 - Geo-redundant (depending on plan)
 - Accessible via SQLite Cloud console
@@ -82,6 +85,7 @@ npm run db:backup -- --upload-gcs --bucket="shuffle-sync-backups"
 ```
 
 **GCS Bucket Configuration**:
+
 ```bash
 # Create backup bucket
 gcloud storage buckets create gs://shuffle-sync-db-backups \
@@ -139,20 +143,20 @@ npm run db:import -- --file="backup-2024-01-15.sql"
 
 ## Recovery Time Objectives (RTO)
 
-| Scenario | RTO Target | Procedure |
-|----------|------------|-----------|
-| Minor data corruption | < 1 hour | SQLite Cloud point-in-time restore |
-| Database instance failure | < 2 hours | SQLite Cloud snapshot restore |
-| Major disaster | < 4 hours | Full restore from GCS + verification |
-| Regional outage | < 8 hours | Cross-region restore |
+| Scenario                  | RTO Target | Procedure                            |
+| ------------------------- | ---------- | ------------------------------------ |
+| Minor data corruption     | < 1 hour   | SQLite Cloud point-in-time restore   |
+| Database instance failure | < 2 hours  | SQLite Cloud snapshot restore        |
+| Major disaster            | < 4 hours  | Full restore from GCS + verification |
+| Regional outage           | < 8 hours  | Cross-region restore                 |
 
 ## Recovery Point Objectives (RPO)
 
-| Backup Type | RPO Target | Data Loss Risk |
-|-------------|------------|----------------|
-| Continuous Backup | < 5 minutes | Minimal |
-| Daily Snapshot | < 24 hours | Up to 1 day |
-| Weekly Snapshot | < 7 days | Up to 1 week |
+| Backup Type       | RPO Target  | Data Loss Risk |
+| ----------------- | ----------- | -------------- |
+| Continuous Backup | < 5 minutes | Minimal        |
+| Daily Snapshot    | < 24 hours  | Up to 1 day    |
+| Weekly Snapshot   | < 7 days    | Up to 1 week   |
 
 ## Backup Verification
 
@@ -169,6 +173,7 @@ npm run db:backup:verify-all
 ```
 
 Verification checks:
+
 - File integrity (checksum validation)
 - SQL syntax correctness
 - Schema consistency
@@ -218,6 +223,7 @@ npm run db:backup:status
 ### Alert Configuration
 
 Configure alerts for:
+
 - Backup job failure
 - Backup age > 25 hours (daily backups)
 - Backup size anomaly (>50% change)
@@ -240,27 +246,28 @@ In the event of complete database loss:
    - Set user expectations
 
 3. **Recovery Execution**
+
    ```bash
    # 1. Create new SQLite Cloud instance
    # 2. Download latest good backup
    gsutil cp gs://shuffle-sync-db-backups/latest-verified.sql.gz ./
-   
+
    # 3. Extract and verify
    gunzip latest-verified.sql.gz
    npm run db:verify -- --file="latest-verified.sql"
-   
+
    # 4. Import to new instance
    npm run db:import -- --file="latest-verified.sql"
-   
+
    # 5. Run schema migrations if needed
    npm run db:push
-   
+
    # 6. Verify application connectivity
    npm run db:health
-   
+
    # 7. Update application configuration
    # Set new DATABASE_URL
-   
+
    # 8. Deploy updated configuration
    npm run deploy:production
    ```
@@ -288,6 +295,7 @@ For SQLite Cloud regional outages:
 ## Data Retention Policy
 
 ### Production Data
+
 - **Active Database**: Indefinite (until explicitly deleted)
 - **Continuous Backups**: 7 days
 - **Daily Snapshots**: 30 days
@@ -296,22 +304,26 @@ For SQLite Cloud regional outages:
 - **Critical Milestones**: 1 year
 
 ### Test/Development Data
+
 - **Automated Backups**: 7 days
 - **Manual Backups**: 30 days
 
 ## Compliance and Security
 
 ### Encryption
+
 - **At Rest**: All backups encrypted using AES-256
 - **In Transit**: TLS 1.3 for all transfers
 - **Key Management**: Via SQLite Cloud and Google Cloud KMS
 
 ### Access Control
+
 - **Backup Access**: Limited to DevOps team
 - **Restore Operations**: Require two-person approval for production
 - **Audit Logging**: All backup/restore operations logged
 
 ### Data Privacy
+
 - Backups contain production data
 - GDPR/privacy compliance maintained
 - User data deletion requests processed in backups
@@ -321,11 +333,13 @@ For SQLite Cloud regional outages:
 ### Storage Costs
 
 Estimated monthly costs (varies by data size):
+
 - SQLite Cloud backups: Included in platform fee
 - GCS storage: ~$0.02/GB/month
 - GCS lifecycle policies: Auto-delete old backups
 
 ### Cost Reduction Strategies
+
 1. Compress all manual backups (gzip)
 2. Use GCS lifecycle policies for auto-deletion
 3. Archive old backups to Coldline/Archive storage
@@ -357,6 +371,7 @@ All backup scripts are located in `scripts/`:
 ### Backup Failures
 
 **Issue**: Backup script fails
+
 ```bash
 # Check database connectivity
 npm run db:health
@@ -374,6 +389,7 @@ DEBUG=* npm run db:backup
 ### Restore Failures
 
 **Issue**: Restore fails with errors
+
 ```bash
 # Verify backup file integrity
 npm run db:backup:verify -- --backup="filename.sql.gz"
@@ -388,6 +404,7 @@ npm run db:restore -- --backup="filename.sql.gz" --schema-only
 ### Slow Backups
 
 **Issue**: Backups taking too long
+
 - Check database size: May need to optimize
 - Compress backups: Reduces transfer time
 - Use SQLite Cloud backups: Faster than exports

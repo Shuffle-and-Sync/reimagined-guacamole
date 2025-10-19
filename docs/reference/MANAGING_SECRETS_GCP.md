@@ -61,11 +61,11 @@ Secrets are sensitive configuration values that should never be exposed in code 
 
 ### Comparison to Other Methods
 
-| Method | Security | Rotation | Audit | Recommended |
-|--------|----------|----------|-------|-------------|
-| `.env` files in repo | ❌ Very Low | ❌ Manual | ❌ None | ❌ Never use |
-| Environment variables only | ⚠️ Low | ⚠️ Manual | ⚠️ Limited | ⚠️ Development only |
-| Google Secret Manager | ✅ High | ✅ Automated | ✅ Complete | ✅ Production use |
+| Method                     | Security    | Rotation     | Audit       | Recommended         |
+| -------------------------- | ----------- | ------------ | ----------- | ------------------- |
+| `.env` files in repo       | ❌ Very Low | ❌ Manual    | ❌ None     | ❌ Never use        |
+| Environment variables only | ⚠️ Low      | ⚠️ Manual    | ⚠️ Limited  | ⚠️ Development only |
+| Google Secret Manager      | ✅ High     | ✅ Automated | ✅ Complete | ✅ Production use   |
 
 ---
 
@@ -146,6 +146,7 @@ gcloud services list --enabled | grep secretmanager
 ```
 
 **Expected output:**
+
 ```
 secretmanager.googleapis.com          Secret Manager API
 ```
@@ -171,6 +172,7 @@ gcloud secrets describe auth-secret
 ```
 
 **Options explained:**
+
 - `--replication-policy="automatic"` - Replicate across multiple regions for high availability
 - `--data-file=-` - Read secret value from stdin (more secure than command line)
 - `echo -n` - No trailing newline (important for exact secret values)
@@ -385,6 +387,7 @@ gcloud run deploy shuffle-sync-backend \
 ```
 
 **Format:** `ENV_VAR_NAME=secret-name:version`
+
 - `latest` - Always use the latest version
 - `1`, `2`, etc. - Pin to specific version
 
@@ -396,22 +399,22 @@ Reference secrets in `cloudbuild.yaml`:
 
 ```yaml
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: "gcr.io/cloud-builders/docker"
     args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/shuffle-sync-backend'
-      - '.'
+      - "build"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/shuffle-sync-backend"
+      - "."
     secretEnv:
-      - 'DATABASE_URL'
-      - 'AUTH_SECRET'
+      - "DATABASE_URL"
+      - "AUTH_SECRET"
 
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/database-url/versions/latest
-      env: 'DATABASE_URL'
+      env: "DATABASE_URL"
     - versionName: projects/$PROJECT_ID/secrets/auth-secret/versions/latest
-      env: 'AUTH_SECRET'
+      env: "AUTH_SECRET"
 ```
 
 #### 4.3 Cloud Run Authentication Policy
@@ -581,18 +584,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
-      
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy shuffle-sync-backend \
@@ -609,26 +612,26 @@ Cloud Build automatically has access to secrets via IAM (configured in step 3.3)
 ```yaml
 # cloudbuild.yaml
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/app', '.']
-    secretEnv: ['DATABASE_URL', 'AUTH_SECRET']
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/app", "."]
+    secretEnv: ["DATABASE_URL", "AUTH_SECRET"]
 
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: "gcr.io/cloud-builders/gcloud"
     args:
-      - 'run'
-      - 'deploy'
-      - 'shuffle-sync-backend'
-      - '--image=gcr.io/$PROJECT_ID/app'
-      - '--region=us-central1'
-      - '--no-allow-unauthenticated'
-      - '--set-secrets=DATABASE_URL=database-url:latest'
+      - "run"
+      - "deploy"
+      - "shuffle-sync-backend"
+      - "--image=gcr.io/$PROJECT_ID/app"
+      - "--region=us-central1"
+      - "--no-allow-unauthenticated"
+      - "--set-secrets=DATABASE_URL=database-url:latest"
 
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/database-url/versions/latest
-      env: 'DATABASE_URL'
+      env: "DATABASE_URL"
     - versionName: projects/$PROJECT_ID/secrets/auth-secret/versions/latest
-      env: 'AUTH_SECRET'
+      env: "AUTH_SECRET"
 ```
 
 ---
@@ -674,13 +677,13 @@ gcloud run services update shuffle-sync-backend \
 
 Recommended rotation frequency:
 
-| Secret Type | Rotation Frequency | Critical? |
-|-------------|-------------------|-----------|
-| AUTH_SECRET | Every 90 days | ✅ Yes |
-| Database credentials | Every 90 days | ✅ Yes |
-| API keys (SendGrid, etc.) | Every 180 days | ⚠️ Medium |
-| OAuth client secrets | Annually or on compromise | ⚠️ Medium |
-| Encryption keys | Every 90 days | ✅ Yes |
+| Secret Type               | Rotation Frequency        | Critical? |
+| ------------------------- | ------------------------- | --------- |
+| AUTH_SECRET               | Every 90 days             | ✅ Yes    |
+| Database credentials      | Every 90 days             | ✅ Yes    |
+| API keys (SendGrid, etc.) | Every 180 days            | ⚠️ Medium |
+| OAuth client secrets      | Annually or on compromise | ⚠️ Medium |
+| Encryption keys           | Every 90 days             | ✅ Yes    |
 
 ### Zero-Downtime Rotation
 
@@ -817,7 +820,7 @@ npm install @google-cloud/secret-manager
 
 ```typescript
 // server/lib/secrets.ts
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 
 const client = new SecretManagerServiceClient();
 
@@ -829,12 +832,12 @@ const client = new SecretManagerServiceClient();
  */
 export async function accessSecret(
   secretName: string,
-  version: string = 'latest'
+  version: string = "latest",
 ): Promise<string> {
   const projectId = process.env.GOOGLE_CLOUD_PROJECT;
-  
+
   if (!projectId) {
-    throw new Error('GOOGLE_CLOUD_PROJECT environment variable not set');
+    throw new Error("GOOGLE_CLOUD_PROJECT environment variable not set");
   }
 
   const name = `projects/${projectId}/secrets/${secretName}/versions/${version}`;
@@ -842,11 +845,11 @@ export async function accessSecret(
   try {
     const [version] = await client.accessSecretVersion({ name });
     const payload = version.payload?.data?.toString();
-    
+
     if (!payload) {
       throw new Error(`Secret ${secretName} is empty`);
     }
-    
+
     return payload;
   } catch (error) {
     console.error(`Error accessing secret ${secretName}:`, error);
@@ -862,20 +865,22 @@ export async function loadSecrets(): Promise<void> {
   try {
     // Only load from Secret Manager if not already set
     if (!process.env.AUTH_SECRET) {
-      process.env.AUTH_SECRET = await accessSecret('auth-secret');
+      process.env.AUTH_SECRET = await accessSecret("auth-secret");
     }
-    
+
     if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = await accessSecret('database-url');
+      process.env.DATABASE_URL = await accessSecret("database-url");
     }
-    
+
     if (!process.env.GOOGLE_CLIENT_SECRET) {
-      process.env.GOOGLE_CLIENT_SECRET = await accessSecret('google-client-secret');
+      process.env.GOOGLE_CLIENT_SECRET = await accessSecret(
+        "google-client-secret",
+      );
     }
-    
-    console.log('✅ Secrets loaded from Google Secret Manager');
+
+    console.log("✅ Secrets loaded from Google Secret Manager");
   } catch (error) {
-    console.error('❌ Failed to load secrets:', error);
+    console.error("❌ Failed to load secrets:", error);
     throw error;
   }
 }
@@ -885,27 +890,27 @@ export async function loadSecrets(): Promise<void> {
 
 ```typescript
 // server/index.ts
-import express from 'express';
-import { loadSecrets } from './lib/secrets';
+import express from "express";
+import { loadSecrets } from "./lib/secrets";
 
 async function startServer() {
   // Load secrets before starting server (if not using Cloud Run mounting)
-  if (process.env.NODE_ENV === 'production' && !process.env.AUTH_SECRET) {
+  if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
     await loadSecrets();
   }
 
   const app = express();
-  
+
   // ... configure app ...
-  
+
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
 }
 
-startServer().catch(error => {
-  console.error('Failed to start server:', error);
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
   process.exit(1);
 });
 ```
@@ -921,17 +926,17 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function getCachedSecret(secretName: string): Promise<string> {
   const cached = secretsCache.get(secretName);
-  
+
   if (cached && cached.expiry > Date.now()) {
     return cached.value;
   }
-  
+
   const value = await accessSecret(secretName);
   secretsCache.set(secretName, {
     value,
-    expiry: Date.now() + CACHE_TTL
+    expiry: Date.now() + CACHE_TTL,
   });
-  
+
   return value;
 }
 ```
@@ -1013,6 +1018,7 @@ export async function getCachedSecret(secretName: string): Promise<string> {
 Use this checklist for ongoing secret hygiene:
 
 ### Initial Setup
+
 - [ ] Secret Manager API enabled
 - [ ] All required secrets created
 - [ ] IAM permissions configured (least-privilege)
@@ -1022,6 +1028,7 @@ Use this checklist for ongoing secret hygiene:
 - [ ] Team trained on secret management procedures
 
 ### Monthly Tasks
+
 - [ ] Review IAM permissions for secrets
 - [ ] Check for orphaned secrets
 - [ ] Audit secret access logs
@@ -1029,6 +1036,7 @@ Use this checklist for ongoing secret hygiene:
 - [ ] Update documentation if procedures changed
 
 ### Quarterly Tasks
+
 - [ ] Rotate critical secrets (AUTH_SECRET, database credentials)
 - [ ] Review and disable old secret versions
 - [ ] Security audit of all secrets
@@ -1036,6 +1044,7 @@ Use this checklist for ongoing secret hygiene:
 - [ ] Verify backup and disaster recovery
 
 ### Annual Tasks
+
 - [ ] Comprehensive security review
 - [ ] Rotate all secrets
 - [ ] Review and update secret management policies
@@ -1043,6 +1052,7 @@ Use this checklist for ongoing secret hygiene:
 - [ ] Disaster recovery drill
 
 ### After Security Incident
+
 - [ ] Immediately rotate affected secrets
 - [ ] Review access logs
 - [ ] Disable compromised versions
@@ -1056,11 +1066,13 @@ Use this checklist for ongoing secret hygiene:
 ### Error: Permission denied
 
 **Symptom:**
+
 ```
 ERROR: (gcloud.secrets.versions.access) Permission denied
 ```
 
 **Solution:**
+
 ```bash
 # Check current permissions
 gcloud secrets get-iam-policy SECRET_NAME
@@ -1074,11 +1086,13 @@ gcloud secrets add-iam-policy-binding SECRET_NAME \
 ### Error: Secret not found
 
 **Symptom:**
+
 ```
 ERROR: (gcloud.secrets.versions.access) NOT_FOUND: Secret [projects/PROJECT_ID/secrets/SECRET_NAME] not found
 ```
 
 **Solution:**
+
 ```bash
 # List all secrets
 gcloud secrets list
@@ -1092,6 +1106,7 @@ echo -n "SECRET_VALUE" | gcloud secrets create SECRET_NAME --data-file=-
 **Symptom:** Application logs show missing environment variables
 
 **Solution:**
+
 ```bash
 # 1. Verify secret exists
 gcloud secrets describe SECRET_NAME
@@ -1117,6 +1132,7 @@ gcloud run deploy SERVICE_NAME \
 **Symptom:** Changes to secrets not reflected in application
 
 **Solution:**
+
 ```bash
 # 1. Verify new version created
 gcloud secrets versions list SECRET_NAME
@@ -1135,6 +1151,7 @@ gcloud run revisions list --service=SERVICE_NAME --region=REGION
 **Symptom:** `gcloud secrets versions access` fails locally
 
 **Solution:**
+
 ```bash
 # 1. Ensure you're authenticated
 gcloud auth login
@@ -1184,6 +1201,7 @@ gcloud secrets add-iam-policy-binding SECRET_NAME \
 **Questions or Issues?**
 
 If you encounter issues not covered in this guide, please:
+
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review [Google Secret Manager documentation](https://cloud.google.com/secret-manager/docs)
 3. Open an issue in the repository with details

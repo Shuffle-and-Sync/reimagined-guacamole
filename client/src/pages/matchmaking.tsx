@@ -1,21 +1,33 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import type { MatchmakingPreferences } from '@shared/schema';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { MatchmakingPreferences } from "@shared/schema";
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
 
@@ -28,7 +40,7 @@ const GAME_FORMATS = [
   { id: "pokemon-standard", name: "Standard", game: "Pokemon" },
   { id: "pokemon-expanded", name: "Expanded", game: "Pokemon" },
   { id: "lorcana-constructed", name: "Constructed", game: "Lorcana" },
-  { id: "yugioh-advanced", name: "Advanced", game: "Yu-Gi-Oh" }
+  { id: "yugioh-advanced", name: "Advanced", game: "Yu-Gi-Oh" },
 ];
 
 const SUGGESTED_PLAYERS = [
@@ -43,12 +55,16 @@ const SUGGESTED_PLAYERS = [
     location: "Seattle, WA",
     availability: "Evenings",
     matchScore: 95,
-    commonInterests: ["Tribal decks", "Interactive games", "No infinite combos"],
+    commonInterests: [
+      "Tribal decks",
+      "Interactive games",
+      "No infinite combos",
+    ],
     lastOnline: "2 hours ago",
-    isOnline: true
+    isOnline: true,
   },
   {
-    id: "player2", 
+    id: "player2",
     username: "PokeMaster2024",
     avatar: null,
     games: ["Pokemon"],
@@ -60,7 +76,7 @@ const SUGGESTED_PLAYERS = [
     matchScore: 87,
     commonInterests: ["Meta decks", "Tournament prep", "Theory crafting"],
     lastOnline: "30 minutes ago",
-    isOnline: true
+    isOnline: true,
   },
   {
     id: "player3",
@@ -75,7 +91,7 @@ const SUGGESTED_PLAYERS = [
     matchScore: 92,
     commonInterests: ["Disney lore", "Story discussions", "Deck building"],
     lastOnline: "1 day ago",
-    isOnline: false
+    isOnline: false,
   },
   {
     id: "player4",
@@ -90,20 +106,22 @@ const SUGGESTED_PLAYERS = [
     matchScore: 78,
     commonInterests: ["Meta analysis", "Combo decks", "Tournament play"],
     lastOnline: "Online now",
-    isOnline: true
-  }
+    isOnline: true,
+  },
 ];
 
 export default function Matchmaking() {
   useDocumentTitle("Matchmaking");
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const { selectedCommunity, communityTheme } = useCommunity();
-  
+
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
-  const [selectedFormats, setSelectedFormats] = useState<string[]>(["commander"]);
+  const [selectedFormats, setSelectedFormats] = useState<string[]>([
+    "commander",
+  ]);
   const [powerLevelRange, setPowerLevelRange] = useState([5, 8]);
   const [playstyle, setPlaystyle] = useState("any");
   const [location, setLocation] = useState("");
@@ -114,69 +132,89 @@ export default function Matchmaking() {
   // Search state
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  
+
   // Fetch user's matchmaking preferences
-  const { data: savedPreferences, isLoading: preferencesLoading } = useQuery<MatchmakingPreferences>({
-    queryKey: ['/api/matchmaking/preferences'],
-    enabled: !!user?.id,
-  });
-  
+  const { data: savedPreferences, isLoading: preferencesLoading } =
+    useQuery<MatchmakingPreferences>({
+      queryKey: ["/api/matchmaking/preferences"],
+      enabled: !!user?.id,
+    });
+
   // Load saved preferences when available
   useEffect(() => {
     if (savedPreferences) {
-      // Parse JSON fields
-      const preferredFormats = savedPreferences.preferredFormats 
-        ? (typeof savedPreferences.preferredFormats === 'string'
-          ? JSON.parse(savedPreferences.preferredFormats)
-          : savedPreferences.preferredFormats)
-        : [];
-      
-      const skillLevelRange = savedPreferences.skillLevelRange
-        ? (typeof savedPreferences.skillLevelRange === 'string'
-          ? JSON.parse(savedPreferences.skillLevelRange)
-          : savedPreferences.skillLevelRange)
-        : [1, 10];
-      
-      const availabilitySchedule = savedPreferences.availabilitySchedule
-        ? (typeof savedPreferences.availabilitySchedule === 'string'
-          ? JSON.parse(savedPreferences.availabilitySchedule)
-          : savedPreferences.availabilitySchedule)
-        : {};
-      
-      // Note: selectedGames is not in schema, using gameType instead
-      setSelectedGames([savedPreferences.gameType || "MTG"]);
-      setSelectedFormats(preferredFormats.length > 0 ? preferredFormats : ["commander"]);
-      setPowerLevelRange(Array.isArray(skillLevelRange) && skillLevelRange.length === 2 ? skillLevelRange : [1, 10]);
-      setPlaystyle(savedPreferences.playStyle || "any");
-      setLocation(savedPreferences.preferredLocation || "");
-      // Note: onlineOnly is not in schema
-      setOnlineOnly(false);
-      // Convert availabilitySchedule object to a simple string for the UI
-      setAvailability(availabilitySchedule.general || "any");
-      // Note: language is not in matchmaking preferences schema
-      setLanguage("english");
+      // Use a microtask to avoid cascading renders
+      queueMicrotask(() => {
+        // Parse JSON fields
+        const preferredFormats = savedPreferences.preferredFormats
+          ? typeof savedPreferences.preferredFormats === "string"
+            ? JSON.parse(savedPreferences.preferredFormats)
+            : savedPreferences.preferredFormats
+          : [];
+
+        const skillLevelRange = savedPreferences.skillLevelRange
+          ? typeof savedPreferences.skillLevelRange === "string"
+            ? JSON.parse(savedPreferences.skillLevelRange)
+            : savedPreferences.skillLevelRange
+          : [1, 10];
+
+        const availabilitySchedule = savedPreferences.availabilitySchedule
+          ? typeof savedPreferences.availabilitySchedule === "string"
+            ? JSON.parse(savedPreferences.availabilitySchedule)
+            : savedPreferences.availabilitySchedule
+          : {};
+
+        // Note: selectedGames is not in schema, using gameType instead
+        setSelectedGames([savedPreferences.gameType || "MTG"]);
+        setSelectedFormats(
+          preferredFormats.length > 0 ? preferredFormats : ["commander"],
+        );
+        setPowerLevelRange(
+          Array.isArray(skillLevelRange) && skillLevelRange.length === 2
+            ? skillLevelRange
+            : [1, 10],
+        );
+        setPlaystyle(savedPreferences.playStyle || "any");
+        setLocation(savedPreferences.preferredLocation || "");
+        // Note: onlineOnly is not in schema
+        setOnlineOnly(false);
+        // Convert availabilitySchedule object to a simple string for the UI
+        setAvailability(availabilitySchedule.general || "any");
+        // Note: language is not in matchmaking preferences schema
+        setLanguage("english");
+      });
     }
   }, [savedPreferences]);
 
   // Save preferences mutation
   const savePreferencesMutation = useMutation({
     mutationFn: async (preferencesData: any) => {
-      const response = await apiRequest('PUT', '/api/matchmaking/preferences', preferencesData);
+      const response = await apiRequest(
+        "PUT",
+        "/api/matchmaking/preferences",
+        preferencesData,
+      );
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Preferences saved",
-        description: "Your matchmaking preferences have been updated."
+        description: "Your matchmaking preferences have been updated.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/matchmaking/preferences'] });
-    }
+      queryClient.invalidateQueries({
+        queryKey: ["/api/matchmaking/preferences"],
+      });
+    },
   });
-  
+
   // Find players mutation
   const findPlayersMutation = useMutation({
     mutationFn: async (searchPreferences: any) => {
-      const response = await apiRequest('POST', '/api/matchmaking/find-players', searchPreferences);
+      const response = await apiRequest(
+        "POST",
+        "/api/matchmaking/find-players",
+        searchPreferences,
+      );
       return response.json();
     },
     onSuccess: (matches) => {
@@ -184,7 +222,7 @@ export default function Matchmaking() {
       setIsSearching(false);
       toast({
         title: "Players found!",
-        description: `Found ${matches.length} compatible players for you.`
+        description: `Found ${matches.length} compatible players for you.`,
       });
     },
     onError: (error: any) => {
@@ -192,14 +230,14 @@ export default function Matchmaking() {
       toast({
         title: "Search failed",
         description: error.message || "Failed to find matching players",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const handleStartMatching = useCallback(() => {
     setIsSearching(true);
-    
+
     const searchPreferences = {
       gameType: selectedGames[0] || "MTG",
       preferredFormats: JSON.stringify(selectedFormats),
@@ -207,64 +245,80 @@ export default function Matchmaking() {
       playStyle: playstyle,
       preferredLocation: location,
       availabilitySchedule: JSON.stringify({ general: availability }),
-      maxTravelDistance: 50
+      maxTravelDistance: 50,
     };
-    
+
     // Save preferences and find matches
     savePreferencesMutation.mutate(searchPreferences);
     findPlayersMutation.mutate(searchPreferences);
-  }, [selectedGames, selectedFormats, powerLevelRange, playstyle, location, availability, savePreferencesMutation, findPlayersMutation]);
+  }, [
+    selectedGames,
+    selectedFormats,
+    powerLevelRange,
+    playstyle,
+    location,
+    availability,
+    savePreferencesMutation,
+    findPlayersMutation,
+  ]);
 
   const sendInviteMutation = useMutation({
     mutationFn: async (data: { playerId: string; message?: string }) => {
-      const response = await apiRequest('POST', '/api/friend-requests', { addresseeId: data.playerId });
+      const response = await apiRequest("POST", "/api/friend-requests", {
+        addresseeId: data.playerId,
+      });
       return response.json();
     },
     onSuccess: (_, variables) => {
-      const player = searchResults.find(p => p.id === variables.playerId);
+      const player = searchResults.find((p) => p.id === variables.playerId);
       toast({
         title: "Invite sent!",
-        description: `Your game invite has been sent to ${player?.username || 'this player'}. They'll receive a notification and can accept or decline.`
+        description: `Your game invite has been sent to ${player?.username || "this player"}. They'll receive a notification and can accept or decline.`,
       });
-    }
+    },
   });
-  
-  const handleSendInvite = useCallback((playerId: string) => {
-    sendInviteMutation.mutate({ playerId });
-  }, [sendInviteMutation]);
 
-  const handleMessagePlayer = useCallback((playerId: string) => {
-    const player = SUGGESTED_PLAYERS.find(p => p.id === playerId);
-    if (player) {
-      toast({
-        title: "Starting conversation",
-        description: `Opening private message thread with ${player.username}...`
-      });
-      
-      // In a real app, this would navigate to a messaging interface
-      // or open a chat modal with the selected player
-      setTimeout(() => {
+  const handleSendInvite = useCallback(
+    (playerId: string) => {
+      sendInviteMutation.mutate({ playerId });
+    },
+    [sendInviteMutation],
+  );
+
+  const handleMessagePlayer = useCallback(
+    (playerId: string) => {
+      const player = SUGGESTED_PLAYERS.find((p) => p.id === playerId);
+      if (player) {
         toast({
-          title: "Message feature",
-          description: "Direct messaging will be available in the next update. For now, use the invite system to connect!"
+          title: "Starting conversation",
+          description: `Opening private message thread with ${player.username}...`,
         });
-      }, 1000);
-    }
-  }, [toast]);
+
+        // In a real app, this would navigate to a messaging interface
+        // or open a chat modal with the selected player
+        setTimeout(() => {
+          toast({
+            title: "Message feature",
+            description:
+              "Direct messaging will be available in the next update. For now, use the invite system to connect!",
+          });
+        }, 1000);
+      }
+    },
+    [toast],
+  );
 
   const toggleGame = useCallback((game: string) => {
-    setSelectedGames(prev =>
-      prev.includes(game)
-        ? prev.filter(g => g !== game)
-        : [...prev, game]
+    setSelectedGames((prev) =>
+      prev.includes(game) ? prev.filter((g) => g !== game) : [...prev, game],
     );
   }, []);
 
   const toggleFormat = useCallback((format: string) => {
-    setSelectedFormats(prev =>
+    setSelectedFormats((prev) =>
       prev.includes(format)
-        ? prev.filter(f => f !== format)
-        : [...prev, format]
+        ? prev.filter((f) => f !== format)
+        : [...prev, format],
     );
   }, []);
 
@@ -273,16 +327,16 @@ export default function Matchmaking() {
   }, []);
 
   return (
-    <div 
+    <div
       className="min-h-screen"
-      style={{ 
-        background: selectedCommunity 
+      style={{
+        background: selectedCommunity
           ? `linear-gradient(135deg, ${selectedCommunity.themeColor}15 0%, ${selectedCommunity.themeColor}05 100%)`
-          : 'var(--background)'
+          : "var(--background)",
       }}
     >
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
@@ -291,15 +345,23 @@ export default function Matchmaking() {
               AI Matchmaking
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Find players with similar skill levels, playstyles, and interests. Our AI learns your preferences to suggest the perfect gaming partners.
+              Find players with similar skill levels, playstyles, and interests.
+              Our AI learns your preferences to suggest the perfect gaming
+              partners.
             </p>
           </div>
 
           <Tabs defaultValue="find-players" className="space-y-8">
             <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
-              <TabsTrigger value="find-players" data-testid="tab-find-players">Find Players</TabsTrigger>
-              <TabsTrigger value="preferences" data-testid="tab-preferences">Preferences</TabsTrigger>
-              <TabsTrigger value="connections" data-testid="tab-connections">Connections</TabsTrigger>
+              <TabsTrigger value="find-players" data-testid="tab-find-players">
+                Find Players
+              </TabsTrigger>
+              <TabsTrigger value="preferences" data-testid="tab-preferences">
+                Preferences
+              </TabsTrigger>
+              <TabsTrigger value="connections" data-testid="tab-connections">
+                Connections
+              </TabsTrigger>
             </TabsList>
 
             {/* Find Players Tab */}
@@ -309,31 +371,38 @@ export default function Matchmaking() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Quick Match</CardTitle>
-                    <CardDescription>Set your preferences and find players instantly</CardDescription>
+                    <CardDescription>
+                      Set your preferences and find players instantly
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <Label>Games</Label>
                       <div className="grid grid-cols-2 gap-2">
-                        {["MTG", "Pokemon", "Lorcana", "Yu-Gi-Oh"].map((game) => (
-                          <div
-                            key={game}
-                            className={`p-2 rounded border cursor-pointer transition-all text-center text-sm ${
-                              selectedGames.includes(game)
-                                ? "border-primary bg-primary/10"
-                                : "border-border hover:border-muted-foreground"
-                            }`}
-                            onClick={() => toggleGame(game)}
-                            data-testid={`game-${game.toLowerCase().replace(/[^a-z]/g, '')}`}
-                          >
-                            {game}
-                          </div>
-                        ))}
+                        {["MTG", "Pokemon", "Lorcana", "Yu-Gi-Oh"].map(
+                          (game) => (
+                            <div
+                              key={game}
+                              className={`p-2 rounded border cursor-pointer transition-all text-center text-sm ${
+                                selectedGames.includes(game)
+                                  ? "border-primary bg-primary/10"
+                                  : "border-border hover:border-muted-foreground"
+                              }`}
+                              onClick={() => toggleGame(game)}
+                              data-testid={`game-${game.toLowerCase().replace(/[^a-z]/g, "")}`}
+                            >
+                              {game}
+                            </div>
+                          ),
+                        )}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Power Level Range: {powerLevelRange[0]} - {powerLevelRange[1]}</Label>
+                      <Label>
+                        Power Level Range: {powerLevelRange[0]} -{" "}
+                        {powerLevelRange[1]}
+                      </Label>
                       <Slider
                         value={powerLevelRange}
                         onValueChange={setPowerLevelRange}
@@ -360,7 +429,9 @@ export default function Matchmaking() {
                           <SelectItem value="casual">Casual</SelectItem>
                           <SelectItem value="focused">Focused</SelectItem>
                           <SelectItem value="optimized">Optimized</SelectItem>
-                          <SelectItem value="competitive">Competitive</SelectItem>
+                          <SelectItem value="competitive">
+                            Competitive
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -383,7 +454,9 @@ export default function Matchmaking() {
                         onCheckedChange={setOnlineOnly}
                         data-testid="switch-online-only"
                       />
-                      <Label htmlFor="online-only" className="text-sm">Online games only</Label>
+                      <Label htmlFor="online-only" className="text-sm">
+                        Online games only
+                      </Label>
                     </div>
 
                     <Button
@@ -411,7 +484,9 @@ export default function Matchmaking() {
                 <div className="lg:col-span-2 space-y-6">
                   <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold">
-                      {isSearching ? "Searching for players..." : `${searchResults.length} Players Found`}
+                      {isSearching
+                        ? "Searching for players..."
+                        : `${searchResults.length} Players Found`}
                     </h2>
                     {!isSearching && searchResults.length > 0 && (
                       <Select defaultValue="match-score">
@@ -419,9 +494,13 @@ export default function Matchmaking() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="match-score">Best Match</SelectItem>
+                          <SelectItem value="match-score">
+                            Best Match
+                          </SelectItem>
                           <SelectItem value="online">Online Now</SelectItem>
-                          <SelectItem value="recent">Recently Active</SelectItem>
+                          <SelectItem value="recent">
+                            Recently Active
+                          </SelectItem>
                           <SelectItem value="location">Nearby</SelectItem>
                         </SelectContent>
                       </Select>
@@ -448,13 +527,18 @@ export default function Matchmaking() {
                   ) : (
                     <div className="space-y-4">
                       {searchResults.map((player) => (
-                        <Card key={player.id} className="hover:border-primary/50 transition-colors">
+                        <Card
+                          key={player.id}
+                          className="hover:border-primary/50 transition-colors"
+                        >
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex items-start space-x-4">
                                 <div className="relative">
                                   <Avatar className="h-16 w-16">
-                                    <AvatarImage src={player.avatar || undefined} />
+                                    <AvatarImage
+                                      src={player.avatar || undefined}
+                                    />
                                     <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
                                       {getInitials(player.username)}
                                     </AvatarFallback>
@@ -463,10 +547,12 @@ export default function Matchmaking() {
                                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-background rounded-full"></div>
                                   )}
                                 </div>
-                                
+
                                 <div className="flex-1">
                                   <div className="flex items-center space-x-2 mb-2">
-                                    <h3 className="font-semibold text-lg">{player.username}</h3>
+                                    <h3 className="font-semibold text-lg">
+                                      {player.username}
+                                    </h3>
                                     <Badge className="bg-primary/20 text-primary">
                                       {player.matchScore}% Match
                                     </Badge>
@@ -476,19 +562,25 @@ export default function Matchmaking() {
                                       </Badge>
                                     )}
                                   </div>
-                                  
+
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                     <div className="space-y-1">
                                       <div className="flex items-center space-x-2">
                                         <i className="fas fa-gamepad text-muted-foreground"></i>
-                                        <span>{player.games.join(", ")} • {player.formats.join(", ")}</span>
+                                        <span>
+                                          {player.games.join(", ")} •{" "}
+                                          {player.formats.join(", ")}
+                                        </span>
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <i className="fas fa-chart-line text-muted-foreground"></i>
-                                        <span>Power Level {player.powerLevel} • {player.playstyle}</span>
+                                        <span>
+                                          Power Level {player.powerLevel} •{" "}
+                                          {player.playstyle}
+                                        </span>
                                       </div>
                                     </div>
-                                    
+
                                     <div className="space-y-1">
                                       <div className="flex items-center space-x-2">
                                         <i className="fas fa-map-marker-alt text-muted-foreground"></i>
@@ -496,24 +588,35 @@ export default function Matchmaking() {
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <i className="fas fa-clock text-muted-foreground"></i>
-                                        <span>{player.availability} • {player.lastOnline}</span>
+                                        <span>
+                                          {player.availability} •{" "}
+                                          {player.lastOnline}
+                                        </span>
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="mt-3">
-                                    <div className="text-sm text-muted-foreground mb-2">Common Interests:</div>
+                                    <div className="text-sm text-muted-foreground mb-2">
+                                      Common Interests:
+                                    </div>
                                     <div className="flex flex-wrap gap-2">
-                                      {player.commonInterests.map((interest: string, index: number) => (
-                                        <Badge key={index} variant="outline" className="text-xs">
-                                          {interest}
-                                        </Badge>
-                                      ))}
+                                      {player.commonInterests.map(
+                                        (interest: string, index: number) => (
+                                          <Badge
+                                            key={index}
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            {interest}
+                                          </Badge>
+                                        ),
+                                      )}
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div className="flex flex-col space-y-2 ml-4">
                                 <Button
                                   size="sm"
@@ -549,7 +652,8 @@ export default function Matchmaking() {
                 <CardHeader>
                   <CardTitle>Matchmaking Preferences</CardTitle>
                   <CardDescription>
-                    Set your detailed preferences to help our AI find the perfect gaming partners
+                    Set your detailed preferences to help our AI find the
+                    perfect gaming partners
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
@@ -558,7 +662,14 @@ export default function Matchmaking() {
                       <div className="space-y-2">
                         <Label>Preferred Games</Label>
                         <div className="grid grid-cols-2 gap-2">
-                          {["Magic: The Gathering", "Pokemon", "Lorcana", "Yu-Gi-Oh", "Flesh and Blood", "One Piece"].map((game) => (
+                          {[
+                            "Magic: The Gathering",
+                            "Pokemon",
+                            "Lorcana",
+                            "Yu-Gi-Oh",
+                            "Flesh and Blood",
+                            "One Piece",
+                          ].map((game) => (
                             <div
                               key={game}
                               className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
@@ -579,7 +690,9 @@ export default function Matchmaking() {
                               className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:border-primary/50 transition-colors"
                             >
                               <input type="checkbox" className="rounded" />
-                              <span className="text-sm">{format.game}: {format.name}</span>
+                              <span className="text-sm">
+                                {format.game}: {format.name}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -592,11 +705,15 @@ export default function Matchmaking() {
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2">
                             <Switch />
-                            <Label className="text-sm">Voice chat during games</Label>
+                            <Label className="text-sm">
+                              Voice chat during games
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch />
-                            <Label className="text-sm">Video chat for webcam games</Label>
+                            <Label className="text-sm">
+                              Video chat for webcam games
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Switch />
@@ -608,7 +725,14 @@ export default function Matchmaking() {
                       <div className="space-y-2">
                         <Label>Availability</Label>
                         <div className="grid grid-cols-2 gap-2">
-                          {["Mornings", "Afternoons", "Evenings", "Late Night", "Weekends Only", "Flexible"].map((time) => (
+                          {[
+                            "Mornings",
+                            "Afternoons",
+                            "Evenings",
+                            "Late Night",
+                            "Weekends Only",
+                            "Flexible",
+                          ].map((time) => (
                             <div
                               key={time}
                               className="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:border-primary/50 transition-colors"
@@ -639,7 +763,7 @@ export default function Matchmaking() {
                   </div>
 
                   <div className="flex justify-end space-x-3">
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => {
                         setSelectedGames(["MTG"]);
@@ -652,7 +776,8 @@ export default function Matchmaking() {
                         setLanguage("english");
                         toast({
                           title: "Preferences reset",
-                          description: "All matchmaking preferences have been reset to defaults."
+                          description:
+                            "All matchmaking preferences have been reset to defaults.",
                         });
                       }}
                       data-testid="button-reset-preferences"
@@ -667,7 +792,9 @@ export default function Matchmaking() {
                           skillLevelRange: JSON.stringify(powerLevelRange),
                           playStyle: playstyle,
                           preferredLocation: location,
-                          availabilitySchedule: JSON.stringify({ general: availability }),
+                          availabilitySchedule: JSON.stringify({
+                            general: availability,
+                          }),
                           maxTravelDistance: 50,
                         };
                         savePreferencesMutation.mutate(preferencesData);
@@ -692,14 +819,19 @@ export default function Matchmaking() {
                         <i className="fas fa-users text-primary"></i>
                         <span>My Connections</span>
                       </CardTitle>
-                      <CardDescription>Players you've connected with</CardDescription>
+                      <CardDescription>
+                        Players you've connected with
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="text-center py-8">
                         <i className="fas fa-user-friends text-4xl text-muted-foreground mb-4"></i>
-                        <p className="text-muted-foreground mb-4">No connections yet</p>
+                        <p className="text-muted-foreground mb-4">
+                          No connections yet
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          Use the matchmaking system to find and connect with players
+                          Use the matchmaking system to find and connect with
+                          players
                         </p>
                       </div>
                     </CardContent>
@@ -711,7 +843,9 @@ export default function Matchmaking() {
                         <i className="fas fa-paper-plane text-secondary"></i>
                         <span>Pending Invites</span>
                       </CardTitle>
-                      <CardDescription>Invites you've sent and received</CardDescription>
+                      <CardDescription>
+                        Invites you've sent and received
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -747,28 +881,38 @@ export default function Matchmaking() {
                                 <AvatarFallback>DT</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-sm font-medium">DragonTamer</p>
-                                <p className="text-xs text-muted-foreground">Wants to play Commander</p>
+                                <p className="text-sm font-medium">
+                                  DragonTamer
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Wants to play Commander
+                                </p>
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 onClick={() => {
                                   // TODO: Accept invite functionality
-                                  toast({ title: "Invite accepted! You can now connect with DragonTamer." });
+                                  toast({
+                                    title:
+                                      "Invite accepted! You can now connect with DragonTamer.",
+                                  });
                                 }}
                                 data-testid="button-accept-invite"
                               >
                                 <i className="fas fa-check mr-1"></i>
                                 Accept
                               </Button>
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                  // TODO: Decline invite functionality  
-                                  toast({ title: "Invite declined.", variant: "destructive" });
+                                  // TODO: Decline invite functionality
+                                  toast({
+                                    title: "Invite declined.",
+                                    variant: "destructive",
+                                  });
                                 }}
                                 data-testid="button-decline-invite"
                               >

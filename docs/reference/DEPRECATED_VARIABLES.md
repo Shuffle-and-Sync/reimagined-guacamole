@@ -7,24 +7,28 @@ This document lists environment variables that were referenced in the codebase b
 These variables are **no longer recommended** and have been replaced by newer alternatives:
 
 ### 1. `SESSION_SECRET`
+
 - **Status**: ❌ Deprecated and Removed
 - **Replacement**: `AUTH_SECRET`
 - **Reason**: Auth.js v5 uses AUTH_SECRET instead of SESSION_SECRET
 - **Action**: Already removed from all documentation and templates
 
 ### 2. `NEXTAUTH_URL`
+
 - **Status**: ⚠️ Deprecated but supported as fallback
 - **Replacement**: `AUTH_URL`
 - **Current Usage**: Used as fallback in `server/auth/auth.config.ts` and `server/auth/auth.middleware.ts`
 - **Recommendation**: Use AUTH_URL instead, but NEXTAUTH_URL still works for backward compatibility
 
 ### 3. `PUBLIC_WEB_URL`
+
 - **Status**: ⚠️ Deprecated but supported as fallback
 - **Replacement**: `AUTH_URL`
 - **Current Usage**: Used as fallback in `server/routes.ts` and `server/index.ts`
 - **Recommendation**: Use AUTH_URL instead, but PUBLIC_WEB_URL still works for backward compatibility
 
 ### 4. `FRONTEND_URL`
+
 - **Status**: ⚠️ Legacy variable
 - **Current Usage**: Only used once in `server/shared/middleware.ts` as CORS fallback
 - **Recommendation**: Use ALLOWED_ORIGINS instead
@@ -149,12 +153,14 @@ Only used in test environments:
 ## Summary
 
 ### Variables Added to Validation
+
 - **Required**: 5 production, 2 development
 - **Recommended**: 12 variables
 - **Optional Platform**: 8 variables
 - **Total Validated**: 27 variables
 
 ### Variables Not Added to Validation
+
 - **Deprecated/Legacy**: 4 variables (SESSION_SECRET removed, 3 kept for backward compatibility)
 - **Platform-Managed**: 5 variables (auto-set by platforms)
 - **Advanced Features**: 40+ variables (backup, monitoring, database tuning)
@@ -168,12 +174,12 @@ Only used in test environments:
    - Plan removal in future major version
 
 2. **Feature Documentation**:
-   - Document BACKUP_* variables in backup service docs
-   - Document MONITORING_* variables in monitoring service docs
+   - Document BACKUP\_\* variables in backup service docs
+   - Document MONITORING\_\* variables in monitoring service docs
    - Create separate configuration files for these features
 
 3. **Validation Enhancements**:
-   - Could add optional validation for DB_POOL_* variables if set
+   - Could add optional validation for DB*POOL*\* variables if set
    - Could validate REDIS_HOST/PORT/PASSWORD if REDIS_URL not set
    - Could add validation for backup/monitoring if those features are enabled
 
@@ -184,6 +190,7 @@ Only used in test environments:
 If you're using deprecated variables, here's how to migrate:
 
 ### From SESSION_SECRET to AUTH_SECRET
+
 ```bash
 # Old (no longer works)
 SESSION_SECRET=my-secret-key
@@ -193,6 +200,7 @@ AUTH_SECRET=my-secret-key-must-be-at-least-32-characters-long
 ```
 
 ### From NEXTAUTH_URL to AUTH_URL
+
 ```bash
 # Old (still works but deprecated)
 NEXTAUTH_URL=https://your-domain.com
@@ -202,6 +210,7 @@ AUTH_URL=https://your-domain.com
 ```
 
 ### From PUBLIC_WEB_URL to AUTH_URL
+
 ```bash
 # Old (still works but deprecated)
 PUBLIC_WEB_URL=https://your-domain.com
@@ -211,6 +220,7 @@ AUTH_URL=https://your-domain.com
 ```
 
 ### From Individual Redis Variables to REDIS_URL
+
 ```bash
 # Old (still works)
 REDIS_HOST=localhost

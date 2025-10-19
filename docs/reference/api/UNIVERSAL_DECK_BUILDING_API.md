@@ -40,6 +40,7 @@ The card service uses the adapter pattern to support multiple card sources:
 ### Game Management
 
 #### Create Game
+
 ```http
 POST /api/games
 Authorization: Required
@@ -71,6 +72,7 @@ Response: 201 Created
 ```
 
 #### List Games
+
 ```http
 GET /api/games?published=true&official=false
 
@@ -81,6 +83,7 @@ Response: 200 OK
 ```
 
 #### Get Game
+
 ```http
 GET /api/games/:id
 
@@ -93,6 +96,7 @@ Response: 200 OK
 ```
 
 #### Update Game
+
 ```http
 PUT /api/games/:id
 Authorization: Required (must be creator)
@@ -107,6 +111,7 @@ Response: 200 OK
 ```
 
 #### Delete Game
+
 ```http
 DELETE /api/games/:id
 Authorization: Required (must be creator)
@@ -116,6 +121,7 @@ Response: 200 OK
 ```
 
 #### Publish Game
+
 ```http
 POST /api/games/:id/publish
 Authorization: Required (must be creator)
@@ -129,6 +135,7 @@ Response: 200 OK
 ```
 
 #### Get Game Stats
+
 ```http
 GET /api/games/:id/stats
 
@@ -145,6 +152,7 @@ Response: 200 OK
 All card endpoints now support game-specific contexts via the `game_id` parameter.
 
 #### Search Cards
+
 ```http
 GET /api/games/:game_id/cards/search?q=dragon&limit=20
 
@@ -166,6 +174,7 @@ Response: 200 OK
 ```
 
 #### Get Card by ID
+
 ```http
 GET /api/games/:game_id/cards/:card_id
 
@@ -179,6 +188,7 @@ Response: 200 OK
 ```
 
 #### Get Card by Name
+
 ```http
 GET /api/games/:game_id/cards/named?exact=Lightning+Bolt
 
@@ -192,6 +202,7 @@ Response: 200 OK
 ```
 
 #### Autocomplete
+
 ```http
 GET /api/games/:game_id/cards/autocomplete?q=light&limit=10
 
@@ -205,6 +216,7 @@ Response: 200 OK
 ```
 
 #### Random Card
+
 ```http
 GET /api/games/:game_id/cards/random?format=commander
 
@@ -249,23 +261,23 @@ interface UniversalCard {
   id: string;
   gameId: string;
   name: string;
-  
+
   // Core identifiers
   setCode?: string;
   setName?: string;
   collectorNumber?: string;
   rarity?: string;
-  
+
   // External references
   externalId?: string;
   externalSource?: string;
-  
+
   // Flexible attributes for game-specific data
   attributes: Record<string, any>;
-  
+
   // Visual data
   imageUris?: Record<string, string>;
-  
+
   // Metadata
   isOfficial?: boolean;
   isCommunitySubmitted?: boolean;
@@ -277,20 +289,24 @@ interface UniversalCard {
 ### For Existing MTG Integrations
 
 **Old Code:**
+
 ```typescript
 // Search MTG cards
-const response = await fetch('/api/cards/search?q=lightning');
+const response = await fetch("/api/cards/search?q=lightning");
 const data = await response.json();
 ```
 
 **New Code:**
+
 ```typescript
 // Search MTG cards (recommended)
-const response = await fetch('/api/games/mtg-official/cards/search?q=lightning');
+const response = await fetch(
+  "/api/games/mtg-official/cards/search?q=lightning",
+);
 const data = await response.json();
 
 // Or continue using legacy endpoint (with deprecation warning)
-const response = await fetch('/api/cards/search?q=lightning');
+const response = await fetch("/api/cards/search?q=lightning");
 const data = await response.json();
 // data._deprecated contains migration information
 ```
@@ -298,23 +314,27 @@ const data = await response.json();
 ### For New Game Integrations
 
 1. **Create a game:**
+
 ```typescript
-const gameResponse = await fetch('/api/games', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const gameResponse = await fetch("/api/games", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    name: 'my-game',
-    displayName: 'My Game',
-    cardTypes: ['Unit', 'Spell'],
+    name: "my-game",
+    displayName: "My Game",
+    cardTypes: ["Unit", "Spell"],
     // ...
-  })
+  }),
 });
 const game = await gameResponse.json();
 ```
 
 2. **Use game-scoped endpoints:**
+
 ```typescript
-const cardsResponse = await fetch(`/api/games/${game.id}/cards/search?q=dragon`);
+const cardsResponse = await fetch(
+  `/api/games/${game.id}/cards/search?q=dragon`,
+);
 const cards = await cardsResponse.json();
 ```
 
@@ -331,10 +351,13 @@ All endpoints return standard HTTP status codes:
 - `500 Internal Server Error` - Server error
 
 Error Response Format:
+
 ```json
 {
   "message": "Error description",
-  "errors": [/* validation errors if applicable */]
+  "errors": [
+    /* validation errors if applicable */
+  ]
 }
 ```
 
@@ -360,17 +383,17 @@ Error Response Format:
 ```typescript
 // 1. Create the game
 const game = await createGame({
-  name: 'fantasy-battles',
-  displayName: 'Fantasy Battles TCG',
-  cardTypes: ['Hero', 'Spell', 'Item'],
-  deckRules: { minDeckSize: 30, maxCopies: 2 }
+  name: "fantasy-battles",
+  displayName: "Fantasy Battles TCG",
+  cardTypes: ["Hero", "Spell", "Item"],
+  deckRules: { minDeckSize: 30, maxCopies: 2 },
 });
 
 // 2. Add cards to the database (separate endpoint needed)
 // Cards are stored in the 'cards' table with gameId
 
 // 3. Search cards for this game
-const cards = await searchCards(game.id, 'dragon');
+const cards = await searchCards(game.id, "dragon");
 
 // 4. Publish the game when ready
 await publishGame(game.id);
@@ -380,12 +403,13 @@ await publishGame(game.id);
 
 ```typescript
 // List all published games
-const games = await fetch('/api/games?published=true').then(r => r.json());
+const games = await fetch("/api/games?published=true").then((r) => r.json());
 
 // Search cards across different games
 for (const game of games) {
-  const cards = await fetch(`/api/games/${game.id}/cards/search?q=bolt`)
-    .then(r => r.json());
+  const cards = await fetch(`/api/games/${game.id}/cards/search?q=bolt`).then(
+    (r) => r.json(),
+  );
   console.log(`${game.displayName}: ${cards.total} results`);
 }
 ```
@@ -418,6 +442,7 @@ Games and cards use the existing schema:
 ## Support
 
 For issues or questions:
+
 - Check the [main API documentation](../API_DOCUMENTATION.md)
 - Review the [migration guide](../TABLESYNC_UNIVERSAL_FRAMEWORK_MIGRATION.md)
 - See the [roadmap](../TABLESYNC_UNIVERSAL_FRAMEWORK_ROADMAP.md)

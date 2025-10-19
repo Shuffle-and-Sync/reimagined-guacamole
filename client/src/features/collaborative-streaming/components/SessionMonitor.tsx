@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import { useEffect, useState, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
   Activity,
   Users,
   MessageSquare,
@@ -15,16 +15,16 @@ import {
   CheckCircle2,
   Radio,
   Eye,
-  Heart
-} from 'lucide-react';
-import { useCoordinationStatus } from '../hooks/useCollaborativeStreaming';
-import type { CoordinationEvent, StreamMetrics } from '../types';
+  Heart,
+} from "lucide-react";
+import { useCoordinationStatus } from "../hooks/useCollaborativeStreaming";
+import type { CoordinationEvent, StreamMetrics } from "../types";
 
 type SessionMonitorProps = {
   eventId: string;
 };
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting';
+type ConnectionStatus = "connected" | "disconnected" | "reconnecting";
 
 type CollaboratorStatus = {
   id: string;
@@ -41,88 +41,97 @@ type CollaboratorStatus = {
 export function SessionMonitor({ eventId }: SessionMonitorProps) {
   const { data: coordinationStatus } = useCoordinationStatus(eventId);
   const [events, setEvents] = useState<CoordinationEvent[]>([]);
-  
+
   // Now properly typed with React Query generics
   const status = coordinationStatus;
 
   // Mock data for demonstration - only in development
-  // Use useMemo to avoid calling Date.now() during render
+  // Use useState to capture timestamp at component mount to avoid impure function call during render
+  const [nowTimestamp] = useState(() => Date.now());
   const mockCollaborators: CollaboratorStatus[] = useMemo(() => {
     if (!import.meta.env.DEV) return [];
-    
-    const now = Date.now();
+
+    const now = nowTimestamp;
     return [
       {
-        id: '1',
-        name: 'StreamMaster',
-        role: 'host',
+        id: "1",
+        name: "StreamMaster",
+        role: "host",
         isLive: true,
-        connectionStatus: 'connected' as ConnectionStatus,
+        connectionStatus: "connected" as ConnectionStatus,
         audioEnabled: true,
         videoEnabled: true,
         lastSeen: new Date(now),
         viewerCount: 823,
       },
       {
-        id: '2',
-        name: 'CoStreamPro',
-        role: 'co_host',
+        id: "2",
+        name: "CoStreamPro",
+        role: "co_host",
         isLive: true,
-        connectionStatus: 'connected' as ConnectionStatus,
+        connectionStatus: "connected" as ConnectionStatus,
         audioEnabled: true,
         videoEnabled: false,
         lastSeen: new Date(now - 30000),
         viewerCount: 312,
       },
       {
-        id: '3',
-        name: 'GuestPlayer',
-        role: 'guest',
+        id: "3",
+        name: "GuestPlayer",
+        role: "guest",
         isLive: false,
-        connectionStatus: 'disconnected' as ConnectionStatus,
+        connectionStatus: "disconnected" as ConnectionStatus,
         audioEnabled: false,
         videoEnabled: false,
         lastSeen: new Date(now - 120000),
         viewerCount: 0,
       },
     ];
-  }, []);
+  }, [nowTimestamp]);
 
-  const mockMetrics: StreamMetrics = import.meta.env.DEV ? {
-    totalViewers: 1247,
-    viewersByPlatform: {
-      twitch: 823,
-      youtube: 312,
-      facebook: 112,
-    },
-    peakViewers: 1456,
-    streamDuration: 145,
-    chatActivity: 89,
-    lastUpdated: new Date(),
-  } : {
-    totalViewers: status?.streamMetrics?.totalViewers || 0,
-    viewersByPlatform: status?.streamMetrics?.platformViewers || {},
-    peakViewers: 0,
-    streamDuration: status?.streamMetrics?.duration || 0,
-    chatActivity: 0,
-    lastUpdated: new Date(),
-  };
+  const mockMetrics: StreamMetrics = import.meta.env.DEV
+    ? {
+        totalViewers: 1247,
+        viewersByPlatform: {
+          twitch: 823,
+          youtube: 312,
+          facebook: 112,
+        },
+        peakViewers: 1456,
+        streamDuration: 145,
+        chatActivity: 89,
+        lastUpdated: new Date(),
+      }
+    : {
+        totalViewers: status?.streamMetrics?.totalViewers || 0,
+        viewersByPlatform: status?.streamMetrics?.platformViewers || {},
+        peakViewers: 0,
+        streamDuration: status?.streamMetrics?.duration || 0,
+        chatActivity: 0,
+        lastUpdated: new Date(),
+      };
 
   // Simulate real-time events - only in development
   useEffect(() => {
     if (!import.meta.env.DEV) return;
-    
-    const eventTypes = ['phase_change', 'collaborator_joined', 'collaborator_left', 'platform_status', 'message'];
+
+    const eventTypes = [
+      "phase_change",
+      "collaborator_joined",
+      "collaborator_left",
+      "platform_status",
+      "message",
+    ];
     const interval = setInterval(() => {
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
         type: eventTypes[Math.floor(Math.random() * eventTypes.length)] as any,
         timestamp: new Date(),
-        data: { message: 'Sample event data' },
+        data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,
       };
-      
-      setEvents(prev => [randomEvent, ...prev.slice(0, 19)]); // Keep last 20 events
+
+      setEvents((prev) => [randomEvent, ...prev.slice(0, 19)]); // Keep last 20 events
     }, 10000); // New event every 10 seconds
 
     return () => clearInterval(interval);
@@ -130,28 +139,37 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
 
   const getConnectionIcon = (status: ConnectionStatus) => {
     switch (status) {
-      case 'connected': return <Wifi className="h-4 w-4 text-green-500" />;
-      case 'disconnected': return <WifiOff className="h-4 w-4 text-red-500" />;
-      case 'reconnecting': return <Activity className="h-4 w-4 text-yellow-500 animate-spin" />;
+      case "connected":
+        return <Wifi className="h-4 w-4 text-green-500" />;
+      case "disconnected":
+        return <WifiOff className="h-4 w-4 text-red-500" />;
+      case "reconnecting":
+        return <Activity className="h-4 w-4 text-yellow-500 animate-spin" />;
     }
   };
 
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'phase_change': return <Radio className="h-4 w-4" />;
-      case 'collaborator_joined': return <Users className="h-4 w-4 text-green-500" />;
-      case 'collaborator_left': return <Users className="h-4 w-4 text-red-500" />;
-      case 'platform_status': return <Activity className="h-4 w-4" />;
-      case 'message': return <MessageSquare className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
+      case "phase_change":
+        return <Radio className="h-4 w-4" />;
+      case "collaborator_joined":
+        return <Users className="h-4 w-4 text-green-500" />;
+      case "collaborator_left":
+        return <Users className="h-4 w-4 text-red-500" />;
+      case "platform_status":
+        return <Activity className="h-4 w-4" />;
+      case "message":
+        return <MessageSquare className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
     }
   };
 
   const formatTimestamp = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
-    if (diff < 60000) return 'Just now';
+
+    if (diff < 60000) return "Just now";
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     return date.toLocaleTimeString();
   };
@@ -166,7 +184,9 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockMetrics.totalViewers.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {mockMetrics.totalViewers.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 inline mr-1" />
               +12% from last hour
@@ -181,7 +201,8 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockCollaborators.filter(c => c.isLive).length} / {mockCollaborators.length}
+              {mockCollaborators.filter((c) => c.isLive).length} /{" "}
+              {mockCollaborators.length}
             </div>
             <p className="text-xs text-muted-foreground">Active / Total</p>
           </CardContent>
@@ -194,7 +215,8 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(mockMetrics.streamDuration / 60)}:{String(mockMetrics.streamDuration % 60).padStart(2, '0')}
+              {Math.floor(mockMetrics.streamDuration / 60)}:
+              {String(mockMetrics.streamDuration % 60).padStart(2, "0")}
             </div>
             <p className="text-xs text-muted-foreground">Hours : Minutes</p>
           </CardContent>
@@ -206,7 +228,9 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
             <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockMetrics.chatActivity}%</div>
+            <div className="text-2xl font-bold">
+              {mockMetrics.chatActivity}%
+            </div>
             <p className="text-xs text-muted-foreground">Chat activity</p>
           </CardContent>
         </Card>
@@ -241,7 +265,7 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
                       )}
                     </div>
-                    
+
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{collaborator.name}</span>
@@ -249,10 +273,12 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
                           {collaborator.role}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {getConnectionIcon(collaborator.connectionStatus)}
-                        <span className="capitalize">{collaborator.connectionStatus}</span>
+                        <span className="capitalize">
+                          {collaborator.connectionStatus}
+                        </span>
                         {collaborator.isLive && (
                           <>
                             <span>•</span>
@@ -267,14 +293,18 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
                   <div className="flex items-center gap-1">
                     {collaborator.isLive && (
                       <>
-                        <div className={`p-1 rounded ${collaborator.audioEnabled ? 'bg-green-100' : 'bg-red-100'}`}>
+                        <div
+                          className={`p-1 rounded ${collaborator.audioEnabled ? "bg-green-100" : "bg-red-100"}`}
+                        >
                           {collaborator.audioEnabled ? (
                             <Activity className="h-3 w-3 text-green-600" />
                           ) : (
                             <Activity className="h-3 w-3 text-red-600" />
                           )}
                         </div>
-                        <div className={`p-1 rounded ${collaborator.videoEnabled ? 'bg-green-100' : 'bg-red-100'}`}>
+                        <div
+                          className={`p-1 rounded ${collaborator.videoEnabled ? "bg-green-100" : "bg-red-100"}`}
+                        >
                           {collaborator.videoEnabled ? (
                             <CheckCircle2 className="h-3 w-3 text-green-600" />
                           ) : (
@@ -305,7 +335,9 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
                   <div className="text-center py-8 text-muted-foreground">
                     <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No recent activity</p>
-                    <p className="text-sm">Events will appear here as they happen</p>
+                    <p className="text-sm">
+                      Events will appear here as they happen
+                    </p>
                   </div>
                 ) : (
                   events.map((event) => (
@@ -317,17 +349,17 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
                       <div className="p-1 rounded-full bg-background">
                         {getEventIcon(event.type)}
                       </div>
-                      
+
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium capitalize">
-                            {event.type.replace('_', ' ')}
+                            {event.type.replace("_", " ")}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {formatTimestamp(event.timestamp)}
                           </span>
                         </div>
-                        
+
                         {event.message && (
                           <p className="text-sm text-muted-foreground">
                             {event.message}
@@ -353,29 +385,33 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Object.entries(mockMetrics.viewersByPlatform).map(([platform, viewers]) => {
-              const percentage = (viewers / mockMetrics.totalViewers) * 100;
-              return (
-                <div
-                  key={platform}
-                  className="space-y-2"
-                  data-testid={`platform-metric-${platform}`}
-                >
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium capitalize">{platform}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {viewers.toLocaleString()} ({percentage.toFixed(1)}%)
-                    </span>
+            {Object.entries(mockMetrics.viewersByPlatform).map(
+              ([platform, viewers]) => {
+                const percentage = (viewers / mockMetrics.totalViewers) * 100;
+                return (
+                  <div
+                    key={platform}
+                    className="space-y-2"
+                    data-testid={`platform-metric-${platform}`}
+                  >
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium capitalize">
+                        {platform}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {viewers.toLocaleString()} ({percentage.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              },
+            )}
           </div>
         </CardContent>
       </Card>

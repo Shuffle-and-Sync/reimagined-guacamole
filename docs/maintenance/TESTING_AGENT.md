@@ -7,6 +7,7 @@ The Shuffle & Sync Unit Testing Agent is a comprehensive test generation system 
 ## Features
 
 ### 🎯 **Comprehensive Coverage**
+
 - **Authentication**: Google OAuth flow, session management, token validation
 - **Tournament Management**: CRUD operations, validation, business logic
 - **AI Matchmaking**: Compatibility algorithms, edge case handling
@@ -14,12 +15,14 @@ The Shuffle & Sync Unit Testing Agent is a comprehensive test generation system 
 - **Real-time Messaging**: WebSocket communication, message delivery
 
 ### 🛠️ **Technology Stack**
+
 - **Framework**: Jest with TypeScript
 - **Mocking**: Comprehensive mock factories and utilities
 - **Validation**: Input validation and edge case testing
 - **Coverage**: Code coverage reporting and thresholds
 
 ### 📋 **Test Patterns**
+
 - Unit tests for individual functions and components
 - Integration tests for feature workflows
 - Mock implementations for external dependencies
@@ -49,18 +52,18 @@ npm run test:coverage
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `test:generate` | Run the test generation agent |
-| `test` | Execute all tests |
-| `test:watch` | Run tests in watch mode |
-| `test:coverage` | Generate coverage report |
-| `test:features` | Run all feature tests |
-| `test:auth` | Run authentication tests |
+| Script             | Description                     |
+| ------------------ | ------------------------------- |
+| `test:generate`    | Run the test generation agent   |
+| `test`             | Execute all tests               |
+| `test:watch`       | Run tests in watch mode         |
+| `test:coverage`    | Generate coverage report        |
+| `test:features`    | Run all feature tests           |
+| `test:auth`        | Run authentication tests        |
 | `test:tournaments` | Run tournament management tests |
-| `test:matchmaking` | Run AI matchmaking tests |
-| `test:calendar` | Run calendar integration tests |
-| `test:messaging` | Run real-time messaging tests |
+| `test:matchmaking` | Run AI matchmaking tests        |
+| `test:calendar`    | Run calendar integration tests  |
+| `test:messaging`   | Run real-time messaging tests   |
 
 ## Test Structure
 
@@ -89,19 +92,22 @@ Tests covering the complete authentication flow:
 
 ```typescript
 // OAuth sign-in flow
-test('should handle successful Google OAuth sign in', async () => {
+test("should handle successful Google OAuth sign in", async () => {
   const mockProfile = createMockProfile();
   // Test implementation...
 });
 
 // Session validation
-test('should validate session tokens correctly', async () => {
-  const mockSession = { /* session data */ };
+test("should validate session tokens correctly", async () => {
+  const mockSession = {
+    /* session data */
+  };
   // Test implementation...
 });
 ```
 
 **Coverage:**
+
 - Google OAuth flow (success/failure scenarios)
 - Session token validation and expiration
 - User profile creation from OAuth data
@@ -113,19 +119,20 @@ Comprehensive testing of tournament operations:
 
 ```typescript
 // Tournament creation
-test('should create tournament with valid data', async () => {
+test("should create tournament with valid data", async () => {
   const tournamentData = createMockTournament();
   // Test implementation...
 });
 
 // Input validation
-test('should validate tournament input data', () => {
-  const invalidData = { name: '', maxParticipants: -1 };
+test("should validate tournament input data", () => {
+  const invalidData = { name: "", maxParticipants: -1 };
   // Test implementation...
 });
 ```
 
 **Coverage:**
+
 - Tournament CRUD operations
 - Input validation and business rules
 - Status management and transitions
@@ -138,19 +145,20 @@ Testing of sophisticated matchmaking algorithms:
 
 ```typescript
 // Compatibility scoring
-test('should calculate compatibility scores accurately', () => {
-  const userProfile = { gameTypes: ['mtg'], skillLevel: 'intermediate' };
+test("should calculate compatibility scores accurately", () => {
+  const userProfile = { gameTypes: ["mtg"], skillLevel: "intermediate" };
   // Test implementation...
 });
 
 // Edge cases
-test('should handle no available partners scenario', () => {
-  const criteria = { gameTypes: ['very-rare-game'] };
+test("should handle no available partners scenario", () => {
+  const criteria = { gameTypes: ["very-rare-game"] };
   // Test implementation...
 });
 ```
 
 **Coverage:**
+
 - Compatibility score calculations
 - User preference filtering
 - Edge case handling (no matches, invalid criteria)
@@ -163,19 +171,22 @@ Event management and scheduling tests:
 
 ```typescript
 // Timezone handling
-test('should create event with correct timezone handling', () => {
-  const eventData = { timezone: 'America/New_York' };
+test("should create event with correct timezone handling", () => {
+  const eventData = { timezone: "America/New_York" };
   // Test implementation...
 });
 
 // Conflict detection
-test('should prevent double-booking conflicts', () => {
-  const conflictingEvents = [/* overlapping events */];
+test("should prevent double-booking conflicts", () => {
+  const conflictingEvents = [
+    /* overlapping events */
+  ];
   // Test implementation...
 });
 ```
 
 **Coverage:**
+
 - Event CRUD operations
 - Timezone conversion and DST handling
 - Scheduling conflict detection
@@ -188,19 +199,20 @@ WebSocket and messaging system tests:
 
 ```typescript
 // WebSocket connection
-test('should establish WebSocket connection successfully', () => {
+test("should establish WebSocket connection successfully", () => {
   const wsClient = new WebSocketClient();
   // Test implementation...
 });
 
 // Message validation
-test('should validate message format', () => {
+test("should validate message format", () => {
   const message = createMockMessage();
   // Test implementation...
 });
 ```
 
 **Coverage:**
+
 - WebSocket connection management
 - Message format validation and sanitization
 - Real-time delivery and persistence
@@ -216,7 +228,7 @@ const mockDb = {
   insert: jest.fn(),
   select: jest.fn(),
   update: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 };
 ```
 
@@ -227,7 +239,7 @@ const mockWebSocket = {
   send: jest.fn(),
   close: jest.fn(),
   addEventListener: jest.fn(),
-  readyState: 1 // WebSocket.OPEN
+  readyState: 1, // WebSocket.OPEN
 };
 ```
 
@@ -238,13 +250,14 @@ const mockExternalAPI = {
   get: jest.fn(),
   post: jest.fn(),
   put: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 };
 ```
 
 ## Best Practices
 
 ### ✅ **Do's**
+
 - Use descriptive test names that explain the expected behavior
 - Test both positive and negative scenarios
 - Mock external dependencies appropriately
@@ -253,6 +266,7 @@ const mockExternalAPI = {
 - Use proper assertions and expect statements
 
 ### ❌ **Don'ts**
+
 - Don't test implementation details, focus on behavior
 - Don't create brittle tests that break with small changes
 - Don't skip error scenarios and edge cases
@@ -284,7 +298,7 @@ The test agent uses the following Jest configuration:
 ### Coverage Thresholds
 
 - **Branches**: 70% minimum coverage
-- **Functions**: 70% minimum coverage  
+- **Functions**: 70% minimum coverage
 - **Lines**: 70% minimum coverage
 - **Statements**: 70% minimum coverage
 
@@ -293,6 +307,7 @@ The test agent uses the following Jest configuration:
 ### Adding New Feature Tests
 
 1. **Create Test Configuration**:
+
 ```typescript
 private createNewFeatureTestConfig(): TestConfig {
   return {
@@ -309,6 +324,7 @@ private createNewFeatureTestConfig(): TestConfig {
 ```
 
 2. **Add to Test Configurations**:
+
 ```typescript
 private initializeTestConfigs(): void {
   this.testConfigs = [
@@ -319,6 +335,7 @@ private initializeTestConfigs(): void {
 ```
 
 3. **Update Package Scripts**:
+
 ```json
 {
   "scripts": {
@@ -336,7 +353,7 @@ case 'new_service':
     method1: jest.fn(),
     method2: jest.fn()
   };
-  
+
   jest.mock('../services/new-service', () => ({
     newService: mockNewService
   }));`;
@@ -402,4 +419,4 @@ For issues or questions about the testing agent:
 
 ---
 
-*Generated by Shuffle & Sync Unit Testing Agent*
+_Generated by Shuffle & Sync Unit Testing Agent_

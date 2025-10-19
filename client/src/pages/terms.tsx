@@ -11,13 +11,13 @@ export default function Terms() {
   const [, setLocation] = useLocation();
 
   const handleGoHome = () => {
-    setLocation('/');
+    setLocation("/");
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -38,60 +38,106 @@ export default function Terms() {
             </CardHeader>
             <CardContent className="space-y-6 text-muted-foreground">
               <p>
-                By accessing and using Shuffle & Sync, you accept and agree to be bound by the terms and provision of this agreement.
+                By accessing and using Shuffle & Sync, you accept and agree to
+                be bound by the terms and provision of this agreement.
               </p>
-              
+
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">1. Use License</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  1. Use License
+                </h3>
                 <p>
-                  Permission is granted to temporarily download one copy of Shuffle & Sync per device for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+                  Permission is granted to temporarily download one copy of
+                  Shuffle & Sync per device for personal, non-commercial
+                  transitory viewing only. This is the grant of a license, not a
+                  transfer of title, and under this license you may not:
                 </p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>modify or copy the materials</li>
-                  <li>use the materials for any commercial purpose or for any public display</li>
-                  <li>attempt to reverse engineer any software contained on the website</li>
-                  <li>remove any copyright or other proprietary notations from the materials</li>
+                  <li>
+                    use the materials for any commercial purpose or for any
+                    public display
+                  </li>
+                  <li>
+                    attempt to reverse engineer any software contained on the
+                    website
+                  </li>
+                  <li>
+                    remove any copyright or other proprietary notations from the
+                    materials
+                  </li>
                 </ul>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">2. User Accounts</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  2. User Accounts
+                </h3>
                 <p>
-                  When you create an account with us, you must provide information that is accurate, complete, and current at all times. You are responsible for safeguarding the password and for keeping your account information current.
+                  When you create an account with us, you must provide
+                  information that is accurate, complete, and current at all
+                  times. You are responsible for safeguarding the password and
+                  for keeping your account information current.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">3. Privacy Policy</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  3. Privacy Policy
+                </h3>
                 <p>
-                  Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the service, to understand our practices.
+                  Your privacy is important to us. Please review our Privacy
+                  Policy, which also governs your use of the service, to
+                  understand our practices.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">4. Prohibited Uses</h3>
-                <p>
-                  You may not use our service:
-                </p>
+                <h3 className="text-lg font-semibold text-foreground">
+                  4. Prohibited Uses
+                </h3>
+                <p>You may not use our service:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>for any unlawful purpose or to solicit others to commit violations</li>
-                  <li>to violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
-                  <li>to infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
-                  <li>to harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate</li>
+                  <li>
+                    for any unlawful purpose or to solicit others to commit
+                    violations
+                  </li>
+                  <li>
+                    to violate any international, federal, provincial, or state
+                    regulations, rules, laws, or local ordinances
+                  </li>
+                  <li>
+                    to infringe upon or violate our intellectual property rights
+                    or the intellectual property rights of others
+                  </li>
+                  <li>
+                    to harass, abuse, insult, harm, defame, slander, disparage,
+                    intimidate, or discriminate
+                  </li>
                 </ul>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">5. Termination</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  5. Termination
+                </h3>
                 <p>
-                  We may terminate or suspend your account and bar access to the service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever including without limitation if you breach the Terms.
+                  We may terminate or suspend your account and bar access to the
+                  service immediately, without prior notice or liability, under
+                  our sole discretion, for any reason whatsoever including
+                  without limitation if you breach the Terms.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">6. Changes to Terms</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  6. Changes to Terms
+                </h3>
                 <p>
-                  We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days notice prior to any new terms taking effect.
+                  We reserve the right, at our sole discretion, to modify or
+                  replace these Terms at any time. If a revision is material, we
+                  will provide at least 30 days notice prior to any new terms
+                  taking effect.
                 </p>
               </div>
             </CardContent>
@@ -105,7 +151,7 @@ export default function Terms() {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

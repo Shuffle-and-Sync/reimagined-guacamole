@@ -1,6 +1,6 @@
 /**
  * Game Statistics Feature Exports
- * 
+ *
  * This index file demonstrates proper feature-based organization
  * following the Shuffle & Sync repository conventions:
  * - Clean feature exports with clear public API
@@ -22,20 +22,20 @@ export type {
   GameStatsCardProps,
   GameResultFormProps,
   GameStatsListProps,
-} from './types';
+} from "./types";
 
 // Component exports
-export { GameStatsCard, GameStatsCardSkeleton } from './components/game-stats-card';
+export {
+  GameStatsCard,
+  GameStatsCardSkeleton,
+} from "./components/game-stats-card";
 
 // Hook exports
-export { 
-  useGameStats, 
+export {
+  useGameStats,
   useAggregateGameStats,
-  useGameStatsLeaderboard 
-} from './hooks/use-game-stats';
+  useGameStatsLeaderboard,
+} from "./hooks/use-game-stats";
 
 // Schema exports for validation
-export { 
-  gameResultSchema, 
-  gameStatsFiltersSchema 
-} from './types';
+export { gameResultSchema, gameStatsFiltersSchema } from "./types";

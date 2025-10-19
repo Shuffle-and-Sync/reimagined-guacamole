@@ -1,17 +1,31 @@
 /**
  * User Repository Implementation
- * 
+ *
  * This module provides user-specific database operations using the base repository pattern,
  * demonstrating Copilot best practices for domain-specific data access.
  */
 
-import { BaseRepository, QueryOptions, PaginatedResult } from './base.repository';
-import { db } from '@shared/database-unified';
-import { users, communities, userCommunities, userRoles, type User, type InsertUser } from '@shared/schema';
-import { eq, and, sql, ilike, or, count, desc, asc } from 'drizzle-orm';
-import { logger } from '../logger';
-import { withQueryTiming } from '@shared/database-unified';
-import { ValidationError, NotFoundError } from '../middleware/error-handling.middleware';
+import {
+  BaseRepository,
+  QueryOptions,
+  PaginatedResult,
+} from "./base.repository";
+import { db } from "@shared/database-unified";
+import {
+  users,
+  communities,
+  userCommunities,
+  userRoles,
+  type User,
+  type InsertUser,
+} from "@shared/schema";
+import { eq, and, sql, ilike, or, count, desc, asc } from "drizzle-orm";
+import { logger } from "../logger";
+import { withQueryTiming } from "@shared/database-unified";
+import {
+  ValidationError,
+  NotFoundError,
+} from "../middleware/error-handling.middleware";
 
 export interface UserWithCommunities extends User {
   communities: Array<{
@@ -23,7 +37,7 @@ export interface UserWithCommunities extends User {
 
 export interface UserSearchOptions extends QueryOptions {
   search?: string;
-  status?: 'online' | 'offline' | 'away' | 'busy' | 'gaming';
+  status?: "online" | "offline" | "away" | "busy" | "gaming";
   role?: string;
   communityId?: string;
   includeDeleted?: boolean;
@@ -40,7 +54,7 @@ export interface UserUpdateData {
   youtubeHandle?: string;
   discordHandle?: string;
   primaryCommunityId?: string;
-  status?: 'online' | 'offline' | 'away' | 'busy' | 'gaming';
+  status?: "online" | "offline" | "away" | "busy" | "gaming";
   isEmailVerified?: boolean;
   mfaEnabled?: boolean;
   updatedAt?: Date;
@@ -50,16 +64,21 @@ export interface UserUpdateData {
  * User Repository Class
  * Extends BaseRepository with user-specific operations
  */
-export class UserRepository extends BaseRepository<typeof users, User, InsertUser, UserUpdateData> {
+export class UserRepository extends BaseRepository<
+  typeof users,
+  User,
+  InsertUser,
+  UserUpdateData
+> {
   constructor() {
-    super(db, users, 'users');
+    super(db, users, "users");
   }
 
   /**
    * Find user by email
    */
   async findByEmail(email: string): Promise<User | null> {
-    return withQueryTiming('users:findByEmail', async () => {
+    return withQueryTiming("users:findByEmail", async () => {
       if (!email) return null;
 
       try {
@@ -71,7 +90,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
 
         return result[0] || null;
       } catch (error) {
-        logger.error('Failed to find user by email', error, { email });
+        logger.error("Failed to find user by email", error, { email });
         throw error;
       }
     });
@@ -80,8 +99,10 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
   /**
    * Find user with their communities
    */
-  async findByIdWithCommunities(userId: string): Promise<UserWithCommunities | null> {
-    return withQueryTiming('users:findByIdWithCommunities', async () => {
+  async findByIdWithCommunities(
+    userId: string,
+  ): Promise<UserWithCommunities | null> {
+    return withQueryTiming("users:findByIdWithCommunities", async () => {
       if (!userId) return null;
 
       try {
@@ -94,18 +115,21 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           .select({
             community: communities,
             isPrimary: userCommunities.isPrimary,
-            joinedAt: userCommunities.joinedAt
+            joinedAt: userCommunities.joinedAt,
           })
           .from(userCommunities)
-          .innerJoin(communities, eq(userCommunities.communityId, communities.id))
+          .innerJoin(
+            communities,
+            eq(userCommunities.communityId, communities.id),
+          )
           .where(eq(userCommunities.userId, userId));
 
         return {
           ...user,
-          communities: userCommunitiesData
+          communities: userCommunitiesData,
         };
       } catch (error) {
-        logger.error('Failed to find user with communities', error, { userId });
+        logger.error("Failed to find user with communities", error, { userId });
         throw error;
       }
     });
@@ -114,11 +138,20 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
   /**
    * Search users with advanced filtering
    */
-  async searchUsers(options: UserSearchOptions = {}): Promise<PaginatedResult<User>> {
-    return withQueryTiming('users:searchUsers', async () => {
+  async searchUsers(
+    options: UserSearchOptions = {},
+  ): Promise<PaginatedResult<User>> {
+    return withQueryTiming("users:searchUsers", async () => {
       try {
-        const { search, status, role, communityId, includeDeleted, ...baseOptions } = options;
-        
+        const {
+          search,
+          status,
+          role,
+          communityId,
+          includeDeleted,
+          ...baseOptions
+        } = options;
+
         // Build additional where conditions
         const conditions = [];
 
@@ -130,8 +163,8 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
               ilike(this.table.firstName, searchTerm),
               ilike(this.table.lastName, searchTerm),
               ilike(this.table.username, searchTerm),
-              ilike(this.table.email, searchTerm)
-            )
+              ilike(this.table.email, searchTerm),
+            ),
           );
         }
 
@@ -145,13 +178,10 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           const roleUserIds = await this.db
             .select({ userId: userRoles.userId })
             .from(userRoles)
-            .where(and(
-              eq(userRoles.role, role),
-              eq(userRoles.isActive, true)
-            ));
+            .where(and(eq(userRoles.role, role), eq(userRoles.isActive, true)));
 
           if (roleUserIds.length > 0) {
-            const userIds = roleUserIds.map(ur => ur.userId);
+            const userIds = roleUserIds.map((ur) => ur.userId);
             conditions.push(sql`${this.table.id} = ANY(${userIds})`);
           } else {
             // No users with this role, return empty result
@@ -162,7 +192,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
               limit: baseOptions.pagination?.limit || 50,
               totalPages: 0,
               hasNext: false,
-              hasPrevious: false
+              hasPrevious: false,
             };
           }
         }
@@ -175,7 +205,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
             .where(eq(userCommunities.communityId, communityId));
 
           if (communityUserIds.length > 0) {
-            const userIds = communityUserIds.map(uc => uc.userId);
+            const userIds = communityUserIds.map((uc) => uc.userId);
             conditions.push(sql`${this.table.id} = ANY(${userIds})`);
           } else {
             // No users in this community, return empty result
@@ -186,7 +216,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
               limit: baseOptions.pagination?.limit || 50,
               totalPages: 0,
               hasNext: false,
-              hasPrevious: false
+              hasPrevious: false,
             };
           }
         }
@@ -202,7 +232,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           const offset = (page - 1) * limit;
 
           let query = this.db.select().from(this.table);
-          
+
           if (conditions.length > 0) {
             query = query.where(and(...conditions)) as any;
           }
@@ -211,13 +241,20 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           if (baseOptions.sort?.field) {
             const column = (this.table as any)[baseOptions.sort.field];
             if (column) {
-              query = query.orderBy(baseOptions.sort.direction === 'desc' ? desc(column) : asc(column)) as any;
+              query = query.orderBy(
+                baseOptions.sort.direction === "desc"
+                  ? desc(column)
+                  : asc(column),
+              ) as any;
             }
           }
 
           const [data, totalResult] = await Promise.all([
             query.limit(limit).offset(offset),
-            this.db.select({ count: count() }).from(this.table).where(and(...conditions))
+            this.db
+              .select({ count: count() })
+              .from(this.table)
+              .where(and(...conditions)),
           ]);
 
           const total = totalResult[0]?.count || 0;
@@ -230,17 +267,17 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
             limit,
             totalPages,
             hasNext: page < totalPages,
-            hasPrevious: page > 1
+            hasPrevious: page > 1,
           };
         }
 
         // Otherwise use base filters
         return await this.find({
           ...baseOptions,
-          filters: baseOptions.filters
+          filters: baseOptions.filters,
         });
       } catch (error) {
-        logger.error('Failed to search users', error, { options });
+        logger.error("Failed to search users", error, { options });
         throw error;
       }
     });
@@ -250,21 +287,21 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
    * Update user profile
    */
   async updateProfile(userId: string, data: UserUpdateData): Promise<User> {
-    return withQueryTiming('users:updateProfile', async () => {
+    return withQueryTiming("users:updateProfile", async () => {
       try {
         // Validate the user exists
         const existingUser = await this.findById(userId);
         if (!existingUser) {
-          throw new NotFoundError('User');
+          throw new NotFoundError("User");
         }
 
         // If updating email, check for conflicts
         if (data.email && data.email !== existingUser.email) {
           const emailExists = await this.findByEmail(data.email);
           if (emailExists && emailExists.id !== userId) {
-            throw new ValidationError('Email already in use');
+            throw new ValidationError("Email already in use");
           }
-          
+
           // Reset email verification if email is changed
           data.isEmailVerified = false;
         }
@@ -272,16 +309,16 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
         // Update the user
         const updatedUser = await this.update(userId, {
           ...data,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
 
         if (!updatedUser) {
-          throw new Error('Failed to update user profile');
+          throw new Error("Failed to update user profile");
         }
 
         return updatedUser;
       } catch (error) {
-        logger.error('Failed to update user profile', error, { userId, data });
+        logger.error("Failed to update user profile", error, { userId, data });
         throw error;
       }
     });
@@ -290,8 +327,12 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
   /**
    * Join a community
    */
-  async joinCommunity(userId: string, communityId: string, isPrimary: boolean = false): Promise<void> {
-    return withQueryTiming('users:joinCommunity', async () => {
+  async joinCommunity(
+    userId: string,
+    communityId: string,
+    isPrimary: boolean = false,
+  ): Promise<void> {
+    return withQueryTiming("users:joinCommunity", async () => {
       try {
         await this.transaction(async (tx) => {
           // Check if user exists
@@ -302,7 +343,7 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
             .limit(1);
 
           if (!user[0]) {
-            throw new NotFoundError('User');
+            throw new NotFoundError("User");
           }
 
           // Check if community exists
@@ -313,17 +354,19 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
             .limit(1);
 
           if (!community[0]) {
-            throw new NotFoundError('Community');
+            throw new NotFoundError("Community");
           }
 
           // Check if already a member
           const existingMembership = await tx
             .select()
             .from(userCommunities)
-            .where(and(
-              eq(userCommunities.userId, userId),
-              eq(userCommunities.communityId, communityId)
-            ))
+            .where(
+              and(
+                eq(userCommunities.userId, userId),
+                eq(userCommunities.communityId, communityId),
+              ),
+            )
             .limit(1);
 
           if (existingMembership[0]) {
@@ -339,19 +382,25 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           }
 
           // Add the membership
-          await tx
-            .insert(userCommunities)
-            .values({
-              userId,
-              communityId,
-              isPrimary,
-              joinedAt: new Date()
-            });
+          await tx.insert(userCommunities).values({
+            userId,
+            communityId,
+            isPrimary,
+            joinedAt: new Date(),
+          });
 
-          logger.info('User joined community', { userId, communityId, isPrimary });
+          logger.info("User joined community", {
+            userId,
+            communityId,
+            isPrimary,
+          });
         });
       } catch (error) {
-        logger.error('Failed to join community', error, { userId, communityId, isPrimary });
+        logger.error("Failed to join community", error, {
+          userId,
+          communityId,
+          isPrimary,
+        });
         throw error;
       }
     });
@@ -361,20 +410,22 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
    * Leave a community
    */
   async leaveCommunity(userId: string, communityId: string): Promise<void> {
-    return withQueryTiming('users:leaveCommunity', async () => {
+    return withQueryTiming("users:leaveCommunity", async () => {
       try {
         await this.transaction(async (tx) => {
           // Remove the membership
           const result = await tx
             .delete(userCommunities)
-            .where(and(
-              eq(userCommunities.userId, userId),
-              eq(userCommunities.communityId, communityId)
-            ))
+            .where(
+              and(
+                eq(userCommunities.userId, userId),
+                eq(userCommunities.communityId, communityId),
+              ),
+            )
             .returning();
 
           if (result.length === 0) {
-            throw new NotFoundError('Community membership');
+            throw new NotFoundError("Community membership");
           }
 
           // If this was the primary community, set another as primary if available
@@ -389,17 +440,25 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
               await tx
                 .update(userCommunities)
                 .set({ isPrimary: true })
-                .where(and(
-                  eq(userCommunities.userId, userId),
-                  eq(userCommunities.communityId, remainingCommunities[0].communityId)
-                ));
+                .where(
+                  and(
+                    eq(userCommunities.userId, userId),
+                    eq(
+                      userCommunities.communityId,
+                      remainingCommunities[0].communityId,
+                    ),
+                  ),
+                );
             }
           }
 
-          logger.info('User left community', { userId, communityId });
+          logger.info("User left community", { userId, communityId });
         });
       } catch (error) {
-        logger.error('Failed to leave community', error, { userId, communityId });
+        logger.error("Failed to leave community", error, {
+          userId,
+          communityId,
+        });
         throw error;
       }
     });
@@ -408,22 +467,27 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
   /**
    * Set primary community for user
    */
-  async setPrimaryCommunity(userId: string, communityId: string): Promise<void> {
-    return withQueryTiming('users:setPrimaryCommunity', async () => {
+  async setPrimaryCommunity(
+    userId: string,
+    communityId: string,
+  ): Promise<void> {
+    return withQueryTiming("users:setPrimaryCommunity", async () => {
       try {
         await this.transaction(async (tx) => {
           // Verify user is a member of the community
           const membership = await tx
             .select()
             .from(userCommunities)
-            .where(and(
-              eq(userCommunities.userId, userId),
-              eq(userCommunities.communityId, communityId)
-            ))
+            .where(
+              and(
+                eq(userCommunities.userId, userId),
+                eq(userCommunities.communityId, communityId),
+              ),
+            )
             .limit(1);
 
           if (!membership[0]) {
-            throw new NotFoundError('Community membership');
+            throw new NotFoundError("Community membership");
           }
 
           // Unset all primary communities for this user
@@ -436,15 +500,20 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           await tx
             .update(userCommunities)
             .set({ isPrimary: true })
-            .where(and(
-              eq(userCommunities.userId, userId),
-              eq(userCommunities.communityId, communityId)
-            ));
+            .where(
+              and(
+                eq(userCommunities.userId, userId),
+                eq(userCommunities.communityId, communityId),
+              ),
+            );
 
-          logger.info('Primary community updated', { userId, communityId });
+          logger.info("Primary community updated", { userId, communityId });
         });
       } catch (error) {
-        logger.error('Failed to set primary community', error, { userId, communityId });
+        logger.error("Failed to set primary community", error, {
+          userId,
+          communityId,
+        });
         throw error;
       }
     });
@@ -459,11 +528,11 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
     totalEvents: number;
     joinedAt: Date | null;
   }> {
-    return withQueryTiming('users:getUserStats', async () => {
+    return withQueryTiming("users:getUserStats", async () => {
       try {
         const user = await this.findById(userId);
         if (!user) {
-          throw new NotFoundError('User');
+          throw new NotFoundError("User");
         }
 
         const [communityCount, friendCount, eventCount] = await Promise.all([
@@ -477,17 +546,17 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
           Promise.resolve([{ count: 0 }]), // Placeholder
 
           // Count events (this would need to join with events table)
-          Promise.resolve([{ count: 0 }]) // Placeholder
+          Promise.resolve([{ count: 0 }]), // Placeholder
         ]);
 
         return {
           totalCommunities: communityCount[0]?.count || 0,
           totalFriends: friendCount[0]?.count || 0,
           totalEvents: eventCount[0]?.count || 0,
-          joinedAt: user.createdAt
+          joinedAt: user.createdAt,
         };
       } catch (error) {
-        logger.error('Failed to get user stats', error, { userId });
+        logger.error("Failed to get user stats", error, { userId });
         throw error;
       }
     });
@@ -497,21 +566,21 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
    * Soft delete user account
    */
   async softDeleteUser(userId: string): Promise<void> {
-    return withQueryTiming('users:softDeleteUser', async () => {
+    return withQueryTiming("users:softDeleteUser", async () => {
       try {
         await this.transaction(async (tx) => {
           // Soft delete the user by marking as offline and changing email
           const result = await tx
             .update(users)
-            .set({ 
-              status: 'offline',
-              email: `deleted_${userId}@deleted.local` // Prevent email conflicts
+            .set({
+              status: "offline",
+              email: `deleted_${userId}@deleted.local`, // Prevent email conflicts
             })
             .where(eq(users.id, userId))
             .returning();
 
           if (!result[0]) {
-            throw new NotFoundError('User');
+            throw new NotFoundError("User");
           }
 
           // Remove from all communities
@@ -519,10 +588,10 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
             .delete(userCommunities)
             .where(eq(userCommunities.userId, userId));
 
-          logger.info('User account soft deleted', { userId });
+          logger.info("User account soft deleted", { userId });
         });
       } catch (error) {
-        logger.error('Failed to soft delete user', error, { userId });
+        logger.error("Failed to soft delete user", error, { userId });
         throw error;
       }
     });
@@ -532,29 +601,29 @@ export class UserRepository extends BaseRepository<typeof users, User, InsertUse
    * Restore soft deleted user account
    */
   async restoreUser(userId: string, newEmail: string): Promise<User> {
-    return withQueryTiming('users:restoreUser', async () => {
+    return withQueryTiming("users:restoreUser", async () => {
       try {
         // Check if email is available
         const emailExists = await this.findByEmail(newEmail);
         if (emailExists) {
-          throw new ValidationError('Email already in use');
+          throw new ValidationError("Email already in use");
         }
 
         const result = await this.update(userId, {
-          status: 'online',
+          status: "online",
           email: newEmail,
           isEmailVerified: false,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
 
         if (!result) {
-          throw new NotFoundError('User');
+          throw new NotFoundError("User");
         }
 
-        logger.info('User account restored', { userId, newEmail });
+        logger.info("User account restored", { userId, newEmail });
         return result;
       } catch (error) {
-        logger.error('Failed to restore user', error, { userId, newEmail });
+        logger.error("Failed to restore user", error, { userId, newEmail });
         throw error;
       }
     });

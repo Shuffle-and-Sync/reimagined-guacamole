@@ -11,6 +11,7 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
+
 - **Framework**: React 18 with TypeScript using Vite as the build tool
 - **UI Library**: Shadcn/ui components built on Radix UI primitives for accessibility and customization
 - **Styling**: Tailwind CSS with custom design tokens and dark theme support
@@ -19,6 +20,7 @@ Preferred communication style: Simple, everyday language.
 - **Component Structure**: Modular component architecture with reusable UI components in `/components/ui/`
 
 ### Backend Architecture
+
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **API Design**: RESTful API with structured route handlers
@@ -26,6 +28,7 @@ Preferred communication style: Simple, everyday language.
 - **Development Setup**: Hot reload with tsx for development, esbuild for production builds
 
 ### Authentication System
+
 - **Framework**: Auth.js v5 (NextAuth.js) for modern authentication
 - **Provider**: Google OAuth 2.0 for secure user authentication
 - **Database Sessions**: Database-based session storage with Drizzle adapter (Auth.js tables)
@@ -34,9 +37,10 @@ Preferred communication style: Simple, everyday language.
 - **User Management**: Automatic user/account creation with profile data from OAuth provider
 
 ### Data Storage Solutions
+
 - **Database**: SQLite Cloud for scalability and simplicity
 - **ORM**: Drizzle ORM for type-safe database operations and migrations
-- **Schema Design**: 
+- **Schema Design**:
   - Users table with profile information and community preferences
   - Communities table for the 6 TCG communities (MTG, Pokemon, Lorcana, Yu-Gi-Oh, etc.)
   - User-community relationships with primary community selection
@@ -46,6 +50,7 @@ Preferred communication style: Simple, everyday language.
   - All database operations use Drizzle ORM
 
 ### External Dependencies
+
 - **Database Hosting**: SQLite Cloud for managed database infrastructure
 - **Authentication**: Google OAuth 2.0 via Auth.js v5 for secure user authentication
 - **UI Icons**: Lucide React for modern, consistent iconography across the platform
@@ -53,6 +58,7 @@ Preferred communication style: Simple, everyday language.
 - **Development Tools**: Environment-specific plugins and configurations for development
 
 ### Design Patterns
+
 - **Separation of Concerns**: Clear separation between client, server, and shared code
 - **Repository Pattern**: Database operations abstracted through storage interface
 - **Component Composition**: Reusable UI components with consistent prop interfaces
@@ -124,6 +130,7 @@ DATABASE_URL=your_neon_database_url
 4. **CSRF errors**: Check that `AUTH_URL` matches your app's actual URL
 
 **Development Notes**:
+
 - Auth.js debug mode is enabled in development
 - Session cookies are HTTP-only and secure
 - Database sessions automatically expire after 30 days
@@ -132,23 +139,27 @@ DATABASE_URL=your_neon_database_url
 ## Recent Changes
 
 ### September 23, 2025 - Phase 2 Complete: Enterprise-Grade Email Change Verification System
+
 - **COMPLETE**: Production-ready email change verification system with comprehensive security features
 - **COMPLETE**: Three secure API endpoints: initiate-email-change, confirm-email-change, cancel-email-change
 - **COMPLETE**: Database schema with emailChangeRequests and emailChangeTokens tables, fully indexed with proper relationships
 - **COMPLETE**: Frontend component with form validation, loading states, error handling, and proper test IDs
 - **COMPLETE**: JWT token verification with database validation and proper expiration handling
 - **COMPLETE**: Rate limiting, authentication middleware, and comprehensive error handling
-- **ARCHITECTURE**: Feature-based routing pattern under /api/email/* successfully established for future email features
+- **ARCHITECTURE**: Feature-based routing pattern under /api/email/\* successfully established for future email features
 - **SECURITY**: Enterprise-grade security with Zod validation, token replay protection, and secure session management
 - **INTEGRATION**: Seamlessly integrated into existing Auth.js v5 authentication system without conflicts
 
 ### September 20, 2025 - Phase 5 Progress: Platform Integration & Cross-Platform Coordination
+
 - **COMPLETE**: Task 5.1.1 (YouTube API Integration) - Production-ready with architect PASS verdict
 - **ADVANCED**: Task 5.1.2 (Facebook Gaming API) - Production foundations with security hardening
 - **FOUNDATION**: Task 5.2.1 (Platform Integration) - Groundwork laid for cross-platform coordination
 
 #### Task 5.2.1 Platform Integration Status
+
 **IMPLEMENTED:**
+
 - ✅ Cross-platform streaming coordination framework with `startCrossPlatformStreaming`, `coordinateBreak`, `endCrossPlatformStreaming` methods
 - ✅ Safe API imports preventing startup crashes when platform APIs unavailable
 - ✅ Production-ready error handling and logging infrastructure
@@ -158,22 +169,26 @@ DATABASE_URL=your_neon_database_url
 **ARCHITECT RECOMMENDATION: Break into focused sub-tasks for completion:**
 
 **Sub-task 5.2.1a - Platform Account Linking + Schema**
+
 - Add `user_platform_accounts` table (userId, platform, handle, platformUserId/channelId/pageId, accessToken, refreshToken, expiresAt, scopes)
 - Extend storage interface for platform account CRUD operations
 - Acceptance: Can link and retrieve platform handles/tokens
 
-**Sub-task 5.2.1b - Token Management + Read-only Verification**  
+**Sub-task 5.2.1b - Token Management + Read-only Verification**
+
 - Implement OAuth flows for Twitch and YouTube (Facebook gated)
 - Add helpers to resolve platform identifiers for host/co-hosts
 - Acceptance: Can verify live status via real API calls with user's linked accounts
 
 **Sub-task 5.2.1c - Wire Coordination**
+
 - Complete platform coordination with real API calls using resolved identifiers
 - Map API results into session.platformStatuses and persist via storage
 - Surface platform statuses to UI and coordination system
 - Acceptance: Cross-platform streaming coordination fully functional
 
 ### September 19, 2025 - Phase 1 Complete: Enhanced Authentication & Platform Integrations
+
 - **COMPLETE**: Production-ready authentication system with Auth.js v5, Google OAuth, and Twitch OAuth
 - **COMPLETE**: Secure credential-based authentication with bcrypt password hashing and rate limiting
 - **COMPLETE**: Comprehensive Twitch API service with EventSub webhooks and HMAC signature verification
@@ -184,6 +199,7 @@ DATABASE_URL=your_neon_database_url
 - **FIXED**: Critical security vulnerabilities including CSP policies and authentication rate limiting
 
 ### September 18, 2025
+
 - **MAJOR**: Migrated from legacy authentication to Auth.js v5 with Google OAuth
 - **UPDATED**: Removed legacy authentication dependencies (openid-client, passport)
 - **IMPROVED**: Enhanced authentication middleware with consistent user ID handling

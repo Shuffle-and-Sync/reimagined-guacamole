@@ -5,6 +5,7 @@
 Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
 
 ### Core Features
+
 - **Community-based Organization**: Users can join and participate in different TCG communities
 - **Collaborative Streaming**: Real-time coordination tools for multi-streamer events
 - **TableSync**: Remote TCG gameplay coordination with real-time board state synchronization
@@ -17,6 +18,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Technology Stack
 
 ### Frontend Architecture
+
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite for fast development and optimized builds
 - **UI Library**: Shadcn/ui components built on Radix UI primitives
@@ -26,6 +28,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - **Forms**: React Hook Form with Zod validation
 
 ### Backend Architecture
+
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
@@ -58,12 +61,14 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Coding Patterns and Conventions
 
 ### File Organization
+
 - Use **feature-based structure** for both client and server
 - Group related components, hooks, and utilities together
 - Separate UI components (`/components/ui/`) from feature components
 - Keep shared types and schemas in the `/shared` directory
 
 ### Naming Conventions
+
 - **Files**: kebab-case for filenames (`user-profile.tsx`, `auth.routes.ts`)
 - **Components**: PascalCase for React components (`UserProfile`, `CommunityCard`)
 - **Functions**: camelCase for functions and variables
@@ -71,6 +76,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - **Database**: snake_case for database columns, camelCase for TypeScript interfaces
 
 ### TypeScript Patterns
+
 - Use strict TypeScript configuration
 - Define interfaces for all API requests/responses
 - Use Zod schemas for runtime validation
@@ -78,6 +84,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - Use proper generic types for reusable components
 
 ### React Patterns
+
 - Use functional components with hooks
 - Implement custom hooks for shared logic
 - Use React Query for server state management
@@ -85,6 +92,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - Use Suspense for loading states where appropriate
 
 ### API Design
+
 - RESTful API design with feature-based routing
 - Consistent response formats with proper HTTP status codes
 - Input validation using Zod schemas
@@ -94,6 +102,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Database Schema Considerations
 
 ### Database Architecture
+
 - **SQLite Cloud**: Cloud-hosted SQLite database for all data (development and production)
 - **Primary ORM**: Drizzle ORM (`shared/database-unified.ts`) - handles all runtime database operations
 - **Schema Definition**: `shared/schema.ts` (Drizzle) - authoritative schema source
@@ -102,6 +111,7 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 > **Important**: The application uses SQLite Cloud accessed via Drizzle ORM for 100% of database operations. See [docs/architecture/DATABASE_ARCHITECTURE.md](../docs/architecture/DATABASE_ARCHITECTURE.md) for details.
 
 ### Key Tables
+
 - **users**: User profiles with TCG community preferences
 - **communities**: TCG communities (MTG, Pokemon, Lorcana, etc.)
 - **user_communities**: Many-to-many relationship for community membership
@@ -110,11 +120,13 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 - **sessions**: Auth.js session tables managed by Drizzle adapter
 
 ### Important Relationships
+
 - Users have a primary community but can belong to multiple communities
 - Events are associated with specific communities
 - Real-time coordination features require WebSocket integration
 
 ### Database Development Patterns
+
 - **Schema Changes**: Always modify `shared/schema.ts` (Drizzle schema)
 - **Migrations**: Use `npm run db:push` (dev) or Drizzle Kit migrations (prod)
 - **Queries**: Always import from `shared/database-unified` for all database operations
@@ -123,12 +135,14 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Authentication & Security
 
 ### Authentication Flow
+
 - Google OAuth 2.0 via Auth.js v5
 - **Database sessions via Drizzle adapter** - secure session management with database persistence
 - HTTP-only secure cookies
 - CSRF protection enabled
 
 ### Security Considerations
+
 - Rate limiting on all API endpoints
 - Input validation and sanitization
 - Secure environment variable management
@@ -138,11 +152,13 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Development Workflow
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - Git
 - SQLite Cloud account or local SQLite database
 
 ### Initial Setup
+
 ```bash
 # 1. Clone and install dependencies
 git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
@@ -162,6 +178,7 @@ npm run dev
 ```
 
 ### Development Commands
+
 - **Development server**: `npm run dev` - Start server with hot reload at http://localhost:3000
 - **Build**: `npm run build` - Build the application for production
 - **Type checking**: `npm run check` - Run TypeScript type checking
@@ -169,11 +186,12 @@ npm run dev
 - **Health check**: `npm run health` - Check application health status
 
 ### Testing Commands
+
 - **Run all tests**: `npm test` - Execute all test suites
 - **Watch mode**: `npm run test:watch` - Run tests in watch mode
 - **Coverage**: `npm run test:coverage` - Generate test coverage report
 - **Feature tests**: `npm run test:features` - Run feature-specific tests
-- **Individual suites**: 
+- **Individual suites**:
   - `npm run test:auth` - Authentication tests
   - `npm run test:tournaments` - Tournament tests
   - `npm run test:matchmaking` - Matchmaking tests
@@ -181,12 +199,14 @@ npm run dev
   - `npm run test:messaging` - Messaging tests
 
 ### Code Quality Commands
+
 - **Lint**: `npm run lint` - Run ESLint and auto-fix issues
 - **Format**: `npm run format` - Format code with Prettier
 - **Copilot analysis**: `npm run copilot:analyze` - Run backend code analysis
 - **Auto-fix**: `npm run copilot:fix` - Apply automated fixes
 
 ### Code Quality Standards
+
 - Follow existing patterns in the codebase
 - Use TypeScript strict mode
 - Implement proper error handling
@@ -196,6 +216,7 @@ npm run dev
 - Ensure all tests pass with `npm test`
 
 ### Testing Considerations
+
 - Test authentication flows thoroughly
 - Validate real-time features work correctly
 - Test cross-platform streaming coordination
@@ -206,21 +227,25 @@ npm run dev
 ## Feature-Specific Context
 
 ### TCG Communities
+
 - Support for multiple card games (MTG, Pokemon, Lorcana, Yu-Gi-Oh, etc.)
 - Users can join multiple communities but have one primary community
 - Community-specific theming and preferences
 
 ### Streaming Coordination
+
 - Multi-platform streaming support (Twitch, YouTube, Facebook Gaming)
 - Real-time status coordination between streamers
 - Platform API integrations for live status verification
 
 ### TableSync (Remote Gameplay)
+
 - Real-time board state synchronization
 - Game room management with player limits
 - Voice chat and communication tools integration
 
 ### Tournament Management
+
 - Bracket generation and management
 - Player registration and matchmaking
 - Prize distribution and revenue sharing calculations
@@ -228,6 +253,7 @@ npm run dev
 ## Environment Variables
 
 ### Required Variables
+
 ```bash
 # Database
 DATABASE_URL=sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
@@ -248,6 +274,7 @@ SENDGRID_API_KEY=your_sendgrid_key (optional)
 ## Common Tasks and Patterns
 
 ### Adding New Features
+
 1. Create feature directory in both `client/src/features/` and `server/features/`
 2. Define TypeScript interfaces in feature types file
 3. Create database schema additions in `shared/schema.ts`
@@ -256,12 +283,14 @@ SENDGRID_API_KEY=your_sendgrid_key (optional)
 6. Add proper error handling and validation
 
 ### Database Changes
+
 1. Modify `shared/schema.ts` with new tables/columns
 2. Run `npm run db:push` to apply changes
 3. Update TypeScript interfaces accordingly
 4. Consider migration scripts for production
 
 ### UI Components
+
 1. Use Shadcn/ui components as base
 2. Follow existing design patterns and theming
 3. Ensure mobile responsiveness

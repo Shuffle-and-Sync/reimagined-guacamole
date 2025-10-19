@@ -1,6 +1,12 @@
 import React from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Home, ArrowLeft, Search } from "lucide-react";
 import { useLocation } from "wouter";
@@ -10,7 +16,7 @@ export default function NotFound() {
   const [, setLocation] = useLocation();
 
   const handleGoHome = () => {
-    setLocation('/');
+    setLocation("/");
   };
 
   const handleGoBack = () => {
@@ -18,19 +24,25 @@ export default function NotFound() {
   };
 
   const handleHelpCenter = () => {
-    setLocation('/help-center');
+    setLocation("/help-center");
   };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md mx-auto" role="main" aria-labelledby="error-title">
+      <Card
+        className="w-full max-w-md mx-auto"
+        role="main"
+        aria-labelledby="error-title"
+      >
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-2" aria-hidden="true">
             <AlertCircle className="h-16 w-16 text-amber-500" />
           </div>
-          <CardTitle id="error-title" className="text-3xl font-bold">404 - Page Not Found</CardTitle>
+          <CardTitle id="error-title" className="text-3xl font-bold">
+            404 - Page Not Found
+          </CardTitle>
           <CardDescription className="text-base">
-            The page you're looking for doesn't exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been moved.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -42,9 +54,9 @@ export default function NotFound() {
             <li>The page has been moved or deleted</li>
             <li>You followed an outdated link</li>
           </ul>
-          
+
           <div className="flex flex-col gap-2 pt-4">
-            <Button 
+            <Button
               onClick={handleGoHome}
               className="w-full flex items-center justify-center gap-2"
               data-testid="button-go-home"
@@ -53,7 +65,7 @@ export default function NotFound() {
               <Home className="h-4 w-4" aria-hidden="true" />
               Go to Home
             </Button>
-            <Button 
+            <Button
               onClick={handleGoBack}
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
@@ -63,7 +75,7 @@ export default function NotFound() {
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Go Back
             </Button>
-            <Button 
+            <Button
               onClick={handleHelpCenter}
               variant="ghost"
               className="w-full flex items-center justify-center gap-2"
@@ -74,9 +86,10 @@ export default function NotFound() {
               Help Center
             </Button>
           </div>
-          
+
           <div className="text-center text-xs text-muted-foreground pt-4 border-t">
-            Need assistance? Visit our <button 
+            Need assistance? Visit our{" "}
+            <button
               onClick={handleHelpCenter}
               className="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
               aria-label="Navigate to help center"

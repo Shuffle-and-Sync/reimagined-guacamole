@@ -14,11 +14,13 @@ This directory contains Terraform configuration for provisioning and managing Sh
 ### 1. Configure Variables
 
 Copy the example variables file:
+
 ```bash
 cp terraform.tfvars.example terraform.tfvars
 ```
 
 Edit `terraform.tfvars` with your configuration:
+
 - Set `project_id` to your GCP project ID
 - Update container image references
 - Adjust resource limits and scaling parameters as needed
@@ -34,6 +36,7 @@ This downloads the required provider plugins.
 ### 3. Plan Deployment
 
 Preview the resources that will be created:
+
 ```bash
 terraform plan
 ```
@@ -43,6 +46,7 @@ Review the output carefully to ensure correctness.
 ### 4. Apply Configuration
 
 Create the infrastructure:
+
 ```bash
 terraform apply
 ```
@@ -54,6 +58,7 @@ Type `yes` when prompted to confirm.
 This Terraform configuration provisions:
 
 ### Google Cloud Services
+
 - Cloud Run API
 - Cloud Build API
 - Container Registry API
@@ -62,25 +67,28 @@ This Terraform configuration provisions:
 - Cloud Logging API
 
 ### Cloud Run Services
+
 - **Backend Service**: Node.js Express application
   - Auto-scaling configuration
   - Resource limits (CPU, memory)
   - Environment variables and secrets
-  
 - **Frontend Service**: NGINX serving React SPA
   - Auto-scaling configuration
   - Proxies API requests to backend
 
 ### Secret Manager
+
 - `database-url`: SQLite Cloud connection string
 - `auth-secret`: Authentication secret for Auth.js
 - `google-client-secret`: Google OAuth client secret
 
 ### IAM Permissions
+
 - Service account access to secrets
 - Public access to Cloud Run services (allUsers)
 
 ### Monitoring
+
 - Alert policy for high error rates (>5%)
 - Alert policy for high latency (>2 seconds)
 
@@ -156,12 +164,14 @@ echo -n "your-google-client-secret" | \
 ### Deploy New Container Images
 
 Update the image variables in `terraform.tfvars`:
+
 ```hcl
 backend_image  = "gcr.io/project/backend:v1.2.0"
 frontend_image = "gcr.io/project/frontend:v1.2.0"
 ```
 
 Then apply:
+
 ```bash
 terraform apply
 ```
@@ -172,7 +182,8 @@ terraform apply
 
 By default, Terraform stores state in `terraform.tfstate` locally.
 
-**Important**: 
+**Important**:
+
 - Do NOT commit `terraform.tfstate` to version control
 - `.tfstate` files are in `.gitignore`
 
@@ -181,6 +192,7 @@ By default, Terraform stores state in `terraform.tfstate` locally.
 For team collaboration, use Google Cloud Storage:
 
 1. Create a GCS bucket for state:
+
 ```bash
 gcloud storage buckets create gs://your-terraform-state-bucket \
   --project=your-project \
@@ -188,6 +200,7 @@ gcloud storage buckets create gs://your-terraform-state-bucket \
 ```
 
 2. Uncomment the backend configuration in `main.tf`:
+
 ```hcl
 terraform {
   backend "gcs" {
@@ -198,6 +211,7 @@ terraform {
 ```
 
 3. Re-initialize:
+
 ```bash
 terraform init -migrate-state
 ```
@@ -213,6 +227,7 @@ gcloud alpha monitoring policies list
 ### Configure Notification Channels
 
 1. Create an email notification channel:
+
 ```bash
 gcloud alpha monitoring channels create \
   --display-name="Production Team" \
@@ -221,11 +236,13 @@ gcloud alpha monitoring channels create \
 ```
 
 2. Get the channel ID and add to `terraform.tfvars`:
+
 ```hcl
 notification_channels = ["projects/PROJECT/notificationChannels/CHANNEL_ID"]
 ```
 
 3. Apply the changes:
+
 ```bash
 terraform apply
 ```
@@ -245,12 +262,14 @@ terraform destroy
 ### Permission Errors
 
 Ensure your GCP user has the following roles:
+
 - Cloud Run Admin
 - Secret Manager Admin
 - Monitoring Admin
 - Service Usage Admin
 
 Grant roles:
+
 ```bash
 gcloud projects add-iam-policy-binding PROJECT_ID \
   --member="user:your-email@example.com" \
@@ -260,6 +279,7 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 ### API Not Enabled
 
 If you get "API not enabled" errors:
+
 ```bash
 gcloud services enable run.googleapis.com
 gcloud services enable secretmanager.googleapis.com
@@ -268,6 +288,7 @@ gcloud services enable secretmanager.googleapis.com
 ### State Lock Errors
 
 If using remote state and encountering lock errors:
+
 ```bash
 terraform force-unlock LOCK_ID
 ```

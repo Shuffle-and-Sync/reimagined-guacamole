@@ -68,6 +68,7 @@ Take a moment to explore the platform through the welcome tour:
 **Navigate to:** Profile > Settings
 
 **Essential Information:**
+
 - **Username:** Your public display name
 - **Email:** Verified via Google OAuth
 - **Bio:** Tell others about yourself (max 500 characters)
@@ -75,6 +76,7 @@ Take a moment to explore the platform through the welcome tour:
 - **Timezone:** Critical for event scheduling
 
 **Streaming Information:**
+
 - **Primary Platform:** Twitch, YouTube, or Facebook Gaming
 - **Channel Name:** Your streaming channel handle
 - **Schedule:** When you typically stream (helps with coordination)
@@ -85,12 +87,14 @@ Take a moment to explore the platform through the welcome tour:
 **Navigate to:** Profile > Settings > Privacy
 
 **Control your visibility:**
+
 - **Profile Visibility:** Public, Friends Only, or Private
 - **Activity Feed:** Show/hide your recent activity
 - **Online Status:** Display when you're online
 - **Email Notifications:** Configure what emails you receive
 
 **Communication Preferences:**
+
 - **Direct Messages:** Who can message you
 - **Event Invites:** Who can invite you to events
 - **Tournament Notifications:** Get notified about tournaments
@@ -104,6 +108,7 @@ Take a moment to explore the platform through the welcome tour:
 **Navigate to:** Communities > Browse
 
 **Available TCG Communities:**
+
 - **Magic: The Gathering** - MTG formats, events, and discussions
 - **Pokemon TCG** - Pokemon card game community
 - **Lorcana** - Disney Lorcana TCG community
@@ -120,6 +125,7 @@ Take a moment to explore the platform through the welcome tour:
 ### Community Features
 
 **Within each community you can:**
+
 - **View Events:** See upcoming tournaments and streams
 - **Join Discussions:** Participate in community forums
 - **Find Players:** Connect with other community members
@@ -129,6 +135,7 @@ Take a moment to explore the platform through the welcome tour:
 ### Setting Your Primary Community
 
 Your primary community determines:
+
 - Default community for your events
 - Primary focus in your profile
 - Featured community on your profile page
@@ -142,6 +149,7 @@ Your primary community determines:
 ### Why Connect Platforms?
 
 Connecting your streaming platforms enables:
+
 - **Live Status Display:** Show when you're live streaming
 - **Stream Coordination:** Coordinate with other streamers
 - **Event Integration:** Link streams to tournaments/events
@@ -187,6 +195,7 @@ Connecting your streaming platforms enables:
 **View connected platforms:** Profile > Settings > Platforms
 
 **Features:**
+
 - **View Status:** See if you're currently live on each platform
 - **Refresh Token:** Manually refresh authentication if needed
 - **Disconnect:** Remove a platform connection
@@ -223,12 +232,14 @@ Connecting your streaming platforms enables:
 **Navigate to:** Events > Browse
 
 **Types of events:**
+
 - **Tournaments:** Competitive TCG tournaments
 - **Casual Play:** Friendly matches and gameplay
 - **Collaborative Streams:** Multi-streamer events
 - **Community Events:** Special community gatherings
 
 **To join:**
+
 1. Find an event you're interested in
 2. Click "View Details"
 3. Click "Join Event" or "Register"
@@ -239,6 +250,7 @@ Connecting your streaming platforms enables:
 **Navigate to:** Events > Create
 
 **Event Types:**
+
 1. **Tournament:**
    - Choose tournament format (Single Elimination, Swiss, etc.)
    - Set entry requirements
@@ -261,12 +273,14 @@ Connecting your streaming platforms enables:
 **Navigate to:** Play > TableSync
 
 **Features:**
+
 - Real-time board state synchronization
 - Voice chat integration
 - Multiple TCG game support
 - Game state history
 
 **Quick Start:**
+
 1. Click "Create Game Room"
 2. Select your TCG game
 3. Invite opponent(s)
@@ -279,11 +293,13 @@ Connecting your streaming platforms enables:
 ### Help Resources
 
 **Documentation:**
+
 - **User Guides:** docs/user-guides/ (you are here!)
 - **FAQ:** Frequently asked questions
 - **Video Tutorials:** Step-by-step guides (coming soon)
 
 **Support Channels:**
+
 - **Help Center:** In-app help desk
 - **Community Forums:** Ask other users
 - **Discord Server:** Real-time community support
@@ -312,18 +328,21 @@ A: Absolutely! Many users participate in tournaments and remote gameplay without
 ### Troubleshooting
 
 **Can't log in?**
+
 - Ensure you're using the correct Google account
 - Check that cookies are enabled
 - Try clearing your browser cache
 - See [Troubleshooting Guide](../troubleshooting/README.md)
 
 **Platform connection issues?**
+
 - Verify your platform credentials
 - Check that you've authorized Shuffle & Sync
 - Try disconnecting and reconnecting
 - See [Platform OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md)
 
 **Event not showing up?**
+
 - Check your timezone settings
 - Ensure event is in your primary community
 - Refresh the page
@@ -336,6 +355,7 @@ A: Absolutely! Many users participate in tournaments and remote gameplay without
 **Priority Support:** Available for premium users (coming soon)
 
 **When contacting support, include:**
+
 - Your username
 - Description of the issue
 - Steps to reproduce

@@ -17,10 +17,12 @@ The migration from Prisma ORM with PostgreSQL to Drizzle ORM with SQLite has bee
 ### 1. Update Dependencies ✅ COMPLETE
 
 **Required:**
+
 - Remove Prisma and `pg` dependencies
 - Add `drizzle-orm` and `better-sqlite3`
 
 **Current State:**
+
 ```json
 // package.json - Dependencies Section
 {
@@ -28,19 +30,20 @@ The migration from Prisma ORM with PostgreSQL to Drizzle ORM with SQLite has bee
     "drizzle-orm": "^0.44.6",
     "better-sqlite3": "^12.4.1",
     "drizzle-zod": "^0.7.1",
-    "@sqlitecloud/drivers": "^1.0.507",
+    "@sqlitecloud/drivers": "^1.0.507"
     // No Prisma or pg packages
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.5",
+    "drizzle-kit": "^0.31.5"
     // No Prisma or pg packages
   }
 }
 ```
 
 **Verification:**
+
 - ✅ No `@prisma/client` in dependencies
-- ✅ No `prisma` in devDependencies  
+- ✅ No `prisma` in devDependencies
 - ✅ No `pg` in dependencies
 - ✅ `drizzle-orm` installed (v0.44.6)
 - ✅ `better-sqlite3` installed (v12.4.1)
@@ -49,12 +52,14 @@ The migration from Prisma ORM with PostgreSQL to Drizzle ORM with SQLite has bee
 ### 2. Configure Drizzle ✅ COMPLETE
 
 **Required:**
+
 - Create `drizzle.config.ts`
 - Define schema with Drizzle syntax
 
 **Current State:**
 
 **File:** `drizzle.config.ts`
+
 ```typescript
 import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
@@ -70,11 +75,14 @@ export default defineConfig({
 ```
 
 **File:** `shared/schema.ts` (excerpt)
+
 ```typescript
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   email: text("email").unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
@@ -85,6 +93,7 @@ export const users = sqliteTable("users", {
 ```
 
 **Verification:**
+
 - ✅ `drizzle.config.ts` exists and is properly configured
 - ✅ Schema defined in `shared/schema.ts` using SQLite syntax
 - ✅ All tables use `sqliteTable` (not Prisma syntax)
@@ -94,12 +103,14 @@ export const users = sqliteTable("users", {
 ### 3. Update Build Process ✅ COMPLETE
 
 **Required:**
+
 - Remove Prisma artifact verification
 - Remove `pg` driver checks
 
 **Current State:**
 
 **File:** `scripts/verify-build.sh` (excerpt)
+
 ```bash
 # Line 60: No Prisma client generation comment
 # Drizzle ORM is used for database access (no Prisma client generation needed)
@@ -114,6 +125,7 @@ done
 ```
 
 **File:** `scripts/pre-build.sh` (excerpt)
+
 ```bash
 # Lines 66-73: Pre-build checks for Drizzle
 CRITICAL_DEPS=("typescript" "vite" "esbuild" "drizzle-orm")
@@ -126,6 +138,7 @@ done
 ```
 
 **Verification:**
+
 - ✅ No Prisma Client generation steps in build scripts
 - ✅ No `pg` driver verification
 - ✅ Build scripts verify `drizzle-orm` presence
@@ -143,8 +156,8 @@ done
 The application uses SQLite Cloud as the database backend with Drizzle ORM as the data access layer.
 
 ```typescript
-import { Database as SQLiteCloudDatabase } from '@sqlitecloud/drivers';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { Database as SQLiteCloudDatabase } from "@sqlitecloud/drivers";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 
 const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
@@ -154,6 +167,7 @@ export { db };
 ```
 
 **Features:**
+
 - SQLite Cloud for production (serverless, globally distributed)
 - Local SQLite for development
 - Type-safe queries via Drizzle ORM
@@ -163,6 +177,7 @@ export { db };
 ### Schema Structure
 
 The schema includes **50+ tables** covering:
+
 - Auth.js authentication tables (accounts, sessions, verification tokens)
 - User management (users, user_communities, user_preferences)
 - Event management (events, event_registrations, event_notifications)
@@ -202,6 +217,7 @@ $ grep -r "from 'pg'\|require('pg')" --include="*.ts" --exclude-dir=node_modules
 ### Drizzle ORM Usage: **30+ Files**
 
 Sample files using Drizzle ORM:
+
 - `server/features/auth/registration-login-service.ts`
 - `server/features/events/events-repository.ts`
 - `server/features/tournaments/tournaments-service.ts`
@@ -228,6 +244,7 @@ Total: 151+ tests passing
 ```
 
 **Test Coverage:**
+
 - ✅ Authentication and registration flows
 - ✅ Database CRUD operations
 - ✅ Event management
@@ -251,9 +268,11 @@ Total: 151+ tests passing
 ### Key Documentation Highlights
 
 From `docs/architecture/DATABASE_ARCHITECTURE.md`:
+
 > **TL;DR: Shuffle & Sync uses SQLite Cloud as its database with Drizzle ORM as the primary database layer.**
 
 From `README.md`:
+
 > **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud.
 
 ---
@@ -261,23 +280,27 @@ From `README.md`:
 ## Benefits of the Migration
 
 ### Performance
+
 - ✅ Smaller bundle size (no Prisma Client generation)
 - ✅ Faster startup time (no Prisma Client initialization)
 - ✅ Efficient SQLite queries with minimal overhead
 
 ### Developer Experience
+
 - ✅ Type-safe queries with full TypeScript inference
 - ✅ Simple schema definition in TypeScript
 - ✅ No separate schema language to learn
 - ✅ Better IDE autocomplete and error checking
 
 ### Deployment
+
 - ✅ Simplified build process (no Prisma generate step)
 - ✅ Smaller Docker images
 - ✅ Faster deployments
 - ✅ No database migration dependencies at runtime
 
 ### Maintenance
+
 - ✅ Single source of truth for schema (TypeScript)
 - ✅ Easier to version control
 - ✅ Direct SQL access when needed
@@ -295,13 +318,14 @@ The migration from Prisma/Postgres to Drizzle/SQLite is **100% complete**. All c
 ✅ Build scripts updated  
 ✅ Tests passing  
 ✅ Documentation complete  
-✅ No Prisma/Postgres references remain  
+✅ No Prisma/Postgres references remain
 
 The application is production-ready with Drizzle ORM and SQLite Cloud.
 
 ---
 
 **For questions or additional verification, refer to:**
+
 - `DRIZZLE_MIGRATION_VERIFICATION.md` - Detailed verification evidence
 - `docs/architecture/DATABASE_ARCHITECTURE.md` - Architecture overview
 - `shared/schema.ts` - Complete schema definition

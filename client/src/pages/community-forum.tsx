@@ -8,8 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,29 +35,54 @@ import { formatDistanceToNow } from "date-fns";
 import type { User, Community, ForumPost, ForumReply } from "@shared/schema";
 
 const FORUM_CATEGORIES = [
-  { id: "strategy", name: "Strategy & Tactics", icon: "fas fa-chess", color: "bg-blue-500" },
-  { id: "deck-tech", name: "Deck Tech", icon: "fas fa-layer-group", color: "bg-purple-500" },
-  { id: "stream-tips", name: "Streaming Tips", icon: "fas fa-video", color: "bg-red-500" },
-  { id: "collaboration", name: "Collaboration", icon: "fas fa-handshake", color: "bg-green-500" },
-  { id: "general", name: "General Discussion", icon: "fas fa-comments", color: "bg-gray-500" },
+  {
+    id: "strategy",
+    name: "Strategy & Tactics",
+    icon: "fas fa-chess",
+    color: "bg-blue-500",
+  },
+  {
+    id: "deck-tech",
+    name: "Deck Tech",
+    icon: "fas fa-layer-group",
+    color: "bg-purple-500",
+  },
+  {
+    id: "stream-tips",
+    name: "Streaming Tips",
+    icon: "fas fa-video",
+    color: "bg-red-500",
+  },
+  {
+    id: "collaboration",
+    name: "Collaboration",
+    icon: "fas fa-handshake",
+    color: "bg-green-500",
+  },
+  {
+    id: "general",
+    name: "General Discussion",
+    icon: "fas fa-comments",
+    color: "bg-gray-500",
+  },
 ];
 
-type ExtendedForumPost = ForumPost & { 
-  author: User; 
-  community: Community; 
-  replyCount: number; 
-  likeCount: number; 
-  isLiked?: boolean; 
+type ExtendedForumPost = ForumPost & {
+  author: User;
+  community: Community;
+  replyCount: number;
+  likeCount: number;
+  isLiked?: boolean;
 };
 
-type ExtendedForumReply = ForumReply & { 
-  author: User; 
-  isLiked?: boolean; 
+type ExtendedForumReply = ForumReply & {
+  author: User;
+  isLiked?: boolean;
 };
 
 export default function CommunityForum() {
   useDocumentTitle("Community Forum");
-  
+
   const { user } = useAuth();
   const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();
@@ -61,42 +99,62 @@ export default function CommunityForum() {
   const [replyContent, setReplyContent] = useState("");
 
   // Fetch forum posts for selected community
-  const { data: posts = [], isLoading: postsLoading, refetch: refetchPosts } = useQuery<ExtendedForumPost[]>({
-    queryKey: ['/api/forum/posts', selectedCommunity?.id, selectedCategory],
+  const {
+    data: posts = [],
+    isLoading: postsLoading,
+    refetch: refetchPosts,
+  } = useQuery<ExtendedForumPost[]>({
+    queryKey: ["/api/forum/posts", selectedCommunity?.id, selectedCategory],
     queryFn: async () => {
       if (!selectedCommunity) return [];
       const params = new URLSearchParams({
         communityId: selectedCommunity.id,
-        ...(selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedCategory !== "all" && { category: selectedCategory }),
       });
-      const response = await fetch(`/api/forum/posts?${params}`, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch posts');
+      const response = await fetch(`/api/forum/posts?${params}`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
     },
     enabled: !!selectedCommunity,
   });
 
   // Fetch detailed post when one is selected
-  const { data: currentPost, isLoading: postLoading, refetch: refetchCurrentPost } = useQuery<ExtendedForumPost>({
-    queryKey: ['/api/forum/posts', selectedPost],
+  const {
+    data: currentPost,
+    isLoading: postLoading,
+    refetch: refetchCurrentPost,
+  } = useQuery<ExtendedForumPost>({
+    queryKey: ["/api/forum/posts", selectedPost],
     queryFn: async () => {
       if (!selectedPost || !user) return null;
       const params = new URLSearchParams({ userId: user.id });
-      const response = await fetch(`/api/forum/posts/${selectedPost}?${params}`, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch post');
+      const response = await fetch(
+        `/api/forum/posts/${selectedPost}?${params}`,
+        { credentials: "include" },
+      );
+      if (!response.ok) throw new Error("Failed to fetch post");
       return response.json();
     },
     enabled: !!selectedPost && !!user,
   });
 
   // Fetch replies for current post
-  const { data: replies = [], isLoading: repliesLoading, refetch: refetchReplies } = useQuery<ExtendedForumReply[]>({
-    queryKey: ['/api/forum/posts', selectedPost, 'replies'],
+  const {
+    data: replies = [],
+    isLoading: repliesLoading,
+    refetch: refetchReplies,
+  } = useQuery<ExtendedForumReply[]>({
+    queryKey: ["/api/forum/posts", selectedPost, "replies"],
     queryFn: async () => {
       if (!selectedPost || !user) return [];
       const params = new URLSearchParams({ userId: user.id });
-      const response = await fetch(`/api/forum/posts/${selectedPost}/replies?${params}`, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch replies');
+      const response = await fetch(
+        `/api/forum/posts/${selectedPost}/replies?${params}`,
+        { credentials: "include" },
+      );
+      if (!response.ok) throw new Error("Failed to fetch replies");
       return response.json();
     },
     enabled: !!selectedPost && !!user,
@@ -105,18 +163,18 @@ export default function CommunityForum() {
   // Create forum post mutation
   const createPostMutation = useMutation({
     mutationFn: async (postData: any) => {
-      const response = await fetch('/api/forum/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const response = await fetch("/api/forum/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(postData),
       });
-      if (!response.ok) throw new Error('Failed to create post');
+      if (!response.ok) throw new Error("Failed to create post");
       return response.json();
     },
     onSuccess: () => {
       toast({ title: "Post created successfully!" });
-      queryClient.invalidateQueries({ queryKey: ['/api/forum/posts'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/forum/posts"] });
       setIsCreateDialogOpen(false);
       setNewPostTitle("");
       setNewPostCategory("");
@@ -129,19 +187,25 @@ export default function CommunityForum() {
 
   // Create reply mutation
   const createReplyMutation = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+    mutationFn: async ({
+      postId,
+      content,
+    }: {
+      postId: string;
+      content: string;
+    }) => {
       const response = await fetch(`/api/forum/posts/${postId}/replies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ content }),
       });
-      if (!response.ok) throw new Error('Failed to create reply');
+      if (!response.ok) throw new Error("Failed to create reply");
       return response.json();
     },
     onSuccess: () => {
       toast({ title: "Reply posted successfully!" });
-      queryClient.invalidateQueries({ queryKey: ['/api/forum/posts'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/forum/posts"] });
       setReplyContent("");
       refetchReplies();
       refetchPosts();
@@ -153,30 +217,42 @@ export default function CommunityForum() {
 
   // Like post mutation
   const likePostMutation = useMutation({
-    mutationFn: async ({ postId, isCurrentlyLiked }: { postId: string; isCurrentlyLiked: boolean }) => {
+    mutationFn: async ({
+      postId,
+      isCurrentlyLiked,
+    }: {
+      postId: string;
+      isCurrentlyLiked: boolean;
+    }) => {
       const url = `/api/forum/posts/${postId}/like`;
-      const method = isCurrentlyLiked ? 'DELETE' : 'POST';
-      
+      const method = isCurrentlyLiked ? "DELETE" : "POST";
+
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
-      if (!response.ok) throw new Error(`Failed to ${isCurrentlyLiked ? 'unlike' : 'like'} post`);
+      if (!response.ok)
+        throw new Error(
+          `Failed to ${isCurrentlyLiked ? "unlike" : "like"} post`,
+        );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/forum/posts'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/forum/posts"] });
       refetchCurrentPost();
     },
   });
 
   const handleCreatePost = () => {
     if (!selectedCommunity) {
-      toast({ title: "Please select a community first", variant: "destructive" });
+      toast({
+        title: "Please select a community first",
+        variant: "destructive",
+      });
       return;
     }
-    
+
     if (!newPostTitle || !newPostCategory || !newPostContent) {
       toast({ title: "Please fill in all fields", variant: "destructive" });
       return;
@@ -215,12 +291,12 @@ export default function CommunityForum() {
   };
 
   const getCategoryIcon = (category: string) => {
-    const cat = FORUM_CATEGORIES.find(c => c.id === category);
+    const cat = FORUM_CATEGORIES.find((c) => c.id === category);
     return cat?.icon || "fas fa-comments";
   };
 
   const getCategoryColor = (category: string) => {
-    const cat = FORUM_CATEGORIES.find(c => c.id === category);
+    const cat = FORUM_CATEGORIES.find((c) => c.id === category);
     return cat?.color || "bg-gray-500";
   };
 
@@ -234,7 +310,10 @@ export default function CommunityForum() {
             <p className="text-muted-foreground mb-8">
               Please select a community from the navigation to view its forum.
             </p>
-            <Button onClick={() => window.location.href = "/"} data-testid="button-back-home">
+            <Button
+              onClick={() => (window.location.href = "/")}
+              data-testid="button-back-home"
+            >
               <i className="fas fa-home mr-2"></i>
               Back to Home
             </Button>
@@ -249,12 +328,12 @@ export default function CommunityForum() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        
+
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Back button */}
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => setSelectedPost(null)}
               className="mb-6"
               data-testid="button-back-to-forum"
@@ -275,9 +354,15 @@ export default function CommunityForum() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Badge className={`${getCategoryColor(currentPost.category)} text-white`}>
-                            <i className={`${getCategoryIcon(currentPost.category)} mr-1`}></i>
-                            {FORUM_CATEGORIES.find(c => c.id === currentPost.category)?.name || currentPost.category}
+                          <Badge
+                            className={`${getCategoryColor(currentPost.category)} text-white`}
+                          >
+                            <i
+                              className={`${getCategoryIcon(currentPost.category)} mr-1`}
+                            ></i>
+                            {FORUM_CATEGORIES.find(
+                              (c) => c.id === currentPost.category,
+                            )?.name || currentPost.category}
                           </Badge>
                           {currentPost.isPinned && (
                             <Badge variant="secondary">
@@ -286,24 +371,43 @@ export default function CommunityForum() {
                             </Badge>
                           )}
                         </div>
-                        <h1 className="text-2xl font-bold">{currentPost.title}</h1>
+                        <h1 className="text-2xl font-bold">
+                          {currentPost.title}
+                        </h1>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={currentPost.author.profileImageUrl || undefined} />
+                              <AvatarImage
+                                src={
+                                  currentPost.author.profileImageUrl ||
+                                  undefined
+                                }
+                              />
                               <AvatarFallback className="text-xs">
-                                {(currentPost.author.firstName || currentPost.author.username || currentPost.author.email)?.[0]?.toUpperCase() || "U"}
+                                {(currentPost.author.firstName ||
+                                  currentPost.author.username ||
+                                  currentPost.author
+                                    .email)?.[0]?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{currentPost.author.firstName || currentPost.author.username || currentPost.author.email}</span>
+                            <span>
+                              {currentPost.author.firstName ||
+                                currentPost.author.username ||
+                                currentPost.author.email}
+                            </span>
                           </div>
                           <span>•</span>
-                          <span>{formatDistanceToNow(currentPost.createdAt || new Date())} ago</span>
+                          <span>
+                            {formatDistanceToNow(
+                              currentPost.createdAt || new Date(),
+                            )}{" "}
+                            ago
+                          </span>
                           <span>•</span>
                           <span>{currentPost.viewCount} views</span>
                         </div>
                       </div>
-                      
+
                       <Button
                         variant={currentPost.isLiked ? "default" : "outline"}
                         size="sm"
@@ -311,16 +415,20 @@ export default function CommunityForum() {
                         disabled={!user || likePostMutation.isPending}
                         data-testid="button-like-post"
                       >
-                        <i className={`fas fa-heart mr-1 ${currentPost.isLiked ? 'text-red-500' : ''}`}></i>
+                        <i
+                          className={`fas fa-heart mr-1 ${currentPost.isLiked ? "text-red-500" : ""}`}
+                        ></i>
                         {currentPost.likeCount}
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      {currentPost.content.split('\n').map((paragraph: string, index: number) => (
-                        <p key={index}>{paragraph}</p>
-                      ))}
+                      {currentPost.content
+                        .split("\n")
+                        .map((paragraph: string, index: number) => (
+                          <p key={index}>{paragraph}</p>
+                        ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -339,9 +447,13 @@ export default function CommunityForum() {
                       <div className="border-b pb-4">
                         <div className="flex gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.profileImageUrl || undefined} />
+                            <AvatarImage
+                              src={user.profileImageUrl || undefined}
+                            />
                             <AvatarFallback className="text-xs">
-                              {(user.firstName || user.username || user.email)?.[0]?.toUpperCase() || "U"}
+                              {(user.firstName ||
+                                user.username ||
+                                user.email)?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 space-y-2">
@@ -354,10 +466,15 @@ export default function CommunityForum() {
                             />
                             <Button
                               onClick={handleReply}
-                              disabled={!replyContent.trim() || createReplyMutation.isPending}
+                              disabled={
+                                !replyContent.trim() ||
+                                createReplyMutation.isPending
+                              }
                               data-testid="button-post-reply"
                             >
-                              {createReplyMutation.isPending ? "Posting..." : "Post Reply"}
+                              {createReplyMutation.isPending
+                                ? "Posting..."
+                                : "Post Reply"}
                             </Button>
                           </div>
                         </div>
@@ -372,26 +489,41 @@ export default function CommunityForum() {
                     ) : replies.length > 0 ? (
                       <div className="space-y-4">
                         {replies.map((reply) => (
-                          <div key={reply.id} className="flex gap-3 p-4 rounded-lg bg-muted/50">
+                          <div
+                            key={reply.id}
+                            className="flex gap-3 p-4 rounded-lg bg-muted/50"
+                          >
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={reply.author.profileImageUrl || undefined} />
+                              <AvatarImage
+                                src={reply.author.profileImageUrl || undefined}
+                              />
                               <AvatarFallback className="text-xs">
-                                {(reply.author.firstName || reply.author.username || reply.author.email)?.[0]?.toUpperCase() || "U"}
+                                {(reply.author.firstName ||
+                                  reply.author.username ||
+                                  reply.author.email)?.[0]?.toUpperCase() ||
+                                  "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium">
-                                  {reply.author.firstName || reply.author.username || reply.author.email}
+                                  {reply.author.firstName ||
+                                    reply.author.username ||
+                                    reply.author.email}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {formatDistanceToNow(reply.createdAt || new Date())} ago
+                                  {formatDistanceToNow(
+                                    reply.createdAt || new Date(),
+                                  )}{" "}
+                                  ago
                                 </span>
                               </div>
                               <div className="prose prose-sm max-w-none dark:prose-invert">
-                                {reply.content.split('\n').map((paragraph: string, index: number) => (
-                                  <p key={index}>{paragraph}</p>
-                                ))}
+                                {reply.content
+                                  .split("\n")
+                                  .map((paragraph: string, index: number) => (
+                                    <p key={index}>{paragraph}</p>
+                                  ))}
                               </div>
                               <div className="flex items-center gap-2 mt-2">
                                 <Button
@@ -432,7 +564,7 @@ export default function CommunityForum() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -442,12 +574,16 @@ export default function CommunityForum() {
                 {selectedCommunity.displayName} Forum
               </h1>
               <p className="text-muted-foreground">
-                Connect with fellow {selectedCommunity.displayName} players and streamers
+                Connect with fellow {selectedCommunity.displayName} players and
+                streamers
               </p>
             </div>
-            
+
             {user && (
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button data-testid="button-create-post">
                     <i className="fas fa-plus mr-2"></i>
@@ -458,7 +594,8 @@ export default function CommunityForum() {
                   <DialogHeader>
                     <DialogTitle>Create New Post</DialogTitle>
                     <DialogDescription>
-                      Share your thoughts with the {selectedCommunity.displayName} community
+                      Share your thoughts with the{" "}
+                      {selectedCommunity.displayName} community
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -474,7 +611,10 @@ export default function CommunityForum() {
                     </div>
                     <div>
                       <Label htmlFor="category">Category</Label>
-                      <Select value={newPostCategory} onValueChange={setNewPostCategory}>
+                      <Select
+                        value={newPostCategory}
+                        onValueChange={setNewPostCategory}
+                      >
                         <SelectTrigger data-testid="select-post-category">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
@@ -502,8 +642,8 @@ export default function CommunityForum() {
                       />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={() => setIsCreateDialogOpen(false)}
                         data-testid="button-cancel-post"
                       >
@@ -514,7 +654,9 @@ export default function CommunityForum() {
                         disabled={createPostMutation.isPending}
                         data-testid="button-submit-post"
                       >
-                        {createPostMutation.isPending ? "Creating..." : "Create Post"}
+                        {createPostMutation.isPending
+                          ? "Creating..."
+                          : "Create Post"}
                       </Button>
                     </div>
                   </div>
@@ -536,7 +678,9 @@ export default function CommunityForum() {
             {FORUM_CATEGORIES.map((category) => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
+                variant={
+                  selectedCategory === category.id ? "default" : "outline"
+                }
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
                 data-testid={`filter-category-${category.id}`}
@@ -555,8 +699,8 @@ export default function CommunityForum() {
           ) : posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post) => (
-                <Card 
-                  key={post.id} 
+                <Card
+                  key={post.id}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => setSelectedPost(post.id)}
                   data-testid={`post-card-${post.id}`}
@@ -565,9 +709,15 @@ export default function CommunityForum() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge className={`${getCategoryColor(post.category)} text-white`}>
-                            <i className={`${getCategoryIcon(post.category)} mr-1`}></i>
-                            {FORUM_CATEGORIES.find(c => c.id === post.category)?.name || post.category}
+                          <Badge
+                            className={`${getCategoryColor(post.category)} text-white`}
+                          >
+                            <i
+                              className={`${getCategoryIcon(post.category)} mr-1`}
+                            ></i>
+                            {FORUM_CATEGORIES.find(
+                              (c) => c.id === post.category,
+                            )?.name || post.category}
                           </Badge>
                           {post.isPinned && (
                             <Badge variant="secondary">
@@ -576,32 +726,43 @@ export default function CommunityForum() {
                             </Badge>
                           )}
                         </div>
-                        
+
                         <h3 className="text-lg font-semibold mb-2 line-clamp-2">
                           {post.title}
                         </h3>
-                        
+
                         <p className="text-muted-foreground mb-3 line-clamp-2">
                           {post.content}
                         </p>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-5 w-5">
-                              <AvatarImage src={post.author.profileImageUrl || undefined} />
+                              <AvatarImage
+                                src={post.author.profileImageUrl || undefined}
+                              />
                               <AvatarFallback className="text-xs">
-                                {(post.author.firstName || post.author.username || post.author.email)?.[0]?.toUpperCase() || "U"}
+                                {(post.author.firstName ||
+                                  post.author.username ||
+                                  post.author.email)?.[0]?.toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{post.author.firstName || post.author.username || post.author.email}</span>
+                            <span>
+                              {post.author.firstName ||
+                                post.author.username ||
+                                post.author.email}
+                            </span>
                           </div>
                           <span>•</span>
-                          <span>{formatDistanceToNow(post.createdAt || new Date())} ago</span>
+                          <span>
+                            {formatDistanceToNow(post.createdAt || new Date())}{" "}
+                            ago
+                          </span>
                           <span>•</span>
                           <span>{post.viewCount} views</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-muted-foreground ml-4">
                         <div className="flex items-center gap-1">
                           <i className="fas fa-heart"></i>
@@ -622,10 +783,14 @@ export default function CommunityForum() {
               <i className="fas fa-comments text-6xl text-muted-foreground/50 mb-4"></i>
               <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
               <p className="text-muted-foreground mb-6">
-                Be the first to start a conversation in the {selectedCommunity.displayName} community!
+                Be the first to start a conversation in the{" "}
+                {selectedCommunity.displayName} community!
               </p>
               {user && (
-                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-first-post">
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  data-testid="button-create-first-post"
+                >
                   <i className="fas fa-plus mr-2"></i>
                   Create First Post
                 </Button>

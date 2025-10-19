@@ -1,8 +1,8 @@
-import { logger } from '../logger';
+import { logger } from "../logger";
 
 /**
  * Production Logger Utility
- * 
+ *
  * Handles logging configuration for production environments
  * and removes/disables debug logging to prevent information leakage
  */
@@ -12,7 +12,7 @@ export class ProductionLogger {
   private originalConsole: typeof console;
 
   constructor() {
-    this.isProduction = process.env.NODE_ENV === 'production';
+    this.isProduction = process.env.NODE_ENV === "production";
     this.originalConsole = { ...console };
     this.setupProductionLogging();
   }
@@ -26,33 +26,33 @@ export class ProductionLogger {
     }
 
     // Override console methods in production to prevent information leakage
-    console.log = this.createProductionLogger('info');
-    console.info = this.createProductionLogger('info');
-    console.warn = this.createProductionLogger('warn');
-    console.error = this.createProductionLogger('error');
-    console.debug = this.createProductionLogger('debug');
-    console.trace = this.createProductionLogger('debug');
+    console.log = this.createProductionLogger("info");
+    console.info = this.createProductionLogger("info");
+    console.warn = this.createProductionLogger("warn");
+    console.error = this.createProductionLogger("error");
+    console.debug = this.createProductionLogger("debug");
+    console.trace = this.createProductionLogger("debug");
 
-    logger.info('Production logging configuration applied', {
+    logger.info("Production logging configuration applied", {
       environment: process.env.NODE_ENV,
-      debugLoggingDisabled: true
+      debugLoggingDisabled: true,
     });
   }
 
   /**
    * Create a production-safe logger function
    */
-  private createProductionLogger(level: 'info' | 'warn' | 'error' | 'debug') {
+  private createProductionLogger(level: "info" | "warn" | "error" | "debug") {
     return (...args: any[]) => {
       // In production, only log errors and warnings through the structured logger
-      if (level === 'error') {
-        logger.error('Console error in production', { 
+      if (level === "error") {
+        logger.error("Console error in production", {
           args: this.sanitizeLogArgs(args),
-          stack: new Error().stack 
+          stack: new Error().stack,
         });
-      } else if (level === 'warn') {
-        logger.warn('Console warning in production', { 
-          args: this.sanitizeLogArgs(args) 
+      } else if (level === "warn") {
+        logger.warn("Console warning in production", {
+          args: this.sanitizeLogArgs(args),
         });
       }
       // Suppress info, debug, and trace logs in production
@@ -63,16 +63,16 @@ export class ProductionLogger {
    * Sanitize log arguments to remove sensitive information
    */
   private sanitizeLogArgs(args: any[]): any[] {
-    return args.map(arg => {
-      if (typeof arg === 'string') {
+    return args.map((arg) => {
+      if (typeof arg === "string") {
         // Remove potential sensitive patterns
         return arg
-          .replace(/password[=:]\s*[^\s&]+/gi, 'password=***')
-          .replace(/token[=:]\s*[^\s&]+/gi, 'token=***')
-          .replace(/key[=:]\s*[^\s&]+/gi, 'key=***')
-          .replace(/secret[=:]\s*[^\s&]+/gi, 'secret=***')
-          .replace(/auth[=:]\s*[^\s&]+/gi, 'auth=***');
-      } else if (typeof arg === 'object' && arg !== null) {
+          .replace(/password[=:]\s*[^\s&]+/gi, "password=***")
+          .replace(/token[=:]\s*[^\s&]+/gi, "token=***")
+          .replace(/key[=:]\s*[^\s&]+/gi, "key=***")
+          .replace(/secret[=:]\s*[^\s&]+/gi, "secret=***")
+          .replace(/auth[=:]\s*[^\s&]+/gi, "auth=***");
+      } else if (typeof arg === "object" && arg !== null) {
         return this.sanitizeObject(arg);
       }
       return arg;
@@ -84,22 +84,30 @@ export class ProductionLogger {
    */
   private sanitizeObject(obj: any): any {
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item) => this.sanitizeObject(item));
     }
 
-    if (typeof obj !== 'object' || obj === null) {
+    if (typeof obj !== "object" || obj === null) {
       return obj;
     }
 
     const sanitized: any = {};
-    const sensitiveKeys = ['password', 'token', 'key', 'secret', 'auth', 'cookie', 'session'];
+    const sensitiveKeys = [
+      "password",
+      "token",
+      "key",
+      "secret",
+      "auth",
+      "cookie",
+      "session",
+    ];
 
     for (const [key, value] of Object.entries(obj)) {
       const keyLower = key.toLowerCase();
-      
-      if (sensitiveKeys.some(sensitive => keyLower.includes(sensitive))) {
-        sanitized[key] = '***';
-      } else if (typeof value === 'object' && value !== null) {
+
+      if (sensitiveKeys.some((sensitive) => keyLower.includes(sensitive))) {
+        sanitized[key] = "***";
+      } else if (typeof value === "object" && value !== null) {
         sanitized[key] = this.sanitizeObject(value);
       } else {
         sanitized[key] = value;
@@ -115,7 +123,7 @@ export class ProductionLogger {
   restoreConsole(): void {
     if (this.isProduction) {
       Object.assign(console, this.originalConsole);
-      logger.info('Console logging restored (for testing)');
+      logger.info("Console logging restored (for testing)");
     }
   }
 
@@ -133,18 +141,18 @@ export class ProductionLogger {
     return {
       debug: (...args: any[]) => {
         if (!this.isProduction) {
-          logger.debug('Debug log', { args });
+          logger.debug("Debug log", { args });
         }
       },
       info: (...args: any[]) => {
-        logger.info('Info log', { args: this.sanitizeLogArgs(args) });
+        logger.info("Info log", { args: this.sanitizeLogArgs(args) });
       },
       warn: (...args: any[]) => {
-        logger.warn('Warning log', { args: this.sanitizeLogArgs(args) });
+        logger.warn("Warning log", { args: this.sanitizeLogArgs(args) });
       },
       error: (...args: any[]) => {
-        logger.error('Error log', { args: this.sanitizeLogArgs(args) });
-      }
+        logger.error("Error log", { args: this.sanitizeLogArgs(args) });
+      },
     };
   }
 
@@ -153,11 +161,11 @@ export class ProductionLogger {
    */
   static replaceConsoleLogsInCode(code: string): string {
     return code
-      .replace(/console\.log\s*\(/g, 'logger.info(')
-      .replace(/console\.debug\s*\(/g, 'logger.debug(')
-      .replace(/console\.info\s*\(/g, 'logger.info(')
-      .replace(/console\.warn\s*\(/g, 'logger.warn(')
-      .replace(/console\.error\s*\(/g, 'logger.error(');
+      .replace(/console\.log\s*\(/g, "logger.info(")
+      .replace(/console\.debug\s*\(/g, "logger.debug(")
+      .replace(/console\.info\s*\(/g, "logger.info(")
+      .replace(/console\.warn\s*\(/g, "logger.warn(")
+      .replace(/console\.error\s*\(/g, "logger.error(");
   }
 
   /**
@@ -166,24 +174,24 @@ export class ProductionLogger {
   static findConsoleUsage(code: string): Array<{
     line: number;
     content: string;
-    type: 'log' | 'debug' | 'info' | 'warn' | 'error';
+    type: "log" | "debug" | "info" | "warn" | "error";
   }> {
-    const lines = code.split('\n');
+    const lines = code.split("\n");
     const usage: Array<{
       line: number;
       content: string;
-      type: 'log' | 'debug' | 'info' | 'warn' | 'error';
+      type: "log" | "debug" | "info" | "warn" | "error";
     }> = [];
 
     lines.forEach((line, index) => {
       const consoleRegex = /console\.(log|debug|info|warn|error)\s*\(/;
       const match = line.match(consoleRegex);
-      
+
       if (match) {
         usage.push({
           line: index + 1,
           content: line.trim(),
-          type: match[1] as 'log' | 'debug' | 'info' | 'warn' | 'error'
+          type: match[1] as "log" | "debug" | "info" | "warn" | "error",
         });
       }
     });

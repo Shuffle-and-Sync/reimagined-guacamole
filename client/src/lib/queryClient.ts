@@ -51,7 +51,10 @@ export const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors except 401, 403
-        if (error?.message?.includes('401') || error?.message?.includes('403')) {
+        if (
+          error?.message?.includes("401") ||
+          error?.message?.includes("403")
+        ) {
           return false;
         }
         if (error?.message?.match(/4\d\d/)) {
@@ -70,22 +73,22 @@ export const queryClient = new QueryClient({
         return failureCount < 2;
       },
       onError: (error, variables, context) => {
-        console.error('Mutation error:', error);
+        console.error("Mutation error:", error);
       },
     },
   },
 });
 
 // Global error handling
-queryClient.setQueryDefaults(['api'], {
+queryClient.setQueryDefaults(["api"], {
   staleTime: 1000 * 60 * 5,
 });
 
 // Performance monitoring
 if (import.meta.env.DEV) {
-  queryClient.setMutationDefaults(['api'], {
+  queryClient.setMutationDefaults(["api"], {
     onSettled: (data, error, variables) => {
-      console.log('Mutation settled:', { data, error, variables });
+      console.log("Mutation settled:", { data, error, variables });
     },
   });
 }

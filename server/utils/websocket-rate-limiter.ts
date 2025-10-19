@@ -1,4 +1,4 @@
-import { logger } from '../logger';
+import { logger } from "../logger";
 
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -41,17 +41,19 @@ export class WebSocketRateLimiter {
     }
 
     // Remove old messages outside the window
-    const recentMessages = messageHistory.filter(msg => msg.timestamp > windowStart);
+    const recentMessages = messageHistory.filter(
+      (msg) => msg.timestamp > windowStart,
+    );
     this.connectionLimits.set(connectionId, recentMessages);
 
     // Check if under the limit
     if (recentMessages.length >= this.config.maxMessages) {
-      logger.warn('WebSocket rate limit exceeded', {
+      logger.warn("WebSocket rate limit exceeded", {
         connectionId,
         messageType,
         messageCount: recentMessages.length,
         limit: this.config.maxMessages,
-        windowMs: this.config.windowMs
+        windowMs: this.config.windowMs,
       });
       return false;
     }
@@ -59,7 +61,7 @@ export class WebSocketRateLimiter {
     // Add the current message to history
     recentMessages.push({
       timestamp: now,
-      type: messageType
+      type: messageType,
     });
 
     return true;
@@ -68,20 +70,22 @@ export class WebSocketRateLimiter {
   /**
    * Get rate limit status for a connection
    */
-  getStatus(connectionId: string): { 
-    remaining: number; 
-    resetTime: number; 
+  getStatus(connectionId: string): {
+    remaining: number;
+    resetTime: number;
     totalHits: number;
   } {
     const now = Date.now();
     const windowStart = now - this.config.windowMs;
     const messageHistory = this.connectionLimits.get(connectionId) || [];
-    const recentMessages = messageHistory.filter(msg => msg.timestamp > windowStart);
-    
+    const recentMessages = messageHistory.filter(
+      (msg) => msg.timestamp > windowStart,
+    );
+
     return {
       remaining: Math.max(0, this.config.maxMessages - recentMessages.length),
       resetTime: windowStart + this.config.windowMs,
-      totalHits: recentMessages.length
+      totalHits: recentMessages.length,
     };
   }
 
@@ -90,7 +94,7 @@ export class WebSocketRateLimiter {
    */
   cleanup(connectionId: string): void {
     this.connectionLimits.delete(connectionId);
-    logger.debug('Cleaned up rate limit data for connection', { connectionId });
+    logger.debug("Cleaned up rate limit data for connection", { connectionId });
   }
 
   /**
@@ -98,11 +102,11 @@ export class WebSocketRateLimiter {
    */
   periodicCleanup(): void {
     const now = Date.now();
-    const cutoff = now - (this.config.windowMs * 2); // Keep data for 2 windows
+    const cutoff = now - this.config.windowMs * 2; // Keep data for 2 windows
 
     for (const [connectionId, messages] of this.connectionLimits.entries()) {
-      const recentMessages = messages.filter(msg => msg.timestamp > cutoff);
-      
+      const recentMessages = messages.filter((msg) => msg.timestamp > cutoff);
+
       if (recentMessages.length === 0) {
         this.connectionLimits.delete(connectionId);
       } else {
@@ -110,8 +114,8 @@ export class WebSocketRateLimiter {
       }
     }
 
-    logger.debug('Performed periodic cleanup of rate limit data', {
-      activeConnections: this.connectionLimits.size
+    logger.debug("Performed periodic cleanup of rate limit data", {
+      activeConnections: this.connectionLimits.size,
     });
   }
 
@@ -131,7 +135,7 @@ export class WebSocketRateLimiter {
     return {
       activeConnections: this.connectionLimits.size,
       totalMessages,
-      config: this.config
+      config: this.config,
     };
   }
 }
@@ -139,20 +143,23 @@ export class WebSocketRateLimiter {
 // Default rate limiter instances for different message types
 export const defaultRateLimiter = new WebSocketRateLimiter({
   windowMs: 60 * 1000, // 1 minute
-  maxMessages: 100 // 100 messages per minute per connection
+  maxMessages: 100, // 100 messages per minute per connection
 });
 
 export const highFrequencyRateLimiter = new WebSocketRateLimiter({
-  windowMs: 10 * 1000, // 10 seconds  
-  maxMessages: 20 // 20 messages per 10 seconds for high-frequency events
+  windowMs: 10 * 1000, // 10 seconds
+  maxMessages: 20, // 20 messages per 10 seconds for high-frequency events
 });
 
 // Set up periodic cleanup every 5 minutes
-const cleanupInterval = setInterval(() => {
-  defaultRateLimiter.periodicCleanup();
-  highFrequencyRateLimiter.periodicCleanup();
-}, 5 * 60 * 1000);
+const cleanupInterval = setInterval(
+  () => {
+    defaultRateLimiter.periodicCleanup();
+    highFrequencyRateLimiter.periodicCleanup();
+  },
+  5 * 60 * 1000,
+);
 
 // Clean up intervals on process termination
-process.on('SIGTERM', () => clearInterval(cleanupInterval));
-process.on('SIGINT', () => clearInterval(cleanupInterval));
+process.on("SIGTERM", () => clearInterval(cleanupInterval));
+process.on("SIGINT", () => clearInterval(cleanupInterval));

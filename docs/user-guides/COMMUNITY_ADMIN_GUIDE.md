@@ -25,6 +25,7 @@ This guide will help you manage and grow your TCG community on Shuffle & Sync.
 Community admins are trusted members who help manage and moderate TCG communities on Shuffle & Sync.
 
 **Responsibilities:**
+
 - Moderate community content
 - Manage member behavior
 - Organize community events
@@ -32,6 +33,7 @@ Community admins are trusted members who help manage and moderate TCG communitie
 - Promote positive culture
 
 **Permissions:**
+
 - Create/edit community events
 - Moderate posts and comments
 - Manage member roles
@@ -41,6 +43,7 @@ Community admins are trusted members who help manage and moderate TCG communitie
 ### Becoming a Community Admin
 
 **Requirements:**
+
 - Active community member (30+ days)
 - Good standing in community
 - Regular participation
@@ -48,6 +51,7 @@ Community admins are trusted members who help manage and moderate TCG communitie
 - Nomination by existing admin or vote
 
 **Application Process:**
+
 1. Be nominated by community
 2. Review by existing admins
 3. Approval by platform moderators
@@ -62,6 +66,7 @@ Community admins are trusted members who help manage and moderate TCG communitie
 **Navigate to:** Communities > [Your Community] > Settings
 
 **Essential Information:**
+
 ```
 Community Name: [TCG focus - e.g., "MTG Commander Hub"]
 Description: [Mission and focus - 200 words]
@@ -71,6 +76,7 @@ Tags: [Commander, Casual, Competitive, etc.]
 ```
 
 **Community Type:**
+
 - **Public:** Anyone can join
 - **Private:** Approval required
 - **Invite-Only:** Invitation required
@@ -78,6 +84,7 @@ Tags: [Commander, Casual, Competitive, etc.]
 ### Community Guidelines
 
 **Create Clear Rules:**
+
 ```
 Example Guidelines:
 
@@ -108,6 +115,7 @@ Example Guidelines:
 ```
 
 **Post Guidelines Prominently:**
+
 - Community description
 - Welcome message
 - Pinned post
@@ -116,6 +124,7 @@ Example Guidelines:
 ### Community Channels
 
 **Organize Discussion Topics:**
+
 ```
 Suggested Channels:
 
@@ -156,6 +165,7 @@ Suggested Channels:
 ### Member Roles
 
 **Define Roles:**
+
 ```
 Admin - Full permissions
 Moderator - Content moderation, member management
@@ -166,6 +176,7 @@ New Member - First 7 days
 ```
 
 **Assign Roles:**
+
 - Based on activity
 - Community contributions
 - Trusted behavior
@@ -174,9 +185,10 @@ New Member - First 7 days
 ### Onboarding New Members
 
 **Welcome Process:**
+
 ```
 1. Automated Welcome Message:
-   "Welcome to [Community]! Please read our 
+   "Welcome to [Community]! Please read our
    guidelines and introduce yourself in #general."
 
 2. New Member Checklist:
@@ -196,6 +208,7 @@ New Member - First 7 days
 ### Managing Behavior Issues
 
 **Warning System:**
+
 ```
 Level 1: Verbal Warning
 - Private message
@@ -223,6 +236,7 @@ Level 4: Permanent Ban
 ```
 
 **Documentation:**
+
 - Keep record of all incidents
 - Document warnings and bans
 - Note communication with member
@@ -235,6 +249,7 @@ Level 4: Permanent Ban
 ### Moderation Responsibilities
 
 **Monitor:**
+
 - Community posts
 - Comments and replies
 - Event pages
@@ -242,6 +257,7 @@ Level 4: Permanent Ban
 - Tournament chat
 
 **Take Action On:**
+
 - Spam and advertising
 - Harassment or toxicity
 - Off-topic content
@@ -251,6 +267,7 @@ Level 4: Permanent Ban
 ### Moderation Tools
 
 **Available Actions:**
+
 ```
 ✓ Delete post/comment
 ✓ Hide content (soft delete)
@@ -263,6 +280,7 @@ Level 4: Permanent Ban
 ```
 
 **Moderation Queue:**
+
 - Flagged content
 - Reported posts
 - Auto-flagged keywords
@@ -271,18 +289,21 @@ Level 4: Permanent Ban
 ### Best Practices
 
 **1. Be Consistent:**
+
 - Apply rules fairly
 - Document decisions
 - Explain actions
 - Follow escalation process
 
 **2. Communicate:**
+
 - Explain removed content
 - Give warnings first (when appropriate)
 - Be professional
 - Offer appeals process
 
 **3. Stay Neutral:**
+
 - Don't take sides in disputes
 - Base decisions on rules
 - Avoid personal bias
@@ -295,6 +316,7 @@ Level 4: Permanent Ban
 ### Planning Events
 
 **Event Types:**
+
 ```
 1. Weekly Tournaments
    - Regular schedule
@@ -320,6 +342,7 @@ Level 4: Permanent Ban
 ### Event Promotion
 
 **Marketing Your Events:**
+
 ```
 2 Weeks Before:
 - Announce event
@@ -345,6 +368,7 @@ Day Of:
 ### Running Community Events
 
 **Checklist:**
+
 ```
 Before Event:
 ✓ Test platform/tools
@@ -375,6 +399,7 @@ After Event:
 ### Attracting Members
 
 **Strategies:**
+
 ```
 1. Quality Content
    - Regular posts
@@ -404,6 +429,7 @@ After Event:
 ### Retention Strategies
 
 **Keep Members Engaged:**
+
 ```
 ✓ Regular communication
 ✓ Recognition programs
@@ -414,6 +440,7 @@ After Event:
 ```
 
 **Recognition Programs:**
+
 - Member of the Month
 - Tournament achievements
 - Contribution badges
@@ -423,6 +450,7 @@ After Event:
 ### Community Health Metrics
 
 **Track:**
+
 - Active members (daily/weekly/monthly)
 - Post engagement rate
 - Event participation
@@ -431,6 +459,7 @@ After Event:
 - Member satisfaction
 
 **Review Monthly:**
+
 - What's working well
 - What needs improvement
 - Member feedback
@@ -444,12 +473,14 @@ After Event:
 ### Communication
 
 **1. Be Transparent:**
+
 - Share community decisions
 - Explain rule changes
 - Announce upcoming events
 - Address concerns publicly
 
 **2. Be Responsive:**
+
 - Answer questions quickly
 - Acknowledge feedback
 - Address issues promptly
@@ -458,12 +489,14 @@ After Event:
 ### Building Culture
 
 **1. Lead by Example:**
+
 - Follow all guidelines
 - Be active and positive
 - Support members
 - Promote inclusivity
 
 **2. Celebrate Success:**
+
 - Recognize achievements
 - Share member highlights
 - Celebrate milestones
@@ -472,6 +505,7 @@ After Event:
 ### Continuous Improvement
 
 **Regular Reviews:**
+
 ```
 Monthly:
 - Review member feedback
@@ -497,18 +531,21 @@ Annually:
 ## Resources
 
 **Admin Tools:**
+
 - Moderation dashboard
 - Analytics and insights
 - Member management
 - Content scheduling
 
 **Support:**
+
 - Admin Discord channel
 - Email: community@shuffleandsync.com
 - [Admin Resources Hub](../maintenance/)
 - Monthly admin meetings
 
 **Training:**
+
 - Onboarding guide
 - Moderation best practices
 - Event planning templates
@@ -519,12 +556,14 @@ Annually:
 ## Getting Help
 
 **Questions or Issues?**
+
 - Check the [Troubleshooting Guide](../troubleshooting/README.md)
 - Contact platform support
 - Join admin community
 - Consult other admins
 
 **Emergency Situations:**
+
 - Serious violations: Report immediately
 - Platform abuse: Contact platform admins
 - Legal concerns: Contact legal team

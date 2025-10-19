@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/features/auth';
-import { useToast } from '@/hooks/use-toast';
-import { Users, UserMinus } from 'lucide-react';
-import type { CalendarEvent, Attendee } from '../types';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
+import { Users, UserMinus } from "lucide-react";
+import type { CalendarEvent, Attendee } from "../types";
 
 interface JoinEventButtonProps {
   event: CalendarEvent;
@@ -16,53 +29,63 @@ interface JoinEventButtonProps {
   onSuccess: () => void;
 }
 
-export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonProps) {
+export function JoinEventButton({
+  event,
+  isFull,
+  onSuccess,
+}: JoinEventButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
-  const [selectedPlayerType, setSelectedPlayerType] = useState<'main' | 'alternate'>('main');
+  const [selectedPlayerType, setSelectedPlayerType] = useState<
+    "main" | "alternate"
+  >("main");
 
   // Check if user is already attending this event
   const { data: attendees = [] } = useQuery<Attendee[]>({
-    queryKey: ['/api/events', event.id, 'attendees'],
+    queryKey: ["/api/events", event.id, "attendees"],
     queryFn: async () => {
       const response = await fetch(`/api/events/${event.id}/attendees`);
-      if (!response.ok) throw new Error('Failed to fetch attendees');
+      if (!response.ok) throw new Error("Failed to fetch attendees");
       return response.json();
     },
   });
 
-  const userAttendance = attendees.find(a => a.userId === user?.id);
+  const userAttendance = attendees.find((a) => a.userId === user?.id);
   const isAttending = !!userAttendance;
 
   // Join pod mutation
   const joinMutation = useMutation({
-    mutationFn: async ({ playerType }: { playerType: 'main' | 'alternate' }) => {
+    mutationFn: async ({
+      playerType,
+    }: {
+      playerType: "main" | "alternate";
+    }) => {
       const response = await fetch(`/api/events/${event.id}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: 'attending',
-          role: 'participant',
+          status: "attending",
+          role: "participant",
           playerType,
         }),
       });
-      if (!response.ok) throw new Error('Failed to join event');
+      if (!response.ok) throw new Error("Failed to join event");
       return response.json();
     },
     onSuccess: () => {
       onSuccess();
       setIsJoinDialogOpen(false);
-      toast({ 
-        title: 'Joined game pod!', 
-        description: `You've joined ${event.title} as a ${selectedPlayerType} player` 
+      toast({
+        title: "Joined game pod!",
+        description: `You've joined ${event.title} as a ${selectedPlayerType} player`,
       });
     },
     onError: () => {
-      toast({ 
-        title: 'Failed to join pod', 
-        description: 'There was an error joining the game pod',
-        variant: 'destructive' 
+      toast({
+        title: "Failed to join pod",
+        description: "There was an error joining the game pod",
+        variant: "destructive",
       });
     },
   });
@@ -71,24 +94,24 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
   const leaveMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/events/${event.id}/leave`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
       });
-      if (!response.ok) throw new Error('Failed to leave event');
+      if (!response.ok) throw new Error("Failed to leave event");
       return response.json();
     },
     onSuccess: () => {
       onSuccess();
-      toast({ 
-        title: 'Left game pod', 
-        description: `You've left ${event.title}` 
+      toast({
+        title: "Left game pod",
+        description: `You've left ${event.title}`,
       });
     },
     onError: () => {
-      toast({ 
-        title: 'Failed to leave pod', 
-        description: 'There was an error leaving the game pod',
-        variant: 'destructive' 
+      toast({
+        title: "Failed to leave pod",
+        description: "There was an error leaving the game pod",
+        variant: "destructive",
       });
     },
   });
@@ -106,9 +129,9 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
 
   if (isAttending) {
     return (
-      <Button 
-        size="sm" 
-        variant="outline" 
+      <Button
+        size="sm"
+        variant="outline"
         onClick={handleLeave}
         disabled={leaveMutation.isPending}
         data-testid={`button-leave-${event.id}`}
@@ -128,7 +151,12 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
   // If pod is completely full (no main or alternate slots)
   if (!canJoinAsMain && !canJoinAsAlternate) {
     return (
-      <Button size="sm" variant="secondary" disabled data-testid={`button-full-${event.id}`}>
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled
+        data-testid={`button-full-${event.id}`}
+      >
         Pod Full
       </Button>
     );
@@ -137,16 +165,16 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
   // If only alternate slots available
   if (!canJoinAsMain && canJoinAsAlternate) {
     return (
-      <Button 
-        size="sm" 
+      <Button
+        size="sm"
         onClick={() => {
-          setSelectedPlayerType('alternate');
-          joinMutation.mutate({ playerType: 'alternate' });
+          setSelectedPlayerType("alternate");
+          joinMutation.mutate({ playerType: "alternate" });
         }}
         disabled={joinMutation.isPending}
         data-testid={`button-join-alternate-${event.id}`}
       >
-        {joinMutation.isPending ? 'Joining...' : 'Join as Alternate'}
+        {joinMutation.isPending ? "Joining..." : "Join as Alternate"}
       </Button>
     );
   }
@@ -170,7 +198,12 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Player Type</Label>
-            <Select value={selectedPlayerType} onValueChange={(value: 'main' | 'alternate') => setSelectedPlayerType(value)}>
+            <Select
+              value={selectedPlayerType}
+              onValueChange={(value: "main" | "alternate") =>
+                setSelectedPlayerType(value)
+              }
+            >
               <SelectTrigger data-testid="select-player-type">
                 <SelectValue placeholder="Select player type" />
               </SelectTrigger>
@@ -201,27 +234,28 @@ export function JoinEventButton({ event, isFull, onSuccess }: JoinEventButtonPro
 
           <div className="bg-muted p-3 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              {selectedPlayerType === 'main' 
-                ? 'Main players are guaranteed a spot at the table and participate directly in the game.'
-                : 'Alternate players can join if a main player drops out. You\'ll be notified if a spot opens up.'
-              }
+              {selectedPlayerType === "main"
+                ? "Main players are guaranteed a spot at the table and participate directly in the game."
+                : "Alternate players can join if a main player drops out. You'll be notified if a spot opens up."}
             </p>
           </div>
 
           <div className="flex items-center justify-end gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsJoinDialogOpen(false)}
               data-testid="button-cancel-join"
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleJoin}
               disabled={joinMutation.isPending}
               data-testid="button-confirm-join"
             >
-              {joinMutation.isPending ? 'Joining...' : `Join as ${selectedPlayerType}`}
+              {joinMutation.isPending
+                ? "Joining..."
+                : `Join as ${selectedPlayerType}`}
             </Button>
           </div>
         </div>

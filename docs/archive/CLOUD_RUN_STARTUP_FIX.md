@@ -1,23 +1,29 @@
 # Cloud Run Deployment Fix - Startup Timeout Resolution
 
 ## Issue Summary
+
 Cloud Run deployments were failing with the error:
+
 ```
-The user-provided container failed to start and listen on the port defined by PORT=8080 
+The user-provided container failed to start and listen on the port defined by PORT=8080
 environment variable within the allocated timeout.
 ```
 
 ## Root Cause
+
 The application was performing slow initialization tasks **before** starting the HTTP server:
+
 1. Environment variable validation
-2. Security configuration audit  
+2. Security configuration audit
 3. Database connection initialization
 4. Route registration and middleware setup
 
 This caused Cloud Run's health probes to timeout before the container was ready to serve traffic.
 
 ## Solution Overview
+
 Refactored the startup sequence to:
+
 1. Start HTTP server listening on PORT immediately
 2. Expose health check endpoint from the start
 3. Run initialization tasks asynchronously in the background
@@ -26,35 +32,39 @@ Refactored the startup sequence to:
 ## Technical Changes
 
 ### Server Startup (server/index.ts)
+
 **Before:**
+
 ```typescript
 (async () => {
   // 1. Validate environment (slow)
   validateAndLogEnvironment();
-  
+
   // 2. Run security audit (slow)
   const securityAudit = auditSecurityConfiguration();
-  
+
   // 3. Initialize database (slow)
   await initializeDatabase();
-  
+
   // 4. Register routes
-  app.use('/api/auth', authRoutes);
+  app.use("/api/auth", authRoutes);
   // ... more routes
-  
+
   // 5. Finally start listening (TOO LATE!)
   server.listen(port, () => {
-    logger.info('Server started');
+    logger.info("Server started");
   });
 })();
 ```
 
 **After:**
+
 ```typescript
 // 1. Setup health check IMMEDIATELY
-app.get('/api/health', async (_req, res) => {
-  res.json({ 
-    status: initializationStatus.status === 'initializing' ? 'initializing' : 'ok',
+app.get("/api/health", async (_req, res) => {
+  res.json({
+    status:
+      initializationStatus.status === "initializing" ? "initializing" : "ok",
     initialization: initializationStatus.status,
     // ... other status info
   });
@@ -62,7 +72,7 @@ app.get('/api/health', async (_req, res) => {
 
 // 2. Start listening RIGHT AWAY
 server.listen(port, () => {
-  logger.info('Server listening - starting initialization');
+  logger.info("Server listening - starting initialization");
 });
 
 // 3. Run initialization in background
@@ -70,13 +80,15 @@ server.listen(port, () => {
   validateAndLogEnvironment();
   auditSecurityConfiguration();
   await initializeDatabase();
-  app.use('/api/auth', authRoutes);
-  initializationStatus.status = 'ready';
+  app.use("/api/auth", authRoutes);
+  initializationStatus.status = "ready";
 })();
 ```
 
 ### Database Adapter (server/auth/auth.config.ts)
+
 **Before:**
+
 ```typescript
 export const authConfig = {
   adapter: DrizzleAdapter(db), // ❌ db might be undefined at module load
@@ -85,6 +97,7 @@ export const authConfig = {
 ```
 
 **After:**
+
 ```typescript
 export const authConfig = {
   get adapter() {
@@ -95,14 +108,16 @@ export const authConfig = {
 ```
 
 ### Optional Services
+
 Made Twitch API and SendGrid email optional to prevent startup failures:
 
 **Twitch API (server/services/twitch-api.ts)**:
+
 ```typescript
 constructor() {
   this.clientId = process.env.TWITCH_CLIENT_ID || '';
   this.clientSecret = process.env.TWITCH_CLIENT_SECRET || '';
-  
+
   if (!this.clientId || !this.clientSecret) {
     logger.warn('Twitch API not configured - integration disabled');
     return; // ✅ Don't throw error
@@ -111,6 +126,7 @@ constructor() {
 ```
 
 **SendGrid (server/email-service.ts)**:
+
 ```typescript
 let mailService: MailService | null = null;
 if (!SENDGRID_API_KEY) {
@@ -124,13 +140,15 @@ if (!SENDGRID_API_KEY) {
 ## Performance Improvements
 
 ### Startup Time Comparison
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Time to listen on PORT | 30-60s | ~1s | **30-60x faster** |
-| Cloud Run health check | ❌ Timeout | ✅ Immediate | **100% success** |
-| Initialization overhead | Blocking | Background | **Non-blocking** |
+
+| Metric                  | Before     | After        | Improvement       |
+| ----------------------- | ---------- | ------------ | ----------------- |
+| Time to listen on PORT  | 30-60s     | ~1s          | **30-60x faster** |
+| Cloud Run health check  | ❌ Timeout | ✅ Immediate | **100% success**  |
+| Initialization overhead | Blocking   | Background   | **Non-blocking**  |
 
 ### Test Results
+
 ```bash
 $ ./test-startup-timing.sh
 
@@ -149,7 +167,7 @@ The `/api/health` endpoint now includes initialization status:
   "status": "ok",
   "timestamp": "2025-10-04T17:45:27.189Z",
   "uptime": 21,
-  "initialization": "ready",  // ← New field: initializing | ready | degraded
+  "initialization": "ready", // ← New field: initializing | ready | degraded
   "environment": {
     "nodeEnv": "production",
     "valid": false,
@@ -165,6 +183,7 @@ The `/api/health` endpoint now includes initialization status:
 ```
 
 ### Initialization States
+
 - **initializing**: Server is running but still setting up services
 - **ready**: All services initialized and ready to serve traffic
 - **degraded**: Server running but some services unavailable
@@ -172,10 +191,11 @@ The `/api/health` endpoint now includes initialization status:
 ## Cloud Run Configuration
 
 Updated `cloudbuild.yaml` to add CPU performance flag:
+
 ```yaml
 args:
   # ... other args
-  - '--no-cpu-throttling'  # Better startup performance
+  - "--no-cpu-throttling" # Better startup performance
 ```
 
 ## Deployment Checklist
@@ -183,12 +203,14 @@ args:
 When deploying to Cloud Run, ensure:
 
 ### ✅ Required Environment Variables
+
 - `PORT` (set automatically by Cloud Run to 8080)
 - `NODE_ENV=production`
 - `AUTH_SECRET` (required for Auth.js)
 - `DATABASE_URL` (SQLite Cloud connection string)
 
 ### ⚠️ Optional but Recommended
+
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (OAuth)
 - `SENDGRID_API_KEY` (email)
 - `TWITCH_CLIENT_ID` / `TWITCH_CLIENT_SECRET` (Twitch integration)
@@ -198,14 +220,17 @@ Server will start successfully even without optional variables.
 ## Monitoring
 
 ### Logs to Watch
+
 ```
 ✅ Server listening on port 8080 - starting initialization
-✅ Database connection established  
+✅ Database connection established
 ✅ Server initialization complete
 ```
 
 ### Health Check Monitoring
+
 Monitor initialization status:
+
 ```bash
 curl https://your-app.run.app/api/health | jq .initialization
 # Should return: "initializing" → "ready"
@@ -216,17 +241,20 @@ curl https://your-app.run.app/api/health | jq .initialization
 ### If deployment still fails:
 
 1. **Check PORT environment**:
+
    ```bash
    # Cloud Run sets this automatically
    echo $PORT  # Should be 8080
    ```
 
 2. **Verify health endpoint**:
+
    ```bash
    curl http://localhost:8080/api/health
    ```
 
 3. **Check startup logs**:
+
    ```bash
    gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=shuffle-sync-backend" --limit 50
    ```
@@ -234,10 +262,11 @@ curl https://your-app.run.app/api/health | jq .initialization
 4. **Increase timeout** (if needed):
    ```yaml
    # cloudbuild.yaml
-   --timeout: '300'  # 5 minutes request timeout
+   --timeout: "300" # 5 minutes request timeout
    ```
 
 ## Related Files
+
 - `server/index.ts` - Main server startup logic
 - `server/auth/auth.config.ts` - Lazy database adapter
 - `server/services/twitch-api.ts` - Optional Twitch integration
@@ -248,6 +277,7 @@ curl https://your-app.run.app/api/health | jq .initialization
 ## Testing Locally
 
 Test startup timing locally:
+
 ```bash
 # Build production bundle
 npm run build
@@ -264,12 +294,14 @@ Expected: Server responds within 1-2 seconds.
 ## Future Improvements
 
 Consider implementing:
+
 1. **Startup probe configuration** in Cloud Run
 2. **Readiness vs liveness probes** separation
 3. **Metrics** for initialization time tracking
 4. **Graceful degradation** for failed service initialization
 
 ## References
+
 - [Cloud Run Container Contract](https://cloud.google.com/run/docs/container-contract)
 - [Cloud Run Health Checks](https://cloud.google.com/run/docs/configuring/healthchecks)
 - [Troubleshooting Container Startup](https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start)

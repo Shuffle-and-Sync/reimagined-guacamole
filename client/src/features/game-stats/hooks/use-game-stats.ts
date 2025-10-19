@@ -1,6 +1,6 @@
 /**
  * Game Statistics Custom Hook
- * 
+ *
  * This hook demonstrates proper React patterns and state management
  * following the Shuffle & Sync repository conventions:
  * - TanStack React Query for server state management
@@ -9,10 +9,10 @@
  * - Type-safe API interactions with Zod validation
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/features/auth';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   GameStats,
   GameResult,
@@ -22,15 +22,15 @@ import {
   GameStatsQuery,
   gameResultSchema,
   gameStatsFiltersSchema,
-} from '../types';
+} from "../types";
 
 // Query keys following repository patterns
 const QUERY_KEYS = {
-  gameStats: ['game-stats'] as const,
-  gameStatsUser: (userId: string) => ['game-stats', 'user', userId] as const,
-  gameResults: ['game-results'] as const,
-  gameResultsUser: (userId: string, filters?: GameStatsQuery) => 
-    ['game-results', 'user', userId, filters] as const,
+  gameStats: ["game-stats"] as const,
+  gameStatsUser: (userId: string) => ["game-stats", "user", userId] as const,
+  gameResults: ["game-results"] as const,
+  gameResultsUser: (userId: string, filters?: GameStatsQuery) =>
+    ["game-results", "user", userId, filters] as const,
 };
 
 /**
@@ -43,14 +43,16 @@ export function useGameStats(filters?: GameStatsFilters) {
   const queryClient = useQueryClient();
 
   // Validate filters using Zod schema and add default pagination
-  const validatedQuery: GameStatsQuery | undefined = filters ? {
-    ...gameStatsFiltersSchema.parse(filters),
-    page: 1,
-    limit: 20,
-    offset: 0,
-    sortBy: 'createdAt' as const,
-    sortOrder: 'desc' as const,
-  } : undefined;
+  const validatedQuery: GameStatsQuery | undefined = filters
+    ? {
+        ...gameStatsFiltersSchema.parse(filters),
+        page: 1,
+        limit: 20,
+        offset: 0,
+        sortBy: "createdAt" as const,
+        sortOrder: "desc" as const,
+      }
+    : undefined;
 
   // Fetch user's game statistics
   const {
@@ -59,10 +61,12 @@ export function useGameStats(filters?: GameStatsFilters) {
     error: statsError,
     refetch: refetchStats,
   } = useQuery({
-    queryKey: user ? QUERY_KEYS.gameStatsUser(user.id) : ['game-stats-anonymous'],
+    queryKey: user
+      ? QUERY_KEYS.gameStatsUser(user.id)
+      : ["game-stats-anonymous"],
     queryFn: async (): Promise<GameStatsResponse> => {
-      if (!user) throw new Error('User not authenticated');
-      
+      if (!user) throw new Error("User not authenticated");
+
       const params = new URLSearchParams();
       if (validatedQuery) {
         Object.entries(validatedQuery).forEach(([key, value]) => {
@@ -71,8 +75,8 @@ export function useGameStats(filters?: GameStatsFilters) {
           }
         });
       }
-      
-      const response = await apiRequest('GET', `/api/game-stats?${params}`);
+
+      const response = await apiRequest("GET", `/api/game-stats?${params}`);
       return response.json();
     },
     enabled: !!user,
@@ -86,12 +90,13 @@ export function useGameStats(filters?: GameStatsFilters) {
     isLoading: isLoadingResults,
     error: resultsError,
   } = useQuery({
-    queryKey: user && validatedQuery ? 
-      QUERY_KEYS.gameResultsUser(user.id, validatedQuery) : 
-      ['game-results-anonymous'],
+    queryKey:
+      user && validatedQuery
+        ? QUERY_KEYS.gameResultsUser(user.id, validatedQuery)
+        : ["game-results-anonymous"],
     queryFn: async (): Promise<GameResult[]> => {
-      if (!user) throw new Error('User not authenticated');
-      
+      if (!user) throw new Error("User not authenticated");
+
       const params = new URLSearchParams();
       if (validatedQuery) {
         Object.entries(validatedQuery).forEach(([key, value]) => {
@@ -100,8 +105,8 @@ export function useGameStats(filters?: GameStatsFilters) {
           }
         });
       }
-      
-      const response = await apiRequest('GET', `/api/game-results?${params}`);
+
+      const response = await apiRequest("GET", `/api/game-results?${params}`);
       return response.json();
     },
     enabled: !!user,
@@ -111,60 +116,67 @@ export function useGameStats(filters?: GameStatsFilters) {
   // Mutation for creating new game results
   const createGameResultMutation = useMutation({
     mutationFn: async (data: CreateGameResultData): Promise<GameResult> => {
-      if (!user) throw new Error('User not authenticated');
-      
+      if (!user) throw new Error("User not authenticated");
+
       // Validate data using Zod schema
       const validatedData = gameResultSchema.parse(data);
-      
-      const response = await apiRequest('POST', '/api/game-results', validatedData);
+
+      const response = await apiRequest(
+        "POST",
+        "/api/game-results",
+        validatedData,
+      );
       return response.json();
     },
     onSuccess: (newResult) => {
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gameStats });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gameResults });
-      
+
       // Show success toast
       toast({
-        title: 'Game Result Recorded',
+        title: "Game Result Recorded",
         description: `Your ${newResult.result} has been added to your stats.`,
-        variant: 'default',
+        variant: "default",
       });
     },
     onError: (error) => {
-      console.error('Failed to create game result:', error);
+      console.error("Failed to create game result:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to record game result. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to record game result. Please try again.",
+        variant: "destructive",
       });
     },
   });
 
   // Mutation for updating game statistics preferences
   const updateGameStatsMutation = useMutation({
-    mutationFn: async (data: { gameType: string; favoriteFormat?: string }): Promise<GameStats> => {
-      if (!user) throw new Error('User not authenticated');
-      
-      const response = await apiRequest('PUT', '/api/game-stats', data);
+    mutationFn: async (data: {
+      gameType: string;
+      favoriteFormat?: string;
+    }): Promise<GameStats> => {
+      if (!user) throw new Error("User not authenticated");
+
+      const response = await apiRequest("PUT", "/api/game-stats", data);
       return response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch game stats
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gameStats });
-      
+
       toast({
-        title: 'Stats Updated',
-        description: 'Your game statistics preferences have been updated.',
-        variant: 'default',
+        title: "Stats Updated",
+        description: "Your game statistics preferences have been updated.",
+        variant: "default",
       });
     },
     onError: (error) => {
-      console.error('Failed to update game stats:', error);
+      console.error("Failed to update game stats:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update statistics. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update statistics. Please try again.",
+        variant: "destructive",
       });
     },
   });
@@ -174,7 +186,10 @@ export function useGameStats(filters?: GameStatsFilters) {
     return createGameResultMutation.mutateAsync(data);
   };
 
-  const updateGameStats = (data: { gameType: string; favoriteFormat?: string }) => {
+  const updateGameStats = (data: {
+    gameType: string;
+    favoriteFormat?: string;
+  }) => {
     return updateGameStatsMutation.mutateAsync(data);
   };
 
@@ -183,24 +198,24 @@ export function useGameStats(filters?: GameStatsFilters) {
     gameStats: gameStatsData?.stats || [],
     recentResults: recentResults || [],
     totalRecords: gameStatsData?.totalRecords || 0,
-    
+
     // Loading states
     isLoading: isLoadingStats || isLoadingResults,
     isLoadingStats,
     isLoadingResults,
     isCreating: createGameResultMutation.isPending,
     isUpdating: updateGameStatsMutation.isPending,
-    
+
     // Error states
     error: statsError || resultsError,
     createError: createGameResultMutation.error,
     updateError: updateGameStatsMutation.error,
-    
+
     // Actions
     createGameResult,
     updateGameStats,
     refetchStats,
-    
+
     // Utilities
     isAuthenticated: !!user,
   };
@@ -211,12 +226,14 @@ export function useGameStats(filters?: GameStatsFilters) {
  */
 export function useAggregateGameStats() {
   const { user } = useAuth();
-  
+
   return useQuery({
-    queryKey: user ? ['aggregate-game-stats', user.id] : ['aggregate-game-stats-anonymous'],
+    queryKey: user
+      ? ["aggregate-game-stats", user.id]
+      : ["aggregate-game-stats-anonymous"],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
-      const response = await apiRequest('GET', '/api/game-stats/aggregate');
+      if (!user) throw new Error("User not authenticated");
+      const response = await apiRequest("GET", "/api/game-stats/aggregate");
       return response.json();
     },
     enabled: !!user,
@@ -229,10 +246,13 @@ export function useAggregateGameStats() {
  */
 export function useGameStatsLeaderboard(gameType?: string) {
   return useQuery({
-    queryKey: ['game-stats-leaderboard', gameType],
+    queryKey: ["game-stats-leaderboard", gameType],
     queryFn: async () => {
-      const params = gameType ? `?gameType=${gameType}` : '';
-      const response = await apiRequest('GET', `/api/game-stats/leaderboard${params}`);
+      const params = gameType ? `?gameType=${gameType}` : "";
+      const response = await apiRequest(
+        "GET",
+        `/api/game-stats/leaderboard${params}`,
+      );
       return response.json();
     },
     staleTime: 15 * 60 * 1000, // 15 minutes

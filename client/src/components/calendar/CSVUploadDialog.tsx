@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import Papa from 'papaparse';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import Papa from "papaparse";
 
 interface CSVUploadDialogProps {
   isOpen: boolean;
@@ -15,7 +28,12 @@ interface CSVUploadDialogProps {
   communityId: string;
 }
 
-export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSVUploadDialogProps) {
+export function CSVUploadDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+  communityId,
+}: CSVUploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -26,8 +44,8 @@ export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSV
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    if (!selectedFile.name.endsWith('.csv')) {
-      setErrors(['Please select a CSV file']);
+    if (!selectedFile.name.endsWith(".csv")) {
+      setErrors(["Please select a CSV file"]);
       return;
     }
 
@@ -45,19 +63,32 @@ export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSV
           if (!row.title && !row.date) return;
 
           // Validate required fields
-          if (!row.title) validationErrors.push(`Row ${index + 1}: Missing title`);
-          if (!row.type) validationErrors.push(`Row ${index + 1}: Missing type`);
-          if (!row.date) validationErrors.push(`Row ${index + 1}: Missing date`);
-          if (!row.time) validationErrors.push(`Row ${index + 1}: Missing time`);
-          if (!row.location) validationErrors.push(`Row ${index + 1}: Missing location`);
+          if (!row.title)
+            validationErrors.push(`Row ${index + 1}: Missing title`);
+          if (!row.type)
+            validationErrors.push(`Row ${index + 1}: Missing type`);
+          if (!row.date)
+            validationErrors.push(`Row ${index + 1}: Missing date`);
+          if (!row.time)
+            validationErrors.push(`Row ${index + 1}: Missing time`);
+          if (!row.location)
+            validationErrors.push(`Row ${index + 1}: Missing location`);
 
           // Validate event type
-          const validTypes = ['tournament', 'convention', 'release', 'game_pod', 'community'];
+          const validTypes = [
+            "tournament",
+            "convention",
+            "release",
+            "game_pod",
+            "community",
+          ];
           if (row.type && !validTypes.includes(row.type)) {
-            validationErrors.push(`Row ${index + 1}: Invalid type '${row.type}'. Must be one of: ${validTypes.join(', ')}`);
+            validationErrors.push(
+              `Row ${index + 1}: Invalid type '${row.type}'. Must be one of: ${validTypes.join(", ")}`,
+            );
           }
 
-          if (Object.keys(row).some(key => row[key])) {
+          if (Object.keys(row).some((key) => row[key])) {
             validData.push(row);
           }
         });
@@ -67,7 +98,7 @@ export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSV
       },
       error: (error) => {
         setErrors([`Failed to parse CSV: ${error.message}`]);
-      }
+      },
     });
   };
 
@@ -77,36 +108,38 @@ export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSV
     setIsUploading(true);
 
     try {
-      const events = preview.map(row => ({
+      const events = preview.map((row) => ({
         title: row.title,
-        description: row.description || '',
+        description: row.description || "",
         type: row.type,
         date: row.date,
         time: row.time,
         location: row.location,
         communityId: communityId,
         playerSlots: row.playerSlots ? parseInt(row.playerSlots) : undefined,
-        alternateSlots: row.alternateSlots ? parseInt(row.alternateSlots) : undefined,
+        alternateSlots: row.alternateSlots
+          ? parseInt(row.alternateSlots)
+          : undefined,
         gameFormat: row.gameFormat || undefined,
         powerLevel: row.powerLevel ? parseInt(row.powerLevel) : undefined,
         maxAttendees: row.maxAttendees ? parseInt(row.maxAttendees) : undefined,
       }));
 
-      const response = await fetch('/api/events/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const response = await fetch("/api/events/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ events }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create events');
+        throw new Error("Failed to create events");
       }
 
       const createdEvents = await response.json();
 
       toast({
-        title: 'Success!',
+        title: "Success!",
         description: `Created ${createdEvents.length} events`,
       });
 
@@ -114,9 +147,10 @@ export function CSVUploadDialog({ isOpen, onClose, onSuccess, communityId }: CSV
       handleClose();
     } catch (error) {
       toast({
-        title: 'Upload failed',
-        description: error instanceof Error ? error.message : 'Failed to upload events',
-        variant: 'destructive',
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload events",
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -136,11 +170,11 @@ Weekly EDH Pod,Commander night,game_pod,2024-12-20,18:00,Local Game Store,4,2,co
 Friday Night Magic,Standard tournament,tournament,2024-12-22,19:00,LGS Downtown,,,,,32
 Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,,,,50`;
 
-    const blob = new Blob([template], { type: 'text/csv' });
+    const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'events-template.csv';
+    a.download = "events-template.csv";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -151,7 +185,8 @@ Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,
         <DialogHeader>
           <DialogTitle>Bulk Upload Events from CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV file to create multiple events at once. Download the template to see the required format.
+            Upload a CSV file to create multiple events at once. Download the
+            template to see the required format.
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +202,11 @@ Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,
                 className="mt-2"
               />
             </div>
-            <Button variant="outline" onClick={downloadTemplate} className="mt-8">
+            <Button
+              variant="outline"
+              onClick={downloadTemplate}
+              className="mt-8"
+            >
               <i className="fas fa-download mr-2"></i>
               Download Template
             </Button>
@@ -181,7 +220,9 @@ Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,
                   {errors.slice(0, 5).map((error, i) => (
                     <li key={i}>{error}</li>
                   ))}
-                  {errors.length > 5 && <li>...and {errors.length - 5} more errors</li>}
+                  {errors.length > 5 && (
+                    <li>...and {errors.length - 5} more errors</li>
+                  )}
                 </ul>
               </AlertDescription>
             </Alert>
@@ -189,7 +230,9 @@ Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,
 
           {preview.length > 0 && (
             <div>
-              <h3 className="font-semibold mb-2">Preview (showing first 10 rows):</h3>
+              <h3 className="font-semibold mb-2">
+                Preview (showing first 10 rows):
+              </h3>
               <div className="border rounded overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -223,7 +266,9 @@ Holiday Party,Year end celebration,community,2024-12-25,14:00,Community Center,,
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={preview.length === 0 || errors.length > 0 || isUploading}
+              disabled={
+                preview.length === 0 || errors.length > 0 || isUploading
+              }
             >
               {isUploading ? (
                 <>

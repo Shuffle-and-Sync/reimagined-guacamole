@@ -1,30 +1,32 @@
 #!/usr/bin/env tsx
 /**
  * Initialize SQLite Cloud Database
- * 
+ *
  * This script connects to SQLite Cloud and creates all necessary tables
  * by executing SQL statements directly.
  */
 
-import { Database as SQLiteCloudDatabase } from '@sqlitecloud/drivers';
+import { Database as SQLiteCloudDatabase } from "@sqlitecloud/drivers";
 
-const databaseUrl = process.env.DATABASE_URL || "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
 
-console.log('🚀 Initializing SQLite Cloud database...\n');
+console.log("🚀 Initializing SQLite Cloud database...\n");
 
 async function initializeDatabase() {
   try {
     // Connect to SQLite Cloud
-    console.log('📡 Connecting to SQLite Cloud...');
+    console.log("📡 Connecting to SQLite Cloud...");
     const db = new SQLiteCloudDatabase(databaseUrl);
-    
+
     // Test connection
     await db.sql`SELECT 1 as test`;
-    console.log('✅ Connected successfully!\n');
-    
+    console.log("✅ Connected successfully!\n");
+
     // Create Auth.js tables
-    console.log('📋 Creating Auth.js tables...');
-    
+    console.log("📋 Creating Auth.js tables...");
+
     // Accounts table
     await db.sql`
       CREATE TABLE IF NOT EXISTS accounts (
@@ -43,8 +45,8 @@ async function initializeDatabase() {
         UNIQUE(provider, provider_account_id)
       )
     `;
-    console.log('  ✅ accounts table created');
-    
+    console.log("  ✅ accounts table created");
+
     // Sessions table
     await db.sql`
       CREATE TABLE IF NOT EXISTS sessions (
@@ -54,8 +56,8 @@ async function initializeDatabase() {
         expires INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ sessions table created');
-    
+    console.log("  ✅ sessions table created");
+
     // Verification tokens table
     await db.sql`
       CREATE TABLE IF NOT EXISTS verification_tokens (
@@ -65,10 +67,10 @@ async function initializeDatabase() {
         PRIMARY KEY (identifier, token)
       )
     `;
-    console.log('  ✅ verification_tokens table created');
-    
+    console.log("  ✅ verification_tokens table created");
+
     // Users table
-    console.log('\n📋 Creating Users table...');
+    console.log("\n📋 Creating Users table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -103,10 +105,10 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ users table created');
-    
+    console.log("  ✅ users table created");
+
     // Communities table
-    console.log('\n📋 Creating Communities table...');
+    console.log("\n📋 Creating Communities table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS communities (
         id TEXT PRIMARY KEY,
@@ -119,10 +121,10 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ communities table created');
-    
+    console.log("  ✅ communities table created");
+
     // User Communities (join table)
-    console.log('\n📋 Creating User Communities table...');
+    console.log("\n📋 Creating User Communities table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_communities (
         id TEXT PRIMARY KEY,
@@ -133,8 +135,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, community_id)
       )
     `;
-    console.log('  ✅ user_communities table created');
-    
+    console.log("  ✅ user_communities table created");
+
     // User Platform Accounts table
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_platform_accounts (
@@ -156,8 +158,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, platform)
       )
     `;
-    console.log('  ✅ user_platform_accounts table created');
-    
+    console.log("  ✅ user_platform_accounts table created");
+
     // Theme Preferences table
     await db.sql`
       CREATE TABLE IF NOT EXISTS theme_preferences (
@@ -169,10 +171,10 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ theme_preferences table created');
-    
+    console.log("  ✅ theme_preferences table created");
+
     // Events table
-    console.log('\n📋 Creating Events table...');
+    console.log("\n📋 Creating Events table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY,
@@ -195,8 +197,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ events table created');
-    
+    console.log("  ✅ events table created");
+
     // Event Attendees table
     await db.sql`
       CREATE TABLE IF NOT EXISTS event_attendees (
@@ -210,10 +212,10 @@ async function initializeDatabase() {
         UNIQUE(event_id, user_id)
       )
     `;
-    console.log('  ✅ event_attendees table created');
-    
+    console.log("  ✅ event_attendees table created");
+
     // Messages table
-    console.log('\n📋 Creating Messages table...');
+    console.log("\n📋 Creating Messages table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
@@ -226,8 +228,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ messages table created');
-    
+    console.log("  ✅ messages table created");
+
     // Notifications table
     await db.sql`
       CREATE TABLE IF NOT EXISTS notifications (
@@ -243,10 +245,10 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ notifications table created');
-    
+    console.log("  ✅ notifications table created");
+
     // Game Sessions table
-    console.log('\n📋 Creating Game Sessions table...');
+    console.log("\n📋 Creating Game Sessions table...");
     await db.sql`
       CREATE TABLE IF NOT EXISTS game_sessions (
         id TEXT PRIMARY KEY,
@@ -263,11 +265,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ game_sessions table created');
-    
+    console.log("  ✅ game_sessions table created");
+
     // Authentication & Security tables
-    console.log('\n📋 Creating Authentication & Security tables...');
-    
+    console.log("\n📋 Creating Authentication & Security tables...");
+
     // Password Reset Tokens
     await db.sql`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -279,8 +281,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ password_reset_tokens table created');
-    
+    console.log("  ✅ password_reset_tokens table created");
+
     // Email Verification Tokens
     await db.sql`
       CREATE TABLE IF NOT EXISTS email_verification_tokens (
@@ -293,8 +295,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ email_verification_tokens table created');
-    
+    console.log("  ✅ email_verification_tokens table created");
+
     // User MFA Settings
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_mfa_settings (
@@ -307,8 +309,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_mfa_settings table created');
-    
+    console.log("  ✅ user_mfa_settings table created");
+
     // Auth Audit Log
     await db.sql`
       CREATE TABLE IF NOT EXISTS auth_audit_log (
@@ -323,11 +325,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ auth_audit_log table created');
-    
+    console.log("  ✅ auth_audit_log table created");
+
     // Social Features tables
-    console.log('\n📋 Creating Social Features tables...');
-    
+    console.log("\n📋 Creating Social Features tables...");
+
     // Friendships
     await db.sql`
       CREATE TABLE IF NOT EXISTS friendships (
@@ -340,8 +342,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, friend_id)
       )
     `;
-    console.log('  ✅ friendships table created');
-    
+    console.log("  ✅ friendships table created");
+
     // User Activities
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_activities (
@@ -353,11 +355,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_activities table created');
-    
+    console.log("  ✅ user_activities table created");
+
     // Tournament tables
-    console.log('\n📋 Creating Tournament tables...');
-    
+    console.log("\n📋 Creating Tournament tables...");
+
     // Tournaments
     await db.sql`
       CREATE TABLE IF NOT EXISTS tournaments (
@@ -378,8 +380,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ tournaments table created');
-    
+    console.log("  ✅ tournaments table created");
+
     // Tournament Participants
     await db.sql`
       CREATE TABLE IF NOT EXISTS tournament_participants (
@@ -393,8 +395,8 @@ async function initializeDatabase() {
         UNIQUE(tournament_id, user_id)
       )
     `;
-    console.log('  ✅ tournament_participants table created');
-    
+    console.log("  ✅ tournament_participants table created");
+
     // Tournament Formats
     await db.sql`
       CREATE TABLE IF NOT EXISTS tournament_formats (
@@ -410,8 +412,8 @@ async function initializeDatabase() {
         UNIQUE(name, game_type)
       )
     `;
-    console.log('  ✅ tournament_formats table created');
-    
+    console.log("  ✅ tournament_formats table created");
+
     // Tournament Rounds
     await db.sql`
       CREATE TABLE IF NOT EXISTS tournament_rounds (
@@ -426,8 +428,8 @@ async function initializeDatabase() {
         UNIQUE(tournament_id, round_number)
       )
     `;
-    console.log('  ✅ tournament_rounds table created');
-    
+    console.log("  ✅ tournament_rounds table created");
+
     // Tournament Matches
     await db.sql`
       CREATE TABLE IF NOT EXISTS tournament_matches (
@@ -445,8 +447,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ tournament_matches table created');
-    
+    console.log("  ✅ tournament_matches table created");
+
     // Match Results
     await db.sql`
       CREATE TABLE IF NOT EXISTS match_results (
@@ -464,11 +466,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ match_results table created');
-    
+    console.log("  ✅ match_results table created");
+
     // Streaming tables
-    console.log('\n📋 Creating Streaming tables...');
-    
+    console.log("\n📋 Creating Streaming tables...");
+
     // Stream Sessions
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_sessions (
@@ -487,8 +489,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ stream_sessions table created');
-    
+    console.log("  ✅ stream_sessions table created");
+
     // Stream Session Co-Hosts
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_session_co_hosts (
@@ -501,8 +503,8 @@ async function initializeDatabase() {
         UNIQUE(session_id, user_id)
       )
     `;
-    console.log('  ✅ stream_session_co_hosts table created');
-    
+    console.log("  ✅ stream_session_co_hosts table created");
+
     // Stream Session Platforms
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_session_platforms (
@@ -518,8 +520,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ stream_session_platforms table created');
-    
+    console.log("  ✅ stream_session_platforms table created");
+
     // Collaboration Requests
     await db.sql`
       CREATE TABLE IF NOT EXISTS collaboration_requests (
@@ -534,8 +536,8 @@ async function initializeDatabase() {
         responded_at INTEGER
       )
     `;
-    console.log('  ✅ collaboration_requests table created');
-    
+    console.log("  ✅ collaboration_requests table created");
+
     // Collaborative Stream Events
     await db.sql`
       CREATE TABLE IF NOT EXISTS collaborative_stream_events (
@@ -561,8 +563,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ collaborative_stream_events table created');
-    
+    console.log("  ✅ collaborative_stream_events table created");
+
     // Stream Collaborators
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_collaborators (
@@ -586,8 +588,8 @@ async function initializeDatabase() {
         UNIQUE(event_id, user_id)
       )
     `;
-    console.log('  ✅ stream_collaborators table created');
-    
+    console.log("  ✅ stream_collaborators table created");
+
     // Stream Coordination Sessions
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_coordination_sessions (
@@ -615,11 +617,11 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ stream_coordination_sessions table created');
-    
+    console.log("  ✅ stream_coordination_sessions table created");
+
     // Forum tables
-    console.log('\n📋 Creating Forum tables...');
-    
+    console.log("\n📋 Creating Forum tables...");
+
     // Forum Posts
     await db.sql`
       CREATE TABLE IF NOT EXISTS forum_posts (
@@ -640,8 +642,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ forum_posts table created');
-    
+    console.log("  ✅ forum_posts table created");
+
     // Forum Replies
     await db.sql`
       CREATE TABLE IF NOT EXISTS forum_replies (
@@ -656,8 +658,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ forum_replies table created');
-    
+    console.log("  ✅ forum_replies table created");
+
     // Forum Post Likes
     await db.sql`
       CREATE TABLE IF NOT EXISTS forum_post_likes (
@@ -668,8 +670,8 @@ async function initializeDatabase() {
         UNIQUE(post_id, user_id)
       )
     `;
-    console.log('  ✅ forum_post_likes table created');
-    
+    console.log("  ✅ forum_post_likes table created");
+
     // Forum Reply Likes
     await db.sql`
       CREATE TABLE IF NOT EXISTS forum_reply_likes (
@@ -680,11 +682,11 @@ async function initializeDatabase() {
         UNIQUE(reply_id, user_id)
       )
     `;
-    console.log('  ✅ forum_reply_likes table created');
-    
+    console.log("  ✅ forum_reply_likes table created");
+
     // Analytics tables
-    console.log('\n📋 Creating Analytics tables...');
-    
+    console.log("\n📋 Creating Analytics tables...");
+
     // Stream Analytics
     await db.sql`
       CREATE TABLE IF NOT EXISTS stream_analytics (
@@ -702,8 +704,8 @@ async function initializeDatabase() {
         timestamp INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ stream_analytics table created');
-    
+    console.log("  ✅ stream_analytics table created");
+
     // User Activity Analytics
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_activity_analytics (
@@ -717,8 +719,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, activity_type, date)
       )
     `;
-    console.log('  ✅ user_activity_analytics table created');
-    
+    console.log("  ✅ user_activity_analytics table created");
+
     // Community Analytics
     await db.sql`
       CREATE TABLE IF NOT EXISTS community_analytics (
@@ -732,8 +734,8 @@ async function initializeDatabase() {
         UNIQUE(community_id, metric_type, date)
       )
     `;
-    console.log('  ✅ community_analytics table created');
-    
+    console.log("  ✅ community_analytics table created");
+
     // Platform Metrics
     await db.sql`
       CREATE TABLE IF NOT EXISTS platform_metrics (
@@ -745,8 +747,8 @@ async function initializeDatabase() {
         timestamp INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ platform_metrics table created');
-    
+    console.log("  ✅ platform_metrics table created");
+
     // Event Tracking
     await db.sql`
       CREATE TABLE IF NOT EXISTS event_tracking (
@@ -761,8 +763,8 @@ async function initializeDatabase() {
         timestamp INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ event_tracking table created');
-    
+    console.log("  ✅ event_tracking table created");
+
     // Conversion Funnels
     await db.sql`
       CREATE TABLE IF NOT EXISTS conversion_funnels (
@@ -778,11 +780,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ conversion_funnels table created');
-    
+    console.log("  ✅ conversion_funnels table created");
+
     // Email Management tables
-    console.log('\n📋 Creating Email Management tables...');
-    
+    console.log("\n📋 Creating Email Management tables...");
+
     // Email Change Requests
     await db.sql`
       CREATE TABLE IF NOT EXISTS email_change_requests (
@@ -797,8 +799,8 @@ async function initializeDatabase() {
         completed_at INTEGER
       )
     `;
-    console.log('  ✅ email_change_requests table created');
-    
+    console.log("  ✅ email_change_requests table created");
+
     // Email Change Tokens
     await db.sql`
       CREATE TABLE IF NOT EXISTS email_change_tokens (
@@ -812,11 +814,11 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ email_change_tokens table created');
-    
+    console.log("  ✅ email_change_tokens table created");
+
     // User Settings tables
-    console.log('\n📋 Creating User Settings tables...');
-    
+    console.log("\n📋 Creating User Settings tables...");
+
     // User Settings
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_settings (
@@ -834,8 +836,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_settings table created');
-    
+    console.log("  ✅ user_settings table created");
+
     // User Social Links
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_social_links (
@@ -851,8 +853,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_social_links table created');
-    
+    console.log("  ✅ user_social_links table created");
+
     // User Gaming Profiles
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_gaming_profiles (
@@ -871,8 +873,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, game_type)
       )
     `;
-    console.log('  ✅ user_gaming_profiles table created');
-    
+    console.log("  ✅ user_gaming_profiles table created");
+
     // Matchmaking Preferences
     await db.sql`
       CREATE TABLE IF NOT EXISTS matchmaking_preferences (
@@ -891,11 +893,11 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ matchmaking_preferences table created');
-    
+    console.log("  ✅ matchmaking_preferences table created");
+
     // MFA & Security Extension tables
-    console.log('\n📋 Creating MFA & Security Extension tables...');
-    
+    console.log("\n📋 Creating MFA & Security Extension tables...");
+
     // User MFA Attempts
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_mfa_attempts (
@@ -909,8 +911,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_mfa_attempts table created');
-    
+    console.log("  ✅ user_mfa_attempts table created");
+
     // Device Fingerprints
     await db.sql`
       CREATE TABLE IF NOT EXISTS device_fingerprints (
@@ -925,8 +927,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, fingerprint_hash)
       )
     `;
-    console.log('  ✅ device_fingerprints table created');
-    
+    console.log("  ✅ device_fingerprints table created");
+
     // MFA Security Context
     await db.sql`
       CREATE TABLE IF NOT EXISTS mfa_security_context (
@@ -942,8 +944,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ mfa_security_context table created');
-    
+    console.log("  ✅ mfa_security_context table created");
+
     // Trusted Devices
     await db.sql`
       CREATE TABLE IF NOT EXISTS trusted_devices (
@@ -960,8 +962,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, device_fingerprint_id)
       )
     `;
-    console.log('  ✅ trusted_devices table created');
-    
+    console.log("  ✅ trusted_devices table created");
+
     // Refresh Tokens
     await db.sql`
       CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -977,8 +979,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ refresh_tokens table created');
-    
+    console.log("  ✅ refresh_tokens table created");
+
     // Revoked JWT Tokens
     await db.sql`
       CREATE TABLE IF NOT EXISTS revoked_jwt_tokens (
@@ -990,11 +992,11 @@ async function initializeDatabase() {
         reason TEXT
       )
     `;
-    console.log('  ✅ revoked_jwt_tokens table created');
-    
+    console.log("  ✅ revoked_jwt_tokens table created");
+
     // TableSync Universal Framework tables
-    console.log('\n📋 Creating TableSync Universal Framework tables...');
-    
+    console.log("\n📋 Creating TableSync Universal Framework tables...");
+
     // Games table
     await db.sql`
       CREATE TABLE IF NOT EXISTS games (
@@ -1026,8 +1028,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ games table created');
-    
+    console.log("  ✅ games table created");
+
     // Cards table
     await db.sql`
       CREATE TABLE IF NOT EXISTS cards (
@@ -1055,8 +1057,8 @@ async function initializeDatabase() {
         UNIQUE(game_id, external_id)
       )
     `;
-    console.log('  ✅ cards table created');
-    
+    console.log("  ✅ cards table created");
+
     // Game card attributes table
     await db.sql`
       CREATE TABLE IF NOT EXISTS game_card_attributes (
@@ -1074,8 +1076,8 @@ async function initializeDatabase() {
         UNIQUE(game_id, attribute_name)
       )
     `;
-    console.log('  ✅ game_card_attributes table created');
-    
+    console.log("  ✅ game_card_attributes table created");
+
     // Game formats table
     await db.sql`
       CREATE TABLE IF NOT EXISTS game_formats (
@@ -1095,8 +1097,8 @@ async function initializeDatabase() {
         UNIQUE(game_id, name)
       )
     `;
-    console.log('  ✅ game_formats table created');
-    
+    console.log("  ✅ game_formats table created");
+
     // Card submissions table
     await db.sql`
       CREATE TABLE IF NOT EXISTS card_submissions (
@@ -1119,8 +1121,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ card_submissions table created');
-    
+    console.log("  ✅ card_submissions table created");
+
     // Game analytics table
     await db.sql`
       CREATE TABLE IF NOT EXISTS game_analytics (
@@ -1136,11 +1138,11 @@ async function initializeDatabase() {
         UNIQUE(game_id, date)
       )
     `;
-    console.log('  ✅ game_analytics table created');
-    
+    console.log("  ✅ game_analytics table created");
+
     // Admin & Moderation tables
-    console.log('\n📋 Creating Admin & Moderation tables...');
-    
+    console.log("\n📋 Creating Admin & Moderation tables...");
+
     // User roles table
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_roles (
@@ -1157,8 +1159,8 @@ async function initializeDatabase() {
         UNIQUE(user_id, role, community_id)
       )
     `;
-    console.log('  ✅ user_roles table created');
-    
+    console.log("  ✅ user_roles table created");
+
     // User reputation table
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_reputation (
@@ -1176,8 +1178,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_reputation table created');
-    
+    console.log("  ✅ user_reputation table created");
+
     // Content reports table
     await db.sql`
       CREATE TABLE IF NOT EXISTS content_reports (
@@ -1202,8 +1204,8 @@ async function initializeDatabase() {
         resolved_at INTEGER
       )
     `;
-    console.log('  ✅ content_reports table created');
-    
+    console.log("  ✅ content_reports table created");
+
     // Moderation actions table
     await db.sql`
       CREATE TABLE IF NOT EXISTS moderation_actions (
@@ -1230,8 +1232,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ moderation_actions table created');
-    
+    console.log("  ✅ moderation_actions table created");
+
     // Moderation queue table
     await db.sql`
       CREATE TABLE IF NOT EXISTS moderation_queue (
@@ -1257,8 +1259,8 @@ async function initializeDatabase() {
         completed_at INTEGER
       )
     `;
-    console.log('  ✅ moderation_queue table created');
-    
+    console.log("  ✅ moderation_queue table created");
+
     // CMS content table
     await db.sql`
       CREATE TABLE IF NOT EXISTS cms_content (
@@ -1283,8 +1285,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ cms_content table created');
-    
+    console.log("  ✅ cms_content table created");
+
     // Ban evasion tracking table
     await db.sql`
       CREATE TABLE IF NOT EXISTS ban_evasion_tracking (
@@ -1308,8 +1310,8 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ ban_evasion_tracking table created');
-    
+    console.log("  ✅ ban_evasion_tracking table created");
+
     // User appeals table
     await db.sql`
       CREATE TABLE IF NOT EXISTS user_appeals (
@@ -1334,8 +1336,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ user_appeals table created');
-    
+    console.log("  ✅ user_appeals table created");
+
     // Moderation templates table
     await db.sql`
       CREATE TABLE IF NOT EXISTS moderation_templates (
@@ -1353,8 +1355,8 @@ async function initializeDatabase() {
         updated_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ moderation_templates table created');
-    
+    console.log("  ✅ moderation_templates table created");
+
     // Admin audit log table
     await db.sql`
       CREATE TABLE IF NOT EXISTS admin_audit_log (
@@ -1377,34 +1379,34 @@ async function initializeDatabase() {
         created_at INTEGER NOT NULL
       )
     `;
-    console.log('  ✅ admin_audit_log table created');
-    
+    console.log("  ✅ admin_audit_log table created");
+
     // Create indexes
-    console.log('\n📋 Creating indexes...');
-    
+    console.log("\n📋 Creating indexes...");
+
     // Note: Skipping indexes for legacy tables (accounts, sessions, users, communities, events, messages, user_communities)
     // to avoid column name mismatches with existing tables
-    
+
     // User Platform Accounts indexes (new table)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_user_id ON user_platform_accounts(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_platform ON user_platform_accounts(platform)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_platform_active ON user_platform_accounts(user_id, is_active)`;
-    
+
     // Event Attendees indexes (new table)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_event_attendees_event ON event_attendees(event_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_event_attendees_user ON event_attendees(user_id)`;
-    
+
     // Notifications indexes (new table)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at)`;
-    
+
     // Game session indexes (new table)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_event ON game_sessions(event_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_host ON game_sessions(host_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_game_sessions_status ON game_sessions(status)`;
-    
+
     // Authentication & Security indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id)`;
@@ -1413,7 +1415,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_user ON auth_audit_log(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_event ON auth_audit_log(event_type)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_auth_audit_created ON auth_audit_log(created_at)`;
-    
+
     // Social features indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id)`;
@@ -1421,7 +1423,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_user ON user_activities(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_type ON user_activities(activity_type)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_activities_created ON user_activities(created_at)`;
-    
+
     // Tournament indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_organizer ON tournaments(organizer_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_tournaments_community ON tournaments(community_id)`;
@@ -1437,7 +1439,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_tournament_matches_players ON tournament_matches(player1_id, player2_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_match_results_match ON match_results(match_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_match_results_reporter ON match_results(reported_by)`;
-    
+
     // Streaming indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_sessions_streamer ON stream_sessions(streamer_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_sessions_event ON stream_sessions(event_id)`;
@@ -1459,7 +1461,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_collaborators_status ON stream_collaborators(status)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_coordination_event ON stream_coordination_sessions(event_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_coordination_phase ON stream_coordination_sessions(current_phase)`;
-    
+
     // Forum indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_author ON forum_posts(author_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_posts_community ON forum_posts(community_id)`;
@@ -1472,7 +1474,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_post_likes_user ON forum_post_likes(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_reply_likes_reply ON forum_reply_likes(reply_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_forum_reply_likes_user ON forum_reply_likes(user_id)`;
-    
+
     // Analytics indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_analytics_session ON stream_analytics(session_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_stream_analytics_user ON stream_analytics(user_id)`;
@@ -1492,14 +1494,14 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_name ON conversion_funnels(funnel_name)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_user ON conversion_funnels(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_conversion_funnel_session ON conversion_funnels(session_id)`;
-    
+
     // Email management indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_user ON email_change_requests(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_status ON email_change_requests(status)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_new_email ON email_change_requests(new_email)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_token_request ON email_change_tokens(request_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_email_change_token_token ON email_change_tokens(token)`;
-    
+
     // User settings indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_settings_user ON user_settings(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_social_links_user ON user_social_links(user_id)`;
@@ -1508,7 +1510,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_user_gaming_profiles_game ON user_gaming_profiles(game_type)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_matchmaking_prefs_user ON matchmaking_preferences(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_matchmaking_prefs_game ON matchmaking_preferences(game_type)`;
-    
+
     // MFA & Security indexes (new tables)
     await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_attempts_user ON user_mfa_attempts(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_mfa_attempts_created ON user_mfa_attempts(created_at)`;
@@ -1526,7 +1528,7 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_jti ON revoked_jwt_tokens(jti)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_user ON revoked_jwt_tokens(user_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_revoked_jwt_expires ON revoked_jwt_tokens(expires_at)`;
-    
+
     // TableSync Universal Framework indexes
     await db.sql`CREATE INDEX IF NOT EXISTS idx_games_creator_id ON games(creator_id)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_games_published ON games(is_published)`;
@@ -1542,34 +1544,34 @@ async function initializeDatabase() {
     await db.sql`CREATE INDEX IF NOT EXISTS idx_card_submissions_submitted_by ON card_submissions(submitted_by)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_card_submissions_status ON card_submissions(status)`;
     await db.sql`CREATE INDEX IF NOT EXISTS idx_game_analytics_game_date ON game_analytics(game_id, date)`;
-    
+
     // Admin & Moderation indexes (existing tables - may have legacy schemas)
     // Skip creating indexes on these tables to avoid schema conflicts
-    
-    console.log('  ✅ All indexes created');
-    
+
+    console.log("  ✅ All indexes created");
+
     // Verify tables
-    console.log('\n🔍 Verifying database schema...');
+    console.log("\n🔍 Verifying database schema...");
     const tables = await db.sql`
       SELECT name FROM sqlite_master 
       WHERE type='table' 
       ORDER BY name
     `;
-    
-    console.log('\n📊 Database tables:');
+
+    console.log("\n📊 Database tables:");
     for (const table of tables) {
       console.log(`  • ${table.name}`);
     }
-    
-    console.log('\n✅ Database initialization complete!');
-    console.log('\n📝 Next steps:');
-    console.log('  1. Verify the schema: npm run db:health');
-    console.log('  2. Start the development server: npm run dev');
-    console.log('  3. Test authentication flows');
-    
+
+    console.log("\n✅ Database initialization complete!");
+    console.log("\n📝 Next steps:");
+    console.log("  1. Verify the schema: npm run db:health");
+    console.log("  2. Start the development server: npm run dev");
+    console.log("  3. Test authentication flows");
+
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Database initialization failed:', error);
+    console.error("\n❌ Database initialization failed:", error);
     process.exit(1);
   }
 }

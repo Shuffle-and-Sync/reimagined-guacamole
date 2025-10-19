@@ -1,66 +1,76 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/features/auth';
-import { useCommunity } from '@/features/communities';
-import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface UserProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps) {
+export function UserProfileDialog({
+  open,
+  onOpenChange,
+}: UserProfileDialogProps) {
   const { user } = useAuth();
   const { communities } = useCommunity();
   const { toast } = useToast();
-  
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [primaryCommunity, setPrimaryCommunity] = useState('');
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [primaryCommunity, setPrimaryCommunity] = useState("");
   const lastInitializedUserRef = useRef<string | null>(null);
 
   // Initialize form values when user or dialog opens
   useEffect(() => {
     if (user && open && lastInitializedUserRef.current !== user.id) {
-      lastInitializedUserRef.current = user.id;
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setPrimaryCommunity(user.primaryCommunity || '');
+      // Use a microtask to avoid cascading renders
+      queueMicrotask(() => {
+        setFirstName(user.firstName || "");
+        setLastName(user.lastName || "");
+        setPrimaryCommunity(user.primaryCommunity || "");
+        lastInitializedUserRef.current = user.id;
+      });
     }
   }, [user, open]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { firstName: string; lastName: string; primaryCommunity: string }) => {
-      return apiRequest('PATCH', '/api/user/profile', data);
+    mutationFn: async (data: {
+      firstName: string;
+      lastName: string;
+      primaryCommunity: string;
+    }) => {
+      return apiRequest("PATCH", "/api/user/profile", data);
     },
     onSuccess: () => {
-      toast({ title: 'Profile updated successfully!' });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({ title: "Profile updated successfully!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onOpenChange(false);
     },
     onError: () => {
-      toast({ 
-        title: 'Failed to update profile', 
-        variant: 'destructive' 
+      toast({
+        title: "Failed to update profile",
+        variant: "destructive",
       });
     },
   });
@@ -70,13 +80,13 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
     updateProfileMutation.mutate({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      primaryCommunity: primaryCommunity || '',
+      primaryCommunity: primaryCommunity || "",
     });
   };
 
   const getUserInitials = () => {
-    const first = firstName || user?.firstName || '';
-    const last = lastName || user?.lastName || '';
+    const first = firstName || user?.firstName || "";
+    const last = lastName || user?.lastName || "";
     return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
   };
 
@@ -89,7 +99,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
             Update your personal information and gaming preferences.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center justify-center">
             <Avatar className="h-20 w-20">
@@ -125,7 +135,10 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
           <div className="space-y-2">
             <Label htmlFor="primaryCommunity">Primary Community</Label>
-            <Select value={primaryCommunity} onValueChange={setPrimaryCommunity}>
+            <Select
+              value={primaryCommunity}
+              onValueChange={setPrimaryCommunity}
+            >
               <SelectTrigger data-testid="select-primary-community">
                 <SelectValue placeholder="Select your primary community" />
               </SelectTrigger>
@@ -154,7 +167,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
               disabled={updateProfileMutation.isPending}
               data-testid="button-save-profile"
             >
-              {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

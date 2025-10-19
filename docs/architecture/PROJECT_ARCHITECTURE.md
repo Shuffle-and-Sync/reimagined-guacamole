@@ -7,48 +7,56 @@ Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination
 ## Core Features
 
 ### Community-based Organization
+
 - **Multi-TCG Support**: Support for multiple trading card games (Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and more)
 - **Community Management**: Users can join and participate in different TCG communities
 - **Primary Community**: Each user has a designated primary community while maintaining membership in multiple communities
 - **Community-Specific Content**: Tailored experiences and content based on community preferences
 
 ### Collaborative Streaming
+
 - **Multi-Platform Support**: Integration with Twitch, YouTube, and Facebook Gaming
 - **Real-time Coordination**: Tools for coordinating multi-streamer collaborative events
 - **Platform API Integration**: Live status verification and stream management
 - **Event Scheduling**: Calendar integration with timezone handling
 
 ### TableSync (Remote Gameplay Coordination)
+
 - **Real-time Board State Synchronization**: Live synchronization of game board states between remote players
 - **Game Room Management**: Player limits and session management
 - **Voice Chat Integration**: Communication tools for remote gameplay
 - **Universal Framework**: Supports multiple TCG types with game-specific rules
 
 ### Authentication System
+
 - **Google OAuth 2.0**: Secure authentication using Auth.js v5 (NextAuth.js)
 - **Database Sessions**: Session management via Drizzle adapter with database persistence
 - **HTTP-only Cookies**: Secure JWT-based session storage
 - **CSRF Protection**: Built-in protection against cross-site request forgery
 
 ### Tournament Management
+
 - **Full Lifecycle Management**: From creation to completion
 - **Bracket Generation**: Automated tournament bracket creation
 - **Player Registration**: Streamlined registration process
 - **Prize Distribution**: Revenue sharing and prize allocation calculations
 
 ### Matchmaking System
+
 - **AI-Powered Matching**: Intelligent player and streamer matching
 - **Compatibility Scoring**: Algorithm-based compatibility calculation
 - **Player Filtering**: Advanced filtering based on preferences and skill level
 - **TCG Synergy Matching**: Game-specific matching algorithms
 
 ### Calendar Integration
+
 - **Event Scheduling**: Create and manage streaming and tournament events
 - **Timezone Handling**: Automatic timezone conversion and display
 - **Conflict Detection**: Prevent scheduling conflicts
 - **Event Reminders**: Notification system for upcoming events
 
 ### Real-time Messaging
+
 - **WebSocket Communication**: Real-time message delivery
 - **Persistent Storage**: Message history and retrieval
 - **User-to-User Messaging**: Direct messaging between users
@@ -193,12 +201,13 @@ The project uses a **feature-based architecture** where related functionality is
 
 ```typescript
 // Always use Drizzle ORM for database access
-import { db } from '@shared/database-unified';
-import { users, communities } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users, communities } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 // Example query
-const user = await db.select()
+const user = await db
+  .select()
   .from(users)
   .where(eq(users.email, email))
   .limit(1);
@@ -207,18 +216,21 @@ const user = await db.select()
 ### Security Architecture
 
 #### Authentication Security
+
 - **JWT Sessions**: Secure token-based sessions
 - **HTTP-only Cookies**: Prevents XSS attacks
 - **CSRF Protection**: Token-based CSRF prevention
 - **Secure Cookies**: HTTPS-only in production
 
 #### API Security
+
 - **Rate Limiting**: Request throttling per endpoint
 - **Input Validation**: Zod schemas for all inputs
 - **SQL Injection Prevention**: Parameterized queries via Drizzle ORM
 - **XSS Protection**: Input sanitization
 
 #### Data Security
+
 - **Encrypted Tokens**: Platform OAuth tokens encrypted in database
 - **Secure Secrets**: Environment variables for sensitive data
 - **Access Control**: Role-based permissions
@@ -226,12 +238,14 @@ const user = await db.select()
 ## Build and Deployment Architecture
 
 ### Development Environment
+
 - **Vite Dev Server**: Fast HMR for frontend development
 - **tsx**: TypeScript execution for backend
 - **Hot Reload**: Automatic reload on file changes
 - **Local Database**: SQLite file or SQLite Cloud connection
 
 ### Production Build Process
+
 1. **TypeScript Compilation**: `tsc` for type checking
 2. **Client Build**: Vite bundles React application
 3. **Server Build**: esbuild bundles Node.js application
@@ -239,6 +253,7 @@ const user = await db.select()
 5. **Docker Containerization**: Production-ready containers
 
 ### Deployment Architecture
+
 ```
 ┌─────────────────────────────────────┐
 │      Google Cloud Platform          │
@@ -267,17 +282,20 @@ const user = await db.select()
 ## Scalability Considerations
 
 ### Database Scalability
+
 - **SQLite Cloud**: Serverless, auto-scaling database
 - **Connection Pooling**: Managed by SQLite Cloud
 - **Query Optimization**: Indexed queries and proper schema design
 
 ### Application Scalability
+
 - **Stateless Services**: Cloud Run can scale horizontally
 - **Session Storage**: Database-backed sessions for multi-instance support
 - **CDN**: Static assets served via Cloud Storage/CDN
 - **Caching**: React Query for client-side caching
 
 ### Real-time Scalability
+
 - **WebSocket Clustering**: Multiple WebSocket server instances
 - **Message Broadcasting**: Distributed message delivery
 - **Load Balancing**: Cloud Run handles traffic distribution
@@ -285,17 +303,20 @@ const user = await db.select()
 ## Monitoring and Observability
 
 ### Logging
+
 - **Structured Logging**: JSON-formatted logs
 - **Log Levels**: Debug, Info, Warn, Error
 - **Request Logging**: All API requests logged
 - **Error Tracking**: Comprehensive error logging
 
 ### Health Checks
+
 - **Endpoint**: `/health` for service health
 - **Database Health**: Connection verification
 - **Startup Optimization**: Fast container startup
 
 ### Performance Monitoring
+
 - **Query Timing**: Database query performance tracking
 - **API Response Times**: Endpoint latency monitoring
 - **Frontend Metrics**: React Query performance data
@@ -303,6 +324,7 @@ const user = await db.select()
 ## Development Workflow
 
 ### Local Development
+
 1. Clone repository
 2. Install dependencies (`npm install --legacy-peer-deps`)
 3. Configure environment variables
@@ -310,12 +332,14 @@ const user = await db.select()
 5. Start development server (`npm run dev`)
 
 ### Testing Strategy
+
 - **Unit Tests**: Jest for component and function testing
 - **Integration Tests**: API endpoint testing
 - **Feature Tests**: End-to-end feature validation
 - **Coverage Requirements**: 70%+ code coverage
 
 ### Code Quality
+
 - **TypeScript Strict Mode**: Full type safety
 - **ESLint**: Code linting with auto-fix
 - **Prettier**: Code formatting
@@ -324,6 +348,7 @@ const user = await db.select()
 ## Future Architecture Considerations
 
 ### Planned Enhancements
+
 - **Microservices**: Potential migration to microservices architecture for specific features
 - **Event Sourcing**: For tournament and game state management
 - **Redis Caching**: Additional caching layer for frequently accessed data
@@ -331,6 +356,7 @@ const user = await db.select()
 - **Mobile Apps**: React Native applications using shared business logic
 
 ### Technical Debt
+
 - Monitor and address technical debt through regular code reviews
 - Refactor legacy patterns as needed
 - Update dependencies regularly for security and performance

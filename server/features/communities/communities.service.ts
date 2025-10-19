@@ -1,7 +1,10 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
 import type { Community, UserCommunity, ThemePreference } from "@shared/schema";
-import type { JoinCommunityRequest, ThemePreferencesRequest } from "./communities.types";
+import type {
+  JoinCommunityRequest,
+  ThemePreferencesRequest,
+} from "./communities.types";
 
 export class CommunitiesService {
   async getAllCommunities(): Promise<Community[]> {
@@ -12,7 +15,7 @@ export class CommunitiesService {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         errorType: error?.constructor?.name,
-        stringified: JSON.stringify(error, Object.getOwnPropertyNames(error))
+        stringified: JSON.stringify(error, Object.getOwnPropertyNames(error)),
       });
       throw error;
     }
@@ -23,12 +26,17 @@ export class CommunitiesService {
       const community = await storage.getCommunity(id);
       return community || null;
     } catch (error) {
-      logger.error("Failed to fetch community in CommunitiesService", error, { id });
+      logger.error("Failed to fetch community in CommunitiesService", error, {
+        id,
+      });
       throw error;
     }
   }
 
-  async joinCommunity(userId: string, communityId: string): Promise<UserCommunity> {
+  async joinCommunity(
+    userId: string,
+    communityId: string,
+  ): Promise<UserCommunity> {
     try {
       // Verify community exists
       const community = await storage.getCommunity(communityId);
@@ -45,17 +53,27 @@ export class CommunitiesService {
       logger.info("User joined community", { userId, communityId });
       return userCommunity;
     } catch (error) {
-      logger.error("Failed to join community in CommunitiesService", error, { userId, communityId });
+      logger.error("Failed to join community in CommunitiesService", error, {
+        userId,
+        communityId,
+      });
       throw error;
     }
   }
 
-  async setPrimaryCommunity(userId: string, communityId: string): Promise<void> {
+  async setPrimaryCommunity(
+    userId: string,
+    communityId: string,
+  ): Promise<void> {
     try {
       await storage.setPrimaryCommunity(userId, communityId);
       logger.info("Primary community set", { userId, communityId });
     } catch (error) {
-      logger.error("Failed to set primary community in CommunitiesService", error, { userId, communityId });
+      logger.error(
+        "Failed to set primary community in CommunitiesService",
+        error,
+        { userId, communityId },
+      );
       throw error;
     }
   }
@@ -64,15 +82,22 @@ export class CommunitiesService {
     try {
       return await storage.getUserThemePreferences(userId);
     } catch (error) {
-      logger.error("Failed to fetch theme preferences in CommunitiesService", error, { userId });
+      logger.error(
+        "Failed to fetch theme preferences in CommunitiesService",
+        error,
+        { userId },
+      );
       throw error;
     }
   }
 
-  async updateThemePreferences(userId: string, preferences: ThemePreferencesRequest): Promise<ThemePreference> {
+  async updateThemePreferences(
+    userId: string,
+    preferences: ThemePreferencesRequest,
+  ): Promise<ThemePreference> {
     try {
       const { communityId, themeMode, customColors } = preferences;
-      
+
       const preference = await storage.upsertThemePreference({
         userId,
         communityId,
@@ -80,10 +105,18 @@ export class CommunitiesService {
         customColors,
       });
 
-      logger.info("Theme preferences updated", { userId, communityId, themeMode });
+      logger.info("Theme preferences updated", {
+        userId,
+        communityId,
+        themeMode,
+      });
       return preference;
     } catch (error) {
-      logger.error("Failed to update theme preferences in CommunitiesService", error, { userId });
+      logger.error(
+        "Failed to update theme preferences in CommunitiesService",
+        error,
+        { userId },
+      );
       throw error;
     }
   }

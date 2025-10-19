@@ -1,8 +1,8 @@
-import { twitchAPI } from './twitch-api';
-import { storage } from '../storage';
-import type { User } from '@shared/schema';
-import { cacheService } from './cache-service';
-import { logger } from '../logger';
+import { twitchAPI } from "./twitch-api";
+import { storage } from "../storage";
+import type { User } from "@shared/schema";
+import { cacheService } from "./cache-service";
+import { logger } from "../logger";
 // import { notificationDelivery } from './notification-delivery'; // Commented out for now
 
 // Types for streaming coordination
@@ -24,7 +24,7 @@ export interface StreamSession {
   scheduledStartTime: Date;
   actualStartTime?: Date;
   endTime?: Date;
-  status: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  status: "scheduled" | "live" | "ended" | "cancelled";
   platforms: StreamingPlatform[];
   category: string;
   tags: string[];
@@ -42,7 +42,12 @@ export interface StreamSession {
 export interface StreamingNotification {
   id: string;
   userId: string;
-  type: 'stream_started' | 'stream_ended' | 'raid_incoming' | 'host_request' | 'collaboration_invite';
+  type:
+    | "stream_started"
+    | "stream_ended"
+    | "raid_incoming"
+    | "host_request"
+    | "collaboration_invite";
   message: string;
   metadata: Record<string, any>;
   isRead: boolean;
@@ -54,10 +59,10 @@ export interface CollaborationRequest {
   fromUserId: string;
   toUserId: string;
   streamSessionId: string;
-  type: 'co_host' | 'raid' | 'host' | 'guest_appearance';
+  type: "co_host" | "raid" | "host" | "guest_appearance";
   message?: string;
   scheduledTime?: Date;
-  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  status: "pending" | "accepted" | "declined" | "expired";
   createdAt: Date;
   expiresAt: Date;
 }
@@ -69,7 +74,7 @@ export interface CollaborationRequest {
 export class StreamingCoordinator {
   private activeStreamSessions: Map<string, StreamSession> = new Map();
   private streamCheckInterval: NodeJS.Timeout | null = null;
-  
+
   constructor() {
     // Start periodic stream status checks
     this.startStreamMonitoring();
@@ -84,9 +89,12 @@ export class StreamingCoordinator {
     }
 
     // Check stream statuses every 2 minutes
-    this.streamCheckInterval = setInterval(async () => {
-      await this.checkAllStreamStatuses();
-    }, 2 * 60 * 1000);
+    this.streamCheckInterval = setInterval(
+      async () => {
+        await this.checkAllStreamStatuses();
+      },
+      2 * 60 * 1000,
+    );
   }
 
   /**
@@ -112,26 +120,26 @@ export class StreamingCoordinator {
 
     // Check Twitch connection (placeholder - would check OAuth tokens in real implementation)
     platforms.push({
-      id: 'twitch',
-      name: 'Twitch',
+      id: "twitch",
+      name: "Twitch",
       isConnected: true, // TODO: Check actual connection status
-      username: user.username || 'user_' + userId.slice(0, 8),
-      profileUrl: `https://twitch.tv/${user.username || 'user_' + userId.slice(0, 8)}`,
+      username: user.username || "user_" + userId.slice(0, 8),
+      profileUrl: `https://twitch.tv/${user.username || "user_" + userId.slice(0, 8)}`,
       lastStreamCheck: new Date(),
     });
 
     // YouTube placeholder
     platforms.push({
-      id: 'youtube',
-      name: 'YouTube',
+      id: "youtube",
+      name: "YouTube",
       isConnected: false, // TODO: Implement YouTube OAuth
       lastStreamCheck: new Date(),
     });
 
     // Facebook placeholder
     platforms.push({
-      id: 'facebook',
-      name: 'Facebook Gaming',
+      id: "facebook",
+      name: "Facebook Gaming",
       isConnected: false, // TODO: Implement Facebook OAuth
       lastStreamCheck: new Date(),
     });
@@ -142,9 +150,11 @@ export class StreamingCoordinator {
   /**
    * Create a new stream session
    */
-  async createStreamSession(session: Omit<StreamSession, 'id'>): Promise<StreamSession> {
+  async createStreamSession(
+    session: Omit<StreamSession, "id">,
+  ): Promise<StreamSession> {
     const sessionId = `stream_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const newSession: StreamSession = {
       id: sessionId,
       ...session,
@@ -154,7 +164,7 @@ export class StreamingCoordinator {
 
     // Cache the new session
     await cacheService.cacheStreamSession(newSession);
-    
+
     // Invalidate user sessions cache for host and co-hosts
     await cacheService.delete(`user_sessions:${newSession.hostUserId}`);
     for (const coHostId of newSession.coHostUserIds) {
@@ -162,7 +172,10 @@ export class StreamingCoordinator {
     }
 
     // TODO: Store in database
-    logger.info(`Created stream session: ${sessionId}`, { sessionId, hostUserId: newSession.hostUserId });
+    logger.info(`Created stream session: ${sessionId}`, {
+      sessionId,
+      hostUserId: newSession.hostUserId,
+    });
 
     return newSession;
   }
@@ -174,20 +187,23 @@ export class StreamingCoordinator {
     // Try to get from cache first
     const cachedSessions = await cacheService.getUserStreamSessions(userId);
     if (cachedSessions) {
-      logger.debug('Cache hit for user stream sessions', { userId });
+      logger.debug("Cache hit for user stream sessions", { userId });
       return cachedSessions;
     }
 
     // Get from active sessions
     const sessions = Array.from(this.activeStreamSessions.values());
-    const userSessions = sessions.filter(session => 
-      session.hostUserId === userId || 
-      session.coHostUserIds.includes(userId)
+    const userSessions = sessions.filter(
+      (session) =>
+        session.hostUserId === userId || session.coHostUserIds.includes(userId),
     );
 
     // Cache the result
     await cacheService.cacheUserStreamSessions(userId, userSessions);
-    logger.debug('Cached user stream sessions', { userId, count: userSessions.length });
+    logger.debug("Cached user stream sessions", {
+      userId,
+      count: userSessions.length,
+    });
 
     return userSessions;
   }
@@ -195,7 +211,14 @@ export class StreamingCoordinator {
   /**
    * Check if a user is currently streaming on any platform
    */
-  async isUserStreaming(userId: string): Promise<{ isStreaming: boolean; platform?: string; streamTitle?: string; viewerCount?: number }> {
+  async isUserStreaming(
+    userId: string,
+  ): Promise<{
+    isStreaming: boolean;
+    platform?: string;
+    streamTitle?: string;
+    viewerCount?: number;
+  }> {
     const user = await storage.getUser(userId);
     if (!user || !user.username) {
       return { isStreaming: false };
@@ -204,10 +227,10 @@ export class StreamingCoordinator {
     try {
       // Check Twitch
       const twitchStream = await twitchAPI.getStream(user.username);
-      if (twitchStream && twitchStream.type === 'live') {
+      if (twitchStream && twitchStream.type === "live") {
         return {
           isStreaming: true,
-          platform: 'Twitch',
+          platform: "Twitch",
           streamTitle: twitchStream.title,
           viewerCount: twitchStream.viewer_count,
         };
@@ -218,7 +241,7 @@ export class StreamingCoordinator {
 
       return { isStreaming: false };
     } catch (error) {
-      console.error('Error checking user streaming status:', error);
+      console.error("Error checking user streaming status:", error);
       return { isStreaming: false };
     }
   }
@@ -227,8 +250,11 @@ export class StreamingCoordinator {
    * Check streaming status for all active sessions
    */
   private async checkAllStreamStatuses(): Promise<void> {
-    const activeSessions = Array.from(this.activeStreamSessions.values())
-      .filter(session => session.status === 'scheduled' || session.status === 'live');
+    const activeSessions = Array.from(
+      this.activeStreamSessions.values(),
+    ).filter(
+      (session) => session.status === "scheduled" || session.status === "live",
+    );
 
     for (const session of activeSessions) {
       try {
@@ -242,7 +268,9 @@ export class StreamingCoordinator {
   /**
    * Update stream session status based on platform data
    */
-  async updateStreamSessionStatus(sessionId: string): Promise<StreamSession | null> {
+  async updateStreamSessionStatus(
+    sessionId: string,
+  ): Promise<StreamSession | null> {
     const session = this.activeStreamSessions.get(sessionId);
     if (!session) return null;
 
@@ -250,20 +278,26 @@ export class StreamingCoordinator {
     const currentTime = new Date();
 
     // Update session based on streaming status
-    if (hostStreamStatus.isStreaming && session.status === 'scheduled') {
-      session.status = 'live';
+    if (hostStreamStatus.isStreaming && session.status === "scheduled") {
+      session.status = "live";
       session.actualStartTime = currentTime;
       logger.info(`Stream session started live`, { sessionId });
-    } else if (!hostStreamStatus.isStreaming && session.status === 'live') {
-      session.status = 'ended';
+    } else if (!hostStreamStatus.isStreaming && session.status === "live") {
+      session.status = "ended";
       session.endTime = currentTime;
       logger.info(`Stream session ended`, { sessionId });
     }
 
     // Update viewer metrics
     if (hostStreamStatus.isStreaming && hostStreamStatus.viewerCount) {
-      session.maxViewers = Math.max(session.maxViewers || 0, hostStreamStatus.viewerCount);
-      session.peakViewers = Math.max(session.peakViewers || 0, hostStreamStatus.viewerCount);
+      session.maxViewers = Math.max(
+        session.maxViewers || 0,
+        hostStreamStatus.viewerCount,
+      );
+      session.peakViewers = Math.max(
+        session.peakViewers || 0,
+        hostStreamStatus.viewerCount,
+      );
     }
 
     this.activeStreamSessions.set(sessionId, session);
@@ -273,7 +307,9 @@ export class StreamingCoordinator {
   /**
    * Send collaboration request
    */
-  async sendCollaborationRequest(request: Omit<CollaborationRequest, 'id' | 'createdAt' | 'expiresAt'>): Promise<CollaborationRequest> {
+  async sendCollaborationRequest(
+    request: Omit<CollaborationRequest, "id" | "createdAt" | "expiresAt">,
+  ): Promise<CollaborationRequest> {
     const requestId = `collab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
@@ -287,7 +323,10 @@ export class StreamingCoordinator {
 
     // TODO: Store in database
     // TODO: Send notification to target user
-    logger.info(`Collaboration request sent`, { requestId, collaborationRequest });
+    logger.info(`Collaboration request sent`, {
+      requestId,
+      collaborationRequest,
+    });
 
     return collaborationRequest;
   }
@@ -295,11 +334,20 @@ export class StreamingCoordinator {
   /**
    * Get upcoming stream sessions for a community
    */
-  async getCommunityUpcomingStreams(communityId: string, limit: number = 10): Promise<StreamSession[]> {
+  async getCommunityUpcomingStreams(
+    communityId: string,
+    limit: number = 10,
+  ): Promise<StreamSession[]> {
     const sessions = Array.from(this.activeStreamSessions.values());
     const communitySessions = sessions
-      .filter(session => session.communityId === communityId && session.status === 'scheduled')
-      .sort((a, b) => a.scheduledStartTime.getTime() - b.scheduledStartTime.getTime())
+      .filter(
+        (session) =>
+          session.communityId === communityId && session.status === "scheduled",
+      )
+      .sort(
+        (a, b) =>
+          a.scheduledStartTime.getTime() - b.scheduledStartTime.getTime(),
+      )
       .slice(0, limit);
 
     return communitySessions;
@@ -310,37 +358,41 @@ export class StreamingCoordinator {
    */
   async getCommunityLiveStreams(communityId: string): Promise<StreamSession[]> {
     const sessions = Array.from(this.activeStreamSessions.values());
-    return sessions.filter(session => 
-      session.communityId === communityId && 
-      session.status === 'live'
+    return sessions.filter(
+      (session) =>
+        session.communityId === communityId && session.status === "live",
     );
   }
 
   /**
    * Setup EventSub webhooks for real-time updates
    */
-  async setupPlatformWebhooks(userId: string, callbackUrl: string, secret: string): Promise<boolean> {
+  async setupPlatformWebhooks(
+    userId: string,
+    callbackUrl: string,
+    secret: string,
+  ): Promise<boolean> {
     try {
       const user = await storage.getUser(userId);
       if (!user || !user.username) {
-        throw new Error('User not found or no username');
+        throw new Error("User not found or no username");
       }
 
       // Subscribe to Twitch stream online/offline events
       await twitchAPI.subscribeToEvent(
-        'stream.online',
-        '1',
+        "stream.online",
+        "1",
         { broadcaster_user_login: user.username },
         `${callbackUrl}/twitch`,
-        secret
+        secret,
       );
 
       await twitchAPI.subscribeToEvent(
-        'stream.offline',
-        '1',
+        "stream.offline",
+        "1",
         { broadcaster_user_login: user.username },
         `${callbackUrl}/twitch`,
-        secret
+        secret,
       );
 
       // TODO: Setup YouTube webhooks
@@ -348,7 +400,7 @@ export class StreamingCoordinator {
 
       return true;
     } catch (error) {
-      console.error('Error setting up platform webhooks:', error);
+      console.error("Error setting up platform webhooks:", error);
       return false;
     }
   }
@@ -358,13 +410,13 @@ export class StreamingCoordinator {
    */
   async handlePlatformEvent(platform: string, event: any): Promise<void> {
     switch (platform) {
-      case 'twitch':
+      case "twitch":
         await this.handleTwitchEvent(event);
         break;
-      case 'youtube':
+      case "youtube":
         // TODO: Handle YouTube events
         break;
-      case 'facebook':
+      case "facebook":
         // TODO: Handle Facebook events
         break;
       default:
@@ -380,12 +432,16 @@ export class StreamingCoordinator {
     const eventData = event.event_data;
 
     switch (eventType) {
-      case 'stream.online':
-        logger.info(`Stream started`, { broadcaster: eventData.broadcaster_user_login });
+      case "stream.online":
+        logger.info(`Stream started`, {
+          broadcaster: eventData.broadcaster_user_login,
+        });
         // Find and update relevant stream sessions
         break;
-      case 'stream.offline':
-        logger.info(`Stream ended`, { broadcaster: eventData.broadcaster_user_login });
+      case "stream.offline":
+        logger.info(`Stream ended`, {
+          broadcaster: eventData.broadcaster_user_login,
+        });
         // Find and update relevant stream sessions
         break;
       default:
@@ -396,13 +452,20 @@ export class StreamingCoordinator {
   /**
    * Get streaming analytics for a user
    */
-  async getStreamingAnalytics(userId: string, timeRange: 'week' | 'month' | 'year' = 'month'): Promise<{
+  async getStreamingAnalytics(
+    userId: string,
+    timeRange: "week" | "month" | "year" = "month",
+  ): Promise<{
     totalStreams: number;
     totalHours: number;
     averageViewers: number;
     peakViewers: number;
     topCategories: Array<{ category: string; hours: number }>;
-    platformBreakdown: Array<{ platform: string; streams: number; hours: number }>;
+    platformBreakdown: Array<{
+      platform: string;
+      streams: number;
+      hours: number;
+    }>;
   }> {
     // TODO: Implement analytics calculation from stored stream data
     return {

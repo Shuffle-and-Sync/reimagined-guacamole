@@ -15,6 +15,7 @@ GET /api/cards/search?q=Lightning+Bolt&format=modern&limit=10
 ```
 
 Response:
+
 ```json
 {
   "cards": [
@@ -75,6 +76,7 @@ GET /api/cards/autocomplete?q=light&limit=10
 ```
 
 Response:
+
 ```json
 {
   "suggestions": [
@@ -102,9 +104,11 @@ GET /api/cards/random?format=commander&set=cmr
 ## API Endpoints
 
 ### Search Cards
+
 **Endpoint**: `GET /api/cards/search`
 
 **Query Parameters**:
+
 - `q` (required): Search query (card name or text)
 - `set` (optional): Filter by set code (e.g., "lea", "m21")
 - `format` (optional): Filter by format legality
@@ -113,69 +117,85 @@ GET /api/cards/random?format=commander&set=cmr
 - `limit` (optional): Results per page (default: 20, max: 100)
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/search?q=counterspell&format=modern&limit=5"
 ```
 
 ### Get Card by ID
+
 **Endpoint**: `GET /api/cards/:id`
 
 **Parameters**:
+
 - `id` (required): Scryfall card ID
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/ce711943-c1a1-43a0-8b89-8d169cfb8e06"
 ```
 
 ### Get Card by Name
+
 **Endpoint**: `GET /api/cards/named`
 
 **Query Parameters**:
+
 - `exact` (optional): Exact card name
 - `fuzzy` (optional): Fuzzy card name (use when exact name unknown)
 - `set` (optional): Prefer specific set version
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/named?exact=Lightning+Bolt&set=lea"
 ```
 
 ### Autocomplete
+
 **Endpoint**: `GET /api/cards/autocomplete`
 
 **Query Parameters**:
+
 - `q` (required): Partial card name (min 2 characters)
 - `limit` (optional): Max suggestions (default: 10, max: 20)
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/autocomplete?q=mana&limit=10"
 ```
 
 ### Random Card
+
 **Endpoint**: `GET /api/cards/random`
 
 **Query Parameters**:
+
 - `set` (optional): Random card from specific set
 - `format` (optional): Random card legal in format
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/random?format=commander"
 ```
 
 ### Cache Statistics
+
 **Endpoint**: `GET /api/cards/cache/stats`
 
 Get current cache statistics (useful for monitoring):
 
 **Example**:
+
 ```bash
 curl "https://shuffleandsync.org/api/cards/cache/stats"
 ```
 
 Response:
+
 ```json
 {
   "size": 245,
@@ -193,7 +213,7 @@ import { useQuery } from '@tanstack/react-query';
 // Search for cards
 function CardSearch() {
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const { data, isLoading } = useQuery({
     queryKey: ['/api/cards/search', searchTerm],
     queryFn: async () => {
@@ -209,7 +229,7 @@ function CardSearch() {
 
   return (
     <div>
-      <input 
+      <input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -281,25 +301,25 @@ Each card object contains the following fields:
 ```typescript
 interface MtgCard {
   // Required fields
-  id: string;                    // Scryfall ID
-  name: string;                  // Card name
-  typeLine: string;              // "Instant", "Creature — Human Wizard", etc.
-  setCode: string;               // Set code (e.g., "m21")
-  setName: string;               // Set name (e.g., "Core Set 2021")
-  collectorNumber: string;       // Collector number in set
-  rarity: string;                // "common", "uncommon", "rare", "mythic"
-  
+  id: string; // Scryfall ID
+  name: string; // Card name
+  typeLine: string; // "Instant", "Creature — Human Wizard", etc.
+  setCode: string; // Set code (e.g., "m21")
+  setName: string; // Set name (e.g., "Core Set 2021")
+  collectorNumber: string; // Collector number in set
+  rarity: string; // "common", "uncommon", "rare", "mythic"
+
   // Optional fields
-  oracleId?: string;             // Oracle ID (same across printings)
-  manaCost?: string;             // Mana cost (e.g., "{2}{U}{U}")
-  cmc?: number;                  // Converted mana cost
-  oracleText?: string;           // Card text
-  power?: string;                // Power (creatures)
-  toughness?: string;            // Toughness (creatures)
-  loyalty?: string;              // Loyalty (planeswalkers)
-  colors?: string[];             // Color identity
-  colorIdentity?: string[];      // Commander color identity
-  
+  oracleId?: string; // Oracle ID (same across printings)
+  manaCost?: string; // Mana cost (e.g., "{2}{U}{U}")
+  cmc?: number; // Converted mana cost
+  oracleText?: string; // Card text
+  power?: string; // Power (creatures)
+  toughness?: string; // Toughness (creatures)
+  loyalty?: string; // Loyalty (planeswalkers)
+  colors?: string[]; // Color identity
+  colorIdentity?: string[]; // Commander color identity
+
   // Image URLs
   imageUris?: {
     small?: string;
@@ -309,7 +329,7 @@ interface MtgCard {
     artCrop?: string;
     borderCrop?: string;
   };
-  
+
   // Pricing
   prices?: {
     usd?: string;
@@ -318,12 +338,12 @@ interface MtgCard {
     eurFoil?: string;
     tix?: string;
   };
-  
+
   // Format legality
-  legalities?: Record<string, string>;  // "legal", "not_legal", "restricted", "banned"
-  
-  releasedAt?: string;           // Release date (YYYY-MM-DD)
-  scryfallUri?: string;          // Scryfall page URL
+  legalities?: Record<string, string>; // "legal", "not_legal", "restricted", "banned"
+
+  releasedAt?: string; // Release date (YYYY-MM-DD)
+  scryfallUri?: string; // Scryfall page URL
 }
 ```
 
@@ -341,7 +361,9 @@ Error response format:
 ```json
 {
   "message": "Error description",
-  "errors": [ /* Validation errors if applicable */ ]
+  "errors": [
+    /* Validation errors if applicable */
+  ]
 }
 ```
 
@@ -350,17 +372,17 @@ Error response format:
 ```typescript
 try {
   const response = await fetch(`/api/cards/named?exact=${cardName}`);
-  
+
   if (!response.ok) {
     const error = await response.json();
-    console.error('Card not found:', error.message);
+    console.error("Card not found:", error.message);
     return null;
   }
-  
+
   const card = await response.json();
   return card;
 } catch (error) {
-  console.error('Network error:', error);
+  console.error("Network error:", error);
   return null;
 }
 ```
@@ -370,6 +392,7 @@ try {
 ### Caching
 
 The service implements intelligent caching:
+
 - **In-memory cache**: 1000 most recently accessed cards
 - **Cache TTL**: 7 days
 - **LRU eviction**: Oldest cards removed when cache is full
@@ -395,19 +418,19 @@ The service implements intelligent caching:
 ```typescript
 // Store card IDs in game session
 const gameSession = {
-  id: 'session-123',
-  hostId: 'user-456',
+  id: "session-123",
+  hostId: "user-456",
   cardIds: [
-    'ce711943-c1a1-43a0-8b89-8d169cfb8e06',  // Lightning Bolt
+    "ce711943-c1a1-43a0-8b89-8d169cfb8e06", // Lightning Bolt
     // ... other cards
-  ]
+  ],
 };
 
 // Fetch full card data when needed
 const cardDetails = await Promise.all(
-  gameSession.cardIds.map(id => 
-    fetch(`/api/cards/${id}`).then(r => r.json())
-  )
+  gameSession.cardIds.map((id) =>
+    fetch(`/api/cards/${id}`).then((r) => r.json()),
+  ),
 );
 ```
 
@@ -416,7 +439,7 @@ const cardDetails = await Promise.all(
 ```typescript
 interface Deck {
   name: string;
-  format: 'commander' | 'modern' | 'standard';
+  format: "commander" | "modern" | "standard";
   cards: {
     cardId: string;
     quantity: number;
@@ -426,13 +449,15 @@ interface Deck {
 // Validate deck legality
 async function validateDeck(deck: Deck) {
   for (const entry of deck.cards) {
-    const card = await fetch(`/api/cards/${entry.cardId}`).then(r => r.json());
-    
-    if (!card.legalities?.[deck.format] === 'legal') {
+    const card = await fetch(`/api/cards/${entry.cardId}`).then((r) =>
+      r.json(),
+    );
+
+    if (!card.legalities?.[deck.format] === "legal") {
       throw new Error(`${card.name} is not legal in ${deck.format}`);
     }
   }
-  
+
   return true;
 }
 ```
@@ -470,12 +495,14 @@ curl "http://localhost:3000/api/cards/random?format=commander"
 ## Future Enhancements
 
 ### Phase 2 (Planned)
+
 - Price tracking and alerts
 - Deck building features
 - Card collection management
 - Advanced search with multiple filters
 
 ### Phase 3 (Future)
+
 - Image-based card recognition (OCR)
 - ML-based visual identification
 - Mobile camera integration
@@ -486,20 +513,25 @@ curl "http://localhost:3000/api/cards/random?format=commander"
 ### Common Issues
 
 **Issue**: Search returns no results
+
 - **Solution**: Check spelling, try fuzzy search instead of exact match
 
 **Issue**: Autocomplete is slow
+
 - **Solution**: Implement debouncing (300ms recommended)
 
 **Issue**: Cards not caching
+
 - **Solution**: Check cache stats endpoint, cache may be full
 
 **Issue**: Rate limit errors
+
 - **Solution**: Add delays between rapid requests
 
 ### Support
 
 For issues or questions:
+
 1. Check the audit document: `TABLESYNC_CARD_RECOGNITION_AUDIT.md`
 2. Review API endpoint documentation above
 3. Check test files for usage examples

@@ -1,19 +1,19 @@
 #!/usr/bin/env tsx
 /**
  * Shuffle & Sync Unit Test Generation Agent
- * 
+ *
  * Automatically generates comprehensive unit tests for the major features
  * of the Shuffle & Sync platform following Jest and TypeScript best practices.
  */
 
-import { promises as fs } from 'fs';
-import { resolve, dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { promises as fs } from "fs";
+import { resolve, dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootDir = resolve(__dirname, '..');
+const rootDir = resolve(__dirname, "..");
 
 // Test generation configuration
 interface TestConfig {
@@ -27,7 +27,7 @@ interface TestConfig {
 
 interface TestCase {
   name: string;
-  type: 'unit' | 'integration';
+  type: "unit" | "integration";
   description: string;
   setup?: string;
   testBody: string;
@@ -48,24 +48,24 @@ class UnitTestAgent {
    * Generate all tests
    */
   async generateAllTests(): Promise<void> {
-    console.log('🤖 Starting Shuffle & Sync Unit Test Generation Agent...\n');
+    console.log("🤖 Starting Shuffle & Sync Unit Test Generation Agent...\n");
 
     // Create basic working tests for now
     await this.generateBasicTests();
     await this.updatePackageJsonScripts();
-    
-    console.log('\n✅ Unit test generation completed successfully!');
-    console.log('\nNext steps:');
-    console.log('1. Run `npm run test:generate` to run this agent');
-    console.log('2. Run `npm run test` to execute all tests');
-    console.log('3. Run `npm run test:coverage` to see coverage report');
+
+    console.log("\n✅ Unit test generation completed successfully!");
+    console.log("\nNext steps:");
+    console.log("1. Run `npm run test:generate` to run this agent");
+    console.log("2. Run `npm run test` to execute all tests");
+    console.log("3. Run `npm run test:coverage` to see coverage report");
   }
 
   /**
    * Generate basic working tests
    */
   private async generateBasicTests(): Promise<void> {
-    const testsDir = join(rootDir, 'server/tests/features');
+    const testsDir = join(rootDir, "server/tests/features");
     await fs.mkdir(testsDir, { recursive: true });
 
     // Generate Authentication Tests
@@ -166,8 +166,11 @@ describe('Authentication', () => {
 });
 `;
 
-    await fs.writeFile(join(testsDir, 'authentication.test.ts'), authTestContent);
-    console.log('✅ Generated Authentication tests');
+    await fs.writeFile(
+      join(testsDir, "authentication.test.ts"),
+      authTestContent,
+    );
+    console.log("✅ Generated Authentication tests");
 
     // Generate Tournament Tests
     const tournamentTestContent = `/**
@@ -243,8 +246,11 @@ describe('Tournament Management', () => {
 });
 `;
 
-    await fs.writeFile(join(testsDir, 'tournaments.test.ts'), tournamentTestContent);
-    console.log('✅ Generated Tournament tests');
+    await fs.writeFile(
+      join(testsDir, "tournaments.test.ts"),
+      tournamentTestContent,
+    );
+    console.log("✅ Generated Tournament tests");
 
     // Generate Calendar Tests
     const calendarTestContent = `/**
@@ -319,8 +325,8 @@ describe('Calendar Integration', () => {
 });
 `;
 
-    await fs.writeFile(join(testsDir, 'calendar.test.ts'), calendarTestContent);
-    console.log('✅ Generated Calendar tests');
+    await fs.writeFile(join(testsDir, "calendar.test.ts"), calendarTestContent);
+    console.log("✅ Generated Calendar tests");
 
     // Generate Messaging Tests
     const messagingTestContent = `/**
@@ -408,8 +414,11 @@ describe('Real-time Messaging', () => {
 });
 `;
 
-    await fs.writeFile(join(testsDir, 'messaging.test.ts'), messagingTestContent);
-    console.log('✅ Generated Messaging tests');
+    await fs.writeFile(
+      join(testsDir, "messaging.test.ts"),
+      messagingTestContent,
+    );
+    console.log("✅ Generated Messaging tests");
 
     // Generate Matchmaking Tests
     const matchmakingTestContent = `/**
@@ -522,8 +531,11 @@ describe('AI Matchmaking', () => {
 });
 `;
 
-    await fs.writeFile(join(testsDir, 'matchmaking.test.ts'), matchmakingTestContent);
-    console.log('✅ Generated Matchmaking tests');
+    await fs.writeFile(
+      join(testsDir, "matchmaking.test.ts"),
+      matchmakingTestContent,
+    );
+    console.log("✅ Generated Matchmaking tests");
   }
 
   /**
@@ -537,25 +549,26 @@ describe('AI Matchmaking', () => {
    * Update package.json with test scripts
    */
   private async updatePackageJsonScripts(): Promise<void> {
-    const packageJsonPath = join(rootDir, 'package.json');
-    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+    const packageJsonPath = join(rootDir, "package.json");
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf-8"));
 
     // Add comprehensive test scripts
     packageJson.scripts = {
       ...packageJson.scripts,
-      'test:generate': 'tsx scripts/test-agent.ts',
-      'test:auth': 'jest server/tests/features/authentication.test.ts',
-      'test:tournaments': 'jest server/tests/features/tournaments.test.ts',
-      'test:matchmaking': 'jest server/tests/features/matchmaking.test.ts',
-      'test:calendar': 'jest server/tests/features/calendar.test.ts',
-      'test:messaging': 'jest server/tests/features/messaging.test.ts',
-      'test:features': 'jest server/tests/features/',
-      'test:unit': 'jest --testPathPattern=".*\\.test\\.ts$"',
-      'test:coverage:features': 'jest --coverage --collectCoverageFrom="server/features/**/*.ts" --collectCoverageFrom="server/services/**/*.ts"'
+      "test:generate": "tsx scripts/test-agent.ts",
+      "test:auth": "jest server/tests/features/authentication.test.ts",
+      "test:tournaments": "jest server/tests/features/tournaments.test.ts",
+      "test:matchmaking": "jest server/tests/features/matchmaking.test.ts",
+      "test:calendar": "jest server/tests/features/calendar.test.ts",
+      "test:messaging": "jest server/tests/features/messaging.test.ts",
+      "test:features": "jest server/tests/features/",
+      "test:unit": 'jest --testPathPattern=".*\\.test\\.ts$"',
+      "test:coverage:features":
+        'jest --coverage --collectCoverageFrom="server/features/**/*.ts" --collectCoverageFrom="server/services/**/*.ts"',
     };
 
     await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
-    console.log('✅ Updated package.json with test scripts');
+    console.log("✅ Updated package.json with test scripts");
   }
 }
 
@@ -564,11 +577,11 @@ describe('AI Matchmaking', () => {
  */
 if (import.meta.url === `file://${process.argv[1]}`) {
   const agent = new UnitTestAgent();
-  
+
   try {
     await agent.generateAllTests();
   } catch (error) {
-    console.error('❌ Test generation failed:', error);
+    console.error("❌ Test generation failed:", error);
     process.exit(1);
   }
 }

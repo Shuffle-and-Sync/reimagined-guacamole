@@ -1,1 +1,1 @@
-export { useCommunity } from '../components/CommunityProvider';
+export { useCommunity } from "../components/CommunityProvider";
