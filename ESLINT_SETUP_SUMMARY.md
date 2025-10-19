@@ -130,14 +130,151 @@ The lint script uses `./node_modules/.bin/eslint` which:
 - `DEPLOYMENT.md` - Already documents lint requirement correctly
 - Documentation files - Already reference `npm run lint` correctly
 
+## ESLint 9 Migration Guide
+
+### Overview
+This project uses ESLint v9 with the **flat config format** (`eslint.config.js`), which is the default and recommended format starting with ESLint v9.0.0.
+
+### What Changed in ESLint v9
+
+#### 1. Configuration Format
+- **Old (Legacy)**: `.eslintrc.js`, `.eslintrc.json`, `.eslintrc.yml`
+- **New (Flat Config)**: `eslint.config.js` (or `.mjs`, `.cjs`)
+
+#### 2. Key Differences
+
+**Legacy Format (ESLint v8 and below)**:
+```javascript
+// .eslintrc.js
+module.exports = {
+  extends: ['eslint:recommended'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'react'],
+  env: {
+    browser: true,
+    node: true
+  },
+  rules: {
+    'no-unused-vars': 'warn'
+  }
+};
+```
+
+**Flat Config Format (ESLint v9+)**:
+```javascript
+// eslint.config.js
+import js from "@eslint/js";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
+
+export default [
+  js.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parser: tsParser,
+      globals: {
+        window: "readonly",
+        process: "readonly"
+      }
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin
+    },
+    rules: {
+      "no-unused-vars": "warn"
+    }
+  }
+];
+```
+
+#### 3. Breaking Changes
+
+| Feature | Legacy Format | Flat Config |
+|---------|--------------|-------------|
+| Config file | `.eslintrc.*` | `eslint.config.js` |
+| Format | Object/JSON | Array of config objects |
+| Plugin loading | Auto-resolve by name | Explicit imports |
+| Extends | String references | Direct config objects |
+| Env | `env: {}` | `languageOptions.globals` |
+| CLI `--ext` flag | Required for TS/TSX | Not needed (uses `files` pattern) |
+
+### Migration Benefits
+
+**Why ESLint v9 Flat Config?**
+- ✅ **Better TypeScript support**: Native ES module syntax with proper imports
+- ✅ **Simpler configuration**: More explicit, easier to understand
+- ✅ **Better performance**: Faster config resolution and parsing
+- ✅ **Type safety**: Better IDE support and autocompletion
+- ✅ **Modern JavaScript**: Uses ES modules instead of CommonJS
+- ✅ **Explicit dependencies**: All plugins are explicitly imported
+- ✅ **Shareable configs**: Easier to create and share configuration presets
+
+### For Developers
+
+#### Using the Linter
+
+```bash
+# Lint all files with auto-fix
+npm run lint
+
+# Lint specific directories
+./node_modules/.bin/eslint server client/src
+
+# Check without fixing
+./node_modules/.bin/eslint server client/src --fix-dry-run
+```
+
+#### Understanding the Config Structure
+
+Our `eslint.config.js` is organized as follows:
+
+1. **Base Rules**: JavaScript recommended rules from `@eslint/js`
+2. **TypeScript Config**: Parser, plugins, and rules for `.ts` and `.tsx` files
+3. **React Config**: React and React Hooks rules
+4. **Custom Rules**: Project-specific rule overrides
+5. **Ignore Patterns**: Files/directories to exclude from linting
+
+#### Customizing Rules
+
+To add or modify rules, edit `eslint.config.js`:
+
+```javascript
+rules: {
+  // Turn off a rule
+  "@typescript-eslint/no-explicit-any": "off",
+  
+  // Change severity (error, warn, off)
+  "@typescript-eslint/no-unused-vars": "warn",
+  
+  // Configure with options
+  "@typescript-eslint/no-unused-vars": ["warn", {
+    argsIgnorePattern: "^_",
+    varsIgnorePattern: "^_"
+  }]
+}
+```
+
+### Migration Reference
+
+For teams migrating from ESLint v8 to v9, consult:
+- [Official ESLint v9 Migration Guide](https://eslint.org/docs/latest/use/configure/migration-guide)
+- [Flat Config Documentation](https://eslint.org/docs/latest/use/configure/configuration-files)
+
 ## Notes
 
-### Why ESLint v9?
-ESLint v9 was the latest version at installation time. It uses a new "flat config" format (`eslint.config.js`) instead of the legacy `.eslintrc.*` format. This provides:
-- Better TypeScript support
-- Simpler configuration
-- Better performance
-- Modern JavaScript module syntax
+### Rule Configuration Philosophy
+The configuration uses:
+- **Recommended rules** from official plugins as a baseline
+- **Warnings** for most code quality issues
+- **Errors** for critical issues (from plugin defaults)
+- **Custom overrides** for project-specific needs (e.g., no React imports needed with React 17+)
+
+### Configuration Files in This Project
+
+- **`eslint.config.js`**: Main ESLint configuration (flat config format)
+- **`package.json`**: Contains the `lint` script and ESLint dependencies
+- **`.gitignore`**: Excludes `node_modules` and build artifacts from linting
 
 ### Rule Configuration Philosophy
 The configuration uses:
