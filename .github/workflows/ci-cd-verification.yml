@@ -71,7 +71,11 @@ jobs:
         run: npm ci --legacy-peer-deps
       
       - name: Run tests
+        run: npm test -- --ci --maxWorkers=2
+      
+      - name: Run tests with coverage
         run: npm test -- --ci --coverage --maxWorkers=2
+        continue-on-error: true
       
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
