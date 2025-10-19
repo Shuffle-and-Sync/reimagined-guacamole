@@ -698,9 +698,13 @@ export class YouTubeAPIService {
     }
 
     try {
+      if (!this.clientId || !this.clientSecret) {
+        throw new Error("YouTube client credentials not configured");
+      }
+      
       const tokenParams: Record<string, string> = {
-        client_id: this.clientId!,
-        client_secret: this.clientSecret!,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
         redirect_uri:
           redirectUri ||
           process.env.YOUTUBE_REDIRECT_URI ||
@@ -766,8 +770,8 @@ export class YouTubeAPIService {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          client_id: this.clientId!,
-          client_secret: this.clientSecret!,
+          client_id: this.clientId || "",
+          client_secret: this.clientSecret || "",
           refresh_token: refreshToken,
           grant_type: "refresh_token",
         }),
@@ -1006,12 +1010,12 @@ export class YouTubeAPIService {
         /<published>(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?)<\/published>/,
       );
 
-      if (channelIdMatch && videoIdMatch && titleMatch && publishedMatch) {
+      if (channelIdMatch?.[1] && videoIdMatch?.[1] && publishedMatch?.[1]) {
         return {
-          channelId: channelIdMatch[1]!,
-          videoId: videoIdMatch[1]!,
-          title: titleMatch[1] || titleMatch[2] || "",
-          publishedAt: publishedMatch[1]!,
+          channelId: channelIdMatch[1],
+          videoId: videoIdMatch[1],
+          title: titleMatch?.[1] || titleMatch?.[2] || "",
+          publishedAt: publishedMatch[1],
         };
       }
 

@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FaGoogle } from "react-icons/fa";
-import { Loader2, Mail, User, Lock, Check, X } from "lucide-react";
+import { Loader2, Check, X } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -194,7 +194,7 @@ export default function Register() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
 
         toast({
           title: "Account created successfully!",
@@ -490,7 +490,7 @@ export default function Register() {
           </div>
 
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            By creating an account, you'll be able to coordinate collaborative
+            By creating an account, you&apos;ll be able to coordinate collaborative
             streams, join tournaments, and connect with the TCG community.
           </div>
         </CardContent>

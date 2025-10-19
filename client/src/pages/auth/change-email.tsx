@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   Card,
@@ -59,6 +59,73 @@ export default function ChangeEmail() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
 
+  const confirmEmailChange = useCallback(async (verificationToken: string) => {
+    setIsConfirming(true);
+    setConfirmationError("");
+
+    try {
+      const response = await fetch(
+        `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setConfirmationStatus("success");
+        toast({
+          title: "Email updated successfully!",
+          description: "Your email address has been changed.",
+        });
+
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          setLocation(data.redirectUrl || "/dashboard");
+        }, 3000);
+      } else {
+        if (
+          data.message?.includes("expired") ||
+          data.message?.includes("invalid")
+        ) {
+          setConfirmationStatus("expired");
+        } else {
+          setConfirmationStatus("error");
+          setConfirmationError(
+            data.message || "Email change confirmation failed.",
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Email change confirmation error:", err);
+      setConfirmationStatus("error");
+      setConfirmationError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsConfirming(false);
+    }
+  }, [toast, setLocation]);
+
+  const checkPendingRequest = useCallback(async () => {
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        await response.json();
+        // Note: We'd need to add a field to track pending email changes
+        // For now, we'll just show the form
+      }
+    } catch (error) {
+      console.error("Failed to check pending request:", error);
+    }
+  }, []);
+
   useEffect(() => {
     // If we have a token, this is an email confirmation flow
     if (token) {
@@ -67,24 +134,7 @@ export default function ChangeEmail() {
       // Check for existing pending request
       checkPendingRequest();
     }
-  }, [token]);
-
-  const checkPendingRequest = async () => {
-    try {
-      const response = await fetch("/api/user/profile", {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-        // Note: We'd need to add a field to track pending email changes
-        // For now, we'll just show the form
-      }
-    } catch (error) {
-      console.error("Failed to check pending request:", error);
-    }
-  };
+  }, [token, confirmEmailChange, checkPendingRequest]);
 
   const validateForm = (data: EmailChangeData): Record<string, string> => {
     const errors: Record<string, string> = {};
@@ -176,56 +226,6 @@ export default function ChangeEmail() {
       });
     } finally {
       setIsInitiating(false);
-    }
-  };
-
-  const confirmEmailChange = async (verificationToken: string) => {
-    setIsConfirming(true);
-    setConfirmationError("");
-
-    try {
-      const response = await fetch(
-        `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setConfirmationStatus("success");
-        toast({
-          title: "Email updated successfully!",
-          description: "Your email address has been changed.",
-        });
-
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          setLocation(data.redirectUrl || "/dashboard");
-        }, 3000);
-      } else {
-        if (
-          data.message?.includes("expired") ||
-          data.message?.includes("invalid")
-        ) {
-          setConfirmationStatus("expired");
-        } else {
-          setConfirmationStatus("error");
-          setConfirmationError(
-            data.message || "Email change confirmation failed.",
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Email change confirmation error:", err);
-      setConfirmationStatus("error");
-      setConfirmationError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsConfirming(false);
     }
   };
 

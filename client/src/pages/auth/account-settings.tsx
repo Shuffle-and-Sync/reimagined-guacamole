@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2,
@@ -30,9 +31,7 @@ import {
   Mail,
   User,
   CheckCircle,
-  XCircle,
   Smartphone,
-  Download,
 } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";

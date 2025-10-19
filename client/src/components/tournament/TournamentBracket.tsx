@@ -223,7 +223,7 @@ const MatchComponent = ({
                   size="sm"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
+                  onClick={() => match.player1Id && onAdvanceMatch?.(match.id, match.player1Id)}
                   disabled={!match.player1Id || !match.player2Id}
                   data-testid={`button-player1-wins-${match.id || "unknown"}`}
                 >
@@ -233,7 +233,7 @@ const MatchComponent = ({
                   size="sm"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
+                  onClick={() => match.player2Id && onAdvanceMatch?.(match.id, match.player2Id)}
                   disabled={!match.player1Id || !match.player2Id}
                   data-testid={`button-player2-wins-${match.id || "unknown"}`}
                 >
@@ -367,7 +367,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
       );
       return response.json();
     },
-    onSuccess: (gameSession, matchId) => {
+    onSuccess: (gameSession) => {
       toast({
         title: "Game room created!",
         description: "Redirecting to the tournament match game room...",

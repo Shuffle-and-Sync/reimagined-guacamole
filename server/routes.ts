@@ -776,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }),
     ),
     asyncHandler(async (req, res) => {
-      const { community: communityId, page, limit } = req.query as any;
+      const { community: communityId, page, limit } = req.query as Record<string, string>;
       const tournaments = await storage.getTournaments(communityId);
       return res.json({
         success: true,
@@ -2853,7 +2853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/user/communities/:communityId/join",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -2885,7 +2885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/user/communities/:communityId/set-primary",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -2909,7 +2909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/user/theme-preferences",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -2929,7 +2929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/user/theme-preferences",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -2996,7 +2996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     eventCreationRateLimit,
     validateRequest(validateEventSchema),
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3017,7 +3017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.put("/api/events/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/events/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
@@ -3062,7 +3062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/events/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/events/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
@@ -3091,7 +3091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/events/:eventId/join",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const { eventId } = req.params;
@@ -3183,7 +3183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/events/:eventId/leave",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const { eventId } = req.params;
@@ -3249,7 +3249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Graphics generation route
-  app.post("/api/graphics/generate", isAuthenticated, async (req: any, res) => {
+  app.post("/api/graphics/generate", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { eventId, template = "modern", includeQR = true } = req.body;
@@ -3284,7 +3284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/user/events", isAuthenticated, async (req: any, res) => {
+  app.get("/api/user/events", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3300,7 +3300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification routes
-  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
+  app.get("/api/notifications", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3318,7 +3318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/notifications", isAuthenticated, async (req: any, res) => {
+  app.post("/api/notifications", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3334,7 +3334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/notifications/:id/read",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const { id } = req.params;
@@ -3352,7 +3352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/notifications/read-all",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3387,7 +3387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+  app.post("/api/messages", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3418,7 +3418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calendar routes for game pod scheduling
-  app.post("/api/events/bulk", isAuthenticated, async (req: any, res) => {
+  app.post("/api/events/bulk", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3429,7 +3429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Add creator and host information to each event
-      const eventData = events.map((event: any) => ({
+      const eventData = events.map((event: Record<string, unknown>) => ({
         ...event,
         creatorId: userId,
         hostId: userId,
@@ -3445,7 +3445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/events/recurring", isAuthenticated, async (req: any, res) => {
+  app.post("/api/events/recurring", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
@@ -3520,7 +3520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/game-sessions",
     isAuthenticated,
     validateRequest(validateGameSessionSchema),
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3539,7 +3539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/game-sessions/:id/join",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3570,7 +3570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Get single game session
-  app.get("/api/game-sessions/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/game-sessions/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const { id } = req.params;
@@ -3592,7 +3592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/game-sessions/:id/leave",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3625,7 +3625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/game-sessions/:id/spectate",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
@@ -3658,7 +3658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/game-sessions/:id/leave-spectating",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthenticatedRequest, res) => {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);

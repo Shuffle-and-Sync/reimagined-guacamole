@@ -88,6 +88,8 @@ export interface StreamingMetrics {
   streamDuration: number;
   followersGained: number;
   subscriptionConversions: number;
+  engagementRate?: number;
+  retentionRate?: number;
 }
 
 export interface ScheduleData {
@@ -102,6 +104,7 @@ export interface ScheduleData {
     advanceNotice: number; // hours
     maxCollabHours: number; // per week
   };
+  weeklySchedule?: Record<string, Array<{ start: string; end: string }>>;
 }
 
 export interface UserProfile {
@@ -143,6 +146,62 @@ export interface AdvancedMatchingCriteria {
     successPatterns?: MatchData[];
     userFeedback?: MatchData[];
   };
+}
+
+// Types for streaming analytics and style matching
+export interface StreamingStyleData {
+  contentType?: string;
+  interactionLevel?: string;
+  streamPace?: string;
+  contentMix?: string[];
+  personality?: string;
+  productionQuality?: string;
+  chatEngagement?: string;
+  streamFormat?: string;
+  [key: string]: unknown; // Allow additional analytics fields
+}
+
+export interface StreamerHistoryData {
+  pastCollaborations?: number;
+  successRate?: number;
+  viewerRetention?: number;
+  averageStreamLength?: number;
+  [key: string]: unknown; // Allow additional history fields
+}
+
+export interface AudienceAnalytics {
+  ageGroups?: Record<string, number>;
+  interests?: string[];
+  regions?: Record<string, number>;
+  engagementMetrics?: {
+    averageViewTime?: number;
+    chatActivity?: number;
+    followRate?: number;
+  };
+  [key: string]: unknown; // Allow additional audience metrics
+}
+
+export interface ScheduleAnalytics {
+  timeZone?: string;
+  regularHours?: Array<{
+    day: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  preferredDays?: string[];
+  flexibleHours?: boolean;
+  [key: string]: unknown; // Allow additional schedule fields
+}
+
+export interface PerformanceMetrics {
+  averageViewers?: number;
+  peakViewers?: number;
+  streamDuration?: number;
+  followersGained?: number;
+  subscriptionConversions?: number;
+  growthRate?: number;
+  retentionRate?: number;
+  [key: string]: unknown; // Allow additional metrics
 }
 
 /**
@@ -469,10 +528,10 @@ export class AIAlgorithmEngine {
    * Streaming style compatibility with behavioral analysis
    */
   async analyzeStreamingStyleMatch(
-    userStyle: any,
-    candidateStyle: any,
-    userHistory?: any,
-    candidateHistory?: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
+    userHistory?: StreamerHistoryData,
+    candidateHistory?: StreamerHistoryData,
   ): Promise<StreamingStyleMatch> {
     try {
       // Content delivery style compatibility
@@ -704,8 +763,8 @@ export class AIAlgorithmEngine {
   // Private helper methods for audience analysis
 
   private calculateDemographicOverlap(
-    userAudience: any,
-    candidateAudience: any,
+    userAudience: AudienceData,
+    candidateAudience: AudienceData,
   ): number {
     // Simplified demographic overlap calculation
     const userDemo = userAudience.demographics || {};
@@ -719,14 +778,14 @@ export class AIAlgorithmEngine {
 
     // Geographic overlap
     const geoOverlap = this.calculateGeographicOverlap(
-      userDemo.regions,
-      candidateDemo.regions,
+      userAudience.regions,
+      candidateAudience.regions,
     );
 
     return ageOverlap * 0.6 + geoOverlap * 0.4;
   }
 
-  private calculateAgeOverlap(userAges: any, candidateAges: any): number {
+  private calculateAgeOverlap(userAges: Record<string, number>, candidateAges: Record<string, number>): number {
     if (!userAges || !candidateAges) return 0.5; // Default moderate overlap
 
     const ageGroups = ["13-17", "18-24", "25-34", "35-44", "45+"];
@@ -744,8 +803,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateGeographicOverlap(
-    userRegions: any,
-    candidateRegions: any,
+    userRegions: Record<string, number>,
+    candidateRegions: Record<string, number>,
   ): number {
     if (!userRegions || !candidateRegions) return 0.5;
 
@@ -780,8 +839,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateEngagementSynergy(
-    userMetrics: any,
-    candidateMetrics: any,
+    userMetrics: StreamingMetrics,
+    candidateMetrics: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.5;
 
@@ -794,8 +853,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateGrowthPotential(
-    userAudience: any,
-    candidateAudience: any,
+    userAudience: AudienceData,
+    candidateAudience: AudienceData,
   ): number {
     // Simulate growth potential based on audience complementarity
     const userSize = userAudience.size || 100;
@@ -811,8 +870,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateRetentionSynergy(
-    userMetrics: any,
-    candidateMetrics: any,
+    userMetrics: StreamingMetrics,
+    candidateMetrics: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.6;
 
@@ -827,8 +886,8 @@ export class AIAlgorithmEngine {
   }
 
   private analyzeGeographicDistribution(
-    userRegions: any,
-    candidateRegions: any,
+    userRegions: Record<string, number>,
+    candidateRegions: Record<string, number>,
   ): Record<string, number> {
     const combined: Record<string, number> = {};
     const regions = ["US", "EU", "APAC", "LATAM", "OTHER"];
@@ -843,8 +902,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifySharedDemographics(
-    userAudience: any,
-    candidateAudience: any,
+    userAudience: AudienceData,
+    candidateAudience: AudienceData,
   ): string[] {
     const shared: string[] = [];
 
@@ -862,8 +921,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifyComplementaryAudiences(
-    userAudience: any,
-    candidateAudience: any,
+    userAudience: AudienceData,
+    candidateAudience: AudienceData,
   ): string[] {
     const complementary: string[] = [];
 
@@ -887,14 +946,14 @@ export class AIAlgorithmEngine {
     return complementary;
   }
 
-  private identifyAudienceStrengths(audience: any): string[] {
+  private identifyAudienceStrengths(audience: AudienceData): string[] {
     const strengths: string[] = [];
     const demo = audience.demographics || {};
 
     if (demo.ageGroups?.["18-24"] > 40) strengths.push("Young Adult");
     if (demo.ageGroups?.["25-34"] > 35) strengths.push("Professional");
-    if (demo.regions?.US > 50) strengths.push("US Market");
-    if (demo.regions?.EU > 30) strengths.push("EU Market");
+    if (audience.regions?.US > 50) strengths.push("US Market");
+    if (audience.regions?.EU > 30) strengths.push("EU Market");
 
     return strengths;
   }
@@ -919,8 +978,8 @@ export class AIAlgorithmEngine {
   }
 
   private findOptimalTimeSlots(
-    userSchedule: any,
-    candidateSchedule: any,
+    userSchedule: ScheduleData,
+    candidateSchedule: ScheduleData,
     timezoneOffset: number,
   ): string[] {
     const optimalSlots: string[] = [];
@@ -966,8 +1025,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifySchedulingConflicts(
-    userSchedule: any,
-    candidateSchedule: any,
+    userSchedule: ScheduleData,
+    candidateSchedule: ScheduleData,
     timezoneOffset: number,
   ): string[] {
     const conflicts: string[] = [];
@@ -984,8 +1043,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateSchedulingFlexibility(
-    userSchedule: any,
-    candidateSchedule: any,
+    userSchedule: ScheduleData,
+    candidateSchedule: ScheduleData,
   ): number {
     const userFlexibility = userSchedule?.advanceNotice || 24;
     const candidateFlexibility = candidateSchedule?.advanceNotice || 24;
@@ -1022,8 +1081,8 @@ export class AIAlgorithmEngine {
   }
 
   private findWeekendOpportunities(
-    userSchedule: any,
-    candidateSchedule: any,
+    userSchedule: ScheduleData,
+    candidateSchedule: ScheduleData,
     timezoneOffset: number,
   ): string[] {
     const weekendSlots: string[] = [];
@@ -1062,8 +1121,8 @@ export class AIAlgorithmEngine {
   // Private helper methods for style analysis
 
   private calculateContentDeliveryCompatibility(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): number {
     // Analyze how they deliver content (educational, entertainment, competitive, etc.)
     const userDelivery = userStyle.contentDelivery || "balanced";
@@ -1100,8 +1159,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateCommunicationAlignment(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): number {
     // Analyze communication styles (chatty, focused, interactive, etc.)
     const userComm = userStyle.communicationStyle || "moderate";
@@ -1117,8 +1176,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculatePaceCompatibility(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): number {
     // Analyze streaming pace (fast, moderate, slow)
     const userPace = userStyle.pace || "moderate";
@@ -1134,8 +1193,8 @@ export class AIAlgorithmEngine {
   }
 
   private determineAudienceEngagementStyle(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): string {
     const userEngagement = userStyle.audienceEngagement || "moderate";
     const candidateEngagement = candidateStyle.audienceEngagement || "moderate";
@@ -1148,8 +1207,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifyCollaborationTypes(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): string[] {
     const types: string[] = [];
 
@@ -1172,8 +1231,8 @@ export class AIAlgorithmEngine {
   }
 
   private analyzeStreamingPersonalities(
-    userStyle: any,
-    candidateStyle: any,
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
   ): string[] {
     const personalities: string[] = [];
 
@@ -1197,7 +1256,7 @@ export class AIAlgorithmEngine {
     return personalities;
   }
 
-  private calculateContentSynergy(userStyle: any, candidateStyle: any): number {
+  private calculateContentSynergy(userStyle: StreamingStyleData, candidateStyle: StreamingStyleData): number {
     // Calculate how well their content styles work together
     let synergy = 0.5; // Base synergy
 
@@ -1351,7 +1410,7 @@ export class AIAlgorithmEngine {
   /**
    * Analyze how well a specific factor correlates with success
    */
-  private analyzeFactorSuccess(outcomes: any[], factor: string): number {
+  private analyzeFactorSuccess(outcomes: MatchData[], factor: string): number {
     if (outcomes.length === 0) return 0.5;
 
     const correlations = outcomes.map((outcome) => ({
