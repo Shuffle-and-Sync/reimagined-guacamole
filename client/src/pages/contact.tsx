@@ -151,7 +151,7 @@ export default function Contact() {
                       type="text"
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      placeholder="What's this about?"
+                      placeholder="What&apos;s this about?"
                       required
                       data-testid="input-subject"
                     />

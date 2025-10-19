@@ -83,7 +83,7 @@ type ExtendedEvent = Event & {
   isUserAttending?: boolean;
   mainPlayers?: number;
   alternates?: number;
-  // Properties that don't exist in schema but are used by legacy code
+  // Properties that don&apos;t exist in schema but are used by legacy code
   // TODO: Update code to use startTime/endTime instead
   date?: string;
   time?: string;
@@ -1127,7 +1127,7 @@ export default function Calendar() {
                       <div className="text-center py-8">
                         <i className="fas fa-calendar-day text-4xl text-muted-foreground mb-4"></i>
                         <p className="text-muted-foreground mb-4">
-                          You haven't created any events yet
+                          You haven&apos;t created any events yet
                         </p>
                         <Dialog
                           open={isCreateDialogOpen}

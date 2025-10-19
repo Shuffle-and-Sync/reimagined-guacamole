@@ -175,7 +175,7 @@ export default function TournamentDetail() {
                 Tournament Not Found
               </h2>
               <p className="text-muted-foreground mb-4">
-                The tournament you're looking for doesn't exist or you don't
+                The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t
                 have access to it.
               </p>
               <Button onClick={() => setLocation("/tournaments")}>

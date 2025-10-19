@@ -500,7 +500,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="space-y-0.5">
                       <Label htmlFor="online-status">Show Online Status</Label>
                       <p className="text-sm text-muted-foreground">
-                        Let others see when you're online
+                        Let others see when you&apos;re online
                       </p>
                     </div>
                     <Switch

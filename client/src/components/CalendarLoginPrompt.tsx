@@ -318,7 +318,7 @@ export default function CalendarLoginPrompt() {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl lg:text-5xl font-bold text-center mb-8 cartoon-text">
               <span className="bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-                What You'll See After Signing In
+                What You&apos;ll See After Signing In
               </span>
             </h2>
             <Card className="bg-card/80 backdrop-blur-sm border-border/50 shadow-2xl">

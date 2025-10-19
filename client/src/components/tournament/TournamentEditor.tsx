@@ -62,7 +62,7 @@ export default function TournamentEditor({
   const [generalForm, setGeneralForm] = useState({
     name: tournament.name || "",
     description: tournament.description || "",
-    // gameFormat: tournament.gameFormat || "", // TODO: gameFormat doesn't exist in schema
+    // gameFormat: tournament.gameFormat || "", // TODO: gameFormat doesn&apos;t exist in schema
     gameFormat: tournament.gameType || "", // Use gameType instead
     maxParticipants: tournament.maxParticipants || 8,
     startDate: tournament.startDate
@@ -72,7 +72,7 @@ export default function TournamentEditor({
       ? format(new Date(tournament.endDate), "yyyy-MM-dd'T'HH:mm")
       : "",
     prizePool: tournament.prizePool || "",
-    // rules: tournament.rules || "" // TODO: rules doesn't exist in schema
+    // rules: tournament.rules || "" // TODO: rules doesn&apos;t exist in schema
     rules: "", // Placeholder
   });
 
@@ -205,7 +205,7 @@ export default function TournamentEditor({
               </CardTitle>
               <CardDescription className="text-lg">
                 {/* {tournament.name} - {gameFormats.find(f => f.value === tournament.gameFormat)?.label} */}
-                {/* TODO: gameFormat doesn't exist in schema */}
+                {/* TODO: gameFormat doesn&apos;t exist in schema */}
                 {tournament.name} -{" "}
                 {
                   gameFormats.find((f) => f.value === tournament.gameType)
@@ -523,7 +523,7 @@ export default function TournamentEditor({
                 </p>
                 <p>Advanced bracket editing tools coming soon!</p>
                 {/* <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameFormat)?.label}</p> */}
-                {/* TODO: gameFormat doesn't exist in schema */}
+                {/* TODO: gameFormat doesn&apos;t exist in schema */}
                 <p className="text-sm mt-2">
                   Tournament format:{" "}
                   {

@@ -398,7 +398,7 @@ export default function TableSync() {
       };
 
       const descriptionMap = {
-        main: "You're confirmed as a main player.",
+        main: "You&apos;re confirmed as a main player.",
         alternate: "You'll be notified if a spot opens up.",
         spectator: "You can watch this event when it starts.",
       };

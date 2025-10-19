@@ -61,7 +61,7 @@ export function CommunityProvider({ children }: { children: ReactNode }) {
           return;
         }
       }
-      // Default to All Realms (null) - don't auto-select a community
+      // Default to All Realms (null) - don&apos;t auto-select a community
       requestAnimationFrame(() => {
         setSelectedCommunityState(null);
       });

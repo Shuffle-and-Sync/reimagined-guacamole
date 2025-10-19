@@ -275,7 +275,7 @@ export default function ForgotPassword() {
                 className="text-primary hover:underline"
                 data-testid="link-register"
               >
-                Don't have an account? Sign up
+                Don&apos;t have an account? Sign up
               </Link>
             </div>
           </div>

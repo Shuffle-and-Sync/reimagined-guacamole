@@ -438,7 +438,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
               <div>
                 <span className="text-muted-foreground">Format:</span>
                 {/* <p className="font-medium">{getFormatDisplayName(tournament.gameFormat)}</p> */}
-                {/* TODO: gameFormat doesn't exist in schema */}
+                {/* TODO: gameFormat doesn&apos;t exist in schema */}
                 <p className="font-medium">
                   {getFormatDisplayName(tournament.gameType)}
                 </p>
@@ -489,7 +489,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
             <span>Tournament Bracket</span>
             <div className="flex items-center space-x-2">
               {/* <Badge variant="secondary">{getFormatDisplayName(tournament.gameFormat)}</Badge> */}
-              {/* TODO: gameFormat doesn't exist in schema */}
+              {/* TODO: gameFormat doesn&apos;t exist in schema */}
               <Badge variant="secondary">
                 {getFormatDisplayName(tournament.gameType)}
               </Badge>

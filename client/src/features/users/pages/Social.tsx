@@ -237,7 +237,7 @@ export default function Social() {
                   <Label htmlFor="content">Post Content</Label>
                   <Textarea
                     id="content"
-                    placeholder="What's on your mind? Share your latest TCG adventures..."
+                    placeholder="What&apos;s on your mind? Share your latest TCG adventures..."
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     className="min-h-[120px]"
