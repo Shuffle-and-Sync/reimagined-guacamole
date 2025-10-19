@@ -125,7 +125,10 @@ export class WebSocketConnectionManager {
     }
 
     ws.sessionId = sessionId;
-    this.gameRooms.get(sessionId)!.add(ws);
+    const room = this.gameRooms.get(sessionId);
+    if (room) {
+      room.add(ws);
+    }
 
     logger.debug("Connection joined game room", { connectionId, sessionId });
     return true;
@@ -145,7 +148,10 @@ export class WebSocketConnectionManager {
     }
 
     ws.eventId = eventId;
-    this.collaborativeStreamRooms.get(eventId)!.add(ws);
+    const room = this.collaborativeStreamRooms.get(eventId);
+    if (room) {
+      room.add(ws);
+    }
 
     logger.debug("Connection joined collaborative room", {
       connectionId,

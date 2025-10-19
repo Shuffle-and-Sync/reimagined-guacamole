@@ -179,12 +179,14 @@ export class AIStreamingMatcher {
       // Check cache first
       const cacheKey = this.generateCacheKey(criteria);
       if (this.matchingCache.has(cacheKey)) {
-        const cached = this.matchingCache.get(cacheKey)!;
-        logger.info("Returned cached streaming matches", {
-          userId: criteria.userId,
-          count: cached.length,
-        });
-        return cached;
+        const cached = this.matchingCache.get(cacheKey);
+        if (cached) {
+          logger.info("Returned cached streaming matches", {
+            userId: criteria.userId,
+            count: cached.length,
+          });
+          return cached;
+        }
       }
 
       // Get user's streaming profile
@@ -244,7 +246,10 @@ export class AIStreamingMatcher {
     try {
       // Check cache first
       if (this.profileCache.has(userId)) {
-        return this.profileCache.get(userId)!;
+        const cached = this.profileCache.get(userId);
+        if (cached) {
+          return cached;
+        }
       }
 
       // Get user data with error handling

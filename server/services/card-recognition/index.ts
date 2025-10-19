@@ -40,7 +40,10 @@ export class UniversalCardService {
   private async getAdapter(gameId: string): Promise<ICardAdapter> {
     // Check if adapter already exists
     if (this.adapters.has(gameId)) {
-      return this.adapters.get(gameId)!;
+      const adapter = this.adapters.get(gameId);
+      if (adapter) {
+        return adapter;
+      }
     }
 
     // TODO: Re-enable when games table is added to schema

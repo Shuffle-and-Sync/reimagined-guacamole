@@ -439,7 +439,10 @@ class WebSocketClient {
       this.eventListeners.set(eventType, new Set());
     }
 
-    this.eventListeners.get(eventType)!.add(listener);
+    const listeners = this.eventListeners.get(eventType);
+    if (listeners) {
+      listeners.add(listener);
+    }
 
     // Return unsubscribe function
     return () => {

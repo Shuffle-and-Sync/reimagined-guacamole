@@ -252,7 +252,7 @@ export class AnalyticsService {
           communityId,
           metricType: metric.metricType,
           value: metric.value ?? 0,
-          date: date.toISOString().split("T")[0]!, // YYYY-MM-DD format
+          date: date.toISOString().split("T")[0] || date.toISOString(), // YYYY-MM-DD format
           metadata: JSON.stringify({
             calculatedAt: new Date().toISOString(),
             hour,

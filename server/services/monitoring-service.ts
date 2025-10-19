@@ -637,7 +637,11 @@ class MonitoringService extends EventEmitter {
         service: alertData.service,
         severity: alertData.severity,
       });
-      return existingAlert!;
+      // If rate limited and no existing alert, create a placeholder
+      if (!existingAlert) {
+        throw new Error(`Alert rate limited for ${alertData.service}`);
+      }
+      return existingAlert;
     }
 
     const alert: Alert = {
@@ -850,8 +854,9 @@ class MonitoringService extends EventEmitter {
     }
 
     if (filters?.since) {
+      const sinceDate = filters.since;
       filteredAlerts = filteredAlerts.filter(
-        (alert) => alert.timestamp >= filters.since!,
+        (alert) => alert.timestamp >= sinceDate,
       );
     }
 
