@@ -12,6 +12,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
+// Action types constant used for type definitions
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
