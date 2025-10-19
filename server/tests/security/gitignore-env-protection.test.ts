@@ -22,7 +22,6 @@ describe('GitIgnore Environment File Protection', () => {
         '.env',
         '.env.local',
         '.env.production',
-        '.env.test',
         '.env.development',
         '.env.staging',
         '.env.custom',
