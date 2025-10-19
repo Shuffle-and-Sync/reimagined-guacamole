@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0 <21.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "node build.js",
@@ -54,7 +58,12 @@
     "deploy:production": "node scripts/deploy-production.mjs",
     "docker:test": "docker-compose -f docker-compose.production-test.yml up --build",
     "docker:test:down": "docker-compose -f docker-compose.production-test.yml down",
-    "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'"
+    "production:setup": "echo 'Copy .env.production.template to .env.production and configure values'",
+    "db:backup": "tsx scripts/db-backup.ts",
+    "db:backup:list": "ls -lh backups/ 2>/dev/null || echo 'No backups found'",
+    "infrastructure:validate": "cd infrastructure/terraform && terraform validate",
+    "infrastructure:plan": "cd infrastructure/terraform && terraform plan",
+    "infrastructure:apply": "cd infrastructure/terraform && terraform apply"
   },
   "dependencies": {
     "@auth/core": "^0.40.0",

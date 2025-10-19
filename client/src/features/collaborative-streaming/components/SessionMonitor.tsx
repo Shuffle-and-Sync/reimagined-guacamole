@@ -47,41 +47,46 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
 
   // Mock data for demonstration - only in development
   // Use useMemo to avoid calling Date.now() during render
-  const mockCollaborators: CollaboratorStatus[] = useMemo(() => import.meta.env.DEV ? [
-    {
-      id: '1',
-      name: 'StreamMaster',
-      role: 'host',
-      isLive: true,
-      connectionStatus: 'connected' as ConnectionStatus,
-      audioEnabled: true,
-      videoEnabled: true,
-      lastSeen: new Date(),
-      viewerCount: 823,
-    },
-    {
-      id: '2',
-      name: 'CoStreamPro',
-      role: 'co_host',
-      isLive: true,
-      connectionStatus: 'connected' as ConnectionStatus,
-      audioEnabled: true,
-      videoEnabled: false,
-      lastSeen: new Date(Date.now() - 30000),
-      viewerCount: 312,
-    },
-    {
-      id: '3',
-      name: 'GuestPlayer',
-      role: 'guest',
-      isLive: false,
-      connectionStatus: 'disconnected' as ConnectionStatus,
-      audioEnabled: false,
-      videoEnabled: false,
-      lastSeen: new Date(Date.now() - 120000),
-      viewerCount: 0,
-    },
-  ] : [], []);
+  const mockCollaborators: CollaboratorStatus[] = useMemo(() => {
+    if (!import.meta.env.DEV) return [];
+    
+    const now = Date.now();
+    return [
+      {
+        id: '1',
+        name: 'StreamMaster',
+        role: 'host',
+        isLive: true,
+        connectionStatus: 'connected' as ConnectionStatus,
+        audioEnabled: true,
+        videoEnabled: true,
+        lastSeen: new Date(now),
+        viewerCount: 823,
+      },
+      {
+        id: '2',
+        name: 'CoStreamPro',
+        role: 'co_host',
+        isLive: true,
+        connectionStatus: 'connected' as ConnectionStatus,
+        audioEnabled: true,
+        videoEnabled: false,
+        lastSeen: new Date(now - 30000),
+        viewerCount: 312,
+      },
+      {
+        id: '3',
+        name: 'GuestPlayer',
+        role: 'guest',
+        isLive: false,
+        connectionStatus: 'disconnected' as ConnectionStatus,
+        audioEnabled: false,
+        videoEnabled: false,
+        lastSeen: new Date(now - 120000),
+        viewerCount: 0,
+      },
+    ];
+  }, []);
 
   const mockMetrics: StreamMetrics = import.meta.env.DEV ? {
     totalViewers: 1247,

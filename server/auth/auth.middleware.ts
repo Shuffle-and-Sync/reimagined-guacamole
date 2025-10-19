@@ -21,6 +21,7 @@ export interface AuthSession {
 
 // Module augmentation to extend Express Request without conflicts
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       auth?: AuthSession;

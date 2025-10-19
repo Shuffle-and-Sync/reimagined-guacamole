@@ -547,6 +547,7 @@ function logResponseForAudit(req: Request, res: Response, responseData: any) {
 
 // Declare module augmentation for Request interface
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       adminUser?: {

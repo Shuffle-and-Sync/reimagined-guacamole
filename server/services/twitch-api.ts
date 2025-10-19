@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 // Twitch API configuration
 const TWITCH_API_BASE = 'https://api.twitch.tv/helix';
@@ -335,14 +336,12 @@ export class TwitchAPIService {
     }
 
     // Verify HMAC signature
-    const crypto = require('crypto');
     const message = messageId + timestamp + body;
-    const expectedSignature = 'sha256=' + crypto
-      .createHmac('sha256', secret)
+    const expectedSignature = 'sha256=' + createHmac('sha256', secret)
       .update(message)
       .digest('hex');
 
-    const isValidSignature = crypto.timingSafeEqual(
+    const isValidSignature = timingSafeEqual(
       Buffer.from(signature),
       Buffer.from(expectedSignature)
     );

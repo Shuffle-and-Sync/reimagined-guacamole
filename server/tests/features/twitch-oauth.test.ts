@@ -8,12 +8,13 @@
  */
 
 import { describe, expect, test, jest } from '@jest/globals';
+import { randomBytes, createHash } from 'crypto';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 describe('Twitch OAuth Security Features', () => {
   describe('PKCE Implementation', () => {
     test('should generate unique code verifiers', () => {
-      const { randomBytes } = require('crypto');
-      
       const verifier1 = randomBytes(32).toString('base64url');
       const verifier2 = randomBytes(32).toString('base64url');
       
@@ -26,7 +27,6 @@ describe('Twitch OAuth Security Features', () => {
     });
     
     test('should generate code challenge from verifier', () => {
-      const { createHash } = require('crypto');
       const verifier = 'test-verifier-12345';
       
       const challenge = createHash('sha256')
@@ -47,7 +47,6 @@ describe('Twitch OAuth Security Features', () => {
     test('should use S256 challenge method', () => {
       // This is the standard PKCE method using SHA-256
       // Test that we're using the correct hashing algorithm
-      const { createHash } = require('crypto');
       const verifier = 'test-verifier';
       
       const challenge = createHash('sha256')
@@ -61,8 +60,6 @@ describe('Twitch OAuth Security Features', () => {
   
   describe('State Parameter Security', () => {
     test('should generate cryptographically secure state', () => {
-      const { randomBytes } = require('crypto');
-      
       const state = randomBytes(32).toString('hex');
       
       // Should be 64 hex characters (32 bytes)
@@ -71,8 +68,6 @@ describe('Twitch OAuth Security Features', () => {
     });
     
     test('should generate unique states', () => {
-      const { randomBytes } = require('crypto');
-      
       const state1 = randomBytes(32).toString('hex');
       const state2 = randomBytes(32).toString('hex');
       
@@ -211,17 +206,14 @@ describe('Twitch OAuth Bug Fixes', () => {
 });
 
 describe('Documentation Completeness', () => {
-  const fs = require('fs');
-  const path = require('path');
-  
   test('TWITCH_OAUTH_GUIDE.md should exist', () => {
-    const guidePath = path.join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
-    expect(fs.existsSync(guidePath)).toBe(true);
+    const guidePath = join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
+    expect(existsSync(guidePath)).toBe(true);
   });
   
   test('TWITCH_OAUTH_GUIDE.md should have comprehensive content', () => {
-    const guidePath = path.join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
-    const content = fs.readFileSync(guidePath, 'utf-8');
+    const guidePath = join(process.cwd(), 'docs/features/twitch/TWITCH_OAUTH_GUIDE.md');
+    const content = readFileSync(guidePath, 'utf-8');
     
     // Should document key concepts
     expect(content).toContain('PKCE');
@@ -242,8 +234,8 @@ describe('Documentation Completeness', () => {
   });
   
   test('API_DOCUMENTATION.md should include Platform OAuth section', () => {
-    const apiDocPath = path.join(process.cwd(), 'docs/api/API_DOCUMENTATION.md');
-    const content = fs.readFileSync(apiDocPath, 'utf-8');
+    const apiDocPath = join(process.cwd(), 'docs/api/API_DOCUMENTATION.md');
+    const content = readFileSync(apiDocPath, 'utf-8');
     
     // Should have Platform OAuth API section
     expect(content).toContain('Platform OAuth API');

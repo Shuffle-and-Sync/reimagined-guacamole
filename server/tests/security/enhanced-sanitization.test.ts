@@ -185,7 +185,8 @@ describe('Enhanced Input Sanitization Security Tests', () => {
           
           if (typeof input === 'string' && input.length > 0) {
             expect(typeof result).toBe('string');
-            expect(result).not.toMatch(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/); // No control chars
+            // eslint-disable-next-line no-control-regex
+            expect(result).not.toMatch(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/); // No control chars (escaped)
           } else if (input === null || input === undefined) {
             expect(result).toBe(input);
           } else if (typeof input === 'number' || typeof input === 'boolean') {

@@ -64,8 +64,8 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
   const [newTag, setNewTag] = useState('');
   const createEvent = useCreateCollaborativeStreamEvent();
 
-  // Calculate default start time once
-  const defaultStartTime = useMemo(() => new Date(Date.now() + 60 * 60 * 1000), []);
+  // Calculate default start time once using useState with function initializer
+  const [defaultStartTime] = useState(() => new Date(Date.now() + 60 * 60 * 1000));
 
   const form = useForm<StreamEventFormData>({
     resolver: zodResolver(streamEventSchema),

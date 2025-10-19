@@ -3,6 +3,7 @@
 // TODO: Implement full Facebook Gaming Creator API and Graph API integration
 
 import { logger } from '../logger';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 export interface FacebookPage {
   id: string;
@@ -134,8 +135,7 @@ export class FacebookAPIService {
     // Generate appsecret_proof for enhanced security on server-side calls
     let appsecret_proof: string | undefined;
     if (accessToken && this.appSecret) {
-      const crypto = require('crypto');
-      appsecret_proof = crypto.createHmac('sha256', this.appSecret)
+      appsecret_proof = createHmac('sha256', this.appSecret)
         .update(accessToken)
         .digest('hex');
     }
@@ -744,7 +744,7 @@ export class FacebookAPIService {
    * Generate cryptographically secure state token
    */
   private generateSecureState(): string {
-    return require('crypto').randomBytes(32).toString('hex');
+    return randomBytes(32).toString('hex');
   }
 
   /**
@@ -945,19 +945,16 @@ export class FacebookAPIService {
     }
 
     try {
-      const crypto = require('crypto');
-      
       // Remove 'sha256=' prefix if present
       const cleanSignature = signature.replace('sha256=', '');
       
       // Calculate expected signature using app secret
-      const expectedSignature = crypto
-        .createHmac('sha256', this.appSecret)
+      const expectedSignature = createHmac('sha256', this.appSecret || '')
         .update(body, 'utf8')
         .digest('hex');
       
       // Use constant-time comparison to prevent timing attacks
-      return crypto.timingSafeEqual(
+      return timingSafeEqual(
         Buffer.from(cleanSignature, 'hex'),
         Buffer.from(expectedSignature, 'hex')
       );
