@@ -1054,13 +1054,13 @@ export default function Calendar() {
                     <CalendarGrid
                       currentDate={currentMonth}
                       events={filteredEvents}
-                      onDateClick={(date) => {
-                        // Set the selected date when clicking a day
-                        setSelectedDate(format(date, "yyyy-MM-dd"));
+                      onDateClick={(_date) => {
+                        // Could set selected date or open date view here
+                        // Functionality not yet implemented
                       }}
-                      onEventClick={(event) => {
+                      onEventClick={(_event) => {
                         // Could open event details dialog here
-                        // Event clicked: event
+                        // Functionality not yet implemented
                       }}
                     />
                   </CardContent>

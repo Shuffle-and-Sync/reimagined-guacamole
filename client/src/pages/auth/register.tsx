@@ -490,7 +490,7 @@ export default function Register() {
           </div>
 
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            By creating an account, you'll be able to coordinate collaborative
+            By creating an account, you&apos;ll be able to coordinate collaborative
             streams, join tournaments, and connect with the TCG community.
           </div>
         </CardContent>

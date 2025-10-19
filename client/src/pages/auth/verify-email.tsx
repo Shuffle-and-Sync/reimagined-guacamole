@@ -268,7 +268,7 @@ export default function VerifyEmail() {
         <div>
           <h3 className="text-lg font-medium">Check your email</h3>
           <p className="text-sm text-muted-foreground">
-            We've sent you a verification link. Please check your email and
+            We&apos;ve sent you a verification link. Please check your email and
             click the link to verify your account.
           </p>
         </div>
