@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +12,7 @@ import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 interface GameSession {
@@ -101,8 +100,8 @@ export default function GameRoom() {
     enabled: !!sessionId,
   });
 
-  // WebRTC Functions - defined before they're used
-  const createPeerConnection = async (playerId: string) => {
+  // WebRTC Functions - wrapped with useCallback for stable references
+  const createPeerConnection = useCallback(async (playerId: string) => {
     if (peerConnections.current.has(playerId)) return;
 
     const peerConnection = new RTCPeerConnection({
@@ -164,9 +163,9 @@ export default function GameRoom() {
         console.error('Error creating WebRTC offer:', error);
       }
     }
-  };
+  }, [localStream, sessionId]);
 
-  const handleWebRTCOffer = async (data: any) => {
+  const handleWebRTCOffer = useCallback(async (data: any) => {
     const { fromPlayer, offer } = data;
     
     if (!peerConnections.current.has(fromPlayer)) {
@@ -193,9 +192,9 @@ export default function GameRoom() {
         }
       }
     }
-  };
+  }, [createPeerConnection, sessionId]);
 
-  const handleWebRTCAnswer = async (data: any) => {
+  const handleWebRTCAnswer = useCallback(async (data: any) => {
     const { fromPlayer, answer } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
     
@@ -209,9 +208,9 @@ export default function GameRoom() {
         }
       }
     }
-  };
+  }, []);
 
-  const handleICECandidate = async (data: any) => {
+  const handleICECandidate = useCallback(async (data: any) => {
     const { fromPlayer, candidate } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
     
@@ -225,7 +224,7 @@ export default function GameRoom() {
         }
       }
     }
-  };
+  }, []);
 
   // Initialize camera and microphone
   const initializeMedia = async () => {
@@ -403,7 +402,7 @@ export default function GameRoom() {
     return () => {
       ws.current?.close();
     };
-  }, [sessionId, user]);
+  }, [sessionId, user, createPeerConnection, handleWebRTCOffer, handleWebRTCAnswer, handleICECandidate, localStream, toast]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {

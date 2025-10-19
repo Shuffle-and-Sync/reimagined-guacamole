@@ -320,6 +320,55 @@ export default function TableSync() {
     eventJoinMutation.mutate({ eventId, isCurrentlyAttending });
   };
 
+  // Join event as player mutation - moved to component level to follow React Hooks rules
+  const joinEventAsPlayerMutation = useMutation({
+    mutationFn: async ({ eventId, playerType }: { eventId: string; playerType: 'main' | 'alternate' | 'spectator' }) => {
+      const roleMap = {
+        'main': 'participant',
+        'alternate': 'participant', 
+        'spectator': 'spectator'
+      };
+      
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          status: 'attending',
+          role: roleMap[playerType],
+          playerType: playerType === 'spectator' ? 'main' : playerType
+        })
+      });
+      if (!response.ok) throw new Error('Failed to join event');
+      return { data: await response.json(), playerType };
+    },
+    onSuccess: ({ playerType }) => {
+      const titleMap = {
+        'main': 'Joined as player!',
+        'alternate': 'Added to waiting list!',
+        'spectator': 'Spectating event!'
+      };
+      
+      const descriptionMap = {
+        'main': 'You\'re confirmed as a main player.',
+        'alternate': 'You\'ll be notified if a spot opens up.',
+        'spectator': 'You can watch this event when it starts.'
+      };
+      
+      toast({ 
+        title: titleMap[playerType],
+        description: descriptionMap[playerType]
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', 'game_pod', 'upcoming'] });
+    },
+    onError: (error, { playerType }) => {
+      toast({ 
+        title: `Failed to join as ${playerType}`, 
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleJoinEventAsPlayer = (eventId: string, playerType: 'main' | 'alternate' | 'spectator') => {
     if (!user) {
       toast({
@@ -330,56 +379,7 @@ export default function TableSync() {
       return;
     }
     
-    const roleMap = {
-      'main': 'participant',
-      'alternate': 'participant', 
-      'spectator': 'spectator'
-    };
-    
-    const titleMap = {
-      'main': 'Joined as player!',
-      'alternate': 'Added to waiting list!',
-      'spectator': 'Spectating event!'
-    };
-    
-    const descriptionMap = {
-      'main': 'You\'re confirmed as a main player.',
-      'alternate': 'You\'ll be notified if a spot opens up.',
-      'spectator': 'You can watch this event when it starts.'
-    };
-    
-    // Call the join event API with specific role and player type
-    const joinMutation = useMutation({
-      mutationFn: async () => {
-        const response = await fetch(`/api/events/${eventId}/join`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ 
-            status: 'attending',
-            role: roleMap[playerType],
-            playerType: playerType === 'spectator' ? 'main' : playerType
-          })
-        });
-        if (!response.ok) throw new Error('Failed to join event');
-        return response.json();
-      },
-      onSuccess: () => {
-        toast({ 
-          title: titleMap[playerType],
-          description: descriptionMap[playerType]
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/events', 'game_pod', 'upcoming'] });
-      },
-      onError: () => {
-        toast({ 
-          title: `Failed to join as ${playerType}`, 
-          variant: "destructive" 
-        });
-      },
-    });
-    
-    joinMutation.mutate();
+    joinEventAsPlayerMutation.mutate({ eventId, playerType });
   };
 
   return (
