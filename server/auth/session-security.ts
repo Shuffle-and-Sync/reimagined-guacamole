@@ -405,7 +405,7 @@ export class SessionSecurityService {
           // Check if this is normal for the user
           const userUsualHours = recentActivity
             .filter((activity) => activity.createdAt)
-            .map((activity) => new Date(activity.createdAt!).getHours())
+            .map((activity) => new Date(activity.createdAt).getHours())
             .filter((activityHour) => Math.abs(activityHour - hour) <= 2);
 
           if (userUsualHours.length === 0) {
@@ -489,7 +489,7 @@ export class SessionSecurityService {
           recentActivity
             .filter((activity) => activity.ipAddress)
             .map((activity) =>
-              activity.ipAddress!.split(".").slice(0, 3).join("."),
+              activity.ipAddress.split(".").slice(0, 3).join("."),
             ),
         );
         flags.newIpRange = !recentIpPrefixes.has(currentIpPrefix);

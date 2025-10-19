@@ -387,13 +387,18 @@ export const authConfig: AuthConfig = {
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
-          let existingUser = await storage.getUserByEmail(user.email!);
+          if (!user.email) {
+            logger.error("OAuth user missing email", { userId: user.id });
+            return false;
+          }
+          
+          let existingUser = await storage.getUserByEmail(user.email);
 
           if (!existingUser) {
             // Create new user from OAuth profile
             existingUser = await storage.upsertUser({
               id: crypto.randomUUID(),
-              email: user.email!,
+              email: user.email,
               firstName: user.name?.split(" ")[0] || "",
               lastName: user.name?.split(" ").slice(1).join(" ") || "",
               profileImageUrl: user.image || null,

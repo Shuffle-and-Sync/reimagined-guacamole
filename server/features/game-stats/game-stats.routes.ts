@@ -92,7 +92,10 @@ router.get("/", requireAuth, async (req, res, next) => {
   try {
     // Validate query parameters
     const query = gameStatsQuerySchema.parse(req.query);
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const userId = req.user.id;
 
     // Calculate pagination offset
     const offset = (query.page - 1) * query.limit;
@@ -122,7 +125,10 @@ router.put(
   validateRequest(updateGameStatsSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const userId = req.user.id;
       const updateData = req.body;
 
       const updatedStats = await gameStatsService.updateGameStatsPreferences(
@@ -147,7 +153,10 @@ router.put(
  */
 router.get("/aggregate", requireAuth, async (req, res, next) => {
   try {
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const userId = req.user.id;
 
     const aggregateStats = await gameStatsService.getAggregateStats(userId);
 
@@ -211,7 +220,10 @@ router.post(
   validateRequest(createGameResultSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const userId = req.user.id;
       const gameResultData = req.body;
 
       const newResult = await gameStatsService.createGameResult(
@@ -237,7 +249,10 @@ router.post(
 router.get("/game-results", requireAuth, async (req, res, next) => {
   try {
     const query = gameStatsQuerySchema.parse(req.query);
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const userId = req.user.id;
 
     const offset = (query.page - 1) * query.limit;
 
@@ -263,7 +278,10 @@ router.get("/game-results", requireAuth, async (req, res, next) => {
 router.delete("/game-results/:id", requireAuth, async (req, res, next) => {
   try {
     const id = assertRouteParam(req.params.id, "id");
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const userId = req.user.id;
 
     await gameStatsService.deleteGameResult(id, userId);
 
