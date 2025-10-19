@@ -101,6 +101,132 @@ export default function GameRoom() {
     enabled: !!sessionId,
   });
 
+  // WebRTC Functions - defined before they're used
+  const createPeerConnection = async (playerId: string) => {
+    if (peerConnections.current.has(playerId)) return;
+
+    const peerConnection = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+    peerConnections.current.set(playerId, peerConnection);
+
+    // Add local stream to peer connection
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+
+    // Handle remote stream
+    peerConnection.ontrack = (event) => {
+      const [remoteStream] = event.streams;
+      if (remoteStream) {
+        setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
+        
+        // Set video element source
+        const videoElement = remoteVideoRefs.current.get(playerId);
+        if (videoElement) {
+          videoElement.srcObject = remoteStream;
+        }
+      }
+    };
+
+    // Handle ICE candidates
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && ws.current) {
+        ws.current.send(JSON.stringify({
+          type: 'webrtc_ice_candidate',
+          targetPlayer: playerId,
+          candidate: event.candidate,
+          sessionId
+        }));
+      }
+    };
+
+    // Create and send offer
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      
+      ws.current?.send(JSON.stringify({
+        type: 'webrtc_offer',
+        targetPlayer: playerId,
+        offer: offer,
+        sessionId
+      }));
+    } catch (error) {
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error creating WebRTC offer:', error);
+      }
+    }
+  };
+
+  const handleWebRTCOffer = async (data: any) => {
+    const { fromPlayer, offer } = data;
+    
+    if (!peerConnections.current.has(fromPlayer)) {
+      await createPeerConnection(fromPlayer);
+    }
+    
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(offer);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        
+        ws.current?.send(JSON.stringify({
+          type: 'webrtc_answer',
+          targetPlayer: fromPlayer,
+          answer: answer,
+          sessionId
+        }));
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC offer:', error);
+        }
+      }
+    }
+  };
+
+  const handleWebRTCAnswer = async (data: any) => {
+    const { fromPlayer, answer } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(answer);
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC answer:', error);
+        }
+      }
+    }
+  };
+
+  const handleICECandidate = async (data: any) => {
+    const { fromPlayer, candidate } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.addIceCandidate(candidate);
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error adding ICE candidate:', error);
+        }
+      }
+    }
+  };
+
   // Initialize camera and microphone
   const initializeMedia = async () => {
     try {
@@ -538,132 +664,6 @@ export default function GameRoom() {
         title: "Recording stopped",
         description: "Processing your recording..."
       });
-    }
-  };
-
-  // WebRTC Functions
-  const createPeerConnection = async (playerId: string) => {
-    if (peerConnections.current.has(playerId)) return;
-
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    });
-
-    peerConnections.current.set(playerId, peerConnection);
-
-    // Add local stream to peer connection
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream);
-      });
-    }
-
-    // Handle remote stream
-    peerConnection.ontrack = (event) => {
-      const [remoteStream] = event.streams;
-      if (remoteStream) {
-        setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
-        
-        // Set video element source
-        const videoElement = remoteVideoRefs.current.get(playerId);
-        if (videoElement) {
-          videoElement.srcObject = remoteStream;
-        }
-      }
-    };
-
-    // Handle ICE candidates
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate && ws.current) {
-        ws.current.send(JSON.stringify({
-          type: 'webrtc_ice_candidate',
-          targetPlayer: playerId,
-          candidate: event.candidate,
-          sessionId
-        }));
-      }
-    };
-
-    // Create and send offer
-    try {
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      
-      ws.current?.send(JSON.stringify({
-        type: 'webrtc_offer',
-        targetPlayer: playerId,
-        offer: offer,
-        sessionId
-      }));
-    } catch (error) {
-      // Log error for debugging
-      if (import.meta.env.DEV) {
-        console.error('Error creating WebRTC offer:', error);
-      }
-    }
-  };
-
-  const handleWebRTCOffer = async (data: any) => {
-    const { fromPlayer, offer } = data;
-    
-    if (!peerConnections.current.has(fromPlayer)) {
-      await createPeerConnection(fromPlayer);
-    }
-    
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    if (peerConnection) {
-      try {
-        await peerConnection.setRemoteDescription(offer);
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        
-        ws.current?.send(JSON.stringify({
-          type: 'webrtc_answer',
-          targetPlayer: fromPlayer,
-          answer: answer,
-          sessionId
-        }));
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error handling WebRTC offer:', error);
-        }
-      }
-    }
-  };
-
-  const handleWebRTCAnswer = async (data: any) => {
-    const { fromPlayer, answer } = data;
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    
-    if (peerConnection) {
-      try {
-        await peerConnection.setRemoteDescription(answer);
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error handling WebRTC answer:', error);
-        }
-      }
-    }
-  };
-
-  const handleICECandidate = async (data: any) => {
-    const { fromPlayer, candidate } = data;
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    
-    if (peerConnection) {
-      try {
-        await peerConnection.addIceCandidate(candidate);
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error adding ICE candidate:', error);
-        }
-      }
     }
   };
 
