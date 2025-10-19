@@ -233,6 +233,7 @@ export function PlatformAccountManager() {
   const renderPlatformCard = (platform: string) => {
     const info = PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO];
     const account = getAccountByPlatform(platform);
+    getPlatformStatus(platform); // Check status but don't use in rendering yet
     const connectionStatus = getConnectionStatus(platform);
     const IconComponent = info.icon;
 

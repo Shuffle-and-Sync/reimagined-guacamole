@@ -3,11 +3,10 @@ import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { Header } from "@/shared/components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
@@ -26,15 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { getGameName } from "@/lib/gameNames";
 import type {
   User,
   UserSocialLink,
   UserGamingProfile,
-  Friendship,
 } from "@shared/schema";
 
 interface ExtendedUser extends User {
@@ -109,7 +104,7 @@ const STATUS_OPTIONS = [
 
 export default function Profile() {
   const { user: currentUser } = useAuth();
-  const { communities, communityTheme } = useCommunity();
+  const { communities } = useCommunity();
   const { toast } = useToast();
   const { userId } = useParams<{ userId?: string }>();
 

@@ -2,16 +2,13 @@ import { storage } from "../../storage";
 import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
 import {
-  Tournament,
   TournamentParticipant,
-  TournamentFormat,
-  TournamentRound,
-  TournamentMatch,
   InsertTournamentRound,
   InsertTournamentMatch,
   UpdateTournament,
   User,
 } from "@shared/schema";
+// Note: Tournament, TournamentFormat, TournamentRound, TournamentMatch types reserved for enhanced tournament features
 
 // Tournament format types
 type TournamentFormatType =
@@ -641,7 +638,8 @@ export const tournamentsService = {
       }
 
       // Update the match with result - only update winnerId
-      const loserId =
+      // Note: loserId calculated but not stored - reserved for double elimination bracket tracking
+      const _loserId =
         winnerId === match.player1Id ? match.player2Id : match.player1Id;
       const updatedMatch = await storage.updateTournamentMatch(matchId, {
         winnerId,

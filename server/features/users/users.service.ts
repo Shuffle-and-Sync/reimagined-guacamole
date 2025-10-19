@@ -1,6 +1,6 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
-import { CursorPagination } from "../../utils/database.utils";
+// Note: CursorPagination reserved for advanced pagination features
 import type { User, UpsertUser } from "@shared/schema";
 import type {
   UpdateProfileRequest,

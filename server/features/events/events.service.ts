@@ -3,7 +3,8 @@ import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { insertEventSchema } from "@shared/schema";
-import type { Event, EventAttendee, User } from "@shared/schema";
+import type { Event, EventAttendee } from "@shared/schema";
+// Note: User type reserved for future user-related event features
 import type {
   EventFilters,
   CalendarEventFilters,
@@ -271,9 +272,9 @@ export class EventsService {
         const {
           date,
           time,
-          recurrencePattern,
-          recurrenceInterval,
-          recurrenceEndDate,
+          recurrencePattern: _recurrencePattern, // Reserved for recurring events feature
+          recurrenceInterval: _recurrenceInterval, // Reserved for recurring events feature
+          recurrenceEndDate: _recurrenceEndDate, // Reserved for recurring events feature
           ...eventProps
         } = event;
         const startTime = new Date(`${date}T${time || "12:00"}`);

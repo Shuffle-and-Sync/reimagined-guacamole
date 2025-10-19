@@ -31,7 +31,7 @@ interface JoinEventButtonProps {
 
 export function JoinEventButton({
   event,
-  isFull,
+  isFull: _isFull, // Not used yet - will be used for capacity checks
   onSuccess,
 }: JoinEventButtonProps) {
   const { user } = useAuth();

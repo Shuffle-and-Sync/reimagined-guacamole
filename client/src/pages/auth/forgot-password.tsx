@@ -21,7 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
