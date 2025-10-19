@@ -10,8 +10,6 @@ export function useAuth() {
   const {
     data: session,
     isLoading,
-    isError,
-    error,
   } = useQuery<AuthSession | null>({
     queryKey: queryKeys.auth.user(),
     queryFn: async () => {

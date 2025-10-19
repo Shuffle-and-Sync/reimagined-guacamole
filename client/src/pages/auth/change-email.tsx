@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   Card,
@@ -16,7 +16,6 @@ import {
   Mail,
   CheckCircle,
   XCircle,
-  RefreshCw,
   ArrowLeft,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -60,17 +59,7 @@ export default function ChangeEmail() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
 
-  useEffect(() => {
-    // If we have a token, this is an email confirmation flow
-    if (token) {
-      confirmEmailChange(token);
-    } else {
-      // Check for existing pending request
-      checkPendingRequest();
-    }
-  }, [token]);
-
-  const checkPendingRequest = async () => {
+  const checkPendingRequest = useCallback(async () => {
     try {
       const response = await fetch("/api/user/profile", {
         method: "GET",
@@ -85,7 +74,17 @@ export default function ChangeEmail() {
     } catch (error) {
       console.error("Failed to check pending request:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // If we have a token, this is an email confirmation flow
+    if (token) {
+      confirmEmailChange(token);
+    } else {
+      // Check for existing pending request
+      checkPendingRequest();
+    }
+  }, [token, confirmEmailChange, checkPendingRequest]);
 
   const validateForm = (data: EmailChangeData): Record<string, string> => {
     const errors: Record<string, string> = {};
@@ -180,7 +179,7 @@ export default function ChangeEmail() {
     }
   };
 
-  const confirmEmailChange = async (verificationToken: string) => {
+  const confirmEmailChange = useCallback(async (verificationToken: string) => {
     setIsConfirming(true);
     setConfirmationError("");
 
@@ -228,7 +227,7 @@ export default function ChangeEmail() {
     } finally {
       setIsConfirming(false);
     }
-  };
+  }, [toast, setLocation]);
 
   const cancelEmailChange = async () => {
     setIsCanceling(true);
