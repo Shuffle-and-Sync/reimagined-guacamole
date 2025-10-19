@@ -820,7 +820,7 @@ export default function Matchmaking() {
                         <span>My Connections</span>
                       </CardTitle>
                       <CardDescription>
-                        Players you've connected with
+                        Players you&apos;ve connected with
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -844,7 +844,7 @@ export default function Matchmaking() {
                         <span>Pending Invites</span>
                       </CardTitle>
                       <CardDescription>
-                        Invites you've sent and received
+                        Invites you&apos;ve sent and received
                       </CardDescription>
                     </CardHeader>
                     <CardContent>

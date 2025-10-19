@@ -102,7 +102,7 @@ export default function Contact() {
               Contact Us
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have questions, feedback, or need support? We'd love to hear from
+              Have questions, feedback, or need support? We&apos;d love to hear from
               you.
             </p>
           </div>

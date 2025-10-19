@@ -278,13 +278,13 @@ export function DecksongDashboard({ user }: DecksongDashboardProps) {
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                   <i className="fas fa-book-magic text-white"></i>
                 </div>
-                Storyteller's Grimoire
+                Storyteller&apos;s Grimoire
               </CardTitle>
               <CardDescription
                 className="text-white/90"
                 style={{ fontFamily: theme.fonts.body }}
               >
-                Your magical journey through Disney's realms
+                Your magical journey through Disney&apos;s realms
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">

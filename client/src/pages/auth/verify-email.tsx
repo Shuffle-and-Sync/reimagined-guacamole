@@ -276,7 +276,7 @@ export default function VerifyEmail() {
         {email && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Didn't receive the email? Check your spam folder or request a new
+              Didn&apos;t receive the email? Check your spam folder or request a new
               one.
             </p>
             <Button
