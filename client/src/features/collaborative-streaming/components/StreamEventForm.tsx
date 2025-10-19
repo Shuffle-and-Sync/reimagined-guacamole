@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -64,12 +64,15 @@ export function StreamEventForm({ onSuccess, onCancel }: StreamEventFormProps) {
   const [newTag, setNewTag] = useState('');
   const createEvent = useCreateCollaborativeStreamEvent();
 
+  // Calculate default start time once
+  const defaultStartTime = useMemo(() => new Date(Date.now() + 60 * 60 * 1000), []);
+
   const form = useForm<StreamEventFormData>({
     resolver: zodResolver(streamEventSchema),
     defaultValues: {
       title: '',
       description: '',
-      scheduledStartTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+      scheduledStartTime: defaultStartTime, // 1 hour from now
       estimatedDuration: 120, // 2 hours
       streamingPlatforms: [],
       contentType: '',
