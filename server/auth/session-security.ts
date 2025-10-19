@@ -404,7 +404,9 @@ export class SessionSecurityService {
         if (unusualHours) {
           // Check if this is normal for the user
           const userUsualHours = recentActivity
-            .filter((activity) => activity.createdAt)
+            .filter((activity): activity is typeof activity & { createdAt: Date | string } => 
+              activity.createdAt != null
+            )
             .map((activity) => new Date(activity.createdAt).getHours())
             .filter((activityHour) => Math.abs(activityHour - hour) <= 2);
 
@@ -487,7 +489,9 @@ export class SessionSecurityService {
         const currentIpPrefix = ipAddress.split(".").slice(0, 3).join(".");
         const recentIpPrefixes = new Set(
           recentActivity
-            .filter((activity) => activity.ipAddress)
+            .filter((activity): activity is typeof activity & { ipAddress: string } => 
+              activity.ipAddress != null
+            )
             .map((activity) =>
               activity.ipAddress.split(".").slice(0, 3).join("."),
             ),

@@ -88,12 +88,13 @@ const gameStatsQuerySchema = z.object({
  * - sortBy: Sort field
  * - sortOrder: Sort direction
  */
-router.get("/", requireAuth, async (req, res, next) => {
+router.get("/", requireAuth, async (req, res, next): Promise<void> => {
   try {
     // Validate query parameters
     const query = gameStatsQuerySchema.parse(req.query);
     if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
     const userId = req.user.id;
 
@@ -123,10 +124,11 @@ router.put(
   "/",
   requireAuth,
   validateRequest(updateGameStatsSchema),
-  async (req, res, next) => {
+  async (req, res, next): Promise<void> => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
+        res.status(401).json({ message: "Unauthorized" });
+        return;
       }
       const userId = req.user.id;
       const updateData = req.body;
@@ -151,10 +153,11 @@ router.put(
  * GET /api/game-stats/aggregate
  * Get aggregate statistics across all game types for the authenticated user
  */
-router.get("/aggregate", requireAuth, async (req, res, next) => {
+router.get("/aggregate", requireAuth, async (req, res, next): Promise<void> => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
     const userId = req.user.id;
 
@@ -218,10 +221,11 @@ router.post(
   "/game-results",
   requireAuth,
   validateRequest(createGameResultSchema),
-  async (req, res, next) => {
+  async (req, res, next): Promise<void> => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
+        res.status(401).json({ message: "Unauthorized" });
+        return;
       }
       const userId = req.user.id;
       const gameResultData = req.body;
@@ -246,11 +250,12 @@ router.post(
  * GET /api/game-results
  * Get user's game results with filtering and pagination
  */
-router.get("/game-results", requireAuth, async (req, res, next) => {
+router.get("/game-results", requireAuth, async (req, res, next): Promise<void> => {
   try {
     const query = gameStatsQuerySchema.parse(req.query);
     if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
     const userId = req.user.id;
 
@@ -275,11 +280,12 @@ router.get("/game-results", requireAuth, async (req, res, next) => {
  * DELETE /api/game-results/:id
  * Delete a specific game result (only if user owns it)
  */
-router.delete("/game-results/:id", requireAuth, async (req, res, next) => {
+router.delete("/game-results/:id", requireAuth, async (req, res, next): Promise<void> => {
   try {
     const id = assertRouteParam(req.params.id, "id");
     if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
     const userId = req.user.id;
 
