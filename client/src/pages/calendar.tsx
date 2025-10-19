@@ -222,7 +222,9 @@ export default function Calendar() {
         ws.close();
       }
     };
-  }, [isAuthenticated, selectedCommunity, queryClient, toast]);
+    // queryClient and toast are stable references and don't need to be in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, selectedCommunity]);
 
   // Create event mutation
   const createEventMutation = useMutation({
