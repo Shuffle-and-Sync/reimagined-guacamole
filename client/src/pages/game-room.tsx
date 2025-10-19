@@ -1036,9 +1036,12 @@ export default function GameRoom() {
                         {hasStream ? (
                           <video
                             ref={(ref) => {
-                              if (ref && remoteStreams.get(player.id)) {
-                                ref.srcObject = remoteStreams.get(player.id)!;
-                                remoteVideoRefs.current.set(player.id, ref);
+                              if (ref) {
+                                const stream = remoteStreams.get(player.id);
+                                if (stream) {
+                                  ref.srcObject = stream;
+                                  remoteVideoRefs.current.set(player.id, ref);
+                                }
                               }
                             }}
                             autoPlay

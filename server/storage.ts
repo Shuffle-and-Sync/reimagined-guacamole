@@ -5698,9 +5698,13 @@ export class DatabaseStorage implements IStorage {
           user: ch.user,
         }));
 
+      if (!sessionResult.host) {
+        throw new Error("Stream session host not found");
+      }
+
       return {
         ...sessionResult.session,
-        host: sessionResult.host || null,
+        host: sessionResult.host,
         community: sessionResult.community || undefined,
         coHosts,
         platforms,

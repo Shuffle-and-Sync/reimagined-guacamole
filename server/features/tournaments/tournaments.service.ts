@@ -978,8 +978,10 @@ export const tournamentsService = {
       rounds.push(roundPairings);
 
       // Rotate players (except the first one)
-      const lastPlayer = players.pop()!;
-      players.splice(1, 0, lastPlayer);
+      const lastPlayer = players.pop();
+      if (lastPlayer) {
+        players.splice(1, 0, lastPlayer);
+      }
     }
 
     return rounds;

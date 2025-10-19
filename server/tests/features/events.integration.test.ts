@@ -328,7 +328,9 @@ describe("Event Management Integration", () => {
 
       // Calculate how many events should be created
       const startDate = new Date(baseEvent.date);
-      const endDate = new Date(baseEvent.recurrenceEndDate!);
+      const endDate = baseEvent.recurrenceEndDate 
+        ? new Date(baseEvent.recurrenceEndDate)
+        : startDate;
       const daysDiff = Math.floor(
         (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
       );
@@ -348,7 +350,9 @@ describe("Event Management Integration", () => {
       });
 
       const startDate = new Date(baseEvent.date);
-      const endDate = new Date(baseEvent.recurrenceEndDate!);
+      const endDate = baseEvent.recurrenceEndDate 
+        ? new Date(baseEvent.recurrenceEndDate)
+        : startDate;
       const weeksDiff = Math.floor(
         (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7),
       );
