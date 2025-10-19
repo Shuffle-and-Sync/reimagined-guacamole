@@ -77,12 +77,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           : userSettings.displayPreferences)
         : null;
       
-      setPreferences(prev => ({
-        theme: displayPreferences?.theme || prev.theme,
-        notifications: notificationTypes || prev.notifications,
-        privacy: privacySettings || prev.privacy,
-        streaming: displayPreferences?.streaming || prev.streaming
-      }));
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setPreferences(prev => ({
+          theme: displayPreferences?.theme || prev.theme,
+          notifications: notificationTypes || prev.notifications,
+          privacy: privacySettings || prev.privacy,
+          streaming: displayPreferences?.streaming || prev.streaming
+        }));
+      }, 0);
     }
   }, [userSettings]);
 
