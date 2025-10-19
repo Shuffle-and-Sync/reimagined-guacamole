@@ -203,6 +203,8 @@ Closes #123
 ### Code Style
 
 - **ESLint**: Follow configured ESLint rules (`npm run lint`)
+  - Uses ESLint v9+ flat config format (`eslint.config.js`)
+  - See [ESLINT_SETUP_SUMMARY.md](ESLINT_SETUP_SUMMARY.md) for migration guide
 - **Prettier**: Use consistent formatting (`npm run format`)
 - **File naming**: kebab-case for files, PascalCase for components
 - **Import order**: External → Internal → Relative imports
