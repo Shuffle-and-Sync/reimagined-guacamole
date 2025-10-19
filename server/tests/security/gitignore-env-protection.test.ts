@@ -10,7 +10,7 @@
 
 import { describe, test, expect } from '@jest/globals';
 import { execSync } from 'child_process';
-import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const ROOT_DIR = join(__dirname, '../../..');
@@ -148,7 +148,7 @@ describe('GitIgnore Environment File Protection', () => {
 
     test('.gitignore should contain broad .env patterns', () => {
       const gitignorePath = join(ROOT_DIR, '.gitignore');
-      const gitignoreContent = require('fs').readFileSync(gitignorePath, 'utf8');
+      const gitignoreContent = readFileSync(gitignorePath, 'utf8');
       
       // Check for the broad patterns that catch all .env files
       expect(gitignoreContent).toContain('*.env*');

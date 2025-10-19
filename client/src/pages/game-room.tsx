@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +12,7 @@ import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/shared/components";
 import { useCommunity } from "@/features/communities";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 interface GameSession {
@@ -101,8 +100,134 @@ export default function GameRoom() {
     enabled: !!sessionId,
   });
 
+  // WebRTC Functions - wrapped with useCallback for stable references
+  const createPeerConnection = useCallback(async (playerId: string) => {
+    if (peerConnections.current.has(playerId)) return;
+
+    const peerConnection = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+    peerConnections.current.set(playerId, peerConnection);
+
+    // Add local stream to peer connection
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+    }
+
+    // Handle remote stream
+    peerConnection.ontrack = (event) => {
+      const [remoteStream] = event.streams;
+      if (remoteStream) {
+        setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
+        
+        // Set video element source
+        const videoElement = remoteVideoRefs.current.get(playerId);
+        if (videoElement) {
+          videoElement.srcObject = remoteStream;
+        }
+      }
+    };
+
+    // Handle ICE candidates
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && ws.current) {
+        ws.current.send(JSON.stringify({
+          type: 'webrtc_ice_candidate',
+          targetPlayer: playerId,
+          candidate: event.candidate,
+          sessionId
+        }));
+      }
+    };
+
+    // Create and send offer
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      
+      ws.current?.send(JSON.stringify({
+        type: 'webrtc_offer',
+        targetPlayer: playerId,
+        offer: offer,
+        sessionId
+      }));
+    } catch (error) {
+      // Log error for debugging
+      if (import.meta.env.DEV) {
+        console.error('Error creating WebRTC offer:', error);
+      }
+    }
+  }, [localStream, sessionId]);
+
+  const handleWebRTCOffer = useCallback(async (data: any) => {
+    const { fromPlayer, offer } = data;
+    
+    if (!peerConnections.current.has(fromPlayer)) {
+      await createPeerConnection(fromPlayer);
+    }
+    
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(offer);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        
+        ws.current?.send(JSON.stringify({
+          type: 'webrtc_answer',
+          targetPlayer: fromPlayer,
+          answer: answer,
+          sessionId
+        }));
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC offer:', error);
+        }
+      }
+    }
+  }, [createPeerConnection, sessionId]);
+
+  const handleWebRTCAnswer = useCallback(async (data: any) => {
+    const { fromPlayer, answer } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.setRemoteDescription(answer);
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error handling WebRTC answer:', error);
+        }
+      }
+    }
+  }, []);
+
+  const handleICECandidate = useCallback(async (data: any) => {
+    const { fromPlayer, candidate } = data;
+    const peerConnection = peerConnections.current.get(fromPlayer);
+    
+    if (peerConnection) {
+      try {
+        await peerConnection.addIceCandidate(candidate);
+      } catch (error) {
+        // Log error for debugging
+        if (import.meta.env.DEV) {
+          console.error('Error adding ICE candidate:', error);
+        }
+      }
+    }
+  }, []);
+
   // Initialize camera and microphone
-  const initializeMedia = async () => {
+  const initializeMedia = useCallback(async () => {
     try {
       setCameraError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -156,7 +281,7 @@ export default function GameRoom() {
       
       setCameraError(errorMessage);
     }
-  };
+  }, [connectedPlayers, user, createPeerConnection, toast]);
 
   // Clean up media stream on unmount
   useEffect(() => {
@@ -209,7 +334,7 @@ export default function GameRoom() {
             setTimeout(() => createPeerConnection(data.player.id), 1000);
           }
           break;
-        case 'player_left':
+        case 'player_left': {
           setConnectedPlayers(data.players);
           toast({
             title: "Player left",
@@ -230,6 +355,7 @@ export default function GameRoom() {
             return newStreams;
           });
           break;
+        }
         case 'game_action':
           if (data.action === 'dice_roll') {
             toast({
@@ -276,7 +402,7 @@ export default function GameRoom() {
     return () => {
       ws.current?.close();
     };
-  }, [sessionId, user]);
+  }, [sessionId, user, createPeerConnection, handleWebRTCOffer, handleWebRTCAnswer, handleICECandidate, localStream, toast]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -294,7 +420,7 @@ export default function GameRoom() {
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
-  const sendMessage = () => {
+  const sendMessage = useCallback(() => {
     if (!newMessage.trim() || !ws.current) return;
     
     ws.current.send(JSON.stringify({
@@ -309,9 +435,9 @@ export default function GameRoom() {
     }));
     
     setNewMessage("");
-  };
+  }, [newMessage, sessionId, user]);
 
-  const rollDice = (sides: number = 6) => {
+  const rollDice = useCallback((sides: number = 6) => {
     const result = Math.floor(Math.random() * sides) + 1;
     setDiceResult(result);
     
@@ -327,23 +453,23 @@ export default function GameRoom() {
     }));
     
     setTimeout(() => setDiceResult(null), 3000);
-  };
+  }, [sessionId, user]);
 
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     setIsTimerRunning(true);
     setGameTimer(0);
-  };
+  }, []);
 
-  const pauseTimer = () => {
+  const pauseTimer = useCallback(() => {
     setIsTimerRunning(false);
-  };
+  }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsTimerRunning(false);
     setGameTimer(0);
-  };
+  }, []);
 
-  const leaveRoom = async () => {
+  const leaveRoom = useCallback(async () => {
     if (!sessionId) return;
     
     try {
@@ -360,7 +486,7 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [sessionId, toast, setLocation]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -369,7 +495,33 @@ export default function GameRoom() {
   };
 
   // Screen Sharing Functions
-  const startScreenShare = async () => {
+  const stopScreenShare = useCallback(async () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
+    setIsScreenSharing(false);
+    
+    // Switch back to camera feed
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        peerConnections.current.forEach(async (pc, playerId) => {
+          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            await sender.replaceTrack(videoTrack);
+          }
+        });
+      }
+    }
+    
+    toast({
+      title: "Screen sharing stopped",
+      description: "Switched back to camera feed"
+    });
+  }, [screenStream, localStream, toast]);
+
+  const startScreenShare = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -419,36 +571,12 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [stopScreenShare, toast]);
 
-  const stopScreenShare = async () => {
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => track.stop());
-      setScreenStream(null);
-    }
-    setIsScreenSharing(false);
-    
-    // Switch back to camera feed
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        peerConnections.current.forEach(async (pc, playerId) => {
-          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-          if (sender) {
-            await sender.replaceTrack(videoTrack);
-          }
-        });
-      }
-    }
-    
-    toast({
-      title: "Screen sharing stopped",
-      description: "Switched back to camera feed"
-    });
-  };
+
 
   // Recording Functions
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     if (!localStream) {
       toast({
         title: "Cannot start recording",
@@ -525,9 +653,9 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [localStream, remoteStreams, sessionId, toast]);
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       setMediaRecorder(null);
@@ -538,133 +666,7 @@ export default function GameRoom() {
         description: "Processing your recording..."
       });
     }
-  };
-
-  // WebRTC Functions
-  const createPeerConnection = async (playerId: string) => {
-    if (peerConnections.current.has(playerId)) return;
-
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    });
-
-    peerConnections.current.set(playerId, peerConnection);
-
-    // Add local stream to peer connection
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream);
-      });
-    }
-
-    // Handle remote stream
-    peerConnection.ontrack = (event) => {
-      const [remoteStream] = event.streams;
-      if (remoteStream) {
-        setRemoteStreams(prev => new Map(prev.set(playerId, remoteStream)));
-        
-        // Set video element source
-        const videoElement = remoteVideoRefs.current.get(playerId);
-        if (videoElement) {
-          videoElement.srcObject = remoteStream;
-        }
-      }
-    };
-
-    // Handle ICE candidates
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate && ws.current) {
-        ws.current.send(JSON.stringify({
-          type: 'webrtc_ice_candidate',
-          targetPlayer: playerId,
-          candidate: event.candidate,
-          sessionId
-        }));
-      }
-    };
-
-    // Create and send offer
-    try {
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      
-      ws.current?.send(JSON.stringify({
-        type: 'webrtc_offer',
-        targetPlayer: playerId,
-        offer: offer,
-        sessionId
-      }));
-    } catch (error) {
-      // Log error for debugging
-      if (import.meta.env.DEV) {
-        console.error('Error creating WebRTC offer:', error);
-      }
-    }
-  };
-
-  const handleWebRTCOffer = async (data: any) => {
-    const { fromPlayer, offer } = data;
-    
-    if (!peerConnections.current.has(fromPlayer)) {
-      await createPeerConnection(fromPlayer);
-    }
-    
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    if (peerConnection) {
-      try {
-        await peerConnection.setRemoteDescription(offer);
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        
-        ws.current?.send(JSON.stringify({
-          type: 'webrtc_answer',
-          targetPlayer: fromPlayer,
-          answer: answer,
-          sessionId
-        }));
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error handling WebRTC offer:', error);
-        }
-      }
-    }
-  };
-
-  const handleWebRTCAnswer = async (data: any) => {
-    const { fromPlayer, answer } = data;
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    
-    if (peerConnection) {
-      try {
-        await peerConnection.setRemoteDescription(answer);
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error handling WebRTC answer:', error);
-        }
-      }
-    }
-  };
-
-  const handleICECandidate = async (data: any) => {
-    const { fromPlayer, candidate } = data;
-    const peerConnection = peerConnections.current.get(fromPlayer);
-    
-    if (peerConnection) {
-      try {
-        await peerConnection.addIceCandidate(candidate);
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error('Error adding ICE candidate:', error);
-        }
-      }
-    }
-  };
+  }, [mediaRecorder, toast]);
 
   if (isLoading) {
     return (
