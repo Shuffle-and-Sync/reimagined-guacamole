@@ -14,6 +14,26 @@ export interface YouTubeAPIError {
 }
 
 // YouTube API response types
+interface YouTubeChannelResponse {
+  items?: Array<{
+    id: string;
+    snippet: {
+      title: string;
+      description: string;
+      thumbnails?: {
+        default?: { url: string };
+        medium?: { url: string };
+        high?: { url: string };
+      };
+    };
+    statistics: {
+      subscriberCount?: string;
+      videoCount?: string;
+      viewCount?: string;
+    };
+  }>;
+}
+
 interface YouTubeSearchItem {
   id: {
     videoId: string;
@@ -53,6 +73,12 @@ interface YouTubeVideoItem {
   };
   contentDetails: {
     duration: string;
+  };
+  liveStreamingDetails?: {
+    actualStartTime?: string;
+    actualEndTime?: string;
+    scheduledStartTime?: string;
+    concurrentViewers?: string;
   };
 }
 
@@ -178,23 +204,23 @@ export class YouTubeAPIService {
    */
   async getChannel(channelId: string): Promise<YouTubeChannel | null> {
     if (!channelId?.trim()) {
-      console.warn("Channel ID is required");
+      logger.warn("Channel ID is required");
       return null;
     }
 
     if (!this.isReadOnlyConfigured()) {
-      console.warn(
+      logger.warn(
         "YouTube API not configured. Please set YOUTUBE_API_KEY environment variable.",
       );
       return null;
     }
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<YouTubeChannelResponse>(
       `/channels?part=snippet,statistics&id=${encodeURIComponent(channelId)}`,
     );
 
     if (!result.success) {
-      console.error("Error fetching YouTube channel:", result.error);
+      logger.error("Error fetching YouTube channel", result.error);
       return null;
     }
 
@@ -223,23 +249,23 @@ export class YouTubeAPIService {
    */
   async getLiveStream(channelId: string): Promise<YouTubeStream | null> {
     if (!channelId?.trim()) {
-      console.error("Channel ID is required");
+      logger.error("Channel ID is required");
       return null;
     }
 
     if (!this.isReadOnlyConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
     // First get live broadcasts for the channel
-    const searchResult = await this.makeAPIRequest<any>(
+    const searchResult = await this.makeAPIRequest<YouTubeSearchResponse>(
       `/search?part=snippet&channelId=${encodeURIComponent(channelId)}&type=video&eventType=live&maxResults=1`,
     );
 
     if (!searchResult.success) {
-      console.error(
-        "Error searching for YouTube live streams:",
+      logger.error(
+        "Error searching for YouTube live streams",
         searchResult.error,
       );
       return null;
@@ -251,12 +277,12 @@ export class YouTubeAPIService {
     }
 
     // Get detailed video information
-    const videoResult = await this.makeAPIRequest<any>(
+    const videoResult = await this.makeAPIRequest<YouTubeVideosResponse>(
       `/videos?part=snippet,liveStreamingDetails,statistics&id=${liveVideo.id.videoId}`,
     );
 
     if (!videoResult.success) {
-      console.error("Error fetching YouTube video details:", videoResult.error);
+      logger.error("Error fetching YouTube video details", videoResult.error);
       return null;
     }
 
@@ -291,12 +317,12 @@ export class YouTubeAPIService {
     maxResults: number = 10,
   ): Promise<YouTubeVideo[]> {
     if (!channelId?.trim()) {
-      console.error("Channel ID is required");
+      logger.error("Channel ID is required");
       return [];
     }
 
     if (!this.isReadOnlyConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return [];
     }
 
@@ -309,8 +335,8 @@ export class YouTubeAPIService {
     );
 
     if (!searchResult.success) {
-      console.error(
-        "Error searching YouTube channel videos:",
+      logger.error(
+        "Error searching YouTube channel videos",
         searchResult.error,
       );
       return [];
@@ -329,8 +355,8 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      console.error(
-        "Error fetching YouTube video details:",
+      logger.error(
+        "Error fetching YouTube video details",
         videosResult.error,
       );
       return [];
@@ -363,12 +389,12 @@ export class YouTubeAPIService {
     maxResults: number = 10,
   ): Promise<YouTubeVideo[]> {
     if (!query?.trim()) {
-      console.error("Search query is required");
+      logger.error("Search query is required");
       return [];
     }
 
     if (!this.isReadOnlyConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return [];
     }
 
@@ -382,7 +408,7 @@ export class YouTubeAPIService {
     );
 
     if (!searchResult.success) {
-      console.error("Error searching YouTube videos:", searchResult.error);
+      logger.error("Error searching YouTube videos", searchResult.error);
       return [];
     }
 
@@ -399,8 +425,8 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      console.error(
-        "Error fetching YouTube video details:",
+      logger.error(
+        "Error fetching YouTube video details",
         videosResult.error,
       );
       return [];
@@ -437,12 +463,12 @@ export class YouTubeAPIService {
   ): Promise<YouTubeStream | null> {
     // Input validation
     if (!title?.trim() || !accessToken?.trim()) {
-      console.error("Title and access token are required");
+      logger.error("Title and access token are required");
       return null;
     }
 
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
@@ -458,7 +484,7 @@ export class YouTubeAPIService {
       },
     };
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<YouTubeBroadcastUpdate>(
       "/liveBroadcasts?part=snippet,status",
       {
         method: "POST",
@@ -469,16 +495,19 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      console.error("Error creating YouTube live broadcast:", result.error);
+      logger.error("Error creating YouTube live broadcast", result.error);
       return null;
     }
 
     const data = result.data;
+    if (!data.id || !data.snippet) {
+      return null;
+    }
 
     return {
       id: data.id,
-      title: data.snippet.title,
-      description: data.snippet.description,
+      title: data.snippet.title || "",
+      description: data.snippet.description || "",
       status: "upcoming",
       scheduledStartTime: data.snippet.scheduledStartTime,
       thumbnails: {
@@ -499,12 +528,12 @@ export class YouTubeAPIService {
     refreshToken?: string,
   ): Promise<YouTubeStream | null> {
     if (!broadcastId?.trim() || !accessToken?.trim()) {
-      console.error("Broadcast ID and access token are required");
+      logger.error("Broadcast ID and access token are required");
       return null;
     }
 
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
@@ -533,7 +562,7 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      console.error("Error updating YouTube live broadcast:", result.error);
+      logger.error("Error updating YouTube live broadcast", result.error);
       return null;
     }
 
@@ -573,7 +602,7 @@ export class YouTubeAPIService {
     ingestionAddress: string;
   } | null> {
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
@@ -619,7 +648,7 @@ export class YouTubeAPIService {
         ingestionAddress: data.cdn.ingestionInfo.ingestionAddress,
       };
     } catch (error) {
-      console.error("Error creating YouTube live stream:", error);
+      logger.error("Error creating YouTube live stream", error);
       return null;
     }
   }
@@ -633,7 +662,7 @@ export class YouTubeAPIService {
     accessToken: string,
   ): Promise<boolean> {
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return false;
     }
 
@@ -663,7 +692,7 @@ export class YouTubeAPIService {
       // Validate that binding was successful by checking for expected response structure
       return response.ok && data.id && data.snippet;
     } catch (error) {
-      console.error("Error binding YouTube broadcast to stream:", error);
+      logger.error("Error binding YouTube broadcast to stream", error);
       return false;
     }
   }
@@ -677,7 +706,7 @@ export class YouTubeAPIService {
     accessToken: string,
   ): Promise<boolean> {
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return false;
     }
 
@@ -709,7 +738,7 @@ export class YouTubeAPIService {
       // Validate transition was successful by checking status matches expected state
       return response.ok && data.id && data.status?.lifeCycleStatus;
     } catch (error) {
-      console.error("Error transitioning YouTube broadcast:", error);
+      logger.error("Error transitioning YouTube broadcast", error);
       return false;
     }
   }
@@ -759,7 +788,7 @@ export class YouTubeAPIService {
     token_type: string;
   } | null> {
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
@@ -811,7 +840,7 @@ export class YouTubeAPIService {
         token_type: data.token_type || "Bearer",
       };
     } catch (error) {
-      console.error("Error exchanging YouTube OAuth code:", error);
+      logger.error("Error exchanging YouTube OAuth code", error);
       return null;
     }
   }
@@ -825,7 +854,7 @@ export class YouTubeAPIService {
     token_type: string;
   } | null> {
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
@@ -863,7 +892,7 @@ export class YouTubeAPIService {
         token_type: data.token_type || "Bearer",
       };
     } catch (error) {
-      console.error("Error refreshing YouTube access token:", error);
+      logger.error("Error refreshing YouTube access token", error);
       return null;
     }
   }
@@ -876,7 +905,7 @@ export class YouTubeAPIService {
     callbackUrl: string,
   ): Promise<boolean> {
     if (!channelId?.trim() || !callbackUrl?.trim()) {
-      console.error("Channel ID and callback URL are required");
+      logger.error("Channel ID and callback URL are required");
       return false;
     }
 
@@ -902,8 +931,8 @@ export class YouTubeAPIService {
 
       return response.status === 202; // Accepted for verification
     } catch (error) {
-      console.error(
-        "Error subscribing to YouTube channel notifications:",
+      logger.error(
+        "Error subscribing to YouTube channel notifications",
         error,
       );
       return false;
@@ -918,7 +947,7 @@ export class YouTubeAPIService {
     callbackUrl: string,
   ): Promise<boolean> {
     if (!channelId?.trim() || !callbackUrl?.trim()) {
-      console.error("Channel ID and callback URL are required");
+      logger.error("Channel ID and callback URL are required");
       return false;
     }
 
@@ -942,8 +971,8 @@ export class YouTubeAPIService {
 
       return response.status === 202;
     } catch (error) {
-      console.error(
-        "Error unsubscribing from YouTube channel notifications:",
+      logger.error(
+        "Error unsubscribing from YouTube channel notifications",
         error,
       );
       return false;
@@ -962,13 +991,13 @@ export class YouTubeAPIService {
   ): string | null {
     // Validate required parameters
     if (!mode || !topic || !challenge || !verifyToken) {
-      console.warn("Missing required webhook verification parameters");
+      logger.warn("Missing required webhook verification parameters");
       return null;
     }
 
     // Validate verify token for security
     if (verifyToken !== this.webhookVerifyToken) {
-      console.warn("Invalid webhook verify token");
+      logger.warn("Invalid webhook verify token");
       return null;
     }
 
@@ -978,7 +1007,7 @@ export class YouTubeAPIService {
         "https://www.youtube.com/xml/feeds/videos.xml?channel_id=",
       )
     ) {
-      console.warn("Invalid topic URL format");
+      logger.warn("Invalid topic URL format");
       return null;
     }
 
@@ -988,7 +1017,7 @@ export class YouTubeAPIService {
       return challenge;
     }
 
-    console.warn("Invalid webhook mode:", mode);
+    logger.warn("Invalid webhook mode", { mode });
     return null;
   }
 
@@ -1019,7 +1048,7 @@ export class YouTubeAPIService {
 
       return timingSafeEqual(signatureBuffer, expectedBuffer);
     } catch (error) {
-      console.error("Error verifying YouTube webhook signature:", error);
+      logger.error("Error verifying YouTube webhook signature", error);
       return false;
     }
   }
@@ -1037,7 +1066,7 @@ export class YouTubeAPIService {
     publishedAt: string;
   } | null {
     if (!xmlContent?.trim()) {
-      console.error("Empty XML content provided");
+      logger.error("Empty XML content provided");
       return null;
     }
 
@@ -1050,14 +1079,14 @@ export class YouTubeAPIService {
         this.webhookVerifyToken,
       )
     ) {
-      console.error("Invalid webhook signature");
+      logger.error("Invalid webhook signature");
       return null;
     }
 
     // Validate content size (prevent abuse)
     if (xmlContent.length > 50000) {
       // 50KB limit
-      console.error("XML content too large");
+      logger.error("XML content too large");
       return null;
     }
 
@@ -1085,12 +1114,12 @@ export class YouTubeAPIService {
         };
       }
 
-      console.warn(
+      logger.warn(
         "Unable to parse YouTube webhook notification - missing required fields",
       );
       return null;
     } catch (error) {
-      console.error("Error parsing YouTube webhook notification:", error);
+      logger.error("Error parsing YouTube webhook notification", error);
       return null;
     }
   }
@@ -1250,16 +1279,16 @@ export class YouTubeAPIService {
     refreshToken?: string,
   ): Promise<YouTubeChannel | null> {
     if (!accessToken?.trim()) {
-      console.error("Access token is required");
+      logger.error("Access token is required");
       return null;
     }
 
     if (!this.isConfigured()) {
-      console.warn("YouTube API not configured");
+      logger.warn("YouTube API not configured");
       return null;
     }
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<YouTubeChannelResponse>(
       "/channels?part=snippet,statistics&mine=true",
       {},
       accessToken,
@@ -1267,8 +1296,8 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      console.error(
-        "Error fetching authenticated YouTube channel:",
+      logger.error(
+        "Error fetching authenticated YouTube channel",
         result.error,
       );
       return null;
