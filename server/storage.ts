@@ -2988,7 +2988,10 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(),
       });
     } else {
-      const record = existing[0]!; // Safe: we checked existing.length === 0 above
+      const record = existing[0]; // Safe: we checked existing.length > 0 above
+      if (!record) {
+        throw new Error("Unexpected: existing record not found");
+      }
       const windowStart = record.windowStartedAt
         ? record.windowStartedAt.getTime()
         : 0;
@@ -4433,8 +4436,8 @@ export class DatabaseStorage implements IStorage {
         .filter((profile: any) => profile.user && profile.gamingProfile)
         .map((profile: any) => {
           let score = 0;
-          const user = profile.user!;
-          const gaming = profile.gamingProfile!;
+          const user = profile.user;
+          const gaming = profile.gamingProfile;
           const userPrefs = profile.preferences;
 
           // Game type matching (high weight)
@@ -5633,7 +5636,7 @@ export class DatabaseStorage implements IStorage {
 
           return {
             ...result.session,
-            host: result.host!,
+            host: result.host || null,
             community: result.community,
             coHosts,
             platforms,
@@ -5688,14 +5691,16 @@ export class DatabaseStorage implements IStorage {
           .where(eq(streamSessionPlatforms.streamSessionId, id)),
       ]);
 
-      const coHosts = coHostsData.map((ch: any) => ({
-        ...ch.coHost,
-        user: ch.user!,
-      }));
+      const coHosts = coHostsData
+        .filter((ch: any) => ch.user)
+        .map((ch: any) => ({
+          ...ch.coHost,
+          user: ch.user,
+        }));
 
       return {
         ...sessionResult.session,
-        host: sessionResult.host!,
+        host: sessionResult.host || null,
         community: sessionResult.community || undefined,
         coHosts,
         platforms,
@@ -5973,12 +5978,14 @@ export class DatabaseStorage implements IStorage {
         ) // Use eventId instead of streamSessionId
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-      return results.map((r: any) => ({
-        ...r.request,
-        fromUser: r.fromUser!,
-        toUser: r.toUser!,
-        streamSession: r.streamSession,
-      }));
+      return results
+        .filter((r: any) => r.fromUser && r.toUser)
+        .map((r: any) => ({
+          ...r.request,
+          fromUser: r.fromUser,
+          toUser: r.toUser,
+          streamSession: r.streamSession,
+        }));
     } catch (error) {
       console.error("Error getting collaboration requests:", error);
       throw error;
