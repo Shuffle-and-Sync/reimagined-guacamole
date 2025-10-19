@@ -22,8 +22,8 @@ class Logger {
   private useStructuredLogging: boolean;
 
   constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
-    
+    this.isDevelopment = process.env.NODE_ENV === "development";
+
     // Configure log level based on environment variable or defaults
     const configuredLevel = process.env.LOG_LEVEL?.toUpperCase();
     if (configuredLevel && configuredLevel in LOG_LEVELS) {
@@ -31,9 +31,10 @@ class Logger {
     } else {
       this.logLevel = this.isDevelopment ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO;
     }
-    
+
     // Use structured JSON logging in production for better log aggregation
-    this.useStructuredLogging = !this.isDevelopment && process.env.STRUCTURED_LOGGING !== 'false';
+    this.useStructuredLogging =
+      !this.isDevelopment && process.env.STRUCTURED_LOGGING !== "false";
   }
 
   /**
@@ -41,20 +42,25 @@ class Logger {
    */
   private formatMessage(level: string, message: string, context?: any): string {
     const timestamp = new Date().toISOString();
-    const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : '';
+    const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : "";
     return `[${timestamp}] [${level}] ${message}${contextStr}`;
   }
 
   /**
    * Format message as structured JSON (production)
    */
-  private formatStructured(level: string, message: string, error?: Error | any, context?: any): string {
+  private formatStructured(
+    level: string,
+    message: string,
+    error?: Error | any,
+    context?: any,
+  ): string {
     const logEntry: any = {
       timestamp: new Date().toISOString(),
       level: level.toLowerCase(),
       message,
-      environment: process.env.NODE_ENV || 'development',
-      service: 'shuffle-and-sync',
+      environment: process.env.NODE_ENV || "development",
+      service: "shuffle-and-sync",
     };
 
     if (context) {
@@ -88,12 +94,17 @@ class Logger {
   error(message: string, error?: Error | any, context?: any): void {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
       if (this.useStructuredLogging) {
-        console.error(this.formatStructured('ERROR', message, error, context));
+        console.error(this.formatStructured("ERROR", message, error, context));
       } else {
-        const errorInfo = error instanceof Error 
-          ? `\nError: ${error.message}\nStack: ${error.stack}` 
-          : error ? `\nError Data: ${JSON.stringify(error)}` : '';
-        console.error(this.formatMessage('ERROR', message, context) + errorInfo);
+        const errorInfo =
+          error instanceof Error
+            ? `\nError: ${error.message}\nStack: ${error.stack}`
+            : error
+              ? `\nError Data: ${JSON.stringify(error)}`
+              : "";
+        console.error(
+          this.formatMessage("ERROR", message, context) + errorInfo,
+        );
       }
     }
   }
@@ -101,9 +112,11 @@ class Logger {
   warn(message: string, context?: any): void {
     if (this.shouldLog(LOG_LEVELS.WARN)) {
       if (this.useStructuredLogging) {
-        console.warn(this.formatStructured('WARN', message, undefined, context));
+        console.warn(
+          this.formatStructured("WARN", message, undefined, context),
+        );
       } else {
-        console.warn(this.formatMessage('WARN', message, context));
+        console.warn(this.formatMessage("WARN", message, context));
       }
     }
   }
@@ -111,9 +124,11 @@ class Logger {
   info(message: string, context?: any): void {
     if (this.shouldLog(LOG_LEVELS.INFO)) {
       if (this.useStructuredLogging) {
-        console.info(this.formatStructured('INFO', message, undefined, context));
+        console.info(
+          this.formatStructured("INFO", message, undefined, context),
+        );
       } else {
-        console.info(this.formatMessage('INFO', message, context));
+        console.info(this.formatMessage("INFO", message, context));
       }
     }
   }
@@ -121,9 +136,11 @@ class Logger {
   debug(message: string, context?: any): void {
     if (this.shouldLog(LOG_LEVELS.DEBUG)) {
       if (this.useStructuredLogging) {
-        console.log(this.formatStructured('DEBUG', message, undefined, context));
+        console.log(
+          this.formatStructured("DEBUG", message, undefined, context),
+        );
       } else {
-        console.log(this.formatMessage('DEBUG', message, context));
+        console.log(this.formatMessage("DEBUG", message, context));
       }
     }
   }
@@ -131,7 +148,13 @@ class Logger {
   /**
    * Log API request (development mode provides detailed output, production uses structured format)
    */
-  apiRequest(method: string, path: string, statusCode: number, duration: number, response?: any): void {
+  apiRequest(
+    method: string,
+    path: string,
+    statusCode: number,
+    duration: number,
+    response?: any,
+  ): void {
     if (this.isDevelopment) {
       let logLine = `${method} ${path} ${statusCode} in ${duration}ms`;
       if (response) {
@@ -145,13 +168,15 @@ class Logger {
       console.log(logLine);
     } else if (this.shouldLog(LOG_LEVELS.INFO)) {
       // In production, log structured API request data
-      console.info(this.formatStructured('INFO', 'API Request', undefined, {
-        method,
-        path,
-        statusCode,
-        duration,
-        type: 'api_request'
-      }));
+      console.info(
+        this.formatStructured("INFO", "API Request", undefined, {
+          method,
+          path,
+          statusCode,
+          duration,
+          type: "api_request",
+        }),
+      );
     }
   }
 
@@ -161,7 +186,7 @@ class Logger {
   getLogLevel(): string {
     const levels = Object.entries(LOG_LEVELS);
     const level = levels.find(([_, value]) => value === this.logLevel);
-    return level ? level[0] : 'UNKNOWN';
+    return level ? level[0] : "UNKNOWN";
   }
 
   /**

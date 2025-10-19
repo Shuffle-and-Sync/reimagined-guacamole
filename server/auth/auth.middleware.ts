@@ -47,7 +47,7 @@ declare global {
       jwtPayload?: {
         userId: string;
         email: string;
-        type: 'access';
+        type: "access";
         sessionId?: string;
         iat: number;
         exp: number;
@@ -63,14 +63,21 @@ declare global {
 export type AuthenticatedRequest = Request;
 
 // Middleware to check if user is authenticated (replaces old isAuthenticated)
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     // Build the session check URL - ignore AUTH_URL in development to use actual request host
-    const base = process.env.NODE_ENV === 'production' 
-      ? (process.env.AUTH_URL || process.env.NEXTAUTH_URL || `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`)
-      : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    const base =
+      process.env.NODE_ENV === "production"
+        ? process.env.AUTH_URL ||
+          process.env.NEXTAUTH_URL ||
+          `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`
+        : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const sessionUrl = `${base}/api/auth/session`;
-    
+
     // Create Auth.js session request
     const sessionRequest = new Request(sessionUrl, {
       method: "GET",
@@ -82,13 +89,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     // Get session from Auth.js
     const response = await Auth(sessionRequest, authConfig);
-    
+
     if (!response.ok) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const sessionData = await response.json();
-    
+
     // Check if user is authenticated
     if (!sessionData || !sessionData.user) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -106,69 +113,69 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // ENTERPRISE SESSION SECURITY VALIDATION - Skip for JWT sessions
     try {
       let sessionSecurityValidation = null;
-      
+
       // JWT sessions don't expose sessionToken, so skip enhanced validation to prevent spurious failures
       if (sessionData.sessionToken) {
-        sessionSecurityValidation = await enhancedSessionManager.validateSessionSecurity(
-          sessionData.user.id,
-          sessionData.sessionToken,
-          {
-            headers: req.headers,
-            ip: req.ip || req.connection.remoteAddress || 'unknown'
-          }
-        );
+        sessionSecurityValidation =
+          await enhancedSessionManager.validateSessionSecurity(
+            sessionData.user.id,
+            sessionData.sessionToken,
+            {
+              headers: req.headers,
+              ip: req.ip || req.connection.remoteAddress || "unknown",
+            },
+          );
       }
 
       // Handle security assessment results only if validation was performed
       if (sessionSecurityValidation && !sessionSecurityValidation.isValid) {
-        logger.warn('Session terminated due to security assessment', {
+        logger.warn("Session terminated due to security assessment", {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
           riskScore: sessionSecurityValidation.assessment.riskScore,
           actions: sessionSecurityValidation.actions,
-          ip: req.ip
+          ip: req.ip,
         });
-        
-        return res.status(401).json({ 
+
+        return res.status(401).json({
           message: "Session terminated for security reasons",
-          securityLevel: sessionSecurityValidation.assessment.riskLevel
+          securityLevel: sessionSecurityValidation.assessment.riskLevel,
         });
       }
 
       // Log successful security validation with warnings if any (only if validation was performed)
       if (sessionSecurityValidation?.assessment.riskFactors?.length) {
-        logger.warn('Session security risk factors detected', {
+        logger.warn("Session security risk factors detected", {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
           riskFactors: sessionSecurityValidation.assessment.riskFactors,
-          ip: req.ip
+          ip: req.ip,
         });
       }
 
       // Proceed with normal authentication flow (log only if validation was performed)
       if (sessionSecurityValidation) {
-        logger.debug('Session security validation passed', {
+        logger.debug("Session security validation passed", {
           userId: sessionData.user.id,
           riskLevel: sessionSecurityValidation.assessment.riskLevel,
           trustScore: sessionSecurityValidation.assessment.trustScore,
-          actionsExecuted: sessionSecurityValidation.actions
+          actionsExecuted: sessionSecurityValidation.actions,
         });
       } else {
-        logger.debug('JWT session - skipped enhanced security validation', {
-          userId: sessionData.user.id
+        logger.debug("JWT session - skipped enhanced security validation", {
+          userId: sessionData.user.id,
         });
       }
-
     } catch (error) {
-      logger.error('Session security validation failed', {
+      logger.error("Session security validation failed", {
         userId: sessionData.user.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        ip: req.ip
+        error: error instanceof Error ? error.message : "Unknown error",
+        ip: req.ip,
       });
-      
+
       // Fail-safe: deny access on security validation failure
-      return res.status(500).json({ 
-        message: "Session security validation failed" 
+      return res.status(500).json({
+        message: "Session security validation failed",
       });
     }
 
@@ -180,14 +187,21 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 // Middleware to optionally get user session (doesn't require auth)
-export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export async function optionalAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     // Build the session check URL - ignore AUTH_URL in development to use actual request host
-    const base = process.env.NODE_ENV === 'production' 
-      ? (process.env.AUTH_URL || process.env.NEXTAUTH_URL || `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`)
-      : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
+    const base =
+      process.env.NODE_ENV === "production"
+        ? process.env.AUTH_URL ||
+          process.env.NEXTAUTH_URL ||
+          `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`
+        : `${(req.headers["x-forwarded-proto"] as string) ?? req.protocol}://${(req.headers["x-forwarded-host"] as string) ?? req.get("host")}`;
     const sessionUrl = `${base}/api/auth/session`;
-    
+
     // Create Auth.js session request
     const sessionRequest = new Request(sessionUrl, {
       method: "GET",
@@ -199,7 +213,7 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
     // Get session from Auth.js
     const response = await Auth(sessionRequest, authConfig);
     const sessionData = response.ok ? await response.json() : null;
-    
+
     // Add auth session data to request
     req.auth = sessionData;
     if (sessionData?.user) {
@@ -220,7 +234,9 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
 }
 
 // Get current user ID from session
-export function getCurrentUserId(req: AuthenticatedRequest): string | undefined {
+export function getCurrentUserId(
+  req: AuthenticatedRequest,
+): string | undefined {
   return req.user?.id;
 }
 
@@ -233,31 +249,41 @@ export function isAuthenticated(req: AuthenticatedRequest): boolean {
  * JWT Authentication Middleware
  * Authenticates requests using JWT access tokens from Authorization header
  */
-export async function requireJWTAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function requireJWTAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ message: "Authorization header with Bearer token required" });
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res
+        .status(401)
+        .json({ message: "Authorization header with Bearer token required" });
       return;
     }
-    
+
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+
     // Extract device context for enhanced security validation
-    const deviceContext = extractDeviceContext(req.headers, req.ip || req.connection.remoteAddress || 'unknown');
-    
+    const deviceContext = extractDeviceContext(
+      req.headers,
+      req.ip || req.connection.remoteAddress || "unknown",
+    );
+
     // Verify the JWT access token with enhanced security
-    const { valid, payload, error, securityWarnings } = await verifyAccessTokenJWT(token, {
-      checkSecurity: true
-    });
-    
+    const { valid, payload, error, securityWarnings } =
+      await verifyAccessTokenJWT(token, {
+        checkSecurity: true,
+      });
+
     if (!valid || !payload) {
-      logger.warn('Invalid JWT token attempted', { 
-        error, 
-        ip: req.ip, 
-        userAgent: req.headers['user-agent'],
-        deviceFingerprint: deviceContext.userAgent
+      logger.warn("Invalid JWT token attempted", {
+        error,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+        deviceFingerprint: deviceContext.userAgent,
       });
       res.status(401).json({ message: "Invalid or expired access token" });
       return;
@@ -266,71 +292,79 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
     // Enhanced security validation
     if (payload.jti) {
       const securityValidation = validateTokenSecurity(payload.jti, payload);
-      
+
       if (!securityValidation) {
-        logger.warn('JWT token failed security validation', { 
+        logger.warn("JWT token failed security validation", {
           userId: payload.sub,
           jti: payload.jti,
-          ip: req.ip
+          ip: req.ip,
         });
-        res.status(401).json({ 
-          message: "Token security validation failed"
+        res.status(401).json({
+          message: "Token security validation failed",
         });
         return;
       }
     }
-    
+
     // Get user from database to ensure they still exist and are active
     const user = await storage.getUser(payload.sub);
     if (!user) {
-      logger.warn('JWT token for non-existent user', { userId: payload.sub, ip: req.ip });
+      logger.warn("JWT token for non-existent user", {
+        userId: payload.sub,
+        ip: req.ip,
+      });
       res.status(401).json({ message: "User not found" });
       return;
     }
-    
+
     // Attach user and JWT info to request object
     req.user = {
       id: user.id,
       email: user.email || payload.email,
-      name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
+      name:
+        user.firstName && user.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user.firstName || "User",
     };
-    
+
     // Convert our token payload to the expected JWT payload format
     req.jwtPayload = {
       userId: payload.sub, // Map 'sub' to 'userId'
       email: payload.email,
-      type: 'access' as const,
+      type: "access" as const,
       sessionId: undefined, // Not available in our simple tokens
       iat: payload.iat,
       exp: payload.exp,
-      iss: 'shuffle-and-sync', // Default issuer
-      aud: 'shuffle-and-sync' // Default audience
+      iss: "shuffle-and-sync", // Default issuer
+      aud: "shuffle-and-sync", // Default audience
     };
     req.isJWTAuth = true;
-    
+
     // Log security warnings if present
     if (securityWarnings && securityWarnings.length > 0) {
-      logger.warn('JWT token security warnings', {
+      logger.warn("JWT token security warnings", {
         userId: user.id,
         jti: payload.jti,
         securityWarnings,
-        ip: req.ip
+        ip: req.ip,
       });
     }
-    
-    logger.debug('JWT authentication successful', {
+
+    logger.debug("JWT authentication successful", {
       userId: user.id,
       sessionId: req.jwtPayload?.sessionId,
-      securityLevel: 'standard', // Default security level
+      securityLevel: "standard", // Default security level
       mfaVerified: false, // Default MFA status
       deviceBound: !!deviceContext.userAgent,
-      ip: req.ip
+      ip: req.ip,
     });
-    
+
     next();
-    
   } catch (error) {
-    logger.error('JWT authentication error', error, { ip: req.ip, userAgent: req.headers['user-agent'] });
+    logger.error("JWT authentication error", error, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
     res.status(500).json({ message: "Authentication failed" });
   }
 }
@@ -340,16 +374,20 @@ export async function requireJWTAuth(req: Request, res: Response, next: NextFunc
  * Supports both session-based and JWT-based authentication
  * Tries JWT first, then falls back to session
  */
-export async function requireHybridAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function requireHybridAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   // Check for JWT first
   const authHeader = req.headers.authorization;
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     // Use JWT authentication
     await requireJWTAuth(req, res, next);
     return;
   }
-  
+
   // Fall back to session authentication
   await requireAuth(req, res, next);
 }
@@ -358,18 +396,22 @@ export async function requireHybridAuth(req: Request, res: Response, next: NextF
  * Optional JWT Authentication Middleware
  * Attempts JWT authentication but doesn't fail if no token provided
  */
-export async function optionalJWTAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function optionalJWTAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     // No JWT token provided, continue without authentication
     return next();
   }
-  
+
   try {
     const token = authHeader.substring(7);
     const { valid, payload } = await verifyAccessTokenJWT(token);
-    
+
     if (valid && payload) {
       // Get user from database
       const user = await storage.getUser(payload.sub);
@@ -377,25 +419,31 @@ export async function optionalJWTAuth(req: Request, res: Response, next: NextFun
         req.user = {
           id: user.id,
           email: user.email || payload.email,
-          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || 'User'
+          name:
+            user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : user.firstName || "User",
         };
         req.jwtPayload = {
           userId: payload.sub,
           email: payload.email,
-          type: 'access' as const,
+          type: "access" as const,
           sessionId: undefined,
           iat: payload.iat,
           exp: payload.exp,
-          iss: 'shuffle-and-sync',
-          aud: 'shuffle-and-sync'
+          iss: "shuffle-and-sync",
+          aud: "shuffle-and-sync",
         };
         req.isJWTAuth = true;
       }
     }
   } catch (error) {
-    logger.warn('Optional JWT auth failed', { error: error instanceof Error ? error.message : 'Unknown error', ip: req.ip });
+    logger.warn("Optional JWT auth failed", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      ip: req.ip,
+    });
     // Continue without authentication on error
   }
-  
+
   next();
 }

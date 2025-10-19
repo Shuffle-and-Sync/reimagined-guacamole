@@ -1,48 +1,110 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/features/auth';
-import { useCommunity } from '@/features/communities';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useParams, useLocation } from 'wouter';
-import { Header } from '@/shared/components';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { getGameName } from '@/lib/gameNames';
-import type { User, UserSocialLink, UserGamingProfile, Friendship } from '@shared/schema';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
+import { Header } from "@/shared/components";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getGameName } from "@/lib/gameNames";
+import type {
+  User,
+  UserSocialLink,
+  UserGamingProfile,
+  Friendship,
+} from "@shared/schema";
 
 interface ExtendedUser extends User {
   socialLinks?: UserSocialLink[];
   gamingProfiles?: UserGamingProfile[];
   friendCount?: number;
   isOwnProfile?: boolean;
-  friendshipStatus?: 'none' | 'pending' | 'friends' | 'blocked';
+  friendshipStatus?: "none" | "pending" | "friends" | "blocked";
 }
 
 const SOCIAL_PLATFORMS = [
-  { id: 'discord', name: 'Discord', icon: 'fab fa-discord', placeholder: 'Username#1234' },
-  { id: 'twitch', name: 'Twitch', icon: 'fab fa-twitch', placeholder: 'username' },
-  { id: 'twitter', name: 'Twitter/X', icon: 'fab fa-twitter', placeholder: '@username' },
-  { id: 'youtube', name: 'YouTube', icon: 'fab fa-youtube', placeholder: 'Channel Name' },
-  { id: 'steam', name: 'Steam', icon: 'fab fa-steam', placeholder: 'Steam ID' },
-  { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', placeholder: '@username' },
+  {
+    id: "discord",
+    name: "Discord",
+    icon: "fab fa-discord",
+    placeholder: "Username#1234",
+  },
+  {
+    id: "twitch",
+    name: "Twitch",
+    icon: "fab fa-twitch",
+    placeholder: "username",
+  },
+  {
+    id: "twitter",
+    name: "Twitter/X",
+    icon: "fab fa-twitter",
+    placeholder: "@username",
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    icon: "fab fa-youtube",
+    placeholder: "Channel Name",
+  },
+  { id: "steam", name: "Steam", icon: "fab fa-steam", placeholder: "Steam ID" },
+  {
+    id: "instagram",
+    name: "Instagram",
+    icon: "fab fa-instagram",
+    placeholder: "@username",
+  },
 ];
 
 const STATUS_OPTIONS = [
-  { id: 'online', name: 'Online', color: 'bg-green-500', icon: 'fas fa-circle' },
-  { id: 'away', name: 'Away', color: 'bg-yellow-500', icon: 'fas fa-moon' },
-  { id: 'busy', name: 'Busy', color: 'bg-red-500', icon: 'fas fa-minus-circle' },
-  { id: 'gaming', name: 'Gaming', color: 'bg-purple-500', icon: 'fas fa-gamepad' },
-  { id: 'offline', name: 'Offline', color: 'bg-gray-500', icon: 'fas fa-circle' },
+  {
+    id: "online",
+    name: "Online",
+    color: "bg-green-500",
+    icon: "fas fa-circle",
+  },
+  { id: "away", name: "Away", color: "bg-yellow-500", icon: "fas fa-moon" },
+  {
+    id: "busy",
+    name: "Busy",
+    color: "bg-red-500",
+    icon: "fas fa-minus-circle",
+  },
+  {
+    id: "gaming",
+    name: "Gaming",
+    color: "bg-purple-500",
+    icon: "fas fa-gamepad",
+  },
+  {
+    id: "offline",
+    name: "Offline",
+    color: "bg-gray-500",
+    icon: "fas fa-circle",
+  },
 ];
 
 export default function Profile() {
@@ -50,7 +112,7 @@ export default function Profile() {
   const { communities, communityTheme } = useCommunity();
   const { toast } = useToast();
   const { userId } = useParams<{ userId?: string }>();
-  
+
   // Determine if this is the current user's profile or someone else's
   const isOwnProfile = !userId || userId === currentUser?.id;
   const profileUserId = isOwnProfile ? currentUser?.id : userId;
@@ -60,43 +122,49 @@ export default function Profile() {
   const [editedProfile, setEditedProfile] = useState<Partial<User>>({});
 
   // Fetch user profile data
-  const { data: profileUser, isLoading: profileLoading } = useQuery<ExtendedUser>({
-    queryKey: ['/api/user/profile', profileUserId],
-    enabled: !!profileUserId,
-  });
+  const { data: profileUser, isLoading: profileLoading } =
+    useQuery<ExtendedUser>({
+      queryKey: ["/api/user/profile", profileUserId],
+      enabled: !!profileUserId,
+    });
 
   // Fetch user's social links (read-only)
   const { data: userSocialLinks = [] } = useQuery<UserSocialLink[]>({
-    queryKey: ['/api/user/social-links', profileUserId],
+    queryKey: ["/api/user/social-links", profileUserId],
     enabled: !!profileUserId,
   });
 
   // Initialize edited profile when profileUser loads
   useEffect(() => {
     if (profileUser && isOwnProfile) {
-      setEditedProfile({
-        firstName: profileUser.firstName || '',
-        lastName: profileUser.lastName || '',
-        bio: profileUser.bio || '',
-        status: profileUser.status || 'offline',
-        primaryCommunity: profileUser.primaryCommunity || '',
+      // Use a microtask to avoid cascading renders
+      queueMicrotask(() => {
+        setEditedProfile({
+          firstName: profileUser.firstName || "",
+          lastName: profileUser.lastName || "",
+          bio: profileUser.bio || "",
+          status: profileUser.status || "offline",
+          primaryCommunity: profileUser.primaryCommunity || "",
+        });
       });
     }
   }, [profileUser, isOwnProfile]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: Partial<User>) => {
-      return apiRequest('PATCH', '/api/user/profile', data);
+      return apiRequest("PATCH", "/api/user/profile", data);
     },
     onSuccess: () => {
-      toast({ title: 'Profile updated successfully!' });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile', profileUserId] });
+      toast({ title: "Profile updated successfully!" });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/user/profile", profileUserId],
+      });
       setIsEditing(false);
     },
     onError: () => {
-      toast({ 
-        title: 'Failed to update profile', 
-        variant: 'destructive' 
+      toast({
+        title: "Failed to update profile",
+        variant: "destructive",
       });
     },
   });
@@ -108,11 +176,11 @@ export default function Profile() {
   const handleCancelEdit = () => {
     if (profileUser) {
       setEditedProfile({
-        firstName: profileUser.firstName || '',
-        lastName: profileUser.lastName || '',
-        bio: profileUser.bio || '',
-        status: profileUser.status || 'offline',
-        primaryCommunity: profileUser.primaryCommunity || '',
+        firstName: profileUser.firstName || "",
+        lastName: profileUser.lastName || "",
+        bio: profileUser.bio || "",
+        status: profileUser.status || "offline",
+        primaryCommunity: profileUser.primaryCommunity || "",
       });
     }
     setIsEditing(false);
@@ -139,7 +207,9 @@ export default function Profile() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
-            <p className="text-muted-foreground">The user profile you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">
+              The user profile you're looking for doesn't exist.
+            </p>
           </div>
         </div>
       </div>
@@ -148,8 +218,8 @@ export default function Profile() {
 
   const displayUser = profileUser;
   const getUserInitials = () => {
-    const first = displayUser.firstName || '';
-    const last = displayUser.lastName || '';
+    const first = displayUser.firstName || "";
+    const last = displayUser.lastName || "";
     return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
   };
 
@@ -167,42 +237,67 @@ export default function Profile() {
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     {isEditing ? (
                       <div className="grid grid-cols-2 gap-2 mb-2">
                         <Input
-                          value={editedProfile.firstName || ''}
-                          onChange={(e) => setEditedProfile(prev => ({ ...prev, firstName: e.target.value }))}
+                          value={editedProfile.firstName || ""}
+                          onChange={(e) =>
+                            setEditedProfile((prev) => ({
+                              ...prev,
+                              firstName: e.target.value,
+                            }))
+                          }
                           placeholder="First Name"
                           data-testid="input-edit-first-name"
                         />
                         <Input
-                          value={editedProfile.lastName || ''}
-                          onChange={(e) => setEditedProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                          value={editedProfile.lastName || ""}
+                          onChange={(e) =>
+                            setEditedProfile((prev) => ({
+                              ...prev,
+                              lastName: e.target.value,
+                            }))
+                          }
                           placeholder="Last Name"
                           data-testid="input-edit-last-name"
                         />
                       </div>
                     ) : (
-                      <h1 className="text-3xl font-bold" data-testid="text-user-name">
+                      <h1
+                        className="text-3xl font-bold"
+                        data-testid="text-user-name"
+                      >
                         {displayUser.firstName} {displayUser.lastName}
                       </h1>
                     )}
-                    
-                    <p className="text-muted-foreground" data-testid="text-user-email">
+
+                    <p
+                      className="text-muted-foreground"
+                      data-testid="text-user-email"
+                    >
                       {displayUser.email}
                     </p>
-                    
+
                     {displayUser.primaryCommunity && (
-                      <Badge variant="outline" className="mt-2" data-testid={`badge-community-${displayUser.primaryCommunity}`}>
-                        Primary: {communities.find(c => c.id === displayUser.primaryCommunity)?.displayName}
+                      <Badge
+                        variant="outline"
+                        className="mt-2"
+                        data-testid={`badge-community-${displayUser.primaryCommunity}`}
+                      >
+                        Primary:{" "}
+                        {
+                          communities.find(
+                            (c) => c.id === displayUser.primaryCommunity,
+                          )?.displayName
+                        }
                       </Badge>
                     )}
                   </div>
-                  
+
                   {isOwnProfile && (
                     <div className="flex gap-2">
                       {isEditing ? (
@@ -212,7 +307,9 @@ export default function Profile() {
                             disabled={updateProfileMutation.isPending}
                             data-testid="button-save-profile"
                           >
-                            {updateProfileMutation.isPending ? 'Saving...' : 'Save'}
+                            {updateProfileMutation.isPending
+                              ? "Saving..."
+                              : "Save"}
                           </Button>
                           <Button
                             variant="outline"
@@ -223,7 +320,10 @@ export default function Profile() {
                           </Button>
                         </>
                       ) : (
-                        <Button onClick={() => setIsEditing(true)} data-testid="button-edit-profile">
+                        <Button
+                          onClick={() => setIsEditing(true)}
+                          data-testid="button-edit-profile"
+                        >
                           Edit Profile
                         </Button>
                       )}
@@ -244,7 +344,7 @@ export default function Profile() {
                 <TabsTrigger value="gaming">Gaming</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="about" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -253,40 +353,54 @@ export default function Profile() {
                   <CardContent>
                     {isEditing ? (
                       <Textarea
-                        value={editedProfile.bio || ''}
-                        onChange={(e) => setEditedProfile(prev => ({ ...prev, bio: e.target.value }))}
+                        value={editedProfile.bio || ""}
+                        onChange={(e) =>
+                          setEditedProfile((prev) => ({
+                            ...prev,
+                            bio: e.target.value,
+                          }))
+                        }
                         placeholder="Tell us about yourself..."
                         className="min-h-[100px]"
                         data-testid="textarea-edit-bio"
                       />
                     ) : (
-                      <p className="text-muted-foreground" data-testid="text-user-bio">
-                        {displayUser.bio || 'No bio available'}
+                      <p
+                        className="text-muted-foreground"
+                        data-testid="text-user-bio"
+                      >
+                        {displayUser.bio || "No bio available"}
                       </p>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="gaming" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Gaming Profiles</CardTitle>
-                    <CardDescription>Gaming platforms and achievements</CardDescription>
+                    <CardDescription>
+                      Gaming platforms and achievements
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">Gaming profiles coming soon...</p>
+                    <p className="text-muted-foreground">
+                      Gaming profiles coming soon...
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="activity" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Recent Activity</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">Activity feed coming soon...</p>
+                    <p className="text-muted-foreground">
+                      Activity feed coming soon...
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -302,9 +416,19 @@ export default function Profile() {
               </CardHeader>
               <CardContent>
                 {isEditing ? (
-                  <Select 
-                    value={editedProfile.status || 'offline'} 
-                    onValueChange={(value) => setEditedProfile(prev => ({ ...prev, status: value as 'online' | 'offline' | 'away' | 'busy' | 'gaming' }))}
+                  <Select
+                    value={editedProfile.status || "offline"}
+                    onValueChange={(value) =>
+                      setEditedProfile((prev) => ({
+                        ...prev,
+                        status: value as
+                          | "online"
+                          | "offline"
+                          | "away"
+                          | "busy"
+                          | "gaming",
+                      }))
+                    }
                   >
                     <SelectTrigger data-testid="select-edit-status">
                       <SelectValue />
@@ -313,7 +437,9 @@ export default function Profile() {
                       {STATUS_OPTIONS.map((status) => (
                         <SelectItem key={status.id} value={status.id}>
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                            <div
+                              className={`w-2 h-2 rounded-full ${status.color}`}
+                            />
                             {status.name}
                           </div>
                         </SelectItem>
@@ -321,11 +447,18 @@ export default function Profile() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="flex items-center gap-2" data-testid="text-user-status">
-                    <div className={`w-2 h-2 rounded-full ${
-                      STATUS_OPTIONS.find(s => s.id === displayUser.status)?.color || 'bg-gray-500'
-                    }`} />
-                    {STATUS_OPTIONS.find(s => s.id === displayUser.status)?.name || 'Offline'}
+                  <div
+                    className="flex items-center gap-2"
+                    data-testid="text-user-status"
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        STATUS_OPTIONS.find((s) => s.id === displayUser.status)
+                          ?.color || "bg-gray-500"
+                      }`}
+                    />
+                    {STATUS_OPTIONS.find((s) => s.id === displayUser.status)
+                      ?.name || "Offline"}
                   </div>
                 )}
               </CardContent>
@@ -340,17 +473,27 @@ export default function Profile() {
                 {userSocialLinks.length > 0 ? (
                   <div className="space-y-2">
                     {userSocialLinks.map((link) => {
-                      const platform = SOCIAL_PLATFORMS.find(p => p.id === link.platform);
+                      const platform = SOCIAL_PLATFORMS.find(
+                        (p) => p.id === link.platform,
+                      );
                       return (
-                        <div key={link.id} className="flex items-center gap-2" data-testid={`social-link-${link.platform}`}>
-                          <i className={platform?.icon || 'fas fa-link'} />
-                          <span className="text-sm">{link.displayName || link.url}</span>
+                        <div
+                          key={link.id}
+                          className="flex items-center gap-2"
+                          data-testid={`social-link-${link.platform}`}
+                        >
+                          <i className={platform?.icon || "fas fa-link"} />
+                          <span className="text-sm">
+                            {link.displayName || link.url}
+                          </span>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-sm">No social links added</p>
+                  <p className="text-muted-foreground text-sm">
+                    No social links added
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -368,11 +511,15 @@ export default function Profile() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Events Joined</span>
+                  <span className="text-sm text-muted-foreground">
+                    Events Joined
+                  </span>
                   <span className="font-medium">0</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Events Hosted</span>
+                  <span className="text-sm text-muted-foreground">
+                    Events Hosted
+                  </span>
                   <span className="font-medium">0</span>
                 </div>
               </CardContent>

@@ -1,20 +1,20 @@
 /**
  * Pokemon TCG Adapter
- * 
+ *
  * Adapter for Pokemon Trading Card Game via Pokemon TCG API
  * Official API: https://pokemontcg.io/
  */
 
-import { logger } from '../../../logger';
-import type { 
-  ICardAdapter, 
-  UniversalCard, 
-  CardSearchResult, 
-  AutocompleteResult 
-} from './base.adapter';
+import { logger } from "../../../logger";
+import type {
+  ICardAdapter,
+  UniversalCard,
+  CardSearchResult,
+  AutocompleteResult,
+} from "./base.adapter";
 
 // Pokemon TCG API base URL
-const POKEMON_TCG_API_BASE = 'https://api.pokemontcg.io/v2';
+const POKEMON_TCG_API_BASE = "https://api.pokemontcg.io/v2";
 
 interface PokemonCard {
   id: string;
@@ -74,8 +74,8 @@ interface PokemonApiResponse {
 }
 
 export class PokemonTCGAdapter implements ICardAdapter {
-  private readonly POKEMON_GAME_ID = 'pokemon-tcg';
-  private readonly API_KEY = process.env.POKEMON_TCG_API_KEY || '';
+  private readonly POKEMON_GAME_ID = "pokemon-tcg";
+  private readonly API_KEY = process.env.POKEMON_TCG_API_KEY || "";
 
   getGameId(): string {
     return this.POKEMON_GAME_ID;
@@ -86,14 +86,14 @@ export class PokemonTCGAdapter implements ICardAdapter {
    */
   private getHeaders(): HeadersInit {
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
-    
+
     // API key is optional but recommended for higher rate limits
     if (this.API_KEY) {
-      headers['X-Api-Key'] = this.API_KEY;
+      headers["X-Api-Key"] = this.API_KEY;
     }
-    
+
     return headers;
   }
 
@@ -110,7 +110,7 @@ export class PokemonTCGAdapter implements ICardAdapter {
       collectorNumber: pokemonCard.number,
       rarity: pokemonCard.rarity,
       externalId: pokemonCard.id,
-      externalSource: 'pokemontcg',
+      externalSource: "pokemontcg",
       attributes: {
         supertype: pokemonCard.supertype,
         subtypes: pokemonCard.subtypes,
@@ -147,12 +147,12 @@ export class PokemonTCGAdapter implements ICardAdapter {
       format?: string;
       page?: number;
       limit?: number;
-    }
+    },
   ): Promise<CardSearchResult> {
     try {
       const page = options?.page || 1;
       const pageSize = options?.limit || 20;
-      
+
       // Build search query
       let searchQuery = `name:"${query}*"`;
       if (options?.set) {
@@ -160,27 +160,32 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
 
       const url = `${POKEMON_TCG_API_BASE}/cards?q=${encodeURIComponent(searchQuery)}&page=${page}&pageSize=${pageSize}`;
-      
-      logger.info('Pokemon TCG API search', { query, options, url });
-      
+
+      logger.info("Pokemon TCG API search", { query, options, url });
+
       const response = await fetch(url, {
         headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`Pokemon TCG API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Pokemon TCG API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: PokemonApiResponse = await response.json();
-      
+
       return {
-        cards: data.data.map(card => this.transformToUniversal(card)),
+        cards: data.data.map((card) => this.transformToUniversal(card)),
         total: data.totalCount,
         page: data.page,
         hasMore: data.page * data.pageSize < data.totalCount,
       };
     } catch (error) {
-      logger.error('Pokemon TCG adapter search failed', error, { query, options });
+      logger.error("Pokemon TCG adapter search failed", error, {
+        query,
+        options,
+      });
       throw error;
     }
   }
@@ -188,9 +193,9 @@ export class PokemonTCGAdapter implements ICardAdapter {
   async getCardById(id: string): Promise<UniversalCard | null> {
     try {
       const url = `${POKEMON_TCG_API_BASE}/cards/${id}`;
-      
-      logger.info('Pokemon TCG API get by ID', { id, url });
-      
+
+      logger.info("Pokemon TCG API get by ID", { id, url });
+
       const response = await fetch(url, {
         headers: this.getHeaders(),
       });
@@ -200,21 +205,23 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
 
       if (!response.ok) {
-        throw new Error(`Pokemon TCG API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Pokemon TCG API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: { data: PokemonCard } = await response.json();
-      
+
       return this.transformToUniversal(data.data);
     } catch (error) {
-      logger.error('Pokemon TCG adapter getCardById failed', error, { id });
+      logger.error("Pokemon TCG adapter getCardById failed", error, { id });
       throw error;
     }
   }
 
   async getCardByName(
     name: string,
-    options?: { set?: string }
+    options?: { set?: string },
   ): Promise<UniversalCard | null> {
     try {
       // Search for exact name match
@@ -224,19 +231,21 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
 
       const url = `${POKEMON_TCG_API_BASE}/cards?q=${encodeURIComponent(searchQuery)}`;
-      
-      logger.info('Pokemon TCG API get by name', { name, options, url });
-      
+
+      logger.info("Pokemon TCG API get by name", { name, options, url });
+
       const response = await fetch(url, {
         headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`Pokemon TCG API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Pokemon TCG API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: PokemonApiResponse = await response.json();
-      
+
       if (data.data.length === 0) {
         return null;
       }
@@ -248,7 +257,10 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error('Pokemon TCG adapter getCardByName failed', error, { name, options });
+      logger.error("Pokemon TCG adapter getCardByName failed", error, {
+        name,
+        options,
+      });
       throw error;
     }
   }
@@ -262,22 +274,24 @@ export class PokemonTCGAdapter implements ICardAdapter {
       // Search for cards matching the query
       const searchQuery = `name:"${query}*"`;
       const url = `${POKEMON_TCG_API_BASE}/cards?q=${encodeURIComponent(searchQuery)}&pageSize=${limit}`;
-      
-      logger.info('Pokemon TCG API autocomplete', { query, limit, url });
-      
+
+      logger.info("Pokemon TCG API autocomplete", { query, limit, url });
+
       const response = await fetch(url, {
         headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`Pokemon TCG API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Pokemon TCG API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: PokemonApiResponse = await response.json();
-      
+
       // Remove duplicates by name
       const uniqueNames = new Map<string, string>();
-      data.data.forEach(card => {
+      data.data.forEach((card) => {
         if (!uniqueNames.has(card.name)) {
           uniqueNames.set(card.name, card.id);
         }
@@ -290,7 +304,10 @@ export class PokemonTCGAdapter implements ICardAdapter {
         })),
       };
     } catch (error) {
-      logger.error('Pokemon TCG adapter autocomplete failed', error, { query, limit });
+      logger.error("Pokemon TCG adapter autocomplete failed", error, {
+        query,
+        limit,
+      });
       throw error;
     }
   }
@@ -302,40 +319,44 @@ export class PokemonTCGAdapter implements ICardAdapter {
     try {
       // Pokemon TCG API doesn't have a direct random endpoint
       // We'll get a random page and pick a random card
-      let searchQuery = '';
+      let searchQuery = "";
       if (options?.set) {
         searchQuery = `set.id:${options.set}`;
       }
 
-      const url = searchQuery 
+      const url = searchQuery
         ? `${POKEMON_TCG_API_BASE}/cards?q=${encodeURIComponent(searchQuery)}&pageSize=250`
         : `${POKEMON_TCG_API_BASE}/cards?pageSize=250`;
-      
-      logger.info('Pokemon TCG API get random', { options, url });
-      
+
+      logger.info("Pokemon TCG API get random", { options, url });
+
       const response = await fetch(url, {
         headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error(`Pokemon TCG API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Pokemon TCG API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: PokemonApiResponse = await response.json();
-      
+
       if (data.data.length === 0) {
-        throw new Error('No Pokemon cards found');
+        throw new Error("No Pokemon cards found");
       }
 
       // Pick a random card from the results
       const randomIndex = Math.floor(Math.random() * data.data.length);
       const randomCard = data.data[randomIndex];
       if (!randomCard) {
-        throw new Error('No Pokemon cards found');
+        throw new Error("No Pokemon cards found");
       }
       return this.transformToUniversal(randomCard);
     } catch (error) {
-      logger.error('Pokemon TCG adapter getRandomCard failed', error, { options });
+      logger.error("Pokemon TCG adapter getRandomCard failed", error, {
+        options,
+      });
       throw error;
     }
   }

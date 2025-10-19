@@ -5,6 +5,7 @@ This guide covers SSL/TLS certificate management for Shuffle & Sync, including a
 ## Overview
 
 Shuffle & Sync uses automatic SSL/TLS certificates provisioned by Google Cloud Run through Let's Encrypt. This provides:
+
 - Automatic certificate provisioning
 - Auto-renewal (no manual intervention)
 - Modern TLS protocols (TLS 1.2, TLS 1.3)
@@ -18,11 +19,13 @@ Shuffle & Sync uses automatic SSL/TLS certificates provisioned by Google Cloud R
 When you map a custom domain to Cloud Run, SSL certificates are automatically provisioned:
 
 **Prerequisites**:
+
 1. Domain ownership verified
 2. DNS records correctly configured
 3. Domain mapping created in Cloud Run
 
 **Process**:
+
 ```bash
 # 1. Create domain mapping
 gcloud run domain-mappings create \
@@ -81,11 +84,13 @@ gcloud run domain-mappings describe \
 Cloud Run supports modern, secure cipher suites:
 
 **TLS 1.3** (Recommended):
+
 - `TLS_AES_128_GCM_SHA256`
 - `TLS_AES_256_GCM_SHA384`
 - `TLS_CHACHA20_POLY1305_SHA256`
 
 **TLS 1.2** (Compatibility):
+
 - `ECDHE-RSA-AES128-GCM-SHA256`
 - `ECDHE-RSA-AES256-GCM-SHA384`
 - `ECDHE-RSA-CHACHA20-POLY1305`
@@ -105,6 +110,7 @@ gcloud run domain-mappings describe \
 ```
 
 Expected output when ready:
+
 ```
 Ready
 ```
@@ -181,6 +187,7 @@ Target rating: **A+**
 ### Automatic Renewal
 
 Cloud Run handles renewal automatically:
+
 - Renewal starts 60 days before expiration
 - New certificate provisioned in background
 - Zero-downtime certificate replacement
@@ -195,7 +202,7 @@ Verify auto-renewal is working:
 # Add to crontab: 0 9 1 * * /path/to/check-ssl.sh
 
 # Check renewal logs
-gcloud logging read "resource.type=cloud_run_revision AND 
+gcloud logging read "resource.type=cloud_run_revision AND
   textPayload=~certificate" \
   --limit 50 \
   --format json
@@ -208,6 +215,7 @@ gcloud logging read "resource.type=cloud_run_revision AND
 **Symptom**: Domain mapping stuck in `CertificatePending` status
 
 **Common Causes**:
+
 1. DNS not configured correctly
 2. DNS not yet propagated
 3. CAA records blocking Let's Encrypt
@@ -216,13 +224,14 @@ gcloud logging read "resource.type=cloud_run_revision AND
 **Solutions**:
 
 1. **Verify DNS Configuration**:
+
    ```bash
    # Check A records
    dig app.shufflesync.com A +short
-   
+
    # Check AAAA records
    dig app.shufflesync.com AAAA +short
-   
+
    # Ensure they match Cloud Run IPs
    ```
 
@@ -232,11 +241,13 @@ gcloud logging read "resource.type=cloud_run_revision AND
    - Use https://dnschecker.org
 
 3. **Check CAA Records**:
+
    ```bash
    dig shufflesync.com CAA +short
    ```
-   
+
    If CAA records exist but don't include Let's Encrypt:
+
    ```bash
    # Add Let's Encrypt CAA record in DNS
    Type: CAA
@@ -245,14 +256,15 @@ gcloud logging read "resource.type=cloud_run_revision AND
    ```
 
 4. **Delete and Recreate Mapping**:
+
    ```bash
    # Delete existing mapping
    gcloud run domain-mappings delete \
      --domain app.shufflesync.com \
      --region us-central1
-   
+
    # Wait 5 minutes
-   
+
    # Recreate mapping
    gcloud run domain-mappings create \
      --service shuffle-and-sync-frontend \
@@ -287,6 +299,7 @@ gcloud logging read "resource.type=cloud_run_revision AND
 **This should never happen** with Cloud Run's automatic renewal, but if it does:
 
 1. **Check Domain Mapping Status**:
+
    ```bash
    gcloud run domain-mappings describe \
      --domain app.shufflesync.com \
@@ -294,12 +307,13 @@ gcloud logging read "resource.type=cloud_run_revision AND
    ```
 
 2. **Recreate Domain Mapping**:
+
    ```bash
    # This forces new certificate provisioning
    gcloud run domain-mappings delete \
      --domain app.shufflesync.com \
      --region us-central1
-   
+
    gcloud run domain-mappings create \
      --service shuffle-and-sync-frontend \
      --domain app.shufflesync.com \
@@ -318,12 +332,16 @@ Configure HSTS headers in your application:
 ```typescript
 // In Express middleware
 app.use((req, res, next) => {
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload",
+  );
   next();
 });
 ```
 
 HSTS configuration:
+
 - `max-age=31536000`: 1 year
 - `includeSubDomains`: Apply to all subdomains
 - `preload`: Eligible for HSTS preload list
@@ -331,6 +349,7 @@ HSTS configuration:
 ### HSTS Preloading
 
 Submit domain to HSTS preload list:
+
 1. Configure HSTS header (as above)
 2. Visit https://hstspreload.org
 3. Submit your domain
@@ -342,14 +361,15 @@ Implement CSP headers:
 
 ```typescript
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
+  res.setHeader(
+    "Content-Security-Policy",
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://trusted-cdn.com; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https:; " +
-    "font-src 'self'; " +
-    "connect-src 'self' https://api.shufflesync.com; " +
-    "upgrade-insecure-requests;"
+      "script-src 'self' 'unsafe-inline' https://trusted-cdn.com; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self'; " +
+      "connect-src 'self' https://api.shufflesync.com; " +
+      "upgrade-insecure-requests;",
   );
   next();
 });
@@ -361,23 +381,29 @@ app.use((req, res, next) => {
 // Security headers middleware
 app.use((req, res, next) => {
   // HSTS
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload",
+  );
+
   // Prevent clickjacking
-  res.setHeader('X-Frame-Options', 'DENY');
-  
+  res.setHeader("X-Frame-Options", "DENY");
+
   // Prevent MIME sniffing
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  
+  res.setHeader("X-Content-Type-Options", "nosniff");
+
   // XSS protection
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+
   // Referrer policy
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
   // Permissions policy
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  
+  res.setHeader(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=()",
+  );
+
   next();
 });
 ```
@@ -406,18 +432,20 @@ Add certificate metrics to monitoring dashboard:
 {
   "displayName": "SSL Certificate Status",
   "mosaicLayout": {
-    "tiles": [{
-      "widget": {
-        "title": "Certificate Expiration",
-        "scorecard": {
-          "timeSeriesQuery": {
-            "timeSeriesFilter": {
-              "filter": "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/certificate/expiration_time\""
+    "tiles": [
+      {
+        "widget": {
+          "title": "Certificate Expiration",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/certificate/expiration_time\""
+              }
             }
           }
         }
       }
-    }]
+    ]
   }
 }
 ```
@@ -459,6 +487,7 @@ Each domain gets its own certificate automatically.
 ### PCI DSS Requirements
 
 For PCI DSS compliance:
+
 - ✅ TLS 1.2+ required (supported)
 - ✅ Strong cipher suites (supported)
 - ✅ Current certificates (auto-renewed)
@@ -470,7 +499,7 @@ Log all certificate-related events:
 
 ```bash
 # View certificate provisioning logs
-gcloud logging read "resource.type=cloud_run_revision AND 
+gcloud logging read "resource.type=cloud_run_revision AND
   (textPayload=~certificate OR jsonPayload.message=~certificate)" \
   --limit 100 \
   --format json
@@ -494,6 +523,7 @@ If a private key is compromised:
    - Use certificate revocation API
 
 2. **Delete domain mapping**:
+
    ```bash
    gcloud run domain-mappings delete \
      --domain app.shufflesync.com \
@@ -501,6 +531,7 @@ If a private key is compromised:
    ```
 
 3. **Recreate mapping** (new certificate):
+
    ```bash
    gcloud run domain-mappings create \
      --service shuffle-and-sync-frontend \

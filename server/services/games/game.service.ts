@@ -1,15 +1,15 @@
 /**
  * Game Service
- * 
+ *
  * Service for managing user-defined games in the Universal Deck-Building framework
  * NOTE: Currently disabled - 'games' table not yet implemented in schema
  */
 
-import { eq, and } from 'drizzle-orm';
-import { db } from '../../../shared/database-unified';
+import { eq, and } from "drizzle-orm";
+import { db } from "../../../shared/database-unified";
 // TODO: Re-enable when games table is added to schema
 // import { games } from '../../../shared/schema';
-import { logger } from '../../logger';
+import { logger } from "../../logger";
 
 export interface GameData {
   name: string;
@@ -58,7 +58,9 @@ export interface GameUpdate {
 
 export class GameService {
   private throwNotImplemented() {
-    throw new Error('Game service not yet implemented - games table missing from schema');
+    throw new Error(
+      "Game service not yet implemented - games table missing from schema",
+    );
   }
 
   async createGame(userId: string, gameData: GameData) {
@@ -69,9 +71,9 @@ export class GameService {
     this.throwNotImplemented();
   }
 
-  async getAllGames(filters?: { 
-    isPublished?: boolean; 
-    isOfficial?: boolean; 
+  async getAllGames(filters?: {
+    isPublished?: boolean;
+    isOfficial?: boolean;
     creatorId?: string;
   }) {
     this.throwNotImplemented();

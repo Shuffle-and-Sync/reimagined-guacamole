@@ -1,16 +1,26 @@
-import { useState, useEffect } from 'react';
-import { Bell, X, Check, Calendar, Users, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/features/auth';
+import { useState, useEffect } from "react";
+import { Bell, X, Check, Calendar, Users, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/features/auth";
 
 interface Notification {
   id: string;
-  type: 'event' | 'message' | 'friend_request' | 'system';
+  type: "event" | "message" | "friend_request" | "system";
   title: string;
   message: string;
   timestamp: string;
@@ -21,70 +31,67 @@ interface Notification {
 // Mock notifications for now
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
-    id: '1',
-    type: 'event',
-    title: 'Event Starting Soon',
-    message: 'Commander night at GameStore starts in 30 minutes',
-    timestamp: '2024-09-05T18:00:00Z',
+    id: "1",
+    type: "event",
+    title: "Event Starting Soon",
+    message: "Commander night at GameStore starts in 30 minutes",
+    timestamp: "2024-09-05T18:00:00Z",
     read: false,
-    actionUrl: '/calendar'
+    actionUrl: "/calendar",
   },
   {
-    id: '2',
-    type: 'message',
-    title: 'New Message',
-    message: 'John sent you a message about tonight\'s game',
-    timestamp: '2024-09-05T17:45:00Z',
+    id: "2",
+    type: "message",
+    title: "New Message",
+    message: "John sent you a message about tonight's game",
+    timestamp: "2024-09-05T17:45:00Z",
     read: false,
-    actionUrl: '/social'
+    actionUrl: "/social",
   },
   {
-    id: '3',
-    type: 'friend_request',
-    title: 'Friend Request',
-    message: 'Sarah wants to be your friend',
-    timestamp: '2024-09-05T17:30:00Z',
+    id: "3",
+    type: "friend_request",
+    title: "Friend Request",
+    message: "Sarah wants to be your friend",
+    timestamp: "2024-09-05T17:30:00Z",
     read: true,
-    actionUrl: '/social'
+    actionUrl: "/social",
   },
 ];
 
 export function NotificationCenter() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] =
+    useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [isOpen, setIsOpen] = useState(false);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      )
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     toast({
-      title: 'All notifications marked as read',
+      title: "All notifications marked as read",
     });
   };
 
   const removeNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
-      case 'event':
+      case "event":
         return <Calendar className="h-4 w-4" />;
-      case 'message':
+      case "message":
         return <MessageSquare className="h-4 w-4" />;
-      case 'friend_request':
+      case "friend_request":
         return <Users className="h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
@@ -111,16 +118,16 @@ export function NotificationCenter() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="relative"
           data-testid="button-notification-center"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
               data-testid="badge-notification-count"
             >
@@ -147,7 +154,8 @@ export function NotificationCenter() {
             </div>
             {unreadCount > 0 && (
               <CardDescription>
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                You have {unreadCount} unread notification
+                {unreadCount !== 1 ? "s" : ""}
               </CardDescription>
             )}
           </CardHeader>
@@ -159,7 +167,7 @@ export function NotificationCenter() {
                     <div
                       key={notification.id}
                       className={`p-4 hover:bg-muted/50 transition-colors ${
-                        !notification.read ? 'bg-muted/30' : ''
+                        !notification.read ? "bg-muted/30" : ""
                       }`}
                       data-testid={`notification-${notification.id}`}
                     >

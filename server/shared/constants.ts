@@ -16,62 +16,62 @@ export const HTTP_STATUS = {
 } as const;
 
 export const USER_ROLES = {
-  ADMIN: 'admin',
-  MODERATOR: 'moderator',
-  USER: 'user',
+  ADMIN: "admin",
+  MODERATOR: "moderator",
+  USER: "user",
 } as const;
 
 export const EVENT_TYPES = {
-  TOURNAMENT: 'tournament',
-  CONVENTION: 'convention',
-  RELEASE: 'release',
-  COMMUNITY: 'community',
-  GAME_POD: 'game_pod',
-  STREAM: 'stream',
-  PERSONAL: 'personal',
+  TOURNAMENT: "tournament",
+  CONVENTION: "convention",
+  RELEASE: "release",
+  COMMUNITY: "community",
+  GAME_POD: "game_pod",
+  STREAM: "stream",
+  PERSONAL: "personal",
 } as const;
 
 export const NOTIFICATION_TYPES = {
-  FRIEND_REQUEST: 'friend_request',
-  FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
-  EVENT_INVITE: 'event_invite',
-  EVENT_REMINDER: 'event_reminder',
-  MESSAGE: 'message',
-  SYSTEM: 'system',
+  FRIEND_REQUEST: "friend_request",
+  FRIEND_REQUEST_ACCEPTED: "friend_request_accepted",
+  EVENT_INVITE: "event_invite",
+  EVENT_REMINDER: "event_reminder",
+  MESSAGE: "message",
+  SYSTEM: "system",
 } as const;
 
 export const FRIENDSHIP_STATUS = {
-  PENDING: 'pending',
-  ACCEPTED: 'accepted',
-  DECLINED: 'declined',
-  BLOCKED: 'blocked',
+  PENDING: "pending",
+  ACCEPTED: "accepted",
+  DECLINED: "declined",
+  BLOCKED: "blocked",
 } as const;
 
 export const ATTENDANCE_STATUS = {
-  ATTENDING: 'attending',
-  MAYBE: 'maybe',
-  NOT_ATTENDING: 'not_attending',
+  ATTENDING: "attending",
+  MAYBE: "maybe",
+  NOT_ATTENDING: "not_attending",
 } as const;
 
 export const PLAYER_ROLES = {
-  PARTICIPANT: 'participant',
-  HOST: 'host',
-  CO_HOST: 'co_host',
-  SPECTATOR: 'spectator',
+  PARTICIPANT: "participant",
+  HOST: "host",
+  CO_HOST: "co_host",
+  SPECTATOR: "spectator",
 } as const;
 
 export const PLAYER_TYPES = {
-  MAIN: 'main',
-  ALTERNATE: 'alternate',
+  MAIN: "main",
+  ALTERNATE: "alternate",
 } as const;
 
 export const COMMUNITIES = {
-  MTG: 'mtg',
-  POKEMON: 'pokemon',
-  LORCANA: 'lorcana',
-  YUGIOH: 'yugioh',
-  DIGIMON: 'digimon',
-  DRAGON_BALL: 'dragon_ball',
+  MTG: "mtg",
+  POKEMON: "pokemon",
+  LORCANA: "lorcana",
+  YUGIOH: "yugioh",
+  DIGIMON: "digimon",
+  DRAGON_BALL: "dragon_ball",
 } as const;
 
 // Rate limiting

@@ -16,7 +16,8 @@ Shuffle & Sync uses SQLite Cloud as its database backend, accessed through Drizz
 
 ## Q: Do I need a local database or SQLite Cloud?
 
-**A: Either works.** 
+**A: Either works.**
+
 - **Local Development**: Use local SQLite file (`./dev.db`)
 - **Production**: Use SQLite Cloud instance
 
@@ -65,6 +66,7 @@ npm run build
 ```
 
 **Steps:**
+
 1. ✅ Type checking (TypeScript)
 2. ✅ Frontend build (Vite)
 3. ✅ Backend build (esbuild)
@@ -104,19 +106,20 @@ If you see this output, your SQLite Cloud database is correctly configured.
 
 ## Quick Reference
 
-| Component | Purpose | Active Use |
-|-----------|---------|------------|
-| SQLite Cloud | Data storage | ✅ Always |
-| Drizzle ORM | Query builder | ✅ Runtime |
-| Drizzle Schema | Schema definition | ✅ Active |
-| Drizzle Migrations | Schema changes | ✅ Active |
-| @auth/drizzle-adapter | Session storage | ✅ Active |
+| Component             | Purpose           | Active Use |
+| --------------------- | ----------------- | ---------- |
+| SQLite Cloud          | Data storage      | ✅ Always  |
+| Drizzle ORM           | Query builder     | ✅ Runtime |
+| Drizzle Schema        | Schema definition | ✅ Active  |
+| Drizzle Migrations    | Schema changes    | ✅ Active  |
+| @auth/drizzle-adapter | Session storage   | ✅ Active  |
 
 ---
 
 ## Need More Details?
 
 See the comprehensive [Database Architecture Guide](DATABASE_ARCHITECTURE.md) for:
+
 - Detailed architecture diagrams
 - Migration history
 - Code examples

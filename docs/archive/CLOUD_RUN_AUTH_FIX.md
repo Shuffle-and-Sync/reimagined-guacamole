@@ -3,6 +3,7 @@
 ## Problem Description
 
 When deployed to Cloud Run, the application experiences redirect loops during authentication, resulting in the browser error:
+
 ```
 ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 ```
@@ -20,6 +21,7 @@ This error occurs at `/api/auth/error` and prevents users from logging in or sig
 ### Cause 1: Frontend/Backend Split Without Proxy (Most Common)
 
 When frontend and backend are deployed as **separate Cloud Run services**:
+
 - Frontend: `https://shuffle-sync-frontend-*.us-central1.run.app` (NGINX serving React SPA)
 - Backend: `https://shuffle-sync-backend-*.us-central1.run.app` (Express + Auth.js)
 
@@ -44,58 +46,68 @@ The issue was caused by a mismatch between the configured `AUTH_URL` and the act
 ### 1. Simplified Auth Configuration (`server/auth/auth.config.ts`)
 
 **Before:**
+
 ```typescript
 // Required AUTH_URL in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
-    throw new Error('AUTH_URL or NEXTAUTH_URL environment variable is required in production');
+    throw new Error(
+      "AUTH_URL or NEXTAUTH_URL environment variable is required in production",
+    );
   }
 }
 
 // Complex getBaseUrl() function with conditional logic
 function getBaseUrl(): string {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     // ... development logic
   }
-  const prodUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL || `https://${process.env.REPLIT_DOMAINS}`;
+  const prodUrl =
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL ||
+    `https://${process.env.REPLIT_DOMAINS}`;
   return prodUrl;
 }
 
 export const authConfig: AuthConfig = {
-  ...(process.env.NODE_ENV === 'development' && { 
+  ...(process.env.NODE_ENV === "development" && {
     url: getBaseUrl(),
   }),
   // ...
-}
+};
 ```
 
 **After:**
+
 ```typescript
 // AUTH_URL is now optional when trustHost is enabled
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
-    console.warn('[AUTH] No AUTH_URL set - relying on trustHost for URL detection');
+    console.warn(
+      "[AUTH] No AUTH_URL set - relying on trustHost for URL detection",
+    );
   }
 }
 
 export const authConfig: AuthConfig = {
   secret: process.env.AUTH_SECRET,
   trustHost: true, // Critical: Enable auto-detection from request headers
-  useSecureCookies: process.env.NODE_ENV === 'production',
+  useSecureCookies: process.env.NODE_ENV === "production",
   // ... no conditional URL setting
-}
+};
 ```
 
 ### 2. Fixed Redirect Callback
 
 **Before:**
+
 ```typescript
 async redirect({ url, baseUrl }) {
   // Used different base URLs for dev vs prod
-  const preferredBase = process.env.NODE_ENV === 'development' 
+  const preferredBase = process.env.NODE_ENV === 'development'
     ? baseUrl
     : (process.env.AUTH_URL || baseUrl);
-  
+
   if (url.startsWith('/')) return `${preferredBase}${url}`;
   // ... complex URL replacement logic
   return `${preferredBase}/home`;
@@ -103,14 +115,15 @@ async redirect({ url, baseUrl }) {
 ```
 
 **After:**
+
 ```typescript
 async redirect({ url, baseUrl }) {
   // ALWAYS use baseUrl from Auth.js - it's already resolved correctly
   // trustHost: true ensures baseUrl matches the actual request host
-  
+
   if (url.startsWith('/')) return `${baseUrl}${url}`;
   if (url.startsWith(baseUrl)) return url;
-  
+
   // Validate same-domain for absolute URLs
   try {
     const urlObj = new URL(url);
@@ -121,7 +134,7 @@ async redirect({ url, baseUrl }) {
   } catch (e) {
     // Invalid URL, fall through to default
   }
-  
+
   return `${baseUrl}/home`;
 }
 ```
@@ -129,11 +142,15 @@ async redirect({ url, baseUrl }) {
 ### 3. Updated Auth Routes (`server/auth/auth.routes.ts`)
 
 **Changed:**
+
 ```typescript
-router.use("*", ExpressAuth({
-  ...authConfig,
-  basePath: "/api/auth", // Full path for proper URL resolution
-}));
+router.use(
+  "*",
+  ExpressAuth({
+    ...authConfig,
+    basePath: "/api/auth", // Full path for proper URL resolution
+  }),
+);
 ```
 
 ## Cloud Run Deployment Configuration
@@ -158,12 +175,14 @@ AUTH_TRUST_HOST=true
 ### How It Works
 
 With `trustHost: true`, Auth.js automatically detects the correct base URL from:
+
 1. `X-Forwarded-Host` header (set by Cloud Run)
 2. `X-Forwarded-Proto` header (https in Cloud Run)
 3. Request host and protocol
 
 This means:
-- ✅ No need to hardcode `AUTH_URL` 
+
+- ✅ No need to hardcode `AUTH_URL`
 - ✅ Works with Cloud Run's auto-generated URLs
 - ✅ Works with custom domains automatically
 - ✅ No redirect loops from URL mismatches
@@ -187,6 +206,7 @@ AUTH_URL=https://api.shuffleandsync.com
 When using Google OAuth, ensure your callback URLs are configured correctly:
 
 ### Google OAuth Console
+
 1. Go to https://console.developers.google.com
 2. Select your project
 3. Navigate to Credentials → OAuth 2.0 Client IDs
@@ -197,7 +217,9 @@ When using Google OAuth, ensure your callback URLs are configured correctly:
    ```
 
 ### Auto-detection Benefits
+
 With `trustHost: true`, you can use multiple domains without reconfiguring:
+
 - Cloud Run auto-generated URL
 - Custom domain
 - Staging/preview URLs
@@ -207,11 +229,13 @@ Just add all possible callback URLs to your OAuth provider configuration.
 ## Verification
 
 ### 1. Test Health Endpoint
+
 ```bash
 curl https://your-service.run.app/api/health
 ```
 
 Should return:
+
 ```json
 {
   "status": "ok",
@@ -223,6 +247,7 @@ Should return:
 ```
 
 ### 2. Test Auth Endpoints
+
 ```bash
 # Check providers
 curl https://your-service.run.app/api/auth/providers
@@ -231,6 +256,7 @@ curl https://your-service.run.app/api/auth/providers
 ```
 
 ### 3. Test Sign-In Flow
+
 1. Navigate to `https://your-service.run.app`
 2. Click "Sign In"
 3. Complete OAuth flow
@@ -241,10 +267,11 @@ curl https://your-service.run.app/api/auth/providers
 ### Still Getting Redirect Loops?
 
 1. **Check Cloud Run Logs:**
+
    ```bash
    gcloud logging read "resource.type=cloud_run_revision" --limit 50
    ```
-   
+
    Look for `[AUTH]` log messages showing detected URLs.
 
 2. **Verify OAuth Configuration:**
@@ -253,10 +280,11 @@ curl https://your-service.run.app/api/auth/providers
    - HTTPS required in production
 
 3. **Check Environment Variables:**
+
    ```bash
    gcloud run services describe shuffle-sync-backend --region=us-central1 --format="value(spec.template.spec.containers[0].env)"
    ```
-   
+
    Verify:
    - `AUTH_SECRET` is set
    - `AUTH_TRUST_HOST` is `true` or not set (defaults to true)
@@ -266,17 +294,19 @@ curl https://your-service.run.app/api/auth/providers
    Cloud Run automatically sets these headers:
    - `X-Forwarded-Host`: Your service hostname
    - `X-Forwarded-Proto`: https
-   
+
    The Express app has `app.set('trust proxy', 1)` to trust these headers.
 
 ### Common Mistakes
 
 ❌ **Wrong:** Setting AUTH_URL to localhost or development URL
+
 ```bash
 AUTH_URL=http://localhost:3000  # DON'T DO THIS IN PRODUCTION
 ```
 
 ✅ **Right:** Omit AUTH_URL and let it auto-detect
+
 ```bash
 # Just set required vars, omit AUTH_URL
 AUTH_SECRET=<secret>
@@ -284,12 +314,14 @@ DATABASE_URL=<db-url>
 ```
 
 ❌ **Wrong:** Mismatched callback URLs
+
 ```bash
 # OAuth Console: https://my-app.com/api/auth/callback/google
 # Actual service: https://my-app.run.app  # MISMATCH!
 ```
 
 ✅ **Right:** Add ALL callback URLs to OAuth console
+
 ```bash
 # Add both:
 https://my-app.run.app/api/auth/callback/google

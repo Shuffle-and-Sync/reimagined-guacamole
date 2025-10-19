@@ -1,20 +1,23 @@
-import { logger } from '../logger';
-import { storage } from '../storage';
-import { streamingCoordinator } from './streaming-coordinator';
-import { aiStreamingMatcher } from './ai-streaming-matcher';
-import { resolvePlatformIdentifiers, getValidPlatformToken } from './platform-oauth';
-import { youtubeAPI } from './youtube-api';
-import { twitchAPI } from './twitch-api';
-import { facebookAPI } from './facebook-api';
+import { logger } from "../logger";
+import { storage } from "../storage";
+import { streamingCoordinator } from "./streaming-coordinator";
+import { aiStreamingMatcher } from "./ai-streaming-matcher";
+import {
+  resolvePlatformIdentifiers,
+  getValidPlatformToken,
+} from "./platform-oauth";
+import { youtubeAPI } from "./youtube-api";
+import { twitchAPI } from "./twitch-api";
+import { facebookAPI } from "./facebook-api";
 
-import type { 
-  CollaborativeStreamEvent, 
-  StreamCollaborator, 
+import type {
+  CollaborativeStreamEvent,
+  StreamCollaborator,
   StreamCoordinationSession,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
-  InsertStreamCoordinationSession
-} from '@shared/schema';
+  InsertStreamCoordinationSession,
+} from "@shared/schema";
 
 /**
  * Collaborative Streaming Service
@@ -22,12 +25,16 @@ import type {
  */
 export class CollaborativeStreamingService {
   private static instance: CollaborativeStreamingService;
-  private activeCoordinationSessions = new Map<string, StreamCoordinationSession>();
+  private activeCoordinationSessions = new Map<
+    string,
+    StreamCoordinationSession
+  >();
   private eventSubscriptions = new Map<string, Set<string>>(); // eventId -> Set of user IDs
 
   static getInstance(): CollaborativeStreamingService {
     if (!CollaborativeStreamingService.instance) {
-      CollaborativeStreamingService.instance = new CollaborativeStreamingService();
+      CollaborativeStreamingService.instance =
+        new CollaborativeStreamingService();
     }
     return CollaborativeStreamingService.instance;
   }
@@ -36,42 +43,44 @@ export class CollaborativeStreamingService {
    * Create a new collaborative streaming event
    */
   async createCollaborativeEvent(
-    creatorId: string, 
-    eventData: Omit<InsertCollaborativeStreamEvent, 'creatorId'>
+    creatorId: string,
+    eventData: Omit<InsertCollaborativeStreamEvent, "creatorId">,
   ): Promise<CollaborativeStreamEvent> {
     try {
       const event = await storage.createCollaborativeStreamEvent({
         ...eventData,
         creatorId,
-        status: 'planning'
+        status: "planning",
       });
 
       // Add creator as the primary host
       await this.addCollaborator(event.id, {
         eventId: event.id, // Required field for compatibility
         userId: creatorId,
-        role: 'host',
-        status: 'accepted',
+        role: "host",
+        status: "accepted",
         invitedByUserId: creatorId,
         platformHandles: JSON.stringify({}),
-        streamingCapabilities: JSON.stringify(['host', 'co_stream']),
+        streamingCapabilities: JSON.stringify(["host", "co_stream"]),
         availableTimeSlots: JSON.stringify({}),
         contentSpecialties: JSON.stringify([]),
-        technicalSetup: JSON.stringify({})
+        technicalSetup: JSON.stringify({}),
       });
 
       // Initialize event subscription tracking
       this.eventSubscriptions.set(event.id, new Set([creatorId]));
 
-      logger.info('Collaborative streaming event created', { 
-        eventId: event.id, 
-        creatorId, 
-        title: event.title 
+      logger.info("Collaborative streaming event created", {
+        eventId: event.id,
+        creatorId,
+        title: event.title,
       });
 
       return event;
     } catch (error) {
-      logger.error('Failed to create collaborative streaming event', error, { creatorId });
+      logger.error("Failed to create collaborative streaming event", error, {
+        creatorId,
+      });
       throw error;
     }
   }
@@ -80,13 +89,13 @@ export class CollaborativeStreamingService {
    * Add a collaborator to a streaming event
    */
   async addCollaborator(
-    eventId: string, 
-    collaboratorData: Omit<InsertStreamCollaborator, 'streamEventId'>
+    eventId: string,
+    collaboratorData: Omit<InsertStreamCollaborator, "streamEventId">,
   ): Promise<StreamCollaborator> {
     try {
       const collaborator = await storage.createStreamCollaborator({
         ...collaboratorData,
-        streamEventId: eventId
+        streamEventId: eventId,
       });
 
       // Add to subscription tracking
@@ -94,15 +103,15 @@ export class CollaborativeStreamingService {
       eventSubs.add(collaborator.userId);
       this.eventSubscriptions.set(eventId, eventSubs);
 
-      logger.info('Collaborator added to streaming event', { 
-        eventId, 
-        userId: collaborator.userId, 
-        role: collaborator.role 
+      logger.info("Collaborator added to streaming event", {
+        eventId,
+        userId: collaborator.userId,
+        role: collaborator.role,
       });
 
       return collaborator;
     } catch (error) {
-      logger.error('Failed to add collaborator', error, { eventId });
+      logger.error("Failed to add collaborator", error, { eventId });
       throw error;
     }
   }
@@ -111,8 +120,8 @@ export class CollaborativeStreamingService {
    * Get AI-powered collaboration suggestions for an event
    */
   async getCollaborationSuggestions(
-    eventId: string, 
-    requesterId: string
+    eventId: string,
+    requesterId: string,
   ): Promise<{
     suggestedCollaborators: any[];
     strategicRecommendations: string[];
@@ -127,25 +136,34 @@ export class CollaborativeStreamingService {
       // Use AI matching to find potential collaborators
       const matchingResults = await aiStreamingMatcher.findStreamingPartners({
         userId: requesterId,
-        games: [event.contentType || 'general'],
+        games: [event.contentType || "general"],
         maxResults: 10,
-        urgency: 'low'
+        urgency: "low",
         // Note: platforms removed as not part of MatchingCriteria type
       });
 
       // Generate strategic recommendations
-      const strategicRecommendations = this.generateStrategicRecommendations(event, matchingResults);
+      const strategicRecommendations = this.generateStrategicRecommendations(
+        event,
+        matchingResults,
+      );
 
       // Calculate optimal scheduling
-      const optimalScheduling = await this.calculateOptimalScheduling(event, matchingResults);
+      const optimalScheduling = await this.calculateOptimalScheduling(
+        event,
+        matchingResults,
+      );
 
       return {
         suggestedCollaborators: matchingResults,
         strategicRecommendations,
-        optimalScheduling
+        optimalScheduling,
       };
     } catch (error) {
-      logger.error('Failed to get collaboration suggestions', error, { eventId, requesterId });
+      logger.error("Failed to get collaboration suggestions", error, {
+        eventId,
+        requesterId,
+      });
       throw error;
     }
   }
@@ -154,8 +172,8 @@ export class CollaborativeStreamingService {
    * Start real-time coordination session for a collaborative event
    */
   async startCoordinationSession(
-    eventId: string, 
-    hostUserId: string
+    eventId: string,
+    hostUserId: string,
   ): Promise<StreamCoordinationSession> {
     try {
       const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -168,7 +186,7 @@ export class CollaborativeStreamingService {
         streamEventId: eventId,
         eventId: eventId, // Required field for compatibility
         actualStartTime: new Date(),
-        currentPhase: 'preparation',
+        currentPhase: "preparation",
         currentHost: hostUserId,
         activeCollaborators: JSON.stringify([hostUserId]),
         platformStatuses: JSON.stringify({}),
@@ -176,44 +194,49 @@ export class CollaborativeStreamingService {
         coordinationEvents: JSON.stringify([]),
         chatModerationActive: false,
         streamQualitySettings: JSON.stringify({}),
-        audioCoordination: JSON.stringify({})
+        audioCoordination: JSON.stringify({}),
       });
 
       // Cache active session
       this.activeCoordinationSessions.set(eventId, session);
 
       // Create stream session for all platforms
-      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      const streamingPlatforms = event.streamingPlatforms
+        ? JSON.parse(event.streamingPlatforms)
+        : [];
       await streamingCoordinator.createStreamSession({
         title: event.title,
-        description: event.description || '',
-        category: event.contentType || 'general',
+        description: event.description || "",
+        category: event.contentType || "general",
         platforms: streamingPlatforms.map((p: string) => ({
           id: p,
           name: p.charAt(0).toUpperCase() + p.slice(1),
-          isConnected: true
+          isConnected: true,
         })),
         hostUserId,
         coHostUserIds: [], // Will be populated as collaborators join
         scheduledStartTime: event.scheduledStartTime,
-        tags: ['collaborative', event.targetAudience || 'general'],
+        tags: ["collaborative", event.targetAudience || "general"],
         isPublic: true,
         autoStartEnabled: false,
         crossPlatformChat: true,
         recordingEnabled: false,
         multistreaming: true,
-        status: 'scheduled' as const
+        status: "scheduled" as const,
       });
 
-      logger.info('Coordination session started', { 
-        eventId, 
-        sessionId: session.id, 
-        hostUserId 
+      logger.info("Coordination session started", {
+        eventId,
+        sessionId: session.id,
+        hostUserId,
       });
 
       return session;
     } catch (error) {
-      logger.error('Failed to start coordination session', error, { eventId, hostUserId });
+      logger.error("Failed to start coordination session", error, {
+        eventId,
+        hostUserId,
+      });
       throw error;
     }
   }
@@ -222,9 +245,9 @@ export class CollaborativeStreamingService {
    * Update coordination session phase and sync across platforms
    */
   async updateCoordinationPhase(
-    eventId: string, 
-    newPhase: 'preparation' | 'live' | 'break' | 'wrap_up' | 'ended',
-    hostUserId: string
+    eventId: string,
+    newPhase: "preparation" | "live" | "break" | "wrap_up" | "ended",
+    hostUserId: string,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -235,7 +258,7 @@ export class CollaborativeStreamingService {
       // Update session phase
       await storage.updateStreamCoordinationSession(session.id, {
         currentPhase: newPhase,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       // Update cached session
@@ -245,13 +268,16 @@ export class CollaborativeStreamingService {
       // Coordinate across platforms based on phase
       await this.coordinatePlatformActions(eventId, newPhase);
 
-      logger.info('Coordination phase updated', { 
-        eventId, 
-        newPhase, 
-        hostUserId 
+      logger.info("Coordination phase updated", {
+        eventId,
+        newPhase,
+        hostUserId,
       });
     } catch (error) {
-      logger.error('Failed to update coordination phase', error, { eventId, newPhase });
+      logger.error("Failed to update coordination phase", error, {
+        eventId,
+        newPhase,
+      });
       throw error;
     }
   }
@@ -269,21 +295,33 @@ export class CollaborativeStreamingService {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
       const collaborators = await storage.getStreamCollaborators(eventId);
-      
+
       let platformStatuses: Record<string, string> = {};
       let activeViewers = 0;
 
       if (session) {
-        platformStatuses = session.platformStatuses ? JSON.parse(session.platformStatuses) : {};
-        const viewerCounts: Record<string, number> = session.viewerCounts ? JSON.parse(session.viewerCounts) : {};
-        activeViewers = Object.values(viewerCounts).reduce((sum: number, count: number) => sum + count, 0);
+        platformStatuses = session.platformStatuses
+          ? JSON.parse(session.platformStatuses)
+          : {};
+        const viewerCounts: Record<string, number> = session.viewerCounts
+          ? JSON.parse(session.viewerCounts)
+          : {};
+        activeViewers = Object.values(viewerCounts).reduce(
+          (sum: number, count: number) => sum + count,
+          0,
+        );
       }
 
       const coordinationMetrics = {
         totalCollaborators: collaborators.length,
-        activeCollaborators: session ? (JSON.parse(session.activeCollaborators || '[]')).length : 0,
+        activeCollaborators: session
+          ? JSON.parse(session.activeCollaborators || "[]").length
+          : 0,
         averageResponseTime: this.calculateAverageResponseTime(eventId),
-        coordinationHealth: this.calculateCoordinationHealth(session, collaborators)
+        coordinationHealth: this.calculateCoordinationHealth(
+          session,
+          collaborators,
+        ),
       };
 
       return {
@@ -291,10 +329,10 @@ export class CollaborativeStreamingService {
         collaborators,
         platformStatuses,
         activeViewers,
-        coordinationMetrics
+        coordinationMetrics,
       };
     } catch (error) {
-      logger.error('Failed to get coordination status', error, { eventId });
+      logger.error("Failed to get coordination status", error, { eventId });
       throw error;
     }
   }
@@ -303,9 +341,9 @@ export class CollaborativeStreamingService {
    * Handle collaborator joining live session
    */
   async handleCollaboratorJoin(
-    eventId: string, 
-    userId: string, 
-    platformData: any
+    eventId: string,
+    userId: string,
+    platformData: any,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -314,13 +352,15 @@ export class CollaborativeStreamingService {
       }
 
       // Update active collaborators
-      const activeCollaborators = JSON.parse(session.activeCollaborators || '[]');
+      const activeCollaborators = JSON.parse(
+        session.activeCollaborators || "[]",
+      );
       if (!activeCollaborators.includes(userId)) {
         activeCollaborators.push(userId);
-        
+
         await storage.updateStreamCoordinationSession(session.id, {
           activeCollaborators: JSON.stringify(activeCollaborators),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
 
         // Update cached session
@@ -330,19 +370,22 @@ export class CollaborativeStreamingService {
 
       // Log coordination event
       await this.logCoordinationEvent(eventId, {
-        type: 'collaborator_joined',
+        type: "collaborator_joined",
         userId,
         timestamp: new Date().toISOString(),
-        data: platformData
+        data: platformData,
       });
 
-      logger.info('Collaborator joined live session', { 
-        eventId, 
+      logger.info("Collaborator joined live session", {
+        eventId,
         userId,
-        activeCount: activeCollaborators.length
+        activeCount: activeCollaborators.length,
       });
     } catch (error) {
-      logger.error('Failed to handle collaborator join', error, { eventId, userId });
+      logger.error("Failed to handle collaborator join", error, {
+        eventId,
+        userId,
+      });
       throw error;
     }
   }
@@ -351,31 +394,41 @@ export class CollaborativeStreamingService {
    * Generate strategic recommendations for collaboration
    */
   private generateStrategicRecommendations(
-    event: CollaborativeStreamEvent, 
-    matches: any[]
+    event: CollaborativeStreamEvent,
+    matches: any[],
   ): string[] {
     const recommendations: string[] = [];
 
     // Audience synergy recommendations
-    if (matches.some(m => m.audienceOverlap > 0.7)) {
-      recommendations.push("High audience overlap detected - consider cross-promotion strategies");
+    if (matches.some((m) => m.audienceOverlap > 0.7)) {
+      recommendations.push(
+        "High audience overlap detected - consider cross-promotion strategies",
+      );
     }
 
     // Content type optimization
-    if (event.contentType === 'gaming') {
-      recommendations.push("Gaming content: Plan for smooth transitions between hosts and consider viewer participation");
+    if (event.contentType === "gaming") {
+      recommendations.push(
+        "Gaming content: Plan for smooth transitions between hosts and consider viewer participation",
+      );
     }
 
     // Platform strategy
-    const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+    const streamingPlatforms = event.streamingPlatforms
+      ? JSON.parse(event.streamingPlatforms)
+      : [];
     if (streamingPlatforms.length > 1) {
-      recommendations.push("Multi-platform streaming: Coordinate chat moderation and ensure consistent branding");
+      recommendations.push(
+        "Multi-platform streaming: Coordinate chat moderation and ensure consistent branding",
+      );
     }
 
     // Timing optimization
     const scheduledHour = new Date(event.scheduledStartTime).getHours();
     if (scheduledHour >= 19 && scheduledHour <= 22) {
-      recommendations.push("Prime time slot detected - maximize engagement with interactive elements");
+      recommendations.push(
+        "Prime time slot detected - maximize engagement with interactive elements",
+      );
     }
 
     return recommendations;
@@ -385,8 +438,8 @@ export class CollaborativeStreamingService {
    * Calculate optimal scheduling based on collaborator availability
    */
   private async calculateOptimalScheduling(
-    event: CollaborativeStreamEvent, 
-    matches: any[]
+    event: CollaborativeStreamEvent,
+    matches: any[],
   ): Promise<any> {
     // This would integrate with calendar systems and timezone coordination
     // For now, return basic scheduling optimization
@@ -394,7 +447,7 @@ export class CollaborativeStreamingService {
       recommendedStartTime: event.scheduledStartTime,
       timezoneCoverage: this.calculateTimezoneCoverage(matches),
       conflictWarnings: [],
-      optimalDuration: event.estimatedDuration
+      optimalDuration: event.estimatedDuration,
     };
   }
 
@@ -404,9 +457,9 @@ export class CollaborativeStreamingService {
   private calculateTimezoneCoverage(matches: any[]): any {
     // Analyze timezone distribution of potential collaborators
     return {
-      primaryTimezone: 'UTC-5',
-      coverage: 'North America focused',
-      suggestedAlternatives: []
+      primaryTimezone: "UTC-5",
+      coverage: "North America focused",
+      suggestedAlternatives: [],
     };
   }
 
@@ -414,26 +467,29 @@ export class CollaborativeStreamingService {
    * Coordinate actions across streaming platforms
    */
   private async coordinatePlatformActions(
-    eventId: string, 
-    phase: string
+    eventId: string,
+    phase: string,
   ): Promise<void> {
     try {
       switch (phase) {
-        case 'live':
+        case "live":
           // Start streams on all platforms
           await this.startCrossPlatformStreaming(eventId);
           break;
-        case 'break':
+        case "break":
           // Sync break across platforms
           await this.coordinateBreak(eventId);
           break;
-        case 'ended':
+        case "ended":
           // End streams and cleanup
           await this.endCrossPlatformStreaming(eventId);
           break;
       }
     } catch (error) {
-      logger.error('Failed to coordinate platform actions', error, { eventId, phase });
+      logger.error("Failed to coordinate platform actions", error, {
+        eventId,
+        phase,
+      });
     }
   }
 
@@ -457,172 +513,270 @@ export class CollaborativeStreamingService {
 
       // Validate current host before proceeding
       if (!session.currentHost) {
-        throw new Error('No current host available for cross-platform streaming coordination');
+        throw new Error(
+          "No current host available for cross-platform streaming coordination",
+        );
       }
 
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
+      const platformIdentifiers = await resolvePlatformIdentifiers(
+        session.currentHost,
+      );
 
       // Start streaming on each configured platform
-      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      const streamingPlatforms = event.streamingPlatforms
+        ? JSON.parse(event.streamingPlatforms)
+        : [];
       for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
-            case 'youtube':
+            case "youtube":
               if (youtubeAPI && youtubeAPI.isConfigured()) {
                 try {
                   // Get valid access token for YouTube
-                  const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
+                  const accessToken = await getValidPlatformToken(
+                    session.currentHost,
+                    "youtube",
+                  );
                   const channelId = platformIdentifiers.youtube?.channelId;
-                  
+
                   if (accessToken && channelId) {
                     // Make real API call to check YouTube stream status
-                    const streamStatus = await youtubeAPI.getLiveStream(channelId);
-                    
-                    if (streamStatus && streamStatus.status === 'live') {
-                      platformResults.youtube = { 
-                        streamId: streamStatus.id, 
-                        status: 'live',
-                        channelId: channelId
+                    const streamStatus =
+                      await youtubeAPI.getLiveStream(channelId);
+
+                    if (streamStatus && streamStatus.status === "live") {
+                      platformResults.youtube = {
+                        streamId: streamStatus.id,
+                        status: "live",
+                        channelId: channelId,
                       };
-                      logger.info('YouTube stream detected and synced', { eventId, streamId: streamStatus.id, channelId });
+                      logger.info("YouTube stream detected and synced", {
+                        eventId,
+                        streamId: streamStatus.id,
+                        channelId,
+                      });
                     } else {
-                      platformResults.youtube = { 
-                        status: 'ready', 
-                        message: 'YouTube ready for streaming',
-                        channelId: channelId
+                      platformResults.youtube = {
+                        status: "ready",
+                        message: "YouTube ready for streaming",
+                        channelId: channelId,
                       };
-                      logger.info('YouTube ready for streaming', { eventId, channelId });
+                      logger.info("YouTube ready for streaming", {
+                        eventId,
+                        channelId,
+                      });
                     }
                   } else {
-                    platformResults.youtube = { 
-                      status: 'needs_setup', 
-                      message: accessToken ? 'YouTube channel ID not found - please link your account' : 'YouTube access token invalid - please reconnect'
+                    platformResults.youtube = {
+                      status: "needs_setup",
+                      message: accessToken
+                        ? "YouTube channel ID not found - please link your account"
+                        : "YouTube access token invalid - please reconnect",
                     };
-                    logger.warn('YouTube coordination blocked by missing credentials', { eventId, hasToken: !!accessToken, hasChannelId: !!channelId });
+                    logger.warn(
+                      "YouTube coordination blocked by missing credentials",
+                      {
+                        eventId,
+                        hasToken: !!accessToken,
+                        hasChannelId: !!channelId,
+                      },
+                    );
                   }
                 } catch (error) {
-                  logger.error('Failed to sync YouTube stream status', error, { eventId });
-                  platformResults.youtube = { status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
+                  logger.error("Failed to sync YouTube stream status", error, {
+                    eventId,
+                  });
+                  platformResults.youtube = {
+                    status: "error",
+                    error:
+                      error instanceof Error ? error.message : "Unknown error",
+                  };
                 }
               } else {
-                platformResults.youtube = { status: 'unavailable', message: 'YouTube API not configured' };
-                logger.warn('YouTube API not available', { eventId });
+                platformResults.youtube = {
+                  status: "unavailable",
+                  message: "YouTube API not configured",
+                };
+                logger.warn("YouTube API not available", { eventId });
               }
               break;
 
-            case 'twitch':
+            case "twitch":
               if (twitchAPI) {
                 try {
                   // Get valid access token for Twitch
-                  const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
+                  const accessToken = await getValidPlatformToken(
+                    session.currentHost,
+                    "twitch",
+                  );
                   const twitchUserId = platformIdentifiers.twitch;
-                  
+
                   if (accessToken && twitchUserId) {
                     // Twitch API integration - placeholder for future implementation
                     // Note: TwitchAPIService doesn't have getStreamByUserId method yet
                     // For now, assume stream is ready but not live
-                    platformResults.twitch = { 
-                      status: 'ready', 
-                      message: 'Twitch ready for streaming',
-                      userId: twitchUserId
+                    platformResults.twitch = {
+                      status: "ready",
+                      message: "Twitch ready for streaming",
+                      userId: twitchUserId,
                     };
-                    logger.info('Twitch ready for streaming', { eventId, userId: twitchUserId });
+                    logger.info("Twitch ready for streaming", {
+                      eventId,
+                      userId: twitchUserId,
+                    });
                   } else {
-                    platformResults.twitch = { 
-                      status: 'needs_setup', 
-                      message: accessToken ? 'Twitch user ID not found - please link your account' : 'Twitch access token invalid - please reconnect'
+                    platformResults.twitch = {
+                      status: "needs_setup",
+                      message: accessToken
+                        ? "Twitch user ID not found - please link your account"
+                        : "Twitch access token invalid - please reconnect",
                     };
-                    logger.warn('Twitch coordination blocked by missing credentials', { eventId, hasToken: !!accessToken, hasUserId: !!twitchUserId });
+                    logger.warn(
+                      "Twitch coordination blocked by missing credentials",
+                      {
+                        eventId,
+                        hasToken: !!accessToken,
+                        hasUserId: !!twitchUserId,
+                      },
+                    );
                   }
                 } catch (error) {
-                  logger.error('Failed to sync Twitch stream status', error, { eventId });
-                  platformResults.twitch = { status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
+                  logger.error("Failed to sync Twitch stream status", error, {
+                    eventId,
+                  });
+                  platformResults.twitch = {
+                    status: "error",
+                    error:
+                      error instanceof Error ? error.message : "Unknown error",
+                  };
                 }
               } else {
-                platformResults.twitch = { status: 'unavailable', message: 'Twitch API not configured' };
-                logger.warn('Twitch API not available', { eventId });
+                platformResults.twitch = {
+                  status: "unavailable",
+                  message: "Twitch API not configured",
+                };
+                logger.warn("Twitch API not available", { eventId });
               }
               break;
 
-            case 'facebook':
+            case "facebook":
               if (facebookAPI && facebookAPI.isConfigured()) {
                 try {
                   // Get valid access token for Facebook
-                  const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
+                  const accessToken = await getValidPlatformToken(
+                    session.currentHost,
+                    "facebook",
+                  );
                   const pageId = platformIdentifiers.facebook?.pageId;
-                  
+
                   if (accessToken && pageId) {
                     // Make real API call to check Facebook live video status
-                    const liveVideosResult = await facebookAPI.getLiveVideos(pageId, accessToken);
+                    const liveVideosResult = await facebookAPI.getLiveVideos(
+                      pageId,
+                      accessToken,
+                    );
                     const liveStatus = liveVideosResult?.data?.[0];
-                    
-                    if (liveStatus && liveStatus.status === 'LIVE') {
-                      platformResults.facebook = { 
-                        streamId: liveStatus.id, 
-                        status: 'live',
+
+                    if (liveStatus && liveStatus.status === "LIVE") {
+                      platformResults.facebook = {
+                        streamId: liveStatus.id,
+                        status: "live",
                         viewerCount: liveStatus.live_views || 0,
-                        pageId: pageId
+                        pageId: pageId,
                       };
-                      logger.info('Facebook live video detected and synced', { eventId, streamId: liveStatus.id, pageId });
+                      logger.info("Facebook live video detected and synced", {
+                        eventId,
+                        streamId: liveStatus.id,
+                        pageId,
+                      });
                     } else {
-                      platformResults.facebook = { 
-                        status: 'ready', 
-                        message: 'Facebook ready for streaming',
-                        pageId: pageId
+                      platformResults.facebook = {
+                        status: "ready",
+                        message: "Facebook ready for streaming",
+                        pageId: pageId,
                       };
-                      logger.info('Facebook ready for streaming', { eventId, pageId });
+                      logger.info("Facebook ready for streaming", {
+                        eventId,
+                        pageId,
+                      });
                     }
                   } else {
-                    platformResults.facebook = { 
-                      status: 'needs_setup', 
-                      message: accessToken ? 'Facebook page ID not found - please link your page' : 'Facebook access token invalid - please reconnect'
+                    platformResults.facebook = {
+                      status: "needs_setup",
+                      message: accessToken
+                        ? "Facebook page ID not found - please link your page"
+                        : "Facebook access token invalid - please reconnect",
                     };
-                    logger.warn('Facebook coordination blocked by missing credentials', { eventId, hasToken: !!accessToken, hasPageId: !!pageId });
+                    logger.warn(
+                      "Facebook coordination blocked by missing credentials",
+                      { eventId, hasToken: !!accessToken, hasPageId: !!pageId },
+                    );
                   }
                 } catch (error) {
-                  logger.error('Failed to sync Facebook live video status', error, { eventId });
-                  platformResults.facebook = { status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
+                  logger.error(
+                    "Failed to sync Facebook live video status",
+                    error,
+                    { eventId },
+                  );
+                  platformResults.facebook = {
+                    status: "error",
+                    error:
+                      error instanceof Error ? error.message : "Unknown error",
+                  };
                 }
               } else {
-                platformResults.facebook = { status: 'unavailable', message: 'Facebook API not configured' };
-                logger.warn('Facebook API not available', { eventId });
+                platformResults.facebook = {
+                  status: "unavailable",
+                  message: "Facebook API not configured",
+                };
+                logger.warn("Facebook API not available", { eventId });
               }
               break;
 
             default:
-              logger.warn('Unsupported platform for streaming coordination', { 
-                platform: platformName, 
-                eventId 
+              logger.warn("Unsupported platform for streaming coordination", {
+                platform: platformName,
+                eventId,
               });
           }
         } catch (error) {
-          logger.error(`Failed to start ${platformName} streaming`, error, { eventId });
-          platformErrors.push(`${platformName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          logger.error(`Failed to start ${platformName} streaming`, error, {
+            eventId,
+          });
+          platformErrors.push(
+            `${platformName}: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
         }
       }
 
       // Update session with actual platform statuses from API results
-      const platformStatuses = Object.keys(platformResults).reduce((acc, platform) => {
-        const result = platformResults[platform];
-        acc[platform] = result.status || 'unknown';
-        return acc;
-      }, {} as Record<string, string>);
+      const platformStatuses = Object.keys(platformResults).reduce(
+        (acc, platform) => {
+          const result = platformResults[platform];
+          acc[platform] = result.status || "unknown";
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
       // Extract viewer counts from API results
-      const viewerCounts = Object.keys(platformResults).reduce((acc, platform) => {
-        const result = platformResults[platform];
-        if (result.viewerCount !== undefined) {
-          acc[platform] = result.viewerCount;
-        }
-        return acc;
-      }, {} as Record<string, number>);
+      const viewerCounts = Object.keys(platformResults).reduce(
+        (acc, platform) => {
+          const result = platformResults[platform];
+          if (result.viewerCount !== undefined) {
+            acc[platform] = result.viewerCount;
+          }
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Add errors to platform statuses
-      platformErrors.forEach(error => {
-        const [platform] = error.split(':');
+      platformErrors.forEach((error) => {
+        const [platform] = error.split(":");
         if (platform) {
-          platformStatuses[platform] = 'error';
+          platformStatuses[platform] = "error";
         }
       });
 
@@ -631,14 +785,16 @@ export class CollaborativeStreamingService {
         platformStatuses: JSON.stringify(platformStatuses),
         viewerCounts: JSON.stringify(viewerCounts),
         coordinationEvents: JSON.stringify([
-          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
+          ...(session.coordinationEvents
+            ? JSON.parse(session.coordinationEvents)
+            : []),
           {
-            type: 'platform_sync_started',
+            type: "platform_sync_started",
             timestamp: new Date().toISOString(),
-            data: { platformResults, errors: platformErrors }
-          }
+            data: { platformResults, errors: platformErrors },
+          },
         ]),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       // Update cached session with persisted data
@@ -646,13 +802,15 @@ export class CollaborativeStreamingService {
       session.viewerCounts = JSON.stringify(viewerCounts);
       this.activeCoordinationSessions.set(eventId, session);
 
-      logger.info('Cross-platform streaming coordination initiated', { 
-        eventId, 
+      logger.info("Cross-platform streaming coordination initiated", {
+        eventId,
         successfulPlatforms: Object.keys(platformResults),
-        errors: platformErrors
+        errors: platformErrors,
       });
     } catch (error) {
-      logger.error('Failed to start cross-platform streaming', error, { eventId });
+      logger.error("Failed to start cross-platform streaming", error, {
+        eventId,
+      });
       throw error;
     }
   }
@@ -674,114 +832,195 @@ export class CollaborativeStreamingService {
 
       // Validate current host before proceeding
       if (!session.currentHost) {
-        throw new Error('No current host available for break coordination');
+        throw new Error("No current host available for break coordination");
       }
 
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
+      const platformIdentifiers = await resolvePlatformIdentifiers(
+        session.currentHost,
+      );
       const breakResults: Record<string, any> = {};
 
       // Coordinate break on each active platform with real API calls
-      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      const streamingPlatforms = event.streamingPlatforms
+        ? JSON.parse(event.streamingPlatforms)
+        : [];
       for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
-            case 'youtube':
+            case "youtube":
               if (youtubeAPI && youtubeAPI.isConfigured()) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "youtube",
+                );
                 const channelId = platformIdentifiers.youtube?.channelId;
-                
+
                 if (accessToken && channelId) {
                   // Note: YouTube API doesn't have updateBroadcastDescription method yet
                   // This is a placeholder for future implementation
-                  breakResults.youtube = { status: 'break', action: 'manual', timestamp: new Date() };
-                  logger.info('YouTube break coordination requires manual action', { eventId, channelId });
+                  breakResults.youtube = {
+                    status: "break",
+                    action: "manual",
+                    timestamp: new Date(),
+                  };
+                  logger.info(
+                    "YouTube break coordination requires manual action",
+                    { eventId, channelId },
+                  );
                 } else {
-                  breakResults.youtube = { status: 'break', action: 'manual', message: 'Manual break coordination required' };
-                  logger.warn('YouTube break coordination limited by missing credentials', { eventId });
+                  breakResults.youtube = {
+                    status: "break",
+                    action: "manual",
+                    message: "Manual break coordination required",
+                  };
+                  logger.warn(
+                    "YouTube break coordination limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                breakResults.youtube = { status: 'break', action: 'unavailable', message: 'YouTube API not available' };
+                breakResults.youtube = {
+                  status: "break",
+                  action: "unavailable",
+                  message: "YouTube API not available",
+                };
               }
               break;
 
-            case 'twitch':
+            case "twitch":
               if (twitchAPI) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "twitch",
+                );
                 const twitchUserId = platformIdentifiers.twitch;
-                
+
                 if (accessToken && twitchUserId) {
                   // Note: Twitch API doesn't have updateStreamTitle method yet
                   // This is a placeholder for future implementation
-                  breakResults.twitch = { status: 'break', action: 'manual', timestamp: new Date() };
-                  logger.info('Twitch break coordination requires manual action', { eventId, userId: twitchUserId });
+                  breakResults.twitch = {
+                    status: "break",
+                    action: "manual",
+                    timestamp: new Date(),
+                  };
+                  logger.info(
+                    "Twitch break coordination requires manual action",
+                    { eventId, userId: twitchUserId },
+                  );
                 } else {
-                  breakResults.twitch = { status: 'break', action: 'manual', message: 'Manual break coordination required' };
-                  logger.warn('Twitch break coordination limited by missing credentials', { eventId });
+                  breakResults.twitch = {
+                    status: "break",
+                    action: "manual",
+                    message: "Manual break coordination required",
+                  };
+                  logger.warn(
+                    "Twitch break coordination limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                breakResults.twitch = { status: 'break', action: 'unavailable', message: 'Twitch API not available' };
+                breakResults.twitch = {
+                  status: "break",
+                  action: "unavailable",
+                  message: "Twitch API not available",
+                };
               }
               break;
 
-            case 'facebook':
+            case "facebook":
               if (facebookAPI && facebookAPI.isConfigured()) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "facebook",
+                );
                 const pageId = platformIdentifiers.facebook?.pageId;
-                
+
                 if (accessToken && pageId) {
                   // Note: Facebook API doesn't have updateLiveVideoDescription method yet
                   // This is a placeholder for future implementation
-                  breakResults.facebook = { status: 'break', action: 'manual', timestamp: new Date() };
-                  logger.info('Facebook break coordination requires manual action', { eventId, pageId });
+                  breakResults.facebook = {
+                    status: "break",
+                    action: "manual",
+                    timestamp: new Date(),
+                  };
+                  logger.info(
+                    "Facebook break coordination requires manual action",
+                    { eventId, pageId },
+                  );
                 } else {
-                  breakResults.facebook = { status: 'break', action: 'manual', message: 'Manual break coordination required' };
-                  logger.warn('Facebook break coordination limited by missing credentials', { eventId });
+                  breakResults.facebook = {
+                    status: "break",
+                    action: "manual",
+                    message: "Manual break coordination required",
+                  };
+                  logger.warn(
+                    "Facebook break coordination limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                breakResults.facebook = { status: 'break', action: 'unavailable', message: 'Facebook API not available' };
+                breakResults.facebook = {
+                  status: "break",
+                  action: "unavailable",
+                  message: "Facebook API not available",
+                };
               }
               break;
 
             default:
-              logger.warn('Unsupported platform for break coordination', { platform: platformName, eventId });
+              logger.warn("Unsupported platform for break coordination", {
+                platform: platformName,
+                eventId,
+              });
           }
         } catch (error) {
-          logger.error(`Failed to coordinate break on ${platformName}`, error, { eventId });
-          breakResults[platformName] = { status: 'error', action: 'break_failed', error: error instanceof Error ? error.message : 'Unknown error' };
+          logger.error(`Failed to coordinate break on ${platformName}`, error, {
+            eventId,
+          });
+          breakResults[platformName] = {
+            status: "error",
+            action: "break_failed",
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
         }
       }
 
       // Update platform statuses to 'break' and persist
-      const platformStatuses = Object.keys(breakResults).reduce((acc, platform) => {
-        acc[platform] = breakResults[platform].status || 'break';
-        return acc;
-      }, {} as Record<string, string>);
+      const platformStatuses = Object.keys(breakResults).reduce(
+        (acc, platform) => {
+          acc[platform] = breakResults[platform].status || "break";
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
       await storage.updateStreamCoordinationSession(session.id, {
         platformStatuses: JSON.stringify(platformStatuses),
         coordinationEvents: JSON.stringify([
-          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
+          ...(session.coordinationEvents
+            ? JSON.parse(session.coordinationEvents)
+            : []),
           {
-            type: 'break_coordinated',
+            type: "break_coordinated",
             timestamp: new Date().toISOString(),
-            data: { breakResults }
-          }
+            data: { breakResults },
+          },
         ]),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       // Update cached session
       session.platformStatuses = JSON.stringify(platformStatuses);
       this.activeCoordinationSessions.set(eventId, session);
 
-      logger.info('Break coordination completed across platforms', { 
-        eventId, 
+      logger.info("Break coordination completed across platforms", {
+        eventId,
         platforms: Object.keys(breakResults),
-        results: breakResults
+        results: breakResults,
       });
     } catch (error) {
-      logger.error('Failed to coordinate break', error, { eventId });
+      logger.error("Failed to coordinate break", error, { eventId });
       throw error;
     }
   }
@@ -793,7 +1032,9 @@ export class CollaborativeStreamingService {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
       if (!session) {
-        logger.warn('No active coordination session found for ending', { eventId });
+        logger.warn("No active coordination session found for ending", {
+          eventId,
+        });
         return;
       }
 
@@ -804,131 +1045,245 @@ export class CollaborativeStreamingService {
 
       // Validate current host before proceeding
       if (!session.currentHost) {
-        throw new Error('No current host available for ending cross-platform streaming');
+        throw new Error(
+          "No current host available for ending cross-platform streaming",
+        );
       }
 
       // Get platform identifiers for the current host
-      const platformIdentifiers = await resolvePlatformIdentifiers(session.currentHost);
+      const platformIdentifiers = await resolvePlatformIdentifiers(
+        session.currentHost,
+      );
       const endResults: Record<string, any> = {};
       const errors: string[] = [];
 
       // End streaming on each platform with real API calls
-      const streamingPlatforms = event.streamingPlatforms ? JSON.parse(event.streamingPlatforms) : [];
+      const streamingPlatforms = event.streamingPlatforms
+        ? JSON.parse(event.streamingPlatforms)
+        : [];
       for (const platformName of streamingPlatforms) {
         try {
           switch (platformName) {
-            case 'youtube':
+            case "youtube":
               if (youtubeAPI && youtubeAPI.isConfigured()) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'youtube');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "youtube",
+                );
                 const channelId = platformIdentifiers.youtube?.channelId;
-                
+
                 if (accessToken && channelId) {
                   // End YouTube live broadcast
-                  const broadcastStatus = await youtubeAPI.getLiveStream(channelId);
-                  if (broadcastStatus && broadcastStatus.status === 'live') {
-                    await youtubeAPI.transitionBroadcast(broadcastStatus.id, 'complete', accessToken);
-                    endResults.youtube = { status: 'ended', action: 'broadcast_ended', timestamp: new Date(), channelId };
-                    logger.info('YouTube broadcast ended via API', { eventId, broadcastId: broadcastStatus.id, channelId });
+                  const broadcastStatus =
+                    await youtubeAPI.getLiveStream(channelId);
+                  if (broadcastStatus && broadcastStatus.status === "live") {
+                    await youtubeAPI.transitionBroadcast(
+                      broadcastStatus.id,
+                      "complete",
+                      accessToken,
+                    );
+                    endResults.youtube = {
+                      status: "ended",
+                      action: "broadcast_ended",
+                      timestamp: new Date(),
+                      channelId,
+                    };
+                    logger.info("YouTube broadcast ended via API", {
+                      eventId,
+                      broadcastId: broadcastStatus.id,
+                      channelId,
+                    });
                   } else {
-                    endResults.youtube = { status: 'ended', action: 'already_ended', timestamp: new Date(), channelId };
-                    logger.info('YouTube broadcast already ended', { eventId, channelId });
+                    endResults.youtube = {
+                      status: "ended",
+                      action: "already_ended",
+                      timestamp: new Date(),
+                      channelId,
+                    };
+                    logger.info("YouTube broadcast already ended", {
+                      eventId,
+                      channelId,
+                    });
                   }
                 } else {
-                  endResults.youtube = { status: 'ended', action: 'manual', message: 'Manual stream ending required' };
-                  logger.warn('YouTube stream ending limited by missing credentials', { eventId });
+                  endResults.youtube = {
+                    status: "ended",
+                    action: "manual",
+                    message: "Manual stream ending required",
+                  };
+                  logger.warn(
+                    "YouTube stream ending limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                endResults.youtube = { status: 'ended', action: 'unavailable', message: 'YouTube API not available' };
+                endResults.youtube = {
+                  status: "ended",
+                  action: "unavailable",
+                  message: "YouTube API not available",
+                };
               }
               break;
 
-            case 'twitch':
+            case "twitch":
               if (twitchAPI) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'twitch');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "twitch",
+                );
                 const twitchUserId = platformIdentifiers.twitch;
-                
+
                 if (accessToken && twitchUserId) {
                   // Note: TwitchAPIService doesn't have getStreamByUserId method yet
                   // Placeholder for future implementation - assume stream has ended
-                  endResults.twitch = { status: 'ended', action: 'stream_confirmed_ended', timestamp: new Date(), userId: twitchUserId };
-                  logger.info('Twitch stream confirmed ended', { eventId, userId: twitchUserId });
+                  endResults.twitch = {
+                    status: "ended",
+                    action: "stream_confirmed_ended",
+                    timestamp: new Date(),
+                    userId: twitchUserId,
+                  };
+                  logger.info("Twitch stream confirmed ended", {
+                    eventId,
+                    userId: twitchUserId,
+                  });
                 } else {
-                  endResults.twitch = { status: 'ended', action: 'manual', message: 'Manual stream ending required' };
-                  logger.warn('Twitch stream ending limited by missing credentials', { eventId });
+                  endResults.twitch = {
+                    status: "ended",
+                    action: "manual",
+                    message: "Manual stream ending required",
+                  };
+                  logger.warn(
+                    "Twitch stream ending limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                endResults.twitch = { status: 'ended', action: 'unavailable', message: 'Twitch API not available' };
+                endResults.twitch = {
+                  status: "ended",
+                  action: "unavailable",
+                  message: "Twitch API not available",
+                };
               }
               break;
 
-            case 'facebook':
+            case "facebook":
               if (facebookAPI && facebookAPI.isConfigured()) {
-                const accessToken = await getValidPlatformToken(session.currentHost, 'facebook');
+                const accessToken = await getValidPlatformToken(
+                  session.currentHost,
+                  "facebook",
+                );
                 const pageId = platformIdentifiers.facebook?.pageId;
-                
+
                 if (accessToken && pageId) {
                   // End Facebook live video
                   const liveVideosResult = facebookAPI.getLiveVideos
                     ? await facebookAPI.getLiveVideos(pageId, accessToken)
                     : null;
                   const liveStatus = liveVideosResult?.data?.[0];
-                  if (liveStatus && liveStatus.status === 'LIVE') {
+                  if (liveStatus && liveStatus.status === "LIVE") {
                     await facebookAPI.endLiveVideo(liveStatus.id, accessToken);
-                    endResults.facebook = { status: 'ended', action: 'live_video_ended', timestamp: new Date(), pageId };
-                    logger.info('Facebook live video ended via API', { eventId, liveVideoId: liveStatus.id, pageId });
+                    endResults.facebook = {
+                      status: "ended",
+                      action: "live_video_ended",
+                      timestamp: new Date(),
+                      pageId,
+                    };
+                    logger.info("Facebook live video ended via API", {
+                      eventId,
+                      liveVideoId: liveStatus.id,
+                      pageId,
+                    });
                   } else {
-                    endResults.facebook = { status: 'ended', action: 'already_ended', timestamp: new Date(), pageId };
-                    logger.info('Facebook live video already ended', { eventId, pageId });
+                    endResults.facebook = {
+                      status: "ended",
+                      action: "already_ended",
+                      timestamp: new Date(),
+                      pageId,
+                    };
+                    logger.info("Facebook live video already ended", {
+                      eventId,
+                      pageId,
+                    });
                   }
                 } else {
-                  endResults.facebook = { status: 'ended', action: 'manual', message: 'Manual stream ending required' };
-                  logger.warn('Facebook stream ending limited by missing credentials', { eventId });
+                  endResults.facebook = {
+                    status: "ended",
+                    action: "manual",
+                    message: "Manual stream ending required",
+                  };
+                  logger.warn(
+                    "Facebook stream ending limited by missing credentials",
+                    { eventId },
+                  );
                 }
               } else {
-                endResults.facebook = { status: 'ended', action: 'unavailable', message: 'Facebook API not available' };
+                endResults.facebook = {
+                  status: "ended",
+                  action: "unavailable",
+                  message: "Facebook API not available",
+                };
               }
               break;
 
             default:
-              logger.warn('Unsupported platform for stream ending', { platform: platformName, eventId });
+              logger.warn("Unsupported platform for stream ending", {
+                platform: platformName,
+                eventId,
+              });
           }
         } catch (error) {
-          logger.error(`Failed to end ${platformName} streaming`, error, { eventId });
-          errors.push(`${platformName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          endResults[platformName] = { status: 'error', action: 'end_failed', error: error instanceof Error ? error.message : 'Unknown error' };
+          logger.error(`Failed to end ${platformName} streaming`, error, {
+            eventId,
+          });
+          errors.push(
+            `${platformName}: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+          endResults[platformName] = {
+            status: "error",
+            action: "end_failed",
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
         }
       }
 
       // Update platform statuses to 'ended' and zero out viewer counts
-      const platformStatuses = Object.keys(endResults).reduce((acc, platform) => {
-        acc[platform] = endResults[platform].status || 'ended';
-        return acc;
-      }, {} as Record<string, string>);
+      const platformStatuses = Object.keys(endResults).reduce(
+        (acc, platform) => {
+          acc[platform] = endResults[platform].status || "ended";
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
-      const finalViewerCounts = Object.keys(endResults).reduce((acc, platform) => {
-        acc[platform] = 0; // Zero out viewer counts for ended streams
-        return acc;
-      }, {} as Record<string, number>);
+      const finalViewerCounts = Object.keys(endResults).reduce(
+        (acc, platform) => {
+          acc[platform] = 0; // Zero out viewer counts for ended streams
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Persist final state with platform statuses and viewer counts
       await storage.updateStreamCoordinationSession(session.id, {
-        currentPhase: 'ended',
+        currentPhase: "ended",
         actualEndTime: new Date(),
         platformStatuses: JSON.stringify(platformStatuses),
         viewerCounts: JSON.stringify(finalViewerCounts),
         coordinationEvents: JSON.stringify([
-          ...(session.coordinationEvents ? JSON.parse(session.coordinationEvents) : []),
+          ...(session.coordinationEvents
+            ? JSON.parse(session.coordinationEvents)
+            : []),
           {
-            type: 'streaming_ended',
+            type: "streaming_ended",
             timestamp: new Date().toISOString(),
-            data: { endResults, errors }
-          }
+            data: { endResults, errors },
+          },
         ]),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       // Update cached session with final data
-      session.currentPhase = 'ended';
+      session.currentPhase = "ended";
       session.actualEndTime = new Date();
       session.platformStatuses = JSON.stringify(platformStatuses);
       session.viewerCounts = JSON.stringify(finalViewerCounts);
@@ -937,16 +1292,18 @@ export class CollaborativeStreamingService {
       // Clean up active session after brief delay for final status retrieval
       setTimeout(() => {
         this.activeCoordinationSessions.delete(eventId);
-        logger.info('Coordination session cleaned up', { eventId });
+        logger.info("Coordination session cleaned up", { eventId });
       }, 5000);
 
-      logger.info('Cross-platform streaming coordination ended', { 
-        eventId, 
+      logger.info("Cross-platform streaming coordination ended", {
+        eventId,
         endedPlatforms: Object.keys(endResults),
-        errors
+        errors,
       });
     } catch (error) {
-      logger.error('Failed to end cross-platform streaming', error, { eventId });
+      logger.error("Failed to end cross-platform streaming", error, {
+        eventId,
+      });
       // Clean up session even if there were errors
       this.activeCoordinationSessions.delete(eventId);
       throw error;
@@ -957,22 +1314,24 @@ export class CollaborativeStreamingService {
    * Log coordination events for analytics and debugging
    */
   private async logCoordinationEvent(
-    eventId: string, 
-    event: any
+    eventId: string,
+    event: any,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
       if (session) {
-        const events = session.coordinationEvents ? JSON.parse(session.coordinationEvents) : [];
+        const events = session.coordinationEvents
+          ? JSON.parse(session.coordinationEvents)
+          : [];
         events.push(event);
-        
+
         await storage.updateStreamCoordinationSession(session.id, {
           coordinationEvents: JSON.stringify(events),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       }
     } catch (error) {
-      logger.error('Failed to log coordination event', error, { eventId });
+      logger.error("Failed to log coordination event", error, { eventId });
     }
   }
 
@@ -988,20 +1347,27 @@ export class CollaborativeStreamingService {
    * Calculate overall coordination health score
    */
   private calculateCoordinationHealth(
-    session?: StreamCoordinationSession, 
-    collaborators?: StreamCollaborator[]
+    session?: StreamCoordinationSession,
+    collaborators?: StreamCollaborator[],
   ): number {
     if (!session || !collaborators) return 0;
-    
+
     const factors = {
-      activeParticipation: (session.activeCollaborators?.length || 0) / collaborators.length,
+      activeParticipation:
+        (session.activeCollaborators?.length || 0) / collaborators.length,
       technicalStability: 0.9, // Would be calculated from platform status
-      communicationQuality: 0.85 // Would be calculated from coordination events
+      communicationQuality: 0.85, // Would be calculated from coordination events
     };
-    
-    return (factors.activeParticipation + factors.technicalStability + factors.communicationQuality) / 3;
+
+    return (
+      (factors.activeParticipation +
+        factors.technicalStability +
+        factors.communicationQuality) /
+      3
+    );
   }
 }
 
 // Export singleton instance
-export const collaborativeStreaming = CollaborativeStreamingService.getInstance();
+export const collaborativeStreaming =
+  CollaborativeStreamingService.getInstance();

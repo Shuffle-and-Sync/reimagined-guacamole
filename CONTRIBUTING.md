@@ -43,6 +43,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 #### Linux/macOS
 
 1. **Copy environment template**:
+
    ```bash
    npm run env:setup
    ```
@@ -53,6 +54,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
    - Auth secret (`AUTH_SECRET`)
 
 3. **Initialize database**:
+
    ```bash
    npm run db:push
    ```
@@ -66,6 +68,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 #### Windows (PowerShell)
 
 1. **Copy environment template**:
+
    ```powershell
    Copy-Item .env.example .env.local
    # Edit .env.local with your configuration
@@ -77,6 +80,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
    - Auth secret (`AUTH_SECRET`)
 
 3. **Initialize database**:
+
    ```powershell
    npm run db:push
    ```
@@ -90,6 +94,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 #### Windows (Git Bash)
 
 1. **Copy environment template**:
+
    ```bash
    cp .env.example .env.local
    # Edit .env.local with your configuration
@@ -101,6 +106,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
    - Auth secret (`AUTH_SECRET`)
 
 3. **Initialize database**:
+
    ```bash
    npm run db:push
    ```
@@ -115,14 +121,14 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 
 ### Development Scripts
 
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Start development server |
-| `npm run test` | Run test suite |
+| Command                 | Purpose                      |
+| ----------------------- | ---------------------------- |
+| `npm run dev`           | Start development server     |
+| `npm run test`          | Run test suite               |
 | `npm run test:generate` | Generate tests with AI agent |
-| `npm run lint` | Run ESLint |
-| `npm run check` | TypeScript type checking |
-| `npm run build` | Build for production |
+| `npm run lint`          | Run ESLint                   |
+| `npm run check`         | TypeScript type checking     |
+| `npm run build`         | Build for production         |
 
 ### Project Structure
 
@@ -149,6 +155,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 ### Understanding Past Work
 
 Before starting work on an issue or feature:
+
 1. **Check [Issue & PR History](./docs/ISSUE_PR_HISTORY.md)** - See how similar issues were resolved
 2. **Review related documentation** - Understand existing patterns and decisions
 3. **Search closed issues** - Learn from past solutions and discussions
@@ -160,6 +167,7 @@ This helps avoid duplicating effort and ensures consistency with past architectu
 ### Types of Contributions
 
 We welcome:
+
 - **🐛 Bug fixes** - Fix reported issues
 - **✨ New features** - Add functionality (discuss first in issues)
 - **📚 Documentation** - Improve guides and API docs
@@ -237,7 +245,7 @@ All contributions **must** include:
 ### Test Categories
 
 1. **Unit tests**: Individual function/component testing
-2. **Integration tests**: Feature workflow testing  
+2. **Integration tests**: Feature workflow testing
 3. **API tests**: Endpoint functionality and error handling
 4. **UI tests**: Component behavior and user interactions
 
@@ -320,7 +328,7 @@ Before requesting features:
 ### Issue Labels
 
 - `bug` - Something isn't working
-- `enhancement` - New feature or request  
+- `enhancement` - New feature or request
 - `documentation` - Documentation needs improvement
 - `good first issue` - Good for newcomers
 - `help wanted` - Extra attention needed
@@ -333,6 +341,7 @@ Before requesting features:
 **Do not** report security vulnerabilities in public issues.
 
 **Instead**:
+
 1. Email the development team (details in [SECURITY.md](./docs/SECURITY_IMPROVEMENTS.md))
 2. Provide detailed information about the vulnerability
 3. Wait for acknowledgment before public disclosure
@@ -366,6 +375,7 @@ We are committed to providing a welcoming and inclusive environment:
 ### Recognition
 
 We recognize contributions through:
+
 - **GitHub contributors** list
 - **Release notes** acknowledgments
 - **Community highlights** in Discord
@@ -383,16 +393,19 @@ We recognize contributions through:
 ### Common Issues
 
 **Environment setup problems**:
+
 - Check [Environment Variables Guide](./ENVIRONMENT_VARIABLES.md)
 - Run `npm run env:validate` to verify configuration
 - Ensure database is running and accessible
 
 **TypeScript errors**:
+
 - Run `npm run check` to see all type errors
 - Check import paths and type definitions
 - Ensure dependencies are installed (`npm install --legacy-peer-deps`)
 
 **Test failures**:
+
 - Run `npm run test:generate` to create missing tests
 - Check test dependencies and mocks
 - Review test patterns in existing code
@@ -407,8 +420,9 @@ We recognize contributions through:
 ### Mentorship Program
 
 New contributors can:
+
 - **Request mentorship** in Discord
-- **Pair with experienced contributors** 
+- **Pair with experienced contributors**
 - **Start with `good first issue` labels**
 - **Join community calls** for live support
 
@@ -418,7 +432,7 @@ New contributors can:
 
 Your contributions help make Shuffle & Sync the best platform for TCG streaming coordination. Whether you're fixing a typo, adding a feature, or helping other contributors, every contribution matters!
 
-**Ready to get started?** 
+**Ready to get started?**
 
 1. Run `npm run test:generate` to explore the codebase
 2. Check out [`good first issue`](https://github.com/Shuffle-and-Sync/reimagined-guacamole/labels/good%20first%20issue) labels

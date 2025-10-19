@@ -13,6 +13,7 @@ That guide is specifically written for the `shuffle-sync-front` service name and
 ## The Problem
 
 When clicking "Sign In" on the deployed frontend:
+
 ```
 ❌ ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 ❌ Redirects to: /api/auth/error?error=Configuration
@@ -23,6 +24,7 @@ When clicking "Sign In" on the deployed frontend:
 ### What's New (Latest Update)
 
 **Improved Error Handling**: The application now includes better error handling to prevent redirect loops:
+
 - Authentication errors now redirect to `/auth/error` instead of `/api/auth/error`
 - The error page provides detailed troubleshooting information
 - Startup warnings alert when OAuth credentials are missing
@@ -83,6 +85,7 @@ gcloud run services update shuffle-sync-frontend \
 Replace the URL with your actual backend URL from Step 1.
 
 **If your service is named `shuffle-sync-front`** (check your error URL), use:
+
 ```bash
 gcloud run services update shuffle-sync-front \
   --region=us-central1 \
@@ -112,9 +115,11 @@ gcloud run services update shuffle-sync-backend \
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 2. Select your OAuth 2.0 Client ID
 3. Add this Authorized Redirect URI:
+
    ```
    https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
    ```
+
    ⚠️ Use your **BACKEND URL** (from Step 1), not frontend URL
    ⚠️ No trailing slash
    ⚠️ Must be HTTPS
@@ -134,6 +139,7 @@ If your error URL shows `shuffle-sync-front-` instead of `shuffle-sync-frontend-
 **To fix this**:
 
 1. **Find your actual service names**:
+
    ```bash
    gcloud run services list --region=us-central1 | grep shuffle
    ```
@@ -149,6 +155,7 @@ If your error URL shows `shuffle-sync-front-` instead of `shuffle-sync-frontend-
 ## What Changed?
 
 ### Before (Broken)
+
 ```
 User → Frontend (NGINX)
          ↓
@@ -156,6 +163,7 @@ User → Frontend (NGINX)
 ```
 
 ### After (Fixed)
+
 ```
 User → Frontend (NGINX)
          ↓
@@ -171,6 +179,7 @@ See [CLOUD_RUN_FRONTEND_BACKEND_SETUP.md](./CLOUD_RUN_FRONTEND_BACKEND_SETUP.md)
 See the comprehensive troubleshooting guide: [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md)
 
 This guide covers:
+
 - Service naming mismatches
 - Missing OAuth credentials
 - Frontend proxy configuration issues
@@ -182,6 +191,7 @@ This guide covers:
 **Cause:** Google OAuth credentials not set on backend
 
 **Fix:**
+
 ```bash
 gcloud run services update shuffle-sync-backend \
   --region=us-central1 \
@@ -189,11 +199,12 @@ gcloud run services update shuffle-sync-backend \
   --set-env-vars GOOGLE_CLIENT_SECRET=xxx
 ```
 
-### Error: Still 404 on /api/* endpoints
+### Error: Still 404 on /api/\* endpoints
 
 **Cause:** Frontend container needs to be redeployed with new BACKEND_URL
 
 **Fix:** Trigger a new deployment:
+
 ```bash
 # Force new revision with updated env var
 gcloud run services update shuffle-sync-frontend \
@@ -205,7 +216,8 @@ gcloud run services update shuffle-sync-frontend \
 
 **Cause:** Google OAuth Console has wrong redirect URI
 
-**Fix:** 
+**Fix:**
+
 1. Check your backend URL: `gcloud run services describe shuffle-sync-backend --region=us-central1 --format='value(status.url)'`
 2. Add to Google Console: `https://YOUR-BACKEND-URL/api/auth/callback/google`
 3. ⚠️ Must use **backend URL**, not frontend URL
@@ -222,6 +234,7 @@ bash scripts/verify-cloud-run-deployment.sh
 ```
 
 Or use the npm script (for default service names):
+
 ```bash
 npm run verify:cloudrun
 ```
@@ -229,6 +242,7 @@ npm run verify:cloudrun
 > **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 Expected output:
+
 ```
 === FRONTEND ===
 https://shuffle-sync-frontend-683555795974.us-central1.run.app

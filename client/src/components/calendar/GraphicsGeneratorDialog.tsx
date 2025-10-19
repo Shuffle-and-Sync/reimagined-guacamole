@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 
 interface GraphicsGeneratorDialogProps {
   isOpen: boolean;
@@ -14,10 +26,18 @@ interface GraphicsGeneratorDialogProps {
 }
 
 const TEMPLATES = [
-  { id: 'modern', name: 'Modern', description: 'Clean and contemporary design' },
-  { id: 'classic', name: 'Classic', description: 'Traditional event poster style' },
-  { id: 'minimal', name: 'Minimal', description: 'Simple and elegant' },
-  { id: 'square', name: 'Square', description: 'Perfect for Instagram' },
+  {
+    id: "modern",
+    name: "Modern",
+    description: "Clean and contemporary design",
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Traditional event poster style",
+  },
+  { id: "minimal", name: "Minimal", description: "Simple and elegant" },
+  { id: "square", name: "Square", description: "Perfect for Instagram" },
 ];
 
 export function GraphicsGeneratorDialog({
@@ -26,7 +46,7 @@ export function GraphicsGeneratorDialog({
   eventId,
   eventTitle,
 }: GraphicsGeneratorDialogProps) {
-  const [template, setTemplate] = useState('modern');
+  const [template, setTemplate] = useState("modern");
   const [includeQR, setIncludeQR] = useState(true);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -35,10 +55,10 @@ export function GraphicsGeneratorDialog({
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/graphics/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const response = await fetch("/api/graphics/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           eventId,
           template,
@@ -47,21 +67,22 @@ export function GraphicsGeneratorDialog({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate graphic');
+        throw new Error("Failed to generate graphic");
       }
 
       const data = await response.json();
       setGeneratedImage(data.dataUrl);
 
       toast({
-        title: 'Graphic Generated!',
-        description: 'Your promotional graphic is ready to download',
+        title: "Graphic Generated!",
+        description: "Your promotional graphic is ready to download",
       });
     } catch (error) {
       toast({
-        title: 'Generation Failed',
-        description: error instanceof Error ? error.message : 'Failed to generate graphic',
-        variant: 'destructive',
+        title: "Generation Failed",
+        description:
+          error instanceof Error ? error.message : "Failed to generate graphic",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -71,9 +92,9 @@ export function GraphicsGeneratorDialog({
   const handleDownload = () => {
     if (!generatedImage) return;
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = generatedImage;
-    link.download = `${eventTitle.replace(/\s+/g, '-')}-${template}.svg`;
+    link.download = `${eventTitle.replace(/\s+/g, "-")}-${template}.svg`;
     link.click();
   };
 
@@ -105,7 +126,9 @@ export function GraphicsGeneratorDialog({
                   <SelectItem key={t.id} value={t.id}>
                     <div>
                       <div className="font-medium">{t.name}</div>
-                      <div className="text-xs text-muted-foreground">{t.description}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {t.description}
+                      </div>
                     </div>
                   </SelectItem>
                 ))}

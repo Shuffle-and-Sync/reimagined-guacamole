@@ -1,5 +1,9 @@
-import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { useCallback, useEffect } from 'react';
+import {
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 
 /**
  * Enhanced useQuery hook with advanced patterns:
@@ -13,10 +17,10 @@ export function useOptimizedQuery<TData, TError = Error>(
     backgroundRefetch?: boolean;
     warmCache?: boolean;
     errorRecovery?: boolean;
-  }
+  },
 ) {
   const queryClient = useQueryClient();
-  
+
   const {
     backgroundRefetch = false,
     warmCache = false,
@@ -42,20 +46,23 @@ export function useOptimizedQuery<TData, TError = Error>(
       if (import.meta.env.DEV) {
         // Only log occasionally to avoid spam
         if (Math.random() < 0.1) {
-          console.log('Cache warming opportunity for:', queryOptions.queryKey);
+          console.log("Cache warming opportunity for:", queryOptions.queryKey);
         }
       }
     }
   }, [warmCache, query.data, queryOptions.queryKey]);
 
   // Smart invalidation helper
-  const smartInvalidate = useCallback((pattern?: any[]) => {
-    if (pattern) {
-      queryClient.invalidateQueries({ queryKey: pattern });
-    } else if (queryOptions.queryKey) {
-      queryClient.invalidateQueries({ queryKey: queryOptions.queryKey });
-    }
-  }, [queryClient, queryOptions.queryKey]);
+  const smartInvalidate = useCallback(
+    (pattern?: any[]) => {
+      if (pattern) {
+        queryClient.invalidateQueries({ queryKey: pattern });
+      } else if (queryOptions.queryKey) {
+        queryClient.invalidateQueries({ queryKey: queryOptions.queryKey });
+      }
+    },
+    [queryClient, queryOptions.queryKey],
+  );
 
   // Background sync for fresh data
   const backgroundSync = useCallback(() => {
@@ -77,7 +84,7 @@ export function useOptimizedQuery<TData, TError = Error>(
  * Hook for coordinated multi-query loading states
  */
 export function useCoordinatedQueries<T extends Record<string, any>>(
-  queries: T
+  queries: T,
 ): {
   data: { [K in keyof T]: T[K] extends { data: infer D } ? D : never };
   isLoading: boolean;
@@ -85,15 +92,15 @@ export function useCoordinatedQueries<T extends Record<string, any>>(
   errors: { [K in keyof T]: T[K] extends { error: infer E } ? E : never };
 } {
   const queryKeys = Object.keys(queries) as (keyof T)[];
-  
-  const isLoading = queryKeys.some(key => queries[key]?.isLoading);
-  const isError = queryKeys.some(key => queries[key]?.isError);
-  
+
+  const isLoading = queryKeys.some((key) => queries[key]?.isLoading);
+  const isError = queryKeys.some((key) => queries[key]?.isError);
+
   const data = queryKeys.reduce((acc, key) => {
     acc[key] = queries[key]?.data;
     return acc;
   }, {} as any);
-  
+
   const errors = queryKeys.reduce((acc, key) => {
     acc[key] = queries[key]?.error;
     return acc;

@@ -18,7 +18,7 @@ This roadmap outlines the implementation plan to transform TableSync into a univ
 ## Phase 1: Database Foundation ✅ COMPLETE
 
 **Duration**: Week 1  
-**Status**: ✅ Complete  
+**Status**: ✅ Complete
 
 ### Completed Tasks
 
@@ -162,6 +162,7 @@ Tasks:
 #### 3.2 Card Adapters
 
 **Files**:
+
 - `server/services/card-recognition/adapters/base.adapter.ts`
 - `server/services/card-recognition/adapters/scryfall.adapter.ts`
 - `server/services/card-recognition/adapters/custom.adapter.ts`
@@ -598,6 +599,7 @@ To create:
 
 ```markdown
 Guides to write:
+
 - [ ] How to Create a Custom Game
 - [ ] Card Submission Guidelines
 - [ ] Moderation Best Practices
@@ -609,6 +611,7 @@ Guides to write:
 
 ```markdown
 Docs to create:
+
 - [ ] Architecture overview
 - [ ] Database schema reference
 - [ ] Service layer documentation
@@ -644,21 +647,21 @@ Docs to create:
 
 ### Technical Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Database performance degradation | High | Proper indexing, query optimization, monitoring |
-| API response time increases | High | Caching layer, CDN for images, load testing |
-| Schema complexity | Medium | Clear documentation, validation at all layers |
-| Backward compatibility breaks | High | Extensive testing, gradual migration |
+| Risk                             | Impact | Mitigation                                      |
+| -------------------------------- | ------ | ----------------------------------------------- |
+| Database performance degradation | High   | Proper indexing, query optimization, monitoring |
+| API response time increases      | High   | Caching layer, CDN for images, load testing     |
+| Schema complexity                | Medium | Clear documentation, validation at all layers   |
+| Backward compatibility breaks    | High   | Extensive testing, gradual migration            |
 
 ### Product Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Low community adoption | High | Pre-seed with official games, marketing campaign |
-| UGC quality issues | Medium | Strong moderation, peer review, reputation system |
-| Feature complexity | Medium | Phased rollout, user testing, clear UI/UX |
-| Abuse/spam submissions | Medium | Rate limiting, spam detection, bans |
+| Risk                   | Impact | Mitigation                                        |
+| ---------------------- | ------ | ------------------------------------------------- |
+| Low community adoption | High   | Pre-seed with official games, marketing campaign  |
+| UGC quality issues     | Medium | Strong moderation, peer review, reputation system |
+| Feature complexity     | Medium | Phased rollout, user testing, clear UI/UX         |
+| Abuse/spam submissions | Medium | Rate limiting, spam detection, bans               |
 
 ---
 
@@ -667,20 +670,24 @@ Docs to create:
 ### Backend Team (2 developers)
 
 **Developer 1**: Game Creator API
+
 - Weeks 2-3: Game service and API
 - Weeks 4-5: Card submission system
 
 **Developer 2**: Universal Card Service
+
 - Weeks 2-3: Card service refactor
 - Weeks 4-5: Moderation system
 
 ### Frontend Team (2 developers)
 
 **Developer 3**: Game Creator UI
+
 - Weeks 6-7: Game creation wizard
 - Week 8: Polish and testing
 
 **Developer 4**: Dynamic UI Framework
+
 - Weeks 6-7: Dynamic forms and display
 - Week 8: Analytics dashboard
 
@@ -695,40 +702,47 @@ Docs to create:
 ## Sprint Planning
 
 ### Sprint 1 (Week 2): Game Creator API
+
 - Game service implementation
 - CRUD endpoints
 - Attribute management
 - Format management
 
 ### Sprint 2 (Week 3): Universal Card Service
+
 - Service refactor
 - Adapter pattern implementation
 - Game-scoped endpoints
 - Backward compatibility
 
 ### Sprint 3 (Week 4): Card Submissions
+
 - Submission service
 - Submission API
 - Duplicate detection
 - Testing
 
 ### Sprint 4 (Week 5): Moderation
+
 - Moderation service
 - Moderation API
 - Queue UI
 - Auto-approval logic
 
 ### Sprint 5 (Week 6): Game Creator UI
+
 - Creation wizard
 - Attribute builder
 - Format editor
 
 ### Sprint 6 (Week 7): Dynamic UI
+
 - Dynamic forms
 - Card display
 - Game selector
 
 ### Sprint 7 (Week 8): Analytics & Launch
+
 - Analytics dashboard
 - Performance optimization
 - Documentation

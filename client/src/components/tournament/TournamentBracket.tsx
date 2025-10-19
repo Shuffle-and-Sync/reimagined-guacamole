@@ -4,10 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/features/auth";
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Tournament, TournamentMatch, TournamentRound, User } from '@shared/schema';
+import type {
+  Tournament,
+  TournamentMatch,
+  TournamentRound,
+  User,
+} from "@shared/schema";
 
 // Extended match type with optional properties that may not exist in schema
 type ExtendedTournamentMatch = TournamentMatch & {
@@ -22,8 +27,8 @@ type ExtendedTournamentMatch = TournamentMatch & {
 };
 
 interface TournamentBracketProps {
-  tournament: Tournament & { 
-    organizer: User; 
+  tournament: Tournament & {
+    organizer: User;
     rounds?: TournamentRound[];
     matches?: ExtendedTournamentMatch[];
   };
@@ -38,29 +43,45 @@ interface MatchComponentProps {
   onPlayMatch?: (matchId: string) => void;
 }
 
-const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, onAdvanceMatch, onPlayMatch }: MatchComponentProps) => {
+const MatchComponent = ({
+  match,
+  isOrganizer,
+  tournamentStatus,
+  currentUserId,
+  onAdvanceMatch,
+  onPlayMatch,
+}: MatchComponentProps) => {
   const getMatchStatusColor = (status: string | null) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-      case 'active': return 'bg-blue-100 border-blue-300 text-blue-800';
-      case 'completed': return 'bg-green-100 border-green-300 text-green-800';
-      case 'bye': return 'bg-gray-100 border-gray-300 text-gray-600';
-      default: return 'bg-gray-100 border-gray-300';
+      case "pending":
+        return "bg-yellow-100 border-yellow-300 text-yellow-800";
+      case "active":
+        return "bg-blue-100 border-blue-300 text-blue-800";
+      case "completed":
+        return "bg-green-100 border-green-300 text-green-800";
+      case "bye":
+        return "bg-gray-100 border-gray-300 text-gray-600";
+      default:
+        return "bg-gray-100 border-gray-300";
     }
   };
 
   const formatPlayerName = (player?: User) => {
-    if (!player) return 'TBD';
-    return player.username || player.firstName || `Player ${player.id.slice(0, 8)}`;
+    if (!player) return "TBD";
+    return (
+      player.username || player.firstName || `Player ${player.id.slice(0, 8)}`
+    );
   };
 
-  if (match.status === 'bye') {
+  if (match.status === "bye") {
     return (
       <Card className={`w-64 ${getMatchStatusColor(match.status)} border-2`}>
         <CardContent className="p-4">
           <div className="text-center">
             <p className="font-medium">{formatPlayerName(match.player1)}</p>
-            <Badge variant="secondary" className="mt-2">Bye</Badge>
+            <Badge variant="secondary" className="mt-2">
+              Bye
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -68,22 +89,31 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
   }
 
   return (
-    <Card className={`w-64 ${getMatchStatusColor(match.status)} border-2`} data-testid={`match-card-${match.id || 'unknown'}`}>
+    <Card
+      className={`w-64 ${getMatchStatusColor(match.status)} border-2`}
+      data-testid={`match-card-${match.id || "unknown"}`}
+    >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <Badge variant="outline" className="text-xs">
             Match {match.bracketPosition ?? match.matchNumber}
           </Badge>
-          <Badge variant={match.status === 'completed' ? 'default' : 'secondary'}>
+          <Badge
+            variant={match.status === "completed" ? "default" : "secondary"}
+          >
             {match.status}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 space-y-3">
         {/* Player 1 */}
-        <div className={`flex items-center space-x-3 p-2 rounded ${
-          match.winnerId === match.player1Id ? 'bg-green-50 border border-green-200' : 'bg-background'
-        }`}>
+        <div
+          className={`flex items-center space-x-3 p-2 rounded ${
+            match.winnerId === match.player1Id
+              ? "bg-green-50 border border-green-200"
+              : "bg-background"
+          }`}
+        >
           <Avatar className="w-8 h-8">
             <AvatarImage src={match.player1?.profileImageUrl || undefined} />
             <AvatarFallback className="text-xs">
@@ -91,10 +121,13 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate" data-testid={`player1-name-${match.id || 'unknown'}`}>
+            <p
+              className="font-medium text-sm truncate"
+              data-testid={`player1-name-${match.id || "unknown"}`}
+            >
               {formatPlayerName(match.player1)}
             </p>
-            {match.status === 'completed' && (
+            {match.status === "completed" && (
               <p className="text-xs text-muted-foreground">
                 Score: {match.player1Score || 0}
               </p>
@@ -113,9 +146,13 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
         </div>
 
         {/* Player 2 */}
-        <div className={`flex items-center space-x-3 p-2 rounded ${
-          match.winnerId === match.player2Id ? 'bg-green-50 border border-green-200' : 'bg-background'
-        }`}>
+        <div
+          className={`flex items-center space-x-3 p-2 rounded ${
+            match.winnerId === match.player2Id
+              ? "bg-green-50 border border-green-200"
+              : "bg-background"
+          }`}
+        >
           <Avatar className="w-8 h-8">
             <AvatarImage src={match.player2?.profileImageUrl || undefined} />
             <AvatarFallback className="text-xs">
@@ -123,10 +160,13 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate" data-testid={`player2-name-${match.id || 'unknown'}`}>
+            <p
+              className="font-medium text-sm truncate"
+              data-testid={`player2-name-${match.id || "unknown"}`}
+            >
               {formatPlayerName(match.player2)}
             </p>
-            {match.status === 'completed' && (
+            {match.status === "completed" && (
               <p className="text-xs text-muted-foreground">
                 Score: {match.player2Score || 0}
               </p>
@@ -142,28 +182,32 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
         {/* Match Actions */}
         <div className="space-y-2 pt-2">
           {/* Play Match Button - for players to start their game */}
-          {match.status === 'pending' && tournamentStatus === 'active' && 
-           (match.player1Id === currentUserId || match.player2Id === currentUserId) && (
-            <Button 
-              size="sm" 
-              className="w-full"
-              onClick={() => onPlayMatch?.(match.id)}
-              disabled={!match.player1Id || !match.player2Id}
-              data-testid={`button-play-match-${match.id || 'unknown'}`}
-            >
-              <i className="fas fa-play mr-2"></i>
-              Play Match
-            </Button>
-          )}
+          {match.status === "pending" &&
+            tournamentStatus === "active" &&
+            (match.player1Id === currentUserId ||
+              match.player2Id === currentUserId) && (
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => onPlayMatch?.(match.id)}
+                disabled={!match.player1Id || !match.player2Id}
+                data-testid={`button-play-match-${match.id || "unknown"}`}
+              >
+                <i className="fas fa-play mr-2"></i>
+                Play Match
+              </Button>
+            )}
 
           {/* Join Game Session Button - if session already exists */}
-          {match.gameSessionId && match.status === 'active' && (
-            <Button 
-              size="sm" 
+          {match.gameSessionId && match.status === "active" && (
+            <Button
+              size="sm"
               variant="outline"
               className="w-full"
-              onClick={() => window.location.href = `/app/room/${match.gameSessionId}`}
-              data-testid={`button-join-game-${match.id || 'unknown'}`}
+              onClick={() =>
+                (window.location.href = `/app/room/${match.gameSessionId}`)
+              }
+              data-testid={`button-join-game-${match.id || "unknown"}`}
             >
               <i className="fas fa-door-open mr-2"></i>
               Join Game Room
@@ -171,30 +215,32 @@ const MatchComponent = ({ match, isOrganizer, tournamentStatus, currentUserId, o
           )}
 
           {/* Organizer Controls */}
-          {isOrganizer && match.status === 'pending' && tournamentStatus === 'active' && (
-            <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
-                disabled={!match.player1Id || !match.player2Id}
-                data-testid={`button-player1-wins-${match.id || 'unknown'}`}
-              >
-                P1 Wins
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
-                disabled={!match.player1Id || !match.player2Id}
-                data-testid={`button-player2-wins-${match.id || 'unknown'}`}
-              >
-                P2 Wins
-              </Button>
-            </div>
-          )}
+          {isOrganizer &&
+            match.status === "pending" &&
+            tournamentStatus === "active" && (
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onAdvanceMatch?.(match.id, match.player1Id!)}
+                  disabled={!match.player1Id || !match.player2Id}
+                  data-testid={`button-player1-wins-${match.id || "unknown"}`}
+                >
+                  P1 Wins
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onAdvanceMatch?.(match.id, match.player2Id!)}
+                  disabled={!match.player1Id || !match.player2Id}
+                  data-testid={`button-player2-wins-${match.id || "unknown"}`}
+                >
+                  P2 Wins
+                </Button>
+              </div>
+            )}
         </div>
       </CardContent>
     </Card>
@@ -213,90 +259,118 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
   // Start tournament mutation
   const startTournamentMutation = useMutation({
     mutationFn: async (tournamentId: string) => {
-      const response = await apiRequest('POST', `/api/tournaments/${tournamentId}/start`, {});
+      const response = await apiRequest(
+        "POST",
+        `/api/tournaments/${tournamentId}/start`,
+        {},
+      );
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Tournament started!",
-        description: "Brackets have been generated and the tournament is now active."
+        description:
+          "Brackets have been generated and the tournament is now active.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/tournaments", tournament.id, "details"],
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to start tournament",
         description: error.message || "Something went wrong",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Advance round mutation
   const advanceRoundMutation = useMutation({
     mutationFn: async (tournamentId: string) => {
-      const response = await apiRequest('POST', `/api/tournaments/${tournamentId}/advance`, {});
+      const response = await apiRequest(
+        "POST",
+        `/api/tournaments/${tournamentId}/advance`,
+        {},
+      );
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Round advanced!",
-        description: "Tournament has been advanced to the next round."
+        description: "Tournament has been advanced to the next round.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/tournaments", tournament.id, "details"],
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to advance round",
         description: error.message || "Something went wrong",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Report match result mutation
   const reportMatchResultMutation = useMutation({
-    mutationFn: async ({ matchId, winnerId, player1Score, player2Score }: {
+    mutationFn: async ({
+      matchId,
+      winnerId,
+      player1Score,
+      player2Score,
+    }: {
       matchId: string;
       winnerId: string;
       player1Score?: number;
       player2Score?: number;
     }) => {
-      const response = await apiRequest('POST', `/api/tournaments/${tournament.id}/matches/${matchId}/result`, {
-        winnerId,
-        player1Score,
-        player2Score
-      });
+      const response = await apiRequest(
+        "POST",
+        `/api/tournaments/${tournament.id}/matches/${matchId}/result`,
+        {
+          winnerId,
+          player1Score,
+          player2Score,
+        },
+      );
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Match result recorded!",
-        description: "Winner has been set for this match."
+        description: "Winner has been set for this match.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments', tournament.id, 'details'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/tournaments", tournament.id, "details"],
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to record match result",
         description: error.message || "Something went wrong",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Create game session mutation for tournament matches
   const createGameSessionMutation = useMutation({
     mutationFn: async (matchId: string) => {
-      const response = await apiRequest('POST', `/api/tournaments/${tournament.id}/matches/${matchId}/create-session`, {});
+      const response = await apiRequest(
+        "POST",
+        `/api/tournaments/${tournament.id}/matches/${matchId}/create-session`,
+        {},
+      );
       return response.json();
     },
     onSuccess: (gameSession, matchId) => {
       toast({
         title: "Game room created!",
-        description: "Redirecting to the tournament match game room..."
+        description: "Redirecting to the tournament match game room...",
       });
       // Redirect to the game room
       setTimeout(() => {
@@ -307,9 +381,9 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
       toast({
         title: "Failed to create game room",
         description: error.message || "Something went wrong",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const handlePlayMatch = (matchId: string) => {
@@ -318,36 +392,38 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
 
   const handleAdvanceMatch = (matchId: string, winnerId: string) => {
     // Simple score assignment - in a real app, you'd have a score input dialog
-    const player1Score = winnerId === matches.find(m => m.id === matchId)?.player1Id ? 1 : 0;
-    const player2Score = winnerId === matches.find(m => m.id === matchId)?.player2Id ? 1 : 0;
-    
-    reportMatchResultMutation.mutate({ 
-      matchId, 
-      winnerId, 
-      player1Score, 
-      player2Score 
+    const player1Score =
+      winnerId === matches.find((m) => m.id === matchId)?.player1Id ? 1 : 0;
+    const player2Score =
+      winnerId === matches.find((m) => m.id === matchId)?.player2Id ? 1 : 0;
+
+    reportMatchResultMutation.mutate({
+      matchId,
+      winnerId,
+      player1Score,
+      player2Score,
     });
   };
 
   const getCurrentRoundMatches = () => {
-    return matches.filter(match => {
-      const round = rounds.find(r => r.id === match.roundId);
+    return matches.filter((match) => {
+      const round = rounds.find((r) => r.id === match.roundId);
       return round?.roundNumber === selectedRound;
     });
   };
 
   const getFormatDisplayName = (format: string) => {
     const formatNames: Record<string, string> = {
-      'single_elimination': 'Single Elimination',
-      'double_elimination': 'Double Elimination',
-      'swiss': 'Swiss',
-      'round_robin': 'Round Robin'
+      single_elimination: "Single Elimination",
+      double_elimination: "Double Elimination",
+      swiss: "Swiss",
+      round_robin: "Round Robin",
     };
     return formatNames[format] || format;
   };
 
   // Show start tournament interface for upcoming tournaments
-  if (tournament.status === 'upcoming') {
+  if (tournament.status === "upcoming") {
     return (
       <div className="space-y-6">
         <Card>
@@ -363,23 +439,33 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
                 <span className="text-muted-foreground">Format:</span>
                 {/* <p className="font-medium">{getFormatDisplayName(tournament.gameFormat)}</p> */}
                 {/* TODO: gameFormat doesn't exist in schema */}
-                <p className="font-medium">{getFormatDisplayName(tournament.gameType)}</p>
+                <p className="font-medium">
+                  {getFormatDisplayName(tournament.gameType)}
+                </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Participants:</span>
-                <p className="font-medium">{tournament.currentParticipants || 0}/{tournament.maxParticipants}</p>
+                <p className="font-medium">
+                  {tournament.currentParticipants || 0}/
+                  {tournament.maxParticipants}
+                </p>
               </div>
             </div>
-            
+
             {isOrganizer && (
               <div className="pt-4 border-t">
-                <Button 
+                <Button
                   onClick={() => startTournamentMutation.mutate(tournament.id)}
-                  disabled={startTournamentMutation.isPending || (tournament.currentParticipants || 0) < 2}
+                  disabled={
+                    startTournamentMutation.isPending ||
+                    (tournament.currentParticipants || 0) < 2
+                  }
                   className="w-full"
                   data-testid="button-start-tournament"
                 >
-                  {startTournamentMutation.isPending ? "Starting Tournament..." : "Start Tournament"}
+                  {startTournamentMutation.isPending
+                    ? "Starting Tournament..."
+                    : "Start Tournament"}
                 </Button>
                 {(tournament.currentParticipants || 0) < 2 && (
                   <p className="text-sm text-muted-foreground mt-2 text-center">
@@ -404,8 +490,14 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
             <div className="flex items-center space-x-2">
               {/* <Badge variant="secondary">{getFormatDisplayName(tournament.gameFormat)}</Badge> */}
               {/* TODO: gameFormat doesn't exist in schema */}
-              <Badge variant="secondary">{getFormatDisplayName(tournament.gameType)}</Badge>
-              <Badge variant={tournament.status === 'active' ? 'default' : 'secondary'}>
+              <Badge variant="secondary">
+                {getFormatDisplayName(tournament.gameType)}
+              </Badge>
+              <Badge
+                variant={
+                  tournament.status === "active" ? "default" : "secondary"
+                }
+              >
                 {tournament.status}
               </Badge>
             </div>
@@ -415,18 +507,20 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
               <span>Participants: {tournament.currentParticipants || 0}</span>
-              {tournament.status === 'active' && (
+              {tournament.status === "active" && (
                 <span className="ml-4">Current Round: {selectedRound}</span>
               )}
             </div>
-            
-            {isOrganizer && tournament.status === 'active' && (
-              <Button 
+
+            {isOrganizer && tournament.status === "active" && (
+              <Button
                 onClick={() => advanceRoundMutation.mutate(tournament.id)}
                 disabled={advanceRoundMutation.isPending}
                 data-testid="button-advance-round"
               >
-                {advanceRoundMutation.isPending ? "Advancing..." : "Advance Round"}
+                {advanceRoundMutation.isPending
+                  ? "Advancing..."
+                  : "Advance Round"}
               </Button>
             )}
           </div>
@@ -441,16 +535,15 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
               {rounds.map((round) => (
                 <Button
                   key={round.id}
-                  variant={selectedRound === round.roundNumber ? "default" : "outline"}
+                  variant={
+                    selectedRound === round.roundNumber ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setSelectedRound(round.roundNumber)}
                   data-testid={`button-round-${round.roundNumber}`}
                 >
                   {round.name || `Round ${round.roundNumber}`}
-                  <Badge 
-                    variant="secondary" 
-                    className="ml-2"
-                  >
+                  <Badge variant="secondary" className="ml-2">
                     {round.status}
                   </Badge>
                 </Button>
@@ -464,7 +557,8 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
       <Card>
         <CardHeader>
           <CardTitle>
-            {rounds.find(r => r.roundNumber === selectedRound)?.name || `Round ${selectedRound}`}
+            {rounds.find((r) => r.roundNumber === selectedRound)?.name ||
+              `Round ${selectedRound}`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -480,7 +574,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
                   key={match.id}
                   match={match}
                   isOrganizer={isOrganizer}
-                  tournamentStatus={tournament.status || 'upcoming'}
+                  tournamentStatus={tournament.status || "upcoming"}
                   currentUserId={user?.id}
                   onAdvanceMatch={handleAdvanceMatch}
                   onPlayMatch={handlePlayMatch}

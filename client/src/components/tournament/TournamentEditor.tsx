@@ -1,27 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import type { Tournament, TournamentParticipant, User } from '@shared/schema';
+import type { Tournament, TournamentParticipant, User } from "@shared/schema";
 import { format } from "date-fns";
 
 interface TournamentEditorProps {
-  tournament: Tournament & { 
-    organizer: User; 
-    community: any; 
+  tournament: Tournament & {
+    organizer: User;
+    community: any;
     participants: (TournamentParticipant & { user: User })[];
     rounds?: any[];
     matches?: any[];
@@ -31,11 +50,14 @@ interface TournamentEditorProps {
   onClose?: () => void;
 }
 
-export default function TournamentEditor({ tournament, onClose }: TournamentEditorProps) {
+export default function TournamentEditor({
+  tournament,
+  onClose,
+}: TournamentEditorProps) {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   // Form state for different tabs
   const [generalForm, setGeneralForm] = useState({
     name: tournament.name || "",
@@ -43,11 +65,15 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
     // gameFormat: tournament.gameFormat || "", // TODO: gameFormat doesn't exist in schema
     gameFormat: tournament.gameType || "", // Use gameType instead
     maxParticipants: tournament.maxParticipants || 8,
-    startDate: tournament.startDate ? format(new Date(tournament.startDate), "yyyy-MM-dd'T'HH:mm") : "",
-    endDate: tournament.endDate ? format(new Date(tournament.endDate), "yyyy-MM-dd'T'HH:mm") : "",
+    startDate: tournament.startDate
+      ? format(new Date(tournament.startDate), "yyyy-MM-dd'T'HH:mm")
+      : "",
+    endDate: tournament.endDate
+      ? format(new Date(tournament.endDate), "yyyy-MM-dd'T'HH:mm")
+      : "",
     prizePool: tournament.prizePool || "",
     // rules: tournament.rules || "" // TODO: rules doesn't exist in schema
-    rules: "" // Placeholder
+    rules: "", // Placeholder
   });
 
   const [activeTab, setActiveTab] = useState("general");
@@ -55,29 +81,33 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
 
   // Check if user is tournament organizer
   const isOrganizer = user?.id === tournament?.organizerId;
-  const tournamentStatus = tournament?.status || 'upcoming';
+  const tournamentStatus = tournament?.status || "upcoming";
 
   // Update tournament mutation
   const updateTournamentMutation = useMutation({
     mutationFn: async (updates: any) => {
-      const response = await apiRequest('PATCH', `/api/tournaments/${tournament.id}`, updates);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/tournaments/${tournament.id}`,
+        updates,
+      );
       return response.json();
     },
     onSuccess: () => {
       toast({
         title: "Tournament updated!",
-        description: "Your changes have been saved successfully."
+        description: "Your changes have been saved successfully.",
       });
       setHasChanges(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/tournaments'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to update tournament",
         description: error.message || "Something went wrong",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Game format options
@@ -90,12 +120,12 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
     { value: "pokemon-standard", label: "Pokemon Standard" },
     { value: "pokemon-expanded", label: "Pokemon Expanded" },
     { value: "lorcana-constructed", label: "Lorcana Constructed" },
-    { value: "yugioh-advanced", label: "Yu-Gi-Oh Advanced" }
+    { value: "yugioh-advanced", label: "Yu-Gi-Oh Advanced" },
   ];
 
   // Handle form changes
   const handleGeneralFormChange = (field: string, value: any) => {
-    setGeneralForm(prev => ({ ...prev, [field]: value }));
+    setGeneralForm((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
 
@@ -106,28 +136,36 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
       description: generalForm.description,
       gameFormat: generalForm.gameFormat,
       maxParticipants: Number(generalForm.maxParticipants),
-      startDate: generalForm.startDate ? new Date(generalForm.startDate).toISOString() : null,
-      endDate: generalForm.endDate ? new Date(generalForm.endDate).toISOString() : null,
+      startDate: generalForm.startDate
+        ? new Date(generalForm.startDate).toISOString()
+        : null,
+      endDate: generalForm.endDate
+        ? new Date(generalForm.endDate).toISOString()
+        : null,
       prizePool: generalForm.prizePool,
-      rules: generalForm.rules
+      rules: generalForm.rules,
     });
   };
 
   // Get status badge variant
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'upcoming': return 'default';
-      case 'active': return 'destructive';
-      case 'completed': return 'secondary';
-      default: return 'outline';
+      case "upcoming":
+        return "default";
+      case "active":
+        return "destructive";
+      case "completed":
+        return "secondary";
+      default:
+        return "outline";
     }
   };
 
   // Check if field editing is allowed based on tournament status
   const isFieldEditable = (field: string) => {
-    if (tournamentStatus === 'completed') return false;
-    if (tournamentStatus === 'active') {
-      const allowedFields = ['name', 'description', 'rules', 'prizePool'];
+    if (tournamentStatus === "completed") return false;
+    if (tournamentStatus === "active") {
+      const allowedFields = ["name", "description", "rules", "prizePool"];
       return allowedFields.includes(field);
     }
     return true; // upcoming tournaments allow all edits
@@ -142,7 +180,11 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
           <p className="text-muted-foreground mb-4">
             Only the tournament organizer can edit this tournament.
           </p>
-          <Button onClick={onClose || (() => setLocation(`/tournaments/${tournament.id}`))}>
+          <Button
+            onClick={
+              onClose || (() => setLocation(`/tournaments/${tournament.id}`))
+            }
+          >
             Back to Tournament
           </Button>
         </CardContent>
@@ -164,14 +206,22 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
               <CardDescription className="text-lg">
                 {/* {tournament.name} - {gameFormats.find(f => f.value === tournament.gameFormat)?.label} */}
                 {/* TODO: gameFormat doesn't exist in schema */}
-                {tournament.name} - {gameFormats.find(f => f.value === tournament.gameType)?.label}
+                {tournament.name} -{" "}
+                {
+                  gameFormats.find((f) => f.value === tournament.gameType)
+                    ?.label
+                }
               </CardDescription>
             </div>
             <div className="flex flex-col items-end space-y-2">
-              <Badge variant={getStatusBadgeVariant(tournamentStatus)} className="text-sm" data-testid="badge-tournament-status">
+              <Badge
+                variant={getStatusBadgeVariant(tournamentStatus)}
+                className="text-sm"
+                data-testid="badge-tournament-status"
+              >
                 {tournamentStatus}
               </Badge>
-              {tournamentStatus === 'active' && (
+              {tournamentStatus === "active" && (
                 <Badge variant="outline" className="text-xs text-orange-600">
                   <i className="fas fa-info-circle mr-1"></i>
                   Limited Editing
@@ -183,7 +233,11 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
       </Card>
 
       {/* Tabbed Editor */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general" data-testid="tab-general">
             <i className="fas fa-info-circle mr-2"></i>General
@@ -206,7 +260,9 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Tournament name, description, and format</CardDescription>
+                <CardDescription>
+                  Tournament name, description, and format
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -214,8 +270,13 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                   <Input
                     id="tournament-name"
                     value={generalForm.name}
-                    onChange={(e) => handleGeneralFormChange('name', e.target.value)}
-                    disabled={!isFieldEditable('name') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange("name", e.target.value)
+                    }
+                    disabled={
+                      !isFieldEditable("name") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="input-tournament-name"
                   />
                 </div>
@@ -226,18 +287,28 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                     id="tournament-description"
                     rows={4}
                     value={generalForm.description}
-                    onChange={(e) => handleGeneralFormChange('description', e.target.value)}
-                    disabled={!isFieldEditable('description') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange("description", e.target.value)
+                    }
+                    disabled={
+                      !isFieldEditable("description") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="textarea-tournament-description"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="game-format">Game Format *</Label>
-                  <Select 
-                    value={generalForm.gameFormat} 
-                    onValueChange={(value) => handleGeneralFormChange('gameFormat', value)}
-                    disabled={!isFieldEditable('gameFormat') || updateTournamentMutation.isPending}
+                  <Select
+                    value={generalForm.gameFormat}
+                    onValueChange={(value) =>
+                      handleGeneralFormChange("gameFormat", value)
+                    }
+                    disabled={
+                      !isFieldEditable("gameFormat") ||
+                      updateTournamentMutation.isPending
+                    }
                   >
                     <SelectTrigger data-testid="select-game-format">
                       <SelectValue placeholder="Select game format" />
@@ -258,7 +329,9 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
             <Card>
               <CardHeader>
                 <CardTitle>Tournament Settings</CardTitle>
-                <CardDescription>Participants, dates, and prizes</CardDescription>
+                <CardDescription>
+                  Participants, dates, and prizes
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -269,8 +342,16 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                     min="2"
                     max="128"
                     value={generalForm.maxParticipants}
-                    onChange={(e) => handleGeneralFormChange('maxParticipants', parseInt(e.target.value))}
-                    disabled={!isFieldEditable('maxParticipants') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange(
+                        "maxParticipants",
+                        parseInt(e.target.value),
+                      )
+                    }
+                    disabled={
+                      !isFieldEditable("maxParticipants") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="input-max-participants"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -284,8 +365,13 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                     id="start-date"
                     type="datetime-local"
                     value={generalForm.startDate}
-                    onChange={(e) => handleGeneralFormChange('startDate', e.target.value)}
-                    disabled={!isFieldEditable('startDate') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange("startDate", e.target.value)
+                    }
+                    disabled={
+                      !isFieldEditable("startDate") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="input-start-date"
                   />
                 </div>
@@ -296,8 +382,13 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                     id="end-date"
                     type="datetime-local"
                     value={generalForm.endDate}
-                    onChange={(e) => handleGeneralFormChange('endDate', e.target.value)}
-                    disabled={!isFieldEditable('endDate') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange("endDate", e.target.value)
+                    }
+                    disabled={
+                      !isFieldEditable("endDate") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="input-end-date"
                   />
                 </div>
@@ -308,8 +399,13 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                     id="prize-pool"
                     placeholder="e.g., $100 store credit"
                     value={generalForm.prizePool}
-                    onChange={(e) => handleGeneralFormChange('prizePool', e.target.value)}
-                    disabled={!isFieldEditable('prizePool') || updateTournamentMutation.isPending}
+                    onChange={(e) =>
+                      handleGeneralFormChange("prizePool", e.target.value)
+                    }
+                    disabled={
+                      !isFieldEditable("prizePool") ||
+                      updateTournamentMutation.isPending
+                    }
                     data-testid="input-prize-pool"
                   />
                 </div>
@@ -321,7 +417,9 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
           <Card>
             <CardHeader>
               <CardTitle>Tournament Rules</CardTitle>
-              <CardDescription>Specific rules and regulations for this tournament</CardDescription>
+              <CardDescription>
+                Specific rules and regulations for this tournament
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -331,8 +429,13 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                   rows={8}
                   placeholder="Enter tournament rules, deck restrictions, format specifications, etc."
                   value={generalForm.rules}
-                  onChange={(e) => handleGeneralFormChange('rules', e.target.value)}
-                  disabled={!isFieldEditable('rules') || updateTournamentMutation.isPending}
+                  onChange={(e) =>
+                    handleGeneralFormChange("rules", e.target.value)
+                  }
+                  disabled={
+                    !isFieldEditable("rules") ||
+                    updateTournamentMutation.isPending
+                  }
                   data-testid="textarea-tournament-rules"
                 />
               </div>
@@ -344,8 +447,10 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
             <CardContent className="pt-6">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {hasChanges && <span className="text-orange-600">• Unsaved changes</span>}
-                  {tournamentStatus === 'active' && (
+                  {hasChanges && (
+                    <span className="text-orange-600">• Unsaved changes</span>
+                  )}
+                  {tournamentStatus === "active" && (
                     <span className="text-orange-600 ml-2">
                       <i className="fas fa-info-circle mr-1"></i>
                       Active tournaments have limited editing options
@@ -353,14 +458,17 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={onClose || (() => setLocation(`/tournaments/${tournament.id}`))}
+                  <Button
+                    variant="outline"
+                    onClick={
+                      onClose ||
+                      (() => setLocation(`/tournaments/${tournament.id}`))
+                    }
                     data-testid="button-cancel-editing"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSaveGeneral}
                     disabled={!hasChanges || updateTournamentMutation.isPending}
                     data-testid="button-save-general"
@@ -381,14 +489,18 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
           <Card>
             <CardHeader>
               <CardTitle>Participant Management</CardTitle>
-              <CardDescription>Manage tournament participants, seeding, and registration</CardDescription>
+              <CardDescription>
+                Manage tournament participants, seeding, and registration
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
                 <i className="fas fa-users text-4xl mb-4"></i>
                 <p className="text-lg font-medium">Participant Management</p>
                 <p>Advanced participant management tools coming soon!</p>
-                <p className="text-sm mt-2">Current participants: {tournament.participants?.length || 0}</p>
+                <p className="text-sm mt-2">
+                  Current participants: {tournament.participants?.length || 0}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -399,16 +511,26 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
           <Card>
             <CardHeader>
               <CardTitle>Bracket Editor</CardTitle>
-              <CardDescription>Edit tournament bracket and match arrangements</CardDescription>
+              <CardDescription>
+                Edit tournament bracket and match arrangements
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
                 <i className="fas fa-sitemap text-4xl mb-4"></i>
-                <p className="text-lg font-medium">Interactive Bracket Editor</p>
+                <p className="text-lg font-medium">
+                  Interactive Bracket Editor
+                </p>
                 <p>Advanced bracket editing tools coming soon!</p>
                 {/* <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameFormat)?.label}</p> */}
                 {/* TODO: gameFormat doesn't exist in schema */}
-                <p className="text-sm mt-2">Tournament format: {gameFormats.find(f => f.value === tournament.gameType)?.label}</p>
+                <p className="text-sm mt-2">
+                  Tournament format:{" "}
+                  {
+                    gameFormats.find((f) => f.value === tournament.gameType)
+                      ?.label
+                  }
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -419,13 +541,18 @@ export default function TournamentEditor({ tournament, onClose }: TournamentEdit
           <Card>
             <CardHeader>
               <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>Tournament configuration and administrative options</CardDescription>
+              <CardDescription>
+                Tournament configuration and administrative options
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
                 <i className="fas fa-cog text-4xl mb-4"></i>
                 <p className="text-lg font-medium">Advanced Configuration</p>
-                <p>Tournament templates, automation settings, and more coming soon!</p>
+                <p>
+                  Tournament templates, automation settings, and more coming
+                  soon!
+                </p>
                 <p className="text-sm mt-2">Status: {tournamentStatus}</p>
               </div>
             </CardContent>

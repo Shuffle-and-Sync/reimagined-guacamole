@@ -11,41 +11,44 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-  
+
   // Handle long messages by breaking them into multiple lines with proper indentation
   const prefix = `${formattedTime} [${source}]`;
   const maxLineLength = 120; // Reasonable terminal width
   const indentLength = prefix.length + 1; // +1 for the space
-  
+
   if (message.length + indentLength <= maxLineLength) {
     // Short message, log normally
     console.log(`${prefix} ${message}`);
   } else {
     // Long message, split into multiple lines with proper indentation
-    const words = message.split(' ');
-    let currentLine = '';
+    const words = message.split(" ");
+    let currentLine = "";
     const lines = [];
-    
+
     for (const word of words) {
       if (currentLine.length === 0) {
         currentLine = word;
-      } else if ((currentLine + ' ' + word).length + indentLength <= maxLineLength) {
-        currentLine += ' ' + word;
+      } else if (
+        (currentLine + " " + word).length + indentLength <=
+        maxLineLength
+      ) {
+        currentLine += " " + word;
       } else {
         lines.push(currentLine);
         currentLine = word;
       }
     }
-    
+
     if (currentLine) {
       lines.push(currentLine);
     }
-    
+
     // Log first line with full prefix
     console.log(`${prefix} ${lines[0]}`);
-    
+
     // Log continuation lines with proper indentation
-    const indent = ' '.repeat(indentLength);
+    const indent = " ".repeat(indentLength);
     for (let i = 1; i < lines.length; i++) {
       console.log(`${indent}${lines[i]}`);
     }
@@ -54,14 +57,14 @@ export function log(message: string, source = "express") {
 
 export async function setupVite(app: Express, server: Server) {
   // This function should never be called in production, but add a guard just in case
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('setupVite should not be called in production mode');
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("setupVite should not be called in production mode");
   }
-  
+
   // Dynamically import all vite dependencies to avoid bundling them
   const { createServer: createViteServer, createLogger } = await import("vite");
   const viteLogger = createLogger();
-  
+
   // Skip vite config import entirely and use a minimal config
   // This prevents vite.config.ts from being bundled
   const viteConfig = {
@@ -84,7 +87,7 @@ export async function setupVite(app: Express, server: Server) {
       },
     },
   };
-  
+
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -111,10 +114,11 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       // Use __dirname fallback for bundled environments
-      const dirname = typeof import.meta !== 'undefined' && import.meta.dirname 
-        ? import.meta.dirname 
-        : process.cwd();
-      
+      const dirname =
+        typeof import.meta !== "undefined" && import.meta.dirname
+          ? import.meta.dirname
+          : process.cwd();
+
       const clientTemplate = path.resolve(
         dirname,
         "..",
@@ -139,10 +143,11 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   // Use safe path resolution for production
-  const dirname = typeof import.meta !== 'undefined' && import.meta.dirname 
-    ? import.meta.dirname 
-    : process.cwd();
-  
+  const dirname =
+    typeof import.meta !== "undefined" && import.meta.dirname
+      ? import.meta.dirname
+      : process.cwd();
+
   const distPath = path.resolve(dirname, "public");
 
   if (!fs.existsSync(distPath)) {

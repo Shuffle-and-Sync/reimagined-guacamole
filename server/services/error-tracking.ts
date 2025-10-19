@@ -1,14 +1,19 @@
 /**
  * Error Tracking Service - Sentry Integration
- * 
+ *
  * Provides centralized error tracking and monitoring using Sentry.
  * Automatically captures errors, exceptions, and performance metrics.
  */
 
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
-import { logger } from '../logger';
-import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { logger } from "../logger";
+import type {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler,
+} from "express";
 
 /**
  * Initialize Sentry error tracking
@@ -16,78 +21,79 @@ import type { Request, Response, NextFunction, ErrorRequestHandler } from 'expre
  */
 export function initializeSentry(): void {
   const sentryDsn = process.env.SENTRY_DSN;
-  
+
   // Only initialize if DSN is configured
   if (!sentryDsn) {
-    logger.info('Sentry DSN not configured - error tracking disabled');
+    logger.info("Sentry DSN not configured - error tracking disabled");
     return;
   }
 
   try {
     Sentry.init({
       dsn: sentryDsn,
-      environment: process.env.NODE_ENV || 'development',
-      
+      environment: process.env.NODE_ENV || "development",
+
       // Release tracking for better error grouping
-      release: process.env.npm_package_version || '1.0.0',
-      
+      release: process.env.npm_package_version || "1.0.0",
+
       // Set sample rate for performance monitoring
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      
+      tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
       // Set sample rate for profiling
-      profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      
+      profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
       // Enable profiling integration
-      integrations: [
-        nodeProfilingIntegration(),
-      ],
-      
+      integrations: [nodeProfilingIntegration()],
+
       // Configure what data to send
       beforeSend(event) {
         // Filter out sensitive data
         if (event.request) {
           // Remove sensitive headers
           if (event.request.headers) {
-            delete event.request.headers['authorization'];
-            delete event.request.headers['cookie'];
+            delete event.request.headers["authorization"];
+            delete event.request.headers["cookie"];
           }
-          
+
           // Remove sensitive query parameters
-          if (event.request.query_string && typeof event.request.query_string === 'string') {
+          if (
+            event.request.query_string &&
+            typeof event.request.query_string === "string"
+          ) {
             event.request.query_string = event.request.query_string
-              .replace(/token=[^&]*/g, 'token=[REDACTED]')
-              .replace(/api_key=[^&]*/g, 'api_key=[REDACTED]')
-              .replace(/apikey=[^&]*/g, 'apikey=[REDACTED]');
+              .replace(/token=[^&]*/g, "token=[REDACTED]")
+              .replace(/api_key=[^&]*/g, "api_key=[REDACTED]")
+              .replace(/apikey=[^&]*/g, "apikey=[REDACTED]");
           }
         }
-        
+
         // Add custom context
         event.tags = {
           ...event.tags,
-          service: 'shuffle-and-sync',
+          service: "shuffle-and-sync",
         };
-        
+
         return event;
       },
-      
+
       // Ignore certain errors
       ignoreErrors: [
         // Browser extensions
         /extensions\//i,
         /^Non-Error/,
         // Network errors that are user-side issues
-        'Network request failed',
-        'NetworkError',
+        "Network request failed",
+        "NetworkError",
       ],
     });
 
-    logger.info('Sentry error tracking initialized', {
+    logger.info("Sentry error tracking initialized", {
       environment: process.env.NODE_ENV,
       release: process.env.npm_package_version,
-      sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+      sampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
     });
   } catch (error) {
-    logger.error('Failed to initialize Sentry', error);
+    logger.error("Failed to initialize Sentry", error);
   }
 }
 
@@ -99,7 +105,7 @@ export function sentryErrorHandler(): ErrorRequestHandler {
   return (err: any, req: Request, res: Response, next: NextFunction) => {
     // Capture error in Sentry
     Sentry.captureException(err);
-    
+
     // Pass to next error handler
     next(err);
   };
@@ -112,15 +118,15 @@ export function sentryErrorHandler(): ErrorRequestHandler {
 export function sentryRequestHandler() {
   return (req: Request, res: Response, next: NextFunction) => {
     // Set request context for Sentry
-    Sentry.setContext('request', {
+    Sentry.setContext("request", {
       url: req.url,
       method: req.method,
       headers: {
-        'user-agent': req.get('User-Agent'),
+        "user-agent": req.get("User-Agent"),
       },
       query: req.query,
     });
-    
+
     next();
   };
 }
@@ -134,12 +140,12 @@ export function sentryTracingHandler() {
     // Start span for request tracing
     Sentry.startSpan(
       {
-        op: 'http.server',
+        op: "http.server",
         name: `${req.method} ${req.path}`,
       },
       () => {
         next();
-      }
+      },
     );
   };
 }
@@ -147,7 +153,10 @@ export function sentryTracingHandler() {
 /**
  * Manually capture an exception
  */
-export function captureException(error: Error | unknown, context?: Record<string, any>): void {
+export function captureException(
+  error: Error | unknown,
+  context?: Record<string, any>,
+): void {
   if (!process.env.SENTRY_DSN) {
     return;
   }
@@ -159,7 +168,7 @@ export function captureException(error: Error | unknown, context?: Record<string
         scope.setExtra(key, value);
       });
     }
-    
+
     Sentry.captureException(error);
   });
 }
@@ -167,7 +176,11 @@ export function captureException(error: Error | unknown, context?: Record<string
 /**
  * Manually capture a message
  */
-export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info', context?: Record<string, any>): void {
+export function captureMessage(
+  message: string,
+  level: Sentry.SeverityLevel = "info",
+  context?: Record<string, any>,
+): void {
   if (!process.env.SENTRY_DSN) {
     return;
   }
@@ -178,7 +191,7 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
         scope.setExtra(key, value);
       });
     }
-    
+
     Sentry.captureMessage(message, level);
   });
 }
@@ -186,7 +199,11 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
 /**
  * Set user context for error tracking
  */
-export function setUserContext(user: { id: string; email?: string; username?: string }): void {
+export function setUserContext(user: {
+  id: string;
+  email?: string;
+  username?: string;
+}): void {
   if (!process.env.SENTRY_DSN) {
     return;
   }
@@ -212,7 +229,11 @@ export function clearUserContext(): void {
 /**
  * Add breadcrumb for debugging
  */
-export function addBreadcrumb(message: string, category: string, data?: Record<string, any>): void {
+export function addBreadcrumb(
+  message: string,
+  category: string,
+  data?: Record<string, any>,
+): void {
   if (!process.env.SENTRY_DSN) {
     return;
   }
@@ -220,7 +241,7 @@ export function addBreadcrumb(message: string, category: string, data?: Record<s
   Sentry.addBreadcrumb({
     message,
     category,
-    level: 'info',
+    level: "info",
     data,
     timestamp: Date.now() / 1000,
   });
@@ -229,7 +250,11 @@ export function addBreadcrumb(message: string, category: string, data?: Record<s
 /**
  * Start a span for performance monitoring
  */
-export function startSpan(name: string, op: string, callback: () => void): void {
+export function startSpan(
+  name: string,
+  op: string,
+  callback: () => void,
+): void {
   if (!process.env.SENTRY_DSN) {
     callback();
     return;
@@ -240,14 +265,18 @@ export function startSpan(name: string, op: string, callback: () => void): void 
       name,
       op,
     },
-    callback
+    callback,
   );
 }
 
 /**
  * Middleware to track user context from authenticated requests
  */
-export function trackUserMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function trackUserMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   if (!process.env.SENTRY_DSN) {
     return next();
   }
@@ -263,7 +292,7 @@ export function trackUserMiddleware(req: Request, res: Response, next: NextFunct
   }
 
   // Clear user context on response
-  res.on('finish', () => {
+  res.on("finish", () => {
     if (user) {
       clearUserContext();
     }
@@ -283,10 +312,10 @@ export async function flushSentry(timeout = 2000): Promise<boolean> {
 
   try {
     const result = await Sentry.close(timeout);
-    logger.info('Sentry events flushed successfully');
+    logger.info("Sentry events flushed successfully");
     return result;
   } catch (error) {
-    logger.error('Failed to flush Sentry events', error);
+    logger.error("Failed to flush Sentry events", error);
     return false;
   }
 }

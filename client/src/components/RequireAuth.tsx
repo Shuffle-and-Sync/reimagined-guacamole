@@ -8,7 +8,11 @@ interface RequireAuthProps {
   redirectTo?: string;
 }
 
-export function RequireAuth({ children, fallback, redirectTo = "/" }: RequireAuthProps) {
+export function RequireAuth({
+  children,
+  fallback,
+  redirectTo = "/",
+}: RequireAuthProps) {
   const { isAuthenticated, isLoading } = useAuth();
 
   // Show loading state while checking authentication

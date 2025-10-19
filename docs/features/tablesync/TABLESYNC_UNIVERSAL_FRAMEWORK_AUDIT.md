@@ -1,4 +1,5 @@
 # TableSync Universal Deck-Building Framework Audit
+
 ## PRD v3.0 Compliance Review
 
 **Date**: December 2024  
@@ -21,6 +22,7 @@ This audit reviews the current state of TableSync against the requirements outli
 ### Key Findings
 
 ✅ **What Exists (Foundation)**:
+
 - Strong community-based architecture supporting multiple TCG communities
 - Flexible event and game session management
 - Card recognition system for MTG (Phase 1 MVP)
@@ -28,6 +30,7 @@ This audit reviews the current state of TableSync against the requirements outli
 - PostgreSQL database with JSONB support for flexible data
 
 ❌ **What's Missing for PRD v3.0**:
+
 - Database schema is not fully game-agnostic
 - Card data is MTG-specific (hardcoded to Scryfall API)
 - No "Game Creator" module for user-defined games
@@ -46,6 +49,7 @@ This audit reviews the current state of TableSync against the requirements outli
 **Location**: `/shared/schema.ts`
 
 #### ✅ Strengths (Game-Agnostic Features)
+
 - **Communities table**: Supports multiple TCG communities (MTG, Pokemon, Lorcana, Yu-Gi-Oh, etc.)
 - **JSONB columns**: Extensive use of `jsonb` for flexible data storage
   - `gameData` in `gameSessions` table
@@ -55,6 +59,7 @@ This audit reviews the current state of TableSync against the requirements outli
 - **User gaming profiles**: Per-community profiles with flexible stats storage
 
 #### ❌ Gaps (Not Universal)
+
 - **No game definitions table**: Cannot store user-defined game metadata
 - **No card schema table**: No universal card database schema
 - **No card attributes table**: Cannot define custom card attributes per game
@@ -91,6 +96,7 @@ This audit reviews the current state of TableSync against the requirements outli
 **Location**: `/server/services/card-recognition.ts`, `/server/features/cards/cards.routes.ts`
 
 #### Current Implementation
+
 - **API**: Scryfall API integration for Magic: The Gathering
 - **Caching**: In-memory LRU cache (1000 cards, 7-day TTL)
 - **Endpoints**:
@@ -101,6 +107,7 @@ This audit reviews the current state of TableSync against the requirements outli
   - `GET /api/cards/random` - Random MTG card
 
 #### ❌ Limitations for Universal Framework
+
 1. **Hardcoded to MTG**: Service is `MtgCard` interface specific
 2. **Single API source**: Only Scryfall API, no multi-game support
 3. **No game_id parameter**: Cannot differentiate between games
@@ -113,6 +120,7 @@ This audit reviews the current state of TableSync against the requirements outli
 **Location**: `/server/features/game-stats/`
 
 #### Current Implementation
+
 ```typescript
 // Supports multiple game types
 interface GameStats {
@@ -123,11 +131,13 @@ interface GameStats {
 ```
 
 #### ✅ Strengths
+
 - Already supports multiple game types via `gameType` field
 - Flexible format tracking
 - Generic win/loss tracking
 
 #### ❌ Gaps
+
 - `gameType` is free-text, not validated against game definitions
 - No link to actual game metadata
 - Cannot track game-specific stats (e.g., commander damage for MTG)
@@ -137,6 +147,7 @@ interface GameStats {
 **Current State**: RESTful API with feature-based routing
 
 #### ❌ Missing Universal Support
+
 - No `/api/games/` endpoint for game definitions
 - No `/api/games/:game_id/cards/` nested routing
 - No game-specific validation middleware
@@ -147,11 +158,13 @@ interface GameStats {
 **Location**: `/client/src/`
 
 #### Current State
+
 - Static UI components for specific games
 - Hardcoded game types in dropdowns
 - Fixed card display layouts
 
 #### ❌ Missing Dynamic UI
+
 - No dynamic form generation based on game schema
 - No runtime card attribute display
 - No game-specific UI themes from user definitions
@@ -167,6 +180,7 @@ interface GameStats {
 **Current State**: Partial support via JSONB columns, but no formal game definition system
 
 **Gaps**:
+
 - [ ] No `games` table for storing user-defined game metadata
 - [ ] No `game_card_attributes` table for custom card schemas per game
 - [ ] No `game_resources` table for resource types (mana, energy, etc.)
@@ -183,6 +197,7 @@ interface GameStats {
 **Current State**: Does not exist
 
 **Gaps**:
+
 - [ ] No UI for game creation
 - [ ] No API endpoints for game CRUD operations
 - [ ] No game schema designer
@@ -200,6 +215,7 @@ interface GameStats {
 **Current State**: MTG-only via Scryfall API
 
 **Gaps**:
+
 - [ ] No multi-game API integration
 - [ ] No game selection in card search
 - [ ] No game-specific card parsers
@@ -215,6 +231,7 @@ interface GameStats {
 **Current State**: Static UI with hardcoded game types
 
 **Gaps**:
+
 - [ ] No dynamic form generation from game schema
 - [ ] No runtime card display configuration
 - [ ] No game-specific overlay templates
@@ -229,6 +246,7 @@ interface GameStats {
 **Current State**: Single-game-focused API
 
 **Gaps**:
+
 - [ ] No `/api/games/` resource
 - [ ] No game_id parameter in card endpoints
 - [ ] No game-scoped validation
@@ -243,6 +261,7 @@ interface GameStats {
 **Current State**: PostgreSQL with JSONB
 
 **Assessment**:
+
 - ✅ PostgreSQL JSONB provides schema flexibility
 - ✅ ACID transactions important for game integrity
 - ✅ Relational model good for game relationships
@@ -258,6 +277,7 @@ interface GameStats {
 **Current State**: Text-based search only (Phase 1 MVP)
 
 **Gaps**:
+
 - [ ] No ML model infrastructure
 - [ ] No card image training dataset
 - [ ] No layout detection
@@ -273,6 +293,7 @@ interface GameStats {
 **Current State**: Does not exist
 
 **Gaps**:
+
 - [ ] No card submission workflow
 - [ ] No moderation queue for card data
 - [ ] No peer review system
@@ -289,6 +310,7 @@ interface GameStats {
 **Current State**: Basic analytics for streams and events
 
 **Gaps**:
+
 - [ ] No game creation metrics
 - [ ] No card submission tracking
 - [ ] No UGC contribution analytics
@@ -301,17 +323,17 @@ interface GameStats {
 
 ## 3. Compliance Summary Matrix
 
-| PRD v3.0 Requirement | Current Status | Compliance | Priority |
-|---------------------|----------------|------------|----------|
-| Universal database schema | Partial (JSONB) | 30% | High |
-| Game Creator module | Not implemented | 0% | Critical |
-| Universal card scanner | MTG only | 20% | High |
-| Dynamic UI/overlays | Static UI | 10% | Medium |
-| Universal API (game_id) | Single-game | 15% | High |
-| NoSQL/Flexible backend | PostgreSQL+JSONB | 60% | Low |
-| ML card recognition | Text search only | 25% | Low |
-| UGC moderation | Not implemented | 0% | High |
-| Metrics & analytics | Basic tracking | 40% | Medium |
+| PRD v3.0 Requirement      | Current Status   | Compliance | Priority |
+| ------------------------- | ---------------- | ---------- | -------- |
+| Universal database schema | Partial (JSONB)  | 30%        | High     |
+| Game Creator module       | Not implemented  | 0%         | Critical |
+| Universal card scanner    | MTG only         | 20%        | High     |
+| Dynamic UI/overlays       | Static UI        | 10%        | Medium   |
+| Universal API (game_id)   | Single-game      | 15%        | High     |
+| NoSQL/Flexible backend    | PostgreSQL+JSONB | 60%        | Low      |
+| ML card recognition       | Text search only | 25%        | Low      |
+| UGC moderation            | Not implemented  | 0%         | High     |
+| Metrics & analytics       | Basic tracking   | 40%        | Medium   |
 
 **Overall PRD v3.0 Compliance**: ~22%
 
@@ -323,216 +345,260 @@ interface GameStats {
 
 ```typescript
 // User-defined games
-export const games = pgTable("games", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: varchar("name").notNull(),
-  displayName: varchar("display_name").notNull(),
-  description: text("description"),
-  creatorId: varchar("creator_id").notNull().references(() => users.id),
-  isOfficial: boolean("is_official").default(false), // Official vs. community-created
-  isPublished: boolean("is_published").default(false),
-  version: varchar("version").default("1.0.0"),
-  
-  // Game metadata
-  playerCount: jsonb("player_count").default({ min: 2, max: 4 }), // Min/max players
-  avgGameDuration: integer("avg_game_duration"), // Minutes
-  complexity: integer("complexity"), // 1-5 scale
-  ageRating: varchar("age_rating"), // "7+", "13+", etc.
-  
-  // Game mechanics configuration
-  cardTypes: jsonb("card_types").default([]), // ["Creature", "Instant", etc.]
-  resourceTypes: jsonb("resource_types").default([]), // [{ name: "Mana", colors: [...] }]
-  zones: jsonb("zones").default([]), // ["Hand", "Battlefield", "Graveyard"]
-  phaseStructure: jsonb("phase_structure").default([]), // ["Untap", "Draw", etc.]
-  
-  // Validation rules (JSON schema or custom format)
-  deckRules: jsonb("deck_rules").default({
-    minDeckSize: 60,
-    maxDeckSize: null,
-    maxCopies: 4,
-    allowedSets: null,
-  }),
-  
-  // Visual customization
-  theme: jsonb("theme").default({
-    primaryColor: "#1a1a1a",
-    accentColor: "#ffd700",
-    cardBackUrl: null,
-  }),
-  
-  // Statistics
-  totalCards: integer("total_cards").default(0),
-  totalPlayers: integer("total_players").default(0),
-  totalGamesPlayed: integer("total_games_played").default(0),
-  
-  // Moderation
-  moderationStatus: varchar("moderation_status").default("pending"), // pending, approved, rejected
-  approvedAt: timestamp("approved_at"),
-  approvedBy: varchar("approved_by").references(() => users.id),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_games_creator_id").on(table.creatorId),
-  index("idx_games_published").on(table.isPublished),
-  index("idx_games_official").on(table.isOfficial),
-  index("idx_games_name").on(table.name),
-]);
+export const games = pgTable(
+  "games",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name").notNull(),
+    displayName: varchar("display_name").notNull(),
+    description: text("description"),
+    creatorId: varchar("creator_id")
+      .notNull()
+      .references(() => users.id),
+    isOfficial: boolean("is_official").default(false), // Official vs. community-created
+    isPublished: boolean("is_published").default(false),
+    version: varchar("version").default("1.0.0"),
+
+    // Game metadata
+    playerCount: jsonb("player_count").default({ min: 2, max: 4 }), // Min/max players
+    avgGameDuration: integer("avg_game_duration"), // Minutes
+    complexity: integer("complexity"), // 1-5 scale
+    ageRating: varchar("age_rating"), // "7+", "13+", etc.
+
+    // Game mechanics configuration
+    cardTypes: jsonb("card_types").default([]), // ["Creature", "Instant", etc.]
+    resourceTypes: jsonb("resource_types").default([]), // [{ name: "Mana", colors: [...] }]
+    zones: jsonb("zones").default([]), // ["Hand", "Battlefield", "Graveyard"]
+    phaseStructure: jsonb("phase_structure").default([]), // ["Untap", "Draw", etc.]
+
+    // Validation rules (JSON schema or custom format)
+    deckRules: jsonb("deck_rules").default({
+      minDeckSize: 60,
+      maxDeckSize: null,
+      maxCopies: 4,
+      allowedSets: null,
+    }),
+
+    // Visual customization
+    theme: jsonb("theme").default({
+      primaryColor: "#1a1a1a",
+      accentColor: "#ffd700",
+      cardBackUrl: null,
+    }),
+
+    // Statistics
+    totalCards: integer("total_cards").default(0),
+    totalPlayers: integer("total_players").default(0),
+    totalGamesPlayed: integer("total_games_played").default(0),
+
+    // Moderation
+    moderationStatus: varchar("moderation_status").default("pending"), // pending, approved, rejected
+    approvedAt: timestamp("approved_at"),
+    approvedBy: varchar("approved_by").references(() => users.id),
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_games_creator_id").on(table.creatorId),
+    index("idx_games_published").on(table.isPublished),
+    index("idx_games_official").on(table.isOfficial),
+    index("idx_games_name").on(table.name),
+  ],
+);
 ```
 
 ### 4.2 Universal Cards Table
 
 ```typescript
 // Universal card data storage
-export const cards = pgTable("cards", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(),
-  
-  // Core identifiers
-  setCode: varchar("set_code"),
-  setName: varchar("set_name"),
-  collectorNumber: varchar("collector_number"),
-  rarity: varchar("rarity"),
-  
-  // External references (for official games)
-  externalId: varchar("external_id"), // Scryfall ID, Pokemon TCG ID, etc.
-  externalSource: varchar("external_source"), // "scryfall", "pokemontcg", "custom"
-  
-  // Card attributes (flexible JSON storage)
-  attributes: jsonb("attributes").default({}), // { mana_cost: "{R}", power: "3", etc. }
-  
-  // Visual data
-  imageUris: jsonb("image_uris").default({}),
-  
-  // Metadata
-  createdBy: varchar("created_by").references(() => users.id), // For UGC
-  isOfficial: boolean("is_official").default(false),
-  isCommunitySubmitted: boolean("is_community_submitted").default(false),
-  
-  // Moderation
-  moderationStatus: varchar("moderation_status").default("approved"), // For UGC
-  approvedBy: varchar("approved_by").references(() => users.id),
-  approvedAt: timestamp("approved_at"),
-  
-  // Analytics
-  searchCount: integer("search_count").default(0),
-  
-  // Cache management
-  cachedAt: timestamp("cached_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_cards_game_id").on(table.gameId),
-  index("idx_cards_name").on(table.name),
-  index("idx_cards_external_id").on(table.externalId),
-  index("idx_cards_set_code").on(table.setCode),
-  // Full-text search index on name
-  index("idx_cards_name_search").on(sql`to_tsvector('english', ${table.name})`),
-  unique().on(table.gameId, table.externalId), // Prevent duplicates from same source
-]);
+export const cards = pgTable(
+  "cards",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    gameId: varchar("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    name: varchar("name").notNull(),
+
+    // Core identifiers
+    setCode: varchar("set_code"),
+    setName: varchar("set_name"),
+    collectorNumber: varchar("collector_number"),
+    rarity: varchar("rarity"),
+
+    // External references (for official games)
+    externalId: varchar("external_id"), // Scryfall ID, Pokemon TCG ID, etc.
+    externalSource: varchar("external_source"), // "scryfall", "pokemontcg", "custom"
+
+    // Card attributes (flexible JSON storage)
+    attributes: jsonb("attributes").default({}), // { mana_cost: "{R}", power: "3", etc. }
+
+    // Visual data
+    imageUris: jsonb("image_uris").default({}),
+
+    // Metadata
+    createdBy: varchar("created_by").references(() => users.id), // For UGC
+    isOfficial: boolean("is_official").default(false),
+    isCommunitySubmitted: boolean("is_community_submitted").default(false),
+
+    // Moderation
+    moderationStatus: varchar("moderation_status").default("approved"), // For UGC
+    approvedBy: varchar("approved_by").references(() => users.id),
+    approvedAt: timestamp("approved_at"),
+
+    // Analytics
+    searchCount: integer("search_count").default(0),
+
+    // Cache management
+    cachedAt: timestamp("cached_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_cards_game_id").on(table.gameId),
+    index("idx_cards_name").on(table.name),
+    index("idx_cards_external_id").on(table.externalId),
+    index("idx_cards_set_code").on(table.setCode),
+    // Full-text search index on name
+    index("idx_cards_name_search").on(
+      sql`to_tsvector('english', ${table.name})`,
+    ),
+    unique().on(table.gameId, table.externalId), // Prevent duplicates from same source
+  ],
+);
 ```
 
 ### 4.3 Game Card Attributes Schema
 
 ```typescript
 // Define what attributes cards can have for each game
-export const gameCardAttributes = pgTable("game_card_attributes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
-  attributeName: varchar("attribute_name").notNull(), // "mana_cost", "power", "type", etc.
-  displayName: varchar("display_name").notNull(), // "Mana Cost", "Power", "Type"
-  dataType: varchar("data_type").notNull(), // "string", "integer", "array", "object"
-  isRequired: boolean("is_required").default(false),
-  
-  // Validation rules
-  validationRules: jsonb("validation_rules").default({}), // { min: 0, max: 20, pattern: "..." }
-  
-  // UI hints
-  displayOrder: integer("display_order").default(0),
-  category: varchar("category"), // "stats", "costs", "mechanics", "flavor"
-  helpText: text("help_text"),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_game_card_attributes_game_id").on(table.gameId),
-  unique().on(table.gameId, table.attributeName),
-]);
+export const gameCardAttributes = pgTable(
+  "game_card_attributes",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    gameId: varchar("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    attributeName: varchar("attribute_name").notNull(), // "mana_cost", "power", "type", etc.
+    displayName: varchar("display_name").notNull(), // "Mana Cost", "Power", "Type"
+    dataType: varchar("data_type").notNull(), // "string", "integer", "array", "object"
+    isRequired: boolean("is_required").default(false),
+
+    // Validation rules
+    validationRules: jsonb("validation_rules").default({}), // { min: 0, max: 20, pattern: "..." }
+
+    // UI hints
+    displayOrder: integer("display_order").default(0),
+    category: varchar("category"), // "stats", "costs", "mechanics", "flavor"
+    helpText: text("help_text"),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_game_card_attributes_game_id").on(table.gameId),
+    unique().on(table.gameId, table.attributeName),
+  ],
+);
 ```
 
 ### 4.4 Card Submissions (UGC)
 
 ```typescript
 // Community card submissions
-export const cardSubmissions = pgTable("card_submissions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id),
-  submittedBy: varchar("submitted_by").notNull().references(() => users.id),
-  
-  // Card data being submitted
-  cardName: varchar("card_name").notNull(),
-  cardData: jsonb("card_data").notNull(), // All card attributes
-  imageUrl: varchar("image_url"),
-  
-  // Submission metadata
-  submissionNotes: text("submission_notes"),
-  source: varchar("source"), // "manual", "ocr", "import"
-  
-  // Moderation workflow
-  status: varchar("status").default("pending"), // pending, approved, rejected, needs_revision
-  moderatorId: varchar("moderator_id").references(() => users.id),
-  moderationNotes: text("moderation_notes"),
-  reviewedAt: timestamp("reviewed_at"),
-  
-  // Peer review
-  upvotes: integer("upvotes").default(0),
-  downvotes: integer("downvotes").default(0),
-  
-  // If approved, link to created card
-  approvedCardId: varchar("approved_card_id").references(() => cards.id),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_card_submissions_game_id").on(table.gameId),
-  index("idx_card_submissions_submitted_by").on(table.submittedBy),
-  index("idx_card_submissions_status").on(table.status),
-]);
+export const cardSubmissions = pgTable(
+  "card_submissions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    gameId: varchar("game_id")
+      .notNull()
+      .references(() => games.id),
+    submittedBy: varchar("submitted_by")
+      .notNull()
+      .references(() => users.id),
+
+    // Card data being submitted
+    cardName: varchar("card_name").notNull(),
+    cardData: jsonb("card_data").notNull(), // All card attributes
+    imageUrl: varchar("image_url"),
+
+    // Submission metadata
+    submissionNotes: text("submission_notes"),
+    source: varchar("source"), // "manual", "ocr", "import"
+
+    // Moderation workflow
+    status: varchar("status").default("pending"), // pending, approved, rejected, needs_revision
+    moderatorId: varchar("moderator_id").references(() => users.id),
+    moderationNotes: text("moderation_notes"),
+    reviewedAt: timestamp("reviewed_at"),
+
+    // Peer review
+    upvotes: integer("upvotes").default(0),
+    downvotes: integer("downvotes").default(0),
+
+    // If approved, link to created card
+    approvedCardId: varchar("approved_card_id").references(() => cards.id),
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_card_submissions_game_id").on(table.gameId),
+    index("idx_card_submissions_submitted_by").on(table.submittedBy),
+    index("idx_card_submissions_status").on(table.status),
+  ],
+);
 ```
 
 ### 4.5 Game Formats
 
 ```typescript
 // Game formats (e.g., Commander, Standard, Limited)
-export const gameFormats = pgTable("game_formats", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(),
-  displayName: varchar("display_name").notNull(),
-  description: text("description"),
-  
-  // Format-specific rules
-  deckRules: jsonb("deck_rules").default({
-    minDeckSize: 60,
-    maxDeckSize: null,
-    sideboard: false,
-    sideboardSize: 0,
-  }),
-  
-  // Card legality
-  bannedCards: jsonb("banned_cards").default([]), // Array of card IDs
-  restrictedCards: jsonb("restricted_cards").default([]),
-  allowedSets: jsonb("allowed_sets").default([]), // Array of set codes
-  
-  isOfficial: boolean("is_official").default(false),
-  createdBy: varchar("created_by").references(() => users.id),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_game_formats_game_id").on(table.gameId),
-  unique().on(table.gameId, table.name),
-]);
+export const gameFormats = pgTable(
+  "game_formats",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    gameId: varchar("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    name: varchar("name").notNull(),
+    displayName: varchar("display_name").notNull(),
+    description: text("description"),
+
+    // Format-specific rules
+    deckRules: jsonb("deck_rules").default({
+      minDeckSize: 60,
+      maxDeckSize: null,
+      sideboard: false,
+      sideboardSize: 0,
+    }),
+
+    // Card legality
+    bannedCards: jsonb("banned_cards").default([]), // Array of card IDs
+    restrictedCards: jsonb("restricted_cards").default([]),
+    allowedSets: jsonb("allowed_sets").default([]), // Array of set codes
+
+    isOfficial: boolean("is_official").default(false),
+    createdBy: varchar("created_by").references(() => users.id),
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_game_formats_game_id").on(table.gameId),
+    unique().on(table.gameId, table.name),
+  ],
+);
 ```
 
 ---
@@ -542,6 +608,7 @@ export const gameFormats = pgTable("game_formats", {
 ### 5.1 Requirements
 
 **Functionality**:
+
 1. Create new game with basic metadata
 2. Define card attributes and their types
 3. Configure resource systems (mana, energy, etc.)
@@ -618,19 +685,25 @@ interface ICardProvider {
 }
 
 // Adapter implementations
-class ScryfallAdapter implements ICardProvider { /* MTG */ }
-class PokemonTCGAdapter implements ICardProvider { /* Pokemon */ }
-class CustomGameAdapter implements ICardProvider { /* User-defined */ }
+class ScryfallAdapter implements ICardProvider {
+  /* MTG */
+}
+class PokemonTCGAdapter implements ICardProvider {
+  /* Pokemon */
+}
+class CustomGameAdapter implements ICardProvider {
+  /* User-defined */
+}
 
 // Main service
 class UniversalCardService {
   private providers: Map<string, ICardProvider> = new Map();
-  
+
   async searchCards(gameId: string, query: string) {
     const provider = this.getProvider(gameId);
     return provider.searchCards(query);
   }
-  
+
   private getProvider(gameId: string): ICardProvider {
     // Return appropriate adapter based on game
   }
@@ -673,11 +746,11 @@ interface DynamicCardForm {
 // React component
 function DynamicCardForm({ gameId }: { gameId: string }) {
   const { data: attributes } = useGameAttributes(gameId);
-  
+
   return (
     <Form>
       {attributes.map(attr => (
-        <DynamicFormField 
+        <DynamicFormField
           key={attr.id}
           attribute={attr}
           type={attr.dataType}
@@ -704,17 +777,17 @@ All game-specific operations should be scoped under `/api/games/:game_id/`
 async function validateGameAccess(req, res, next) {
   const { game_id } = req.params;
   const game = await db.query.games.findFirst({
-    where: eq(games.id, game_id)
+    where: eq(games.id, game_id),
   });
-  
+
   if (!game) {
-    return res.status(404).json({ error: 'Game not found' });
+    return res.status(404).json({ error: "Game not found" });
   }
-  
+
   if (!game.isPublished && game.creatorId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   req.game = game;
   next();
 }
@@ -729,6 +802,7 @@ async function validateGameAccess(req, res, next) {
 **Recommendation**: **Keep PostgreSQL**
 
 **Rationale**:
+
 1. ✅ **JSONB support**: Provides schema flexibility comparable to NoSQL
 2. ✅ **ACID transactions**: Critical for game state integrity
 3. ✅ **Relationships**: Game/card/user relationships are inherently relational
@@ -738,6 +812,7 @@ async function validateGameAccess(req, res, next) {
 7. ✅ **Full-text search**: Built-in support for card name searches
 
 **NoSQL Concerns**:
+
 - ❌ Transaction complexity for game logic
 - ❌ Relationship management overhead
 - ❌ Migration cost and risk
@@ -759,6 +834,7 @@ async function validateGameAccess(req, res, next) {
 **Recommendation**: Defer to post-MVP, current text search sufficient for launch
 
 **Future Architecture**:
+
 1. Image upload endpoint
 2. OCR service (Tesseract.js or Google Vision)
 3. Layout detection (ML model)
@@ -814,6 +890,7 @@ POST   /api/games/:game_id/submissions/:id/reject   // Moderator reject
 ### 12.1 Required Metrics
 
 **Game Creation Metrics**:
+
 - Total games created
 - Games published vs. draft
 - Official vs. community games
@@ -821,6 +898,7 @@ POST   /api/games/:game_id/submissions/:id/reject   // Moderator reject
 - Games by category/genre
 
 **Card Data Metrics**:
+
 - Total cards across all games
 - Cards per game
 - Community submissions count
@@ -828,6 +906,7 @@ POST   /api/games/:game_id/submissions/:id/reject   // Moderator reject
 - Top contributors
 
 **Community Participation**:
+
 - Active game creators
 - Card data contributors
 - Moderators active
@@ -835,6 +914,7 @@ POST   /api/games/:game_id/submissions/:id/reject   // Moderator reject
 - User adoption rate per game
 
 **Session Engagement**:
+
 - Games played per game definition
 - Average session duration per game
 - Player retention rate
@@ -843,23 +923,29 @@ POST   /api/games/:game_id/submissions/:id/reject   // Moderator reject
 ### 12.2 Analytics Tables
 
 ```typescript
-export const gameAnalytics = pgTable("game_analytics", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").references(() => games.id),
-  date: date("date").notNull(),
-  
-  // Daily metrics
-  sessionsStarted: integer("sessions_started").default(0),
-  uniquePlayers: integer("unique_players").default(0),
-  totalPlaytime: integer("total_playtime").default(0), // minutes
-  cardsSearched: integer("cards_searched").default(0),
-  cardsAdded: integer("cards_added").default(0),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_game_analytics_game_date").on(table.gameId, table.date),
-  unique().on(table.gameId, table.date),
-]);
+export const gameAnalytics = pgTable(
+  "game_analytics",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    gameId: varchar("game_id").references(() => games.id),
+    date: date("date").notNull(),
+
+    // Daily metrics
+    sessionsStarted: integer("sessions_started").default(0),
+    uniquePlayers: integer("unique_players").default(0),
+    totalPlaytime: integer("total_playtime").default(0), // minutes
+    cardsSearched: integer("cards_searched").default(0),
+    cardsAdded: integer("cards_added").default(0),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_game_analytics_game_date").on(table.gameId, table.date),
+    unique().on(table.gameId, table.date),
+  ],
+);
 ```
 
 ---
@@ -965,6 +1051,7 @@ export const gameAnalytics = pgTable("game_analytics", {
 ### 14.1 Backward Compatibility
 
 **Existing MTG Card System**:
+
 - Create official "Magic: The Gathering" game entry
 - Migrate existing MTG community to use new game entry
 - Keep existing `/api/cards/*` endpoints for backward compatibility
@@ -979,7 +1066,7 @@ VALUES ('mtg-official', 'mtg', 'Magic: The Gathering', true, true);
 
 -- Step 2: Define MTG card attributes
 INSERT INTO game_card_attributes (game_id, attribute_name, display_name, data_type)
-VALUES 
+VALUES
   ('mtg-official', 'mana_cost', 'Mana Cost', 'string'),
   ('mtg-official', 'cmc', 'Converted Mana Cost', 'integer'),
   ('mtg-official', 'power', 'Power', 'string'),
@@ -1103,14 +1190,14 @@ GET /api/games/mtg-official/cards/search?q=lightning
 
 ## 19. Risk Assessment
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Community adoption slow | High | Medium | Pre-seed with official games, marketing |
-| UGC quality issues | Medium | High | Strong moderation, peer review |
-| Performance degradation | High | Low | Proper indexing, caching, monitoring |
-| Schema complexity | Medium | Medium | Clear documentation, validation |
-| Backward compatibility | Medium | Low | Careful migration, deprecation plan |
-| Security vulnerabilities | High | Low | Security audits, rate limiting |
+| Risk                     | Impact | Likelihood | Mitigation                              |
+| ------------------------ | ------ | ---------- | --------------------------------------- |
+| Community adoption slow  | High   | Medium     | Pre-seed with official games, marketing |
+| UGC quality issues       | Medium | High       | Strong moderation, peer review          |
+| Performance degradation  | High   | Low        | Proper indexing, caching, monitoring    |
+| Schema complexity        | Medium | Medium     | Clear documentation, validation         |
+| Backward compatibility   | Medium | Low        | Careful migration, deprecation plan     |
+| Security vulnerabilities | High   | Low        | Security audits, rate limiting          |
 
 ---
 
@@ -1121,6 +1208,7 @@ TableSync has a **strong foundation** for becoming a universal deck-building fra
 **Current PRD v3.0 Compliance**: ~22%
 
 **Critical Path**:
+
 1. Database schema extensions (games, universal cards, attributes)
 2. Game Creator module (API + UI)
 3. Universal card recognition service refactor
@@ -1132,6 +1220,7 @@ TableSync has a **strong foundation** for becoming a universal deck-building fra
 **Recommendation**: **Proceed with phased implementation**, starting with database schema and Game Creator API (Phase 1). This provides immediate value while building toward the full universal framework vision.
 
 **Next Steps**:
+
 1. Stakeholder review and approval
 2. Detailed technical specifications
 3. Team assignment and sprint planning

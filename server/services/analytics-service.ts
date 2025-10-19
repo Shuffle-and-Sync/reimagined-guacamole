@@ -1,8 +1,8 @@
-import { storage } from '../storage';
-import { logger } from '../logger';
-import type { 
+import { storage } from "../storage";
+import { logger } from "../logger";
+import type {
   UserActivityAnalytics,
-  CommunityAnalytics, 
+  CommunityAnalytics,
   PlatformMetrics,
   EventTracking,
   ConversionFunnel,
@@ -13,8 +13,8 @@ import type {
   InsertEventTracking,
   InsertConversionFunnel,
   User,
-  Community
-} from '@shared/schema';
+  Community,
+} from "@shared/schema";
 
 /**
  * Analytics event data structures
@@ -63,12 +63,12 @@ export interface CommunityMetrics {
 }
 
 export interface SystemMetrics {
-  metricType: 'performance' | 'usage' | 'system' | 'error' | 'business';
+  metricType: "performance" | "usage" | "system" | "error" | "business";
   metricName: string;
   metricValue: number;
   metricUnit?: string;
-  aggregationType: 'avg' | 'sum' | 'max' | 'min' | 'count' | 'percentile';
-  timeWindow: '1m' | '5m' | '15m' | '1h' | '6h' | '1d' | '7d' | '30d';
+  aggregationType: "avg" | "sum" | "max" | "min" | "count" | "percentile";
+  timeWindow: "1m" | "5m" | "15m" | "1h" | "6h" | "1d" | "7d" | "30d";
   tags?: Record<string, string>;
 }
 
@@ -97,8 +97,8 @@ export class AnalyticsService {
           eventLabel: event.eventLabel,
           eventValue: event.eventValue,
           properties: event.properties,
-          context: event.context
-        })
+          context: event.context,
+        }),
       };
 
       await storage.recordEventTracking(eventData);
@@ -107,22 +107,22 @@ export class AnalyticsService {
       await this.trackGenericEvent({
         userId: event.userId,
         eventName: event.eventName,
-        eventSource: 'web',
+        eventSource: "web",
         properties: event.properties,
-        context: event.context
+        context: event.context,
       });
 
-      logger.info('User event tracked', {
+      logger.info("User event tracked", {
         userId: event.userId,
         eventName: event.eventName,
-        eventCategory: event.eventCategory
+        eventCategory: event.eventCategory,
       });
     } catch (error) {
-      logger.error('Failed to track user event', { 
-        error, 
+      logger.error("Failed to track user event", {
+        error,
         userId: event.userId,
         eventName: event.eventName,
-        eventCategory: event.eventCategory 
+        eventCategory: event.eventCategory,
       });
       // Add to queue for retry
       this.eventQueue.push(event);
@@ -140,7 +140,7 @@ export class AnalyticsService {
     sessionId: string,
     completed: boolean = true,
     timeSpent?: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       const funnelData: InsertConversionFunnel = {
@@ -153,20 +153,25 @@ export class AnalyticsService {
         completedAt: completed ? new Date() : undefined,
         metadata: JSON.stringify({
           timeSpent,
-          ...(metadata || {})
-        })
+          ...(metadata || {}),
+        }),
       };
 
       await storage.recordConversionFunnel(funnelData);
 
-      logger.info('Funnel step tracked', {
+      logger.info("Funnel step tracked", {
         funnelName,
         stepName,
         userId,
-        completed
+        completed,
       });
     } catch (error) {
-      logger.error('Failed to track funnel step', { error, funnelName, stepName, userId });
+      logger.error("Failed to track funnel step", {
+        error,
+        funnelName,
+        stepName,
+        userId,
+      });
     }
   }
 
@@ -178,24 +183,28 @@ export class AnalyticsService {
       await storage.recordStreamAnalytics({
         sessionId: metrics.sessionId,
         userId: metrics.platform, // TODO: This should be actual userId, needs to be passed in StreamMetrics
-        platform: metrics.platform as 'twitch' | 'youtube' | 'facebook' | 'discord',
+        platform: metrics.platform as
+          | "twitch"
+          | "youtube"
+          | "facebook"
+          | "discord",
         viewerCount: metrics.viewerCount,
-        chatMessages: metrics.chatMessageCount || 0
-        // Note: followersGained, subscriptionsGained, streamQuality, frameDrops, bitrate 
+        chatMessages: metrics.chatMessageCount || 0,
+        // Note: followersGained, subscriptionsGained, streamQuality, frameDrops, bitrate
         // are not in the schema and would need to be added if needed
       });
 
-      logger.info('Stream metrics recorded', {
+      logger.info("Stream metrics recorded", {
         sessionId: metrics.sessionId,
         platform: metrics.platform,
-        viewerCount: metrics.viewerCount
+        viewerCount: metrics.viewerCount,
       });
     } catch (error) {
-      logger.error('Failed to track stream metrics', { 
-        error, 
+      logger.error("Failed to track stream metrics", {
+        error,
         sessionId: metrics.sessionId,
         platform: metrics.platform,
-        viewerCount: metrics.viewerCount 
+        viewerCount: metrics.viewerCount,
       });
       throw error;
     }
@@ -204,24 +213,38 @@ export class AnalyticsService {
   /**
    * Aggregate and record community-level analytics
    */
-  async aggregateCommunityMetrics(communityId: string, date: Date, hour?: number): Promise<void> {
+  async aggregateCommunityMetrics(
+    communityId: string,
+    date: Date,
+    hour?: number,
+  ): Promise<void> {
     try {
       if (!date) {
-        throw new Error('Date parameter is required');
+        throw new Error("Date parameter is required");
       }
-      
-      const metrics = await this.calculateCommunityMetrics(communityId, date, hour);
-      
+
+      const metrics = await this.calculateCommunityMetrics(
+        communityId,
+        date,
+        hour,
+      );
+
       // Store metrics as separate records for each metric type
       const metricsToStore = [
-        { metricType: 'active_users', value: metrics.activeUsers },
-        { metricType: 'new_members', value: metrics.newMembers },
-        { metricType: 'streams_started', value: metrics.streamsStarted },
-        { metricType: 'total_stream_time', value: metrics.totalStreamTime },
-        { metricType: 'collaborations_created', value: metrics.collaborationsCreated },
-        { metricType: 'tournaments_created', value: metrics.tournamentsCreated },
-        { metricType: 'forum_posts', value: metrics.forumPosts },
-        { metricType: 'forum_replies', value: metrics.forumReplies }
+        { metricType: "active_users", value: metrics.activeUsers },
+        { metricType: "new_members", value: metrics.newMembers },
+        { metricType: "streams_started", value: metrics.streamsStarted },
+        { metricType: "total_stream_time", value: metrics.totalStreamTime },
+        {
+          metricType: "collaborations_created",
+          value: metrics.collaborationsCreated,
+        },
+        {
+          metricType: "tournaments_created",
+          value: metrics.tournamentsCreated,
+        },
+        { metricType: "forum_posts", value: metrics.forumPosts },
+        { metricType: "forum_replies", value: metrics.forumReplies },
       ];
 
       for (const metric of metricsToStore) {
@@ -229,25 +252,29 @@ export class AnalyticsService {
           communityId,
           metricType: metric.metricType,
           value: metric.value ?? 0,
-          date: date.toISOString().split('T')[0]!, // YYYY-MM-DD format
+          date: date.toISOString().split("T")[0]!, // YYYY-MM-DD format
           metadata: JSON.stringify({
             calculatedAt: new Date().toISOString(),
             hour,
-            avgSessionDuration: metrics.avgSessionDuration
-          })
+            avgSessionDuration: metrics.avgSessionDuration,
+          }),
         };
-        
+
         await storage.recordCommunityAnalytics(communityAnalytics);
       }
 
-      logger.info('Community metrics aggregated', {
+      logger.info("Community metrics aggregated", {
         communityId,
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split("T")[0],
         hour,
-        activeUsers: metrics.activeUsers
+        activeUsers: metrics.activeUsers,
       });
     } catch (error) {
-      logger.error('Failed to aggregate community metrics', { error, communityId, date });
+      logger.error("Failed to aggregate community metrics", {
+        error,
+        communityId,
+        date,
+      });
     }
   }
 
@@ -264,23 +291,23 @@ export class AnalyticsService {
           metricUnit: metrics.metricUnit,
           aggregationType: metrics.aggregationType,
           timeWindow: metrics.timeWindow,
-          ...(metrics.tags || {})
-        })
+          ...(metrics.tags || {}),
+        }),
       };
 
       await storage.recordPlatformMetrics(platformMetrics);
 
-      logger.debug('System metrics recorded', {
+      logger.debug("System metrics recorded", {
         metricType: metrics.metricType,
         metricName: metrics.metricName,
-        metricValue: metrics.metricValue
+        metricValue: metrics.metricValue,
       });
     } catch (error) {
-      logger.error('Failed to record system metrics', { 
-        error, 
+      logger.error("Failed to record system metrics", {
+        error,
         metricType: metrics.metricType,
         metricName: metrics.metricName,
-        metricValue: metrics.metricValue 
+        metricValue: metrics.metricValue,
       });
       // Add to queue for retry
       this.metricsQueue.push(metrics);
@@ -293,7 +320,7 @@ export class AnalyticsService {
   async generateDashboardData(
     userId?: string,
     communityId?: string,
-    timeframe: '24h' | '7d' | '30d' | '90d' = '7d'
+    timeframe: "24h" | "7d" | "30d" | "90d" = "7d",
   ): Promise<{
     userActivity: any[];
     communityGrowth: any[];
@@ -303,24 +330,20 @@ export class AnalyticsService {
   }> {
     try {
       const startDate = this.getTimeframeStartDate(timeframe);
-      
-      const [
-        userActivity,
-        communityGrowth,
-        streamingMetrics,
-        platformHealth
-      ] = await Promise.all([
-        this.getUserActivityInsights(userId, startDate),
-        this.getCommunityGrowthInsights(communityId, startDate),
-        this.getStreamingInsights(communityId, startDate),
-        this.getPlatformHealthInsights(startDate)
-      ]);
+
+      const [userActivity, communityGrowth, streamingMetrics, platformHealth] =
+        await Promise.all([
+          this.getUserActivityInsights(userId, startDate),
+          this.getCommunityGrowthInsights(communityId, startDate),
+          this.getStreamingInsights(communityId, startDate),
+          this.getPlatformHealthInsights(startDate),
+        ]);
 
       const keyInsights = this.generateKeyInsights({
         userActivity,
         communityGrowth,
         streamingMetrics,
-        platformHealth
+        platformHealth,
       });
 
       return {
@@ -328,10 +351,15 @@ export class AnalyticsService {
         communityGrowth,
         streamingMetrics,
         platformHealth,
-        keyInsights
+        keyInsights,
       };
     } catch (error) {
-      logger.error('Failed to generate dashboard data', { error, userId, communityId, timeframe });
+      logger.error("Failed to generate dashboard data", {
+        error,
+        userId,
+        communityId,
+        timeframe,
+      });
       throw error;
     }
   }
@@ -350,13 +378,13 @@ export class AnalyticsService {
       const stats = await this.calculateRealTimeStats();
       return stats;
     } catch (error) {
-      logger.error('Failed to get real-time stats', { error });
+      logger.error("Failed to get real-time stats", { error });
       return {
         activeUsers: 0,
         liveStreams: 0,
         totalViewers: 0,
         activeCommunities: 0,
-        eventsToday: 0
+        eventsToday: 0,
       };
     }
   }
@@ -365,38 +393,50 @@ export class AnalyticsService {
    * Generate user behavior insights and recommendations
    */
   async generateUserInsights(userId: string): Promise<{
-    engagementLevel: 'low' | 'medium' | 'high';
+    engagementLevel: "low" | "medium" | "high";
     preferredFeatures: string[];
     recommendedActions: string[];
     activityPattern: any[];
     collaborationHistory: any[];
   }> {
     try {
-      const [
+      const [activityData, engagementMetrics, collaborationData] =
+        await Promise.all([
+          storage.getUserActivityAnalytics(userId, 30), // Last 30 days
+          this.calculateUserEngagement(userId),
+          this.getUserCollaborationHistory(userId),
+        ]);
+
+      const insights = this.analyzeUserBehavior(
         activityData,
         engagementMetrics,
-        collaborationData
-      ] = await Promise.all([
-        storage.getUserActivityAnalytics(userId, 30), // Last 30 days
-        this.calculateUserEngagement(userId),
-        this.getUserCollaborationHistory(userId)
-      ]);
-
-      const insights = this.analyzeUserBehavior(activityData, engagementMetrics, collaborationData);
+        collaborationData,
+      );
       return insights;
     } catch (error) {
-      logger.error('Failed to generate user insights', { error, userId });
+      logger.error("Failed to generate user insights", { error, userId });
       throw error;
     }
   }
 
   // Private helper methods
-  private categorizeEventType(eventName: string): 'page_view' | 'feature_usage' | 'interaction' | 'navigation' | 'form_submit' {
-    if (eventName.includes('page_') || eventName.includes('route_')) return 'page_view';
-    if (eventName.includes('form_') || eventName.includes('submit')) return 'form_submit';
-    if (eventName.includes('click_') || eventName.includes('scroll')) return 'interaction';
-    if (eventName.includes('nav_') || eventName.includes('menu')) return 'navigation';
-    return 'feature_usage';
+  private categorizeEventType(
+    eventName: string,
+  ):
+    | "page_view"
+    | "feature_usage"
+    | "interaction"
+    | "navigation"
+    | "form_submit" {
+    if (eventName.includes("page_") || eventName.includes("route_"))
+      return "page_view";
+    if (eventName.includes("form_") || eventName.includes("submit"))
+      return "form_submit";
+    if (eventName.includes("click_") || eventName.includes("scroll"))
+      return "interaction";
+    if (eventName.includes("nav_") || eventName.includes("menu"))
+      return "navigation";
+    return "feature_usage";
   }
 
   private generateSessionId(): string {
@@ -418,21 +458,27 @@ export class AnalyticsService {
         anonymousId: event.userId ? undefined : this.generateSessionId(),
         properties: event.properties,
         traits: event.context,
-        context: event.context
-      })
+        context: event.context,
+      }),
     };
 
     await storage.recordEventTracking(eventData);
   }
 
-  private async calculateCommunityMetrics(communityId: string, date: Date, hour?: number): Promise<CommunityMetrics> {
-    const startTime = hour !== undefined 
-      ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
-      : new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    const endTime = hour !== undefined
-      ? new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour
-      : new Date(startTime.getTime() + 24 * 60 * 60 * 1000); // 1 day
+  private async calculateCommunityMetrics(
+    communityId: string,
+    date: Date,
+    hour?: number,
+  ): Promise<CommunityMetrics> {
+    const startTime =
+      hour !== undefined
+        ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
+        : new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const endTime =
+      hour !== undefined
+        ? new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour
+        : new Date(startTime.getTime() + 24 * 60 * 60 * 1000); // 1 day
 
     // Calculate metrics for the time period
     // This would involve complex queries to aggregate data
@@ -447,7 +493,7 @@ export class AnalyticsService {
       tournamentsCreated: 0, // Count tournaments created
       forumPosts: 0, // Count forum posts
       forumReplies: 0, // Count forum replies
-      avgSessionDuration: 0 // Average user session length
+      avgSessionDuration: 0, // Average user session length
     };
   }
 
@@ -456,28 +502,42 @@ export class AnalyticsService {
     return 0; // Implement actual count
   }
 
-  private getTimeframeStartDate(timeframe: '24h' | '7d' | '30d' | '90d'): Date {
+  private getTimeframeStartDate(timeframe: "24h" | "7d" | "30d" | "90d"): Date {
     const now = new Date();
     switch (timeframe) {
-      case '24h': return new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      case '7d': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      case '30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      case '90d': return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      default: return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case "24h":
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case "7d":
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case "30d":
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case "90d":
+        return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      default:
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
   }
 
-  private async getUserActivityInsights(userId?: string, startDate?: Date): Promise<any[]> {
+  private async getUserActivityInsights(
+    userId?: string,
+    startDate?: Date,
+  ): Promise<any[]> {
     // Implement user activity insights
     return [];
   }
 
-  private async getCommunityGrowthInsights(communityId?: string, startDate?: Date): Promise<any[]> {
+  private async getCommunityGrowthInsights(
+    communityId?: string,
+    startDate?: Date,
+  ): Promise<any[]> {
     // Implement community growth insights
     return [];
   }
 
-  private async getStreamingInsights(communityId?: string, startDate?: Date): Promise<any[]> {
+  private async getStreamingInsights(
+    communityId?: string,
+    startDate?: Date,
+  ): Promise<any[]> {
     // Implement streaming insights
     return [];
   }
@@ -499,7 +559,7 @@ export class AnalyticsService {
       liveStreams: 0,
       totalViewers: 0,
       activeCommunities: 0,
-      eventsToday: 0
+      eventsToday: 0,
     };
   }
 
@@ -513,14 +573,18 @@ export class AnalyticsService {
     return [];
   }
 
-  private analyzeUserBehavior(activityData: any[], engagementMetrics: any, collaborationData: any[]): any {
+  private analyzeUserBehavior(
+    activityData: any[],
+    engagementMetrics: any,
+    collaborationData: any[],
+  ): any {
     // Analyze user behavior and generate insights
     return {
-      engagementLevel: 'medium',
+      engagementLevel: "medium",
       preferredFeatures: [],
       recommendedActions: [],
       activityPattern: [],
-      collaborationHistory: []
+      collaborationHistory: [],
     };
   }
 
@@ -529,7 +593,7 @@ export class AnalyticsService {
    */
   async processQueue(): Promise<void> {
     if (this.isProcessing) return;
-    
+
     this.isProcessing = true;
     try {
       // Process event queue
@@ -548,7 +612,7 @@ export class AnalyticsService {
         }
       }
     } catch (error) {
-      logger.error('Failed to process analytics queue', { error });
+      logger.error("Failed to process analytics queue", { error });
     } finally {
       this.isProcessing = false;
     }

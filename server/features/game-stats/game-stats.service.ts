@@ -1,6 +1,6 @@
 /**
  * Game Statistics Business Logic Service
- * 
+ *
  * This service demonstrates proper backend architecture patterns
  * following the Shuffle & Sync repository conventions:
  * - Separation of business logic from route handlers
@@ -11,12 +11,12 @@
  * - Performance optimization with query batching
  */
 
-import { eq, and, gte, lte, desc, asc, count, sql } from 'drizzle-orm';
-import type { Transaction } from '@shared/database-unified';
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { NotFoundError, ValidationError } from '../../shared/types';
-import { logger } from '../../logger';
+import { eq, and, gte, lte, desc, asc, count, sql } from "drizzle-orm";
+import type { Transaction } from "@shared/database-unified";
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { NotFoundError, ValidationError } from "../../shared/types";
+import { logger } from "../../logger";
 
 // Types for service layer (would typically come from shared schema)
 interface GameStats {
@@ -39,7 +39,7 @@ interface GameResult {
   userId: string;
   gameType: string;
   format: string;
-  result: 'win' | 'loss' | 'draw';
+  result: "win" | "loss" | "draw";
   opponentId?: string | null;
   duration: number;
   notes?: string | null;
@@ -51,18 +51,18 @@ interface GameStatsFilters {
   format?: string;
   dateFrom?: string;
   dateTo?: string;
-  resultType?: 'win' | 'loss' | 'draw';
+  resultType?: "win" | "loss" | "draw";
   page: number;
   limit: number;
   offset: number;
-  sortBy: 'createdAt' | 'winRate' | 'totalGames';
-  sortOrder: 'asc' | 'desc';
+  sortBy: "createdAt" | "winRate" | "totalGames";
+  sortOrder: "asc" | "desc";
 }
 
 interface CreateGameResultData {
   gameType: string;
   format: string;
-  result: 'win' | 'loss' | 'draw';
+  result: "win" | "loss" | "draw";
   opponentId?: string | null;
   duration: number;
   notes?: string | null;
@@ -70,7 +70,7 @@ interface CreateGameResultData {
 
 /**
  * Game Statistics Service Class
- * 
+ *
  * Provides business logic for game statistics operations
  * with proper error handling, validation, and data integrity
  */
@@ -81,55 +81,63 @@ class GameStatsService {
   async getUserGameStats(userId: string, filters: GameStatsFilters) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Build query conditions
       const conditions = [eq(sql`game_stats.user_id`, userId)];
-      
+
       if (filters.gameType) {
         conditions.push(eq(sql`game_stats.game_type`, filters.gameType));
       }
-      
+
       if (filters.dateFrom) {
-        conditions.push(gte(sql`game_stats.updated_at`, new Date(filters.dateFrom)));
+        conditions.push(
+          gte(sql`game_stats.updated_at`, new Date(filters.dateFrom)),
+        );
       }
-      
+
       if (filters.dateTo) {
-        conditions.push(lte(sql`game_stats.updated_at`, new Date(filters.dateTo)));
+        conditions.push(
+          lte(sql`game_stats.updated_at`, new Date(filters.dateTo)),
+        );
       }
 
       // Mock query for demonstration (would use actual game_stats table)
       const mockStats: GameStats[] = [
         {
-          id: '1',
+          id: "1",
           userId,
-          gameType: filters.gameType || 'mtg',
+          gameType: filters.gameType || "mtg",
           totalGames: 45,
           wins: 28,
           losses: 15,
           draws: 2,
           winRate: 0.62,
-          favoriteFormat: 'Commander',
+          favoriteFormat: "Commander",
           lastPlayed: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        },
       ];
 
       // Mock recent games
       const mockRecentGames: GameResult[] = [
         {
-          id: '1',
+          id: "1",
           userId,
-          gameType: 'mtg',
-          format: 'Commander',
-          result: 'win',
+          gameType: "mtg",
+          format: "Commander",
+          result: "win",
           duration: 45,
           createdAt: new Date(),
-        }
+        },
       ];
 
       return {
@@ -142,10 +150,10 @@ class GameStatsService {
           totalPages: Math.ceil(mockStats.length / filters.limit),
           hasNext: filters.page * filters.limit < mockStats.length,
           hasPrev: filters.page > 1,
-        }
+        },
       };
     } catch (error) {
-      console.error('Error fetching user game stats:', error);
+      console.error("Error fetching user game stats:", error);
       throw error;
     }
   }
@@ -153,17 +161,24 @@ class GameStatsService {
   /**
    * Update user's game statistics preferences
    */
-  async updateGameStatsPreferences(userId: string, updateData: { gameType: string; favoriteFormat?: string }) {
+  async updateGameStatsPreferences(
+    userId: string,
+    updateData: { gameType: string; favoriteFormat?: string },
+  ) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Mock update operation (would update actual game_stats table)
       const updatedStats: GameStats = {
-        id: '1',
+        id: "1",
         userId,
         gameType: updateData.gameType,
         totalGames: 45,
@@ -179,7 +194,7 @@ class GameStatsService {
 
       return updatedStats;
     } catch (error) {
-      console.error('Error updating game stats preferences:', error);
+      console.error("Error updating game stats preferences:", error);
       throw error;
     }
   }
@@ -190,9 +205,13 @@ class GameStatsService {
   async getAggregateStats(userId: string) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Mock aggregate data (would aggregate from actual game_stats table)
@@ -202,8 +221,8 @@ class GameStatsService {
         totalLossesAllFormats: 55,
         totalDrawsAllFormats: 3,
         overallWinRate: 0.61,
-        favoriteGameType: 'mtg',
-        mostPlayedFormat: 'Commander',
+        favoriteGameType: "mtg",
+        mostPlayedFormat: "Commander",
         longestWinStreak: 8,
         currentWinStreak: 3,
         gamesThisMonth: 12,
@@ -212,7 +231,7 @@ class GameStatsService {
         totalPlaytime: 2340, // minutes
       };
     } catch (error) {
-      console.error('Error fetching aggregate stats:', error);
+      console.error("Error fetching aggregate stats:", error);
       throw error;
     }
   }
@@ -227,22 +246,24 @@ class GameStatsService {
         rank: i + 1,
         userId: `user-${i + 1}`,
         username: `Player${i + 1}`,
-        gameType: filters.gameType || 'all',
+        gameType: filters.gameType || "all",
         totalGames: Math.floor(Math.random() * 200) + 50,
         wins: Math.floor(Math.random() * 150) + 30,
         winRate: Math.round((Math.random() * 0.4 + 0.5) * 100) / 100,
-        favoriteFormat: ['Commander', 'Standard', 'Modern'][Math.floor(Math.random() * 3)],
+        favoriteFormat: ["Commander", "Standard", "Modern"][
+          Math.floor(Math.random() * 3)
+        ],
         profileImageUrl: null,
       }));
 
       return {
         leaderboard: mockLeaderboard,
-        gameType: filters.gameType || 'all',
+        gameType: filters.gameType || "all",
         totalPlayers: 1250,
         lastUpdated: new Date(),
       };
     } catch (error) {
-      console.error('Error fetching leaderboard:', error);
+      console.error("Error fetching leaderboard:", error);
       throw error;
     }
   }
@@ -253,9 +274,13 @@ class GameStatsService {
   async createGameResult(userId: string, gameResultData: CreateGameResultData) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Use database transaction for data consistency
@@ -283,7 +308,7 @@ class GameStatsService {
         return newResult;
       });
     } catch (error) {
-      console.error('Error creating game result:', error);
+      console.error("Error creating game result:", error);
       throw error;
     }
   }
@@ -294,21 +319,33 @@ class GameStatsService {
   async getUserGameResults(userId: string, filters: GameStatsFilters) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Mock game results (would query actual game_results table)
-      const mockResults: GameResult[] = Array.from({ length: Math.min(filters.limit, 10) }, (_, i) => ({
-        id: `result-${i + 1}`,
-        userId,
-        gameType: filters.gameType || 'mtg',
-        format: 'Commander',
-        result: ['win', 'loss', 'draw'][Math.floor(Math.random() * 3)] as 'win' | 'loss' | 'draw',
-        duration: Math.floor(Math.random() * 60) + 20,
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-      }));
+      const mockResults: GameResult[] = Array.from(
+        { length: Math.min(filters.limit, 10) },
+        (_, i) => ({
+          id: `result-${i + 1}`,
+          userId,
+          gameType: filters.gameType || "mtg",
+          format: "Commander",
+          result: ["win", "loss", "draw"][Math.floor(Math.random() * 3)] as
+            | "win"
+            | "loss"
+            | "draw",
+          duration: Math.floor(Math.random() * 60) + 20,
+          createdAt: new Date(
+            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+          ),
+        }),
+      );
 
       return {
         results: mockResults,
@@ -319,10 +356,10 @@ class GameStatsService {
           totalPages: Math.ceil(45 / filters.limit),
           hasNext: filters.page * filters.limit < 45,
           hasPrev: filters.page > 1,
-        }
+        },
       };
     } catch (error) {
-      console.error('Error fetching user game results:', error);
+      console.error("Error fetching user game results:", error);
       throw error;
     }
   }
@@ -334,16 +371,16 @@ class GameStatsService {
     try {
       // Mock validation (would check if result exists and belongs to user)
       if (!resultId || !userId) {
-        throw new ValidationError('Invalid result ID or user ID');
+        throw new ValidationError("Invalid result ID or user ID");
       }
 
       // Mock deletion (would delete from game_results and update game_stats)
-      logger.info('Deleting game result', { resultId, userId });
-      
+      logger.info("Deleting game result", { resultId, userId });
+
       // In a real implementation, this would also recalculate statistics
       return true;
     } catch (error) {
-      logger.error('Error deleting game result:', error);
+      logger.error("Error deleting game result:", error);
       throw error;
     }
   }

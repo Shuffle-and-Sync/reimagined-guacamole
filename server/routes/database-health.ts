@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import { isAuthenticated, getAuthUserId, type AuthenticatedRequest } from '../auth';
-import { generalRateLimit } from '../rate-limiting';
-import { 
-  checkDatabaseHealth, 
-  DatabaseMonitor 
-} from '@shared/database-unified';
-import { logger } from '../logger';
+import { Router } from "express";
+import {
+  isAuthenticated,
+  getAuthUserId,
+  type AuthenticatedRequest,
+} from "../auth";
+import { generalRateLimit } from "../rate-limiting";
+import { checkDatabaseHealth, DatabaseMonitor } from "@shared/database-unified";
+import { logger } from "../logger";
 
 const router = Router();
 
@@ -16,10 +17,10 @@ router.use(generalRateLimit);
 // Admin check utility
 const isAdmin = async (userId: string): Promise<boolean> => {
   try {
-    const { storage } = await import('../storage');
+    const { storage } = await import("../storage");
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
-    return user?.email === 'admin@shuffleandsync.com';
+    return user?.email === "admin@shuffleandsync.com";
   } catch (error) {
     return false;
   }
@@ -29,28 +30,30 @@ const isAdmin = async (userId: string): Promise<boolean> => {
  * Database health check endpoint
  * GET /api/database/health
  */
-router.get('/health', async (req, res)=> {
+router.get("/health", async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
-  
+
   try {
     // Admin-only endpoint
     const userId = getAuthUserId(authenticatedReq);
     if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
     }
 
     const health = await checkDatabaseHealth();
-    
+
     return res.json({
       success: true,
       database: health,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Database health check failed', error);
+    logger.error("Database health check failed", error);
     return res.status(500).json({
       success: false,
-      error: 'Health check failed',
+      error: "Health check failed",
     });
   }
 });
@@ -59,23 +62,25 @@ router.get('/health', async (req, res)=> {
  * Database performance statistics
  * GET /api/database/stats
  */
-router.get('/stats', async (req, res)=> {
+router.get("/stats", async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
-  
+
   try {
     // Admin-only endpoint
     const userId = getAuthUserId(authenticatedReq);
     if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
     }
 
     const monitor = DatabaseMonitor.getInstance();
     const allStats = monitor.getStats();
     const slowQueries = monitor.getSlowQueries(500); // Queries >500ms
-    
+
     // SQLite doesn't have a connection pool like PostgreSQL
     const poolStats = {
-      note: 'SQLite uses single connection, pool stats not applicable'
+      note: "SQLite uses single connection, pool stats not applicable",
     };
 
     return res.json({
@@ -84,15 +89,18 @@ router.get('/stats', async (req, res)=> {
         pool: poolStats,
         queries: allStats,
         slowQueries,
-        queryCount: Object.values(allStats).reduce((sum, stat: any) => sum + stat.count, 0),
+        queryCount: Object.values(allStats).reduce(
+          (sum, stat: any) => sum + stat.count,
+          0,
+        ),
       },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Failed to get database stats', error);
+    logger.error("Failed to get database stats", error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to get database statistics',
+      error: "Failed to get database statistics",
     });
   }
 });
@@ -101,39 +109,41 @@ router.get('/stats', async (req, res)=> {
  * Reset performance statistics
  * POST /api/database/reset-stats
  */
-router.post('/reset-stats', async (req, res)=> {
+router.post("/reset-stats", async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
-  
+
   try {
     // Admin-only endpoint with environment check
     const userId = getAuthUserId(authenticatedReq);
     if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
     }
-    
+
     // Only allow in development/testing environments
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Statistics reset disabled in production' 
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({
+        success: false,
+        error: "Statistics reset disabled in production",
       });
     }
 
     const monitor = DatabaseMonitor.getInstance();
     monitor.reset();
-    
-    logger.info('Database performance statistics reset', { userId });
-    
+
+    logger.info("Database performance statistics reset", { userId });
+
     return res.json({
       success: true,
-      message: 'Performance statistics reset successfully',
+      message: "Performance statistics reset successfully",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Failed to reset database stats', error);
+    logger.error("Failed to reset database stats", error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to reset statistics',
+      error: "Failed to reset statistics",
     });
   }
 });
@@ -142,32 +152,34 @@ router.post('/reset-stats', async (req, res)=> {
  * Database connection pool information
  * GET /api/database/pool
  */
-router.get('/pool', async (req, res)=> {
+router.get("/pool", async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
-  
+
   try {
     // Admin-only endpoint
     const userId = getAuthUserId(authenticatedReq);
     if (!(await isAdmin(userId))) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
     }
 
     // SQLite doesn't have a connection pool like PostgreSQL
     const poolInfo = {
-      note: 'SQLite uses single connection, pool configuration not applicable',
-      databaseType: 'SQLite Cloud'
+      note: "SQLite uses single connection, pool configuration not applicable",
+      databaseType: "SQLite Cloud",
     };
-    
+
     return res.json({
       success: true,
       pool: poolInfo,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Failed to get pool information', error);
+    logger.error("Failed to get pool information", error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to get pool information',
+      error: "Failed to get pool information",
     });
   }
 });

@@ -12,6 +12,7 @@ Shuffle & Sync uses a **split frontend-backend architecture** when deployed to C
 ### Issue Description
 
 When clicking "Sign In" on the frontend, users encounter:
+
 ```
 ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 Redirects to: /api/auth/error?error=Configuration
@@ -20,16 +21,19 @@ Redirects to: /api/auth/error?error=Configuration
 ### Root Cause
 
 The frontend React app makes requests to `/api/auth/*` endpoints using relative URLs:
+
 ```typescript
 // client/src/features/auth/hooks/useAuth.ts
 window.location.href = `/api/auth/signin/google`;
 ```
 
 However, when deployed separately:
+
 1. Frontend service URL: `https://shuffle-sync-front-*.us-central1.run.app`
 2. Backend service URL: `https://shuffle-sync-backend-*.us-central1.run.app`
 
 The frontend NGINX server **must proxy** `/api/` requests to the backend service, otherwise:
+
 - `/api/auth/signin/google` → **404 Not Found** on frontend service
 - Auth.js never receives the request → **Configuration Error**
 
@@ -69,6 +73,7 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 ```
 
 The startup script (`/docker-entrypoint.sh`):
+
 1. Reads `BACKEND_URL` environment variable
 2. Substitutes it into NGINX config using `envsubst`
 3. Starts NGINX with the configured backend
@@ -76,14 +81,14 @@ The startup script (`/docker-entrypoint.sh`):
 #### 2. Updated cloudbuild-frontend.yaml
 
 ```yaml
-- name: 'gcr.io/cloud-builders/gcloud'
+- name: "gcr.io/cloud-builders/gcloud"
   args:
-    - 'run'
-    - 'deploy'
-    - 'shuffle-sync-frontend'
+    - "run"
+    - "deploy"
+    - "shuffle-sync-frontend"
     # ... other args
-    - '--set-env-vars'
-    - 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
+    - "--set-env-vars"
+    - "BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app"
 ```
 
 ## Deployment Steps
@@ -91,17 +96,19 @@ The startup script (`/docker-entrypoint.sh`):
 ### Prerequisites
 
 1. **Backend service must be deployed FIRST**:
+
    ```bash
    gcloud builds submit --config cloudbuild.yaml
    ```
 
 2. **Get backend URL**:
+
    ```bash
    gcloud run services describe shuffle-sync-backend \
      --region=us-central1 \
      --format='value(status.url)'
    ```
-   
+
    Example output: `https://shuffle-sync-backend-858080302197.us-central1.run.app`
 
 ### Deploy Frontend with Backend URL
@@ -109,12 +116,14 @@ The startup script (`/docker-entrypoint.sh`):
 **Option 1: Using Cloud Build (Recommended)**
 
 Update `cloudbuild-frontend.yaml` with your backend URL:
+
 ```yaml
-- '--set-env-vars'
-- 'BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app'
+- "--set-env-vars"
+- "BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app"
 ```
 
 Then deploy:
+
 ```bash
 gcloud builds submit --config cloudbuild-frontend.yaml
 ```
@@ -183,6 +192,7 @@ https://your-custom-domain.com/api/auth/callback/google
 ```
 
 **Important Notes:**
+
 - Use the **BACKEND URL**, not the frontend URL
 - No trailing slashes
 - HTTPS required in production
@@ -191,6 +201,7 @@ https://your-custom-domain.com/api/auth/callback/google
 ### Why Backend URL?
 
 OAuth callbacks go to `/api/auth/callback/google`, which is handled by:
+
 1. Frontend NGINX proxies `/api/*` → Backend
 2. Backend Auth.js handles the OAuth callback
 3. Backend redirects to `/home` (via `redirect` callback)
@@ -219,6 +230,7 @@ bash scripts/verify-cloud-run-deployment.sh
 > **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 The script checks:
+
 - ✅ Backend service is deployed and accessible
 - ✅ Backend has required environment variables (GOOGLE_CLIENT_ID, AUTH_SECRET, etc.)
 - ✅ Frontend service is deployed and accessible
@@ -242,6 +254,7 @@ Should show: `BACKEND_URL=https://shuffle-sync-backend-...`
 ### 2. Check NGINX Configuration
 
 View container logs to see the NGINX config:
+
 ```bash
 gcloud logging read "resource.type=cloud_run_revision \
   AND resource.labels.service_name=shuffle-sync-frontend" \
@@ -273,9 +286,10 @@ curl https://shuffle-sync-frontend-683555795974.us-central1.run.app/api/auth/pro
 
 ## Troubleshooting
 
-### Issue: Still Getting 404 on /api/* Endpoints
+### Issue: Still Getting 404 on /api/\* Endpoints
 
 **Check 1: BACKEND_URL is Set**
+
 ```bash
 gcloud run services describe shuffle-sync-frontend \
   --region=us-central1 \
@@ -283,6 +297,7 @@ gcloud run services describe shuffle-sync-frontend \
 ```
 
 **Check 2: Container Logs**
+
 ```bash
 gcloud logging read "resource.type=cloud_run_revision \
   AND resource.labels.service_name=shuffle-sync-frontend" \
@@ -296,6 +311,7 @@ Look for: `Configuring NGINX to proxy /api/ to: ...`
 ### Issue: Configuration Error on /api/auth/error
 
 **Check 1: Google OAuth Credentials**
+
 ```bash
 gcloud run services describe shuffle-sync-backend \
   --region=us-central1 \
@@ -307,6 +323,7 @@ Should show: `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
 **Check 2: Google OAuth Console**
 
 Verify redirect URI matches **backend URL**:
+
 ```
 https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
@@ -318,6 +335,7 @@ https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/
 This shouldn't happen with the proxy setup, but if you see CORS errors:
 
 **Symptom:** Browser console shows:
+
 ```
 Access to fetch at 'https://backend...' from origin 'https://frontend...' has been blocked by CORS
 ```
@@ -332,7 +350,8 @@ Access to fetch at 'https://backend...' from origin 'https://frontend...' has be
 
 **Cause:** Backend `AUTH_URL` doesn't match actual backend URL
 
-**Fix:** 
+**Fix:**
+
 ```bash
 # Either omit AUTH_URL to auto-detect
 gcloud run services update shuffle-sync-backend \
@@ -350,6 +369,7 @@ gcloud run services update shuffle-sync-backend \
 When using custom domains:
 
 ### Frontend Domain
+
 ```bash
 # Map custom domain to frontend
 gcloud run domain-mappings create \
@@ -359,6 +379,7 @@ gcloud run domain-mappings create \
 ```
 
 ### Backend Domain (Optional but Recommended)
+
 ```bash
 # Map custom domain to backend
 gcloud run domain-mappings create \
@@ -386,6 +407,7 @@ If you don't want to manage separate frontend/backend services, you can deploy a
 ### Unified Dockerfile
 
 Use the main `Dockerfile` (not `Dockerfile.frontend`):
+
 - Builds both frontend and backend
 - Serves frontend static files from Express
 - No NGINX proxy needed
@@ -397,6 +419,7 @@ gcloud builds submit --config cloudbuild.yaml
 ```
 
 This creates a single `shuffle-sync-backend` service that:
+
 - Serves React SPA at `/`
 - Serves API endpoints at `/api/*`
 - No proxy configuration needed
@@ -404,6 +427,7 @@ This creates a single `shuffle-sync-backend` service that:
 ## Summary
 
 ✅ **Do This:**
+
 1. Deploy backend service FIRST
 2. Get backend service URL
 3. Deploy frontend with `BACKEND_URL` environment variable set
@@ -411,6 +435,7 @@ This creates a single `shuffle-sync-backend` service that:
 5. Test authentication flow
 
 ❌ **Don't Do This:**
+
 - Deploy frontend without setting `BACKEND_URL`
 - Use frontend URL in Google OAuth Console
 - Set `AUTH_URL` to frontend URL

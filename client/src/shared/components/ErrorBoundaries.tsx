@@ -1,7 +1,13 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 /**
  * Comprehensive Error Boundary System
@@ -20,24 +26,27 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   showDetails?: boolean;
-  level?: 'page' | 'component' | 'feature';
+  level?: "page" | "component" | "feature";
 }
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    
+
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: '',
+      errorId: "",
     };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       hasError: true,
       error,
@@ -47,10 +56,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
-    
+
     // Log error for monitoring
     this.logError(error, errorInfo);
-    
+
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
   }
@@ -62,24 +71,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       componentStack: errorInfo.componentStack,
       errorId: this.state.errorId,
       timestamp: new Date().toISOString(),
-      level: this.props.level || 'component',
+      level: this.props.level || "component",
       userAgent: navigator.userAgent,
       url: window.location.href,
     };
 
     // In development, log to console
     if (import.meta.env.DEV) {
-      console.group('🚨 Error Boundary Caught Error');
-      console.error('Error:', error);
-      console.error('Error Info:', errorInfo);
-      console.error('Error Data:', errorData);
+      console.group("🚨 Error Boundary Caught Error");
+      console.error("Error:", error);
+      console.error("Error Info:", errorInfo);
+      console.error("Error Data:", errorData);
       console.groupEnd();
     }
 
     // In production, send to error tracking service
     if (import.meta.env.PROD) {
       // This would integrate with Sentry, LogRocket, etc.
-      console.error('Error tracked:', errorData);
+      console.error("Error tracked:", errorData);
     }
   }
 
@@ -88,7 +97,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: '',
+      errorId: "",
     });
   };
 
@@ -97,7 +106,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   private handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   override render() {
@@ -115,14 +124,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   private renderErrorUI() {
-    const { level = 'component', showDetails = false } = this.props;
+    const { level = "component", showDetails = false } = this.props;
     const { error, errorInfo, errorId } = this.state;
 
     // Different UI based on error level
     switch (level) {
-      case 'page':
+      case "page":
         return this.renderPageError();
-      case 'feature':
+      case "feature":
         return this.renderFeatureError();
       default:
         return this.renderComponentError();
@@ -139,7 +148,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             <CardTitle>Something went wrong</CardTitle>
             <CardDescription>
-              We encountered an unexpected error. Please try refreshing the page.
+              We encountered an unexpected error. Please try refreshing the
+              page.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -147,7 +157,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <RefreshCw className="w-4 h-4 mr-2" />
               Reload Page
             </Button>
-            <Button variant="outline" onClick={this.handleGoHome} className="w-full">
+            <Button
+              variant="outline"
+              onClick={this.handleGoHome}
+              className="w-full"
+            >
               <Home className="w-4 h-4 mr-2" />
               Go Home
             </Button>
@@ -195,9 +209,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="flex items-center gap-2 text-destructive text-sm">
           <AlertTriangle className="w-4 h-4" />
           <span>Component Error</span>
-          <Button 
-            onClick={this.handleRetry} 
-            variant="ghost" 
+          <Button
+            onClick={this.handleRetry}
+            variant="ghost"
             size="sm"
             className="ml-auto h-6 px-2"
           >
@@ -214,7 +228,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  */
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>
+  errorBoundaryProps?: Omit<ErrorBoundaryProps, "children">,
 ) {
   return function WrappedComponent(props: P) {
     return (
@@ -228,11 +242,11 @@ export function withErrorBoundary<P extends object>(
 /**
  * Feature-level error boundary for feature modules
  */
-export function FeatureErrorBoundary({ 
-  children, 
-  featureName 
-}: { 
-  children: ReactNode; 
+export function FeatureErrorBoundary({
+  children,
+  featureName,
+}: {
+  children: ReactNode;
   featureName: string;
 }) {
   return (
@@ -253,14 +267,14 @@ export function FeatureErrorBoundary({
 export function AsyncErrorHandler({ children }: { children: ReactNode }) {
   React.useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
-      
+      console.error("Unhandled promise rejection:", event.reason);
+
       // Prevent the default behavior
       event.preventDefault();
-      
+
       // You could show a toast notification here
       if (import.meta.env.DEV) {
-        console.error('Promise rejection details:', {
+        console.error("Promise rejection details:", {
           reason: event.reason,
           promise: event.promise,
           timestamp: new Date().toISOString(),
@@ -268,10 +282,13 @@ export function AsyncErrorHandler({ children }: { children: ReactNode }) {
       }
     };
 
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
     return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener(
+        "unhandledrejection",
+        handleUnhandledRejection,
+      );
     };
   }, []);
 

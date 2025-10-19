@@ -23,6 +23,7 @@ A comprehensive security audit was conducted on the Shuffle & Sync application t
 - **Testing:** 2/2 tests passed
 
 **Evidence:**
+
 ```bash
 npm audit --production
 # Result: found 0 vulnerabilities
@@ -37,12 +38,13 @@ npm audit --production
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Provider:** Auth.js v5 (NextAuth.js) with Express integration
 - **OAuth Providers:** Google OAuth 2.0, Twitch OAuth (optional)
 - **Credentials:** Username/password with bcrypt hashing
 - **Session Strategy:** Database-backed sessions via Drizzle adapter
 - **MFA Support:** Multi-factor authentication with authenticator apps
-- **Account Protection:** 
+- **Account Protection:**
   - Failed login tracking
   - Account lockout after 5 failed attempts (30-minute lockout)
   - Rate limiting on authentication endpoints
@@ -54,6 +56,7 @@ npm audit --production
 - **Testing:** 4/4 tests passed
 
 **Key Security Settings:**
+
 ```typescript
 session: {
   strategy: "database",
@@ -72,6 +75,7 @@ trustHost: true // For Cloud Run/proxy environments
 ```
 
 **Audit Trail:** All authentication events are logged via `createAuthAuditLog`:
+
 - Login success/failure
 - MFA verification
 - Account lockouts
@@ -85,6 +89,7 @@ trustHost: true // For Cloud Run/proxy environments
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Library:** express-rate-limit v8.0.1
 - **Rate Limiters Configured:**
   - **General API:** 100 requests per 15 minutes
@@ -95,6 +100,7 @@ trustHost: true // For Cloud Run/proxy environments
 - **Testing:** 4/4 tests passed
 
 **Rate Limiting Configuration:**
+
 ```typescript
 // Authentication - Most Strict
 authRateLimit: {
@@ -117,9 +123,10 @@ messageRateLimit: {
 ```
 
 **Features:**
+
 - IP-based tracking with trust proxy configuration
 - Logged rate limit violations for monitoring
-- Standard RateLimit-* headers in responses
+- Standard RateLimit-\* headers in responses
 - Custom error messages per endpoint type
 
 ---
@@ -129,6 +136,7 @@ messageRateLimit: {
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **GitIgnore Protection:** Comprehensive patterns to prevent .env file commits
 - **Allowed Files:** Only .env.example, .env.production.template, and .env.test
 - **Validation:** Runtime validation of required environment variables
@@ -136,6 +144,7 @@ messageRateLimit: {
 - **Testing:** 4/4 tests passed
 
 **GitIgnore Patterns:**
+
 ```gitignore
 # Broad patterns to prevent ANY .env files
 *.env*
@@ -153,12 +162,14 @@ messageRateLimit: {
 **Git History Check:** ✅ Verified .env.production does not exist in git history
 
 **Required Environment Variables:**
+
 - `AUTH_SECRET` - Must be 32+ characters, cryptographically secure
 - `DATABASE_URL` - SQLite Cloud or local database
 - `GOOGLE_CLIENT_ID/SECRET` - Optional but recommended for production
 - `TWITCH_CLIENT_ID/SECRET` - Optional for Twitch integration
 
 **Security Validation:**
+
 - Weak credential detection (demo-, test-, example- prefixes)
 - Minimum length requirements
 - Production-specific validation
@@ -171,6 +182,7 @@ messageRateLimit: {
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Headers Set:**
   - `Access-Control-Allow-Origin` - Controlled by FRONTEND_URL env var
   - `Access-Control-Allow-Methods` - Restricted to necessary methods
@@ -180,11 +192,18 @@ messageRateLimit: {
 - **Testing:** 2/2 tests passed
 
 **CORS Configuration:**
+
 ```typescript
-res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
-res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-res.header('Access-Control-Allow-Credentials', 'true');
+res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "*");
+res.header(
+  "Access-Control-Allow-Methods",
+  "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+);
+res.header(
+  "Access-Control-Allow-Headers",
+  "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+);
+res.header("Access-Control-Allow-Credentials", "true");
 ```
 
 **Production Recommendation:** Set `FRONTEND_URL` to specific domain (e.g., `https://shuffleandsync.org`)
@@ -196,6 +215,7 @@ res.header('Access-Control-Allow-Credentials', 'true');
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Development Mode:** Report-only CSP (non-blocking for debugging)
 - **Production Mode:** Enforced CSP with strict policies
 - **Protection Against:**
@@ -206,6 +226,7 @@ res.header('Access-Control-Allow-Credentials', 'true');
 - **Testing:** 4/4 tests passed
 
 **Production CSP Policy:**
+
 ```
 default-src 'self';
 script-src 'self' https://replit.com;
@@ -219,6 +240,7 @@ base-uri 'self'
 ```
 
 **Additional Security Headers:**
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
@@ -232,6 +254,7 @@ base-uri 'self'
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Validation Library:** Zod v3.25.76 for runtime type validation
 - **Sanitization:** Custom sanitization functions for all inputs
 - **Protection Against:**
@@ -243,16 +266,20 @@ base-uri 'self'
 - **Testing:** 4/4 tests passed
 
 **Validation Schemas:**
+
 ```typescript
 // Email validation
 validateEmailSchema = z.object({
-  email: z.string().email('Invalid email format').min(1, 'Email is required'),
+  email: z.string().email("Invalid email format").min(1, "Email is required"),
 });
 
 // User profile updates
 validateUserProfileUpdateSchema = z.object({
-  username: z.string().min(2).max(30)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Only letters, numbers, underscores, hyphens'),
+  username: z
+    .string()
+    .min(2)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, underscores, hyphens"),
   bio: z.string().max(500).optional(),
   // ... additional fields
 });
@@ -260,12 +287,19 @@ validateUserProfileUpdateSchema = z.object({
 // Event creation
 validateEventSchema = z.object({
   title: z.string().min(1).max(200),
-  type: z.enum(['tournament', 'convention', 'release', 'community', 'game_pod']),
+  type: z.enum([
+    "tournament",
+    "convention",
+    "release",
+    "community",
+    "game_pod",
+  ]),
   // ... additional fields
 });
 ```
 
 **Input Sanitization:**
+
 ```typescript
 export function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '');
@@ -281,6 +315,7 @@ suspiciousPatterns = [
 ```
 
 **UUID Validation:**
+
 - All ID parameters validated against UUID format
 - Prevents injection via malformed IDs
 - Type-safe parameter handling
@@ -292,6 +327,7 @@ suspiciousPatterns = [
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Logging:** Structured logging with Winston/custom logger
 - **Password Storage:** Bcrypt hashing (cost factor 10+)
 - **Credential Detection:** Automatic detection and redaction
@@ -300,23 +336,26 @@ suspiciousPatterns = [
 - **Testing:** 4/4 tests passed
 
 **Credential Leak Detection:**
+
 ```typescript
 const credentialPatterns = [
-  /sk_[a-zA-Z0-9_]{20,}/,  // API keys
-  /AIza[0-9A-Za-z\-_]{35}/,  // Google API keys
-  /ghp_[a-zA-Z0-9]{36}/,  // GitHub tokens
-  /xox[baprs]-[0-9]{12}-[0-9]{12}-[0-9a-zA-Z]{24}/,  // Slack tokens
+  /sk_[a-zA-Z0-9_]{20,}/, // API keys
+  /AIza[0-9A-Za-z\-_]{35}/, // Google API keys
+  /ghp_[a-zA-Z0-9]{36}/, // GitHub tokens
+  /xox[baprs]-[0-9]{12}-[0-9]{12}-[0-9a-zA-Z]{24}/, // Slack tokens
   // ... additional patterns
 ];
 ```
 
 **Password Security:**
+
 - Minimum 8 characters
 - Hashed with bcrypt before storage
 - Never logged or exposed in responses
 - Passwords not stored for OAuth users
 
 **Sensitive Data Protection:**
+
 - Stream keys encrypted with AES-256
 - Tokens stored with expiration
 - Audit logs sanitize sensitive fields
@@ -329,6 +368,7 @@ const credentialPatterns = [
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Google OAuth:** Default scopes only (`openid`, `profile`, `email`)
 - **Twitch OAuth:** Default scopes only (`openid`, `email`)
 - **No Excessive Permissions:** No calendar, drive, or subscription scopes requested
@@ -336,29 +376,33 @@ const credentialPatterns = [
 - **Testing:** 2/2 tests passed
 
 **Google OAuth Configuration:**
+
 ```typescript
 Google({
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   // Uses Auth.js default scopes: openid, profile, email
-})
+});
 ```
 
 **Twitch OAuth Configuration:**
+
 ```typescript
 Twitch({
   clientId: process.env.TWITCH_CLIENT_ID,
   clientSecret: process.env.TWITCH_CLIENT_SECRET,
   // Uses Auth.js default scopes: openid, email
-})
+});
 ```
 
 **Rationale:**
+
 - `openid` - Required for OAuth 2.0 authentication
 - `profile` - Needed for user's name and profile picture
 - `email` - Required for user identification and communication
 
 **No Additional Scopes Required:** The application does not request access to:
+
 - Google Drive, Calendar, or other Google services
 - Twitch channel data, subscriptions, or streaming controls
 - Third-party integrations beyond basic authentication
@@ -370,6 +414,7 @@ Twitch({
 **Status:** PASSED
 
 **Implementation Details:**
+
 - **Security Audit Function:** `auditSecurityConfiguration()` runs on startup
 - **Weak Credential Detection:** Checks for demo/test credentials
 - **Production Validation:** Enforced in production environment
@@ -377,26 +422,29 @@ Twitch({
 - **Testing:** 3/3 tests passed
 
 **Security Audit on Startup:**
+
 ```typescript
 // In server/index.ts
 const securityAudit = auditSecurityConfiguration();
 
 if (!securityAudit.passed) {
-  logger.warn('Security audit found issues', { issues: securityAudit.issues });
-  if (process.env.NODE_ENV === 'production') {
-    logger.error('Security audit failed in production - stopping server');
+  logger.warn("Security audit found issues", { issues: securityAudit.issues });
+  if (process.env.NODE_ENV === "production") {
+    logger.error("Security audit failed in production - stopping server");
     process.exit(1);
   }
 }
 ```
 
 **Validation Checks:**
+
 - AUTH_SECRET minimum 32 characters
 - No demo/test/example credentials in production
 - JWT secret complexity requirements
 - Environment variable completeness
 
 **Credential Rotation Checklist:**
+
 - [ ] Generate new AUTH_SECRET: `openssl rand -base64 32`
 - [ ] Rotate Google OAuth credentials
 - [ ] Rotate Twitch OAuth credentials (if used)
@@ -418,8 +466,11 @@ if (!securityAudit.passed) {
 - **Preload Ready:** Configuration supports HSTS preload list
 
 ```typescript
-if (process.env.NODE_ENV === 'production') {
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+if (process.env.NODE_ENV === "production") {
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains",
+  );
 }
 ```
 
@@ -439,8 +490,8 @@ useSecureCookies: process.env.NODE_ENV === 'production'
 
 cookies: {
   sessionToken: {
-    name: process.env.NODE_ENV === 'production' 
-      ? '__Secure-next-auth.session-token' 
+    name: process.env.NODE_ENV === 'production'
+      ? '__Secure-next-auth.session-token'
       : 'next-auth.session-token',
     options: {
       httpOnly: true,
@@ -478,6 +529,7 @@ cookies: {
   - Suspicious activity detection
 
 **Audit Log Schema:**
+
 ```typescript
 createAuthAuditLog({
   userId: string | null,
@@ -509,7 +561,7 @@ const suspiciousPatterns = [
   /(<script|javascript:|vbscript:|onload|onerror)/i,
   /(union|select|insert|update|delete|drop|create|alter)\s+/i,
   /(\.\.|\/etc\/passwd|\/proc\/|cmd\.exe)/i,
-  /(eval\(|setTimeout\(|setInterval\()/i
+  /(eval\(|setTimeout\(|setInterval\()/i,
 ];
 ```
 
@@ -519,15 +571,15 @@ const suspiciousPatterns = [
 
 ### Security Test Suites
 
-| Test Suite | Tests | Passed | Failed | Coverage |
-|------------|-------|--------|--------|----------|
-| Comprehensive Audit | 39 | 39 | 0 | 100% |
-| Credential Protection | 12 | 12 | 0 | 100% |
-| GitIgnore Protection | 6 | 6 | 0 | 100% |
-| Input Sanitization | 10 | 10 | 0 | 100% |
-| Enhanced Sanitization | 7 | 7 | 0 | 100% |
-| Security Utils | 14 | 14 | 0 | 100% |
-| **TOTAL** | **88** | **88** | **0** | **100%** |
+| Test Suite            | Tests  | Passed | Failed | Coverage |
+| --------------------- | ------ | ------ | ------ | -------- |
+| Comprehensive Audit   | 39     | 39     | 0      | 100%     |
+| Credential Protection | 12     | 12     | 0      | 100%     |
+| GitIgnore Protection  | 6      | 6      | 0      | 100%     |
+| Input Sanitization    | 10     | 10     | 0      | 100%     |
+| Enhanced Sanitization | 7      | 7      | 0      | 100%     |
+| Security Utils        | 14     | 14     | 0      | 100%     |
+| **TOTAL**             | **88** | **88** | **0**  | **100%** |
 
 ### Test Execution
 
@@ -544,18 +596,18 @@ npm test server/tests/security/
 
 ## Security Compliance Matrix
 
-| Requirement | Implemented | Tested | Documentation | Status |
-|-------------|-------------|--------|---------------|--------|
-| Dependency Audit | ✅ | ✅ | ✅ | PASSED |
-| Authentication | ✅ | ✅ | ✅ | PASSED |
-| Rate Limiting | ✅ | ✅ | ✅ | PASSED |
-| Env Protection | ✅ | ✅ | ✅ | PASSED |
-| CORS Config | ✅ | ✅ | ✅ | PASSED |
-| CSP Headers | ✅ | ✅ | ✅ | PASSED |
-| Input Validation | ✅ | ✅ | ✅ | PASSED |
-| Sensitive Data | ✅ | ✅ | ✅ | PASSED |
-| OAuth Scopes | ✅ | ✅ | ✅ | PASSED |
-| Credential Rotation | ✅ | ✅ | ✅ | PASSED |
+| Requirement         | Implemented | Tested | Documentation | Status |
+| ------------------- | ----------- | ------ | ------------- | ------ |
+| Dependency Audit    | ✅          | ✅     | ✅            | PASSED |
+| Authentication      | ✅          | ✅     | ✅            | PASSED |
+| Rate Limiting       | ✅          | ✅     | ✅            | PASSED |
+| Env Protection      | ✅          | ✅     | ✅            | PASSED |
+| CORS Config         | ✅          | ✅     | ✅            | PASSED |
+| CSP Headers         | ✅          | ✅     | ✅            | PASSED |
+| Input Validation    | ✅          | ✅     | ✅            | PASSED |
+| Sensitive Data      | ✅          | ✅     | ✅            | PASSED |
+| OAuth Scopes        | ✅          | ✅     | ✅            | PASSED |
+| Credential Rotation | ✅          | ✅     | ✅            | PASSED |
 
 ---
 
@@ -564,6 +616,7 @@ npm test server/tests/security/
 Before deploying to production, complete the following:
 
 ### Environment Configuration
+
 - [ ] Generate new AUTH_SECRET: `openssl rand -base64 32`
 - [ ] Set AUTH_URL to production domain (or leave empty for auto-detection)
 - [ ] Configure Google OAuth credentials with production redirect URI
@@ -574,6 +627,7 @@ Before deploying to production, complete the following:
 - [ ] Set ALLOWED_ORIGINS to production domain(s)
 
 ### OAuth Provider Configuration
+
 - [ ] Add production callback URLs to Google Console:
   - `https://your-domain.com/api/auth/callback/google`
 - [ ] Add production callback URLs to Twitch Console (if applicable):
@@ -582,6 +636,7 @@ Before deploying to production, complete the following:
 - [ ] Confirm OAuth scopes match requirements
 
 ### Security Verification
+
 - [ ] Run `npm audit --production` and resolve any vulnerabilities
 - [ ] Verify no .env files in git history: `git log --all --name-only | grep ".env\."`
 - [ ] Confirm AUTH_SECRET is not default/demo value
@@ -592,6 +647,7 @@ Before deploying to production, complete the following:
 - [ ] Verify security headers are present
 
 ### Monitoring Setup
+
 - [ ] Configure error tracking (Sentry or similar)
 - [ ] Set up log aggregation
 - [ ] Configure security event alerts
@@ -599,6 +655,7 @@ Before deploying to production, complete the following:
 - [ ] Configure rate limit alerts
 
 ### Documentation
+
 - [ ] Update deployment documentation
 - [ ] Document incident response procedures
 - [ ] Create credential rotation schedule
@@ -639,6 +696,7 @@ Before deploying to production, complete the following:
 ### Security Contacts
 
 For security issues or questions:
+
 - See `SECURITY.md` for reporting procedures
 - Contact: [Security contact from documentation]
 - Emergency: Follow incident response procedures
@@ -648,9 +706,11 @@ For security issues or questions:
 ## Recommendations for Production
 
 ### High Priority
+
 1. ✅ All items completed - production ready
 
 ### Medium Priority (Post-Launch)
+
 1. Consider implementing Web Application Firewall (WAF)
 2. Set up automated security scanning in CI/CD
 3. Implement IP-based geolocation blocking if needed
@@ -658,6 +718,7 @@ For security issues or questions:
 5. Evaluate adding Subresource Integrity (SRI) for CDN resources
 
 ### Long-Term Improvements
+
 1. Consider SOC 2 Type II compliance
 2. Implement comprehensive penetration testing program
 3. Add bug bounty program
@@ -673,6 +734,7 @@ The Shuffle & Sync application has successfully completed a comprehensive securi
 **Overall Assessment:** ✅ **PRODUCTION READY**
 
 The application demonstrates:
+
 - Strong authentication and authorization
 - Comprehensive input validation and sanitization
 - Proper rate limiting and DDoS protection

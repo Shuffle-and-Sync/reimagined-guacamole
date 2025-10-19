@@ -1,19 +1,19 @@
 /**
  * Middleware Integration Module
- * 
+ *
  * This module exports all middleware in a structured way for easy integration,
  * following Copilot best practices for middleware organization and composition.
  */
 
 // Import all middleware modules
-import { securityMiddleware } from './security.middleware';
-import { errorHandlingMiddleware } from './error-handling.middleware';
-import { performanceMonitoring } from './performance.middleware';
+import { securityMiddleware } from "./security.middleware";
+import { errorHandlingMiddleware } from "./error-handling.middleware";
+import { performanceMonitoring } from "./performance.middleware";
 
 // Re-export individual middleware for granular control
-export { securityMiddleware } from './security.middleware';
-export { errorHandlingMiddleware, errors } from './error-handling.middleware';
-export { performanceMonitoring } from './performance.middleware';
+export { securityMiddleware } from "./security.middleware";
+export { errorHandlingMiddleware, errors } from "./error-handling.middleware";
+export { performanceMonitoring } from "./performance.middleware";
 
 // Export individual middleware functions for backwards compatibility
 export const {
@@ -21,14 +21,14 @@ export const {
   sanitization: inputSanitization,
   monitoring: securityMonitoring,
   rateLimits,
-  requestSizeLimit
+  requestSizeLimit,
 } = securityMiddleware;
 
 export const {
   requestId,
   notFound,
   global: globalErrorHandler,
-  asyncHandler
+  asyncHandler,
 } = errorHandlingMiddleware;
 
 export const {
@@ -37,7 +37,7 @@ export const {
   requestSize: requestSizeMonitoring,
   database: databaseMonitoring,
   healthCheck,
-  metrics
+  metrics,
 } = performanceMonitoring;
 
 /**
@@ -50,7 +50,7 @@ export const coreMiddleware = [
   securityHeaders,
   performanceMiddleware,
   memoryMonitoring,
-  requestSizeMonitoring
+  requestSizeMonitoring,
 ];
 
 // Security middleware stack
@@ -58,7 +58,7 @@ export const securityMiddlewareStack = [
   securityHeaders,
   inputSanitization,
   securityMonitoring,
-  requestSizeLimit
+  requestSizeLimit,
 ];
 
 // Monitoring middleware stack
@@ -66,14 +66,11 @@ export const monitoringMiddlewareStack = [
   performanceMiddleware,
   memoryMonitoring,
   requestSizeMonitoring,
-  databaseMonitoring
+  databaseMonitoring,
 ];
 
 // Error handling middleware (should be applied last)
-export const errorMiddlewareStack = [
-  notFound,
-  globalErrorHandler
-];
+export const errorMiddlewareStack = [notFound, globalErrorHandler];
 
 /**
  * Complete middleware stack for production use
@@ -82,7 +79,7 @@ export const productionMiddlewareStack = [
   ...coreMiddleware,
   inputSanitization,
   securityMonitoring,
-  databaseMonitoring
+  databaseMonitoring,
 ];
 
 /**
@@ -92,7 +89,7 @@ export const developmentMiddlewareStack = [
   ...coreMiddleware,
   inputSanitization,
   securityMonitoring,
-  databaseMonitoring
+  databaseMonitoring,
 ];
 
 /**
@@ -103,7 +100,7 @@ export const apiMiddlewareStack = [
   performanceMiddleware,
   rateLimits.api,
   inputSanitization,
-  securityMonitoring
+  securityMonitoring,
 ];
 
 /**
@@ -113,7 +110,7 @@ export const authMiddlewareStack = [
   requestId,
   rateLimits.auth,
   inputSanitization,
-  securityMonitoring
+  securityMonitoring,
 ];
 
 /**
@@ -123,14 +120,14 @@ export const uploadMiddlewareStack = [
   requestId,
   rateLimits.upload,
   requestSizeLimit,
-  securityMonitoring
+  securityMonitoring,
 ];
 
 /**
  * Utility function to apply middleware stack to Express app
  */
 export function applyMiddlewareStack(app: any, middlewareStack: any[]) {
-  middlewareStack.forEach(middleware => {
+  middlewareStack.forEach((middleware) => {
     if (middleware) {
       app.use(middleware);
     }
@@ -143,7 +140,7 @@ export function applyMiddlewareStack(app: any, middlewareStack: any[]) {
 export function setupErrorHandlers(app: any) {
   // 404 handler for unmatched routes
   app.use(notFound);
-  
+
   // Global error handler (must be last)
   app.use(globalErrorHandler);
 }
@@ -152,8 +149,8 @@ export function setupErrorHandlers(app: any) {
  * Health and metrics endpoints setup
  */
 export function setupMonitoringEndpoints(app: any) {
-  app.get('/health', healthCheck);
-  app.get('/metrics', metrics);
+  app.get("/health", healthCheck);
+  app.get("/metrics", metrics);
 }
 
 // Default export with commonly used middleware
@@ -166,11 +163,11 @@ export default {
     development: developmentMiddlewareStack,
     api: apiMiddlewareStack,
     auth: authMiddlewareStack,
-    upload: uploadMiddlewareStack
+    upload: uploadMiddlewareStack,
   },
   utils: {
     applyMiddlewareStack,
     setupErrorHandlers,
-    setupMonitoringEndpoints
-  }
+    setupMonitoringEndpoints,
+  },
 };

@@ -3,6 +3,7 @@
 ## Recent Improvements
 
 **Good News**: The latest version includes improved error handling to prevent redirect loops:
+
 - Authentication errors now show a user-friendly error page at `/auth/error` instead of causing browser errors
 - Detailed troubleshooting information is displayed on the error page
 - Server logs now include helpful warnings when OAuth credentials are missing
@@ -13,6 +14,7 @@ However, you still need to configure environment variables correctly for authent
 ## The Error
 
 When accessing the deployed application, you see:
+
 ```
 This site can't be reached
 https://shuffle-sync-front-683555795974.us-central1.run.app/api/auth/error?error=Configuration
@@ -34,11 +36,13 @@ The "Configuration" error from Auth.js indicates that **authentication is not pr
 The fastest way to identify the issue is to run the automated diagnostic script:
 
 For troubleshooting Cloud Run deployment issues, use the Cloud Console or `gcloud` commands to:
+
 - Check service environment variables
 - Review service logs
 - Test endpoint connectivity
 
 Example diagnostic commands:
+
 ```bash
 # Check backend service configuration
 gcloud run services describe shuffle-sync-backend --region=us-central1
@@ -95,6 +99,7 @@ gcloud run services describe $BACKEND_SERVICE \
 ```
 
 **Expected output:**
+
 ```
 GOOGLE_CLIENT_ID=123456789.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-***
@@ -114,6 +119,7 @@ gcloud run services describe $FRONTEND_SERVICE \
 ```
 
 **Expected output:**
+
 ```
 BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ```
@@ -125,6 +131,7 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ### Solution A: Backend Missing OAuth Credentials
 
 **Symptoms:**
+
 - Backend URL check in Step 3 showed no `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET`
 - Error message specifically says "Configuration"
 
@@ -136,6 +143,7 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
    - Copy the Client ID and Client Secret
 
 2. **Set credentials on backend service**:
+
    ```bash
    gcloud run services update $BACKEND_SERVICE \
      --region=us-central1 \
@@ -162,12 +170,14 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ### Solution B: Frontend Not Proxying to Backend
 
 **Symptoms:**
+
 - Frontend URL check in Step 4 showed no `BACKEND_URL`
 - API requests return 404 or don't reach the backend
 
 **Fix:**
 
 1. **Get your backend URL**:
+
    ```bash
    BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE \
      --region=us-central1 \
@@ -176,6 +186,7 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
    ```
 
 2. **Set BACKEND_URL on frontend service**:
+
    ```bash
    gcloud run services update $FRONTEND_SERVICE \
      --region=us-central1 \
@@ -183,15 +194,16 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
    ```
 
 3. **Verify the proxy is working**:
+
    ```bash
    # Get frontend URL
    FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE \
      --region=us-central1 \
      --format='value(status.url)')
-   
+
    # Test that frontend proxies /api/ to backend
    curl $FRONTEND_URL/api/auth/providers
-   
+
    # This should return the same as:
    curl $BACKEND_URL/api/auth/providers
    ```
@@ -199,33 +211,37 @@ BACKEND_URL=https://shuffle-sync-backend-858080302197.us-central1.run.app
 ### Solution C: Service Naming Mismatch
 
 **Symptoms:**
+
 - Your error URL shows `shuffle-sync-front-` but documentation refers to `shuffle-sync-frontend-`
 - Services exist but with different names than expected
 
 **Fix:**
 
 1. **List all your services**:
+
    ```bash
    gcloud run services list --region=us-central1 --format="table(name,status.url)"
    ```
 
 2. **Update cloudbuild configurations** with correct service names:
-   
+
    Edit `cloudbuild-frontend.yaml` and update the service name in the deploy step:
+
    ```yaml
-   - name: 'gcr.io/cloud-builders/gcloud'
+   - name: "gcr.io/cloud-builders/gcloud"
      args:
-       - 'run'
-       - 'deploy'
-       - 'shuffle-sync-front'  # ← Use your actual service name
+       - "run"
+       - "deploy"
+       - "shuffle-sync-front" # ← Use your actual service name
        # ... rest of config
    ```
 
 3. **Verify the deployment** using gcloud commands:
+
    ```bash
    # Check frontend service
    gcloud run services describe shuffle-sync-front --region=us-central1
-   
+
    # Check backend service
    gcloud run services describe shuffle-sync-backend --region=us-central1
    ```
@@ -263,6 +279,7 @@ gcloud run services update shuffle-sync-backend \
 ### Step 3: Update Google OAuth Console
 
 1. Get backend URL:
+
    ```bash
    gcloud run services describe shuffle-sync-backend \
      --region=us-central1 \
@@ -332,6 +349,7 @@ gcloud logging read "resource.type=cloud_run_revision \
 ```
 
 Look for:
+
 - **Frontend logs**: `Configuring NGINX to proxy /api/ to: ...` - confirms BACKEND_URL is set
 - **Backend logs**: Authentication errors, missing environment variables, database connection issues
 
@@ -378,10 +396,11 @@ gcloud run services describe shuffle-sync-front \
 If you've tried all the above and still have issues:
 
 1. Check service logs:
+
    ```bash
    # View recent logs
    gcloud logging read "resource.type=cloud_run_revision" --limit 50
-   
+
    # Filter by service
    gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=shuffle-sync-backend" --limit 50
    ```

@@ -4,8 +4,8 @@ import App from "./App";
 import "./index.css";
 
 // Handle unhandled promise rejections
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("Unhandled promise rejection:", event.reason);
   event.preventDefault(); // Prevent the default browser behavior
 });
 

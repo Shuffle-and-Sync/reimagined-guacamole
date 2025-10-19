@@ -1,22 +1,77 @@
-import { queryClient } from '@/lib/queryClient';
-import { logger } from './logger';
+import { queryClient } from "@/lib/queryClient";
+import { logger } from "./logger";
 
-export type WebSocketMessage = 
+export type WebSocketMessage =
   // Game room messages
-  | { type: 'join_room'; sessionId: string; user: { id: string; name: string; avatar?: string } }
-  | { type: 'message'; sessionId: string; user: { id: string; name: string; avatar?: string }; content: string }
-  | { type: 'game_action'; sessionId: string; action: string; user: { id: string; name: string; avatar?: string }; data: any }
-  // Collaborative streaming messages  
-  | { type: 'join_collab_stream'; eventId: string; collaborator?: any }
-  | { type: 'phase_change'; eventId: string; newPhase: string; hostUserId?: string }
-  | { type: 'coordination_event'; eventId: string; eventType: string; eventData: any }
-  | { type: 'collaborator_status_update'; eventId: string; userId?: string; statusUpdate: any }
+  | {
+      type: "join_room";
+      sessionId: string;
+      user: { id: string; name: string; avatar?: string };
+    }
+  | {
+      type: "message";
+      sessionId: string;
+      user: { id: string; name: string; avatar?: string };
+      content: string;
+    }
+  | {
+      type: "game_action";
+      sessionId: string;
+      action: string;
+      user: { id: string; name: string; avatar?: string };
+      data: any;
+    }
+  // Collaborative streaming messages
+  | { type: "join_collab_stream"; eventId: string; collaborator?: any }
+  | {
+      type: "phase_change";
+      eventId: string;
+      newPhase: string;
+      hostUserId?: string;
+    }
+  | {
+      type: "coordination_event";
+      eventId: string;
+      eventType: string;
+      eventData: any;
+    }
+  | {
+      type: "collaborator_status_update";
+      eventId: string;
+      userId?: string;
+      statusUpdate: any;
+    }
   // WebRTC messages
-  | { type: 'webrtc_offer'; sessionId: string; targetPlayer: string; offer: any }
-  | { type: 'webrtc_answer'; sessionId: string; targetPlayer: string; answer: any }
-  | { type: 'webrtc_ice_candidate'; sessionId: string; targetPlayer: string; candidate: any }
-  | { type: 'camera_toggle'; sessionId: string; user: { id: string; name: string }; cameraOn: boolean }
-  | { type: 'mic_toggle'; sessionId: string; user: { id: string; name: string }; micOn: boolean };
+  | {
+      type: "webrtc_offer";
+      sessionId: string;
+      targetPlayer: string;
+      offer: any;
+    }
+  | {
+      type: "webrtc_answer";
+      sessionId: string;
+      targetPlayer: string;
+      answer: any;
+    }
+  | {
+      type: "webrtc_ice_candidate";
+      sessionId: string;
+      targetPlayer: string;
+      candidate: any;
+    }
+  | {
+      type: "camera_toggle";
+      sessionId: string;
+      user: { id: string; name: string };
+      cameraOn: boolean;
+    }
+  | {
+      type: "mic_toggle";
+      sessionId: string;
+      user: { id: string; name: string };
+      micOn: boolean;
+    };
 
 export type WebSocketEventListener = (data: any) => void;
 
@@ -36,12 +91,12 @@ class WebSocketClient {
     this.connectionPromise = new Promise((resolve, reject) => {
       try {
         const wsUrl = this.buildWebSocketUrl();
-        
-        logger.info('Attempting WebSocket connection', { url: wsUrl });
+
+        logger.info("Attempting WebSocket connection", { url: wsUrl });
         this.ws = new WebSocket(wsUrl);
-        
+
         this.ws.onopen = () => {
-          logger.info('WebSocket connected successfully');
+          logger.info("WebSocket connected successfully");
           this.reconnectAttempts = 0;
           this.reconnectDelay = 1000;
           resolve();
@@ -52,39 +107,44 @@ class WebSocketClient {
             const data = JSON.parse(event.data);
             this.handleMessage(data);
           } catch (error) {
-            logger.error('Failed to parse WebSocket message', error);
+            logger.error("Failed to parse WebSocket message", error);
           }
         };
 
         this.ws.onclose = (event) => {
-          logger.info('WebSocket connection closed', { 
-            code: event.code, 
+          logger.info("WebSocket connection closed", {
+            code: event.code,
             reason: event.reason,
-            wasClean: event.wasClean
+            wasClean: event.wasClean,
           });
           this.connectionPromise = null;
-          
+
           // Attempt to reconnect if not a manual close
-          if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+          if (
+            event.code !== 1000 &&
+            this.reconnectAttempts < this.maxReconnectAttempts
+          ) {
             this.scheduleReconnect();
           }
         };
 
         this.ws.onerror = (error) => {
-          logger.error('WebSocket connection error', error);
-          
+          logger.error("WebSocket connection error", error);
+
           // Try fallback URL construction if primary fails
           if (this.reconnectAttempts === 0) {
             this.connectionPromise = null;
-            this.attemptFallbackConnection()
-              .then(resolve)
-              .catch(reject);
+            this.attemptFallbackConnection().then(resolve).catch(reject);
           } else {
-            reject(new Error(`WebSocket connection failed after ${this.reconnectAttempts} attempts`));
+            reject(
+              new Error(
+                `WebSocket connection failed after ${this.reconnectAttempts} attempts`,
+              ),
+            );
           }
         };
       } catch (error) {
-        logger.error('Failed to create WebSocket connection', error);
+        logger.error("Failed to create WebSocket connection", error);
         reject(error);
       }
     });
@@ -96,64 +156,72 @@ class WebSocketClient {
     const host = window.location.host;
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
-    
+
     // Validate host is not undefined or empty
-    if (!host || host === 'undefined' || !hostname || hostname === 'undefined') {
-      throw new Error('Invalid host configuration for WebSocket connection');
+    if (
+      !host ||
+      host === "undefined" ||
+      !hostname ||
+      hostname === "undefined"
+    ) {
+      throw new Error("Invalid host configuration for WebSocket connection");
     }
-    
+
     // Determine if we should use secure WebSocket
-    const isSecure = protocol === 'https:' || 
-      (hostname !== 'localhost' && !hostname.startsWith('127.') && !hostname.includes('replit.dev'));
-    
-    const wsProtocol = isSecure ? 'wss:' : 'ws:';
+    const isSecure =
+      protocol === "https:" ||
+      (hostname !== "localhost" &&
+        !hostname.startsWith("127.") &&
+        !hostname.includes("replit.dev"));
+
+    const wsProtocol = isSecure ? "wss:" : "ws:";
     const wsUrl = `${wsProtocol}//${host}/ws`;
-    
-    logger.debug('Built WebSocket URL', { 
-      wsUrl, 
-      protocol, 
-      hostname, 
-      host, 
-      isSecure 
+
+    logger.debug("Built WebSocket URL", {
+      wsUrl,
+      protocol,
+      hostname,
+      host,
+      isSecure,
     });
-    
+
     return wsUrl;
   }
 
   private async attemptFallbackConnection(): Promise<void> {
-    logger.info('Attempting fallback WebSocket connection');
-    
+    logger.info("Attempting fallback WebSocket connection");
+
     const fallbackUrls = this.buildFallbackUrls();
-    
+
     for (const url of fallbackUrls) {
       try {
-        logger.info('Trying fallback URL', { url });
-        
+        logger.info("Trying fallback URL", { url });
+
         await new Promise<void>((resolve, reject) => {
           const fallbackWs = new WebSocket(url);
-          
+
           const cleanup = () => {
             fallbackWs.onopen = null;
             fallbackWs.onerror = null;
             fallbackWs.onclose = null;
           };
-          
+
           fallbackWs.onopen = () => {
-            logger.info('Fallback WebSocket connection successful', { url });
+            logger.info("Fallback WebSocket connection successful", { url });
             cleanup();
-            
+
             // Replace the main WebSocket with the successful fallback
             this.ws = fallbackWs;
             this.setupWebSocketHandlers();
             resolve();
           };
-          
+
           fallbackWs.onerror = (error) => {
-            logger.warn('Fallback WebSocket connection failed', { url, error });
+            logger.warn("Fallback WebSocket connection failed", { url, error });
             cleanup();
             reject(new Error(`Fallback connection failed: ${url}`));
           };
-          
+
           // Set a timeout for the fallback attempt
           setTimeout(() => {
             if (fallbackWs.readyState === WebSocket.CONNECTING) {
@@ -163,27 +231,28 @@ class WebSocketClient {
             }
           }, 5000);
         });
-        
+
         // If we get here, the fallback connection succeeded
         return;
-        
       } catch (error) {
-        logger.debug('Fallback URL failed, trying next', { url, error });
+        logger.debug("Fallback URL failed, trying next", { url, error });
         continue;
       }
     }
-    
-    throw new Error('All fallback WebSocket connection attempts failed');
+
+    throw new Error("All fallback WebSocket connection attempts failed");
   }
 
   private buildFallbackUrls(): string[] {
     const hostname = window.location.hostname;
-    const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-    
+    const port =
+      window.location.port ||
+      (window.location.protocol === "https:" ? "443" : "80");
+
     const fallbackUrls: string[] = [];
-    
+
     // Try different protocol combinations
-    if (hostname === 'localhost' || hostname.startsWith('127.')) {
+    if (hostname === "localhost" || hostname.startsWith("127.")) {
       // For localhost, try both ws and wss
       fallbackUrls.push(`ws://${hostname}:${port}/ws`);
       fallbackUrls.push(`wss://${hostname}:${port}/ws`);
@@ -193,96 +262,112 @@ class WebSocketClient {
       // For remote hosts, prefer wss but try ws as fallback
       fallbackUrls.push(`wss://${hostname}:${port}/ws`);
       fallbackUrls.push(`ws://${hostname}:${port}/ws`);
-      if (port !== '80' && port !== '443') {
+      if (port !== "80" && port !== "443") {
         fallbackUrls.push(`wss://${hostname}/ws`);
         fallbackUrls.push(`ws://${hostname}/ws`);
       }
     }
-    
+
     return fallbackUrls;
   }
 
   private setupWebSocketHandlers(): void {
     if (!this.ws) return;
-    
+
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         this.handleMessage(data);
       } catch (error) {
-        logger.error('Failed to parse WebSocket message', error);
+        logger.error("Failed to parse WebSocket message", error);
       }
     };
 
     this.ws.onclose = (event) => {
-      logger.info('WebSocket connection closed', { 
-        code: event.code, 
+      logger.info("WebSocket connection closed", {
+        code: event.code,
         reason: event.reason,
-        wasClean: event.wasClean
+        wasClean: event.wasClean,
       });
       this.connectionPromise = null;
-      
+
       // Attempt to reconnect if not a manual close
-      if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+      if (
+        event.code !== 1000 &&
+        this.reconnectAttempts < this.maxReconnectAttempts
+      ) {
         this.scheduleReconnect();
       }
     };
   }
 
   private scheduleReconnect(): void {
-    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts), 30000);
-    
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
+      30000,
+    );
+
     logger.info(`Scheduling WebSocket reconnect in ${delay}ms`, {
       attempt: this.reconnectAttempts + 1,
-      maxAttempts: this.maxReconnectAttempts
+      maxAttempts: this.maxReconnectAttempts,
     });
-    
+
     setTimeout(() => {
       this.reconnectAttempts++;
-      this.connect().catch(error => {
-        logger.error('WebSocket reconnect failed', error);
+      this.connect().catch((error) => {
+        logger.error("WebSocket reconnect failed", error);
       });
     }, delay);
   }
 
   private handleMessage(data: any): void {
-    logger.debug('WebSocket message received', { type: data.type });
-    
+    logger.debug("WebSocket message received", { type: data.type });
+
     // Handle collaborative streaming specific messages with proper cache invalidation
     switch (data.type) {
-      case 'collaborator_joined':
-      case 'collaborator_left':
+      case "collaborator_joined":
+      case "collaborator_left":
         // Invalidate collaborator queries for the specific event
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/collaborative-streams', data.eventId || data.collaborator?.eventId, 'collaborators'] 
+        queryClient.invalidateQueries({
+          queryKey: [
+            "/api/collaborative-streams",
+            data.eventId || data.collaborator?.eventId,
+            "collaborators",
+          ],
         });
         break;
-      case 'phase_updated':
-        // Invalidate coordination status for the specific event  
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/collaborative-streams', data.eventId, 'coordination'] 
+      case "phase_updated":
+        // Invalidate coordination status for the specific event
+        queryClient.invalidateQueries({
+          queryKey: [
+            "/api/collaborative-streams",
+            data.eventId,
+            "coordination",
+          ],
         });
         break;
-      case 'coordination_event_broadcast':
-      case 'collaborator_status_changed':
+      case "coordination_event_broadcast":
+      case "collaborator_status_changed":
         // Invalidate coordination status and suggestions
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/collaborative-streams', data.eventId] 
+        queryClient.invalidateQueries({
+          queryKey: ["/api/collaborative-streams", data.eventId],
         });
         break;
-      case 'phase_change_error':
-        logger.error('Phase change error', data);
+      case "phase_change_error":
+        logger.error("Phase change error", data);
         break;
     }
-    
+
     // Notify event listeners
     const listeners = this.eventListeners.get(data.type);
     if (listeners) {
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         try {
           listener(data);
         } catch (error) {
-          logger.error('Error in WebSocket event listener', error, { eventType: data.type });
+          logger.error("Error in WebSocket event listener", error, {
+            eventType: data.type,
+          });
         }
       });
     }
@@ -290,10 +375,10 @@ class WebSocketClient {
 
   send(message: WebSocketMessage): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      logger.warn('Cannot send WebSocket message - connection not open', { 
+      logger.warn("Cannot send WebSocket message - connection not open", {
         message: message.type,
         readyState: this.ws?.readyState,
-        connectionState: this.getConnectionState()
+        connectionState: this.getConnectionState(),
       });
       return;
     }
@@ -301,18 +386,18 @@ class WebSocketClient {
     try {
       // Basic message validation on client side
       if (!message.type) {
-        throw new Error('Message must have a type field');
+        throw new Error("Message must have a type field");
       }
 
       // Sanitize message content to prevent issues
       const sanitizedMessage = this.sanitizeMessage(message);
-      
+
       this.ws.send(JSON.stringify(sanitizedMessage));
-      logger.debug('WebSocket message sent', { type: message.type });
+      logger.debug("WebSocket message sent", { type: message.type });
     } catch (error) {
-      logger.error('Failed to send WebSocket message', error, { 
+      logger.error("Failed to send WebSocket message", error, {
         messageType: message.type,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -320,34 +405,42 @@ class WebSocketClient {
   private sanitizeMessage(message: WebSocketMessage): WebSocketMessage {
     // Create a deep copy to avoid mutating the original
     const sanitized = JSON.parse(JSON.stringify(message));
-    
+
     // Sanitize string fields that might contain user input
-    if (sanitized.content && typeof sanitized.content === 'string') {
+    if (sanitized.content && typeof sanitized.content === "string") {
       sanitized.content = sanitized.content.substring(0, 1000); // Limit message length
     }
-    
+
     return sanitized;
   }
 
   private getConnectionState(): string {
-    if (!this.ws) return 'no-websocket';
-    
+    if (!this.ws) return "no-websocket";
+
     switch (this.ws.readyState) {
-      case WebSocket.CONNECTING: return 'connecting';
-      case WebSocket.OPEN: return 'open';
-      case WebSocket.CLOSING: return 'closing';
-      case WebSocket.CLOSED: return 'closed';
-      default: return 'unknown';
+      case WebSocket.CONNECTING:
+        return "connecting";
+      case WebSocket.OPEN:
+        return "open";
+      case WebSocket.CLOSING:
+        return "closing";
+      case WebSocket.CLOSED:
+        return "closed";
+      default:
+        return "unknown";
     }
   }
 
-  addEventListener(eventType: string, listener: WebSocketEventListener): () => void {
+  addEventListener(
+    eventType: string,
+    listener: WebSocketEventListener,
+  ): () => void {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, new Set());
     }
-    
+
     this.eventListeners.get(eventType)!.add(listener);
-    
+
     // Return unsubscribe function
     return () => {
       const listeners = this.eventListeners.get(eventType);
@@ -362,7 +455,7 @@ class WebSocketClient {
 
   disconnect(): void {
     if (this.ws) {
-      this.ws.close(1000, 'Manual disconnect');
+      this.ws.close(1000, "Manual disconnect");
       this.ws = null;
     }
     this.eventListeners.clear();
@@ -385,65 +478,84 @@ export const webSocketClient = new WebSocketClient();
 export class CollaborativeStreamingWebSocket {
   constructor(private client: WebSocketClient) {}
 
-  async joinCollaborativeStream(eventId: string, collaborator?: any): Promise<void> {
+  async joinCollaborativeStream(
+    eventId: string,
+    collaborator?: any,
+  ): Promise<void> {
     await this.client.connect();
     this.client.send({
-      type: 'join_collab_stream',
+      type: "join_collab_stream",
       eventId,
-      collaborator: collaborator || {}
+      collaborator: collaborator || {},
     });
   }
 
   changePhase(eventId: string, newPhase: string, hostUserId?: string): void {
     this.client.send({
-      type: 'phase_change',
+      type: "phase_change",
       eventId,
       newPhase,
-      hostUserId: hostUserId || 'unknown'
+      hostUserId: hostUserId || "unknown",
     });
   }
 
-  sendCoordinationEvent(eventId: string, eventType: string, eventData: any): void {
+  sendCoordinationEvent(
+    eventId: string,
+    eventType: string,
+    eventData: any,
+  ): void {
     this.client.send({
-      type: 'coordination_event',
+      type: "coordination_event",
       eventId,
       eventType,
-      eventData
+      eventData,
     });
   }
 
-  updateCollaboratorStatus(eventId: string, userId: string, statusUpdate: any): void {
+  updateCollaboratorStatus(
+    eventId: string,
+    userId: string,
+    statusUpdate: any,
+  ): void {
     this.client.send({
-      type: 'collaborator_status_update',
+      type: "collaborator_status_update",
       eventId,
       userId,
-      statusUpdate
+      statusUpdate,
     });
   }
 
   onCollaboratorJoined(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('collaborator_joined', callback);
+    return this.client.addEventListener("collaborator_joined", callback);
   }
 
   onCollaboratorLeft(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('collaborator_left', callback);
+    return this.client.addEventListener("collaborator_left", callback);
   }
 
   onPhaseUpdated(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('phase_updated', callback);
+    return this.client.addEventListener("phase_updated", callback);
   }
 
   onCoordinationEvent(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('coordination_event_broadcast', callback);
+    return this.client.addEventListener(
+      "coordination_event_broadcast",
+      callback,
+    );
   }
 
   onCollaboratorStatusChanged(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('collaborator_status_changed', callback);
+    return this.client.addEventListener(
+      "collaborator_status_changed",
+      callback,
+    );
   }
 
   onPhaseChangeError(callback: (data: any) => void): () => void {
-    return this.client.addEventListener('phase_change_error', callback);
+    return this.client.addEventListener("phase_change_error", callback);
   }
 }
 
-export const collaborativeStreamingWS = new CollaborativeStreamingWebSocket(webSocketClient);
+export const collaborativeStreamingWS = new CollaborativeStreamingWebSocket(
+  webSocketClient,
+);

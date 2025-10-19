@@ -9,6 +9,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 📦 Pre-Deployment Preparation
 
 ### Code Quality & Testing
+
 - [ ] All unit tests passing: `npm test`
 - [ ] Code linting clean: `npm run lint`
 - [ ] Production build successful: `npm run build`
@@ -18,6 +19,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] No TODO or FIXME comments in critical paths
 
 ### Version Control
+
 - [ ] All changes committed to version control
 - [ ] Production branch updated (e.g., `main` or `production`)
 - [ ] Git tag created for this release version
@@ -29,6 +31,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🔐 Environment & Configuration
 
 ### Environment Variables Setup
+
 - [ ] Copy `.env.production.template` to `.env.production`
 - [ ] All required environment variables configured
 - [ ] Validate environment: `npm run env:validate`
@@ -36,6 +39,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Secrets stored securely (not in git)
 
 ### Critical Environment Variables
+
 - [ ] **DATABASE_URL**: Production database connection string configured
 - [ ] **AUTH_SECRET**: Strong secret generated (64+ characters)
   - Generated using: `openssl rand -base64 64`
@@ -45,6 +49,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] **GOOGLE_CLIENT_SECRET**: OAuth credentials configured
 
 ### Optional but Recommended
+
 - [ ] **SENDGRID_API_KEY**: Email service configured
 - [ ] **REDIS_URL**: Cache layer configured
 - [ ] **STREAM_KEY_ENCRYPTION_KEY**: Streaming features enabled (32 characters)
@@ -56,6 +61,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🛡️ Security Configuration
 
 ### Authentication & Authorization
+
 - [ ] OAuth redirect URIs configured for production domain
 - [ ] Session secrets different from auth secrets
 - [ ] Session max age configured appropriately
@@ -63,6 +69,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Password policies enforced (if applicable)
 
 ### Network Security
+
 - [ ] HTTPS enabled and enforced
 - [ ] SSL/TLS certificates valid and not expiring soon
 - [ ] CORS origins properly configured (`ALLOWED_ORIGINS`)
@@ -72,6 +79,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
   - `RATE_LIMIT_MAX_REQUESTS` set appropriately
 
 ### Secrets Management
+
 - [ ] All secrets rotated from default/demo values
 - [ ] Secrets stored in platform secret manager (not environment files)
 - [ ] No secrets in logs or error messages
@@ -79,6 +87,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Access to secrets restricted to necessary services only
 
 ### Security Audit
+
 - [ ] Run security audit: `npm run copilot:analyze`
 - [ ] No weak authentication tokens detected
 - [ ] No hardcoded credentials in code
@@ -91,6 +100,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🗄️ Database Configuration
 
 ### Database Setup
+
 - [ ] Production database provisioned
 - [ ] Database accessible from application servers
 - [ ] Database connection pooling configured
@@ -99,6 +109,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Database timezone set correctly
 
 ### Schema & Migrations
+
 - [ ] Database schema up to date: `npm run db:push`
 - [ ] All migrations tested in staging environment
 - [ ] Migration rollback plan prepared
@@ -106,6 +117,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Data seeding scripts ready (if needed)
 
 ### Database Security
+
 - [ ] Database user has minimum required permissions
 - [ ] Database firewall rules configured
 - [ ] Database access limited to application servers
@@ -117,24 +129,27 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 💾 Backup & Recovery Strategy
 
 ### Backup Configuration
+
 - [ ] Automated database backups configured
 - [ ] Backup frequency defined and scheduled
 - [ ] Backup retention policy set
-  - Full backups: _____ days
-  - Incremental backups: _____ days
-  - Critical data backups: _____ days
+  - Full backups: **\_** days
+  - Incremental backups: **\_** days
+  - Critical data backups: **\_** days
 - [ ] Backup storage location configured
 - [ ] Backup encryption enabled
 
 ### Recovery Planning
+
 - [ ] Backup restoration tested successfully
-- [ ] Recovery Time Objective (RTO) defined: _____ hours
-- [ ] Recovery Point Objective (RPO) defined: _____ hours
+- [ ] Recovery Time Objective (RTO) defined: **\_** hours
+- [ ] Recovery Point Objective (RPO) defined: **\_** hours
 - [ ] Disaster recovery plan documented
 - [ ] Disaster recovery testing scheduled
 - [ ] Backup monitoring and alerting configured
 
 ### Data Integrity
+
 - [ ] Backup verification process in place
 - [ ] Checksum validation for backups
 - [ ] Test restore performed in last 30 days
@@ -145,6 +160,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🚀 Deployment Process
 
 ### Pre-Deployment Checks
+
 - [ ] Deployment window scheduled and communicated
 - [ ] Stakeholders notified of deployment
 - [ ] Maintenance page prepared (if needed)
@@ -152,6 +168,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Support team briefed and available
 
 ### Infrastructure
+
 - [ ] Application server(s) provisioned
 - [ ] Load balancer configured (if applicable)
 - [ ] Auto-scaling configured (if applicable)
@@ -159,6 +176,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] DNS records configured and propagated
 
 ### Deployment Execution
+
 - [ ] Build production Docker images
   - Backend: `docker build -f Dockerfile -t backend .`
   - Frontend: `docker build -f Dockerfile.frontend -t frontend .`
@@ -172,6 +190,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
   - Frontend: `/`
 
 ### Service Configuration
+
 - [ ] Memory allocation appropriate for load
 - [ ] CPU allocation appropriate for load
 - [ ] Concurrency settings configured
@@ -184,6 +203,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 📊 Monitoring & Observability
 
 ### Application Monitoring
+
 - [ ] Application performance monitoring (APM) configured
 - [ ] Error tracking enabled (e.g., Sentry)
 - [ ] Log aggregation configured
@@ -192,6 +212,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Structured logging implemented
 
 ### Infrastructure Monitoring
+
 - [ ] Server/container health monitoring enabled
 - [ ] Resource utilization monitoring (CPU, memory, disk)
 - [ ] Network monitoring configured
@@ -199,6 +220,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Cache hit rate monitoring (if using Redis)
 
 ### Alerting Setup
+
 - [ ] Critical alerts configured
   - Service downtime
   - High error rate (>1%)
@@ -212,6 +234,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Alert escalation policies defined
 
 ### Dashboards
+
 - [ ] Operations dashboard created with key metrics
   - Request rate
   - Error rate
@@ -226,6 +249,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## ✅ Post-Deployment Verification
 
 ### Smoke Testing
+
 - [ ] Application accessible at production URL
 - [ ] Homepage loads successfully
 - [ ] Health check endpoint responding: `curl https://your-domain.com/api/health`
@@ -233,6 +257,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] No console errors in browser
 
 ### Functional Testing
+
 - [ ] User authentication flow working
   - Sign up
   - Sign in with Google OAuth
@@ -251,6 +276,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
   - TableSync features
 
 ### Integration Testing
+
 - [ ] Third-party API integrations working
   - Google OAuth
   - Twitch API (if configured)
@@ -261,6 +287,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Payment processing (if applicable)
 
 ### Performance Testing
+
 - [ ] Page load times acceptable (<3 seconds)
 - [ ] API response times within SLA (<500ms for most endpoints)
 - [ ] Database query performance optimized
@@ -268,6 +295,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Resource usage within expected limits
 
 ### Security Verification
+
 - [ ] HTTPS enforced (HTTP redirects to HTTPS)
 - [ ] Security headers present
   - `Strict-Transport-Security`
@@ -281,6 +309,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Session security working
 
 ### Automated Verification
+
 - [ ] Run production verification: `npm run verify:production`
 - [ ] All verification checks passing
 - [ ] No unexpected errors in logs
@@ -291,6 +320,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🎯 Go-Live Checklist
 
 ### Final Verification
+
 - [ ] All previous checklist items completed
 - [ ] Production URLs documented and shared
 - [ ] User documentation updated
@@ -299,12 +329,14 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Known issues documented
 
 ### Communication
+
 - [ ] Deployment completion announced to stakeholders
 - [ ] Users notified of new features (if applicable)
 - [ ] Change log published
 - [ ] Social media announcements (if applicable)
 
 ### Team Readiness
+
 - [ ] Support team has access to production logs
 - [ ] On-call rotation established
 - [ ] Escalation procedures defined
@@ -316,6 +348,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🔄 Post-Launch Activities
 
 ### Immediate Monitoring (First 24 Hours)
+
 - [ ] Monitor error rates continuously
 - [ ] Watch response times and performance
 - [ ] Check database performance and connections
@@ -324,6 +357,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] Monitor user feedback and support tickets
 
 ### First Week
+
 - [ ] Daily health checks performed
 - [ ] Performance metrics reviewed
 - [ ] User feedback collected and triaged
@@ -332,6 +366,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 - [ ] No critical issues reported
 
 ### Ongoing Maintenance
+
 - [ ] Weekly performance reviews scheduled
 - [ ] Monthly security audits scheduled
 - [ ] Quarterly disaster recovery testing scheduled
@@ -345,6 +380,7 @@ This checklist ensures a successful and secure production deployment of Shuffle 
 ## 🛠️ Quick Reference Commands
 
 ### Deployment
+
 ```bash
 # Set environment variables
 export PROJECT_ID="your-project-id"
@@ -367,6 +403,7 @@ npm run verify:production
 ```
 
 ### Health Checks
+
 ```bash
 # Check backend health
 curl -f https://your-backend-url/api/health
@@ -382,6 +419,7 @@ npm run env:validate
 ```
 
 ### Monitoring
+
 ```bash
 # View application logs (platform-specific)
 # GCP: gcloud logs tail
@@ -400,24 +438,28 @@ npm run env:validate
 ### Common Issues
 
 **Build Failures**
+
 - Check dependencies are installed: `npm install --legacy-peer-deps`
 - Verify Node.js version matches requirements
 - Check for TypeScript errors: `npm run check`
 - Review build logs for specific errors
 
 **Health Check Failures**
+
 - Verify `/api/health` endpoint is accessible
 - Check database connectivity
 - Review application logs for startup errors
 - Verify environment variables are set correctly
 
 **Authentication Issues**
+
 - Verify OAuth redirect URIs match production domain
 - Check `AUTH_URL` is set to production domain
 - Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
 - Check session configuration
 
 **Database Connection Issues**
+
 - Verify `DATABASE_URL` is correct
 - Check database server is accessible
 - Verify firewall rules allow connections
@@ -425,6 +467,7 @@ npm run env:validate
 - Review connection pool settings
 
 **Performance Issues**
+
 - Check database query performance
 - Review resource allocation (CPU, memory)
 - Verify cache configuration (Redis)
@@ -432,6 +475,7 @@ npm run env:validate
 - Review auto-scaling settings
 
 ### Rollback Procedure
+
 1. Keep previous version deployment ready
 2. Document rollback commands for your platform
 3. Test rollback in staging before production

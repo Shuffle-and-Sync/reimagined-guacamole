@@ -1,20 +1,24 @@
 import { storage } from "../../storage";
 import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
-import { 
-  Tournament, 
-  TournamentParticipant, 
+import {
+  Tournament,
+  TournamentParticipant,
   TournamentFormat,
   TournamentRound,
   TournamentMatch,
   InsertTournamentRound,
   InsertTournamentMatch,
   UpdateTournament,
-  User
+  User,
 } from "@shared/schema";
 
 // Tournament format types
-type TournamentFormatType = "single_elimination" | "double_elimination" | "swiss" | "round_robin";
+type TournamentFormatType =
+  | "single_elimination"
+  | "double_elimination"
+  | "swiss"
+  | "round_robin";
 
 // Pairing result interface
 interface PairingResult {
@@ -28,7 +32,9 @@ export const tournamentsService = {
     try {
       return await storage.getTournaments(communityId);
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournaments", error, { communityId });
+      logger.error("Service error: Failed to fetch tournaments", error, {
+        communityId,
+      });
       throw error;
     }
   },
@@ -37,7 +43,9 @@ export const tournamentsService = {
     try {
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournament", error, { tournamentId });
+      logger.error("Service error: Failed to fetch tournament", error, {
+        tournamentId,
+      });
       throw error;
     }
   },
@@ -49,7 +57,10 @@ export const tournamentsService = {
     try {
       // Use transaction for consistent data retrieval
       return await withTransaction(async (tx) => {
-        const tournament = await storage.getTournamentWithTransaction(tx, tournamentId);
+        const tournament = await storage.getTournamentWithTransaction(
+          tx,
+          tournamentId,
+        );
         if (!tournament) {
           throw new Error("Tournament not found");
         }
@@ -57,8 +68,8 @@ export const tournamentsService = {
         // Get participants, rounds, and matches in parallel to optimize performance
         const [participants, rounds, matches] = await Promise.all([
           storage.getTournamentParticipantsWithTransaction(tx, tournamentId),
-          storage.getTournamentRoundsWithTransaction(tx, tournamentId), 
-          storage.getTournamentMatchesWithTransaction(tx, tournamentId)
+          storage.getTournamentRoundsWithTransaction(tx, tournamentId),
+          storage.getTournamentMatchesWithTransaction(tx, tournamentId),
         ]);
 
         return {
@@ -66,11 +77,15 @@ export const tournamentsService = {
           participants,
           rounds,
           matches,
-          participantCount: participants.length
+          participantCount: participants.length,
         };
-      }, 'get-tournament-with-details');
+      }, "get-tournament-with-details");
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournament with participants", error, { tournamentId });
+      logger.error(
+        "Service error: Failed to fetch tournament with participants",
+        error,
+        { tournamentId },
+      );
       throw error;
     }
   },
@@ -80,7 +95,9 @@ export const tournamentsService = {
       logger.info("Creating tournament", { tournamentData });
       return await storage.createTournament(tournamentData);
     } catch (error) {
-      logger.error("Service error: Failed to create tournament", error, { tournamentData });
+      logger.error("Service error: Failed to create tournament", error, {
+        tournamentData,
+      });
       throw error;
     }
   },
@@ -90,7 +107,10 @@ export const tournamentsService = {
       logger.info("User joining tournament", { tournamentId, userId });
       return await storage.joinTournament(tournamentId, userId);
     } catch (error) {
-      logger.error("Service error: Failed to join tournament", error, { tournamentId, userId });
+      logger.error("Service error: Failed to join tournament", error, {
+        tournamentId,
+        userId,
+      });
       throw error;
     }
   },
@@ -100,12 +120,19 @@ export const tournamentsService = {
       logger.info("User leaving tournament", { tournamentId, userId });
       return await storage.leaveTournament(tournamentId, userId);
     } catch (error) {
-      logger.error("Service error: Failed to leave tournament", error, { tournamentId, userId });
+      logger.error("Service error: Failed to leave tournament", error, {
+        tournamentId,
+        userId,
+      });
       throw error;
     }
   },
 
-  async updateTournament(tournamentId: string, updates: UpdateTournament, userId: string) {
+  async updateTournament(
+    tournamentId: string,
+    updates: UpdateTournament,
+    userId: string,
+  ) {
     try {
       logger.info("Updating tournament", { tournamentId, updates, userId });
 
@@ -117,75 +144,97 @@ export const tournamentsService = {
 
       // Verify organizer permissions
       if (tournament.organizerId !== userId) {
-        throw new Error("Only the tournament organizer can edit this tournament");
+        throw new Error(
+          "Only the tournament organizer can edit this tournament",
+        );
       }
 
       // Enforce business rules based on tournament status
-      const status = tournament.status || 'upcoming';
-      
-      if (status === 'completed') {
+      const status = tournament.status || "upcoming";
+
+      if (status === "completed") {
         throw new Error("Cannot edit completed tournaments");
       }
 
-      if (status === 'active') {
+      if (status === "active") {
         // For active tournaments, only allow limited edits
-        const allowedFields = ['name', 'description', 'rules', 'prizePool'];
-        const hasDisallowedFields = Object.keys(updates).some(field => 
-          !allowedFields.includes(field)
+        const allowedFields = ["name", "description", "rules", "prizePool"];
+        const hasDisallowedFields = Object.keys(updates).some(
+          (field) => !allowedFields.includes(field),
         );
-        
+
         if (hasDisallowedFields) {
-          throw new Error("Can only edit name, description, rules, and prize pool for active tournaments");
+          throw new Error(
+            "Can only edit name, description, rules, and prize pool for active tournaments",
+          );
         }
       }
 
       // Validate maxParticipants if being updated
-      if (updates.maxParticipants !== undefined && updates.maxParticipants !== null) {
+      if (
+        updates.maxParticipants !== undefined &&
+        updates.maxParticipants !== null
+      ) {
         // Use authoritative participant count from participants array
         const actualParticipantCount = tournament.participants?.length || 0;
         if (updates.maxParticipants < actualParticipantCount) {
-          throw new Error(`Cannot reduce max participants below current participant count (${actualParticipantCount})`);
+          throw new Error(
+            `Cannot reduce max participants below current participant count (${actualParticipantCount})`,
+          );
         }
       }
 
       // Validate startDate if being updated
-      if (updates.startDate !== undefined && status === 'active') {
+      if (updates.startDate !== undefined && status === "active") {
         throw new Error("Cannot change start date for active tournaments");
       }
 
       // Validate format if being updated (note: schema uses 'format', not 'gameFormat')
-      if ((updates as any).format !== undefined && status === 'active') {
+      if ((updates as any).format !== undefined && status === "active") {
         throw new Error("Cannot change game format for active tournaments");
       }
 
       // CRITICAL SECURITY: Server-side field whitelist guard
       // Prevent primary key/timestamp tampering regardless of schema configuration
       const ALLOWED_UPDATE_FIELDS = [
-        'name', 'description', 'format', 'maxParticipants',
-        'startDate', 'endDate', 'prizePool', 'rules'
+        "name",
+        "description",
+        "format",
+        "maxParticipants",
+        "startDate",
+        "endDate",
+        "prizePool",
+        "rules",
       ] as const;
-      
+
       const sanitizedUpdates: Partial<UpdateTournament> = {};
       for (const [key, value] of Object.entries(updates)) {
         if (ALLOWED_UPDATE_FIELDS.includes(key as any)) {
           (sanitizedUpdates as any)[key] = value;
         } else {
-          logger.warn("Blocked unauthorized field update attempt", { 
-            field: key, 
-            tournamentId, 
+          logger.warn("Blocked unauthorized field update attempt", {
+            field: key,
+            tournamentId,
             userId,
-            attemptedValue: value 
+            attemptedValue: value,
           });
         }
       }
 
       // Perform the update with sanitized data
-      const updatedTournament = await storage.updateTournament(tournamentId, sanitizedUpdates);
-      
+      const updatedTournament = await storage.updateTournament(
+        tournamentId,
+        sanitizedUpdates,
+      );
+
       logger.info("Tournament updated successfully", { tournamentId, updates });
       return updatedTournament;
     } catch (error) {
-      logger.error("Service error: Failed to update tournament", error, { tournamentId, updates, userId });
+      logger.error("Service error: Failed to update tournament", error, {
+        tournamentId,
+        updates,
+        userId,
+      });
       throw error;
     }
   },
@@ -212,7 +261,7 @@ export const tournamentsService = {
   async startTournament(tournamentId: string, organizerId: string) {
     try {
       logger.info("Starting tournament", { tournamentId, organizerId });
-      
+
       // Get tournament details
       const tournament = await storage.getTournament(tournamentId);
       if (!tournament) {
@@ -221,7 +270,9 @@ export const tournamentsService = {
 
       // Verify organizer permissions
       if (tournament.organizerId !== organizerId) {
-        throw new Error("Only the tournament organizer can start the tournament");
+        throw new Error(
+          "Only the tournament organizer can start the tournament",
+        );
       }
 
       // Check if already started
@@ -242,10 +293,16 @@ export const tournamentsService = {
       // Update tournament status to active (internal system update)
       await storage.updateTournamentStatus(tournamentId, "active");
 
-      logger.info("Tournament started successfully", { tournamentId, participantCount: participants.length });
+      logger.info("Tournament started successfully", {
+        tournamentId,
+        participantCount: participants.length,
+      });
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to start tournament", error, { tournamentId, organizerId });
+      logger.error("Service error: Failed to start tournament", error, {
+        tournamentId,
+        organizerId,
+      });
       throw error;
     }
   },
@@ -253,16 +310,30 @@ export const tournamentsService = {
   /**
    * Generate tournament bracket based on format
    */
-  async generateBracket(tournamentId: string, participants: (TournamentParticipant & { user: User })[], format: TournamentFormatType) {
+  async generateBracket(
+    tournamentId: string,
+    participants: (TournamentParticipant & { user: User })[],
+    format: TournamentFormatType,
+  ) {
     try {
-      logger.info("Generating bracket", { tournamentId, format, participantCount: participants.length });
+      logger.info("Generating bracket", {
+        tournamentId,
+        format,
+        participantCount: participants.length,
+      });
 
       switch (format) {
         case "single_elimination":
-          await this.generateSingleEliminationBracket(tournamentId, participants);
+          await this.generateSingleEliminationBracket(
+            tournamentId,
+            participants,
+          );
           break;
         case "double_elimination":
-          await this.generateDoubleEliminationBracket(tournamentId, participants);
+          await this.generateDoubleEliminationBracket(
+            tournamentId,
+            participants,
+          );
           break;
         case "swiss":
           await this.generateSwissBracket(tournamentId, participants);
@@ -274,7 +345,10 @@ export const tournamentsService = {
           throw new Error(`Unsupported tournament format: ${format}`);
       }
     } catch (error) {
-      logger.error("Service error: Failed to generate bracket", error, { tournamentId, format });
+      logger.error("Service error: Failed to generate bracket", error, {
+        tournamentId,
+        format,
+      });
       throw error;
     }
   },
@@ -282,9 +356,14 @@ export const tournamentsService = {
   /**
    * Generate single elimination bracket
    */
-  async generateSingleEliminationBracket(tournamentId: string, participants: (TournamentParticipant & { user: User })[]) {
+  async generateSingleEliminationBracket(
+    tournamentId: string,
+    participants: (TournamentParticipant & { user: User })[],
+  ) {
     const seededParticipants = this.seedParticipants(participants);
-    const rounds = this.calculateSingleEliminationRounds(seededParticipants.length);
+    const rounds = this.calculateSingleEliminationRounds(
+      seededParticipants.length,
+    );
 
     // Create all rounds
     for (let roundNum = 1; roundNum <= rounds; roundNum++) {
@@ -292,26 +371,32 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: this.getRoundName(roundNum, rounds),
-        status: roundNum === 1 ? "active" : "pending"
+        status: roundNum === 1 ? "active" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
 
     // Generate first round matches
     const firstRound = await storage.getTournamentRounds(tournamentId);
-    const round1 = firstRound.find(r => r.roundNumber === 1);
+    const round1 = firstRound.find((r) => r.roundNumber === 1);
     if (!round1) throw new Error("Failed to create first round");
 
-    const firstRoundPairings = this.generateSingleEliminationPairings(seededParticipants);
+    const firstRoundPairings =
+      this.generateSingleEliminationPairings(seededParticipants);
     await this.createMatches(tournamentId, round1.id, firstRoundPairings);
   },
 
   /**
    * Generate double elimination bracket
    */
-  async generateDoubleEliminationBracket(tournamentId: string, participants: (TournamentParticipant & { user: User })[]) {
+  async generateDoubleEliminationBracket(
+    tournamentId: string,
+    participants: (TournamentParticipant & { user: User })[],
+  ) {
     const seededParticipants = this.seedParticipants(participants);
-    const rounds = this.calculateDoubleEliminationRounds(seededParticipants.length);
+    const rounds = this.calculateDoubleEliminationRounds(
+      seededParticipants.length,
+    );
 
     // Create winner bracket rounds
     for (let roundNum = 1; roundNum <= rounds.winnerBracket; roundNum++) {
@@ -319,7 +404,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Winner Bracket Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending"
+        status: roundNum === 1 ? "active" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -330,7 +415,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: rounds.winnerBracket + roundNum,
         name: `Loser Bracket Round ${roundNum}`,
-        status: "pending"
+        status: "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -340,23 +425,27 @@ export const tournamentsService = {
       tournamentId,
       roundNumber: rounds.winnerBracket + rounds.loserBracket + 1,
       name: "Grand Finals",
-      status: "pending"
+      status: "pending",
     };
     await storage.createTournamentRound(roundData);
 
     // Generate first round matches
     const allRounds = await storage.getTournamentRounds(tournamentId);
-    const round1 = allRounds.find(r => r.roundNumber === 1);
+    const round1 = allRounds.find((r) => r.roundNumber === 1);
     if (!round1) throw new Error("Failed to create first round");
 
-    const firstRoundPairings = this.generateSingleEliminationPairings(seededParticipants);
+    const firstRoundPairings =
+      this.generateSingleEliminationPairings(seededParticipants);
     await this.createMatches(tournamentId, round1.id, firstRoundPairings);
   },
 
   /**
    * Generate Swiss tournament bracket
    */
-  async generateSwissBracket(tournamentId: string, participants: (TournamentParticipant & { user: User })[]) {
+  async generateSwissBracket(
+    tournamentId: string,
+    participants: (TournamentParticipant & { user: User })[],
+  ) {
     const rounds = this.calculateSwissRounds(participants.length);
 
     // Create all rounds
@@ -365,14 +454,14 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending"
+        status: roundNum === 1 ? "active" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
 
     // Generate first round Swiss pairings
     const allRounds = await storage.getTournamentRounds(tournamentId);
-    const round1 = allRounds.find(r => r.roundNumber === 1);
+    const round1 = allRounds.find((r) => r.roundNumber === 1);
     if (!round1) throw new Error("Failed to create first round");
 
     const firstRoundPairings = this.generateSwissPairings(participants, []);
@@ -382,8 +471,14 @@ export const tournamentsService = {
   /**
    * Generate round robin bracket
    */
-  async generateRoundRobinBracket(tournamentId: string, participants: (TournamentParticipant & { user: User })[]) {
-    const rounds = participants.length % 2 === 0 ? participants.length - 1 : participants.length;
+  async generateRoundRobinBracket(
+    tournamentId: string,
+    participants: (TournamentParticipant & { user: User })[],
+  ) {
+    const rounds =
+      participants.length % 2 === 0
+        ? participants.length - 1
+        : participants.length;
 
     // Create all rounds
     for (let roundNum = 1; roundNum <= rounds; roundNum++) {
@@ -391,7 +486,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending"
+        status: roundNum === 1 ? "active" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -401,7 +496,7 @@ export const tournamentsService = {
     const roundRobinMatches = this.generateRoundRobinPairings(participants);
 
     for (let roundNum = 0; roundNum < rounds; roundNum++) {
-      const round = allRounds.find(r => r.roundNumber === roundNum + 1);
+      const round = allRounds.find((r) => r.roundNumber === roundNum + 1);
       if (!round) continue;
 
       const roundMatches = roundRobinMatches[roundNum] || [];
@@ -426,16 +521,21 @@ export const tournamentsService = {
       }
 
       const rounds = await storage.getTournamentRounds(tournamentId);
-      const currentRound = rounds.find(r => r.status === "active");
-      
+      const currentRound = rounds.find((r) => r.status === "active");
+
       if (!currentRound) {
         throw new Error("No active round to advance");
       }
 
       // Check if all matches in current round are completed
-      const currentMatches = await storage.getTournamentMatches(tournamentId, currentRound.id);
-      const pendingMatches = currentMatches.filter(m => m.status !== "completed");
-      
+      const currentMatches = await storage.getTournamentMatches(
+        tournamentId,
+        currentRound.id,
+      );
+      const pendingMatches = currentMatches.filter(
+        (m) => m.status !== "completed",
+      );
+
       if (pendingMatches.length > 0) {
         throw new Error("Cannot advance round - not all matches are completed");
       }
@@ -443,37 +543,51 @@ export const tournamentsService = {
       // Complete current round
       await storage.updateTournamentRound(currentRound.id, {
         status: "completed",
-        endTime: new Date()
+        endTime: new Date(),
       });
 
       // Find and activate next round
-      const nextRound = rounds.find(r => r.roundNumber === currentRound.roundNumber + 1);
-      
+      const nextRound = rounds.find(
+        (r) => r.roundNumber === currentRound.roundNumber + 1,
+      );
+
       if (nextRound) {
         await storage.updateTournamentRound(nextRound.id, {
           status: "active",
-          startTime: new Date()
+          startTime: new Date(),
         });
 
         // Generate next round pairings if needed
         const format = tournament.format as TournamentFormatType;
         if (format === "swiss") {
           await this.generateNextSwissRound(tournamentId, nextRound.id);
-        } else if (format === "single_elimination" || format === "double_elimination") {
-          await this.generateNextEliminationRound(tournamentId, nextRound.id, currentMatches);
+        } else if (
+          format === "single_elimination" ||
+          format === "double_elimination"
+        ) {
+          await this.generateNextEliminationRound(
+            tournamentId,
+            nextRound.id,
+            currentMatches,
+          );
         }
       } else {
         // Tournament is complete - update tournament status and determine winners (internal system update)
         await storage.updateTournament(tournamentId, { endDate: new Date() });
-        // TODO: Create internal method for status updates  
-        await storage.updateTournament(tournamentId, { status: "completed" } as any);
-        
+        // TODO: Create internal method for status updates
+        await storage.updateTournament(tournamentId, {
+          status: "completed",
+        } as any);
+
         logger.info("Tournament completed", { tournamentId });
       }
 
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to advance round", error, { tournamentId, organizerId });
+      logger.error("Service error: Failed to advance round", error, {
+        tournamentId,
+        organizerId,
+      });
       throw error;
     }
   },
@@ -481,9 +595,21 @@ export const tournamentsService = {
   /**
    * Report match result with score
    */
-  async reportMatchResult(tournamentId: string, matchId: string, winnerId: string, reporterId: string, player1Score?: number, player2Score?: number) {
+  async reportMatchResult(
+    tournamentId: string,
+    matchId: string,
+    winnerId: string,
+    reporterId: string,
+    player1Score?: number,
+    player2Score?: number,
+  ) {
     try {
-      logger.info("Reporting match result", { tournamentId, matchId, winnerId, reporterId });
+      logger.info("Reporting match result", {
+        tournamentId,
+        matchId,
+        winnerId,
+        reporterId,
+      });
 
       // Get the tournament and verify permissions
       const tournament = await storage.getTournament(tournamentId);
@@ -493,17 +619,20 @@ export const tournamentsService = {
 
       // Get the match by searching all tournament matches
       const allMatches = await storage.getTournamentMatches(tournamentId);
-      const match = allMatches.find(m => m.id === matchId);
+      const match = allMatches.find((m) => m.id === matchId);
       if (!match) {
         throw new Error("Match not found");
       }
 
       // Verify the reporter is either the organizer or one of the players
       const isOrganizer = tournament.organizerId === reporterId;
-      const isPlayer = match.player1Id === reporterId || match.player2Id === reporterId;
-      
+      const isPlayer =
+        match.player1Id === reporterId || match.player2Id === reporterId;
+
       if (!isOrganizer && !isPlayer) {
-        throw new Error("Only organizers or participating players can report match results");
+        throw new Error(
+          "Only organizers or participating players can report match results",
+        );
       }
 
       // Verify the winner is one of the players
@@ -512,10 +641,11 @@ export const tournamentsService = {
       }
 
       // Update the match with result - only update winnerId
-      const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id;
+      const loserId =
+        winnerId === match.player1Id ? match.player2Id : match.player1Id;
       const updatedMatch = await storage.updateTournamentMatch(matchId, {
         winnerId,
-        status: "completed"
+        status: "completed",
       });
 
       // Create match result record for verification/tracking
@@ -525,13 +655,22 @@ export const tournamentsService = {
         player2Score: player2Score || 0,
         reportedBy: reporterId,
         isVerified: isOrganizer, // Auto-verify if organizer reports
-        verifiedBy: isOrganizer ? reporterId : undefined
+        verifiedBy: isOrganizer ? reporterId : undefined,
       });
 
-      logger.info("Match result reported successfully", { matchId, winnerId, matchResult: matchResult.id });
+      logger.info("Match result reported successfully", {
+        matchId,
+        winnerId,
+        matchResult: matchResult.id,
+      });
       return { match: updatedMatch, result: matchResult };
     } catch (error) {
-      logger.error("Service error: Failed to report match result", error, { tournamentId, matchId, winnerId, reporterId });
+      logger.error("Service error: Failed to report match result", error, {
+        tournamentId,
+        matchId,
+        winnerId,
+        reporterId,
+      });
       throw error;
     }
   },
@@ -571,10 +710,12 @@ export const tournamentsService = {
         rounds,
         matches,
         participantCount: participants.length,
-        currentParticipants: participants.length
+        currentParticipants: participants.length,
       };
     } catch (error) {
-      logger.error("Service error: Failed to get tournament details", error, { tournamentId });
+      logger.error("Service error: Failed to get tournament details", error, {
+        tournamentId,
+      });
       throw error;
     }
   },
@@ -582,9 +723,17 @@ export const tournamentsService = {
   /**
    * Create a game session for a tournament match
    */
-  async createMatchGameSession(tournamentId: string, matchId: string, userId: string) {
+  async createMatchGameSession(
+    tournamentId: string,
+    matchId: string,
+    userId: string,
+  ) {
     try {
-      logger.info("Creating game session for tournament match", { tournamentId, matchId, userId });
+      logger.info("Creating game session for tournament match", {
+        tournamentId,
+        matchId,
+        userId,
+      });
 
       // Get the tournament and verify it exists
       const tournament = await storage.getTournament(tournamentId);
@@ -594,14 +743,16 @@ export const tournamentsService = {
 
       // Get the match and verify it exists
       const allMatches = await storage.getTournamentMatches(tournamentId);
-      const match = allMatches.find(m => m.id === matchId);
+      const match = allMatches.find((m) => m.id === matchId);
       if (!match || match.tournamentId !== tournamentId) {
         throw new Error("Match not found in this tournament");
       }
 
       // Verify the user is one of the players in this match
       if (match.player1Id !== userId && match.player2Id !== userId) {
-        throw new Error("Only participating players can create game sessions for their matches");
+        throw new Error(
+          "Only participating players can create game sessions for their matches",
+        );
       }
 
       // Note: gameSessionId doesn't exist in schema, skip this check
@@ -620,13 +771,13 @@ export const tournamentsService = {
         isPublic: false, // Tournament matches should be private
         // Note: events table doesn't have gameFormat field
         playerSlots: 2, // Tournament matches are 1v1
-        alternateSlots: 0
+        alternateSlots: 0,
       };
 
       // Create the event for the game session
       const event = await storage.createEvent({
         ...eventData,
-        creatorId: userId
+        creatorId: userId,
       });
 
       // Create the game session
@@ -636,7 +787,8 @@ export const tournamentsService = {
         gameType: tournament.gameType, // Add required gameType field
         maxPlayers: 2,
         currentPlayers: 0,
-        gameData: JSON.stringify({ // gameData should be JSON string
+        gameData: JSON.stringify({
+          // gameData should be JSON string
           name: `Tournament Match - ${tournament.name}`,
           format: tournament.format,
           powerLevel: "Tournament",
@@ -645,10 +797,11 @@ export const tournamentsService = {
             tournamentId: tournament.id,
             matchId: match.id,
             tournamentName: tournament.name,
-            bracketPosition: (match as any).bracketPosition || match.matchNumber
-          }
+            bracketPosition:
+              (match as any).bracketPosition || match.matchNumber,
+          },
         }),
-        communityId: tournament.communityId
+        communityId: tournament.communityId,
       };
 
       const gameSession = await storage.createGameSession(sessionData);
@@ -657,18 +810,22 @@ export const tournamentsService = {
       // Link is tracked via eventId relationship instead
       await storage.updateTournamentMatch(matchId, {
         status: "active",
-        startTime: new Date()
+        startTime: new Date(),
       });
 
-      logger.info("Game session created for tournament match", { 
-        tournamentId, 
-        matchId, 
-        gameSessionId: gameSession.id 
+      logger.info("Game session created for tournament match", {
+        tournamentId,
+        matchId,
+        gameSessionId: gameSession.id,
       });
 
       return gameSession;
     } catch (error) {
-      logger.error("Service error: Failed to create match game session", error, { tournamentId, matchId, userId });
+      logger.error(
+        "Service error: Failed to create match game session",
+        error,
+        { tournamentId, matchId, userId },
+      );
       throw error;
     }
   },
@@ -700,7 +857,7 @@ export const tournamentsService = {
     const loserBracketRounds = (winnerBracketRounds - 1) * 2;
     return {
       winnerBracket: winnerBracketRounds,
-      loserBracket: loserBracketRounds
+      loserBracket: loserBracketRounds,
     };
   },
 
@@ -716,20 +873,22 @@ export const tournamentsService = {
    */
   getRoundName(roundNumber: number, totalRounds: number): string {
     const remaining = totalRounds - roundNumber + 1;
-    
+
     if (remaining === 1) return "Finals";
     if (remaining === 2) return "Semifinals";
     if (remaining === 3) return "Quarterfinals";
     if (remaining === 4) return "Round of 16";
     if (remaining === 5) return "Round of 32";
-    
+
     return `Round ${roundNumber}`;
   },
 
   /**
    * Generate single elimination pairings
    */
-  generateSingleEliminationPairings(participants: (TournamentParticipant & { user: User })[]): PairingResult[] {
+  generateSingleEliminationPairings(
+    participants: (TournamentParticipant & { user: User })[],
+  ): PairingResult[] {
     const pairings: PairingResult[] = [];
     let bracketPosition = 1;
 
@@ -738,11 +897,11 @@ export const tournamentsService = {
       const player2 = participants[i + 1] || null;
 
       if (!player1) continue; // Skip if player1 is undefined
-      
+
       pairings.push({
         player1: player1.userId,
         player2: player2?.userId || null,
-        bracketPosition: bracketPosition++
+        bracketPosition: bracketPosition++,
       });
     }
 
@@ -753,12 +912,12 @@ export const tournamentsService = {
    * Generate Swiss pairings (simplified - can be enhanced with more sophisticated algorithms)
    */
   generateSwissPairings(
-    participants: (TournamentParticipant & { user: User })[], 
-    previousResults: any[]
+    participants: (TournamentParticipant & { user: User })[],
+    previousResults: any[],
   ): PairingResult[] {
     // Simple Swiss pairing - pair participants with similar records
     // In a real implementation, this would consider previous matchups, colors, etc.
-    
+
     const shuffled = [...participants].sort(() => Math.random() - 0.5);
     const pairings: PairingResult[] = [];
     let bracketPosition = 1;
@@ -768,11 +927,11 @@ export const tournamentsService = {
       const player2 = shuffled[i + 1] || null;
 
       if (!player1) continue; // Skip if player1 is undefined
-      
+
       pairings.push({
         player1: player1.userId,
         player2: player2?.userId || null,
-        bracketPosition: bracketPosition++
+        bracketPosition: bracketPosition++,
       });
     }
 
@@ -782,7 +941,9 @@ export const tournamentsService = {
   /**
    * Generate round robin pairings
    */
-  generateRoundRobinPairings(participants: (TournamentParticipant & { user: User })[]): PairingResult[][] {
+  generateRoundRobinPairings(
+    participants: (TournamentParticipant & { user: User })[],
+  ): PairingResult[][] {
     const players = [...participants];
     if (players.length % 2 !== 0) {
       // Add a "bye" placeholder for odd number of players
@@ -800,11 +961,16 @@ export const tournamentsService = {
         const player1 = players[i];
         const player2 = players[players.length - 1 - i];
 
-        if (player1 && player2 && player1.userId !== "BYE" && player2.userId !== "BYE") {
+        if (
+          player1 &&
+          player2 &&
+          player1.userId !== "BYE" &&
+          player2.userId !== "BYE"
+        ) {
           roundPairings.push({
             player1: player1.userId,
             player2: player2.userId,
-            bracketPosition: bracketPosition++
+            bracketPosition: bracketPosition++,
           });
         }
       }
@@ -822,7 +988,11 @@ export const tournamentsService = {
   /**
    * Create matches from pairings
    */
-  async createMatches(tournamentId: string, roundId: string, pairings: PairingResult[]) {
+  async createMatches(
+    tournamentId: string,
+    roundId: string,
+    pairings: PairingResult[],
+  ) {
     for (const pairing of pairings) {
       const matchData: InsertTournamentMatch = {
         tournamentId,
@@ -830,7 +1000,7 @@ export const tournamentsService = {
         matchNumber: pairing.bracketPosition, // Use matchNumber instead of bracketPosition
         player1Id: pairing.player1,
         player2Id: pairing.player2,
-        status: pairing.player2 ? "pending" : "bye"
+        status: pairing.player2 ? "pending" : "bye",
       };
 
       await storage.createTournamentMatch(matchData);
@@ -849,9 +1019,13 @@ export const tournamentsService = {
   /**
    * Generate next elimination round based on previous results
    */
-  async generateNextEliminationRound(tournamentId: string, roundId: string, previousMatches: any[]) {
+  async generateNextEliminationRound(
+    tournamentId: string,
+    roundId: string,
+    previousMatches: any[],
+  ) {
     // TODO: Implement elimination advancement logic
     // For now, this is a placeholder
     logger.info("Generating next elimination round", { tournamentId, roundId });
-  }
+  },
 };

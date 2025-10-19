@@ -7,7 +7,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 export default [
   // Base recommended rules
   js.configs.recommended,
-  
+
   // TypeScript and React files configuration
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -37,20 +37,23 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tsPlugin,
-      "react": reactPlugin,
+      react: reactPlugin,
       "react-hooks": reactHooksPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
-      
+
       // Customize rules
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { 
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_",
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/no-non-null-assertion": "warn",
@@ -64,7 +67,7 @@ export default [
       },
     },
   },
-  
+
   // Ignore patterns
   {
     ignores: [

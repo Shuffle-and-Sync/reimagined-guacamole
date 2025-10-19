@@ -1,7 +1,7 @@
-import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
-import { logger } from './logger';
-import { getAuthUserId } from './auth';
+import rateLimit from "express-rate-limit";
+import { Request, Response } from "express";
+import { logger } from "./logger";
+import { getAuthUserId } from "./auth";
 
 // Safe helper to get user ID without throwing error
 function safeGetUserId(req: Request): string | undefined {
@@ -13,10 +13,14 @@ function safeGetUserId(req: Request): string | undefined {
 }
 
 // Helper function to log rate limit events
-const logRateLimit = (req: Request, limitType: string, additionalData?: any) => {
+const logRateLimit = (
+  req: Request,
+  limitType: string,
+  additionalData?: any,
+) => {
   logger.warn(`${limitType} rate limit exceeded`, {
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
+    userAgent: req.get("User-Agent"),
     url: req.originalUrl,
     method: req.method,
     ...additionalData,
@@ -28,16 +32,16 @@ export const generalRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
-    error: 'Too many requests',
-    message: 'You have exceeded the rate limit. Please try again later.',
+    error: "Too many requests",
+    message: "You have exceeded the rate limit. Please try again later.",
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'General API');
+    logRateLimit(req, "General API");
     res.status(429).json({
-      error: 'Too many requests',
-      message: 'You have exceeded the rate limit. Please try again later.',
+      error: "Too many requests",
+      message: "You have exceeded the rate limit. Please try again later.",
     });
   },
 });
@@ -48,10 +52,11 @@ export const authRateLimit = rateLimit({
   max: 5, // Limit each IP to 5 auth requests per windowMs
   skipSuccessfulRequests: true,
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Authentication');
+    logRateLimit(req, "Authentication");
     res.status(429).json({
-      error: 'Too many authentication attempts',
-      message: 'Too many authentication attempts. Please try again in 15 minutes.',
+      error: "Too many authentication attempts",
+      message:
+        "Too many authentication attempts. Please try again in 15 minutes.",
     });
   },
 });
@@ -61,10 +66,10 @@ export const passwordResetRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // Limit each IP to 3 password reset requests per hour
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Password reset', { email: req.body?.email });
+    logRateLimit(req, "Password reset", { email: req.body?.email });
     res.status(429).json({
-      error: 'Too many password reset attempts',
-      message: 'Too many password reset requests. Please try again in 1 hour.',
+      error: "Too many password reset attempts",
+      message: "Too many password reset requests. Please try again in 1 hour.",
     });
   },
 });
@@ -74,10 +79,10 @@ export const messageRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 20, // Limit each IP to 20 messages per minute
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Message sending', { userId: safeGetUserId(req) });
+    logRateLimit(req, "Message sending", { userId: safeGetUserId(req) });
     res.status(429).json({
-      error: 'Too many messages sent',
-      message: 'You are sending messages too quickly. Please slow down.',
+      error: "Too many messages sent",
+      message: "You are sending messages too quickly. Please slow down.",
     });
   },
 });
@@ -87,10 +92,11 @@ export const eventCreationRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10, // Limit each IP to 10 event creations per hour
   handler: (req: Request, res: Response) => {
-    logRateLimit(req, 'Event creation', { userId: safeGetUserId(req) });
+    logRateLimit(req, "Event creation", { userId: safeGetUserId(req) });
     res.status(429).json({
-      error: 'Too many events created',
-      message: 'You have created too many events recently. Please try again later.',
+      error: "Too many events created",
+      message:
+        "You have created too many events recently. Please try again later.",
     });
   },
 });

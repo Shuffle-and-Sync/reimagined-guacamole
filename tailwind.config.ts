@@ -69,20 +69,20 @@ export default {
         display: ["Inter", "system-ui", "sans-serif"],
       },
       animation: {
-        'float': 'float 6s ease-in-out infinite',
-        'pulse-slow': 'pulse 3s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        float: "float 6s ease-in-out infinite",
+        "pulse-slow": "pulse 3s ease-in-out infinite",
+        glow: "glow 2s ease-in-out infinite alternate",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       keyframes: {
         float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' },
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
         },
         glow: {
-          '0%': { boxShadow: '0 0 20px hsl(267 70% 65% / 0.3)' },
-          '100%': { boxShadow: '0 0 40px hsl(267 70% 65% / 0.6)' },
+          "0%": { boxShadow: "0 0 20px hsl(267 70% 65% / 0.3)" },
+          "100%": { boxShadow: "0 0 40px hsl(267 70% 65% / 0.6)" },
         },
         "accordion-down": {
           from: {

@@ -1,8 +1,14 @@
-import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+import React from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 interface PodFieldsFormProps {
   playerSlots: number;
@@ -16,19 +22,19 @@ interface PodFieldsFormProps {
 }
 
 const GAME_FORMATS = [
-  'Commander / EDH',
-  'Standard',
-  'Modern',
-  'Pioneer',
-  'Legacy',
-  'Vintage',
-  'Pauper',
-  'Limited / Draft',
-  'Sealed',
-  'Brawl',
-  'Historic',
-  'Explorer',
-  'Other'
+  "Commander / EDH",
+  "Standard",
+  "Modern",
+  "Pioneer",
+  "Legacy",
+  "Vintage",
+  "Pauper",
+  "Limited / Draft",
+  "Sealed",
+  "Brawl",
+  "Historic",
+  "Explorer",
+  "Other",
 ];
 
 export function PodFieldsForm({
@@ -68,7 +74,9 @@ export function PodFieldsForm({
 
         {/* Alternate Slots */}
         <div className="space-y-2">
-          <Label htmlFor="alternate-slots">Alternate Slots: {alternateSlots}</Label>
+          <Label htmlFor="alternate-slots">
+            Alternate Slots: {alternateSlots}
+          </Label>
           <Slider
             id="alternate-slots"
             min={0}

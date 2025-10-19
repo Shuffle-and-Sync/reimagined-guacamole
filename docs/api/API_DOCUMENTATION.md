@@ -33,18 +33,18 @@ This document provides comprehensive documentation for the Shuffle & Sync API en
 
 ### Quick Reference
 
-| Category | Endpoints | Authentication Required |
-|----------|-----------|------------------------|
-| Auth | `/auth/*` | Varies |
-| Users | `/users/*` | Yes |
-| Communities | `/communities/*` | Yes |
-| Events | `/events/*` | Yes |
-| Tournaments | `/tournaments/*` | Yes |
-| Messaging | `/messages/*` | Yes |
-| Cards | `/cards/*` | Yes |
-| Games | `/games/*` | Yes |
-| Platforms | `/platforms/*` | Yes |
-| Admin | `/admin/*` | Admin only |
+| Category    | Endpoints        | Authentication Required |
+| ----------- | ---------------- | ----------------------- |
+| Auth        | `/auth/*`        | Varies                  |
+| Users       | `/users/*`       | Yes                     |
+| Communities | `/communities/*` | Yes                     |
+| Events      | `/events/*`      | Yes                     |
+| Tournaments | `/tournaments/*` | Yes                     |
+| Messaging   | `/messages/*`    | Yes                     |
+| Cards       | `/cards/*`       | Yes                     |
+| Games       | `/games/*`       | Yes                     |
+| Platforms   | `/platforms/*`   | Yes                     |
+| Admin       | `/admin/*`       | Admin only              |
 
 ---
 
@@ -61,22 +61,26 @@ All API endpoints require authentication. Authentication is handled via session 
 ### Authentication Endpoints
 
 #### Sign In
+
 - **Endpoint:** `GET /api/auth/signin`
 - **Description:** Initiates OAuth sign-in flow
 - **Authentication:** No
 - **Response:** Redirects to OAuth provider
 
 #### Sign Out
+
 - **Endpoint:** `GET /api/auth/signout`
 - **Description:** Signs out current user
 - **Authentication:** Yes
 - **Response:** Redirects to home page
 
 #### Session Status
+
 - **Endpoint:** `GET /api/auth/session`
 - **Description:** Get current session information
 - **Authentication:** No
 - **Response:**
+
 ```json
 {
   "user": {
@@ -94,11 +98,13 @@ All API endpoints require authentication. Authentication is handled via session 
 ## User API
 
 ### Get User Profile
+
 - **Endpoint:** `GET /api/users/:userId`
 - **Authentication:** Yes
 - **Parameters:**
   - `userId` (string): User ID or "me" for current user
 - **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -112,9 +118,11 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Update User Profile
+
 - **Endpoint:** `PATCH /api/users/:userId`
 - **Authentication:** Yes (own profile only)
 - **Request Body:**
+
 ```json
 {
   "username": "newusername",
@@ -124,6 +132,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Get User Communities
+
 - **Endpoint:** `GET /api/users/:userId/communities`
 - **Authentication:** Yes
 - **Response:** Array of community objects
@@ -133,6 +142,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ## Community API
 
 ### List Communities
+
 - **Endpoint:** `GET /api/communities`
 - **Authentication:** No
 - **Query Parameters:**
@@ -140,6 +150,7 @@ All API endpoints require authentication. Authentication is handled via session 
   - `page` (number): Page number (default: 1)
   - `limit` (number): Results per page (default: 20, max: 100)
 - **Response:**
+
 ```json
 {
   "communities": [...],
@@ -153,9 +164,11 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Get Community
+
 - **Endpoint:** `GET /api/communities/:communityId`
 - **Authentication:** No
 - **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -168,11 +181,13 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Join Community
+
 - **Endpoint:** `POST /api/communities/:communityId/join`
 - **Authentication:** Yes
 - **Response:** `{ "success": true }`
 
 ### Leave Community
+
 - **Endpoint:** `POST /api/communities/:communityId/leave`
 - **Authentication:** Yes
 - **Response:** `{ "success": true }`
@@ -182,6 +197,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ## Event API
 
 ### List Events
+
 - **Endpoint:** `GET /api/events`
 - **Authentication:** No
 - **Query Parameters:**
@@ -192,9 +208,11 @@ All API endpoints require authentication. Authentication is handled via session 
   - `page`, `limit`: Pagination
 
 ### Create Event
+
 - **Endpoint:** `POST /api/events`
 - **Authentication:** Yes
 - **Request Body:**
+
 ```json
 {
   "title": "Weekly Commander Night",
@@ -208,21 +226,25 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Get Event
+
 - **Endpoint:** `GET /api/events/:eventId`
 - **Authentication:** No
 - **Response:** Full event object with participants
 
 ### Update Event
+
 - **Endpoint:** `PATCH /api/events/:eventId`
 - **Authentication:** Yes (creator only)
 - **Request Body:** Partial event object
 
 ### Delete Event
+
 - **Endpoint:** `DELETE /api/events/:eventId`
 - **Authentication:** Yes (creator or admin)
 - **Response:** `{ "success": true }`
 
 ### Join Event
+
 - **Endpoint:** `POST /api/events/:eventId/join`
 - **Authentication:** Yes
 - **Response:** `{ "success": true }`
@@ -232,9 +254,11 @@ All API endpoints require authentication. Authentication is handled via session 
 ## Tournament API
 
 ### Create Tournament
+
 - **Endpoint:** `POST /api/tournaments`
 - **Authentication:** Yes
 - **Request Body:**
+
 ```json
 {
   "name": "Summer Championship",
@@ -244,19 +268,22 @@ All API endpoints require authentication. Authentication is handled via session 
   "maxParticipants": 32,
   "tournamentFormat": "swiss",
   "rounds": 5,
-  "entryFee": 10.00,
-  "prizePool": 200.00
+  "entryFee": 10.0,
+  "prizePool": 200.0
 }
 ```
 
 ### Get Tournament
+
 - **Endpoint:** `GET /api/tournaments/:tournamentId`
 - **Response:** Full tournament details with bracket
 
 ### Register for Tournament
+
 - **Endpoint:** `POST /api/tournaments/:tournamentId/register`
 - **Authentication:** Yes
 - **Request Body:**
+
 ```json
 {
   "deckList": "...",
@@ -265,9 +292,11 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Submit Match Result
+
 - **Endpoint:** `POST /api/tournaments/:tournamentId/matches/:matchId/result`
 - **Authentication:** Yes (participant only)
 - **Request Body:**
+
 ```json
 {
   "winnerId": "user-uuid",
@@ -276,6 +305,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Get Tournament Bracket
+
 - **Endpoint:** `GET /api/tournaments/:tournamentId/bracket`
 - **Response:** Bracket structure with match pairings
 
@@ -284,11 +314,13 @@ All API endpoints require authentication. Authentication is handled via session 
 ## Messaging API
 
 ### Get Conversations
+
 - **Endpoint:** `GET /api/messages/conversations`
 - **Authentication:** Yes
 - **Response:** Array of conversation objects
 
 ### Get Messages
+
 - **Endpoint:** `GET /api/messages/:conversationId`
 - **Authentication:** Yes
 - **Query Parameters:**
@@ -297,9 +329,11 @@ All API endpoints require authentication. Authentication is handled via session 
 - **Response:** Array of message objects
 
 ### Send Message
+
 - **Endpoint:** `POST /api/messages`
 - **Authentication:** Yes
 - **Request Body:**
+
 ```json
 {
   "recipientId": "user-uuid",
@@ -309,6 +343,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### WebSocket Connection
+
 - **Endpoint:** `ws://shuffleandsync.com/api/messages/ws`
 - **Authentication:** Session cookie
 - **Events:**
@@ -321,6 +356,7 @@ All API endpoints require authentication. Authentication is handled via session 
 ## Card & Game API
 
 ### Search Cards
+
 - **Endpoint:** `GET /api/cards/search`
 - **Authentication:** No
 - **Query Parameters:**
@@ -328,6 +364,7 @@ All API endpoints require authentication. Authentication is handled via session 
   - `game` (string): Game type (mtg, pokemon, yugioh, lorcana)
   - `limit` (number): Max results
 - **Response:**
+
 ```json
 {
   "cards": [
@@ -345,19 +382,23 @@ All API endpoints require authentication. Authentication is handled via session 
 ```
 
 ### Get Card Details
+
 - **Endpoint:** `GET /api/cards/:cardId`
 - **Authentication:** No
 - **Response:** Full card details
 
 ### List Games
+
 - **Endpoint:** `GET /api/games`
 - **Authentication:** No
 - **Response:** Array of supported games
 
 ### Create Deck
+
 - **Endpoint:** `POST /api/decks`
 - **Authentication:** Yes
 - **Request Body:**
+
 ```json
 {
   "name": "My Commander Deck",
@@ -381,6 +422,7 @@ The Platform OAuth API enables users to connect their streaming platform account
 All Platform OAuth endpoints require authentication. Users must be logged into Shuffle & Sync before initiating the OAuth flow with external platforms.
 
 **Supported Platforms:**
+
 - `twitch` - Twitch streaming platform
 - `youtube` - YouTube streaming platform
 - `facebook` - Facebook Gaming platform
@@ -396,9 +438,11 @@ Initiates the OAuth authorization flow for a specific platform.
 **Authentication:** Required
 
 **URL Parameters:**
+
 - `platform` (string, required) - The platform identifier (`twitch`, `youtube`, or `facebook`)
 
 **Response:**
+
 ```json
 {
   "authUrl": "https://id.twitch.tv/oauth2/authorize?client_id=..."
@@ -406,16 +450,19 @@ Initiates the OAuth authorization flow for a specific platform.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Unsupported platform
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - Failed to initiate OAuth flow
 
 **Example:**
+
 ```bash
 GET /api/platforms/twitch/oauth/initiate
 ```
 
 **Security Features:**
+
 - PKCE (Proof Key for Code Exchange) implementation with SHA-256 challenge
 - Cryptographically secure state parameter for CSRF protection
 - 10-minute timeout for OAuth state validation
@@ -431,13 +478,16 @@ Handles the OAuth callback after user authorization on the platform.
 **Authentication:** Required
 
 **URL Parameters:**
+
 - `platform` (string, required) - The platform identifier (`twitch`, `youtube`, or `facebook`)
 
 **Query Parameters:**
+
 - `code` (string, required) - Authorization code from the platform
 - `state` (string, required) - State parameter for CSRF validation
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -447,16 +497,19 @@ Handles the OAuth callback after user authorization on the platform.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Missing OAuth parameters (code or state)
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - Failed to complete OAuth flow
 
 **Example:**
+
 ```bash
 GET /api/platforms/twitch/oauth/callback?code=abc123&state=xyz789
 ```
 
 **Process:**
+
 1. Validates state parameter against stored value
 2. Exchanges authorization code for access and refresh tokens
 3. Stores encrypted tokens in the database
@@ -474,6 +527,7 @@ Retrieves all connected platform accounts for the authenticated user.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 [
   {
@@ -496,10 +550,12 @@ Retrieves all connected platform accounts for the authenticated user.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - Failed to fetch platform accounts
 
 **Example:**
+
 ```bash
 GET /api/platforms/accounts
 ```
@@ -515,9 +571,11 @@ Disconnects a platform account from the user's profile.
 **Authentication:** Required
 
 **URL Parameters:**
+
 - `id` (string, required) - Platform account ID (UUID)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -526,12 +584,14 @@ Disconnects a platform account from the user's profile.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `403 Forbidden` - Account does not belong to user
 - `404 Not Found` - Platform account not found
 - `500 Internal Server Error` - Failed to delete platform account
 
 **Example:**
+
 ```bash
 DELETE /api/platforms/accounts/abc-123-def-456
 ```
@@ -547,6 +607,7 @@ Retrieves the current live status of connected platform accounts.
 **Authentication:** Required
 
 **Response:**
+
 ```json
 {
   "twitch": {
@@ -564,10 +625,12 @@ Retrieves the current live status of connected platform accounts.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - Failed to fetch platform status
 
 **Example:**
+
 ```bash
 GET /api/platforms/status
 ```
@@ -583,9 +646,11 @@ Manually refreshes the access token for a specific platform.
 **Authentication:** Required
 
 **URL Parameters:**
+
 - `platform` (string, required) - The platform identifier (`twitch`, `youtube`, or `facebook`)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -594,11 +659,13 @@ Manually refreshes the access token for a specific platform.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - No account found for this platform
 - `500 Internal Server Error` - Failed to refresh token
 
 **Example:**
+
 ```bash
 POST /api/platforms/twitch/refresh
 ```
@@ -612,6 +679,7 @@ POST /api/platforms/twitch/refresh
 Different platforms require different OAuth scopes for various features:
 
 #### Twitch Scopes
+
 - `user:read:email` - Read user email address
 - `channel:read:stream_key` - Read stream key
 - `channel:manage:broadcast` - Manage broadcast settings
@@ -621,10 +689,12 @@ Different platforms require different OAuth scopes for various features:
 - `analytics:read:extensions` - Read extension analytics
 
 #### YouTube Scopes
+
 - `https://www.googleapis.com/auth/youtube.readonly` - Read YouTube account data
 - `https://www.googleapis.com/auth/youtube.force-ssl` - Manage YouTube account
 
 #### Facebook Gaming Scopes
+
 - `gaming_user_locale` - Read user locale
 - `pages_show_list` - Read pages list
 - `pages_manage_posts` - Manage page posts
@@ -658,6 +728,7 @@ The system implements automatic retry with exponential backoff for rate-limited 
 ### For More Information
 
 For detailed OAuth implementation guides, see:
+
 - [Twitch OAuth Guide](/docs/features/twitch/TWITCH_OAUTH_GUIDE.md)
 - [General OAuth Documentation](/docs/oauth/README.md)
 
@@ -687,6 +758,7 @@ All API endpoints follow a consistent error response format:
 ```
 
 Common HTTP status codes:
+
 - `200 OK` - Request successful
 - `400 Bad Request` - Invalid request parameters
 - `401 Unauthorized` - Authentication required
@@ -703,6 +775,7 @@ For critical errors, check server logs for detailed stack traces and debugging i
 **General API:** 100 requests per 15 minutes per user
 
 **Rate Limit Headers:**
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -710,12 +783,14 @@ X-RateLimit-Reset: 1640000000
 ```
 
 **When Rate Limited:**
+
 ```json
 {
   "error": "Rate limit exceeded",
   "retryAfter": 900
 }
 ```
+
 HTTP Status: `429 Too Many Requests`
 
 ---
@@ -725,11 +800,13 @@ HTTP Status: `429 Too Many Requests`
 **Current Version:** v1
 
 **Version Header:**
+
 ```
 Accept: application/vnd.shuffleandsync.v1+json
 ```
 
 **Deprecation Policy:**
+
 - New versions announced 3 months in advance
 - Old versions supported for 6 months after deprecation
 - Breaking changes only in major versions
@@ -737,12 +814,14 @@ Accept: application/vnd.shuffleandsync.v1+json
 **API Changelog:**
 
 ### v1.0.0 (Current)
+
 - Initial API release
 - Platform OAuth integration
 - Core tournament and event APIs
 - Real-time messaging via WebSocket
 
 ### Upcoming (v1.1.0)
+
 - Enhanced analytics endpoints
 - Deck builder improvements
 - Advanced matchmaking algorithms
@@ -752,6 +831,7 @@ Accept: application/vnd.shuffleandsync.v1+json
 ## Additional Resources
 
 For detailed information on specific features:
+
 - [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md) - Twitch-specific documentation
 - [Universal Deck Building API](UNIVERSAL_DECK_BUILDING_API.md) - Deck management
 - [TableSync API](../features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md) - Remote gameplay
@@ -760,4 +840,3 @@ For detailed information on specific features:
 ---
 
 **Last Updated:** 2025-10-18
-

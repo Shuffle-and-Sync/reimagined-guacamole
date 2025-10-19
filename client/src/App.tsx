@@ -20,9 +20,17 @@ const Home = lazy(() => import("@/pages/home"));
 const TableSync = lazy(() => import("@/pages/tablesync"));
 const TableSyncLanding = lazy(() => import("@/pages/tablesync-landing"));
 const GameRoom = lazy(() => import("@/pages/game-room"));
-const Social = lazy(() => import("@/features/users").then(m => ({ default: m.Social })));
-const Profile = lazy(() => import("@/features/users").then(m => ({ default: m.Profile })));
-const CollaborativeStreamingDashboard = lazy(() => import("@/features/collaborative-streaming").then(m => ({ default: m.CollaborativeStreamingDashboard })));
+const Social = lazy(() =>
+  import("@/features/users").then((m) => ({ default: m.Social })),
+);
+const Profile = lazy(() =>
+  import("@/features/users").then((m) => ({ default: m.Profile })),
+);
+const CollaborativeStreamingDashboard = lazy(() =>
+  import("@/features/collaborative-streaming").then((m) => ({
+    default: m.CollaborativeStreamingDashboard,
+  })),
+);
 const Calendar = lazy(() => import("@/pages/calendar"));
 const Matchmaking = lazy(() => import("@/pages/matchmaking"));
 const Tournaments = lazy(() => import("@/pages/tournaments"));
@@ -65,7 +73,7 @@ function Router() {
         <Route path="/terms" component={Terms} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/conduct" component={Conduct} />
-        
+
         {/* Auth routes */}
         <Route path="/auth/signin" component={SignIn} />
         <Route path="/auth/register" component={Register} />
@@ -74,10 +82,10 @@ function Router() {
         <Route path="/auth/forgot-password" component={ForgotPassword} />
         <Route path="/auth/mfa-verify" component={MfaVerify} />
         <Route path="/auth/error" component={AuthError} />
-        
+
         {/* Redirect /login to /auth/signin for compatibility */}
         <Route path="/login" component={SignIn} />
-        
+
         {/* Protected routes - require authentication */}
         <Route path="/home">
           <RequireAuth redirectTo="/">
@@ -124,7 +132,7 @@ function Router() {
             <CollaborativeStreamingDashboard />
           </RequireAuth>
         </Route>
-        
+
         {/* Fallback */}
         <Route component={NotFound} />
       </Switch>

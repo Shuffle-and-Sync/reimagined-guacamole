@@ -48,15 +48,15 @@ npm run dev
 
 ```sql
 -- Verify new tables exist
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN (
-  'games', 
-  'cards', 
-  'game_card_attributes', 
-  'game_formats', 
-  'card_submissions', 
+  'games',
+  'cards',
+  'game_card_attributes',
+  'game_formats',
+  'card_submissions',
   'game_analytics'
 );
 
@@ -75,170 +75,182 @@ Create entries for officially supported games to maintain backward compatibility
 
 ```typescript
 // migrations/seed-official-games.ts
-import { db } from '@shared/database-unified';
-import { games, gameCardAttributes } from '@shared/schema';
+import { db } from "@shared/database-unified";
+import { games, gameCardAttributes } from "@shared/schema";
 
 async function seedOfficialGames() {
   // 1. Create Magic: The Gathering game
-  const mtgGame = await db.insert(games).values({
-    id: 'mtg-official',
-    name: 'mtg',
-    displayName: 'Magic: The Gathering',
-    description: 'The original trading card game by Wizards of the Coast',
-    creatorId: 'system', // System user
-    isOfficial: true,
-    isPublished: true,
-    version: '1.0.0',
-    playerCount: { min: 2, max: 4 },
-    avgGameDuration: 30,
-    complexity: 4,
-    ageRating: '13+',
-    cardTypes: [
-      'Creature',
-      'Instant',
-      'Sorcery',
-      'Enchantment',
-      'Artifact',
-      'Planeswalker',
-      'Land',
-      'Battle'
-    ],
-    resourceTypes: [{
-      name: 'Mana',
-      colors: ['White', 'Blue', 'Black', 'Red', 'Green', 'Colorless']
-    }],
-    zones: ['Library', 'Hand', 'Battlefield', 'Graveyard', 'Exile', 'Command Zone'],
-    phaseStructure: [
-      'Untap',
-      'Upkeep',
-      'Draw',
-      'Main Phase 1',
-      'Combat',
-      'Main Phase 2',
-      'End'
-    ],
-    deckRules: {
-      minDeckSize: 60,
-      maxDeckSize: null,
-      maxCopies: 4,
-      allowedSets: null,
-    },
-    theme: {
-      primaryColor: '#0e141b',
-      accentColor: '#ffd700',
-      cardBackUrl: null,
-    },
-    moderationStatus: 'approved',
-  }).returning();
+  const mtgGame = await db
+    .insert(games)
+    .values({
+      id: "mtg-official",
+      name: "mtg",
+      displayName: "Magic: The Gathering",
+      description: "The original trading card game by Wizards of the Coast",
+      creatorId: "system", // System user
+      isOfficial: true,
+      isPublished: true,
+      version: "1.0.0",
+      playerCount: { min: 2, max: 4 },
+      avgGameDuration: 30,
+      complexity: 4,
+      ageRating: "13+",
+      cardTypes: [
+        "Creature",
+        "Instant",
+        "Sorcery",
+        "Enchantment",
+        "Artifact",
+        "Planeswalker",
+        "Land",
+        "Battle",
+      ],
+      resourceTypes: [
+        {
+          name: "Mana",
+          colors: ["White", "Blue", "Black", "Red", "Green", "Colorless"],
+        },
+      ],
+      zones: [
+        "Library",
+        "Hand",
+        "Battlefield",
+        "Graveyard",
+        "Exile",
+        "Command Zone",
+      ],
+      phaseStructure: [
+        "Untap",
+        "Upkeep",
+        "Draw",
+        "Main Phase 1",
+        "Combat",
+        "Main Phase 2",
+        "End",
+      ],
+      deckRules: {
+        minDeckSize: 60,
+        maxDeckSize: null,
+        maxCopies: 4,
+        allowedSets: null,
+      },
+      theme: {
+        primaryColor: "#0e141b",
+        accentColor: "#ffd700",
+        cardBackUrl: null,
+      },
+      moderationStatus: "approved",
+    })
+    .returning();
 
   // 2. Define MTG card attributes
   const mtgAttributes = [
     {
-      gameId: 'mtg-official',
-      attributeName: 'mana_cost',
-      displayName: 'Mana Cost',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "mana_cost",
+      displayName: "Mana Cost",
+      dataType: "string",
       isRequired: false,
-      category: 'costs',
+      category: "costs",
       displayOrder: 1,
-      helpText: 'The mana cost to cast this card (e.g., {2}{R}{G})',
+      helpText: "The mana cost to cast this card (e.g., {2}{R}{G})",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'cmc',
-      displayName: 'Mana Value',
-      dataType: 'integer',
+      gameId: "mtg-official",
+      attributeName: "cmc",
+      displayName: "Mana Value",
+      dataType: "integer",
       isRequired: false,
-      category: 'costs',
+      category: "costs",
       displayOrder: 2,
-      helpText: 'Converted mana cost (total mana required)',
+      helpText: "Converted mana cost (total mana required)",
       validationRules: { min: 0, max: 20 },
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'type_line',
-      displayName: 'Type Line',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "type_line",
+      displayName: "Type Line",
+      dataType: "string",
       isRequired: true,
-      category: 'stats',
+      category: "stats",
       displayOrder: 3,
-      helpText: 'Card types and subtypes (e.g., Creature - Dragon)',
+      helpText: "Card types and subtypes (e.g., Creature - Dragon)",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'oracle_text',
-      displayName: 'Oracle Text',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "oracle_text",
+      displayName: "Oracle Text",
+      dataType: "string",
       isRequired: false,
-      category: 'mechanics',
+      category: "mechanics",
       displayOrder: 4,
-      helpText: 'The official rules text of the card',
+      helpText: "The official rules text of the card",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'power',
-      displayName: 'Power',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "power",
+      displayName: "Power",
+      dataType: "string",
       isRequired: false,
-      category: 'stats',
+      category: "stats",
       displayOrder: 5,
-      helpText: 'Creature power (for creatures only)',
+      helpText: "Creature power (for creatures only)",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'toughness',
-      displayName: 'Toughness',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "toughness",
+      displayName: "Toughness",
+      dataType: "string",
       isRequired: false,
-      category: 'stats',
+      category: "stats",
       displayOrder: 6,
-      helpText: 'Creature toughness (for creatures only)',
+      helpText: "Creature toughness (for creatures only)",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'loyalty',
-      displayName: 'Loyalty',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "loyalty",
+      displayName: "Loyalty",
+      dataType: "string",
       isRequired: false,
-      category: 'stats',
+      category: "stats",
       displayOrder: 7,
-      helpText: 'Planeswalker loyalty (for planeswalkers only)',
+      helpText: "Planeswalker loyalty (for planeswalkers only)",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'colors',
-      displayName: 'Colors',
-      dataType: 'array',
+      gameId: "mtg-official",
+      attributeName: "colors",
+      displayName: "Colors",
+      dataType: "array",
       isRequired: false,
-      category: 'stats',
+      category: "stats",
       displayOrder: 8,
-      helpText: 'Card colors (W, U, B, R, G)',
+      helpText: "Card colors (W, U, B, R, G)",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'color_identity',
-      displayName: 'Color Identity',
-      dataType: 'array',
+      gameId: "mtg-official",
+      attributeName: "color_identity",
+      displayName: "Color Identity",
+      dataType: "array",
       isRequired: false,
-      category: 'stats',
+      category: "stats",
       displayOrder: 9,
-      helpText: 'Color identity for Commander format',
+      helpText: "Color identity for Commander format",
     },
     {
-      gameId: 'mtg-official',
-      attributeName: 'rarity',
-      displayName: 'Rarity',
-      dataType: 'string',
+      gameId: "mtg-official",
+      attributeName: "rarity",
+      displayName: "Rarity",
+      dataType: "string",
       isRequired: true,
-      category: 'stats',
+      category: "stats",
       displayOrder: 10,
-      helpText: 'Card rarity (common, uncommon, rare, mythic)',
+      helpText: "Card rarity (common, uncommon, rare, mythic)",
     },
   ];
 
   await db.insert(gameCardAttributes).values(mtgAttributes);
 
-  console.log('✅ Magic: The Gathering game seeded successfully');
+  console.log("✅ Magic: The Gathering game seeded successfully");
 }
 
 // Run the seed
@@ -250,22 +262,22 @@ seedOfficialGames().catch(console.error);
 ```typescript
 // Add Pokemon, Lorcana, Yu-Gi-Oh, One Piece TCG
 const pokemonGame = {
-  id: 'pokemon-official',
-  name: 'pokemon',
-  displayName: 'Pokemon TCG',
-  description: 'The Pokemon Trading Card Game',
-  creatorId: 'system',
+  id: "pokemon-official",
+  name: "pokemon",
+  displayName: "Pokemon TCG",
+  description: "The Pokemon Trading Card Game",
+  creatorId: "system",
   isOfficial: true,
   isPublished: true,
   // ... similar structure
 };
 
 const lorcanaGame = {
-  id: 'lorcana-official',
-  name: 'lorcana',
-  displayName: 'Disney Lorcana',
-  description: 'Disney Lorcana Trading Card Game',
-  creatorId: 'system',
+  id: "lorcana-official",
+  name: "lorcana",
+  displayName: "Disney Lorcana",
+  description: "Disney Lorcana Trading Card Game",
+  creatorId: "system",
   isOfficial: true,
   isPublished: true,
   // ... similar structure
@@ -281,12 +293,14 @@ const lorcanaGame = {
 ### Phase 3: Update Card Recognition Service (Week 2)
 
 #### Current Structure
+
 ```
 server/services/card-recognition.ts (MTG-only)
 server/features/cards/cards.routes.ts (MTG-only)
 ```
 
 #### New Structure
+
 ```
 server/services/card-recognition/
 ├── index.ts                    // Main service
@@ -355,28 +369,28 @@ interface ICardAdapter {
 
 class UniversalCardService {
   private adapters = new Map<string, ICardAdapter>();
-  
+
   async searchCards(gameId: string, query: string): Promise<UniversalCard[]> {
     const adapter = this.getAdapter(gameId);
     return adapter.searchCards(query);
   }
-  
+
   private getAdapter(gameId: string): ICardAdapter {
     // Return appropriate adapter based on game
     if (this.adapters.has(gameId)) {
       return this.adapters.get(gameId)!;
     }
-    
+
     // Load adapter based on game configuration
     const game = await db.query.games.findFirst({
-      where: eq(games.id, gameId)
+      where: eq(games.id, gameId),
     });
-    
-    if (!game) throw new Error('Game not found');
-    
-    if (game.externalSource === 'scryfall') {
+
+    if (!game) throw new Error("Game not found");
+
+    if (game.externalSource === "scryfall") {
       return new ScryfallAdapter();
-    } else if (game.externalSource === 'pokemontcg') {
+    } else if (game.externalSource === "pokemontcg") {
       return new PokemonAdapter();
     } else {
       return new CustomGameAdapter(gameId);
@@ -393,26 +407,26 @@ class UniversalCardService {
 
 ```typescript
 // server/tests/services/universal-card-service.test.ts
-describe('UniversalCardService', () => {
-  it('should search MTG cards via Scryfall adapter', async () => {
+describe("UniversalCardService", () => {
+  it("should search MTG cards via Scryfall adapter", async () => {
     const service = new UniversalCardService();
-    const results = await service.searchCards('mtg-official', 'Lightning Bolt');
+    const results = await service.searchCards("mtg-official", "Lightning Bolt");
     expect(results).toHaveLength(1);
-    expect(results[0].name).toBe('Lightning Bolt');
+    expect(results[0].name).toBe("Lightning Bolt");
   });
-  
-  it('should search custom game cards from database', async () => {
+
+  it("should search custom game cards from database", async () => {
     // Create custom game and cards
     const game = await createTestGame();
-    await createTestCard(game.id, 'Test Card');
-    
+    await createTestCard(game.id, "Test Card");
+
     const service = new UniversalCardService();
-    const results = await service.searchCards(game.id, 'Test Card');
+    const results = await service.searchCards(game.id, "Test Card");
     expect(results).toHaveLength(1);
   });
-  
-  it('should maintain backward compatibility with old endpoints', async () => {
-    const response = await request(app).get('/api/cards/search?q=bolt');
+
+  it("should maintain backward compatibility with old endpoints", async () => {
+    const response = await request(app).get("/api/cards/search?q=bolt");
     expect(response.status).toBe(200);
     // Should work as before
   });
@@ -427,10 +441,10 @@ describe('UniversalCardService', () => {
 
 ```typescript
 // Before
-const { data } = await fetch('/api/cards/search?q=lightning');
+const { data } = await fetch("/api/cards/search?q=lightning");
 
 // After
-const gameId = 'mtg-official'; // or from user selection
+const gameId = "mtg-official"; // or from user selection
 const { data } = await fetch(`/api/games/${gameId}/cards/search?q=lightning`);
 ```
 
@@ -477,7 +491,7 @@ CREATE INDEX idx_games_creator_id ON games(creator_id);
 CREATE INDEX idx_games_published ON games(is_published);
 CREATE INDEX idx_games_official ON games(is_official);
 
--- Cards table indexes  
+-- Cards table indexes
 CREATE INDEX idx_cards_game_id ON cards(game_id);
 CREATE INDEX idx_cards_name ON cards(name);
 CREATE INDEX idx_cards_name_tsvector ON cards USING GIN (to_tsvector('english', name));
@@ -511,6 +525,7 @@ const SEARCH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 ### Alerts
 
 Set up monitoring for:
+
 - Slow queries on `cards` table (>500ms)
 - High rejection rate for card submissions (>50%)
 - Game creation failures
@@ -534,21 +549,25 @@ Set up monitoring for:
 ## Timeline
 
 ### Week 1: Database & Seed Data
+
 - Deploy schema changes
 - Seed official games (MTG, Pokemon, Lorcana, etc.)
 - Verify data integrity
 
 ### Week 2: API Refactoring
+
 - Implement universal card service
 - Add game-scoped endpoints
 - Maintain backward compatibility
 
 ### Week 3: Frontend Updates
+
 - Update API calls to use game_id
 - Implement dynamic forms
 - Add game selection UI
 
 ### Week 4: Testing & Launch
+
 - Comprehensive testing
 - Performance optimization
 - Beta launch with community game creators
@@ -583,6 +602,7 @@ Set up monitoring for:
 ## Support
 
 For issues or questions during migration:
+
 - Check audit document: `TABLESYNC_UNIVERSAL_FRAMEWORK_AUDIT.md`
 - Review schema: `shared/schema.ts`
 - Contact: TableSync Engineering Team

@@ -3,6 +3,7 @@
 ## Problem
 
 You're seeing this error when trying to log in:
+
 ```
 https://shuffle-sync-front-683555795974.us-central1.run.app/api/auth/error?error=Configuration
 ERR_TOO_MANY_ACCEPT_CH_RESTARTS
@@ -116,6 +117,7 @@ npm run diagnose:auth
 ```
 
 This will:
+
 - Check both `shuffle-sync-front` and `shuffle-sync-frontend` services
 - Verify BACKEND_URL is set
 - Verify OAuth credentials are configured
@@ -139,7 +141,7 @@ Or update the service name in `cloudbuild-frontend.yaml`:
 ```yaml
 substitutions:
   _REGION: us-central1
-  _SERVICE_NAME: shuffle-sync-front  # Change this to match your service
+  _SERVICE_NAME: shuffle-sync-front # Change this to match your service
 ```
 
 ## Understanding the Architecture
@@ -155,6 +157,7 @@ The app uses a split frontend-backend architecture:
   - Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET`
 
 When you click "Sign In":
+
 1. Frontend redirects to `/api/auth/signin/google`
 2. NGINX proxies this to backend
 3. Backend redirects to Google OAuth
@@ -172,6 +175,7 @@ ERROR: (gcloud.run.services.update) NOT_FOUND: Service shuffle-sync-front not fo
 ```
 
 **Fix**: Check your actual service name:
+
 ```bash
 gcloud run services list --region=us-central1
 ```
@@ -181,6 +185,7 @@ Use the exact name shown in the list.
 ### Issue: Still Getting Configuration Error
 
 **Check 1**: Verify BACKEND_URL is set
+
 ```bash
 gcloud run services describe shuffle-sync-front \
   --region=us-central1 \
@@ -190,6 +195,7 @@ gcloud run services describe shuffle-sync-front \
 Should show: `name: BACKEND_URL, value: https://shuffle-sync-backend-...`
 
 **Check 2**: Verify backend OAuth credentials
+
 ```bash
 gcloud run services describe shuffle-sync-backend \
   --region=us-central1 \
@@ -199,6 +205,7 @@ gcloud run services describe shuffle-sync-backend \
 Should show: `name: GOOGLE_CLIENT_ID` and `name: GOOGLE_CLIENT_SECRET`
 
 **Check 3**: Check container logs
+
 ```bash
 # Frontend logs - should show NGINX proxy configuration
 gcloud logging read "resource.type=cloud_run_revision \
@@ -220,11 +227,13 @@ Error: redirect_uri_mismatch
 ```
 
 **Fix**: Make sure you added the redirect URI to Google OAuth Console:
+
 ```
 https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
 
 **Common mistakes**:
+
 - Using frontend URL instead of backend URL ❌
 - Adding trailing slash ❌
 - Typo in the URL ❌
@@ -233,6 +242,7 @@ https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/
 ## About the reimagined-guacamole Placeholder
 
 If you're also seeing:
+
 ```
 https://reimagined-guacamole-683555795974.us-south1.run.app
 "Sorry, this is just a placeholder…"
@@ -241,7 +251,9 @@ https://reimagined-guacamole-683555795974.us-south1.run.app
 This is a separate Cloud Run service created by continuous deployment. It's in a different region (`us-south1` vs `us-central1`) and is unrelated to your frontend/backend services.
 
 **To fix**: Either:
+
 1. Delete this service if not needed:
+
    ```bash
    gcloud run services delete reimagined-guacamole --region=us-south1
    ```

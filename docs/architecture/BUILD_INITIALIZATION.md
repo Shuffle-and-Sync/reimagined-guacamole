@@ -41,6 +41,7 @@ bash scripts/pre-build.sh
 > **Note**: Windows users with Git Bash/MINGW64 should use `bash scripts/` prefix for all script invocations.
 
 **Pre-build checks include:**
+
 - Node.js version validation (requires v18+)
 - npm installation check
 - Critical dependency verification
@@ -62,6 +63,7 @@ bash scripts/verify-build.sh
 ```
 
 **Verification includes:**
+
 - Backend bundle exists and is not empty
 - Frontend assets are built
 - Critical runtime dependencies are present
@@ -72,16 +74,19 @@ bash scripts/verify-build.sh
 After a successful build, the following artifacts are created:
 
 ### 1. Backend Bundle (`dist/index.js`)
+
 - Bundled server application
 - All server-side code compiled and minified
 - Typically ~700KB
 
 ### 2. Frontend Assets (`dist/public/`)
+
 - Static HTML, CSS, and JavaScript files
 - Includes `index.html` and compiled assets
 - Typically ~1-2MB total
 
 ### 3. Production Dependencies (`node_modules/`)
+
 - Runtime dependencies only (after npm prune)
 - Required for the application to run
 
@@ -90,66 +95,78 @@ After a successful build, the following artifacts are created:
 ### Database (Drizzle ORM)
 
 **Initialization:**
+
 ```bash
 npm run db:push  # Push schema changes to database
 ```
 
 **What it does:**
+
 - Uses Drizzle ORM for database operations
 - Schema is defined in `shared/schema.ts`
 - No client generation needed - uses Drizzle's type-safe query builder
 
 **Verification:**
+
 - Database schema is up to date
 - Connection to SQLite Cloud or local SQLite works
 
 ### Frontend (Vite)
 
 **Initialization:**
+
 ```bash
 npx vite build
 ```
 
 **What it does:**
+
 - Compiles TypeScript to JavaScript
 - Bundles React components
 - Optimizes and minifies assets
 - Generates static files
 
 **Verification:**
+
 - Check `dist/public/index.html` exists
 - Check asset files in `dist/public/assets/`
 
 ### Backend (esbuild)
 
 **Initialization:**
+
 ```bash
 esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 ```
 
 **What it does:**
+
 - Bundles server code
 - Resolves imports
 - Externalizes node_modules
 - Creates production-ready bundle
 
 **Verification:**
+
 - Check `dist/index.js` exists
 - Check file is not empty (> 500KB typically)
 
 ### TypeScript
 
 **Initialization:**
+
 ```bash
 npx tsc --noEmit
 ```
 
 **What it does:**
+
 - Type checks all TypeScript files
 - Validates imports and exports
 - Catches type errors before runtime
 
 **Verification:**
+
 - Build succeeds with no type errors
 
 ## Environment Requirements
@@ -189,6 +206,7 @@ RUN npm prune --production
 ```
 
 **What happens:**
+
 1. All dependencies installed (including devDependencies for build)
 2. Build script runs with all initialization steps
 3. DevDependencies removed to reduce image size
@@ -201,6 +219,7 @@ RUN npm prune --production
 **Problem:** TypeScript compilation errors
 
 **Solutions:**
+
 1. Run `npm run check` to see type errors
 2. Fix type errors in the codebase
 3. Ensure `tsconfig.json` is properly configured
@@ -210,6 +229,7 @@ RUN npm prune --production
 **Problem:** Vite build fails
 
 **Solutions:**
+
 1. Check for JavaScript/TypeScript syntax errors in client code
 2. Verify all imports are correct
 3. Ensure all frontend dependencies are installed
@@ -219,6 +239,7 @@ RUN npm prune --production
 **Problem:** Build completes but `verify-build.sh` fails
 
 **Solutions:**
+
 1. Check disk space availability
 2. Verify write permissions to `dist/`
 3. Check for errors in build output
@@ -228,6 +249,7 @@ RUN npm prune --production
 **Problem:** Build fails with Node.js version error
 
 **Solutions:**
+
 1. Upgrade Node.js to v18 or higher
 2. Use nvm to manage Node.js versions: `nvm use 18`
 3. In Docker, ensure base image is `node:18` or higher
@@ -237,6 +259,7 @@ RUN npm prune --production
 **Problem:** `npm ci` or `npm install` fails with ERESOLVE errors related to peer dependencies
 
 **Common Error:**
+
 ```
 npm error ERESOLVE could not resolve
 npm error While resolving: @sqlitecloud/drivers@1.0.507
@@ -245,12 +268,15 @@ npm error peer react-native-quick-base64@"*"
 ```
 
 **Solutions:**
+
 1. **For CI/CD and Docker builds:** Use `--legacy-peer-deps` flag:
+
    ```bash
    npm ci --legacy-peer-deps
    ```
 
 2. **For local development:** Install with legacy peer deps:
+
    ```bash
    npm install --legacy-peer-deps
    ```
@@ -271,21 +297,21 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Verify build
         run: npm run build:verify
 ```
@@ -296,8 +322,8 @@ The `cloudbuild.yaml` configuration uses the Dockerfile, which runs:
 
 ```yaml
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/app', '.']
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/app", "."]
 ```
 
 The Dockerfile automatically runs the full build initialization.

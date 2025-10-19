@@ -5,6 +5,7 @@ This directory contains historical documentation that has been superseded by new
 ## Archived Files
 
 ### Authentication & Deployment Fixes (Historical)
+
 These temporary fix guides were created to address specific deployment issues. The solutions have been integrated into the main documentation.
 
 - **QUICK_FIX_AUTH_ERROR.md** - Quick authentication error fixes (superseded by [troubleshooting.md](../troubleshooting.md))
@@ -17,12 +18,14 @@ These temporary fix guides were created to address specific deployment issues. T
 - **CLOUD_RUN_STARTUP_FIX.md** - Container startup issues (integrated into [DEPLOYMENT.md](../../DEPLOYMENT.md))
 
 ### Deployment Documentation (Consolidated)
+
 These files have been consolidated into the unified deployment guide.
 
 - **DEPLOYMENT_CHECKLIST.md** - Cloud Run deployment checklist (superseded by [DEPLOYMENT.md](../../DEPLOYMENT.md))
 - **CLOUD_RUN_FRONTEND_BACKEND_SETUP.md** - Split architecture guide (integrated into [DEPLOYMENT.md](../../DEPLOYMENT.md))
 
 ### GitHub Pages Configuration (Historical)
+
 These files documented GitHub Pages deployment issues and fixes. GitHub Pages deployment is optional for this project.
 
 - **GITHUB_PAGES_422_FIX_SUMMARY.md** - GitHub Pages 422 error fix summary
@@ -41,10 +44,10 @@ For current, actively maintained documentation, please refer to:
 ## Why Archive?
 
 Files are archived when:
+
 1. They address temporary or resolved issues
 2. Their content has been consolidated into comprehensive guides
 3. They contain outdated approaches that have been improved
 4. They're specific to legacy configurations no longer in use
 
 Archiving preserves the historical context and solutions while keeping the active documentation clean and focused.
-

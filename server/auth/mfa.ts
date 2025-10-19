@@ -1,7 +1,7 @@
-import speakeasy from 'speakeasy';
-import qrcode from 'qrcode';
-import { randomBytes, createHash } from 'crypto';
-import { logger } from '../logger';
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import { randomBytes, createHash } from "crypto";
+import { logger } from "../logger";
 
 /**
  * Multi-Factor Authentication utilities for TOTP-based authentication
@@ -25,7 +25,7 @@ export interface TOTPVerificationResult {
  */
 export async function generateTOTPSetup(
   userEmail: string,
-  serviceName: string = 'Shuffle & Sync'
+  serviceName: string = "Shuffle & Sync",
 ): Promise<TOTPSetupResult> {
   try {
     // Generate TOTP secret
@@ -48,8 +48,11 @@ export async function generateTOTPSetup(
       manualEntryKey: secret.base32,
     };
   } catch (error) {
-    logger.error('Failed to generate TOTP setup', { error: error instanceof Error ? error.message : 'Unknown error', userEmail });
-    throw new Error('Failed to generate MFA setup');
+    logger.error("Failed to generate TOTP setup", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      userEmail,
+    });
+    throw new Error("Failed to generate MFA setup");
   }
 }
 
@@ -59,27 +62,29 @@ export async function generateTOTPSetup(
 export function verifyTOTPCode(
   token: string,
   secret: string,
-  window: number = 1
+  window: number = 1,
 ): TOTPVerificationResult {
   try {
     // Clean and validate input
-    const cleanToken = token.replace(/\s/g, '');
+    const cleanToken = token.replace(/\s/g, "");
     if (!/^\d{6}$/.test(cleanToken)) {
-      return { isValid: false, error: 'Invalid code format' };
+      return { isValid: false, error: "Invalid code format" };
     }
 
     // Verify TOTP code with time window
     const isValid = speakeasy.totp.verify({
       secret,
-      encoding: 'base32',
+      encoding: "base32",
       token: cleanToken,
       window, // Allow 1 step (30 seconds) before and after for clock drift
     });
 
     return { isValid };
   } catch (error) {
-    logger.error('TOTP verification failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-    return { isValid: false, error: 'Verification failed' };
+    logger.error("TOTP verification failed", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return { isValid: false, error: "Verification failed" };
   }
 }
 
@@ -88,13 +93,13 @@ export function verifyTOTPCode(
  */
 export function generateBackupCodes(count: number = 10): string[] {
   const codes: string[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     // Generate 8-character alphanumeric code
     const code = generateBackupCode();
     codes.push(code);
   }
-  
+
   return codes;
 }
 
@@ -104,21 +109,21 @@ export function generateBackupCodes(count: number = 10): string[] {
  */
 function generateBackupCode(): string {
   // FIXED: Use crypto.randomBytes for cryptographically secure codes (not Math.random)
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   const bytes = randomBytes(12); // Cryptographically secure random bytes
-  let result = '';
-  
+  let result = "";
+
   for (let i = 0; i < 12; i++) {
     const byte = bytes[i];
     if (byte !== undefined) {
       result += chars[byte % chars.length];
       // Add dashes for readability every 4 characters
       if ((i + 1) % 4 === 0 && i < 11) {
-        result += '-';
+        result += "-";
       }
     }
   }
-  
+
   return result;
 }
 
@@ -128,11 +133,11 @@ function generateBackupCode(): string {
  */
 export async function hashBackupCode(code: string): Promise<string> {
   // Import hashPassword function for consistent Argon2id hashing
-  const { hashPassword } = await import('./password');
-  
+  const { hashPassword } = await import("./password");
+
   // Normalize code format (remove dashes, uppercase)
-  const normalizedCode = code.replace(/-/g, '').toUpperCase();
-  
+  const normalizedCode = code.replace(/-/g, "").toUpperCase();
+
   // Use Argon2id hashing with same parameters as passwords
   return await hashPassword(normalizedCode);
 }
@@ -142,20 +147,20 @@ export async function hashBackupCode(code: string): Promise<string> {
  */
 export async function verifyBackupCode(
   inputCode: string,
-  hashedCodes: string[]
+  hashedCodes: string[],
 ): Promise<{ isValid: boolean; codeIndex?: number }> {
   try {
     // Normalize input code (remove spaces/dashes, uppercase)
-    const cleanCode = inputCode.replace(/[\s-]/g, '').toUpperCase();
-    
+    const cleanCode = inputCode.replace(/[\s-]/g, "").toUpperCase();
+
     // Validate format: 12 alphanumeric characters
     if (!/^[A-Z0-9]{12}$/.test(cleanCode)) {
       return { isValid: false };
     }
 
     // Import verifyPassword for Argon2id verification
-    const { verifyPassword } = await import('./password');
-    
+    const { verifyPassword } = await import("./password");
+
     // Check against each hashed backup code
     for (let i = 0; i < hashedCodes.length; i++) {
       const hashedCode = hashedCodes[i];
@@ -169,10 +174,12 @@ export async function verifyBackupCode(
         }
       }
     }
-    
+
     return { isValid: false };
   } catch (error) {
-    logger.error('Backup code verification failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    logger.error("Backup code verification failed", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return { isValid: false };
   }
 }
@@ -182,26 +189,28 @@ export async function verifyBackupCode(
  */
 export function validateMFASetupRequirements(
   totpCode: string,
-  secret: string
+  secret: string,
 ): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Validate TOTP code format
-  const cleanCode = totpCode.replace(/\s/g, '');
+  const cleanCode = totpCode.replace(/\s/g, "");
   if (!cleanCode || !/^\d{6}$/.test(cleanCode)) {
-    errors.push('TOTP code must be exactly 6 digits');
+    errors.push("TOTP code must be exactly 6 digits");
   }
 
   // Validate secret format (Base32 encoding)
   if (!secret || secret.length < 16 || !/^[A-Z2-7]+=*$/.test(secret)) {
-    errors.push('Invalid TOTP secret format');
+    errors.push("Invalid TOTP secret format");
   }
 
   // Verify the TOTP code works
   if (errors.length === 0) {
     const verification = verifyTOTPCode(cleanCode, secret);
     if (!verification.isValid) {
-      errors.push('Invalid TOTP code - please check your authenticator app and ensure the time is synchronized');
+      errors.push(
+        "Invalid TOTP code - please check your authenticator app and ensure the time is synchronized",
+      );
     }
   }
 
@@ -214,16 +223,20 @@ export function validateMFASetupRequirements(
 /**
  * Validate backup code format (12 chars with optional dashes)
  */
-export function validateBackupCodeFormat(code: string): { isValid: boolean; error?: string } {
-  const cleanCode = code.replace(/[\s-]/g, '').toUpperCase();
-  
+export function validateBackupCodeFormat(code: string): {
+  isValid: boolean;
+  error?: string;
+} {
+  const cleanCode = code.replace(/[\s-]/g, "").toUpperCase();
+
   if (!/^[A-Z0-9]{12}$/.test(cleanCode)) {
-    return { 
-      isValid: false, 
-      error: 'Backup code must be 12 alphanumeric characters (format: XXXX-XXXX-XXXX)'
+    return {
+      isValid: false,
+      error:
+        "Backup code must be 12 alphanumeric characters (format: XXXX-XXXX-XXXX)",
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -231,12 +244,12 @@ export function validateBackupCodeFormat(code: string): { isValid: boolean; erro
  * Get current TOTP code for testing/debugging (development only)
  */
 export function getCurrentTOTPCode(secret: string): string {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('getCurrentTOTPCode is not available in production');
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("getCurrentTOTPCode is not available in production");
   }
-  
+
   return speakeasy.totp({
     secret,
-    encoding: 'base32',
+    encoding: "base32",
   });
 }

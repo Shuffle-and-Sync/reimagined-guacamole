@@ -1,13 +1,13 @@
 /**
  * Performance Monitoring Middleware
- * 
+ *
  * This module provides comprehensive performance monitoring and metrics collection,
  * following Copilot best practices for application observability and performance optimization.
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../logger';
-import { DatabaseMonitor } from '@shared/database-unified';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../logger";
+import { DatabaseMonitor } from "@shared/database-unified";
 
 // Performance metrics interface
 export interface PerformanceMetrics {
@@ -79,12 +79,12 @@ export class PerformanceMonitor {
 
     // Log slow requests
     if (timing.responseTime > this.slowRequestThreshold) {
-      logger.warn('Slow request detected', {
+      logger.warn("Slow request detected", {
         url: timing.url,
         method: timing.method,
         responseTime: timing.responseTime,
         statusCode: timing.statusCode,
-        requestId: timing.requestId
+        requestId: timing.requestId,
       });
     }
   }
@@ -108,12 +108,14 @@ export class PerformanceMonitor {
    */
   public getMetrics(): PerformanceMetrics {
     const recentTimings = this.requestTimings.slice(-100); // Last 100 requests
-    const averageResponseTime = recentTimings.length > 0
-      ? recentTimings.reduce((sum, timing) => sum + timing.responseTime, 0) / recentTimings.length
-      : 0;
+    const averageResponseTime =
+      recentTimings.length > 0
+        ? recentTimings.reduce((sum, timing) => sum + timing.responseTime, 0) /
+          recentTimings.length
+        : 0;
 
     const slowRequestCount = this.requestTimings.filter(
-      timing => timing.responseTime > this.slowRequestThreshold
+      (timing) => timing.responseTime > this.slowRequestThreshold,
     ).length;
 
     return {
@@ -124,7 +126,7 @@ export class PerformanceMonitor {
       activeConnections: this.activeConnections,
       memoryUsage: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
-      uptime: Date.now() - this.startTime
+      uptime: Date.now() - this.startTime,
     };
   }
 
@@ -138,8 +140,12 @@ export class PerformanceMonitor {
   /**
    * Get slow requests
    */
-  public getSlowRequests(threshold: number = this.slowRequestThreshold): RequestTiming[] {
-    return this.requestTimings.filter(timing => timing.responseTime > threshold);
+  public getSlowRequests(
+    threshold: number = this.slowRequestThreshold,
+  ): RequestTiming[] {
+    return this.requestTimings.filter(
+      (timing) => timing.responseTime > threshold,
+    );
   }
 
   /**
@@ -165,21 +171,28 @@ export class PerformanceMonitor {
  * Performance monitoring middleware
  * Tracks request timing and performance metrics
  */
-export function performanceMonitoringMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function performanceMonitoringMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const startTime = Date.now();
   const monitor = PerformanceMonitor.getInstance();
-  
+
   // Track active connections
   monitor.incrementConnections();
 
   // Get request ID from headers or generate one
-  const requestId = (req as any).requestId || res.getHeader('X-Request-ID') as string || 'unknown';
+  const requestId =
+    (req as any).requestId ||
+    (res.getHeader("X-Request-ID") as string) ||
+    "unknown";
 
   // Override end method to capture timing
   const originalEnd = res.end;
-  res.end = function(this: Response, ...args: any[]): Response {
+  res.end = function (this: Response, ...args: any[]): Response {
     const responseTime = Date.now() - startTime;
-    
+
     // Record the request timing
     monitor.recordRequest({
       requestId,
@@ -188,17 +201,17 @@ export function performanceMonitoringMiddleware(req: Request, res: Response, nex
       statusCode: res.statusCode,
       responseTime,
       timestamp: new Date(),
-      userAgent: req.get('User-Agent'),
+      userAgent: req.get("User-Agent"),
       ip: req.ip,
-      userId: (req as any).user?.id
+      userId: (req as any).user?.id,
     });
 
     // Decrement active connections
     monitor.decrementConnections();
 
     // Add performance headers
-    res.setHeader('X-Response-Time', `${responseTime}ms`);
-    
+    res.setHeader("X-Response-Time", `${responseTime}ms`);
+
     // Call original end method
     return originalEnd.apply(this, args as any);
   };
@@ -210,7 +223,11 @@ export function performanceMonitoringMiddleware(req: Request, res: Response, nex
  * Memory monitoring middleware
  * Checks memory usage and warns if too high
  */
-export function memoryMonitoringMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function memoryMonitoringMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const memUsage = process.memoryUsage();
   const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
   const heapTotalMB = memUsage.heapTotal / 1024 / 1024;
@@ -218,18 +235,18 @@ export function memoryMonitoringMiddleware(req: Request, res: Response, next: Ne
 
   // Warn if memory usage is high
   if (memoryUsagePercent > 80) {
-    logger.warn('High memory usage detected', {
+    logger.warn("High memory usage detected", {
       heapUsedMB: Math.round(heapUsedMB),
       heapTotalMB: Math.round(heapTotalMB),
       usagePercent: Math.round(memoryUsagePercent),
       url: req.url,
-      method: req.method
+      method: req.method,
     });
   }
 
   // Add memory usage to response headers in development
-  if (process.env.NODE_ENV === 'development') {
-    res.setHeader('X-Memory-Usage', `${Math.round(heapUsedMB)}MB`);
+  if (process.env.NODE_ENV === "development") {
+    res.setHeader("X-Memory-Usage", `${Math.round(heapUsedMB)}MB`);
   }
 
   next();
@@ -239,20 +256,24 @@ export function memoryMonitoringMiddleware(req: Request, res: Response, next: Ne
  * Request size monitoring middleware
  * Tracks and logs large request payloads
  */
-export function requestSizeMonitoringMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const contentLength = parseInt(req.headers['content-length'] || '0');
+export function requestSizeMonitoringMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const contentLength = parseInt(req.headers["content-length"] || "0");
   const largeSizeThreshold = 1024 * 1024; // 1MB
 
   if (contentLength > largeSizeThreshold) {
-    logger.info('Large request payload detected', {
+    logger.info("Large request payload detected", {
       contentLength,
       url: req.url,
       method: req.method,
-      contentType: req.headers['content-type']
+      contentType: req.headers["content-type"],
     });
 
     // Add header to track large requests
-    res.setHeader('X-Large-Payload', 'true');
+    res.setHeader("X-Large-Payload", "true");
   }
 
   next();
@@ -262,28 +283,32 @@ export function requestSizeMonitoringMiddleware(req: Request, res: Response, nex
  * Cache performance monitoring middleware
  * Tracks cache hit/miss rates for optimizing caching strategies
  */
-export function cacheMonitoringMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function cacheMonitoringMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const startTime = Date.now();
 
   // Override json method to capture cache information
   const originalJson = res.json;
-  res.json = function(this: Response, obj: any): Response {
+  res.json = function (this: Response, obj: any): Response {
     const responseTime = Date.now() - startTime;
 
     // Check if response came from cache (would need cache implementation)
-    const fromCache = res.getHeader('X-Cache-Hit') === 'true';
-    
+    const fromCache = res.getHeader("X-Cache-Hit") === "true";
+
     if (fromCache) {
-      logger.debug('Cache hit', {
+      logger.debug("Cache hit", {
         url: req.url,
         method: req.method,
-        responseTime
+        responseTime,
       });
     } else {
-      logger.debug('Cache miss', {
+      logger.debug("Cache miss", {
         url: req.url,
         method: req.method,
-        responseTime
+        responseTime,
       });
     }
 
@@ -297,21 +322,25 @@ export function cacheMonitoringMiddleware(req: Request, res: Response, next: Nex
  * Database performance monitoring middleware
  * Integrates with database monitoring for query performance tracking
  */
-export function databaseMonitoringMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function databaseMonitoringMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const dbMonitor = DatabaseMonitor.getInstance();
-  
+
   // Log database stats periodically
   const originalEnd = res.end;
-  res.end = function(this: Response, ...args: any[]): Response {
+  res.end = function (this: Response, ...args: any[]): Response {
     // Log database stats for slow requests or errors
-    if (res.statusCode >= 400 || (Date.now() - (req as any).startTime > 1000)) {
+    if (res.statusCode >= 400 || Date.now() - (req as any).startTime > 1000) {
       const dbStats = dbMonitor.getStats();
       if (Object.keys(dbStats).length > 0) {
-        logger.info('Database performance stats', {
+        logger.info("Database performance stats", {
           url: req.url,
           method: req.method,
           statusCode: res.statusCode,
-          dbStats
+          dbStats,
         });
       }
     }
@@ -336,50 +365,67 @@ export function createHealthCheckEndpoint() {
 
       // Check various health indicators
       const health = {
-        status: 'healthy',
+        status: "healthy",
         timestamp: new Date().toISOString(),
         uptime: metrics.uptime,
-        version: process.env.npm_package_version || '1.0.0',
-        environment: process.env.NODE_ENV || 'development',
+        version: process.env.npm_package_version || "1.0.0",
+        environment: process.env.NODE_ENV || "development",
         performance: {
           requestCount: metrics.requestCount,
           averageResponseTime: metrics.averageResponseTime,
           slowRequestCount: metrics.slowRequestCount,
-          errorRate: metrics.requestCount > 0 ? (metrics.errorCount / metrics.requestCount) * 100 : 0,
-          activeConnections: metrics.activeConnections
+          errorRate:
+            metrics.requestCount > 0
+              ? (metrics.errorCount / metrics.requestCount) * 100
+              : 0,
+          activeConnections: metrics.activeConnections,
         },
         system: {
           memoryUsage: {
             heapUsedMB: Math.round(metrics.memoryUsage.heapUsed / 1024 / 1024),
-            heapTotalMB: Math.round(metrics.memoryUsage.heapTotal / 1024 / 1024),
-            rssMB: Math.round(metrics.memoryUsage.rss / 1024 / 1024)
+            heapTotalMB: Math.round(
+              metrics.memoryUsage.heapTotal / 1024 / 1024,
+            ),
+            rssMB: Math.round(metrics.memoryUsage.rss / 1024 / 1024),
           },
-          cpuUsage: metrics.cpuUsage
+          cpuUsage: metrics.cpuUsage,
         },
         database: {
           connected: true, // Would need actual database connection check
-          queryStats: dbStats
-        }
+          queryStats: dbStats,
+        },
       };
 
       // Determine overall health status
-      const memoryUsagePercent = (metrics.memoryUsage.heapUsed / metrics.memoryUsage.heapTotal) * 100;
-      const errorRate = metrics.requestCount > 0 ? (metrics.errorCount / metrics.requestCount) * 100 : 0;
+      const memoryUsagePercent =
+        (metrics.memoryUsage.heapUsed / metrics.memoryUsage.heapTotal) * 100;
+      const errorRate =
+        metrics.requestCount > 0
+          ? (metrics.errorCount / metrics.requestCount) * 100
+          : 0;
 
-      if (memoryUsagePercent > 90 || errorRate > 10 || metrics.averageResponseTime > 2000) {
-        health.status = 'degraded';
+      if (
+        memoryUsagePercent > 90 ||
+        errorRate > 10 ||
+        metrics.averageResponseTime > 2000
+      ) {
+        health.status = "degraded";
         res.status(503);
-      } else if (memoryUsagePercent > 70 || errorRate > 5 || metrics.averageResponseTime > 1000) {
-        health.status = 'warning';
+      } else if (
+        memoryUsagePercent > 70 ||
+        errorRate > 5 ||
+        metrics.averageResponseTime > 1000
+      ) {
+        health.status = "warning";
       }
 
       res.json(health);
     } catch (error) {
-      logger.error('Health check failed', error);
+      logger.error("Health check failed", error);
       res.status(503).json({
-        status: 'unhealthy',
+        status: "unhealthy",
         timestamp: new Date().toISOString(),
-        error: 'Health check failed'
+        error: "Health check failed",
       });
     }
   };
@@ -394,23 +440,23 @@ export function createMetricsEndpoint() {
     try {
       const monitor = PerformanceMonitor.getInstance();
       const dbMonitor = DatabaseMonitor.getInstance();
-      
+
       const limit = parseInt(req.query.limit as string) || 50;
-      const includeTimings = req.query.timings === 'true';
+      const includeTimings = req.query.timings === "true";
 
       const metrics = {
         summary: monitor.getMetrics(),
         database: dbMonitor.getStats(),
         ...(includeTimings && {
           recentRequests: monitor.getRecentTimings(limit),
-          slowRequests: monitor.getSlowRequests()
-        })
+          slowRequests: monitor.getSlowRequests(),
+        }),
       };
 
       res.json(metrics);
     } catch (error) {
-      logger.error('Failed to get metrics', error);
-      res.status(500).json({ error: 'Failed to get metrics' });
+      logger.error("Failed to get metrics", error);
+      res.status(500).json({ error: "Failed to get metrics" });
     }
   };
 }
@@ -424,5 +470,5 @@ export const performanceMonitoring = {
   database: databaseMonitoringMiddleware,
   healthCheck: createHealthCheckEndpoint(),
   metrics: createMetricsEndpoint(),
-  monitor: PerformanceMonitor.getInstance()
+  monitor: PerformanceMonitor.getInstance(),
 };

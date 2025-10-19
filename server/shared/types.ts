@@ -36,7 +36,7 @@ export interface PaginationParams {
 
 export interface SortParams {
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface FilterParams {
@@ -47,14 +47,21 @@ export interface FilterParams {
   dateTo?: string;
 }
 
-export interface BaseListQuery extends PaginationParams, SortParams, FilterParams {}
+export interface BaseListQuery
+  extends PaginationParams,
+    SortParams,
+    FilterParams {}
 
 // Error types
 export class AppError extends Error {
   public statusCode: number;
   public isOperational: boolean;
 
-  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    isOperational: boolean = true,
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;

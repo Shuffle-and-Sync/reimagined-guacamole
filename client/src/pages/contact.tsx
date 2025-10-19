@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function Contact() {
   useDocumentTitle("Contact Us");
-  
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -21,30 +21,32 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
+
   const handleHelpCenter = () => {
     toast({
       title: "Help Center",
-      description: "Our comprehensive help center is coming soon! For now, please use the contact form."
+      description:
+        "Our comprehensive help center is coming soon! For now, please use the contact form.",
     });
   };
-  
+
   const handleGettingStarted = () => {
     toast({
       title: "Getting Started Guide",
-      description: "Redirecting you to our quick start guide..."
+      description: "Redirecting you to our quick start guide...",
     });
     // Navigate to the main landing page which has the demo and onboarding
-    setLocation('/');
+    setLocation("/");
   };
-  
+
   const handleCommunityForum = () => {
     toast({
       title: "Community Forum",
-      description: "Join our Discord community for real-time discussions and support!"
+      description:
+        "Join our Discord community for real-time discussions and support!",
     });
     // In a real app, this would redirect to Discord invite or forum page
-    window.open('https://discord.gg/shuffleandsync', '_blank');
+    window.open("https://discord.gg/shuffleandsync", "_blank");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,15 +55,20 @@ export default function Contact() {
       toast({
         title: "Please fill in all fields",
         description: "All fields are required to send your message.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      const response = await apiRequest('POST', '/api/contact', { name, email, subject, message });
+      const response = await apiRequest("POST", "/api/contact", {
+        name,
+        email,
+        subject,
+        message,
+      });
 
       if (response.ok) {
         toast({
@@ -77,7 +84,7 @@ export default function Contact() {
       toast({
         title: "Failed to send message",
         description: "Please try again later or contact us directly.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -87,7 +94,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -95,7 +102,8 @@ export default function Contact() {
               Contact Us
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have questions, feedback, or need support? We'd love to hear from you.
+              Have questions, feedback, or need support? We'd love to hear from
+              you.
             </p>
           </div>
 
@@ -162,9 +170,9 @@ export default function Contact() {
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={isSubmitting}
                     data-testid="button-send-message"
                   >
@@ -199,9 +207,11 @@ export default function Contact() {
                       <i className="fas fa-envelope text-primary"></i>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                      <a 
-                        href="mailto:admin@shuffleandsync.com" 
+                      <h3 className="font-semibold text-foreground mb-1">
+                        Email
+                      </h3>
+                      <a
+                        href="mailto:admin@shuffleandsync.com"
                         className="text-primary hover:underline"
                         data-testid="link-contact-email"
                       >
@@ -218,10 +228,14 @@ export default function Contact() {
                       <i className="fas fa-clock text-green-500"></i>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1">Response Time</h3>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        Response Time
+                      </h3>
                       <p className="text-muted-foreground">
-                        Support: 24-48 hours<br />
-                        General inquiries: 2-3 business days<br />
+                        Support: 24-48 hours
+                        <br />
+                        General inquiries: 2-3 business days
+                        <br />
                         Partnership requests: 3-5 business days
                       </p>
                     </div>
@@ -232,9 +246,12 @@ export default function Contact() {
                       <i className="fas fa-users text-purple-500"></i>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1">Community</h3>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        Community
+                      </h3>
                       <p className="text-muted-foreground">
-                        Join our Discord server for real-time community support and discussions with other creators.
+                        Join our Discord server for real-time community support
+                        and discussions with other creators.
                       </p>
                     </div>
                   </div>
@@ -247,27 +264,27 @@ export default function Contact() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start" 
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
                       onClick={handleHelpCenter}
                       data-testid="button-help-center"
                     >
                       <i className="fas fa-question-circle mr-2"></i>
                       Help Center
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start" 
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
                       onClick={handleGettingStarted}
                       data-testid="button-getting-started"
                     >
                       <i className="fas fa-rocket mr-2"></i>
                       Getting Started Guide
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start" 
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
                       onClick={handleCommunityForum}
                       data-testid="button-community-forum"
                     >
@@ -281,7 +298,7 @@ export default function Contact() {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

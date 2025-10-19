@@ -73,6 +73,6 @@ This Code of Conduct applies to all community spaces, including but not limited 
 
 ---
 
-*Creating a welcoming and inclusive community for everyone*
+_Creating a welcoming and inclusive community for everyone_
 
 **Shuffle & Sync** - TCG Streaming Coordination Platform

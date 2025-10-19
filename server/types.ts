@@ -22,22 +22,25 @@ export interface ApiError extends Error {
 }
 
 export class ValidationError extends Error {
-  constructor(public field: string, message: string) {
+  constructor(
+    public field: string,
+    message: string,
+  ) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
 
 export class NotFoundError extends Error {
   constructor(resource: string) {
     super(`${resource} not found`);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
   }
 }
 
 export class UnauthorizedError extends Error {
-  constructor(message = 'Unauthorized') {
+  constructor(message = "Unauthorized") {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
   }
 }

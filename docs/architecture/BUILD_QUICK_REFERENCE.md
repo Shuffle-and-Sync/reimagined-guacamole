@@ -3,6 +3,7 @@
 ## 🚀 Common Commands
 
 ### Build Commands
+
 ```bash
 # Full build with all initialization
 npm run build
@@ -21,6 +22,7 @@ npm run check
 ```
 
 ### Pre-Build Setup
+
 ```bash
 # Manual pre-build validation
 bash scripts/pre-build.sh
@@ -45,19 +47,25 @@ The `npm run build` command now includes:
 ## 🔍 Verification Scripts
 
 ### Build Verification
+
 ```bash
 npm run build:verify
 ```
+
 Checks:
+
 - Backend bundle exists (dist/index.js)
 - Frontend assets built (dist/public/)
 - Runtime dependencies present
 
 ### Runtime Verification
+
 ```bash
 npm run build:verify-runtime
 ```
+
 Checks:
+
 - Logger initialization
 - Database module loading
 - Environment validation
@@ -82,12 +90,14 @@ package.json          # For deployment
 ## 🔧 Troubleshooting
 
 ### Build Fails at Type Checking
+
 ```bash
 # See detailed errors
 npm run check
 ```
 
 ### Build Artifacts Missing
+
 ```bash
 # Verify what was created
 npm run build:verify
@@ -98,6 +108,7 @@ npm run build
 ```
 
 ### Runtime Errors After Build
+
 ```bash
 # Check if all modules can load
 npm run build:verify-runtime
@@ -121,6 +132,7 @@ RUN npm prune --production
 ## 🚢 Deployment
 
 ### Quick Deployment Check
+
 ```bash
 # 1. Build
 npm run build
@@ -136,6 +148,7 @@ bash scripts/deploy-production.sh
 ```
 
 ### Required Files for Deployment
+
 - ✅ `dist/` - Backend and frontend
 - ✅ `node_modules/` - Production dependencies
 - ✅ `package.json` - Dependency manifest
@@ -143,11 +156,13 @@ bash scripts/deploy-production.sh
 ## ⚙️ Environment Requirements
 
 ### Minimum Requirements
+
 - Node.js 18+
 - npm 9+
 - SQLite Cloud database (or connection URL)
 
 ### Required Files
+
 - `package.json`
 - `tsconfig.json`
 - `vite.config.ts`
@@ -162,6 +177,7 @@ bash scripts/deploy-production.sh
 ## 🎯 Quick Checklist
 
 Before deploying:
+
 - [ ] Run `npm run build`
 - [ ] Run `npm run build:verify`
 - [ ] Run `npm run build:verify-runtime`
