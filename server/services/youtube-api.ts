@@ -4,6 +4,7 @@
 
 import { logger } from '../logger';
 import { generateSecureToken } from '../utils/security.utils';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 // Structured error types for better error handling
 export interface YouTubeAPIError {
@@ -860,10 +861,8 @@ export class YouTubeAPIService {
     }
 
     try {
-      // Use dynamic import for better ESM compatibility
-      const crypto = require('crypto');
-      const expectedSignature = 'sha1=' + crypto
-        .createHmac('sha1', secret)
+      // Calculate HMAC signature for webhook verification
+      const expectedSignature = 'sha1=' + createHmac('sha1', secret)
         .update(body)
         .digest('hex');
 
@@ -875,7 +874,7 @@ export class YouTubeAPIService {
         return false;
       }
 
-      return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+      return timingSafeEqual(signatureBuffer, expectedBuffer);
     } catch (error) {
       console.error('Error verifying YouTube webhook signature:', error);
       return false;

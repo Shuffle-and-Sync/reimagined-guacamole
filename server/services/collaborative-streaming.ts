@@ -3,29 +3,10 @@ import { storage } from '../storage';
 import { streamingCoordinator } from './streaming-coordinator';
 import { aiStreamingMatcher } from './ai-streaming-matcher';
 import { resolvePlatformIdentifiers, getValidPlatformToken } from './platform-oauth';
-// Platform API imports with error handling
-let youtubeAPI: any = null;
-let twitchAPI: any = null;
-let facebookAPI: any = null;
+import { youtubeAPI } from './youtube-api';
+import { twitchAPI } from './twitch-api';
+import { facebookAPI } from './facebook-api';
 
-// Safely import platform APIs to prevent startup crashes
-try {
-  youtubeAPI = require('./youtube-api').youtubeAPI;
-} catch (error) {
-  logger.warn('YouTube API not available', { error: error instanceof Error ? error.message : 'Unknown error' });
-}
-
-try {
-  twitchAPI = require('./twitch-api').twitchAPI;
-} catch (error) {
-  logger.warn('Twitch API not available', { error: error instanceof Error ? error.message : 'Unknown error' });
-}
-
-try {
-  facebookAPI = require('./facebook-api').facebookAPI;
-} catch (error) {
-  logger.warn('Facebook API not available', { error: error instanceof Error ? error.message : 'Unknown error' });
-}
 import type { 
   CollaborativeStreamEvent, 
   StreamCollaborator, 
@@ -911,9 +892,10 @@ export class CollaborativeStreamingService {
                 
                 if (accessToken && pageId) {
                   // End Facebook live video
-                  const liveStatus = facebookAPI.getLiveVideoStatus
-                    ? await facebookAPI.getLiveVideoStatus(pageId, accessToken)
+                  const liveVideosResult = facebookAPI.getLiveVideos
+                    ? await facebookAPI.getLiveVideos(pageId, accessToken)
                     : null;
+                  const liveStatus = liveVideosResult?.data?.[0];
                   if (liveStatus && liveStatus.status === 'LIVE') {
                     await facebookAPI.endLiveVideo(liveStatus.id, accessToken);
                     endResults.facebook = { status: 'ended', action: 'live_video_ended', timestamp: new Date(), pageId };

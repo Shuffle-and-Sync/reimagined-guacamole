@@ -1467,13 +1467,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete authenticatedReq.session.mfaPendingSecret;
       }
       
-      // Return backup codes ONCE - user must save them now
-      return res.json({ 
-        message: "Multi-factor authentication has been enabled successfully",
-        backupCodes: newBackupCodes,
-        warning: "Save these backup codes now - they will not be shown again!"
-      });
-      
       // Log MFA enabled event with audit trail
       logger.info('MFA enabled successfully', { userId });
       
@@ -1489,8 +1482,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
         isSuccessful: true
       });
-      
-      return res.json({ message: "Multi-factor authentication has been enabled successfully" });
+
+      // Return backup codes ONCE - user must save them now
+      return res.json({ 
+        message: "Multi-factor authentication has been enabled successfully",
+        backupCodes: newBackupCodes,
+        warning: "Save these backup codes now - they will not be shown again!"
+      });
       
     } catch (error) {
       logger.error('MFA enable failed', { error: error instanceof Error ? error.message : 'Unknown error', userId: getAuthUserId(req as AuthenticatedRequest) });

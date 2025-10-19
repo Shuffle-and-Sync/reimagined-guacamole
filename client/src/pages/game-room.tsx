@@ -209,7 +209,7 @@ export default function GameRoom() {
             setTimeout(() => createPeerConnection(data.player.id), 1000);
           }
           break;
-        case 'player_left':
+        case 'player_left': {
           setConnectedPlayers(data.players);
           toast({
             title: "Player left",
@@ -230,6 +230,7 @@ export default function GameRoom() {
             return newStreams;
           });
           break;
+        }
         case 'game_action':
           if (data.action === 'dice_roll') {
             toast({
