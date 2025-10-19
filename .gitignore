@@ -70,6 +70,3 @@ postgres_data/
 # Cloud Build logs
 cloudbuild-logs/
 meta.json
-".env.production" 
-".env.production" 
-.env.production
