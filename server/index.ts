@@ -513,13 +513,19 @@ server.listen(
           return;
         }
 
+        // Validate user email exists
+        if (!user.email) {
+          res.status(400).json({ message: "User email not found" });
+          return;
+        }
+
         // Invalidate any existing verification tokens for this user
         await storage.invalidateUserEmailVerificationTokens(user.id);
 
         // Generate new JWT token
         const verificationToken = await generateEmailVerificationJWT(
           user.id,
-          user.email!,
+          user.email,
           TOKEN_EXPIRY.EMAIL_VERIFICATION,
         );
 
@@ -529,7 +535,7 @@ server.listen(
         );
         await storage.createEmailVerificationToken({
           userId: user.id,
-          email: user.email!,
+          email: user.email,
           token: verificationToken,
           expiresAt,
         });
@@ -540,7 +546,7 @@ server.listen(
           process.env.PUBLIC_WEB_URL ||
           "https://shuffleandsync.org";
         await sendEmailVerificationEmail(
-          user.email!,
+          user.email,
           verificationToken,
           baseUrl,
           user.firstName || undefined,

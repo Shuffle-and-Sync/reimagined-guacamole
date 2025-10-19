@@ -60,7 +60,14 @@ declare global {
 }
 
 // Compatibility type during migration
-export type AuthenticatedRequest = Request;
+export type AuthenticatedRequest = Request & {
+  user: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
+  };
+};
 
 // Middleware to check if user is authenticated (replaces old isAuthenticated)
 export async function requireAuth(

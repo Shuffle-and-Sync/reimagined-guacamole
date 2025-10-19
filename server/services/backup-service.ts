@@ -461,8 +461,11 @@ class BackupService {
     },
   ): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (!process.env.DATABASE_URL) {
+        return reject(new Error("DATABASE_URL not configured"));
+      }
       const args = [
-        process.env.DATABASE_URL!,
+        process.env.DATABASE_URL,
         "--no-password",
         "--verbose",
         "--clean",
@@ -516,8 +519,11 @@ class BackupService {
     },
   ): Promise<{ tablesRestored: string[] }> {
     return new Promise((resolve, reject) => {
+      if (!process.env.DATABASE_URL) {
+        return reject(new Error("DATABASE_URL not configured"));
+      }
       const args = [
-        process.env.DATABASE_URL!,
+        process.env.DATABASE_URL,
         "--file",
         backupPath,
         "--verbose",
