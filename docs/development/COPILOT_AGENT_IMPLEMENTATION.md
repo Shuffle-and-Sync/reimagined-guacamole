@@ -41,14 +41,19 @@ client/src/pages/
 ### Frontend Architecture
 
 #### 1. Feature-Based Organization
+
 ```typescript
 // client/src/features/game-stats/index.ts
-export type { GameStats, GameResult, TCGType } from './types';
-export { GameStatsCard, GameStatsCardSkeleton } from './components/game-stats-card';
-export { useGameStats, useAggregateGameStats } from './hooks/use-game-stats';
+export type { GameStats, GameResult, TCGType } from "./types";
+export {
+  GameStatsCard,
+  GameStatsCardSkeleton,
+} from "./components/game-stats-card";
+export { useGameStats, useAggregateGameStats } from "./hooks/use-game-stats";
 ```
 
 #### 2. TypeScript Strict Configuration
+
 ```typescript
 // Comprehensive type definitions with Zod validation
 export interface GameStats {
@@ -68,14 +73,22 @@ export interface GameStats {
 
 // Runtime validation with Zod
 export const gameResultSchema = z.object({
-  gameType: z.enum(['mtg', 'pokemon', 'lorcana', 'yugioh', 'flesh-and-blood', 'keyforge']),
-  format: z.string().min(1, 'Format is required'),
-  result: z.enum(['win', 'loss', 'draw']),
-  duration: z.number().min(1, 'Duration must be at least 1 minute'),
+  gameType: z.enum([
+    "mtg",
+    "pokemon",
+    "lorcana",
+    "yugioh",
+    "flesh-and-blood",
+    "keyforge",
+  ]),
+  format: z.string().min(1, "Format is required"),
+  result: z.enum(["win", "loss", "draw"]),
+  duration: z.number().min(1, "Duration must be at least 1 minute"),
 });
 ```
 
 #### 3. React Patterns with Hooks
+
 ```typescript
 // Custom hook following repository conventions
 export function useGameStats(filters?: GameStatsQuery) {
@@ -84,10 +97,16 @@ export function useGameStats(filters?: GameStatsQuery) {
   const queryClient = useQueryClient();
 
   // TanStack React Query for server state
-  const { data: gameStatsData, isLoading, error } = useQuery({
-    queryKey: user ? QUERY_KEYS.gameStatsUser(user.id) : ['game-stats-anonymous'],
+  const {
+    data: gameStatsData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: user
+      ? QUERY_KEYS.gameStatsUser(user.id)
+      : ["game-stats-anonymous"],
     queryFn: async (): Promise<GameStatsResponse> => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error("User not authenticated");
       return apiRequest(`/api/game-stats?${params}`);
     },
     enabled: !!user,
@@ -104,6 +123,7 @@ export function useGameStats(filters?: GameStatsQuery) {
 ```
 
 #### 4. Component Composition with Shadcn/ui
+
 ```typescript
 // Component following repository UI patterns
 export function GameStatsCard({ stats, className, onEdit }: GameStatsCardProps) {
@@ -139,9 +159,10 @@ export function GameStatsCard({ stats, className, onEdit }: GameStatsCardProps) 
 ### Backend Architecture
 
 #### 1. RESTful API Design
+
 ```typescript
 // Express.js routes with proper HTTP methods and status codes
-router.get('/', requireAuth, async (req, res, next) => {
+router.get("/", requireAuth, async (req, res, next) => {
   try {
     const query = gameStatsQuerySchema.parse(req.query);
     const userId = req.user!.id;
@@ -150,57 +171,71 @@ router.get('/', requireAuth, async (req, res, next) => {
     res.json({
       success: true,
       data: result,
-      message: 'Game statistics retrieved successfully',
+      message: "Game statistics retrieved successfully",
     });
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/game-results', requireAuth, validateRequest(createGameResultSchema), async (req, res, next) => {
-  try {
-    const userId = req.user!.id;
-    const newResult = await gameStatsService.createGameResult(userId, req.body);
-    
-    res.status(201).json({
-      success: true,
-      data: newResult,
-      message: 'Game result recorded successfully',
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/game-results",
+  requireAuth,
+  validateRequest(createGameResultSchema),
+  async (req, res, next) => {
+    try {
+      const userId = req.user!.id;
+      const newResult = await gameStatsService.createGameResult(
+        userId,
+        req.body,
+      );
+
+      res.status(201).json({
+        success: true,
+        data: newResult,
+        message: "Game result recorded successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 ```
 
 #### 2. Authentication Integration
+
 ```typescript
 // Auth.js v5 middleware integration
-import { requireAuth } from '../../auth/auth.middleware';
+import { requireAuth } from "../../auth/auth.middleware";
 
 // Protected route requiring authentication
-router.get('/', requireAuth, async (req, res, next) => {
+router.get("/", requireAuth, async (req, res, next) => {
   const userId = req.user!.id; // TypeScript knows user exists due to requireAuth
   // Route logic...
 });
 ```
 
 #### 3. Service Layer with Business Logic
+
 ```typescript
 // Separation of concerns with service layer
 class GameStatsService {
   async getUserGameStats(userId: string, filters: GameStatsFilters) {
     try {
       // Validate user exists
-      const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       // Business logic with database operations
       return await this.performDatabaseQuery(userId, filters);
     } catch (error) {
-      console.error('Error fetching user game stats:', error);
+      console.error("Error fetching user game stats:", error);
       throw error;
     }
   }
@@ -218,29 +253,32 @@ class GameStatsService {
 ```
 
 #### 4. Input Validation and Error Handling
+
 ```typescript
 // Zod schema validation middleware
-const validateRequest = (schema: z.ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
-  try {
-    req.body = schema.parse(req.body);
-    next();
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
-      });
+const validateRequest =
+  (schema: z.ZodSchema) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation error",
+          errors: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+        });
+      }
+      next(error);
     }
-    next(error);
-  }
-};
+  };
 
 // Custom error types
 export class NotFoundError extends Error {
   constructor(message: string = "Resource not found") {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
   }
 }
 ```
@@ -248,6 +286,7 @@ export class NotFoundError extends Error {
 ## 🎨 UI/UX Patterns
 
 ### 1. Tailwind CSS with Design Tokens
+
 ```typescript
 // Community theming following repository conventions
 const TCG_THEMES: Record<TCGType, { color: string; icon: string; name: string }> = {
@@ -265,11 +304,12 @@ const TCG_THEMES: Record<TCGType, { color: string; icon: string; name: string }>
 ```
 
 ### 2. Accessibility Best Practices
+
 ```typescript
 // ARIA labels and semantic HTML
-<Progress 
-  value={winRate} 
-  className="h-2" 
+<Progress
+  value={winRate}
+  className="h-2"
   aria-label={`Win rate: ${winRate}%`}
 />
 
@@ -284,6 +324,7 @@ const TCG_THEMES: Record<TCGType, { color: string; icon: string; name: string }>
 ```
 
 ### 3. Loading States and Error Boundaries
+
 ```typescript
 // Loading skeletons following Shadcn/ui patterns
 export function GameStatsCardSkeleton() {
@@ -319,16 +360,17 @@ export function GameStatsCardSkeleton() {
 ## 🔒 Security and Authentication
 
 ### 1. Authentication Flow Integration
+
 ```typescript
 // Auth.js v5 integration
 export function useGameStats() {
   const { user, isAuthenticated } = useAuth();
 
   const { data, error } = useQuery({
-    queryKey: user ? QUERY_KEYS.gameStatsUser(user.id) : ['anonymous'],
+    queryKey: user ? QUERY_KEYS.gameStatsUser(user.id) : ["anonymous"],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
-      return apiRequest('/api/game-stats');
+      if (!user) throw new Error("User not authenticated");
+      return apiRequest("/api/game-stats");
     },
     enabled: !!user, // Only run query if user is authenticated
   });
@@ -336,6 +378,7 @@ export function useGameStats() {
 ```
 
 ### 2. Route Protection
+
 ```typescript
 // Server-side route protection
 router.get('/', requireAuth, async (req, res, next) => {
@@ -357,6 +400,7 @@ if (!isAuthenticated) {
 ## 📊 State Management
 
 ### 1. TanStack React Query Integration
+
 ```typescript
 // Query client configuration following repository patterns
 const queryClient = useQueryClient();
@@ -365,8 +409,8 @@ const queryClient = useQueryClient();
 const createGameResultMutation = useMutation({
   mutationFn: async (data: CreateGameResultData) => {
     const validatedData = gameResultSchema.parse(data);
-    return apiRequest('/api/game-results', {
-      method: 'POST',
+    return apiRequest("/api/game-results", {
+      method: "POST",
       body: JSON.stringify(validatedData),
     });
   },
@@ -379,16 +423,17 @@ const createGameResultMutation = useMutation({
 ```
 
 ### 2. Community Integration
+
 ```typescript
 // Community theming and context integration
 const { selectedCommunity, communityTheme } = useCommunity();
 
 // Dynamic theming based on selected community
-<div 
-  style={{ 
-    background: communityTheme ? 
+<div
+  style={{
+    background: communityTheme ?
       `linear-gradient(135deg, ${communityTheme.primaryColor}20 0%, ${communityTheme.secondaryColor}20 100%)` :
-      undefined 
+      undefined
   }}
 >
 ```
@@ -396,18 +441,19 @@ const { selectedCommunity, communityTheme } = useCommunity();
 ## 🧪 Testing Considerations
 
 ### 1. Component Testing
+
 ```typescript
 // Test data and mock implementations
 const mockGameStats: GameStats = {
-  id: '1',
-  userId: 'user-1',
-  gameType: 'mtg',
+  id: "1",
+  userId: "user-1",
+  gameType: "mtg",
   totalGames: 45,
   wins: 28,
   losses: 15,
   draws: 2,
   winRate: 0.62,
-  favoriteFormat: 'Commander',
+  favoriteFormat: "Commander",
   lastPlayed: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -422,6 +468,7 @@ interface GameStatsCardProps {
 ```
 
 ### 2. API Testing
+
 ```typescript
 // Mock service implementations for testing
 class MockGameStatsService {
@@ -438,34 +485,38 @@ class MockGameStatsService {
 ## 🚀 Performance Optimization
 
 ### 1. Query Optimization
+
 ```typescript
 // Stale time and garbage collection configuration
 const { data } = useQuery({
   queryKey: QUERY_KEYS.gameStatsUser(user.id),
   queryFn: fetchGameStats,
-  staleTime: 5 * 60 * 1000,  // 5 minutes
-  gcTime: 10 * 60 * 1000,    // 10 minutes
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes
 });
 ```
 
 ### 2. Code Splitting and Lazy Loading
+
 ```typescript
 // Feature-based code organization enables easy code splitting
-import { GameStatsCard } from '@/features/game-stats';
+import { GameStatsCard } from "@/features/game-stats";
 
 // Lazy loading for pages
-const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
+const GameStatsPage = lazy(() => import("@/pages/game-stats-example"));
 ```
 
 ## 📋 Checklist: Implementation Compliance
 
 ### ✅ Core Architecture
+
 - [x] Feature-based file organization
 - [x] TypeScript strict configuration compliance
 - [x] Proper separation of client/server/shared code
 - [x] Consistent naming conventions (kebab-case files, PascalCase components, camelCase functions)
 
 ### ✅ Frontend Implementation
+
 - [x] React 18 functional components with hooks
 - [x] TanStack React Query for server state management
 - [x] Wouter routing integration
@@ -473,6 +524,7 @@ const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
 - [x] Tailwind CSS with design tokens and dark theme support
 
 ### ✅ Backend Implementation
+
 - [x] Express.js RESTful API design
 - [x] Auth.js v5 authentication middleware integration
 - [x] Drizzle ORM type-safe database operations
@@ -481,6 +533,7 @@ const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
 - [x] Consistent response formats
 
 ### ✅ Code Quality
+
 - [x] Comprehensive TypeScript type definitions
 - [x] Detailed comments and documentation
 - [x] Error boundaries and loading states
@@ -489,6 +542,7 @@ const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
 - [x] Security best practices
 
 ### ✅ Testing & Performance
+
 - [x] Mock implementations for testing
 - [x] Performance optimization with query caching
 - [x] Code splitting readiness
@@ -497,6 +551,7 @@ const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
 ## 🎓 Usage Examples
 
 ### Running the Example
+
 1. Navigate to `/game-stats-example` in the application
 2. Sign in with your account
 3. Explore the different tabs:
@@ -506,6 +561,7 @@ const GameStatsPage = lazy(() => import('@/pages/game-stats-example'));
    - **Add Result**: Record new game results
 
 ### API Endpoints
+
 ```
 GET    /api/game-stats              - Get user's game statistics
 PUT    /api/game-stats              - Update statistics preferences

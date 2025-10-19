@@ -1,13 +1,16 @@
 # ⚠️ GitHub Pages Configuration Required
 
 ## Issue
+
 GitHub Pages deployment workflow is failing with error:
+
 ```
 Error: Failed to create deployment (status: 422)
 HttpError: Validation Failed
 ```
 
 ## Root Cause
+
 The repository has GitHub Pages enabled, but it's configured to deploy from a branch instead of GitHub Actions. This causes the deployment workflow to fail with a validation error.
 
 ## Quick Fix (2 minutes)
@@ -22,6 +25,7 @@ If you want to host documentation at `https://shuffle-and-sync.github.io/reimagi
 3. **Click Save**
 
 **After configuring:**
+
 - Edit `.github/workflows/pages.yml` and remove the `if: github.event_name == 'workflow_dispatch'` condition
 - The workflow will then automatically deploy the `docs/` directory on every push to main
 
@@ -44,6 +48,7 @@ If you don't need GitHub Pages:
 ## Why This Happened
 
 GitHub Pages has two deployment modes:
+
 1. **Deploy from a branch** (default) - Uses Jekyll to build from a branch like `gh-pages` or `main`
 2. **GitHub Actions** - Uses custom workflows to deploy artifacts
 
@@ -52,6 +57,7 @@ This repository has a GitHub Actions workflow (`.github/workflows/pages.yml`) bu
 ## Application Context
 
 **Shuffle & Sync** is primarily deployed to **Google Cloud Run**, not GitHub Pages. GitHub Pages deployment is optional and only useful for:
+
 - Hosting the documentation site
 - Providing a static reference for the `docs/` folder
 

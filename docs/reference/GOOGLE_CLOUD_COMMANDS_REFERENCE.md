@@ -157,6 +157,7 @@ gcloud services enable run.googleapis.com
 
 **Purpose:** Enable a single Google Cloud service  
 **Common APIs:**
+
 - `run.googleapis.com` - Cloud Run
 - `cloudbuild.googleapis.com` - Cloud Build
 - `secretmanager.googleapis.com` - Secret Manager
@@ -177,6 +178,7 @@ gcloud services list --available
 
 **Purpose:** View enabled or available Google Cloud services  
 **Common filters:**
+
 - `--enabled` - Show only enabled services
 - `--available` - Show all available services
 - `--filter="name:SERVICE_NAME"` - Filter by service name
@@ -227,6 +229,7 @@ gcloud run services describe shuffle-sync-backend \
 
 **Purpose:** Inspect service configuration and status  
 **Useful formats:**
+
 - `value(status.url)` - Get service URL
 - `value(spec.template.spec.containers[0].env)` - List environment variables
 - `yaml` - Full configuration in YAML format
@@ -245,6 +248,7 @@ gcloud run services update shuffle-sync-backend \
 
 **Purpose:** Update service configuration without redeployment  
 **Common use cases:**
+
 - Set OAuth credentials
 - Update backend URL on frontend
 - Change database connection string
@@ -259,7 +263,8 @@ gcloud run services update shuffle-sync-frontend \
   --set-env-vars BACKEND_URL=https://your-backend-url
 ```
 
-**Important:** 
+**Important:**
+
 - Values with spaces must be quoted
 - No trailing slashes for URLs
 - Use `$(command)` for generated values (e.g., secrets)
@@ -310,6 +315,7 @@ gcloud run deploy shuffle-sync-frontend \
 
 **Purpose:** Deploy a container image to Cloud Run  
 **Common options:**
+
 - `--memory` - Memory allocation (256Mi, 512Mi, 1Gi, etc.)
 - `--cpu` - CPU allocation (1, 2, 4, etc.)
 - `--max-instances` - Maximum number of instances
@@ -333,6 +339,7 @@ gcloud run services update-traffic shuffle-sync-backend \
 
 **Purpose:** Control traffic distribution between service revisions  
 **Use cases:**
+
 - Canary deployments
 - Blue/green deployments
 - Gradual rollouts
@@ -395,10 +402,12 @@ gcloud builds submit \
 
 **Purpose:** Build and deploy containerized applications  
 **Config files:**
+
 - `cloudbuild.yaml` - Backend build configuration
 - `cloudbuild-frontend.yaml` - Frontend build configuration
 
 **Common substitutions:**
+
 - `_REGION` - Deployment region
 - `_ENV` - Environment (dev, staging, production)
 - `_SERVICE_NAME` - Custom service name
@@ -445,6 +454,7 @@ gcloud logging read \
 
 **Purpose:** Debug issues and monitor application behavior  
 **Common filters:**
+
 - `severity>=ERROR` - Errors only
 - `severity>=WARNING` - Warnings and errors
 - `resource.labels.service_name=SERVICE_NAME` - Specific service
@@ -486,6 +496,7 @@ gcloud secrets create MASTER_ADMIN_EMAIL \
 
 **Purpose:** Store sensitive configuration securely  
 **Common secrets:**
+
 - `auth-secret` - Authentication secret
 - `database-url` - Database connection string
 - `google-client-secret` - OAuth client secret
@@ -583,6 +594,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 **Purpose:** Grant permissions to service accounts or users  
 **Common roles:**
+
 - `roles/run.admin` - Cloud Run administration
 - `roles/cloudbuild.builds.builder` - Cloud Build execution
 - `roles/secretmanager.secretAccessor` - Secret access
@@ -763,7 +775,8 @@ npm run diagnose:auth
 npm run verify:cloudrun
 ```
 
-**Documentation:** 
+**Documentation:**
+
 - [Troubleshooting Guide](troubleshooting.md)
 - [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md)
 
@@ -772,20 +785,24 @@ npm run verify:cloudrun
 ## Related Documentation
 
 ### Deployment & Configuration
+
 - [Deployment Guide](../DEPLOYMENT.md) - Complete deployment guide
 - [Configuration Files Guide](CONFIGURATION_FILES_GUIDE.md) - Configuration management
 
 ### Troubleshooting
+
 - [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
 - [Auth Error Quick Reference](AUTH_ERROR_QUICK_REFERENCE.md) - Quick reference card
 - [Troubleshooting Configuration Error](TROUBLESHOOTING_CONFIGURATION_ERROR.md) - Detailed troubleshooting
 
 ### Cloud Run Specific
+
 - [Cloud Run Frontend/Backend Setup](CLOUD_RUN_FRONTEND_BACKEND_SETUP.md) - Architecture guide
 - [Cloud Run Service Name Fix](CLOUD_RUN_SERVICE_NAME_FIX.md) - Service naming issues
 - [Cloud Run Auth Fix](CLOUD_RUN_AUTH_FIX.md) - Authentication configuration
 
 ### Scripts & Automation
+
 - **Deployment script**: `scripts/deploy-production.sh` - Automated deployment with `npm run deploy:production`
   - Backend only: `npm run deploy:backend`
   - Frontend only: `npm run deploy:frontend`
@@ -826,19 +843,22 @@ To contribute improvements to this documentation:
 ## Quick Command Index
 
 ### Deployment
+
 - `gcloud builds submit --config cloudbuild.yaml` - Deploy backend
 - `gcloud builds submit --config cloudbuild-frontend.yaml` - Deploy frontend
 
 ### Service Management
+
 - `gcloud run services list --region=us-central1` - List services
 - `gcloud run services describe SERVICE_NAME --region=us-central1` - Service details
 - `gcloud run services update SERVICE_NAME --set-env-vars KEY=VALUE` - Update config
 
 ### Debugging
+
 - `gcloud logging read "resource.type=cloud_run_revision" --limit 50` - View logs
 - `gcloud run services describe SERVICE_NAME --format="value(spec.template.spec.containers[0].env)"` - Check env vars
 - `npm run diagnose:auth` - Automated diagnostics
 
 ---
 
-*For questions or issues with these commands, refer to the [Troubleshooting](#troubleshooting) section or check the [Related Documentation](#related-documentation).*
+_For questions or issues with these commands, refer to the [Troubleshooting](#troubleshooting) section or check the [Related Documentation](#related-documentation)._

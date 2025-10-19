@@ -63,18 +63,18 @@ graph TB
     LB --> CloudRun
     CloudRun --> Frontend
     CloudRun --> Backend
-    
+
     Frontend --> Backend
     Backend --> AuthJS
     Backend --> DrizzleORM
     DrizzleORM --> SQLiteCloud
-    
+
     AuthJS --> Google
     Backend --> Twitch
     Backend --> YouTube
     Backend --> Facebook
     Backend --> SendGrid
-    
+
     Backend --> CloudMonitoring
     Backend --> CloudLogging
     Frontend --> CloudMonitoring
@@ -98,14 +98,14 @@ erDiagram
     USERS ||--o{ MESSAGES : "sends"
     USERS ||--o{ PLATFORM_ACCOUNTS : "connects"
     USERS ||--|| SESSIONS : "has"
-    
+
     COMMUNITIES ||--o{ USER_COMMUNITIES : "has"
     COMMUNITIES ||--o{ EVENTS : "hosts"
     COMMUNITIES ||--o{ TOURNAMENTS : "organizes"
-    
+
     TOURNAMENTS ||--o{ MATCHES : "contains"
     MATCHES ||--o{ MATCH_RESULTS : "has"
-    
+
     GAMES ||--o{ CARDS : "contains"
     USERS ||--o{ DECKS : "owns"
     DECKS ||--o{ DECK_CARDS : "includes"
@@ -254,16 +254,16 @@ graph TB
     Users --> Frontend
     Users --> Backend
     Frontend --> Backend
-    
+
     GitHub --> CI
     CI --> Registry
     Registry --> Frontend
     Registry --> Backend
-    
+
     Backend --> SQLiteCloud
     Backend --> Secrets
     SQLiteCloud -.-> SQLiteProvider
-    
+
     Frontend --> Monitoring
     Backend --> Monitoring
     Frontend --> Logging
@@ -300,7 +300,7 @@ sequenceDiagram
     WebSocket->>Frontend2: message:new event
     Frontend1->>User1: Show sent message
     Frontend2->>User2: Show received message
-    
+
     Note over Frontend1,Frontend2: Real-time bidirectional communication
 
     User2->>Frontend2: Start typing
@@ -325,31 +325,31 @@ sequenceDiagram
 
     User->>Frontend: Click "Connect Twitch"
     Frontend->>Backend: GET /api/platforms/twitch/oauth/initiate
-    
+
     Note over Backend: Generate PKCE code_verifier<br/>and code_challenge
-    
+
     Backend->>Database: Store PKCE state
     Backend->>Frontend: Return auth URL
     Frontend->>Platform: Redirect to platform OAuth
     Platform->>User: Show consent screen
     User->>Platform: Approve permissions
     Platform->>Backend: Callback with auth code
-    
+
     Backend->>Database: Verify PKCE state
     Database->>Backend: State valid
-    
+
     Backend->>Platform: Exchange code for tokens<br/>(with code_verifier)
     Platform->>Backend: Return access + refresh tokens
-    
+
     Backend->>Platform: Get user profile
     Platform->>Backend: Return platform user data
-    
+
     Backend->>Database: Store encrypted tokens<br/>and user info
     Database->>Backend: Account saved
-    
+
     Backend->>Frontend: Redirect with success
     Frontend->>User: Platform connected!
-    
+
     Note over Backend,Database: Tokens automatically refreshed<br/>5 minutes before expiry
 ```
 
@@ -365,26 +365,26 @@ graph TB
     Reg --> Check{Registrations<br/>Closed?}
     Check -->|No| Reg
     Check -->|Yes| CheckIn[Check-In Phase]
-    
+
     CheckIn --> Seed[Seed Players]
     Seed --> GenBracket{Tournament<br/>Format?}
-    
+
     GenBracket -->|Single Elim| SE[Generate Single<br/>Elimination Bracket]
     GenBracket -->|Swiss| Swiss[Generate Swiss<br/>Pairings]
     GenBracket -->|Round Robin| RR[Generate Round<br/>Robin Schedule]
-    
+
     SE --> PlayMatch[Play Matches]
     Swiss --> PlayMatch
     RR --> PlayMatch
-    
+
     PlayMatch --> Report[Report Results]
     Report --> Update[Update Standings]
-    
+
     Update --> NextRound{More<br/>Rounds?}
     NextRound -->|Yes - Swiss/RR| Swiss
     NextRound -->|Yes - SE| SE
     NextRound -->|No| Finals[Determine Winner]
-    
+
     Finals --> Prizes[Distribute Prizes]
     Prizes --> Complete[Tournament Complete]
 
@@ -412,7 +412,7 @@ sequenceDiagram
     Frontend->>Frontend: Client-side validation
     Frontend->>Backend: POST /api/tournaments
     Backend->>Validation: Validate request (Zod)
-    
+
     alt Validation fails
         Validation->>Backend: Validation errors
         Backend->>Frontend: 400 Bad Request
@@ -470,22 +470,22 @@ graph TB
     App --> Metrics
     App --> Errors
     Frontend --> Errors
-    
+
     Logs --> CloudLogging
     Metrics --> CloudMonitoring
     Errors --> CloudMonitoring
-    
+
     CloudMonitoring --> Alerts
     CloudLogging --> Alerts
-    
+
     Alerts -->|SEV-1| PagerDuty
     Alerts -->|SEV-2| Slack
     Alerts -->|SEV-3| Email
-    
+
     PagerDuty --> OnCall
     Slack --> OnCall
     Email --> OnCall
-    
+
     OnCall --> Runbooks
 
     style Alerts fill:#ffe1e1
@@ -538,24 +538,24 @@ graph TB
     Internet --> CloudArmor
     Attackers -.-> CloudArmor
     CloudArmor --> LB
-    
+
     LB --> CORS
     CORS --> CSRF
     CSRF --> RateLimit
     RateLimit --> InputVal
-    
+
     InputVal --> OAuth
     OAuth --> Sessions
     Sessions --> RBAC
-    
+
     RBAC --> DrizzleORM
     DrizzleORM --> Encryption
     Encryption --> Secrets
-    
+
     Sessions --> Logging
     RBAC --> Logging
     DrizzleORM --> Logging
-    
+
     Logging --> Alerts
     Logging --> Audit
 
@@ -578,6 +578,7 @@ graph TB
 **Last Updated:** 2025-10-18
 
 **Related Documentation:**
+
 - [Project Architecture](PROJECT_ARCHITECTURE.md)
 - [Technology Stack](TECHNOLOGY_STACK.md)
 - [Database Architecture](DATABASE_ARCHITECTURE.md)

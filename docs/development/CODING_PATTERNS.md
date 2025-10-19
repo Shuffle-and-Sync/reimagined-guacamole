@@ -36,6 +36,7 @@ This document outlines the coding standards, patterns, and conventions used thro
 ### Directory Structure Guidelines
 
 #### Client Structure
+
 ```
 client/src/
 ├── components/          # Reusable UI components
@@ -55,6 +56,7 @@ client/src/
 ```
 
 #### Server Structure
+
 ```
 server/
 ├── features/           # Feature modules
@@ -74,44 +76,47 @@ server/
 ### Files
 
 #### Component Files
+
 ```typescript
 // Use PascalCase for component files
-UserProfile.tsx
-CommunityCard.tsx
-EventCalendar.tsx
+UserProfile.tsx;
+CommunityCard.tsx;
+EventCalendar.tsx;
 ```
 
 #### Non-Component Files
+
 ```typescript
 // Use kebab-case for other files
-auth-service.ts
-user-repository.ts
-validation-utils.ts
+auth - service.ts;
+user - repository.ts;
+validation - utils.ts;
 ```
 
 #### Test Files
+
 ```typescript
 // Add .test before extension
-user-service.test.ts
-auth-routes.test.ts
-CommunityCard.test.tsx
+user - service.test.ts;
+auth - routes.test.ts;
+CommunityCard.test.tsx;
 ```
 
 ### Components
 
 ```typescript
 // Use PascalCase
-export function UserProfile() { }
-export function CommunityCard() { }
-export function EventList() { }
+export function UserProfile() {}
+export function CommunityCard() {}
+export function EventList() {}
 ```
 
 ### Functions and Variables
 
 ```typescript
 // Use camelCase
-function getUserById(id: string) { }
-const userProfile = { };
+function getUserById(id: string) {}
+const userProfile = {};
 let isAuthenticated = false;
 ```
 
@@ -128,9 +133,9 @@ const DEFAULT_PAGE_SIZE = 20;
 
 ```typescript
 // Use PascalCase
-interface UserProfile { }
-type EventStatus = 'pending' | 'active' | 'completed';
-interface ApiResponse<T> { }
+interface UserProfile {}
+type EventStatus = "pending" | "active" | "completed";
+interface ApiResponse<T> {}
 ```
 
 ### Database Schema
@@ -239,7 +244,7 @@ function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
 
 ```typescript
 // ✅ Define Zod schemas for validation
-import { z } from 'zod';
+import { z } from "zod";
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -252,7 +257,7 @@ const CreateUserSchema = z.object({
 type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
 // ✅ Use in API endpoints
-app.post('/api/users', async (req, res) => {
+app.post("/api/users", async (req, res) => {
   const input = CreateUserSchema.parse(req.body);
   // input is now typed as CreateUserInput
 });
@@ -264,10 +269,10 @@ app.post('/api/users', async (req, res) => {
 // ✅ Use type guards for runtime type checking
 function isUser(value: unknown): value is User {
   return (
-    typeof value === 'object' &&
+    typeof value === "object" &&
     value !== null &&
-    'id' in value &&
-    'email' in value
+    "id" in value &&
+    "email" in value
   );
 }
 
@@ -351,7 +356,7 @@ function useUser(userId: string) {
 // Mutation
 function useCreateUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createUser,
     onSuccess: () => {
@@ -462,18 +467,18 @@ POST   /api/users/:id/communities    # Add user to community
 ```typescript
 // ✅ Feature-based routes
 // server/features/users/routes.ts
-import { Router } from 'express';
-import { UsersService } from './service';
-import { CreateUserSchema } from './validation';
+import { Router } from "express";
+import { UsersService } from "./service";
+import { CreateUserSchema } from "./validation";
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   const users = await UsersService.listUsers();
   res.json({ users, success: true });
 });
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   const input = CreateUserSchema.parse(req.body);
   const user = await UsersService.createUser(input);
   res.json({ user, success: true });
@@ -497,14 +502,14 @@ interface ApiResponse<T> {
 res.json({
   data: user,
   success: true,
-  message: 'User created successfully'
+  message: "User created successfully",
 });
 
 // Error response
 res.status(400).json({
   success: false,
-  error: 'VALIDATION_ERROR',
-  message: 'Invalid email format'
+  error: "VALIDATION_ERROR",
+  message: "Invalid email format",
 });
 ```
 
@@ -512,8 +517,8 @@ res.status(400).json({
 
 ```typescript
 // ✅ Centralized error handling middleware
-import { ErrorRequestHandler } from 'express';
-import { ZodError } from 'zod';
+import { ErrorRequestHandler } from "express";
+import { ZodError } from "zod";
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err);
@@ -521,24 +526,24 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof ZodError) {
     return res.status(400).json({
       success: false,
-      error: 'VALIDATION_ERROR',
+      error: "VALIDATION_ERROR",
       message: err.errors[0].message,
-      details: err.errors
+      details: err.errors,
     });
   }
 
-  if (err.name === 'UnauthorizedError') {
+  if (err.name === "UnauthorizedError") {
     return res.status(401).json({
       success: false,
-      error: 'UNAUTHORIZED',
-      message: 'Authentication required'
+      error: "UNAUTHORIZED",
+      message: "Authentication required",
     });
   }
 
   res.status(500).json({
     success: false,
-    error: 'INTERNAL_ERROR',
-    message: 'An unexpected error occurred'
+    error: "INTERNAL_ERROR",
+    message: "An unexpected error occurred",
   });
 };
 ```
@@ -547,7 +552,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 ```typescript
 // ✅ Validate all inputs with Zod
-import { z } from 'zod';
+import { z } from "zod";
 
 const CreateEventSchema = z.object({
   title: z.string().min(1).max(100),
@@ -559,7 +564,7 @@ const CreateEventSchema = z.object({
 });
 
 // Use in route
-router.post('/events', async (req, res) => {
+router.post("/events", async (req, res) => {
   try {
     const input = CreateEventSchema.parse(req.body);
     const event = await EventsService.createEvent(input);
@@ -568,8 +573,8 @@ router.post('/events', async (req, res) => {
     if (error instanceof ZodError) {
       res.status(400).json({
         success: false,
-        error: 'VALIDATION_ERROR',
-        details: error.errors
+        error: "VALIDATION_ERROR",
+        details: error.errors,
       });
     }
   }
@@ -582,15 +587,12 @@ router.post('/events', async (req, res) => {
 
 ```typescript
 // ✅ Always use Drizzle ORM
-import { db } from '@shared/database-unified';
-import { users, communities } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users, communities } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 // Simple select
-const user = await db.select()
-  .from(users)
-  .where(eq(users.id, userId))
-  .limit(1);
+const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
 // Select with relations
 const usersWithCommunities = await db.query.users.findMany({
@@ -600,12 +602,10 @@ const usersWithCommunities = await db.query.users.findMany({
 });
 
 // Complex query
-const activeUsers = await db.select()
+const activeUsers = await db
+  .select()
   .from(users)
-  .where(and(
-    eq(users.isActive, true),
-    eq(users.communityId, communityId)
-  ))
+  .where(and(eq(users.isActive, true), eq(users.communityId, communityId)))
   .orderBy(desc(users.createdAt))
   .limit(20);
 ```
@@ -614,21 +614,24 @@ const activeUsers = await db.select()
 
 ```typescript
 // ✅ Use transactions for multiple operations
-import { withTransaction } from '@shared/database-unified';
+import { withTransaction } from "@shared/database-unified";
 
 await withTransaction(async (tx) => {
   // Insert user
-  const [user] = await tx.insert(users).values({
-    id: crypto.randomUUID(),
-    email: 'user@example.com',
-  }).returning();
+  const [user] = await tx
+    .insert(users)
+    .values({
+      id: crypto.randomUUID(),
+      email: "user@example.com",
+    })
+    .returning();
 
   // Insert user_community relationship
   await tx.insert(userCommunities).values({
     userId: user.id,
     communityId: communityId,
   });
-}, 'createUserWithCommunity');
+}, "createUserWithCommunity");
 ```
 
 ### Repository Pattern
@@ -636,13 +639,14 @@ await withTransaction(async (tx) => {
 ```typescript
 // ✅ Use repository pattern for data access
 // server/repositories/users.repository.ts
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export class UsersRepository {
   static async findById(id: string) {
-    const result = await db.select()
+    const result = await db
+      .select()
       .from(users)
       .where(eq(users.id, id))
       .limit(1);
@@ -650,7 +654,8 @@ export class UsersRepository {
   }
 
   static async findByEmail(email: string) {
-    const result = await db.select()
+    const result = await db
+      .select()
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
@@ -658,14 +663,13 @@ export class UsersRepository {
   }
 
   static async create(data: InsertUser) {
-    const [user] = await db.insert(users)
-      .values(data)
-      .returning();
+    const [user] = await db.insert(users).values(data).returning();
     return user;
   }
 
   static async update(id: string, data: Partial<InsertUser>) {
-    const [user] = await db.update(users)
+    const [user] = await db
+      .update(users)
       .set(data)
       .where(eq(users.id, id))
       .returning();
@@ -680,19 +684,19 @@ export class UsersRepository {
 
 ```typescript
 // ✅ Use describe/test structure
-import { describe, test, expect, beforeEach } from '@jest/globals';
-import { UsersService } from './users.service';
+import { describe, test, expect, beforeEach } from "@jest/globals";
+import { UsersService } from "./users.service";
 
-describe('UsersService', () => {
+describe("UsersService", () => {
   beforeEach(() => {
     // Setup
   });
 
-  describe('createUser', () => {
-    test('should create user with valid data', async () => {
+  describe("createUser", () => {
+    test("should create user with valid data", async () => {
       const input = {
-        email: 'test@example.com',
-        firstName: 'Test',
+        email: "test@example.com",
+        firstName: "Test",
       };
 
       const user = await UsersService.createUser(input);
@@ -701,15 +705,15 @@ describe('UsersService', () => {
       expect(user.email).toBe(input.email);
     });
 
-    test('should throw error for invalid email', async () => {
+    test("should throw error for invalid email", async () => {
       const input = {
-        email: 'invalid-email',
-        firstName: 'Test',
+        email: "invalid-email",
+        firstName: "Test",
       };
 
-      await expect(
-        UsersService.createUser(input)
-      ).rejects.toThrow('Invalid email');
+      await expect(UsersService.createUser(input)).rejects.toThrow(
+        "Invalid email",
+      );
     });
   });
 });
@@ -719,9 +723,9 @@ describe('UsersService', () => {
 
 ```typescript
 // ✅ Mock external dependencies
-import { jest } from '@jest/globals';
+import { jest } from "@jest/globals";
 
-jest.mock('@shared/database-unified', () => ({
+jest.mock("@shared/database-unified", () => ({
   db: {
     select: jest.fn(),
     insert: jest.fn(),
@@ -729,8 +733,10 @@ jest.mock('@shared/database-unified', () => ({
 }));
 
 // ✅ Mock API calls
-jest.mock('./api-client', () => ({
-  fetchUser: jest.fn().mockResolvedValue({ id: '1', email: 'test@example.com' }),
+jest.mock("./api-client", () => ({
+  fetchUser: jest
+    .fn()
+    .mockResolvedValue({ id: "1", email: "test@example.com" }),
 }));
 ```
 
@@ -741,20 +747,20 @@ jest.mock('./api-client', () => ({
 ```typescript
 // ✅ Organize imports in this order:
 // 1. External libraries
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 // 2. Internal absolute imports
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
 
 // 3. Relative imports
-import { UserCard } from './components/UserCard';
-import { useAuth } from './hooks/useAuth';
-import type { User } from './types';
+import { UserCard } from "./components/UserCard";
+import { useAuth } from "./hooks/useAuth";
+import type { User } from "./types";
 
 // 4. Styles (if any)
-import './styles.css';
+import "./styles.css";
 ```
 
 ### Function Declarations
@@ -767,7 +773,7 @@ function calculateTotal(items: Item[]): number {
 
 // ✅ Use arrow functions for callbacks and short functions
 const handleClick = () => {
-  console.log('clicked');
+  console.log("clicked");
 };
 
 const double = (x: number) => x * 2;
@@ -783,18 +789,19 @@ async function fetchUserData(userId: string) {
     const communities = await fetchUserCommunities(userId);
     return { user, communities };
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error("Error fetching user data:", error);
     throw error;
   }
 }
 
 // ❌ Avoid nested promises
 function fetchUserData(userId: string) {
-  return fetchUser(userId)
-    .then(user => {
-      return fetchUserCommunities(userId)
-        .then(communities => ({ user, communities }));
-    });
+  return fetchUser(userId).then((user) => {
+    return fetchUserCommunities(userId).then((communities) => ({
+      user,
+      communities,
+    }));
+  });
 }
 ```
 
@@ -854,11 +861,14 @@ function App() {
 
 ```typescript
 // ✅ Always validate and sanitize inputs
-import { z } from 'zod';
+import { z } from "zod";
 
 const sanitizeHtml = (html: string): string => {
   // Use a library like DOMPurify for HTML sanitization
-  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  return html.replace(
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    "",
+  );
 };
 
 const UserInputSchema = z.object({
@@ -870,7 +880,8 @@ const UserInputSchema = z.object({
 
 ```typescript
 // ✅ Always use parameterized queries via Drizzle
-const user = await db.select()
+const user = await db
+  .select()
   .from(users)
   .where(eq(users.email, userEmail)) // Safe
   .limit(1);
@@ -888,7 +899,7 @@ const user = await db.select()
 /**
  * Calculates the compatibility score between two users based on
  * their TCG preferences, skill level, and streaming schedules.
- * 
+ *
  * @param user1 - First user to compare
  * @param user2 - Second user to compare
  * @returns Compatibility score from 0-100
@@ -908,14 +919,14 @@ const user = await getUserById(id);
 // ✅ Use JSDoc for exported functions
 /**
  * Creates a new tournament with the specified configuration.
- * 
+ *
  * @param config - Tournament configuration
  * @param config.name - Tournament name
  * @param config.gameType - Type of TCG game
  * @param config.maxPlayers - Maximum number of players
  * @returns Created tournament with generated ID
  * @throws {ValidationError} If configuration is invalid
- * 
+ *
  * @example
  * const tournament = await createTournament({
  *   name: 'Summer Championship',
@@ -923,7 +934,9 @@ const user = await getUserById(id);
  *   maxPlayers: 32
  * });
  */
-export async function createTournament(config: TournamentConfig): Promise<Tournament> {
+export async function createTournament(
+  config: TournamentConfig,
+): Promise<Tournament> {
   // ...
 }
 ```

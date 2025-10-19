@@ -9,6 +9,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Core Framework
 
 #### React 18
+
 - **Version**: 18.3.1
 - **Purpose**: UI framework for building the client application
 - **Features Used**:
@@ -19,6 +20,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why React**: Mature ecosystem, strong TypeScript support, excellent developer tools
 
 #### TypeScript
+
 - **Version**: 5.6.3
 - **Purpose**: Type-safe JavaScript superset
 - **Configuration**: Strict mode enabled
@@ -32,6 +34,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Build Tool
 
 #### Vite
+
 - **Version**: 7.1.7
 - **Purpose**: Fast development server and build tool
 - **Features Used**:
@@ -44,6 +47,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### UI Library & Components
 
 #### Shadcn/ui
+
 - **Purpose**: Accessible component library built on Radix UI
 - **Components Used**:
   - Buttons, Cards, Dialogs, Dropdowns
@@ -53,6 +57,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Shadcn/ui**: Copy-paste components, full customization, accessibility built-in
 
 #### Radix UI
+
 - **Purpose**: Low-level UI primitive components
 - **Components Used**:
   - Dialog, Popover, Tooltip primitives
@@ -62,9 +67,10 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Radix UI**: Unstyled, accessible, composable primitives
 
 #### Lucide React
+
 - **Version**: 0.453.0
 - **Purpose**: Icon library
-- **Features Used**: 
+- **Features Used**:
   - 1000+ consistent icons
   - Tree-shakeable imports
   - Customizable size and color
@@ -73,6 +79,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Styling
 
 #### Tailwind CSS
+
 - **Version**: 3.4.17
 - **Purpose**: Utility-first CSS framework
 - **Features Used**:
@@ -87,6 +94,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Tailwind**: Fast development, consistent design, small production bundle
 
 #### PostCSS
+
 - **Version**: 8.5.6
 - **Purpose**: CSS processing tool
 - **Plugins Used**:
@@ -96,6 +104,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### State Management
 
 #### TanStack React Query
+
 - **Version**: 5.87.1
 - **Purpose**: Server state management
 - **Features Used**:
@@ -107,6 +116,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why React Query**: Eliminates boilerplate, powerful caching, excellent DevTools
 
 #### Zustand
+
 - **Version**: 5.0.8
 - **Purpose**: Client-side state management
 - **Features Used**:
@@ -119,6 +129,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Routing
 
 #### Wouter
+
 - **Version**: 3.7.1
 - **Purpose**: Lightweight client-side routing
 - **Features Used**:
@@ -131,6 +142,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Forms & Validation
 
 #### React Hook Form
+
 - **Version**: 7.62.0
 - **Purpose**: Form state management
 - **Features Used**:
@@ -141,6 +153,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why React Hook Form**: Excellent performance, minimal re-renders, great DevTools
 
 #### Zod
+
 - **Version**: 3.25.76
 - **Purpose**: Schema validation library
 - **Features Used**:
@@ -154,15 +167,18 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Additional Frontend Libraries
 
 #### Date & Time
+
 - **date-fns**: 3.6.0 - Date manipulation and formatting
 - **react-day-picker**: 8.10.1 - Calendar/date picker component
 
 #### Animation
+
 - **framer-motion**: 11.18.2 - Animation library for React
 - **@dnd-kit/core**: 6.3.1 - Drag and drop toolkit
 - **@dnd-kit/sortable**: 10.0.0 - Sortable lists
 
 #### UI Utilities
+
 - **class-variance-authority**: 0.7.1 - Component variant management
 - **clsx**: 2.1.1 - Conditional className utility
 - **tailwind-merge**: 2.6.0 - Merge Tailwind classes intelligently
@@ -177,6 +193,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Core Framework
 
 #### Node.js
+
 - **Version**: 18+
 - **Purpose**: JavaScript runtime for server-side code
 - **Features Used**:
@@ -186,6 +203,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Node.js**: JavaScript everywhere, huge ecosystem, excellent performance
 
 #### Express.js
+
 - **Version**: 4.21.2
 - **Purpose**: Web application framework
 - **Features Used**:
@@ -196,9 +214,10 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Express**: Battle-tested, minimal overhead, extensive middleware ecosystem
 
 #### TypeScript (Server)
+
 - **Version**: 5.6.3
 - **Purpose**: Type-safe server-side code
-- **Configuration**: 
+- **Configuration**:
   - ES modules
   - Strict mode
   - Path aliases for clean imports
@@ -207,6 +226,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Authentication
 
 #### Auth.js (NextAuth.js v5)
+
 - **Version**: @auth/core 0.40.0, @auth/express 0.11.0
 - **Purpose**: Authentication framework
 - **Features Used**:
@@ -218,6 +238,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Auth.js**: Comprehensive auth solution, OAuth support, secure by default
 
 #### Google OAuth 2.0
+
 - **Purpose**: User authentication via Google accounts
 - **Configuration**: Google Cloud Console OAuth credentials
 - **Scopes**: Email, profile
@@ -226,6 +247,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Database
 
 #### SQLite Cloud
+
 - **Driver**: @sqlitecloud/drivers 1.0.507
 - **Purpose**: Cloud-hosted SQLite database
 - **Features Used**:
@@ -236,6 +258,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why SQLite Cloud**: Simple setup, cost-effective, reliable
 
 #### Drizzle ORM
+
 - **Version**: 0.44.6
 - **Purpose**: Type-safe database ORM
 - **Features Used**:
@@ -247,6 +270,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Drizzle**: Excellent TypeScript support, lightweight, modern API
 
 #### Drizzle Kit
+
 - **Version**: 0.31.5
 - **Purpose**: Database migration and management tool
 - **Features Used**:
@@ -258,12 +282,14 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Security & Middleware
 
 #### Rate Limiting
+
 - **express-rate-limit**: 8.0.1
 - **Purpose**: API rate limiting
 - **Configuration**: Per-endpoint limits
 - **Why**: Prevent abuse, protect against DDoS
 
 #### Session Management
+
 - **express-session**: 1.18.2
 - **memorystore**: 1.6.7
 - **Purpose**: Session storage middleware
@@ -271,6 +297,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why**: Secure session handling, multi-instance support
 
 #### Password Hashing
+
 - **@node-rs/argon2**: 2.0.2
 - **Purpose**: Secure password hashing (for future password auth)
 - **Why Argon2**: Winner of password hashing competition, secure against attacks
@@ -278,6 +305,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Email Service
 
 #### SendGrid
+
 - **Version**: @sendgrid/mail 8.1.6
 - **Purpose**: Transactional email delivery
 - **Features Used**:
@@ -289,6 +317,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Real-time Communication
 
 #### WebSocket (ws)
+
 - **Version**: 8.18.0
 - **Purpose**: Real-time bidirectional communication
 - **Features Used**:
@@ -300,19 +329,24 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Utilities
 
 #### Data Validation
+
 - **zod**: 3.25.76 - Schema validation (shared with frontend)
 - **zod-validation-error**: 3.4.0 - Friendly error messages
 
 #### Unique IDs
+
 - **nanoid**: 5.0.9 - Cryptographically strong unique ID generator
 
 #### Environment Variables
+
 - **dotenv**: 16.4.7 - Load environment variables from .env files
 
 #### Caching
+
 - **memoizee**: 0.4.17 - Function result memoization
 
 #### Data Parsing
+
 - **papaparse**: 5.5.3 - CSV parsing for card data imports
 
 ## Development Tools
@@ -320,6 +354,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### TypeScript Tooling
 
 #### tsx
+
 - **Version**: 4.20.5
 - **Purpose**: TypeScript execution for Node.js
 - **Usage**: Development server, scripts
@@ -328,6 +363,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Testing
 
 #### Jest
+
 - **Version**: 30.1.3
 - **Purpose**: Testing framework
 - **Features Used**:
@@ -339,6 +375,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why Jest**: Comprehensive, fast, great mocking
 
 #### ts-jest
+
 - **Version**: 29.4.4
 - **Purpose**: TypeScript preprocessor for Jest
 - **Why**: Native TypeScript testing support
@@ -346,6 +383,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Build Tools
 
 #### esbuild
+
 - **Version**: 0.25.9
 - **Purpose**: Backend bundling
 - **Features Used**:
@@ -356,9 +394,10 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why esbuild**: Fastest bundler available, simple configuration
 
 #### Custom Build Script
+
 - **File**: build.js
 - **Purpose**: Orchestrates Vite and esbuild builds
-- **Features**: 
+- **Features**:
   - Client build (Vite)
   - Server build (esbuild)
   - Asset copying
@@ -367,12 +406,14 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Code Quality
 
 #### ESLint
+
 - **Purpose**: JavaScript/TypeScript linting
 - **Configuration**: TypeScript ESLint recommended
 - **Rules**: Strict mode with auto-fix enabled
 - **Why ESLint**: Industry standard, extensive rules, auto-fix capabilities
 
 #### Prettier
+
 - **Purpose**: Code formatting
 - **Configuration**: Consistent formatting across team
 - **Integration**: ESLint integration for conflict resolution
@@ -381,6 +422,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Version Control
 
 #### Git
+
 - **Purpose**: Source code version control
 - **Branching Strategy**: Feature branches with PR workflow
 - **Pre-commit Hooks**: Linting and type checking
@@ -390,6 +432,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### Cloud Platform
 
 #### Google Cloud Platform (GCP)
+
 - **Services Used**:
   - Cloud Run: Container-based application hosting
   - Secret Manager: Environment variable management
@@ -398,8 +441,9 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Why GCP**: Serverless architecture, auto-scaling, managed services
 
 #### Docker
+
 - **Purpose**: Container-based deployment
-- **Files**: 
+- **Files**:
   - Dockerfile: Backend + frontend container
   - Dockerfile.frontend: Frontend-only container
   - docker-compose.production-test.yml: Local production testing
@@ -408,7 +452,8 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ### CI/CD
 
 #### Cloud Build
-- **Files**: 
+
+- **Files**:
   - cloudbuild.yaml: Backend deployment
   - cloudbuild-frontend.yaml: Frontend deployment
 - **Purpose**: Automated build and deployment pipelines
@@ -418,6 +463,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ## Development Dependencies
 
 ### Type Definitions
+
 - `@types/node`: Node.js type definitions
 - `@types/react`: React type definitions
 - `@types/react-dom`: React DOM type definitions
@@ -426,20 +472,24 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - `@types/ws`: WebSocket type definitions
 
 ### Vite Plugins
+
 - `@vitejs/plugin-react`: React support for Vite
 - `@replit/vite-plugin-cartographer`: Code mapping (Replit specific)
 - `@replit/vite-plugin-runtime-error-modal`: Error display (Replit specific)
 
 ### Tailwind Plugins
+
 - `@tailwindcss/typography`: Typography utilities
 - `@tailwindcss/vite`: Vite integration
 
 ### Optional Dependencies
+
 - `bufferutil`: WebSocket performance optimization
 
 ## Package Management
 
 ### npm
+
 - **Version**: 10+
 - **Strategy**: `--legacy-peer-deps` for dependency resolution
 - **Lock File**: package-lock.json committed to repository
@@ -461,12 +511,14 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ## Version Management
 
 ### Update Strategy
+
 - **Major Updates**: Reviewed and tested before adoption
 - **Minor/Patch Updates**: Regular updates for security and features
 - **Security Updates**: Immediate application when available
 - **Deprecation**: Monitor and plan migrations for deprecated packages
 
 ### Compatibility
+
 - **Node.js**: 18+ (LTS versions)
 - **npm**: 10+
 - **Browsers**: Modern browsers (Chrome, Firefox, Safari, Edge) - last 2 versions
@@ -475,6 +527,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 ## Future Technology Considerations
 
 ### Potential Additions
+
 - **Redis**: For advanced caching and session storage at scale
 - **GraphQL**: Alternative API layer for complex queries
 - **React Native**: Mobile app development using shared logic
@@ -482,6 +535,7 @@ Shuffle & Sync is built with modern, production-ready technologies focusing on t
 - **Turborepo**: Monorepo management if project expands
 
 ### Migration Paths
+
 - **Database**: SQLite Cloud is current choice; could migrate to PostgreSQL if needed
 - **State Management**: React Query + Zustand is sufficient; could add Redux if needed
 - **Styling**: Tailwind is optimal; Shadcn/ui provides flexibility

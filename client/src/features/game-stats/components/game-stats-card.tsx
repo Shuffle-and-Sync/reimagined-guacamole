@@ -1,6 +1,6 @@
 /**
  * Game Statistics Card Component
- * 
+ *
  * This component demonstrates proper React patterns and UI implementation
  * following the Shuffle & Sync repository conventions:
  * - Functional components with hooks
@@ -11,29 +11,42 @@
  * - Error boundaries and loading states
  */
 
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Trophy, TrendingUp, Calendar, Edit3 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { GameStatsCardProps, TCGType } from '../types';
+import React, { useMemo, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Trophy, TrendingUp, Calendar, Edit3 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { GameStatsCardProps, TCGType } from "../types";
 
 // TCG community theming following repository conventions
-const TCG_THEMES: Record<TCGType, { color: string; icon: string; name: string }> = {
-  'mtg': { color: 'bg-orange-500', icon: '🔮', name: 'Magic: The Gathering' },
-  'pokemon': { color: 'bg-yellow-500', icon: '⚡', name: 'Pokémon TCG' },
-  'lorcana': { color: 'bg-purple-500', icon: '✨', name: 'Disney Lorcana' },
-  'yugioh': { color: 'bg-blue-500', icon: '🎯', name: 'Yu-Gi-Oh!' },
-  'flesh-and-blood': { color: 'bg-red-500', icon: '⚔️', name: 'Flesh and Blood' },
-  'keyforge': { color: 'bg-indigo-500', icon: '🗝️', name: 'KeyForge' },
+const TCG_THEMES: Record<
+  TCGType,
+  { color: string; icon: string; name: string }
+> = {
+  mtg: { color: "bg-orange-500", icon: "🔮", name: "Magic: The Gathering" },
+  pokemon: { color: "bg-yellow-500", icon: "⚡", name: "Pokémon TCG" },
+  lorcana: { color: "bg-purple-500", icon: "✨", name: "Disney Lorcana" },
+  yugioh: { color: "bg-blue-500", icon: "🎯", name: "Yu-Gi-Oh!" },
+  "flesh-and-blood": {
+    color: "bg-red-500",
+    icon: "⚔️",
+    name: "Flesh and Blood",
+  },
+  keyforge: { color: "bg-indigo-500", icon: "🗝️", name: "KeyForge" },
 };
 
 /**
  * GameStatsCard Component
- * 
+ *
  * Displays individual game statistics in a card format with:
  * - Win/loss ratio visualization
  * - Game type theming
@@ -41,38 +54,44 @@ const TCG_THEMES: Record<TCGType, { color: string; icon: string; name: string }>
  * - Responsive design
  * - Accessibility features
  */
-export function GameStatsCard({ 
-  stats, 
-  className, 
-  onEdit 
+export function GameStatsCard({
+  stats,
+  className,
+  onEdit,
 }: GameStatsCardProps): JSX.Element {
   const theme = TCG_THEMES[stats.gameType];
   const winRate = Math.round(stats.winRate * 100);
-  
+
   // Calculate performance indicators
   const isHighPerformer = winRate >= 70;
   const isActivePlayer = stats.totalGames >= 10;
-  // Use useMemo to avoid calling Date.now() during render
+  // Use useState to capture current time at component mount to avoid impure function call during render
+  const [currentTime] = useState(() => Date.now());
   const recentlyPlayed = useMemo(() => {
-    return stats.lastPlayed ? 
-      new Date(stats.lastPlayed).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) : false;
-  }, [stats.lastPlayed]);
+    return stats.lastPlayed
+      ? new Date(stats.lastPlayed).getTime() >
+          currentTime - 7 * 24 * 60 * 60 * 1000
+      : false;
+  }, [stats.lastPlayed, currentTime]);
 
   return (
-    <Card 
+    <Card
       className={cn(
-        'relative overflow-hidden transition-all duration-300 hover:shadow-lg',
-        'border-l-4 hover:border-l-6',
-        className
+        "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
+        "border-l-4 hover:border-l-6",
+        className,
       )}
-      style={{ borderLeftColor: theme.color.replace('bg-', '#') }}
+      style={{ borderLeftColor: theme.color.replace("bg-", "#") }}
       data-testid={`game-stats-card-${stats.gameType}`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div 
-              className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg', theme.color)}
+            <div
+              className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg",
+                theme.color,
+              )}
               aria-label={`${theme.name} icon`}
             >
               {theme.icon}
@@ -82,11 +101,11 @@ export function GameStatsCard({
                 {theme.name}
               </CardTitle>
               <CardDescription className="text-sm text-muted-foreground">
-                {stats.favoriteFormat || 'No preferred format'}
+                {stats.favoriteFormat || "No preferred format"}
               </CardDescription>
             </div>
           </div>
-          
+
           {onEdit && (
             <Button
               variant="ghost"
@@ -108,9 +127,9 @@ export function GameStatsCard({
             <span className="text-muted-foreground">Win Rate</span>
             <span className="font-medium text-foreground">{winRate}%</span>
           </div>
-          <Progress 
-            value={winRate} 
-            className="h-2" 
+          <Progress
+            value={winRate}
+            className="h-2"
             aria-label={`Win rate: ${winRate}%`}
           />
         </div>
@@ -143,7 +162,9 @@ export function GameStatsCard({
           <>
             <Separator />
             <div className="text-center">
-              <div className="text-lg font-semibold text-foreground">{stats.draws}</div>
+              <div className="text-lg font-semibold text-foreground">
+                {stats.draws}
+              </div>
               <div className="text-xs text-muted-foreground">Draws</div>
             </div>
           </>
@@ -154,17 +175,17 @@ export function GameStatsCard({
         {/* Status Badges */}
         <div className="flex flex-wrap gap-2">
           {isHighPerformer && (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
             >
               <Trophy className="w-3 h-3 mr-1" />
               High Performer
             </Badge>
           )}
-          
+
           {isActivePlayer && (
-            <Badge 
+            <Badge
               variant="secondary"
               className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
             >
@@ -172,9 +193,9 @@ export function GameStatsCard({
               Active Player
             </Badge>
           )}
-          
+
           {recentlyPlayed && (
-            <Badge 
+            <Badge
               variant="secondary"
               className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
             >
@@ -197,7 +218,7 @@ export function GameStatsCard({
 
 /**
  * GameStatsCardSkeleton Component
- * 
+ *
  * Loading skeleton following Shadcn/ui patterns
  */
 export function GameStatsCardSkeleton(): JSX.Element {

@@ -1,23 +1,32 @@
 /**
  * User Service Layer
- * 
+ *
  * This module provides business logic for user operations using the repository pattern,
  * demonstrating Copilot best practices for service layer architecture.
  */
 
-import { UserRepository, UserSearchOptions, UserUpdateData, UserWithCommunities } from '../repositories/user.repository';
-import { type User } from '@shared/schema';
-import { logger } from '../logger';
-import { ValidationError, AuthenticationError, ConflictError } from '../middleware/error-handling.middleware';
-import { PaginatedResult } from '../repositories/base.repository';
-import { generateEmailVerificationJWT } from '../auth/tokens';
-import { sendEmailVerificationEmail } from '../email-service';
+import {
+  UserRepository,
+  UserSearchOptions,
+  UserUpdateData,
+  UserWithCommunities,
+} from "../repositories/user.repository";
+import { type User } from "@shared/schema";
+import { logger } from "../logger";
+import {
+  ValidationError,
+  AuthenticationError,
+  ConflictError,
+} from "../middleware/error-handling.middleware";
+import { PaginatedResult } from "../repositories/base.repository";
+import { generateEmailVerificationJWT } from "../auth/tokens";
+import { sendEmailVerificationEmail } from "../email-service";
 
 export interface CreateUserData {
   name: string;
   email: string;
   password?: string;
-  provider?: 'google' | 'email';
+  provider?: "google" | "email";
   providerId?: string;
   image?: string;
   bio?: string;
@@ -54,21 +63,21 @@ export class UserService {
     try {
       // Validate email format
       if (!this.isValidEmail(data.email)) {
-        throw new ValidationError('Invalid email format');
+        throw new ValidationError("Invalid email format");
       }
 
       // Check if email already exists
       const existingUser = await this.userRepository.findByEmail(data.email);
       if (existingUser) {
-        throw new ConflictError('Email already in use');
+        throw new ConflictError("Email already in use");
       }
 
       // Create user - only include fields that exist in the users table
       const userData = {
         email: data.email.toLowerCase(),
         firstName: data.name, // Map 'name' to 'firstName'
-        status: 'offline' as const, // Use valid user status enum value
-        isEmailVerified: data.provider === 'google', // Auto-verify for OAuth
+        status: "offline" as const, // Use valid user status enum value
+        isEmailVerified: data.provider === "google", // Auto-verify for OAuth
         mfaEnabled: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -82,7 +91,11 @@ export class UserService {
 
       // Join primary community if specified
       if (data.primaryCommunityId) {
-        await this.userRepository.joinCommunity(user.id, data.primaryCommunityId, true);
+        await this.userRepository.joinCommunity(
+          user.id,
+          data.primaryCommunityId,
+          true,
+        );
       }
 
       // Send email verification if needed
@@ -90,15 +103,15 @@ export class UserService {
         await this.sendEmailVerification(user.id);
       }
 
-      logger.info('User created successfully', { 
-        userId: user.id, 
+      logger.info("User created successfully", {
+        userId: user.id,
         email: user.email,
-        provider: data.provider 
+        provider: data.provider,
       });
 
       return user;
     } catch (error) {
-      logger.error('Failed to create user', error, { email: data.email });
+      logger.error("Failed to create user", error, { email: data.email });
       throw error;
     }
   }
@@ -110,7 +123,7 @@ export class UserService {
     try {
       return await this.userRepository.findByIdWithCommunities(userId);
     } catch (error) {
-      logger.error('Failed to get user by ID', error, { userId });
+      logger.error("Failed to get user by ID", error, { userId });
       throw error;
     }
   }
@@ -126,7 +139,7 @@ export class UserService {
 
       return await this.userRepository.findByEmail(email);
     } catch (error) {
-      logger.error('Failed to get user by email', error, { email });
+      logger.error("Failed to get user by email", error, { email });
       throw error;
     }
   }
@@ -134,16 +147,18 @@ export class UserService {
   /**
    * Search users with filtering and pagination
    */
-  async searchUsers(options: UserSearchOptions): Promise<PaginatedResult<User>> {
+  async searchUsers(
+    options: UserSearchOptions,
+  ): Promise<PaginatedResult<User>> {
     try {
       // Validate search parameters
       if (options.pagination?.limit && options.pagination.limit > 100) {
-        throw new ValidationError('Maximum page size is 100');
+        throw new ValidationError("Maximum page size is 100");
       }
 
       return await this.userRepository.searchUsers(options);
     } catch (error) {
-      logger.error('Failed to search users', error, { options });
+      logger.error("Failed to search users", error, { options });
       throw error;
     }
   }
@@ -154,29 +169,43 @@ export class UserService {
   async updateProfile(userId: string, data: UserProfileUpdate): Promise<User> {
     try {
       // Validate handles format
-      if (data.twitterHandle && !this.isValidTwitterHandle(data.twitterHandle)) {
-        throw new ValidationError('Invalid Twitter handle format');
+      if (
+        data.twitterHandle &&
+        !this.isValidTwitterHandle(data.twitterHandle)
+      ) {
+        throw new ValidationError("Invalid Twitter handle format");
       }
 
       if (data.website && !this.isValidUrl(data.website)) {
-        throw new ValidationError('Invalid website URL format');
+        throw new ValidationError("Invalid website URL format");
       }
 
       // Sanitize social media handles
       const sanitizedData = {
         ...data,
-        twitterHandle: data.twitterHandle ? this.sanitizeHandle(data.twitterHandle) : undefined,
-        twitchHandle: data.twitchHandle ? this.sanitizeHandle(data.twitchHandle) : undefined,
-        youtubeHandle: data.youtubeHandle ? this.sanitizeHandle(data.youtubeHandle) : undefined,
-        discordHandle: data.discordHandle ? this.sanitizeDiscordHandle(data.discordHandle) : undefined
+        twitterHandle: data.twitterHandle
+          ? this.sanitizeHandle(data.twitterHandle)
+          : undefined,
+        twitchHandle: data.twitchHandle
+          ? this.sanitizeHandle(data.twitchHandle)
+          : undefined,
+        youtubeHandle: data.youtubeHandle
+          ? this.sanitizeHandle(data.youtubeHandle)
+          : undefined,
+        discordHandle: data.discordHandle
+          ? this.sanitizeDiscordHandle(data.discordHandle)
+          : undefined,
       };
 
-      const updatedUser = await this.userRepository.updateProfile(userId, sanitizedData);
+      const updatedUser = await this.userRepository.updateProfile(
+        userId,
+        sanitizedData,
+      );
 
-      logger.info('User profile updated', { userId });
+      logger.info("User profile updated", { userId });
       return updatedUser;
     } catch (error) {
-      logger.error('Failed to update user profile', error, { userId });
+      logger.error("Failed to update user profile", error, { userId });
       throw error;
     }
   }
@@ -188,31 +217,33 @@ export class UserService {
     try {
       // Validate email format
       if (!this.isValidEmail(newEmail)) {
-        throw new ValidationError('Invalid email format');
+        throw new ValidationError("Invalid email format");
       }
 
       // Check if new email is different from current
       const currentUser = await this.userRepository.findById(userId);
       if (!currentUser) {
-        throw new ValidationError('User not found');
+        throw new ValidationError("User not found");
       }
 
       if (currentUser.email === newEmail.toLowerCase()) {
-        throw new ValidationError('New email must be different from current email');
+        throw new ValidationError(
+          "New email must be different from current email",
+        );
       }
 
       // Update email (this will reset email verification)
       const updatedUser = await this.userRepository.updateProfile(userId, {
-        email: newEmail.toLowerCase()
+        email: newEmail.toLowerCase(),
       });
 
       // Send verification email for new address
       await this.sendEmailVerification(userId);
 
-      logger.info('User email changed', { userId, newEmail });
+      logger.info("User email changed", { userId, newEmail });
       return updatedUser;
     } catch (error) {
-      logger.error('Failed to change user email', error, { userId, newEmail });
+      logger.error("Failed to change user email", error, { userId, newEmail });
       throw error;
     }
   }
@@ -220,12 +251,24 @@ export class UserService {
   /**
    * Join a community
    */
-  async joinCommunity(userId: string, communityId: string, setAsPrimary: boolean = false): Promise<void> {
+  async joinCommunity(
+    userId: string,
+    communityId: string,
+    setAsPrimary: boolean = false,
+  ): Promise<void> {
     try {
-      await this.userRepository.joinCommunity(userId, communityId, setAsPrimary);
-      logger.info('User joined community', { userId, communityId, setAsPrimary });
+      await this.userRepository.joinCommunity(
+        userId,
+        communityId,
+        setAsPrimary,
+      );
+      logger.info("User joined community", {
+        userId,
+        communityId,
+        setAsPrimary,
+      });
     } catch (error) {
-      logger.error('Failed to join community', error, { userId, communityId });
+      logger.error("Failed to join community", error, { userId, communityId });
       throw error;
     }
   }
@@ -236,9 +279,9 @@ export class UserService {
   async leaveCommunity(userId: string, communityId: string): Promise<void> {
     try {
       await this.userRepository.leaveCommunity(userId, communityId);
-      logger.info('User left community', { userId, communityId });
+      logger.info("User left community", { userId, communityId });
     } catch (error) {
-      logger.error('Failed to leave community', error, { userId, communityId });
+      logger.error("Failed to leave community", error, { userId, communityId });
       throw error;
     }
   }
@@ -246,12 +289,18 @@ export class UserService {
   /**
    * Set primary community
    */
-  async setPrimaryCommunity(userId: string, communityId: string): Promise<void> {
+  async setPrimaryCommunity(
+    userId: string,
+    communityId: string,
+  ): Promise<void> {
     try {
       await this.userRepository.setPrimaryCommunity(userId, communityId);
-      logger.info('User primary community set', { userId, communityId });
+      logger.info("User primary community set", { userId, communityId });
     } catch (error) {
-      logger.error('Failed to set primary community', error, { userId, communityId });
+      logger.error("Failed to set primary community", error, {
+        userId,
+        communityId,
+      });
       throw error;
     }
   }
@@ -263,7 +312,7 @@ export class UserService {
     try {
       return await this.userRepository.getUserStats(userId);
     } catch (error) {
-      logger.error('Failed to get user stats', error, { userId });
+      logger.error("Failed to get user stats", error, { userId });
       throw error;
     }
   }
@@ -274,13 +323,13 @@ export class UserService {
   async deactivateAccount(userId: string): Promise<void> {
     try {
       await this.userRepository.updateProfile(userId, {
-        status: 'offline', // Use valid user status enum value
-        updatedAt: new Date()
+        status: "offline", // Use valid user status enum value
+        updatedAt: new Date(),
       });
 
-      logger.info('User account deactivated', { userId });
+      logger.info("User account deactivated", { userId });
     } catch (error) {
-      logger.error('Failed to deactivate user account', error, { userId });
+      logger.error("Failed to deactivate user account", error, { userId });
       throw error;
     }
   }
@@ -291,9 +340,9 @@ export class UserService {
   async deleteAccount(userId: string): Promise<void> {
     try {
       await this.userRepository.softDeleteUser(userId);
-      logger.info('User account deleted', { userId });
+      logger.info("User account deleted", { userId });
     } catch (error) {
-      logger.error('Failed to delete user account', error, { userId });
+      logger.error("Failed to delete user account", error, { userId });
       throw error;
     }
   }
@@ -305,26 +354,30 @@ export class UserService {
     try {
       const user = await this.userRepository.findById(userId);
       if (!user) {
-        throw new ValidationError('User not found');
+        throw new ValidationError("User not found");
       }
 
       if (!user.email) {
-        throw new ValidationError('User has no email address');
+        throw new ValidationError("User has no email address");
       }
 
       if (user.isEmailVerified) {
-        throw new ValidationError('Email already verified');
+        throw new ValidationError("Email already verified");
       }
 
       // Generate verification token
       const token = await generateEmailVerificationJWT(user.id, user.email);
 
       // Send verification email
-      await sendEmailVerificationEmail(user.email, user.firstName || 'User', token);
+      await sendEmailVerificationEmail(
+        user.email,
+        user.firstName || "User",
+        token,
+      );
 
-      logger.info('Email verification sent', { userId, email: user.email });
+      logger.info("Email verification sent", { userId, email: user.email });
     } catch (error) {
-      logger.error('Failed to send email verification', error, { userId });
+      logger.error("Failed to send email verification", error, { userId });
       throw error;
     }
   }
@@ -336,9 +389,9 @@ export class UserService {
     try {
       // This would need to be implemented with JWT verification
       // For now, throwing not implemented error
-      throw new Error('Email verification not yet implemented');
+      throw new Error("Email verification not yet implemented");
     } catch (error) {
-      logger.error('Failed to verify email', error, { token });
+      logger.error("Failed to verify email", error, { token });
       throw error;
     }
   }
@@ -365,7 +418,7 @@ export class UserService {
   }
 
   private sanitizeHandle(handle: string): string {
-    return handle.replace(/^@/, '').trim();
+    return handle.replace(/^@/, "").trim();
   }
 
   private sanitizeDiscordHandle(handle: string): string {

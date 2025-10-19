@@ -1,6 +1,7 @@
 # Shadcn/ui Component Best Practices
 
 ## Overview
+
 This document outlines best practices for using and extending the Shadcn/ui component library in the Shuffle & Sync application. Following these guidelines ensures consistency, accessibility, and maintainability.
 
 ---
@@ -8,7 +9,9 @@ This document outlines best practices for using and extending the Shadcn/ui comp
 ## General Principles
 
 ### 1. Composition Over Modification
+
 **✅ Do:** Compose existing components to create new ones
+
 ```tsx
 // Create a specialized component by composing base components
 function TournamentCard({ tournament }) {
@@ -26,49 +29,52 @@ function TournamentCard({ tournament }) {
         <Button>Join Tournament</Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 ```
 
 **❌ Don't:** Modify the base UI components directly
+
 ```tsx
 // Don't edit client/src/components/ui/card.tsx to add tournament-specific logic
 ```
 
 ### 2. Keep UI Components Stateless
+
 **✅ Do:** Manage state in parent components or custom hooks
+
 ```tsx
 function SearchForm() {
-  const [query, setQuery] = useState("")
-  
+  const [query, setQuery] = useState("");
+
   return (
-    <Input 
+    <Input
       value={query}
       onChange={(e) => setQuery(e.target.value)}
       placeholder="Search..."
     />
-  )
+  );
 }
 ```
 
 **❌ Don't:** Add state to UI components
+
 ```tsx
 // Don't add useState inside the base Input component
 ```
 
 ### 3. Use Design Tokens
+
 **✅ Do:** Use Tailwind design tokens
+
 ```tsx
-<Card className="bg-card text-card-foreground border-border">
-  Content
-</Card>
+<Card className="bg-card text-card-foreground border-border">Content</Card>
 ```
 
 **❌ Don't:** Use hardcoded colors
+
 ```tsx
-<Card className="bg-white text-black border-gray-200">
-  Content
-</Card>
+<Card className="bg-white text-black border-gray-200">Content</Card>
 ```
 
 ---
@@ -76,6 +82,7 @@ function SearchForm() {
 ## Accessibility Guidelines
 
 ### Keyboard Navigation
+
 All interactive components must be keyboard accessible:
 
 ```tsx
@@ -89,6 +96,7 @@ All interactive components must be keyboard accessible:
 ```
 
 ### ARIA Labels
+
 Provide descriptive labels for screen readers:
 
 ```tsx
@@ -111,6 +119,7 @@ Provide descriptive labels for screen readers:
 ```
 
 ### Form Accessibility
+
 Always associate labels with inputs:
 
 ```tsx
@@ -137,14 +146,15 @@ Always associate labels with inputs:
 ```
 
 ### Error Messages
+
 Make error messages accessible:
 
 ```tsx
 // ✅ Error message with proper ARIA
 <div className="space-y-2">
   <Label htmlFor="username">Username</Label>
-  <Input 
-    id="username" 
+  <Input
+    id="username"
     aria-invalid={!!error}
     aria-describedby={error ? "username-error" : undefined}
   />
@@ -176,7 +186,9 @@ Make error messages accessible:
 ## Dark Theme Best Practices
 
 ### Use Theme Tokens
+
 **✅ Do:** Use CSS custom properties
+
 ```tsx
 <div className="bg-background text-foreground border-border">
   Content adapts to theme
@@ -184,13 +196,13 @@ Make error messages accessible:
 ```
 
 **❌ Don't:** Use theme-specific classes
+
 ```tsx
-<div className="bg-white dark:bg-gray-900">
-  Avoid manual dark mode classes
-</div>
+<div className="bg-white dark:bg-gray-900">Avoid manual dark mode classes</div>
 ```
 
 ### Test Both Themes
+
 Always verify components work in both light and dark themes:
 
 ```tsx
@@ -206,6 +218,7 @@ Always verify components work in both light and dark themes:
 ```
 
 ### Maintain Contrast
+
 Ensure sufficient contrast in both themes:
 
 ```tsx
@@ -222,56 +235,59 @@ Ensure sufficient contrast in both themes:
 ## Form Handling
 
 ### Use React Hook Form with Zod
+
 **✅ Do:** Use the recommended form pattern
+
 ```tsx
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const schema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
-})
+});
 
 function MyForm() {
   const form = useForm({
     resolver: zodResolver(schema),
-  })
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        {/* Form fields */}
-      </form>
+      <form onSubmit={form.handleSubmit(onSubmit)}>{/* Form fields */}</form>
     </Form>
-  )
+  );
 }
 ```
 
 ### Validation Messages
+
 Provide clear, helpful error messages:
 
 ```tsx
 // ✅ Clear validation messages
 const schema = z.object({
-  username: z.string()
+  username: z
+    .string()
     .min(3, "Username must be at least 3 characters")
     .max(20, "Username cannot exceed 20 characters"),
-  email: z.string()
-    .email("Please enter a valid email address"),
-  password: z.string()
+  email: z.string().email("Please enter a valid email address"),
+  password: z
+    .string()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter"),
-})
+});
 
 // ❌ Generic messages
 const schema = z.object({
   username: z.string().min(3), // No custom message
-  email: z.string().email(),    // Generic message
-})
+  email: z.string().email(), // Generic message
+});
 ```
 
 ### Form Layout
+
 Use consistent spacing and layout:
 
 ```tsx
@@ -287,16 +303,16 @@ Use consistent spacing and layout:
           <FormControl>
             <Input {...field} />
           </FormControl>
-          <FormDescription>
-            Your public display name
-          </FormDescription>
+          <FormDescription>Your public display name</FormDescription>
           <FormMessage />
         </FormItem>
       )}
     />
-    
+
     <div className="flex justify-end space-x-2">
-      <Button type="button" variant="outline">Cancel</Button>
+      <Button type="button" variant="outline">
+        Cancel
+      </Button>
       <Button type="submit">Save</Button>
     </div>
   </form>
@@ -308,10 +324,11 @@ Use consistent spacing and layout:
 ## Performance Best Practices
 
 ### Memoization
+
 Use React.memo for components that receive the same props frequently:
 
 ```tsx
-import { memo } from "react"
+import { memo } from "react";
 
 // ✅ Memoize expensive list items
 const TournamentListItem = memo(({ tournament, onSelect }) => (
@@ -320,49 +337,51 @@ const TournamentListItem = memo(({ tournament, onSelect }) => (
       <CardTitle>{tournament.name}</CardTitle>
     </CardHeader>
   </Card>
-))
+));
 
 function TournamentList({ tournaments }) {
-  return tournaments.map(t => (
+  return tournaments.map((t) => (
     <TournamentListItem key={t.id} tournament={t} onSelect={handleSelect} />
-  ))
+  ));
 }
 ```
 
 ### Avoid Inline Functions
+
 Define handlers outside render when possible:
 
 ```tsx
 // ✅ Handler defined outside
 function MyComponent() {
   const handleClick = useCallback(() => {
-    console.log("Clicked")
-  }, [])
-  
-  return <Button onClick={handleClick}>Click</Button>
+    console.log("Clicked");
+  }, []);
+
+  return <Button onClick={handleClick}>Click</Button>;
 }
 
 // ⚠️ Inline functions cause re-renders in memoized children
 function MyComponent() {
-  return <Button onClick={() => console.log("Clicked")}>Click</Button>
+  return <Button onClick={() => console.log("Clicked")}>Click</Button>;
 }
 ```
 
 ### Lazy Loading
+
 Lazy load heavy components:
 
 ```tsx
-import { lazy, Suspense } from "react"
+import { lazy, Suspense } from "react";
 
 // ✅ Lazy load Chart component
-const Chart = lazy(() => import("@/components/ui/chart"))
+const Chart = lazy(() => import("@/components/ui/chart"));
 
 function Dashboard() {
   return (
     <Suspense fallback={<Skeleton className="h-[300px]" />}>
       <Chart data={data} />
     </Suspense>
-  )
+  );
 }
 ```
 
@@ -371,6 +390,7 @@ function Dashboard() {
 ## Component Organization
 
 ### File Structure
+
 Organize feature-specific components in the features directory:
 
 ```
@@ -393,18 +413,19 @@ client/src/
 ```
 
 ### Component Naming
+
 Use clear, descriptive names:
 
 ```tsx
 // ✅ Clear, descriptive names
-TournamentCard.tsx
-TournamentList.tsx
-TournamentRegistrationForm.tsx
+TournamentCard.tsx;
+TournamentList.tsx;
+TournamentRegistrationForm.tsx;
 
 // ❌ Generic names
-Card.tsx          // Too generic for feature components
-List.tsx          // What kind of list?
-Form.tsx          // What form?
+Card.tsx; // Too generic for feature components
+List.tsx; // What kind of list?
+Form.tsx; // What form?
 ```
 
 ---
@@ -412,6 +433,7 @@ Form.tsx          // What form?
 ## Styling Guidelines
 
 ### Tailwind Utilities
+
 Use Tailwind utility classes over custom CSS:
 
 ```tsx
@@ -432,13 +454,14 @@ Use Tailwind utility classes over custom CSS:
 ```
 
 ### Class Organization
+
 Use the `cn` utility for conditional classes:
 
 ```tsx
 import { cn } from "@/lib/utils"
 
 // ✅ Use cn for conditional classes
-<Button 
+<Button
   className={cn(
     "base-class",
     isActive && "active-class",
@@ -449,7 +472,7 @@ import { cn } from "@/lib/utils"
 </Button>
 
 // ❌ String concatenation
-<Button 
+<Button
   className={`base-class ${isActive ? "active-class" : ""} ${variant === "special" ? "special-class" : ""}`}
 >
   Button
@@ -457,6 +480,7 @@ import { cn } from "@/lib/utils"
 ```
 
 ### Responsive Design
+
 Use responsive utilities:
 
 ```tsx
@@ -476,6 +500,7 @@ Use responsive utilities:
 ## Testing Considerations
 
 ### Testable Components
+
 Write components that are easy to test:
 
 ```tsx
@@ -487,35 +512,32 @@ function TournamentCard({ tournament, onJoin }) {
         <CardTitle>{tournament.name}</CardTitle>
       </CardHeader>
       <CardFooter>
-        <Button onClick={() => onJoin(tournament.id)}>
-          Join
-        </Button>
+        <Button onClick={() => onJoin(tournament.id)}>Join</Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
 // ❌ Hard to test - fetches data internally
 function TournamentCard({ tournamentId }) {
-  const [tournament, setTournament] = useState(null)
-  
+  const [tournament, setTournament] = useState(null);
+
   useEffect(() => {
-    fetchTournament(tournamentId).then(setTournament)
-  }, [tournamentId])
-  
+    fetchTournament(tournamentId).then(setTournament);
+  }, [tournamentId]);
+
   // ...
 }
 ```
 
 ### Data-testid Attributes
+
 Use data-testid for testing:
 
 ```tsx
 <Card data-testid="tournament-card">
   <CardHeader>
-    <CardTitle data-testid="tournament-name">
-      {tournament.name}
-    </CardTitle>
+    <CardTitle data-testid="tournament-name">{tournament.name}</CardTitle>
   </CardHeader>
   <Button data-testid="join-button" onClick={onJoin}>
     Join
@@ -528,12 +550,13 @@ Use data-testid for testing:
 ## Documentation
 
 ### Component Comments
+
 Document complex component usage:
 
 ```tsx
 /**
  * TournamentCard - Displays tournament information with join action
- * 
+ *
  * @param {Tournament} tournament - Tournament data object
  * @param {Function} onJoin - Callback when user clicks join button
  * @param {boolean} isRegistered - Whether user is already registered
@@ -544,39 +567,42 @@ function TournamentCard({ tournament, onJoin, isRegistered }) {
 ```
 
 ### Usage Examples
+
 Include usage examples in complex components:
 
-```tsx
+````tsx
 /**
  * @example
  * ```tsx
- * <TournamentCard 
+ * <TournamentCard
  *   tournament={tournament}
  *   onJoin={handleJoin}
  *   isRegistered={false}
  * />
  * ```
  */
-```
+````
 
 ---
 
 ## Common Pitfalls to Avoid
 
 ### 1. Not Using forwardRef
+
 When wrapping UI components:
 
 ```tsx
 // ✅ Use forwardRef
 const CustomButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  (props, ref) => <Button ref={ref} {...props} />
-)
+  (props, ref) => <Button ref={ref} {...props} />,
+);
 
 // ❌ Without forwardRef (ref won't work)
-const CustomButton = (props: ButtonProps) => <Button {...props} />
+const CustomButton = (props: ButtonProps) => <Button {...props} />;
 ```
 
 ### 2. Breaking Accessibility
+
 ```tsx
 // ❌ Div clickable without keyboard support
 <div onClick={handleClick}>Click me</div>
@@ -584,8 +610,8 @@ const CustomButton = (props: ButtonProps) => <Button {...props} />
 // ✅ Use button or add proper ARIA and keyboard handlers
 <Button onClick={handleClick}>Click me</Button>
 // Or
-<div 
-  role="button" 
+<div
+  role="button"
   tabIndex={0}
   onClick={handleClick}
   onKeyDown={(e) => e.key === "Enter" && handleClick()}
@@ -595,6 +621,7 @@ const CustomButton = (props: ButtonProps) => <Button {...props} />
 ```
 
 ### 3. Overriding Component Styles
+
 ```tsx
 // ❌ Overriding internal styles
 <Button className="p-0 h-auto">
@@ -608,6 +635,7 @@ const CustomButton = (props: ButtonProps) => <Button {...props} />
 ```
 
 ### 4. Not Handling Loading States
+
 ```tsx
 // ❌ No loading state
 <Button onClick={handleSubmit}>Submit</Button>
@@ -623,7 +651,9 @@ const CustomButton = (props: ButtonProps) => <Button {...props} />
 ## Migration Guide
 
 ### When to Create a New Component
+
 Create a new component when:
+
 - You're using the same composition in 3+ places
 - The component has its own state/logic
 - It represents a distinct UI pattern
@@ -639,7 +669,7 @@ Create a new component when:
     <Avatar src={user.avatar} />
     <Badge>{user.role}</Badge>
   </CardContent>
-</Card>
+</Card>;
 
 // Extract to:
 function UserCard({ user }) {
@@ -654,7 +684,7 @@ function UserCard({ user }) {
         <Badge>{user.role}</Badge>
       </CardContent>
     </Card>
-  )
+  );
 }
 ```
 
@@ -663,6 +693,7 @@ function UserCard({ user }) {
 ## Maintenance Checklist
 
 Before committing component changes:
+
 - [ ] TypeScript types are properly defined
 - [ ] Component works in light and dark themes
 - [ ] Accessibility attributes are present

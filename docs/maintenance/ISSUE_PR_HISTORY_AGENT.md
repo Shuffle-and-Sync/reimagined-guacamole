@@ -7,6 +7,7 @@ The Issue & PR History Update Agent is an automated tool that maintains the `doc
 ## Purpose
 
 This agent follows GitHub Copilot best practices to:
+
 - Automatically update the issue/PR history document at the end of each day
 - Maintain a comprehensive catalog of resolved work
 - Keep the "Last Updated" timestamp current
@@ -21,6 +22,7 @@ The agent follows the established pattern used in other Shuffle & Sync agents:
 **File:** `scripts/issue-pr-history-agent.ts`
 
 **Key Features:**
+
 - TypeScript implementation with ES modules
 - GitHub API integration for fetching closed issues/PRs
 - Automatic timestamp updates
@@ -34,6 +36,7 @@ The agent follows the established pattern used in other Shuffle & Sync agents:
 **Schedule:** Daily at 11:59 PM UTC (end of day)
 
 **Workflow Steps:**
+
 1. Checkout repository
 2. Install dependencies
 3. Run the update agent
@@ -61,6 +64,7 @@ GITHUB_TOKEN=your_token npm run history:update
 ### Automated Execution
 
 The agent runs automatically via GitHub Actions:
+
 - **Schedule:** Daily at 11:59 PM UTC
 - **Trigger:** Can also be manually triggered from GitHub Actions UI
 - **Permissions:** Automatic via `GITHUB_TOKEN` secret
@@ -69,15 +73,16 @@ The agent runs automatically via GitHub Actions:
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `GITHUB_TOKEN` | GitHub API token for fetching issues/PRs | Optional* |
+| Variable       | Description                              | Required   |
+| -------------- | ---------------------------------------- | ---------- |
+| `GITHUB_TOKEN` | GitHub API token for fetching issues/PRs | Optional\* |
 
-*The agent will run in limited mode without the token, only updating timestamps.
+\*The agent will run in limited mode without the token, only updating timestamps.
 
 ### Repository Settings
 
 The agent is configured for:
+
 - **Repository:** Shuffle-and-Sync/reimagined-guacamole
 - **Target Document:** docs/ISSUE_PR_HISTORY.md
 - **API Rate Limit:** Respects GitHub API rate limits
@@ -87,6 +92,7 @@ The agent is configured for:
 The agent maintains the following structure in `ISSUE_PR_HISTORY.md`:
 
 ### Header
+
 ```markdown
 **Last Updated:** [Month Year]  
 **Purpose:** Comprehensive catalog of resolved issues and pull requests  
@@ -102,7 +108,7 @@ The agent maintains the following structure in `ISSUE_PR_HISTORY.md`:
 **Status:** ✅ [Resolved/Merged/Completed]  
 **Date Opened:** [Month Year]  
 **Date Closed:** [Month Year]  
-**Contributors:** [GitHub usernames]  
+**Contributors:** [GitHub usernames]
 
 **Problem:**  
 [Description of the issue]
@@ -111,12 +117,15 @@ The agent maintains the following structure in `ISSUE_PR_HISTORY.md`:
 [How it was solved]
 
 **Files Changed:**
+
 - [List of key files]
 
 **Documentation:**
+
 - [Links to related docs]
 
 **Lessons Learned:**
+
 - [Key takeaways]
 ```
 
@@ -237,6 +246,7 @@ The agent provides a foundation, but significant items should be manually enhanc
 ### GitHub Actions
 
 View workflow runs:
+
 1. Go to repository **Actions** tab
 2. Select **Update Issue & PR History** workflow
 3. View run logs and summaries
@@ -270,17 +280,21 @@ git log --oneline -- docs/ISSUE_PR_HISTORY.md
 ### Common Issues
 
 **Issue:** Agent fails to fetch issues/PRs
+
 - **Solution:** Verify GITHUB_TOKEN is set and has correct permissions
 
 **Issue:** No changes committed
+
 - **Solution:** Normal if no new closed issues/PRs since last run
 
 **Issue:** Workflow fails
+
 - **Solution:** Check GitHub Actions logs for specific error messages
 
 ### Rate Limiting
 
 GitHub API has rate limits:
+
 - **Authenticated:** 5,000 requests/hour
 - **Unauthenticated:** 60 requests/hour
 

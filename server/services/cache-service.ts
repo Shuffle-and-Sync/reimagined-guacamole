@@ -1,7 +1,7 @@
-import { redisClient } from './redis-client';
-import { logger } from '../logger';
-import type { User, Community } from '@shared/schema';
-import type { StreamSession } from './streaming-coordinator';
+import { redisClient } from "./redis-client";
+import { logger } from "../logger";
+import type { User, Community } from "@shared/schema";
+import type { StreamSession } from "./streaming-coordinator";
 
 /**
  * High-level caching service for application data
@@ -25,7 +25,7 @@ export class CacheService {
 
       return JSON.parse(data);
     } catch (error) {
-      logger.error('Cache get error', { key, error });
+      logger.error("Cache get error", { key, error });
       return null;
     }
   }
@@ -39,7 +39,7 @@ export class CacheService {
       await client.setEx(key, ttl, JSON.stringify(value));
       return true;
     } catch (error) {
-      logger.error('Cache set error', { key, error });
+      logger.error("Cache set error", { key, error });
       return false;
     }
   }
@@ -52,7 +52,7 @@ export class CacheService {
       await client.del(key);
       return true;
     } catch (error) {
-      logger.error('Cache delete error', { key, error });
+      logger.error("Cache delete error", { key, error });
       return false;
     }
   }
@@ -65,7 +65,7 @@ export class CacheService {
       const result = await client.exists(key);
       return result === 1;
     } catch (error) {
-      logger.error('Cache exists error', { key, error });
+      logger.error("Cache exists error", { key, error });
       return false;
     }
   }
@@ -88,7 +88,10 @@ export class CacheService {
     return await this.delete(key);
   }
 
-  async cacheUserStreamSessions(userId: string, sessions: StreamSession[]): Promise<boolean> {
+  async cacheUserStreamSessions(
+    userId: string,
+    sessions: StreamSession[],
+  ): Promise<boolean> {
     const key = `user_sessions:${userId}`;
     return await this.set(key, sessions, this.sessionTTL);
   }
@@ -130,49 +133,70 @@ export class CacheService {
   }
 
   async cacheAllCommunities(communities: Community[]): Promise<boolean> {
-    const key = 'communities:all';
+    const key = "communities:all";
     return await this.set(key, communities, this.userTTL);
   }
 
   async getAllCommunities(): Promise<Community[] | null> {
-    const key = 'communities:all';
+    const key = "communities:all";
     return await this.get<Community[]>(key);
   }
 
   /**
    * API response caching
    */
-  async cacheApiResponse<T>(endpoint: string, params: Record<string, unknown>, response: T): Promise<boolean> {
+  async cacheApiResponse<T>(
+    endpoint: string,
+    params: Record<string, unknown>,
+    response: T,
+  ): Promise<boolean> {
     const key = this.generateApiCacheKey(endpoint, params);
     return await this.set(key, response, this.apiTTL);
   }
 
-  async getApiResponse(endpoint: string, params: Record<string, any>): Promise<any | null> {
+  async getApiResponse(
+    endpoint: string,
+    params: Record<string, any>,
+  ): Promise<any | null> {
     const key = this.generateApiCacheKey(endpoint, params);
     return await this.get(key);
   }
 
-  private generateApiCacheKey(endpoint: string, params: Record<string, any>): string {
+  private generateApiCacheKey(
+    endpoint: string,
+    params: Record<string, any>,
+  ): string {
     const sortedParams = Object.keys(params)
       .sort()
-      .reduce((result, key) => {
-        result[key] = params[key];
-        return result;
-      }, {} as Record<string, any>);
-    
+      .reduce(
+        (result, key) => {
+          result[key] = params[key];
+          return result;
+        },
+        {} as Record<string, any>,
+      );
+
     const paramString = JSON.stringify(sortedParams);
-    return `api:${endpoint}:${Buffer.from(paramString).toString('base64')}`;
+    return `api:${endpoint}:${Buffer.from(paramString).toString("base64")}`;
   }
 
   /**
    * Analytics caching
    */
-  async cacheAnalyticsData<T>(type: string, identifier: string, data: T, ttlSeconds?: number): Promise<boolean> {
+  async cacheAnalyticsData<T>(
+    type: string,
+    identifier: string,
+    data: T,
+    ttlSeconds?: number,
+  ): Promise<boolean> {
     const key = `analytics:${type}:${identifier}`;
     return await this.set(key, data, ttlSeconds || this.defaultTTL);
   }
 
-  async getAnalyticsData(type: string, identifier: string): Promise<any | null> {
+  async getAnalyticsData(
+    type: string,
+    identifier: string,
+  ): Promise<any | null> {
     const key = `analytics:${type}:${identifier}`;
     return await this.get(key);
   }
@@ -186,20 +210,22 @@ export class CacheService {
       if (!client || !redisClient.isHealthy()) return keys.map(() => null);
 
       const values = await client.mGet(keys);
-      return values.map(value => value ? JSON.parse(value) : null);
+      return values.map((value) => (value ? JSON.parse(value) : null));
     } catch (error) {
-      logger.error('Cache multiGet error', { keys, error });
+      logger.error("Cache multiGet error", { keys, error });
       return keys.map(() => null);
     }
   }
 
-  async multiSet<T>(keyValuePairs: Array<{ key: string; value: T; ttl?: number }>): Promise<boolean> {
+  async multiSet<T>(
+    keyValuePairs: Array<{ key: string; value: T; ttl?: number }>,
+  ): Promise<boolean> {
     try {
       const client = redisClient.getClient();
       if (!client || !redisClient.isHealthy()) return false;
 
       const pipeline = client.multi();
-      
+
       keyValuePairs.forEach(({ key, value, ttl }) => {
         const ttlSeconds = ttl || this.defaultTTL;
         pipeline.setEx(key, ttlSeconds, JSON.stringify(value));
@@ -208,7 +234,7 @@ export class CacheService {
       await pipeline.exec();
       return true;
     } catch (error) {
-      logger.error('Cache multiSet error', { error });
+      logger.error("Cache multiSet error", { error });
       return false;
     }
   }
@@ -227,7 +253,7 @@ export class CacheService {
       await client.del(keys);
       return keys.length;
     } catch (error) {
-      logger.error('Cache deletePattern error', { pattern, error });
+      logger.error("Cache deletePattern error", { pattern, error });
       return 0;
     }
   }
@@ -244,19 +270,19 @@ export class CacheService {
     try {
       const client = redisClient.getClient();
       const isConnected = redisClient.isHealthy();
-      
+
       if (!client || !isConnected) {
         return {
           connected: false,
           keyCount: 0,
           memoryUsage: null,
-          hitRate: null
+          hitRate: null,
         };
       }
 
       const keyCount = await client.dbSize();
       const info = await redisClient.getInfo();
-      
+
       // Parse memory usage from info
       let memoryUsage: string | null = null;
       if (info) {
@@ -270,15 +296,15 @@ export class CacheService {
         connected: true,
         keyCount,
         memoryUsage,
-        hitRate: null // Would need to implement hit/miss tracking
+        hitRate: null, // Would need to implement hit/miss tracking
       };
     } catch (error) {
-      logger.error('Failed to get cache stats', { error });
+      logger.error("Failed to get cache stats", { error });
       return {
         connected: false,
         keyCount: 0,
         memoryUsage: null,
-        hitRate: null
+        hitRate: null,
       };
     }
   }

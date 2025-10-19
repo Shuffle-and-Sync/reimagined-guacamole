@@ -1,5 +1,5 @@
-import { Suspense, lazy, ComponentType } from 'react';
-import { cn } from '@/lib/utils';
+import { Suspense, lazy, ComponentType } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * Lazy Loading Wrapper with Enhanced Loading States
@@ -26,7 +26,11 @@ const LoadingSkeleton = ({ className }: { className?: string }) => (
   </div>
 );
 
-export function LazyLoadWrapper({ fallback, className, children }: LazyLoadProps) {
+export function LazyLoadWrapper({
+  fallback,
+  className,
+  children,
+}: LazyLoadProps) {
   return (
     <Suspense fallback={fallback || <LoadingSpinner className={className} />}>
       {children}
@@ -39,10 +43,10 @@ export function LazyLoadWrapper({ fallback, className, children }: LazyLoadProps
  */
 export function withLazyLoading<P extends Record<string, any>>(
   importFn: () => Promise<{ default: ComponentType<P> }>,
-  fallback?: React.ReactNode
+  fallback?: React.ReactNode,
 ) {
   const LazyComponent = lazy(importFn);
-  
+
   return function WrappedComponent(props: P) {
     return (
       <LazyLoadWrapper fallback={fallback}>
@@ -62,14 +66,20 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
 }
 
-export function LazyImage({ src, alt, placeholder, className, ...props }: LazyImageProps) {
+export function LazyImage({
+  src,
+  alt,
+  placeholder,
+  className,
+  ...props
+}: LazyImageProps) {
   return (
     <img
       src={src}
       alt={alt}
       loading="lazy"
       className={cn("transition-opacity duration-300", className)}
-      style={{ backgroundColor: placeholder || '#f3f4f6' }}
+      style={{ backgroundColor: placeholder || "#f3f4f6" }}
       {...props}
     />
   );
@@ -86,12 +96,12 @@ interface InViewLazyLoadProps {
   triggerOnce?: boolean;
 }
 
-export function InViewLazyLoad({ 
-  children, 
+export function InViewLazyLoad({
+  children,
   fallback = <LoadingSkeleton />,
   rootMargin = "100px",
   threshold = 0.1,
-  triggerOnce = true 
+  triggerOnce = true,
 }: InViewLazyLoadProps) {
   // Note: In a real implementation, we'd use useIntersectionObserver
   // For now, we'll show the content immediately

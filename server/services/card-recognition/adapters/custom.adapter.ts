@@ -1,21 +1,21 @@
 /**
  * Custom Game Adapter
- * 
+ *
  * Adapter for custom/user-defined games with database-backed cards
  * NOTE: Currently disabled - 'cards' table not yet implemented in schema
  */
 
-import { eq, and, like, sql } from 'drizzle-orm';
-import { db } from '../../../../shared/database-unified';
+import { eq, and, like, sql } from "drizzle-orm";
+import { db } from "../../../../shared/database-unified";
 // TODO: Re-enable when cards table is added to schema
 // import { cards } from '../../../../shared/schema';
-import { logger } from '../../../logger';
-import type { 
-  ICardAdapter, 
-  UniversalCard, 
-  CardSearchResult, 
-  AutocompleteResult 
-} from './base.adapter';
+import { logger } from "../../../logger";
+import type {
+  ICardAdapter,
+  UniversalCard,
+  CardSearchResult,
+  AutocompleteResult,
+} from "./base.adapter";
 
 export class CustomGameAdapter implements ICardAdapter {
   constructor(private gameId: string) {}
@@ -52,11 +52,13 @@ export class CustomGameAdapter implements ICardAdapter {
       format?: string;
       page?: number;
       limit?: number;
-    }
+    },
   ): Promise<CardSearchResult> {
     // TODO: Re-enable when cards table is added to schema
-    throw new Error('Custom game adapter not yet implemented - cards table missing from schema');
-    
+    throw new Error(
+      "Custom game adapter not yet implemented - cards table missing from schema",
+    );
+
     /* Original implementation - disabled until cards table exists
     try {
       const page = options?.page || 1;
@@ -103,8 +105,10 @@ export class CustomGameAdapter implements ICardAdapter {
 
   async getCardById(id: string): Promise<UniversalCard | null> {
     // TODO: Re-enable when cards table is added to schema
-    throw new Error('Custom game adapter not yet implemented - cards table missing from schema');
-    
+    throw new Error(
+      "Custom game adapter not yet implemented - cards table missing from schema",
+    );
+
     /* Original implementation - disabled until cards table exists
     try {
       const [card] = await db
@@ -128,11 +132,13 @@ export class CustomGameAdapter implements ICardAdapter {
 
   async getCardByName(
     name: string,
-    options?: { set?: string }
+    options?: { set?: string },
   ): Promise<UniversalCard | null> {
     // TODO: Re-enable when cards table is added to schema
-    throw new Error('Custom game adapter not yet implemented - cards table missing from schema');
-    
+    throw new Error(
+      "Custom game adapter not yet implemented - cards table missing from schema",
+    );
+
     /* Original implementation - disabled until cards table exists
     try {
       let whereConditions = [
@@ -162,8 +168,10 @@ export class CustomGameAdapter implements ICardAdapter {
 
   async autocomplete(query: string, limit = 20): Promise<AutocompleteResult> {
     // TODO: Re-enable when cards table is added to schema
-    throw new Error('Custom game adapter not yet implemented - cards table missing from schema');
-    
+    throw new Error(
+      "Custom game adapter not yet implemented - cards table missing from schema",
+    );
+
     /* Original implementation - disabled until cards table exists
     try {
       if (query.length < 2) {
@@ -194,8 +202,10 @@ export class CustomGameAdapter implements ICardAdapter {
     format?: string;
   }): Promise<UniversalCard> {
     // TODO: Re-enable when cards table is added to schema
-    throw new Error('Custom game adapter not yet implemented - cards table missing from schema');
-    
+    throw new Error(
+      "Custom game adapter not yet implemented - cards table missing from schema",
+    );
+
     /* Original implementation - disabled until cards table exists
     try {
       let whereConditions = [eq(cards.gameId, this.gameId)];

@@ -17,6 +17,7 @@ Shuffle & Sync includes comprehensive monitoring and logging infrastructure to e
 ## ✅ Application Logging Configuration
 
 ### Logger Implementation
+
 - [x] **Structured logging implemented** (`server/logger.ts`)
   - Development: Human-readable format with color coding
   - Production: JSON-structured format for log aggregation
@@ -24,6 +25,7 @@ Shuffle & Sync includes comprehensive monitoring and logging infrastructure to e
   - Supports: `error`, `warn`, `info`, `debug` levels
 
 ### Log Level Configuration
+
 - [ ] **Production log level set appropriately**
   - Set `LOG_LEVEL=info` or `LOG_LEVEL=warn` in production
   - Avoid `debug` level in production (too verbose)
@@ -35,6 +37,7 @@ Shuffle & Sync includes comprehensive monitoring and logging infrastructure to e
   - Includes timestamps, log levels, context, and request IDs
 
 ### Log Content Verification
+
 - [x] **No sensitive data in logs**
   - Passwords, tokens, and secrets are filtered
   - API keys are redacted
@@ -47,6 +50,7 @@ Shuffle & Sync includes comprehensive monitoring and logging infrastructure to e
   - Request ID included in all log entries
 
 ### Log Accessibility
+
 - [ ] **Log aggregation service configured** (Optional but Recommended)
   - Options: Google Cloud Logging, Datadog, Splunk, ELK Stack
   - Configure service-specific agents/exporters
@@ -54,6 +58,7 @@ Shuffle & Sync includes comprehensive monitoring and logging infrastructure to e
   - Test log search and filtering
 
 **Verification Command:**
+
 ```bash
 # Check current log level
 echo $LOG_LEVEL
@@ -68,12 +73,14 @@ NODE_ENV=production LOG_LEVEL=info npm start
 ## ✅ Error Tracking Service (Sentry)
 
 ### Sentry Installation
+
 - [x] **Sentry SDK installed**
   - Package: `@sentry/node` and `@sentry/profiling-node`
   - Installed via: `npm install @sentry/node @sentry/profiling-node`
   - Check `package.json` dependencies
 
 ### Sentry Configuration
+
 - [ ] **Sentry DSN configured**
   - Sign up at [sentry.io](https://sentry.io)
   - Create new project for "Shuffle & Sync"
@@ -93,6 +100,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - User context tracking for authenticated requests
 
 ### Sentry Features Enabled
+
 - [x] **Error capturing**
   - Automatic capture of unhandled exceptions
   - Manual error capture via `captureException()`
@@ -116,11 +124,14 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - Query parameters sanitized
 
 ### Sentry Verification
+
 - [ ] **Test error capture**
+
   ```bash
   # Send test error to Sentry
   curl -X POST http://localhost:3000/api/tests/error-test
   ```
+
   - Check Sentry dashboard for error
   - Verify error details, stack trace, and context
   - Confirm user context attached
@@ -131,6 +142,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - Test alert delivery
 
 **Verification Steps:**
+
 1. Set `SENTRY_DSN` in environment
 2. Start application
 3. Check logs for "Sentry error tracking initialized"
@@ -142,6 +154,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
 ## ✅ Performance Monitoring
 
 ### Performance Middleware
+
 - [x] **Performance monitoring middleware implemented**
   - Location: `server/middleware/performance.middleware.ts`
   - Tracks request timing and response times
@@ -154,6 +167,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - Check performance headers in responses (`X-Response-Time`)
 
 ### Monitoring Service
+
 - [x] **Monitoring service implemented**
   - Location: `server/services/monitoring-service.ts`
   - System metrics collection (CPU, memory, disk)
@@ -172,6 +186,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - Check logs for "Monitoring service started"
 
 ### Performance Metrics Tracked
+
 - [x] **Request metrics**
   - Request count
   - Average response time
@@ -192,6 +207,7 @@ NODE_ENV=production LOG_LEVEL=info npm start
   - Database connectivity status
 
 **Verification Command:**
+
 ```bash
 # Check monitoring status (requires admin auth)
 curl -X GET http://localhost:3000/api/monitoring/status \
@@ -207,6 +223,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
 ## ✅ Key Metrics & Dashboards
 
 ### Key Performance Indicators (KPIs)
+
 - [x] **Application KPIs defined**
   - Request rate (requests/second)
   - Response time (p50, p95, p99)
@@ -222,6 +239,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   - Database connections
 
 ### Dashboard Configuration
+
 - [x] **Google Cloud Monitoring dashboard configured**
   - Location: `monitoring/dashboard-config.json`
   - Widgets: Request rate, latency, error rate, CPU, memory
@@ -235,6 +253,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   ```
 
 ### Custom Metrics
+
 - [x] **Custom application metrics implemented**
   - Slow request tracking
   - Database query performance
@@ -248,6 +267,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   - Supports time range filtering
 
 **Dashboard Access:**
+
 - Google Cloud Console: Monitoring > Dashboards
 - Sentry: Performance > Overview
 - Internal API: `/api/monitoring/status`
@@ -257,6 +277,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
 ## ✅ Alerting Configuration
 
 ### Alert Thresholds Defined
+
 - [x] **System resource alerts**
   - CPU > 70% (warning), > 90% (critical)
   - Memory > 80% (warning), > 95% (critical)
@@ -273,6 +294,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   - Service unhealthy (critical)
 
 ### Alert Notification Channels
+
 - [x] **Alert policy configured**
   - Location: `monitoring/alerting-policy.yaml`
   - Defines all alert conditions
@@ -293,7 +315,9 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   ```
 
 ### Alert Testing
+
 - [ ] **Test alert system**
+
   ```bash
   # Trigger test alert (requires admin auth)
   curl -X POST http://localhost:3000/api/monitoring/alerts/test \
@@ -308,6 +332,7 @@ curl -X GET http://localhost:3000/api/monitoring/metrics \
   - Test alert escalation
 
 **Alert Configuration:**
+
 ```bash
 # Environment variables for alerting
 MONITORING_ALERTING_ENABLED=true
@@ -321,6 +346,7 @@ MONITORING_ALERT_COOLDOWN=15
 ## ✅ Health Check Endpoints
 
 ### Health Check Implementation
+
 - [x] **Primary health endpoint** (`/api/health`)
   - Location: `server/index.ts`
   - Returns: status, uptime, environment, services
@@ -344,6 +370,7 @@ MONITORING_ALERT_COOLDOWN=15
   - File operations functional
 
 ### Health Check Monitoring
+
 - [ ] **Health checks monitored**
   - External monitoring service (e.g., UptimeRobot, Pingdom)
   - Frequency: Every 1-5 minutes
@@ -356,6 +383,7 @@ MONITORING_ALERT_COOLDOWN=15
   - Set failure thresholds
 
 **Test Health Check:**
+
 ```bash
 # Local test
 curl http://localhost:3000/api/health | jq
@@ -384,6 +412,7 @@ curl https://your-domain.com/api/health | jq
 ## ✅ Database Query Monitoring
 
 ### Query Performance Tracking
+
 - [x] **DatabaseMonitor class implemented**
   - Location: `shared/database-unified.ts`
   - Singleton pattern for centralized tracking
@@ -397,6 +426,7 @@ curl https://your-domain.com/api/health | jq
   - Statistics available via `DatabaseMonitor.getInstance().getStats()`
 
 ### Slow Query Detection
+
 - [x] **Slow query logging**
   - Threshold: 1000ms (configurable)
   - Logged with query details
@@ -409,6 +439,7 @@ curl https://your-domain.com/api/health | jq
   - Optimize with indexes or query refactoring
 
 ### Query Metrics Available
+
 - [x] **Query statistics**
   - Total query count
   - Average query time
@@ -417,6 +448,7 @@ curl https://your-domain.com/api/health | jq
   - Recent query history
 
 ### Database Connection Monitoring
+
 - [x] **Connection pool monitoring**
   - Active connections tracked
   - Connection errors logged
@@ -424,6 +456,7 @@ curl https://your-domain.com/api/health | jq
   - Health check integration
 
 **View Database Metrics:**
+
 ```bash
 # Via monitoring API (admin only)
 curl -X GET http://localhost:3000/api/monitoring/health \
@@ -438,6 +471,7 @@ curl http://localhost:3000/api/health | jq '.services.database'
 ## 📋 Pre-Release Verification Checklist
 
 ### Environment Configuration
+
 - [ ] `LOG_LEVEL` set to `info` or `warn` in production
 - [ ] `STRUCTURED_LOGGING` enabled (true by default)
 - [ ] `SENTRY_DSN` configured with production DSN
@@ -446,6 +480,7 @@ curl http://localhost:3000/api/health | jq '.services.database'
 - [ ] All monitoring threshold variables reviewed
 
 ### Service Verification
+
 - [ ] Sentry initialization confirmed in startup logs
 - [ ] Monitoring service started successfully
 - [ ] Health check endpoint responding
@@ -453,12 +488,14 @@ curl http://localhost:3000/api/health | jq '.services.database'
 - [ ] Database monitoring functional
 
 ### Dashboard & Alerts
+
 - [ ] Monitoring dashboard deployed and accessible
 - [ ] Alert policies deployed
 - [ ] Notification channels tested
 - [ ] Test alerts sent and received
 
 ### Testing
+
 - [ ] Error tracking tested (send test error to Sentry)
 - [ ] Performance monitoring verified (check metrics API)
 - [ ] Health checks passing (database, Redis, filesystem)
@@ -466,6 +503,7 @@ curl http://localhost:3000/api/health | jq '.services.database'
 - [ ] Alert system tested
 
 ### Documentation
+
 - [ ] Team trained on monitoring dashboard
 - [ ] Alert response procedures documented
 - [ ] Runbook created for common issues
@@ -476,6 +514,7 @@ curl http://localhost:3000/api/health | jq '.services.database'
 ## 🚀 Quick Start Guide
 
 ### Step 1: Configure Environment Variables
+
 ```bash
 # Copy production template
 cp .env.production.template .env.production
@@ -491,6 +530,7 @@ EOF
 ```
 
 ### Step 2: Deploy Monitoring Infrastructure
+
 ```bash
 # Deploy Google Cloud Monitoring dashboard
 gcloud monitoring dashboards create \
@@ -502,6 +542,7 @@ gcloud alpha monitoring policies create \
 ```
 
 ### Step 3: Verify Monitoring
+
 ```bash
 # Start application
 npm run start
@@ -519,12 +560,14 @@ curl https://your-domain.com/api/health
 ```
 
 ### Step 4: Configure Alerts
+
 1. Log in to Sentry dashboard
 2. Go to Settings > Alerts
 3. Configure notification rules
 4. Test alert delivery
 
 ### Step 5: Monitor First 24 Hours
+
 - Check Sentry dashboard for errors
 - Review monitoring metrics
 - Verify alerts are working
@@ -536,17 +579,20 @@ curl https://your-domain.com/api/health
 ## 📊 Monitoring Tools Reference
 
 ### Internal Monitoring
+
 - **Health Check**: `GET /api/health`
 - **Monitoring Status**: `GET /api/monitoring/status` (admin)
 - **Metrics API**: `GET /api/monitoring/metrics` (admin)
 - **Alerts API**: `GET /api/monitoring/alerts` (admin)
 
 ### External Services
+
 - **Sentry Dashboard**: [sentry.io](https://sentry.io)
 - **Google Cloud Monitoring**: Console > Monitoring
 - **Application Logs**: Cloud Logging or configured log aggregation service
 
 ### Key Environment Variables
+
 ```bash
 # Logging
 LOG_LEVEL=info
@@ -567,24 +613,28 @@ MONITORING_HEALTH_INTERVAL=30000
 ## 🆘 Troubleshooting
 
 ### Sentry Not Capturing Errors
+
 1. Verify `SENTRY_DSN` is set correctly
 2. Check logs for "Sentry error tracking initialized"
 3. Test with manual error: `captureException(new Error('Test'))`
 4. Check Sentry project settings and DSN
 
 ### Monitoring Service Not Starting
+
 1. Check `MONITORING_ENABLED=true`
 2. Review startup logs for errors
 3. Verify database connection (required for monitoring)
 4. Check system resource availability
 
 ### No Metrics Showing in Dashboard
+
 1. Verify dashboard deployed correctly
 2. Check service name matches in dashboard config
 3. Confirm metrics are being collected (check API)
 4. Wait 5-10 minutes for metrics to propagate
 
 ### Alerts Not Firing
+
 1. Verify `MONITORING_ALERTING_ENABLED=true`
 2. Check alert thresholds are reasonable
 3. Confirm notification channels configured

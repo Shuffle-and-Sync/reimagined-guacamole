@@ -11,6 +11,7 @@ npm run db:init
 ```
 
 This will:
+
 1. Connect to SQLite Cloud
 2. Create all necessary tables
 3. Create indexes for performance
@@ -35,6 +36,7 @@ This will:
 ### Indexes
 
 Indexes are automatically created for:
+
 - Foreign key relationships
 - Frequently queried columns
 - Unique constraints
@@ -42,6 +44,7 @@ Indexes are automatically created for:
 ## Connection Details
 
 The database connects to:
+
 - **Server**: `cgqwvg83nk.g4.sqlite.cloud:8860`
 - **Database**: `shuffleandsync`
 - **Connection**: SQLite Cloud (serverless)
@@ -75,36 +78,37 @@ npm run db:init
 
 ## Tables Created
 
-| Table Name | Purpose |
-|------------|---------|
-| accounts | OAuth provider accounts |
-| sessions | User sessions for Auth.js |
+| Table Name          | Purpose                     |
+| ------------------- | --------------------------- |
+| accounts            | OAuth provider accounts     |
+| sessions            | User sessions for Auth.js   |
 | verification_tokens | Email/password verification |
-| users | User profiles and settings |
-| communities | TCG communities |
-| user_communities | User-community memberships |
-| events | Calendar events |
-| messages | Chat and messaging |
+| users               | User profiles and settings  |
+| communities         | TCG communities             |
+| user_communities    | User-community memberships  |
+| events              | Calendar events             |
+| messages            | Chat and messaging          |
 
 ## Indexes Created
 
-| Index Name | Table | Column(s) |
-|------------|-------|-----------|
-| idx_accounts_userId | accounts | userId |
-| idx_sessions_userId | sessions | userId |
-| idx_sessions_sessionToken | sessions | sessionToken |
-| idx_user_communities_userId | user_communities | userId |
-| idx_user_communities_communityId | user_communities | communityId |
-| idx_events_communityId | events | communityId |
-| idx_events_creatorId | events | creatorId |
-| idx_messages_senderId | messages | senderId |
-| idx_messages_recipientId | messages | recipientId |
+| Index Name                       | Table            | Column(s)    |
+| -------------------------------- | ---------------- | ------------ |
+| idx_accounts_userId              | accounts         | userId       |
+| idx_sessions_userId              | sessions         | userId       |
+| idx_sessions_sessionToken        | sessions         | sessionToken |
+| idx_user_communities_userId      | user_communities | userId       |
+| idx_user_communities_communityId | user_communities | communityId  |
+| idx_events_communityId           | events           | communityId  |
+| idx_events_creatorId             | events           | creatorId    |
+| idx_messages_senderId            | messages         | senderId     |
+| idx_messages_recipientId         | messages         | recipientId  |
 
 ## Troubleshooting
 
 ### Connection Failed
 
 If you see connection errors:
+
 1. Verify your API key is correct
 2. Check your internet connection
 3. Ensure the SQLite Cloud server is accessible
@@ -126,6 +130,7 @@ npm install --legacy-peer-deps
 After successful initialization:
 
 1. **Start Development Server**
+
    ```bash
    npm run dev
    ```
@@ -151,6 +156,7 @@ To add new tables or columns:
 ## Production Deployment
 
 For production:
+
 1. Set `DATABASE_URL` in your environment
 2. Run the initialization script once
 3. Deploy your application
@@ -160,6 +166,7 @@ The database is already in the cloud, so no additional deployment steps are need
 ## Support
 
 For issues or questions:
+
 - Check [DATABASE_ARCHITECTURE.md](../architecture/DATABASE_ARCHITECTURE.md) for architecture details
 - Review [SQLITE_MIGRATION_COMPLETE.md](SQLITE_MIGRATION_COMPLETE.md) for migration info
 - See [DATABASE_FAQ.md](DATABASE_FAQ.md) for common questions

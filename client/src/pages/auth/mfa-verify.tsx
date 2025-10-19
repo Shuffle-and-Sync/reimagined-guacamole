@@ -3,10 +3,23 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Smartphone, Key, ArrowLeft } from "lucide-react";
@@ -15,16 +28,18 @@ import { useToast } from "@/hooks/use-toast";
 
 // MFA verification form validation schema
 const mfaVerifySchema = z.object({
-  code: z.string()
-    .min(6, 'Verification code must be 6 digits')
-    .max(6, 'Verification code must be 6 digits')
-    .regex(/^\d{6}$/, 'Verification code must contain only numbers'),
+  code: z
+    .string()
+    .min(6, "Verification code must be 6 digits")
+    .max(6, "Verification code must be 6 digits")
+    .regex(/^\d{6}$/, "Verification code must contain only numbers"),
 });
 
 const backupCodeSchema = z.object({
-  backupCode: z.string()
-    .min(8, 'Backup code is required')
-    .max(12, 'Invalid backup code format'),
+  backupCode: z
+    .string()
+    .min(8, "Backup code is required")
+    .max(12, "Invalid backup code format"),
 });
 
 type MfaVerifyForm = z.infer<typeof mfaVerifySchema>;
@@ -32,12 +47,12 @@ type BackupCodeForm = z.infer<typeof backupCodeSchema>;
 
 export default function MfaVerify() {
   useDocumentTitle("Multi-Factor Authentication - Shuffle & Sync");
-  
+
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [email, setEmail] = useState('');
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
 
@@ -45,7 +60,7 @@ export default function MfaVerify() {
   const totpForm = useForm<MfaVerifyForm>({
     resolver: zodResolver(mfaVerifySchema),
     defaultValues: {
-      code: '',
+      code: "",
     },
   });
 
@@ -53,30 +68,30 @@ export default function MfaVerify() {
   const backupForm = useForm<BackupCodeForm>({
     resolver: zodResolver(backupCodeSchema),
     defaultValues: {
-      backupCode: '',
+      backupCode: "",
     },
   });
 
   // Get email from session storage
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('mfa_email');
+    const storedEmail = sessionStorage.getItem("mfa_email");
     if (storedEmail) {
       setEmail(storedEmail);
     } else {
       // If no email in session, redirect to sign-in
-      setLocation('/auth/signin');
+      setLocation("/auth/signin");
     }
   }, [setLocation]);
 
   const handleTotpVerification = async (values: MfaVerifyForm) => {
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/auth/mfa/verify', {
-        method: 'POST',
+      const response = await fetch("/api/auth/mfa/verify", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: email,
@@ -87,28 +102,35 @@ export default function MfaVerify() {
 
       if (response.ok) {
         // Clear stored email and redirect to home
-        sessionStorage.removeItem('mfa_email');
+        sessionStorage.removeItem("mfa_email");
         toast({
           title: "Authentication successful!",
           description: "You have been signed in successfully.",
         });
-        window.location.href = '/home';
+        window.location.href = "/home";
       } else {
         const errorData = await response.json();
-        setAttemptCount(prev => prev + 1);
-        
-        if (errorData.message?.includes('invalid') || errorData.message?.includes('expired')) {
-          setError('Invalid or expired verification code. Please try again.');
-        } else if (errorData.message?.includes('too many attempts')) {
-          setError('Too many failed attempts. Please try again later or use a backup code.');
+        setAttemptCount((prev) => prev + 1);
+
+        if (
+          errorData.message?.includes("invalid") ||
+          errorData.message?.includes("expired")
+        ) {
+          setError("Invalid or expired verification code. Please try again.");
+        } else if (errorData.message?.includes("too many attempts")) {
+          setError(
+            "Too many failed attempts. Please try again later or use a backup code.",
+          );
         } else {
-          setError(errorData.message || 'Verification failed. Please try again.');
+          setError(
+            errorData.message || "Verification failed. Please try again.",
+          );
         }
       }
     } catch (err) {
-      console.error('MFA verification error:', err);
-      setError('An unexpected error occurred. Please try again.');
-      setAttemptCount(prev => prev + 1);
+      console.error("MFA verification error:", err);
+      setError("An unexpected error occurred. Please try again.");
+      setAttemptCount((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }
@@ -116,13 +138,13 @@ export default function MfaVerify() {
 
   const handleBackupCodeVerification = async (values: BackupCodeForm) => {
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/auth/mfa/verify', {
-        method: 'POST',
+      const response = await fetch("/api/auth/mfa/verify", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: email,
@@ -133,34 +155,42 @@ export default function MfaVerify() {
 
       if (response.ok) {
         // Clear stored email and redirect to home
-        sessionStorage.removeItem('mfa_email');
+        sessionStorage.removeItem("mfa_email");
         toast({
           title: "Authentication successful!",
           description: "You have been signed in with backup code.",
         });
-        window.location.href = '/home';
+        window.location.href = "/home";
       } else {
         const errorData = await response.json();
-        setAttemptCount(prev => prev + 1);
-        
-        if (errorData.message?.includes('invalid') || errorData.message?.includes('used')) {
-          setError('Invalid or already used backup code. Please try a different code.');
+        setAttemptCount((prev) => prev + 1);
+
+        if (
+          errorData.message?.includes("invalid") ||
+          errorData.message?.includes("used")
+        ) {
+          setError(
+            "Invalid or already used backup code. Please try a different code.",
+          );
         } else {
-          setError(errorData.message || 'Backup code verification failed. Please try again.');
+          setError(
+            errorData.message ||
+              "Backup code verification failed. Please try again.",
+          );
         }
       }
     } catch (err) {
-      console.error('Backup code verification error:', err);
-      setError('An unexpected error occurred. Please try again.');
-      setAttemptCount(prev => prev + 1);
+      console.error("Backup code verification error:", err);
+      setError("An unexpected error occurred. Please try again.");
+      setAttemptCount((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleBackToSignIn = () => {
-    sessionStorage.removeItem('mfa_email');
-    setLocation('/auth/signin');
+    sessionStorage.removeItem("mfa_email");
+    setLocation("/auth/signin");
   };
 
   return (
@@ -171,10 +201,9 @@ export default function MfaVerify() {
             Multi-Factor Authentication
           </CardTitle>
           <CardDescription className="text-center">
-            {useBackupCode 
+            {useBackupCode
               ? "Enter one of your backup codes to continue"
-              : "Enter the 6-digit code from your authenticator app"
-            }
+              : "Enter the 6-digit code from your authenticator app"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -195,7 +224,10 @@ export default function MfaVerify() {
           {!useBackupCode ? (
             // TOTP Verification Form
             <Form {...totpForm}>
-              <form onSubmit={totpForm.handleSubmit(handleTotpVerification)} className="space-y-4">
+              <form
+                onSubmit={totpForm.handleSubmit(handleTotpVerification)}
+                className="space-y-4"
+              >
                 <FormField
                   control={totpForm.control}
                   name="code"
@@ -206,37 +238,42 @@ export default function MfaVerify() {
                         Authenticator Code
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          type="text" 
+                        <Input
+                          type="text"
                           placeholder="000000"
                           maxLength={6}
                           className="text-center text-2xl tracking-widest font-mono"
                           data-testid="input-mfa-totp-code"
                           autoComplete="one-time-code"
                           inputMode="numeric"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full"
-                  disabled={isLoading || totpForm.watch('code').length !== 6}
+                  disabled={isLoading || totpForm.watch("code").length !== 6}
                   data-testid="button-verify-totp"
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isLoading ? 'Verifying...' : 'Verify Code'}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isLoading ? "Verifying..." : "Verify Code"}
                 </Button>
               </form>
             </Form>
           ) : (
-            // Backup Code Verification Form  
+            // Backup Code Verification Form
             <Form {...backupForm}>
-              <form onSubmit={backupForm.handleSubmit(handleBackupCodeVerification)} className="space-y-4">
+              <form
+                onSubmit={backupForm.handleSubmit(handleBackupCodeVerification)}
+                className="space-y-4"
+              >
                 <FormField
                   control={backupForm.control}
                   name="backupCode"
@@ -247,28 +284,30 @@ export default function MfaVerify() {
                         Backup Code
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          type="text" 
+                        <Input
+                          type="text"
                           placeholder="Enter backup code"
                           className="text-center font-mono"
                           data-testid="input-mfa-backup-code"
                           autoComplete="one-time-code"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full"
-                  disabled={isLoading || !backupForm.watch('backupCode').trim()}
+                  disabled={isLoading || !backupForm.watch("backupCode").trim()}
                   data-testid="button-verify-backup-code"
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isLoading ? 'Verifying...' : 'Verify Backup Code'}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isLoading ? "Verifying..." : "Verify Backup Code"}
                 </Button>
               </form>
             </Form>
@@ -286,11 +325,11 @@ export default function MfaVerify() {
                 </span>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={() => {
                 setUseBackupCode(!useBackupCode);
-                setError('');
+                setError("");
                 totpForm.reset();
                 backupForm.reset();
               }}
@@ -298,10 +337,9 @@ export default function MfaVerify() {
               className="w-full"
               data-testid="button-toggle-backup-code"
             >
-              {useBackupCode 
-                ? "Use authenticator app instead" 
-                : "Use a backup code instead"
-              }
+              {useBackupCode
+                ? "Use authenticator app instead"
+                : "Use a backup code instead"}
             </Button>
           </div>
 
@@ -309,14 +347,16 @@ export default function MfaVerify() {
           {attemptCount >= 3 && (
             <Alert data-testid="alert-attempt-warning">
               <AlertDescription>
-                Multiple failed attempts detected. Consider using a backup code or contact support if you're unable to access your authenticator app.
+                Multiple failed attempts detected. Consider using a backup code
+                or contact support if you&apos;re unable to access your authenticator
+                app.
               </AlertDescription>
             </Alert>
           )}
 
           {/* Back to Sign In */}
           <div className="text-center">
-            <Button 
+            <Button
               onClick={handleBackToSignIn}
               variant="ghost"
               size="sm"
@@ -327,7 +367,7 @@ export default function MfaVerify() {
               Back to Sign In
             </Button>
           </div>
-          
+
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
             Your authenticator app generates a new code every 30 seconds.
             <br />

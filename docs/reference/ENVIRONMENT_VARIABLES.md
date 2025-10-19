@@ -19,19 +19,19 @@ These variables **must** be set for the application to function properly.
 
 ### Production Environment
 
-| Variable | Description | Example | Validation |
-|----------|-------------|---------|------------|
-| `DATABASE_URL` | SQLite Cloud connection string | `sqlitecloud://host:port/db?apikey=key` | Must start with `sqlitecloud://` |
-| `AUTH_SECRET` | Authentication secret key | Generate with `openssl rand -base64 32` | Min 32 characters, cannot be demo value in production |
+| Variable       | Description                    | Example                                 | Validation                                            |
+| -------------- | ------------------------------ | --------------------------------------- | ----------------------------------------------------- |
+| `DATABASE_URL` | SQLite Cloud connection string | `sqlitecloud://host:port/db?apikey=key` | Must start with `sqlitecloud://`                      |
+| `AUTH_SECRET`  | Authentication secret key      | Generate with `openssl rand -base64 32` | Min 32 characters, cannot be demo value in production |
 
 **Note:** `AUTH_URL` is now **optional** in production when deployed to Cloud Run or behind a proxy. The application uses `trustHost: true` to automatically detect the correct URL from request headers (`X-Forwarded-Host`, `X-Forwarded-Proto`). You only need to set `AUTH_URL` if you want to explicitly override this behavior.
 
 ### Development Environment
 
-| Variable | Description | Example | Validation |
-|----------|-------------|---------|------------|
+| Variable       | Description                                  | Example                                               | Validation                                               |
+| -------------- | -------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
 | `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` | Must start with `sqlitecloud://` or be a valid file path |
-| `AUTH_SECRET` | Authentication secret key | Generate with `openssl rand -base64 32` | Min 32 characters |
+| `AUTH_SECRET`  | Authentication secret key                    | Generate with `openssl rand -base64 32`               | Min 32 characters                                        |
 
 ---
 
@@ -39,24 +39,24 @@ These variables **must** be set for the application to function properly.
 
 These variables are optional but **highly recommended** for full functionality.
 
-| Variable | Description | Example | Validation | Required For |
-|----------|-------------|---------|------------|--------------|
-| `SENDGRID_API_KEY` | SendGrid email service API key | `SG.xxxxx...` | Must start with 'SG.', cannot contain 'demo-' | Email notifications |
-| `AUTH_URL` | Application base URL (optional in Cloud Run/proxy environments) | `https://your-domain.com` | Must be valid URL with http/https protocol, HTTPS in production | OAuth callbacks (auto-detected by default) |
-| `AUTH_TRUST_HOST` | Trust proxy headers for URL detection | `true` | Must be boolean value (`true`, `false`, `1`, `0`) | Cloud Run/proxy deployments (defaults to `true`) |
-| `STREAM_KEY_ENCRYPTION_KEY` | Encryption key for stream data | Generate with `openssl rand -hex 16` | **Must be exactly 32 characters** | Streaming features |
-| `REDIS_URL` | Redis cache connection string | `redis://localhost:6379` | Must start with 'redis://' | Caching and performance |
-| `TWITCH_CLIENT_ID` | Twitch API client ID | From Twitch Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Twitch integration |
-| `TWITCH_CLIENT_SECRET` | Twitch API client secret | From Twitch Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Twitch integration |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID (optional) | From Google Cloud Console | Cannot contain 'demo-' or 'your-' | Google OAuth authentication |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (optional) | From Google Cloud Console | Cannot contain 'demo-' or 'your-' | Google OAuth authentication |
-| `YOUTUBE_API_KEY` | YouTube Data API key | From Google Cloud Console | Cannot contain 'demo-' or 'your-', min 10 chars | YouTube integration |
-| `DISCORD_BOT_TOKEN` | Discord bot token | From Discord Developer Portal | Cannot contain 'demo-' or 'your-', min 10 chars | Discord integration |
-| `SENTRY_DSN` | Sentry error tracking DSN | `https://xxx@sentry.io/123` | Must start with 'https://' or 'http://' | Error tracking |
-| `DATABASE_DIRECT_URL` | Direct database URL for migrations | `sqlitecloud://host:port/db?apikey=key` | Must be valid SQLite Cloud URL or file path | Database migrations |
-| `AUTH_TRUST_HOST` | Trust host header for Auth.js | `true` or `false` | Must be boolean (true/false/1/0) | OAuth callbacks |
-| `LOG_LEVEL` | Application log level | `info`, `warn`, `error`, `debug` | Must be one of: error, warn, info, debug | Logging control |
-| `ALLOWED_ORIGINS` | CORS allowed origins | `https://example.com,https://app.example.com` or `*` | Comma-separated valid URLs or `*` | CORS security |
+| Variable                    | Description                                                     | Example                                              | Validation                                                      | Required For                                     |
+| --------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------ |
+| `SENDGRID_API_KEY`          | SendGrid email service API key                                  | `SG.xxxxx...`                                        | Must start with 'SG.', cannot contain 'demo-'                   | Email notifications                              |
+| `AUTH_URL`                  | Application base URL (optional in Cloud Run/proxy environments) | `https://your-domain.com`                            | Must be valid URL with http/https protocol, HTTPS in production | OAuth callbacks (auto-detected by default)       |
+| `AUTH_TRUST_HOST`           | Trust proxy headers for URL detection                           | `true`                                               | Must be boolean value (`true`, `false`, `1`, `0`)               | Cloud Run/proxy deployments (defaults to `true`) |
+| `STREAM_KEY_ENCRYPTION_KEY` | Encryption key for stream data                                  | Generate with `openssl rand -hex 16`                 | **Must be exactly 32 characters**                               | Streaming features                               |
+| `REDIS_URL`                 | Redis cache connection string                                   | `redis://localhost:6379`                             | Must start with 'redis://'                                      | Caching and performance                          |
+| `TWITCH_CLIENT_ID`          | Twitch API client ID                                            | From Twitch Developer Console                        | Cannot contain 'demo-' or 'your-', min 10 chars                 | Twitch integration                               |
+| `TWITCH_CLIENT_SECRET`      | Twitch API client secret                                        | From Twitch Developer Console                        | Cannot contain 'demo-' or 'your-', min 10 chars                 | Twitch integration                               |
+| `GOOGLE_CLIENT_ID`          | Google OAuth client ID (optional)                               | From Google Cloud Console                            | Cannot contain 'demo-' or 'your-'                               | Google OAuth authentication                      |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth client secret (optional)                           | From Google Cloud Console                            | Cannot contain 'demo-' or 'your-'                               | Google OAuth authentication                      |
+| `YOUTUBE_API_KEY`           | YouTube Data API key                                            | From Google Cloud Console                            | Cannot contain 'demo-' or 'your-', min 10 chars                 | YouTube integration                              |
+| `DISCORD_BOT_TOKEN`         | Discord bot token                                               | From Discord Developer Portal                        | Cannot contain 'demo-' or 'your-', min 10 chars                 | Discord integration                              |
+| `SENTRY_DSN`                | Sentry error tracking DSN                                       | `https://xxx@sentry.io/123`                          | Must start with 'https://' or 'http://'                         | Error tracking                                   |
+| `DATABASE_DIRECT_URL`       | Direct database URL for migrations                              | `sqlitecloud://host:port/db?apikey=key`              | Must be valid SQLite Cloud URL or file path                     | Database migrations                              |
+| `AUTH_TRUST_HOST`           | Trust host header for Auth.js                                   | `true` or `false`                                    | Must be boolean (true/false/1/0)                                | OAuth callbacks                                  |
+| `LOG_LEVEL`                 | Application log level                                           | `info`, `warn`, `error`, `debug`                     | Must be one of: error, warn, info, debug                        | Logging control                                  |
+| `ALLOWED_ORIGINS`           | CORS allowed origins                                            | `https://example.com,https://app.example.com` or `*` | Comma-separated valid URLs or `*`                               | CORS security                                    |
 
 ---
 
@@ -64,16 +64,16 @@ These variables are optional but **highly recommended** for full functionality.
 
 These variables are only validated if they are set. They enable specific platform integrations.
 
-| Variable | Description | Example | Validation | Used For |
-|----------|-------------|---------|------------|----------|
-| `FACEBOOK_APP_ID` | Facebook app ID | From Facebook Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Facebook Gaming integration |
-| `FACEBOOK_APP_SECRET` | Facebook app secret | From Facebook Developer Console | Cannot contain 'demo-' or 'your-', min 10 chars | Facebook Gaming integration |
-| `FACEBOOK_WEBHOOK_VERIFY_TOKEN` | Facebook webhook verification token | Generate random string | Min 16 characters, cannot contain 'demo-' or 'your-' | Facebook webhooks |
-| `YOUTUBE_CLIENT_ID` | YouTube OAuth client ID | From Google Cloud Console | Cannot contain 'demo-' or 'your-', min 10 chars | YouTube OAuth flow |
-| `YOUTUBE_CLIENT_SECRET` | YouTube OAuth client secret | From Google Cloud Console | Cannot contain 'demo-' or 'your-', min 10 chars | YouTube OAuth flow |
-| `YOUTUBE_WEBHOOK_VERIFY_TOKEN` | YouTube webhook verification token | Generate random string | Min 16 characters, cannot contain 'demo-' or 'your-' | YouTube webhooks |
-| `TWITCH_EVENTSUB_SECRET` | Twitch EventSub webhook secret | Generate with `openssl rand -hex 16` | Min 16 characters, cannot contain 'demo-' or 'your-' | Twitch EventSub webhooks |
-| `SENDGRID_SENDER` | Default sender email address | `noreply@yourdomain.com` | Must be valid email format | Email sender identity |
+| Variable                        | Description                         | Example                              | Validation                                           | Used For                    |
+| ------------------------------- | ----------------------------------- | ------------------------------------ | ---------------------------------------------------- | --------------------------- |
+| `FACEBOOK_APP_ID`               | Facebook app ID                     | From Facebook Developer Console      | Cannot contain 'demo-' or 'your-', min 10 chars      | Facebook Gaming integration |
+| `FACEBOOK_APP_SECRET`           | Facebook app secret                 | From Facebook Developer Console      | Cannot contain 'demo-' or 'your-', min 10 chars      | Facebook Gaming integration |
+| `FACEBOOK_WEBHOOK_VERIFY_TOKEN` | Facebook webhook verification token | Generate random string               | Min 16 characters, cannot contain 'demo-' or 'your-' | Facebook webhooks           |
+| `YOUTUBE_CLIENT_ID`             | YouTube OAuth client ID             | From Google Cloud Console            | Cannot contain 'demo-' or 'your-', min 10 chars      | YouTube OAuth flow          |
+| `YOUTUBE_CLIENT_SECRET`         | YouTube OAuth client secret         | From Google Cloud Console            | Cannot contain 'demo-' or 'your-', min 10 chars      | YouTube OAuth flow          |
+| `YOUTUBE_WEBHOOK_VERIFY_TOKEN`  | YouTube webhook verification token  | Generate random string               | Min 16 characters, cannot contain 'demo-' or 'your-' | YouTube webhooks            |
+| `TWITCH_EVENTSUB_SECRET`        | Twitch EventSub webhook secret      | Generate with `openssl rand -hex 16` | Min 16 characters, cannot contain 'demo-' or 'your-' | Twitch EventSub webhooks    |
+| `SENDGRID_SENDER`               | Default sender email address        | `noreply@yourdomain.com`             | Must be valid email format                           | Email sender identity       |
 
 ---
 
@@ -83,35 +83,35 @@ These variables have default values and are typically only needed for specific d
 
 ### Application Configuration
 
-| Variable | Description | Default | Validation |
-|----------|-------------|---------|------------|
-| `NODE_ENV` | Application environment | `development` | Must be one of: development, production, test |
-| `PORT` | Server port | `3000` (dev), `8080` (production) | Must be valid port number (1-65535) |
+| Variable   | Description             | Default                           | Validation                                    |
+| ---------- | ----------------------- | --------------------------------- | --------------------------------------------- |
+| `NODE_ENV` | Application environment | `development`                     | Must be one of: development, production, test |
+| `PORT`     | Server port             | `3000` (dev), `8080` (production) | Must be valid port number (1-65535)           |
 
 ### Security & CORS
 
-| Variable | Description | Default | Notes |
-|----------|-------------|---------|-------|
-| `RATE_LIMIT_WINDOW_MS` | Rate limiting time window | `900000` (15 min) | In milliseconds |
-| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | `100` | Per IP address |
-| `SESSION_MAX_AGE` | Session max age | `604800000` (7 days) | In milliseconds |
+| Variable                  | Description               | Default              | Notes           |
+| ------------------------- | ------------------------- | -------------------- | --------------- |
+| `RATE_LIMIT_WINDOW_MS`    | Rate limiting time window | `900000` (15 min)    | In milliseconds |
+| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window   | `100`                | Per IP address  |
+| `SESSION_MAX_AGE`         | Session max age           | `604800000` (7 days) | In milliseconds |
 
 ### Database Configuration
 
-| Variable | Description | Default | Notes |
-|----------|-------------|---------|-------|
-| `DB_SSL_MODE` | Database SSL mode | `disable` (dev), `require` (prod) | Should be 'require' in production |
-| `DB_POOL_MIN_SIZE` | Min connection pool size | `5` | Advanced tuning |
-| `DB_POOL_MAX_SIZE` | Max connection pool size | `20` | Advanced tuning |
-| `DB_LOG_QUERIES` | Log database queries | `false` | Set to 'true' for debugging |
+| Variable           | Description              | Default                           | Notes                             |
+| ------------------ | ------------------------ | --------------------------------- | --------------------------------- |
+| `DB_SSL_MODE`      | Database SSL mode        | `disable` (dev), `require` (prod) | Should be 'require' in production |
+| `DB_POOL_MIN_SIZE` | Min connection pool size | `5`                               | Advanced tuning                   |
+| `DB_POOL_MAX_SIZE` | Max connection pool size | `20`                              | Advanced tuning                   |
+| `DB_LOG_QUERIES`   | Log database queries     | `false`                           | Set to 'true' for debugging       |
 
 ### Monitoring & Logging
 
-| Variable | Description | Default | Notes |
-|----------|-------------|---------|-------|
-| `GOOGLE_CLOUD_PROJECT` | GCP project ID | - | For Cloud Logging if using GCP |
-| `MONITORING_ENABLED` | Enable monitoring service | `false` | Advanced feature |
-| `BACKUP_ENABLED` | Enable backup service | `false` | Advanced feature |
+| Variable               | Description               | Default | Notes                          |
+| ---------------------- | ------------------------- | ------- | ------------------------------ |
+| `GOOGLE_CLOUD_PROJECT` | GCP project ID            | -       | For Cloud Logging if using GCP |
+| `MONITORING_ENABLED`   | Enable monitoring service | `false` | Advanced feature               |
+| `BACKUP_ENABLED`       | Enable backup service     | `false` | Advanced feature               |
 
 ### Platform Detection (Auto-configured)
 
@@ -130,17 +130,20 @@ These are typically set by deployment platforms and should not be manually confi
 The application validates environment variables at startup using `server/env-validation.ts`. Validation includes:
 
 ### Format Validation
+
 - **URLs**: Must be valid URL format with appropriate protocol
 - **Emails**: Must match standard email format
 - **Booleans**: Must be true/false/1/0
 - **Enums**: Must match one of allowed values
 
 ### Security Validation
+
 - **No Demo Values**: Production environments cannot use demo/test/example values
 - **Minimum Length**: Secrets must meet minimum length requirements
 - **Format Requirements**: API keys and tokens must match expected formats
 
 ### Environment-Specific Rules
+
 - **Development**: Only requires minimal variables (DATABASE_URL, AUTH_SECRET)
 - **Production**: Requires full OAuth setup and HTTPS
 
@@ -222,6 +225,7 @@ The following variables are **no longer used** and can be removed:
 - Review validation errors in server logs for specific issues
 
 For environment-specific deployment guides:
+
 - Production: See `DEPLOYMENT.md`
 - Development: See `DEVELOPMENT_GUIDE.md`
 - Cloud Run: See `DEPLOYMENT.md` (root directory)

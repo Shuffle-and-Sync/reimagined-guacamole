@@ -1,21 +1,21 @@
 /**
  * Scryfall Adapter
- * 
+ *
  * Adapter for Magic: The Gathering cards via Scryfall API
  * Wraps the existing CardRecognitionService to provide the ICardAdapter interface
  */
 
-import { cardRecognitionService } from '../../card-recognition';
-import { logger } from '../../../logger';
-import type { 
-  ICardAdapter, 
-  UniversalCard, 
-  CardSearchResult, 
-  AutocompleteResult 
-} from './base.adapter';
+import { cardRecognitionService } from "../../card-recognition";
+import { logger } from "../../../logger";
+import type {
+  ICardAdapter,
+  UniversalCard,
+  CardSearchResult,
+  AutocompleteResult,
+} from "./base.adapter";
 
 export class ScryfallAdapter implements ICardAdapter {
-  private readonly MTG_GAME_ID = 'mtg-official';
+  private readonly MTG_GAME_ID = "mtg-official";
 
   getGameId(): string {
     return this.MTG_GAME_ID;
@@ -34,7 +34,7 @@ export class ScryfallAdapter implements ICardAdapter {
       collectorNumber: mtgCard.collectorNumber,
       rarity: mtgCard.rarity,
       externalId: mtgCard.id,
-      externalSource: 'scryfall',
+      externalSource: "scryfall",
       attributes: {
         manaCost: mtgCard.manaCost,
         cmc: mtgCard.cmc,
@@ -64,19 +64,19 @@ export class ScryfallAdapter implements ICardAdapter {
       format?: string;
       page?: number;
       limit?: number;
-    }
+    },
   ): Promise<CardSearchResult> {
     try {
       const result = await cardRecognitionService.searchCards(query, options);
-      
+
       return {
-        cards: result.cards.map(card => this.transformToUniversal(card)),
+        cards: result.cards.map((card) => this.transformToUniversal(card)),
         total: result.total,
         page: result.page,
         hasMore: result.hasMore,
       };
     } catch (error) {
-      logger.error('Scryfall adapter search failed', error, { query, options });
+      logger.error("Scryfall adapter search failed", error, { query, options });
       throw error;
     }
   }
@@ -85,25 +85,28 @@ export class ScryfallAdapter implements ICardAdapter {
     try {
       const card = await cardRecognitionService.getCardById(id);
       if (!card) return null;
-      
+
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Scryfall adapter getCardById failed', error, { id });
+      logger.error("Scryfall adapter getCardById failed", error, { id });
       throw error;
     }
   }
 
   async getCardByName(
     name: string,
-    options?: { set?: string }
+    options?: { set?: string },
   ): Promise<UniversalCard | null> {
     try {
       const card = await cardRecognitionService.getCardByName(name, options);
       if (!card) return null;
-      
+
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Scryfall adapter getCardByName failed', error, { name, options });
+      logger.error("Scryfall adapter getCardByName failed", error, {
+        name,
+        options,
+      });
       throw error;
     }
   }
@@ -113,7 +116,10 @@ export class ScryfallAdapter implements ICardAdapter {
       const result = await cardRecognitionService.autocomplete(query, limit);
       return result;
     } catch (error) {
-      logger.error('Scryfall adapter autocomplete failed', error, { query, limit });
+      logger.error("Scryfall adapter autocomplete failed", error, {
+        query,
+        limit,
+      });
       throw error;
     }
   }
@@ -126,7 +132,7 @@ export class ScryfallAdapter implements ICardAdapter {
       const card = await cardRecognitionService.getRandomCard(options);
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Scryfall adapter getRandomCard failed', error, { options });
+      logger.error("Scryfall adapter getRandomCard failed", error, { options });
       throw error;
     }
   }

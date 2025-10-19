@@ -17,49 +17,60 @@ Welcome to the Shuffle & Sync API documentation. This directory contains compreh
 ## What's Documented
 
 ### Core APIs
+
 - **Platform OAuth** - Connect Twitch, YouTube, Facebook Gaming accounts
 - **Authentication** - User login, password reset, email verification
 - **User Management** - Profiles, settings, social links, gaming profiles
 
 ### TCG Features
+
 - **Communities** - Join TCG communities (MTG, Pokemon, Lorcana, etc.)
 - **Cards** - Search and retrieve card data across multiple games
 - **Games** - Game sessions and TableSync remote gameplay
 - **Tournaments** - Tournament creation, bracket management, match results
 
 ### Social Features
+
 - **Events** - Event creation, calendar integration, RSVPs
 - **Messaging** - Notifications, direct messages, conversations
 - **Friends** - Friend management and matchmaking
 - **Matchmaking** - AI-powered player matching
 
 ### Platform Management
+
 - **Admin** - Administrative endpoints for platform management
 - **Monitoring** - Health checks, system status, metrics
 
 ## API Quick Reference
 
 ### Base URL
+
 ```
 Development: http://localhost:3000/api
 Production: https://your-domain.com/api
 ```
 
 ### Authentication
+
 Most endpoints require authentication via:
+
 - **Session Cookie**: `authjs.session-token` (web clients)
 - **Bearer Token**: `Authorization: Bearer <token>` (API clients)
 
 ### Rate Limits
+
 - Authentication: 5 requests / 15 minutes
 - Standard: 100 requests / 15 minutes
 - Search: 60 requests / 15 minutes
 
 ### Response Format
+
 ```json
 {
   "success": true,
-  "data": { /* response data */ },
+  "data": {
+    /* response data */
+  },
   "meta": { "page": 1, "total": 100 }
 }
 ```
@@ -67,12 +78,14 @@ Most endpoints require authentication via:
 ## Documentation Structure
 
 ### API Overview (Quick Reference)
+
 - Table format for all endpoints
 - Method, route, description, auth requirements
 - Organized by feature category
 - Best for: Quick lookups, API discovery
 
 ### Full API Documentation (Detailed Reference)
+
 - Complete request/response examples
 - Query parameters and body schemas
 - Error codes and handling
@@ -80,6 +93,7 @@ Most endpoints require authentication via:
 - Best for: Implementation, troubleshooting
 
 ### OAuth Documentation
+
 - Authorization flow diagrams
 - Security implementation (PKCE, state)
 - Platform-specific configurations

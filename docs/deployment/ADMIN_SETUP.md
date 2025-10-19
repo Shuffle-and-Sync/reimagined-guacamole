@@ -62,13 +62,14 @@ Before deploying Shuffle & Sync to production, ensure you have the following too
 ### GCP Project Setup
 
 1. **Create or select a GCP project**:
+
    ```bash
    # List existing projects
    gcloud projects list
-   
+
    # Create new project
    gcloud projects create shuffle-sync-prod --name="Shuffle & Sync Production"
-   
+
    # Set as active project
    gcloud config set project shuffle-sync-prod
    ```
@@ -123,36 +124,36 @@ Edit `.env.production` and configure the following **critical** variables:
 
 #### Core Configuration
 
-| Variable | Description | How to Generate |
-|----------|-------------|-----------------|
-| `NODE_ENV` | Runtime environment | Set to `production` |
-| `DATABASE_URL` | SQLite Cloud connection string | From SQLite Cloud dashboard (see [Database Configuration](#database-configuration)) |
-| `AUTH_SECRET` | Authentication secret (64+ chars) | `openssl rand -base64 64` |
-| `AUTH_URL` | Production domain URL | `https://your-domain.com` (or leave empty for auto-detection) |
-| `AUTH_TRUST_HOST` | Enable host header detection | Set to `true` for Cloud Run |
+| Variable          | Description                       | How to Generate                                                                     |
+| ----------------- | --------------------------------- | ----------------------------------------------------------------------------------- |
+| `NODE_ENV`        | Runtime environment               | Set to `production`                                                                 |
+| `DATABASE_URL`    | SQLite Cloud connection string    | From SQLite Cloud dashboard (see [Database Configuration](#database-configuration)) |
+| `AUTH_SECRET`     | Authentication secret (64+ chars) | `openssl rand -base64 64`                                                           |
+| `AUTH_URL`        | Production domain URL             | `https://your-domain.com` (or leave empty for auto-detection)                       |
+| `AUTH_TRUST_HOST` | Enable host header detection      | Set to `true` for Cloud Run                                                         |
 
 #### Authentication Provider
 
-| Variable | Description | How to Generate |
-|----------|-------------|-----------------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From [Google Cloud Console](https://console.cloud.google.com) (see [Authentication Setup](#authentication-setup)) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Cloud Console |
+| Variable               | Description                | How to Generate                                                                                                   |
+| ---------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID     | From [Google Cloud Console](https://console.cloud.google.com) (see [Authentication Setup](#authentication-setup)) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Cloud Console                                                                                         |
 
 #### Administrator Account
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `MASTER_ADMIN_EMAIL` | Admin email address | `admin@yourdomain.com` |
+| Variable                | Description               | Example                                 |
+| ----------------------- | ------------------------- | --------------------------------------- |
+| `MASTER_ADMIN_EMAIL`    | Admin email address       | `admin@yourdomain.com`                  |
 | `MASTER_ADMIN_PASSWORD` | Admin password (optional) | Generate with `openssl rand -base64 16` |
 
 > **Note**: If `MASTER_ADMIN_PASSWORD` is not set, the admin must authenticate via Google OAuth.
 
 #### Optional Services
 
-| Variable | Description | Purpose |
-|----------|-------------|---------|
-| `SENDGRID_API_KEY` | SendGrid API key | Email notifications |
-| `SENDGRID_SENDER` | Default sender email | Email notifications |
+| Variable                    | Description               | Purpose             |
+| --------------------------- | ------------------------- | ------------------- |
+| `SENDGRID_API_KEY`          | SendGrid API key          | Email notifications |
+| `SENDGRID_SENDER`           | Default sender email      | Email notifications |
 | `STREAM_KEY_ENCRYPTION_KEY` | Encryption key (32 chars) | Stream key security |
 
 ### 4. Validate Environment Configuration
@@ -162,6 +163,7 @@ npm run env:validate
 ```
 
 This command validates that:
+
 - All required variables are set
 - Variable formats are correct
 - Secrets are not using demo/default values
@@ -242,6 +244,7 @@ npm run db:health
 ```
 
 This should output:
+
 ```json
 {
   "status": "healthy",
@@ -273,6 +276,7 @@ Shuffle & Sync uses Auth.js v5 with Google OAuth 2.0 for authentication.
    - Select your project (or create a new one for OAuth)
 
 2. **Enable Google+ API** (if not already enabled):
+
    ```bash
    gcloud services enable people.googleapis.com
    ```
@@ -285,12 +289,14 @@ Shuffle & Sync uses Auth.js v5 with Google OAuth 2.0 for authentication.
 
 4. **Configure Authorized Redirect URIs**:
    Add the following URLs:
+
    ```
    https://your-domain.com/api/auth/callback/google
    https://your-backend-service.run.app/api/auth/callback/google
    ```
-   
+
    For development:
+
    ```
    http://localhost:3000/api/auth/callback/google
    ```
@@ -338,6 +344,7 @@ npm run deploy:production
 ```
 
 This script will:
+
 1. Validate prerequisites (gcloud, docker, npm)
 2. Validate environment variables
 3. Run tests (skip with `--skip-tests`)
@@ -447,6 +454,7 @@ npm run admin:init
 ```
 
 This will:
+
 - Check if admin user exists
 - Create user if needed with `super_admin` role
 - Set up OAuth authentication
@@ -460,6 +468,7 @@ npm run admin:verify
 ```
 
 Expected output:
+
 ```
 ✅ Admin account verified
    Email: admin@yourdomain.com
@@ -507,6 +516,7 @@ curl -f $BACKEND_URL/api/health
 ```
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -587,6 +597,7 @@ Common deployment issues and solutions.
 **Problem**: Environment validation fails with missing or invalid variables.
 
 **Solution**:
+
 ```bash
 # Check environment configuration
 npm run env:validate
@@ -610,6 +621,7 @@ cat .env.production
 **Problem**: Application cannot connect to SQLite Cloud database.
 
 **Solution**:
+
 ```bash
 # Verify DATABASE_URL format
 # Correct: sqlitecloud://hostname:port/database?apikey=KEY
@@ -628,6 +640,7 @@ npm run db:health
 **Problem**: Google OAuth returns "redirect_uri_mismatch" error.
 
 **Solution**:
+
 1. Check Google Cloud Console OAuth credentials
 2. Verify redirect URIs include:
    - `https://your-domain.com/api/auth/callback/google`
@@ -641,6 +654,7 @@ npm run db:health
 **Problem**: Cloud Run health checks fail, service shows as unhealthy.
 
 **Solution**:
+
 ```bash
 # Check application logs
 gcloud run services logs read shuffle-sync-backend --region $REGION
@@ -660,6 +674,7 @@ curl -f https://your-backend-service.run.app/health
 **Problem**: Docker build fails or Cloud Build errors.
 
 **Solution**:
+
 ```bash
 # Check build logs
 gcloud builds list --limit=10
@@ -681,6 +696,7 @@ docker build -t shuffle-sync-backend .
 **Problem**: Cannot initialize or verify admin account.
 
 **Solution**:
+
 ```bash
 # Check admin configuration
 echo $MASTER_ADMIN_EMAIL
@@ -706,6 +722,7 @@ npx drizzle-kit studio
 **Problem**: Cloud Run service crashes due to insufficient memory.
 
 **Solution**:
+
 ```bash
 # Increase memory allocation
 gcloud run services update shuffle-sync-backend \

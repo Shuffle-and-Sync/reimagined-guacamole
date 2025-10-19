@@ -1,20 +1,20 @@
 /**
  * Yu-Gi-Oh Adapter
- * 
+ *
  * Adapter for Yu-Gi-Oh Trading Card Game via YGOPRODeck API
  * Official API: https://ygoprodeck.com/api-guide/
  */
 
-import { logger } from '../../../logger';
-import type { 
-  ICardAdapter, 
-  UniversalCard, 
-  CardSearchResult, 
-  AutocompleteResult 
-} from './base.adapter';
+import { logger } from "../../../logger";
+import type {
+  ICardAdapter,
+  UniversalCard,
+  CardSearchResult,
+  AutocompleteResult,
+} from "./base.adapter";
 
 // YGOPRODeck API base URL
-const YUGIOH_API_BASE = 'https://db.ygoprodeck.com/api/v7';
+const YUGIOH_API_BASE = "https://db.ygoprodeck.com/api/v7";
 
 interface YuGiOhCard {
   id: number;
@@ -58,7 +58,7 @@ interface YuGiOhApiResponse {
 }
 
 export class YuGiOhAdapter implements ICardAdapter {
-  private readonly YUGIOH_GAME_ID = 'yugioh-tcg';
+  private readonly YUGIOH_GAME_ID = "yugioh-tcg";
 
   getGameId(): string {
     return this.YUGIOH_GAME_ID;
@@ -81,7 +81,7 @@ export class YuGiOhAdapter implements ICardAdapter {
       collectorNumber: firstSet?.set_code,
       rarity: firstSet?.set_rarity,
       externalId: yugiohCard.id.toString(),
-      externalSource: 'ygoprodeck',
+      externalSource: "ygoprodeck",
       attributes: {
         type: yugiohCard.type,
         frameType: yugiohCard.frameType,
@@ -98,11 +98,13 @@ export class YuGiOhAdapter implements ICardAdapter {
         cardSets: yugiohCard.card_sets,
         prices: firstPrice,
       },
-      imageUris: firstImage ? {
-        small: firstImage.image_url_small,
-        large: firstImage.image_url,
-        cropped: firstImage.image_url_cropped,
-      } : undefined,
+      imageUris: firstImage
+        ? {
+            small: firstImage.image_url_small,
+            large: firstImage.image_url,
+            cropped: firstImage.image_url_cropped,
+          }
+        : undefined,
       isOfficial: true,
       isCommunitySubmitted: false,
     };
@@ -115,14 +117,14 @@ export class YuGiOhAdapter implements ICardAdapter {
       format?: string;
       page?: number;
       limit?: number;
-    }
+    },
   ): Promise<CardSearchResult> {
     try {
       // YGOPRODeck API uses fname parameter for fuzzy name search
       const url = `${YUGIOH_API_BASE}/cardinfo.php?fname=${encodeURIComponent(query)}`;
-      
-      logger.info('Yu-Gi-Oh API search', { query, options, url });
-      
+
+      logger.info("Yu-Gi-Oh API search", { query, options, url });
+
       const response = await fetch(url);
 
       if (response.status === 404) {
@@ -136,18 +138,20 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
 
       if (!response.ok) {
-        throw new Error(`Yu-Gi-Oh API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Yu-Gi-Oh API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: YuGiOhApiResponse = await response.json();
-      
+
       // Filter by set if specified
       let filteredCards = data.data;
       if (options?.set) {
-        filteredCards = data.data.filter(card => 
-          card.card_sets?.some(set => 
-            set.set_code.toLowerCase().includes(options.set!.toLowerCase())
-          )
+        filteredCards = data.data.filter((card) =>
+          card.card_sets?.some((set) =>
+            set.set_code.toLowerCase().includes(options.set!.toLowerCase()),
+          ),
         );
       }
 
@@ -159,13 +163,13 @@ export class YuGiOhAdapter implements ICardAdapter {
       const paginatedCards = filteredCards.slice(start, end);
 
       return {
-        cards: paginatedCards.map(card => this.transformToUniversal(card)),
+        cards: paginatedCards.map((card) => this.transformToUniversal(card)),
         total: filteredCards.length,
         page: page,
         hasMore: end < filteredCards.length,
       };
     } catch (error) {
-      logger.error('Yu-Gi-Oh adapter search failed', error, { query, options });
+      logger.error("Yu-Gi-Oh adapter search failed", error, { query, options });
       throw error;
     }
   }
@@ -173,9 +177,9 @@ export class YuGiOhAdapter implements ICardAdapter {
   async getCardById(id: string): Promise<UniversalCard | null> {
     try {
       const url = `${YUGIOH_API_BASE}/cardinfo.php?id=${id}`;
-      
-      logger.info('Yu-Gi-Oh API get by ID', { id, url });
-      
+
+      logger.info("Yu-Gi-Oh API get by ID", { id, url });
+
       const response = await fetch(url);
 
       if (response.status === 404) {
@@ -183,11 +187,13 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
 
       if (!response.ok) {
-        throw new Error(`Yu-Gi-Oh API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Yu-Gi-Oh API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: YuGiOhApiResponse = await response.json();
-      
+
       if (data.data.length === 0) {
         return null;
       }
@@ -198,21 +204,21 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error('Yu-Gi-Oh adapter getCardById failed', error, { id });
+      logger.error("Yu-Gi-Oh adapter getCardById failed", error, { id });
       throw error;
     }
   }
 
   async getCardByName(
     name: string,
-    options?: { set?: string }
+    options?: { set?: string },
   ): Promise<UniversalCard | null> {
     try {
       // Use exact name search
       const url = `${YUGIOH_API_BASE}/cardinfo.php?name=${encodeURIComponent(name)}`;
-      
-      logger.info('Yu-Gi-Oh API get by name', { name, options, url });
-      
+
+      logger.info("Yu-Gi-Oh API get by name", { name, options, url });
+
       const response = await fetch(url);
 
       if (response.status === 404) {
@@ -220,21 +226,23 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
 
       if (!response.ok) {
-        throw new Error(`Yu-Gi-Oh API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Yu-Gi-Oh API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: YuGiOhApiResponse = await response.json();
-      
+
       if (data.data.length === 0) {
         return null;
       }
 
       // If set is specified, try to find a version from that set
       if (options?.set) {
-        const cardFromSet = data.data.find(card =>
-          card.card_sets?.some(set =>
-            set.set_code.toLowerCase().includes(options.set!.toLowerCase())
-          )
+        const cardFromSet = data.data.find((card) =>
+          card.card_sets?.some((set) =>
+            set.set_code.toLowerCase().includes(options.set!.toLowerCase()),
+          ),
         );
         if (cardFromSet) {
           return this.transformToUniversal(cardFromSet);
@@ -247,7 +255,10 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error('Yu-Gi-Oh adapter getCardByName failed', error, { name, options });
+      logger.error("Yu-Gi-Oh adapter getCardByName failed", error, {
+        name,
+        options,
+      });
       throw error;
     }
   }
@@ -260,9 +271,9 @@ export class YuGiOhAdapter implements ICardAdapter {
 
       // Search for cards matching the query
       const url = `${YUGIOH_API_BASE}/cardinfo.php?fname=${encodeURIComponent(query)}`;
-      
-      logger.info('Yu-Gi-Oh API autocomplete', { query, limit, url });
-      
+
+      logger.info("Yu-Gi-Oh API autocomplete", { query, limit, url });
+
       const response = await fetch(url);
 
       if (response.status === 404) {
@@ -270,14 +281,16 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
 
       if (!response.ok) {
-        throw new Error(`Yu-Gi-Oh API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Yu-Gi-Oh API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: YuGiOhApiResponse = await response.json();
-      
+
       // Get unique card names (cards can have multiple printings)
       const uniqueNames = new Map<string, string>();
-      data.data.forEach(card => {
+      data.data.forEach((card) => {
         if (!uniqueNames.has(card.name) && uniqueNames.size < limit) {
           uniqueNames.set(card.name, card.id.toString());
         }
@@ -290,7 +303,10 @@ export class YuGiOhAdapter implements ICardAdapter {
         })),
       };
     } catch (error) {
-      logger.error('Yu-Gi-Oh adapter autocomplete failed', error, { query, limit });
+      logger.error("Yu-Gi-Oh adapter autocomplete failed", error, {
+        query,
+        limit,
+      });
       throw error;
     }
   }
@@ -302,28 +318,30 @@ export class YuGiOhAdapter implements ICardAdapter {
     try {
       // YGOPRODeck API has a random card endpoint
       const url = `${YUGIOH_API_BASE}/randomcard.php`;
-      
-      logger.info('Yu-Gi-Oh API get random', { options, url });
-      
+
+      logger.info("Yu-Gi-Oh API get random", { options, url });
+
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`Yu-Gi-Oh API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Yu-Gi-Oh API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const data: YuGiOhApiResponse = await response.json();
-      
+
       if (data.data.length === 0) {
-        throw new Error('No Yu-Gi-Oh cards found');
+        throw new Error("No Yu-Gi-Oh cards found");
       }
 
       const firstCard = data.data[0];
       if (!firstCard) {
-        throw new Error('No Yu-Gi-Oh cards found');
+        throw new Error("No Yu-Gi-Oh cards found");
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error('Yu-Gi-Oh adapter getRandomCard failed', error, { options });
+      logger.error("Yu-Gi-Oh adapter getRandomCard failed", error, { options });
       throw error;
     }
   }

@@ -77,26 +77,26 @@ cp .env.production.template .env.production
 
 Edit `.env.production` and configure the following **critical** variables:
 
-| Variable | Description | How to Generate |
-|----------|-------------|-----------------|
-| `DATABASE_URL` | SQLite Cloud connection string | From SQLite Cloud dashboard |
-| `AUTH_SECRET` | Authentication secret (64+ chars) | `openssl rand -base64 64` |
-| `AUTH_URL` | Production domain URL | `https://your-domain.com` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From [Google Cloud Console](https://console.cloud.google.com) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Cloud Console |
-| `MASTER_ADMIN_EMAIL` | Administrator email address | Your admin email (e.g., `admin@yourdomain.com`) |
+| Variable               | Description                       | How to Generate                                               |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------- |
+| `DATABASE_URL`         | SQLite Cloud connection string    | From SQLite Cloud dashboard                                   |
+| `AUTH_SECRET`          | Authentication secret (64+ chars) | `openssl rand -base64 64`                                     |
+| `AUTH_URL`             | Production domain URL             | `https://your-domain.com`                                     |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID            | From [Google Cloud Console](https://console.cloud.google.com) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret        | From Google Cloud Console                                     |
+| `MASTER_ADMIN_EMAIL`   | Administrator email address       | Your admin email (e.g., `admin@yourdomain.com`)               |
 
 #### Step 3: Configure Optional Variables
 
 For enhanced functionality, configure these recommended variables:
 
-| Variable | Description | Purpose |
-|----------|-------------|---------|
-| `SENDGRID_API_KEY` | SendGrid API key | Email notifications |
-| `STREAM_KEY_ENCRYPTION_KEY` | Encryption key (32 chars) | Stream key security |
-| `REDIS_URL` | Redis connection string | Caching layer |
-| `SENTRY_DSN` | Sentry error tracking | Error monitoring |
-| `MASTER_ADMIN_PASSWORD` | Admin password (12+ chars) | Credentials authentication (optional, use OAuth if not set) |
+| Variable                    | Description                | Purpose                                                     |
+| --------------------------- | -------------------------- | ----------------------------------------------------------- |
+| `SENDGRID_API_KEY`          | SendGrid API key           | Email notifications                                         |
+| `STREAM_KEY_ENCRYPTION_KEY` | Encryption key (32 chars)  | Stream key security                                         |
+| `REDIS_URL`                 | Redis connection string    | Caching layer                                               |
+| `SENTRY_DSN`                | Sentry error tracking      | Error monitoring                                            |
+| `MASTER_ADMIN_PASSWORD`     | Admin password (12+ chars) | Credentials authentication (optional, use OAuth if not set) |
 
 #### Step 4: Validate Environment Configuration
 
@@ -162,6 +162,7 @@ gcloud secrets add-iam-policy-binding auth-secret \
 ```
 
 For complete secret management workflows including rotation, audit, and TypeScript integration, see:
+
 - **[Complete Secret Management Guide](docs/reference/MANAGING_SECRETS_GCP.md)**
 - **[Google Cloud Commands Reference](docs/reference/GOOGLE_CLOUD_COMMANDS_REFERENCE.md)**
 
@@ -174,11 +175,13 @@ For complete secret management workflows including rotation, audit, and TypeScri
 Single Cloud Run service serving both frontend and backend.
 
 **Pros:**
+
 - Simpler configuration
 - Single service to manage
 - No CORS or proxy configuration needed
 
 **Cons:**
+
 - Cannot scale frontend and backend independently
 - Frontend and backend share resources
 
@@ -187,11 +190,13 @@ Single Cloud Run service serving both frontend and backend.
 Separate services for frontend (NGINX) and backend (Node.js).
 
 **Pros:**
+
 - Independent scaling for frontend and backend
 - Better performance (NGINX serves static files)
 - Can use CDN for frontend
 
 **Cons:**
+
 - Requires proxy configuration
 - More complex initial setup
 
@@ -215,6 +220,7 @@ npm run deploy:production
 ```
 
 This script will:
+
 1. Validate prerequisites (gcloud, docker, npm)
 2. Validate environment variables
 3. Run tests (can be skipped with `--skip-tests` flag)
@@ -367,7 +373,8 @@ npm run admin:init
 npm run admin:verify
 ```
 
-**Important**: 
+**Important**:
+
 - See [docs/deployment/ADMIN_SETUP.md](docs/deployment/ADMIN_SETUP.md) for comprehensive admin setup guide
 - Store admin credentials securely in your password manager
 - Enable MFA after first login
@@ -378,6 +385,7 @@ npm run admin:verify
 For automated deployments via Cloud Build:
 
 **Note:** Both `cloudbuild.yaml` and `cloudbuild-frontend.yaml` use substitutions with default values:
+
 - `_REGION`: Defaults to `us-central1`
 - `_IMAGE_TAG`: Defaults to `$BUILD_ID` (Cloud Build's unique build ID)
 - `_SERVICE_NAME`: Defaults to the service name
@@ -397,6 +405,7 @@ gcloud builds submit \
 ```
 
 To use a specific version tag:
+
 ```bash
 gcloud builds submit \
   --config cloudbuild.yaml \
@@ -552,6 +561,7 @@ curl -f $BACKEND_URL/api/health
 ```
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -574,6 +584,7 @@ curl -f $FRONTEND_URL
 ### 3. Authentication Flow
 
 Test the complete OAuth flow:
+
 1. Navigate to `https://your-domain.com`
 2. Click "Sign in with Google"
 3. Complete OAuth authorization
@@ -589,6 +600,7 @@ npm run db:health
 ### 5. Core Feature Testing
 
 Test critical user flows:
+
 - [ ] User registration and authentication
 - [ ] Community browsing and joining
 - [ ] Event creation and viewing
@@ -668,7 +680,8 @@ npm run env:validate
 
 **Symptom**: Cloud Run reports service unhealthy
 
-**Solution**: 
+**Solution**:
+
 1. Check logs for initialization errors
 2. Verify database connectivity
 3. Ensure `/api/health` endpoint is accessible
@@ -685,6 +698,7 @@ gcloud run services update shuffle-and-sync-backend \
 **Symptom**: Cannot connect to Cloud SQL database
 
 **Solution**:
+
 1. Verify Cloud SQL instance is running
 2. Check connection name in DATABASE_URL
 3. Ensure Cloud Run service has Cloud SQL client role:
@@ -701,6 +715,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 **Symptom**: Google OAuth returns redirect_uri_mismatch error
 
 **Solution**:
+
 1. Verify AUTH_URL matches your production domain
 2. Add the exact redirect URI to Google Cloud Console:
    - `https://your-domain.com/api/auth/callback/google`
@@ -711,6 +726,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 **Symptom**: Docker build or Cloud Build fails
 
 **Solution**:
+
 1. Check `cloudbuild.yaml` configuration
 2. Verify all dependencies in `package.json` are available
 3. Check build logs for specific errors:
@@ -733,11 +749,13 @@ RUN npm prune --production --legacy-peer-deps
 ```
 
 This is safe because:
+
 - The application only uses `@sqlitecloud/drivers` in Node.js server context
 - React Native peer dependencies are only needed for mobile apps
 - The package functions correctly in Node.js despite the peer dependency warnings
 
 **For local development**: If you encounter this error locally, use:
+
 ```bash
 npm install --legacy-peer-deps
 ```
@@ -757,12 +775,14 @@ gcloud run services update shuffle-and-sync-backend \
 #### Configuration Error on Login
 
 **Symptoms:**
+
 - Browser shows `ERR_TOO_MANY_ACCEPT_CH_RESTARTS`
 - Redirects to `/api/auth/error?error=Configuration`
 
 **Quick Fix:**
 
 1. Run diagnostics:
+
 ```bash
 npm run diagnose:auth
 ```
@@ -779,6 +799,7 @@ See [Troubleshooting Guide](docs/troubleshooting/README.md) for detailed solutio
 **For split deployment**, verify:
 
 1. Frontend has `BACKEND_URL` set:
+
 ```bash
 gcloud run services describe shuffle-and-sync-frontend \
   --region=$REGION \
@@ -786,6 +807,7 @@ gcloud run services describe shuffle-and-sync-frontend \
 ```
 
 2. Backend URL is accessible:
+
 ```bash
 curl $BACKEND_URL/health
 ```
@@ -797,7 +819,7 @@ curl $BACKEND_URL/health
 If you encounter issues not covered here:
 
 1. **Check Logs**: `gcloud run services logs read shuffle-and-sync-backend --region $REGION`
-2. **Review Documentation**: 
+2. **Review Documentation**:
    - [Production Deployment Checklist](docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
    - [Troubleshooting Guide](docs/troubleshooting/README.md)
 3. **Check Environment**: Run `npm run env:validate`
@@ -836,6 +858,7 @@ location /api/ {
 ```
 
 This is configured via:
+
 1. `BACKEND_URL` environment variable on frontend service
 2. `Dockerfile.frontend` with NGINX configuration template
 3. Entrypoint script that substitutes environment variables
@@ -843,11 +866,13 @@ This is configured via:
 ### Why Split Deployment?
 
 **Performance:**
+
 - NGINX serves static files faster than Node.js
 - Frontend can be cached by CDN
 - Backend can scale independently based on API load
 
 **Security:**
+
 - Frontend has no access to database or secrets
 - Backend can have stricter IAM permissions
 - Separation of concerns
@@ -1122,14 +1147,16 @@ taskkill //F //PID <process_id>
 **Symptom**: Commands like `gcloud`, `docker`, or `npm` not found in Git Bash
 
 **Solution**:
+
 1. Ensure tools are installed
 2. Add installation directories to PATH:
+
    ```bash
    # Add to ~/.bashrc
    export PATH="$PATH:/c/Program Files/Google/Cloud SDK/google-cloud-sdk/bin"
    export PATH="$PATH:/c/Program Files/Docker/Docker/resources/bin"
    export PATH="$PATH:/c/Program Files/nodejs"
-   
+
    # Reload configuration
    source ~/.bashrc
    ```
@@ -1139,6 +1166,7 @@ taskkill //F //PID <process_id>
 **Symptom**: `bash: ./script.sh: Permission denied`
 
 **Solution**:
+
 ```bash
 # Make script executable
 chmod +x scripts/deploy-production.sh
@@ -1152,6 +1180,7 @@ bash scripts/deploy-production.sh
 **Symptom**: Scripts fail with `'\r': command not found` or similar errors
 
 **Solution**:
+
 ```bash
 # Convert line endings for all scripts
 dos2unix scripts/*.sh
@@ -1170,6 +1199,7 @@ git reset --hard
 **Symptom**: `Cannot connect to the Docker daemon`
 
 **Solution**:
+
 1. Start Docker Desktop from the Start menu
 2. Wait for Docker to fully initialize (check system tray icon)
 3. Verify: `docker ps`
@@ -1180,6 +1210,7 @@ git reset --hard
 **Symptom**: `ERESOLVE unable to resolve dependency tree`
 
 **Solution**:
+
 ```bash
 # Use legacy peer deps flag (as configured in project)
 npm install --legacy-peer-deps
@@ -1194,7 +1225,9 @@ npm install --legacy-peer-deps
 **Symptom**: Errors about path lengths exceeding Windows limits
 
 **Solution**:
+
 1. Enable long paths in Windows:
+
    ```powershell
    # Run in PowerShell as Administrator
    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
@@ -1210,15 +1243,17 @@ npm install --legacy-peer-deps
 **Symptom**: Connection timeouts when deploying or pulling images
 
 **Solution**:
+
 1. Allow gcloud and Docker through Windows Firewall
 2. Check corporate firewall/proxy settings
 3. Configure proxy if needed:
+
    ```bash
    # For gcloud
    gcloud config set proxy/type http
    gcloud config set proxy/address proxy.example.com
    gcloud config set proxy/port 8080
-   
+
    # For Docker
    # Configure in Docker Desktop Settings > Resources > Proxies
    ```
@@ -1229,6 +1264,7 @@ npm install --legacy-peer-deps
 
 **Solution**:
 Always use Git Bash for running deployment scripts:
+
 ```bash
 # Wrong: PowerShell
 powershell .\scripts\deploy-production.sh

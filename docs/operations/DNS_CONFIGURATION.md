@@ -5,6 +5,7 @@ This guide covers DNS configuration requirements for deploying Shuffle & Sync to
 ## Overview
 
 Proper DNS configuration is essential for:
+
 - Making your application accessible via custom domain
 - Enabling HTTPS/SSL certificates
 - Configuring subdomains for split frontend/backend deployment
@@ -24,6 +25,7 @@ Proper DNS configuration is essential for:
 Use one domain for both frontend and backend:
 
 **Example**: `shufflesync.com`
+
 - Frontend: `shufflesync.com`
 - Backend API: `shufflesync.com/api/*`
 
@@ -35,6 +37,7 @@ Use one domain for both frontend and backend:
 Use subdomains to separate frontend and backend:
 
 **Example**:
+
 - Frontend: `shufflesync.com` or `app.shufflesync.com`
 - Backend API: `api.shufflesync.com`
 
@@ -53,13 +56,14 @@ gcloud run services describe shuffle-and-sync-backend \
   --region us-central1 \
   --format="value(status.url)"
 
-# Frontend service URL  
+# Frontend service URL
 gcloud run services describe shuffle-and-sync-frontend \
   --region us-central1 \
   --format="value(status.url)"
 ```
 
 Example output:
+
 - Backend: `https://shuffle-and-sync-backend-abc123-uc.a.run.app`
 - Frontend: `https://shuffle-and-sync-frontend-xyz789-uc.a.run.app`
 
@@ -97,6 +101,7 @@ gcloud run domain-mappings describe \
 ```
 
 Output will include:
+
 ```
 DNS records that must be configured:
   Type: A
@@ -283,19 +288,20 @@ TTL: 3600
 
 After configuring DNS records:
 
-1. **Propagation Time**: 
+1. **Propagation Time**:
    - Typically: 5-30 minutes
    - Maximum: 24-48 hours
    - TTL dependent
 
 2. **Check Propagation**:
+
    ```bash
    # Check A records
    dig app.shufflesync.com A
-   
+
    # Check AAAA records
    dig app.shufflesync.com AAAA
-   
+
    # Check from multiple locations
    # Use: https://dnschecker.org
    ```
@@ -330,6 +336,7 @@ gcloud run domain-mappings describe \
 ```
 
 Status progression:
+
 - `CertificatePending`: DNS validation in progress
 - `Ready`: Certificate provisioned, domain ready
 
@@ -348,6 +355,7 @@ Status progression:
 **Issue**: Domain doesn't resolve to Cloud Run service
 
 **Solutions**:
+
 1. Verify DNS records are correctly configured
 2. Wait for DNS propagation (up to 48 hours)
 3. Check with multiple DNS checkers
@@ -370,6 +378,7 @@ ipconfig /flushdns
 **Issue**: Certificate stuck in "Pending" status
 
 **Solutions**:
+
 1. Verify DNS records are correct
 2. Ensure domain ownership is verified
 3. Check for CAA records blocking Let's Encrypt
@@ -390,6 +399,7 @@ Value: 0 issue "letsencrypt.org"
 **Issue**: DNS provider doesn't support CNAME at root
 
 **Solutions**:
+
 1. Use ALIAS or ANAME records (if supported)
 2. Use A/AAAA records provided by Cloud Run
 3. Switch to DNS provider with CNAME flattening (Cloudflare, Route 53)
@@ -399,6 +409,7 @@ Value: 0 issue "letsencrypt.org"
 **Issue**: HTTPS site loading HTTP resources
 
 **Solutions**:
+
 1. Update all resource URLs to HTTPS
 2. Use relative URLs or protocol-relative URLs
 3. Set Content Security Policy headers
@@ -407,7 +418,7 @@ Value: 0 issue "letsencrypt.org"
 
 1. **Use Subdomains**: Separate frontend and backend for flexibility
 2. **Enable DNSSEC**: Additional security layer (if provider supports)
-3. **Set Appropriate TTLs**: 
+3. **Set Appropriate TTLs**:
    - Development: 300 seconds (5 minutes)
    - Production: 3600 seconds (1 hour)
 4. **Monitor DNS**: Set up uptime monitoring
@@ -459,7 +470,7 @@ echo | openssl s_client -servername app.shufflesync.com \
 ### Regular Maintenance
 
 - **Monthly**: Review DNS records for accuracy
-- **Quarterly**: Audit DNS provider security settings  
+- **Quarterly**: Audit DNS provider security settings
 - **Annually**: Review DNS provider contract/pricing
 - **As Needed**: Update records for infrastructure changes
 

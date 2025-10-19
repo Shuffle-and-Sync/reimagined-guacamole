@@ -17,12 +17,14 @@ This guide provides comprehensive documentation for Twitch OAuth authentication 
 ## Overview
 
 The Shuffle & Sync platform integrates with Twitch to enable streamers to:
+
 - Link their Twitch accounts for stream coordination
 - Monitor live stream status
 - Access channel information and analytics
 - Receive real-time EventSub notifications
 
 ### Key Features
+
 - **PKCE Support**: Implements Proof Key for Code Exchange (RFC 7636) for enhanced security
 - **Automatic Token Refresh**: Handles token expiration and renewal automatically
 - **Secure Token Storage**: Tokens are stored encrypted in the database
@@ -77,6 +79,7 @@ User → Shuffle & Sync → Twitch Auth → User Approval → Callback → Token
 ### PKCE (Proof Key for Code Exchange)
 
 PKCE prevents authorization code interception attacks by:
+
 1. Generating a cryptographically random `code_verifier`
 2. Creating a SHA-256 hash (`code_challenge`) of the verifier
 3. Sending the challenge during authorization
@@ -84,19 +87,21 @@ PKCE prevents authorization code interception attacks by:
 5. Twitch validates that the verifier matches the challenge
 
 **Implementation:**
+
 ```typescript
 // Code verifier: 32 random bytes, base64url encoded
-const codeVerifier = randomBytes(32).toString('base64url');
+const codeVerifier = randomBytes(32).toString("base64url");
 
 // Code challenge: SHA-256 hash of verifier
-const codeChallenge = createHash('sha256')
+const codeChallenge = createHash("sha256")
   .update(codeVerifier)
-  .digest('base64url');
+  .digest("base64url");
 ```
 
 ### State Parameter Validation
 
 Prevents CSRF attacks by:
+
 - Generating cryptographically random state (64 hex characters)
 - Storing state server-side with user ID and platform
 - Validating state matches on callback
@@ -113,6 +118,7 @@ Prevents CSRF attacks by:
 ### EventSub Security
 
 Twitch EventSub webhooks are secured with:
+
 - **HMAC Signature Verification**: Validates webhook authenticity
 - **Replay Attack Prevention**: Tracks processed message IDs
 - **Timestamp Validation**: Rejects messages older than 10 minutes
@@ -144,21 +150,23 @@ AUTH_URL=https://your-domain.com
    - Fill in application details
 
 2. **Configure OAuth Redirect URLs**
-   
+
    Add the following redirect URLs (must match exactly):
-   
+
    **Development:**
+
    ```
    http://localhost:3000/api/platforms/twitch/oauth/callback
    http://localhost:5000/api/platforms/twitch/oauth/callback
    ```
-   
+
    **Production:**
+
    ```
    https://your-domain.com/api/platforms/twitch/oauth/callback
    ```
-   
-   ⚠️ **Important**: 
+
+   ⚠️ **Important**:
    - Redirect URLs are case-sensitive
    - Must use HTTPS in production
    - Must match the `AUTH_URL` environment variable
@@ -176,18 +184,19 @@ Current scopes requested (defined in `server/services/platform-oauth.ts`):
 ```typescript
 const PLATFORM_SCOPES = {
   twitch: [
-    'user:read:email',           // Read user email address
-    'channel:read:stream_key',   // Read stream key
-    'channel:manage:broadcast',  // Manage broadcast settings
-    'channel:read:subscriptions', // Read subscription data
-    'bits:read',                 // Read bits/cheers data
-    'analytics:read:games',      // Read game analytics
-    'analytics:read:extensions'  // Read extension analytics
-  ]
+    "user:read:email", // Read user email address
+    "channel:read:stream_key", // Read stream key
+    "channel:manage:broadcast", // Manage broadcast settings
+    "channel:read:subscriptions", // Read subscription data
+    "bits:read", // Read bits/cheers data
+    "analytics:read:games", // Read game analytics
+    "analytics:read:extensions", // Read extension analytics
+  ],
 };
 ```
 
 To modify scopes:
+
 1. Update the `PLATFORM_SCOPES.twitch` array
 2. Ensure scopes are enabled in Twitch Developer Console
 3. Users must re-authorize to grant new scopes
@@ -203,6 +212,7 @@ To modify scopes:
 **Description:** Generates Twitch OAuth authorization URL with PKCE
 
 **Response:**
+
 ```json
 {
   "authUrl": "https://id.twitch.tv/oauth2/authorize?client_id=...&redirect_uri=...&response_type=code&scope=...&state=...&code_challenge=...&code_challenge_method=S256&force_verify=true"
@@ -210,10 +220,11 @@ To modify scopes:
 ```
 
 **Usage:**
+
 ```javascript
 // Frontend code
-const response = await fetch('/api/platforms/twitch/oauth/initiate', {
-  credentials: 'include'
+const response = await fetch("/api/platforms/twitch/oauth/initiate", {
+  credentials: "include",
 });
 const { authUrl } = await response.json();
 window.location.href = authUrl; // Redirect user to Twitch
@@ -226,12 +237,14 @@ window.location.href = authUrl; // Redirect user to Twitch
 **Authentication:** Required (session cookie)
 
 **Query Parameters:**
+
 - `code` (string): Authorization code from Twitch
 - `state` (string): State parameter for CSRF protection
 
 **Description:** Handles OAuth callback, exchanges code for tokens, and stores account
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -241,6 +254,7 @@ window.location.href = authUrl; // Redirect user to Twitch
 ```
 
 **Error Response:**
+
 ```json
 {
   "message": "Failed to complete OAuth flow"
@@ -256,6 +270,7 @@ window.location.href = authUrl; // Redirect user to Twitch
 **Description:** Retrieves all connected platform accounts for the user
 
 **Response:**
+
 ```json
 [
   {
@@ -284,26 +299,26 @@ The `TwitchAPIService` class (in `server/services/twitch-api.ts`) provides:
 ### User Information
 
 ```typescript
-import { twitchAPI } from './services/twitch-api';
+import { twitchAPI } from "./services/twitch-api";
 
 // Get user by username
-const user = await twitchAPI.getUser('streamer_username');
+const user = await twitchAPI.getUser("streamer_username");
 
 // Get user by ID
-const user = await twitchAPI.getUser(undefined, '12345678');
+const user = await twitchAPI.getUser(undefined, "12345678");
 ```
 
 ### Stream Status
 
 ```typescript
 // Get single stream
-const stream = await twitchAPI.getStream('streamer_username');
+const stream = await twitchAPI.getStream("streamer_username");
 
 // Get multiple streams
 const streams = await twitchAPI.getStreams([
-  'streamer1',
-  'streamer2',
-  'streamer3'
+  "streamer1",
+  "streamer2",
+  "streamer3",
 ]);
 ```
 
@@ -311,15 +326,16 @@ const streams = await twitchAPI.getStreams([
 
 ```typescript
 // Get categories by name
-const categories = await twitchAPI.getCategories(['Magic: The Gathering']);
+const categories = await twitchAPI.getCategories(["Magic: The Gathering"]);
 
 // Search categories
-const results = await twitchAPI.searchCategories('Pokemon');
+const results = await twitchAPI.searchCategories("Pokemon");
 ```
 
 ### App Access Token
 
 The service automatically manages app access tokens:
+
 - Requests token on first API call
 - Caches token until near expiry
 - Automatically refreshes when needed
@@ -330,6 +346,7 @@ The service automatically manages app access tokens:
 ### EventSub Overview
 
 Twitch EventSub provides real-time notifications for events like:
+
 - Stream going online/offline
 - Channel updates
 - Subscription events
@@ -338,14 +355,14 @@ Twitch EventSub provides real-time notifications for events like:
 ### Subscribe to Events
 
 ```typescript
-import { twitchAPI } from './services/twitch-api';
+import { twitchAPI } from "./services/twitch-api";
 
 const subscription = await twitchAPI.subscribeToEvent(
-  'stream.online',                    // Event type
-  '1',                                // Version
-  { broadcaster_user_id: '12345678' }, // Condition
-  'https://your-domain.com/api/webhooks/twitch', // Callback URL
-  process.env.TWITCH_EVENTSUB_SECRET! // Secret
+  "stream.online", // Event type
+  "1", // Version
+  { broadcaster_user_id: "12345678" }, // Condition
+  "https://your-domain.com/api/webhooks/twitch", // Callback URL
+  process.env.TWITCH_EVENTSUB_SECRET!, // Secret
 );
 ```
 
@@ -355,15 +372,15 @@ The service includes built-in webhook handling with security verification:
 
 ```typescript
 // In your webhook route
-app.post('/api/webhooks/twitch', (req, res) => {
+app.post("/api/webhooks/twitch", (req, res) => {
   const event = twitchAPI.handleWebhook(req, res);
-  
+
   if (event) {
     // Process the event
-    console.log('Event type:', event.event_type);
-    console.log('Event data:', event.event_data);
+    console.log("Event type:", event.event_type);
+    console.log("Event data:", event.event_data);
   }
-  
+
   // Response is automatically sent by handleWebhook
 });
 ```
@@ -371,6 +388,7 @@ app.post('/api/webhooks/twitch', (req, res) => {
 ### Security Verification
 
 The webhook handler automatically:
+
 1. **Verifies HMAC signature** using the shared secret
 2. **Prevents replay attacks** by tracking message IDs
 3. **Validates timestamps** (rejects messages >10 minutes old)
@@ -394,6 +412,7 @@ The webhook handler automatically:
 **Cause:** State parameter mismatch or expired
 
 **Solutions:**
+
 - State expires after 10 minutes - restart OAuth flow
 - Ensure user session is active throughout flow
 - Check for clock skew between server and client
@@ -402,12 +421,14 @@ The webhook handler automatically:
 #### 2. "Failed to exchange authorization code"
 
 **Possible Causes:**
+
 - Invalid client credentials
 - Authorization code already used
 - Redirect URI mismatch
 - PKCE verification failed
 
 **Solutions:**
+
 - Verify `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` are correct
 - Ensure redirect URI in code matches Twitch Developer Console
 - Check that `AUTH_URL` environment variable is set correctly
@@ -418,16 +439,19 @@ The webhook handler automatically:
 **Error Message:** "Parameter redirect_uri does not match registered URI"
 
 **Solutions:**
+
 1. Check `AUTH_URL` environment variable:
+
    ```bash
    # Development
    AUTH_URL=http://localhost:3000
-   
+
    # Production
    AUTH_URL=https://your-domain.com
    ```
 
 2. Verify redirect URL in Twitch Developer Console matches:
+
    ```
    ${AUTH_URL}/api/platforms/twitch/oauth/callback
    ```
@@ -443,6 +467,7 @@ The webhook handler automatically:
 **Symptoms:** User gets logged out or loses Twitch connection
 
 **Solutions:**
+
 - Verify refresh token is stored correctly
 - Check `TWITCH_CLIENT_SECRET` is correct
 - Ensure user hasn't revoked app access in Twitch settings
@@ -453,6 +478,7 @@ The webhook handler automatically:
 **Symptoms:** Webhooks not received or verification fails
 
 **Solutions:**
+
 - Ensure webhook URL is publicly accessible (HTTPS required)
 - Verify `TWITCH_EVENTSUB_SECRET` matches subscription secret
 - Check firewall/security rules allow Twitch IPs
@@ -467,7 +493,7 @@ Enable detailed logging by checking server logs:
 // Logs are automatically generated for:
 // - OAuth flow initiation
 // - Token exchange
-// - User info retrieval  
+// - User info retrieval
 // - Token refresh
 // - EventSub webhook verification
 
@@ -480,10 +506,11 @@ logger.warn('Failed to refresh Twitch token', { ... });
 ### Testing OAuth Flow
 
 1. **Development Testing:**
+
    ```bash
    # Start development server
    npm run dev
-   
+
    # Open browser to http://localhost:3000
    # Navigate to user settings/platform connections
    # Click "Connect Twitch"
@@ -491,6 +518,7 @@ logger.warn('Failed to refresh Twitch token', { ... });
    ```
 
 2. **Verify Connection:**
+
    ```bash
    # Check database for stored account
    psql $DATABASE_URL -c "SELECT * FROM user_platform_accounts WHERE platform = 'twitch';"
@@ -499,8 +527,8 @@ logger.warn('Failed to refresh Twitch token', { ... });
 3. **Test Token Refresh:**
    ```typescript
    // Manually test token refresh
-   import { refreshPlatformToken } from './services/platform-oauth';
-   const newToken = await refreshPlatformToken(userId, 'twitch');
+   import { refreshPlatformToken } from "./services/platform-oauth";
+   const newToken = await refreshPlatformToken(userId, "twitch");
    ```
 
 ## Best Practices
@@ -589,6 +617,7 @@ logger.warn('Failed to refresh Twitch token', { ... });
 ## Support
 
 For issues or questions:
+
 1. Check this documentation
 2. Review server logs for error details
 3. Verify Twitch Developer Console configuration

@@ -54,6 +54,7 @@ npm run logs:production
 ### Checklist
 
 **Code Quality:**
+
 - [ ] All tests passing: `npm test`
 - [ ] Code linted: `npm run lint`
 - [ ] Build successful: `npm run build`
@@ -61,22 +62,26 @@ npm run logs:production
 - [ ] TypeScript checks passing: `npm run check`
 
 **Version Control:**
+
 - [ ] All changes committed
 - [ ] Git tag created for release
 - [ ] CHANGELOG.md updated
 - [ ] Documentation updated
 
 **Configuration:**
+
 - [ ] Environment variables verified
 - [ ] Secrets updated in Secret Manager
 - [ ] Configuration validated: `npm run env:validate`
 
 **Database:**
+
 - [ ] Schema migrations prepared
 - [ ] Database backup completed: `npm run db:backup`
 - [ ] Migration tested on staging
 
 **Communication:**
+
 - [ ] Deployment scheduled
 - [ ] Stakeholders notified
 - [ ] Maintenance window announced (if needed)
@@ -353,6 +358,7 @@ npm run db:status
 ### When to Rollback
 
 Rollback immediately if:
+
 - **Error rate > 5%** for more than 5 minutes
 - **Response time > 2x normal** for more than 10 minutes
 - **Critical feature broken** (authentication, database access)
@@ -616,6 +622,7 @@ gcloud alpha monitoring policies create \
 ### Monitoring Dashboard
 
 Access Cloud Monitoring:
+
 ```bash
 # Get dashboard URL
 echo "https://console.cloud.google.com/monitoring/dashboards?project=$(gcloud config get-value project)"
@@ -669,6 +676,6 @@ After any rollback or deployment issue:
 
 **Revision History:**
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-10-18 | Initial runbook creation | System |
+| Version | Date       | Changes                  | Author |
+| ------- | ---------- | ------------------------ | ------ |
+| 1.0     | 2025-10-18 | Initial runbook creation | System |

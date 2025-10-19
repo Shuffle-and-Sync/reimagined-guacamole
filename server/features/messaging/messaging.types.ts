@@ -6,7 +6,7 @@ export interface PaginationOptions {
 
 export interface SortOptions {
   field?: string;
-  direction?: 'asc' | 'desc';
+  direction?: "asc" | "desc";
 }
 
 export interface NotificationFilters {
@@ -24,7 +24,7 @@ export interface NotificationData {
 }
 
 export interface CreateNotificationRequest {
-  type: 'event_join' | 'event_leave' | 'game_invite' | 'message' | 'system';
+  type: "event_join" | "event_leave" | "game_invite" | "message" | "system";
   title: string;
   message: string;
   data?: NotificationData;

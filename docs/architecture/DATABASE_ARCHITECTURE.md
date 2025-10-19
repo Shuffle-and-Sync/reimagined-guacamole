@@ -11,6 +11,7 @@
 ### Database System
 
 **SQLite Cloud**
+
 - **Location**: Cloud-hosted SQLite instance
 - **Purpose**: Primary data storage for all application data
 - **Access Method**: Drizzle ORM with SQLite Cloud driver
@@ -23,6 +24,7 @@
 ### ORM Layer
 
 **Drizzle ORM**
+
 - **Location**: `shared/schema.ts`
 - **Purpose**: Primary ORM for all database operations
 - **Features**:
@@ -39,8 +41,8 @@
 
 ```typescript
 // shared/database-unified.ts
-import { Database as SQLiteCloudDatabase } from '@sqlitecloud/drivers';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { Database as SQLiteCloudDatabase } from "@sqlitecloud/drivers";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 const databaseUrl = process.env.DATABASE_URL;
 const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
@@ -66,14 +68,15 @@ DATABASE_DIRECT_URL=sqlitecloud://... # For separate connection pools if needed
 All database schema is defined in `shared/schema.ts` using Drizzle ORM.
 
 Example:
-```typescript
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  firstName: text('first_name'),
-  lastName: text('last_name'),
+```typescript
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   // ... more fields
 });
 ```
@@ -140,32 +143,30 @@ export const authConfig = {
 ### Query Examples
 
 ```typescript
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 // Select user by email
-const user = await db.select()
+const user = await db
+  .select()
   .from(users)
-  .where(eq(users.email, 'user@example.com'))
+  .where(eq(users.email, "user@example.com"))
   .limit(1);
 
 // Insert new user
 await db.insert(users).values({
   id: crypto.randomUUID(),
-  email: 'new@example.com',
-  firstName: 'John',
-  lastName: 'Doe'
+  email: "new@example.com",
+  firstName: "John",
+  lastName: "Doe",
 });
 
 // Update user
-await db.update(users)
-  .set({ firstName: 'Jane' })
-  .where(eq(users.id, userId));
+await db.update(users).set({ firstName: "Jane" }).where(eq(users.id, userId));
 
 // Delete user
-await db.delete(users)
-  .where(eq(users.id, userId));
+await db.delete(users).where(eq(users.id, userId));
 ```
 
 ### Transactions
@@ -192,7 +193,7 @@ await withTransaction(async (tx) => {
 ### Monitoring
 
 ```typescript
-import { DatabaseMonitor } from '@shared/database-unified';
+import { DatabaseMonitor } from "@shared/database-unified";
 
 const stats = DatabaseMonitor.getInstance().getStats();
 const slowQueries = DatabaseMonitor.getInstance().getSlowQueries(500);
@@ -205,7 +206,9 @@ const slowQueries = DatabaseMonitor.getInstance().getSlowQueries(500);
 ### Issue: "Can't connect to database"
 
 **Check:**
+
 1. Is `DATABASE_URL` set correctly?
+
    ```bash
    echo $DATABASE_URL
    ```
@@ -220,6 +223,7 @@ const slowQueries = DatabaseMonitor.getInstance().getSlowQueries(500);
 ### Issue: "Schema out of sync"
 
 **Check:**
+
 ```bash
 npm run db:push
 ```
@@ -229,7 +233,9 @@ npm run db:push
 ### Issue: "Build fails"
 
 **Check:**
+
 1. Are all dependencies installed?
+
    ```bash
    npm install --legacy-peer-deps
    ```

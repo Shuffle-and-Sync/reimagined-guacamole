@@ -42,6 +42,7 @@ This runbook provides structured procedures for responding to production inciden
 ### Severity Levels
 
 **SEV-1 (Critical)**
+
 - **Impact:** Complete service outage or critical functionality broken
 - **Examples:**
   - Entire platform down
@@ -52,6 +53,7 @@ This runbook provides structured procedures for responding to production inciden
 - **Communication:** Hourly updates to all stakeholders
 
 **SEV-2 (High)**
+
 - **Impact:** Major functionality degraded
 - **Examples:**
   - High error rate (> 5%)
@@ -62,6 +64,7 @@ This runbook provides structured procedures for responding to production inciden
 - **Communication:** Every 2 hours during business hours
 
 **SEV-3 (Medium)**
+
 - **Impact:** Minor functionality issues
 - **Examples:**
   - Single feature broken
@@ -71,6 +74,7 @@ This runbook provides structured procedures for responding to production inciden
 - **Communication:** Daily status updates
 
 **SEV-4 (Low)**
+
 - **Impact:** Minimal or no user impact
 - **Examples:**
   - Minor UI bugs
@@ -86,11 +90,13 @@ This runbook provides structured procedures for responding to production inciden
 ### Phase 1: Detection and Triage (0-5 minutes)
 
 **1. Incident Detected:**
+
 - Alert triggered
 - User report received
 - Monitoring anomaly noticed
 
 **2. Initial Assessment:**
+
 ```bash
 # Quick health check
 curl https://shuffleandsync.com/health
@@ -103,11 +109,13 @@ npm run logs:production -- --limit=50
 ```
 
 **3. Classify Severity:**
+
 - Determine severity level (SEV-1 to SEV-4)
 - Estimate user impact
 - Identify affected functionality
 
 **4. Declare Incident:**
+
 ```bash
 # Create incident ticket
 # Document:
@@ -120,16 +128,19 @@ npm run logs:production -- --limit=50
 ### Phase 2: Initial Response (5-15 minutes)
 
 **1. Assemble Team:**
+
 - Page Incident Commander (SEV-1/SEV-2)
 - Alert Technical Lead
 - Notify Communications Lead
 
 **2. Establish Communication:**
+
 - Create incident Slack channel: `#incident-YYYY-MM-DD`
 - Start incident timeline document
 - Post initial status update
 
 **3. Stabilize Service:**
+
 ```bash
 # SEV-1: Immediate stabilization
 # Options:
@@ -143,6 +154,7 @@ npm run rollback
 ```
 
 **4. Gather Information:**
+
 ```bash
 # Service metrics
 npm run metrics:production
@@ -163,12 +175,14 @@ gcloud run revisions list --service=shuffle-sync-backend --region=us-central1 --
 ### Phase 3: Diagnosis and Mitigation (15-60 minutes)
 
 **1. Root Cause Analysis:**
+
 - Review error patterns
 - Check system dependencies
 - Analyze recent changes
 - Consult subject matter experts
 
 **2. Implement Mitigation:**
+
 ```bash
 # Common mitigations:
 
@@ -192,6 +206,7 @@ gcloud run services update-traffic shuffle-sync-backend \
 ```
 
 **3. Monitor Impact:**
+
 ```bash
 # Check error rate
 npm run metrics:production | grep error_rate
@@ -204,6 +219,7 @@ npm run metrics:production | grep latency
 ```
 
 **4. Communication Update:**
+
 - Post 30-minute update
 - Share mitigation steps
 - Provide ETA for resolution (if known)
@@ -211,6 +227,7 @@ npm run metrics:production | grep latency
 ### Phase 4: Resolution (Variable)
 
 **1. Implement Fix:**
+
 ```bash
 # Test fix in development
 npm run dev
@@ -227,6 +244,7 @@ npm run deploy:production
 ```
 
 **2. Verify Resolution:**
+
 ```bash
 # Health check
 curl https://shuffleandsync.com/health
@@ -239,6 +257,7 @@ watch -n 60 'npm run metrics:production'
 ```
 
 **3. User Communication:**
+
 - Announce resolution
 - Apologize for impact
 - Provide summary of issue
@@ -247,16 +266,19 @@ watch -n 60 'npm run metrics:production'
 ### Phase 5: Recovery (Post-Resolution)
 
 **1. Monitor for Regression:**
+
 - Watch metrics for 2-4 hours
 - Check for secondary issues
 - Verify user feedback
 
 **2. Close Incident:**
+
 - Update incident ticket
 - Final status update
 - Thank response team
 
 **3. Schedule Post-Mortem:**
+
 - Within 48 hours for SEV-1/SEV-2
 - Within 1 week for SEV-3/SEV-4
 
@@ -267,11 +289,13 @@ watch -n 60 'npm run metrics:production'
 ### Scenario 1: Complete Service Outage
 
 **Symptoms:**
+
 - Health endpoint unreachable
 - All requests failing
 - 0 active containers
 
 **Quick Response:**
+
 ```bash
 # 1. Check service status
 gcloud run services describe shuffle-sync-backend --region us-central1
@@ -294,11 +318,13 @@ curl https://shuffleandsync.com/health
 ### Scenario 2: Database Connection Issues
 
 **Symptoms:**
+
 - 500 errors on all database operations
 - "Connection timeout" in logs
 - Database operations failing
 
 **Quick Response:**
+
 ```bash
 # 1. Test database connectivity
 npm run db:health
@@ -320,11 +346,13 @@ gcloud run services update shuffle-sync-backend \
 ### Scenario 3: Authentication Broken
 
 **Symptoms:**
+
 - Users cannot log in
 - OAuth errors
 - Session errors
 
 **Quick Response:**
+
 ```bash
 # 1. Check Auth.js configuration
 # Verify environment variables:
@@ -348,11 +376,13 @@ npm run rollback
 ### Scenario 4: High Error Rate
 
 **Symptoms:**
+
 - Error rate > 5%
 - Errors on specific endpoints
 - Intermittent failures
 
 **Quick Response:**
+
 ```bash
 # 1. Identify affected endpoints
 gcloud run services logs read shuffle-sync-backend \
@@ -382,11 +412,13 @@ gcloud run services logs read shuffle-sync-backend \
 ### Scenario 5: Performance Degradation
 
 **Symptoms:**
+
 - Slow response times
 - High CPU/memory usage
 - Timeouts
 
 **Quick Response:**
+
 ```bash
 # 1. Check resource usage
 gcloud run services describe shuffle-sync-backend \
@@ -421,11 +453,13 @@ gcloud run services update shuffle-sync-backend \
 ### Scenario 6: Data Corruption
 
 **Symptoms:**
+
 - Incorrect data displayed
 - Data validation failures
 - Database integrity errors
 
 **Quick Response:**
+
 ```bash
 # 1. IMMEDIATELY stop write operations
 # Enable read-only mode if possible
@@ -462,10 +496,10 @@ npm run db:verify
 Status: INVESTIGATING
 Started: [TIMESTAMP]
 
-We are currently investigating a service outage affecting Shuffle & Sync. 
+We are currently investigating a service outage affecting Shuffle & Sync.
 Users may be unable to access the platform.
 
-Our team is actively working on resolution. Updates will be provided every 
+Our team is actively working on resolution. Updates will be provided every
 30 minutes.
 
 Next update: [TIMESTAMP + 30 min]
@@ -481,7 +515,7 @@ Incident Commander: [NAME]
 Status: MITIGATING
 Duration: [X] minutes
 
-Update: We have identified the issue as [BRIEF DESCRIPTION]. The team is 
+Update: We have identified the issue as [BRIEF DESCRIPTION]. The team is
 implementing a fix.
 
 Impact: [AFFECTED SERVICES]
@@ -503,7 +537,7 @@ The incident has been resolved. Service is now operating normally.
 
 Summary: [BRIEF DESCRIPTION OF ISSUE AND FIX]
 
-We apologize for any inconvenience. A detailed post-mortem will be published 
+We apologize for any inconvenience. A detailed post-mortem will be published
 within 48 hours.
 
 Thank you for your patience.
@@ -531,12 +565,14 @@ Last updated: [TIMESTAMP]
 ### Post-Mortem Template
 
 **Incident Summary:**
+
 - Date/Time: [START] to [END]
 - Duration: [X] minutes/hours
 - Severity: SEV-[X]
 - Impact: [DESCRIPTION]
 
 **Timeline:**
+
 - [TIME] - Incident detected
 - [TIME] - Incident declared
 - [TIME] - Team assembled
@@ -548,6 +584,7 @@ Last updated: [TIMESTAMP]
 [Detailed description of what caused the incident]
 
 **Contributing Factors:**
+
 - [FACTOR 1]
 - [FACTOR 2]
 
@@ -555,14 +592,17 @@ Last updated: [TIMESTAMP]
 [What was done to resolve the incident]
 
 **What Went Well:**
+
 - [POSITIVE ASPECT 1]
 - [POSITIVE ASPECT 2]
 
 **What Could Be Improved:**
+
 - [IMPROVEMENT 1]
 - [IMPROVEMENT 2]
 
 **Action Items:**
+
 - [ ] [ACTION 1] - Owner: [NAME] - Due: [DATE]
 - [ ] [ACTION 2] - Owner: [NAME] - Due: [DATE]
 
@@ -572,12 +612,14 @@ Last updated: [TIMESTAMP]
 ### Post-Mortem Meeting
 
 **Attendees:**
+
 - Incident response team
 - Engineering leadership
 - Product management
 - Customer support (if user-facing)
 
 **Agenda:**
+
 1. Review timeline
 2. Discuss root cause
 3. Identify prevention measures
@@ -586,6 +628,7 @@ Last updated: [TIMESTAMP]
 6. Schedule follow-ups
 
 **Follow-up:**
+
 - Share post-mortem document
 - Track action items
 - Update documentation
@@ -636,6 +679,6 @@ Last updated: [TIMESTAMP]
 
 **Revision History:**
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-10-18 | Initial runbook creation | System |
+| Version | Date       | Changes                  | Author |
+| ------- | ---------- | ------------------------ | ------ |
+| 1.0     | 2025-10-18 | Initial runbook creation | System |

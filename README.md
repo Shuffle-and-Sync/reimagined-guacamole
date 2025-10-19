@@ -37,6 +37,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 ## 🛠️ Technology Stack
 
 ### Frontend Architecture
+
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite for fast development and optimized builds
 - **UI Library**: Shadcn/ui components built on Radix UI primitives
@@ -46,6 +47,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **Forms**: React Hook Form with Zod validation
 
 ### Backend Architecture
+
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
@@ -61,8 +63,8 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm 10+ 
+- Node.js 18+
+- npm 10+
 - SQLite Cloud database or local SQLite database
 - Google OAuth 2.0 credentials
 
@@ -151,13 +153,13 @@ npm run env:validate
 
 ### Required Variables (🔴 Critical)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` |
-| `AUTH_SECRET` | Authentication secret (32+ chars) | Generate with: `openssl rand -base64 32` |
-| `AUTH_URL` | Application base URL | `http://localhost:3000` (dev) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | From Google Console |
+| Variable               | Description                                  | Example                                               |
+| ---------------------- | -------------------------------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`         | SQLite Cloud connection or local SQLite file | `sqlitecloud://host:port/db?apikey=key` or `./dev.db` |
+| `AUTH_SECRET`          | Authentication secret (32+ chars)            | Generate with: `openssl rand -base64 32`              |
+| `AUTH_URL`             | Application base URL                         | `http://localhost:3000` (dev)                         |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID                       | From Google Console                                   |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret                   | From Google Console                                   |
 
 ### Configuration Help
 
@@ -168,7 +170,7 @@ npm run env:validate
 # Automated setup
 bash scripts/setup-env.sh
 
-# Copy template manually  
+# Copy template manually
 cp .env.example .env.local
 ```
 
@@ -201,7 +203,7 @@ npm run build            # Production build
 npm run check            # TypeScript type checking
 
 # Database
-npm run db:push          # Apply schema changes  
+npm run db:push          # Apply schema changes
 npm run db:health        # Connection test
 npm run db:init          # Initialize database
 
@@ -221,25 +223,28 @@ npm run format           # Prettier code formatting
 Complete documentation is organized in the [docs/](docs/) directory:
 
 ### Core Guides
+
 - **[📖 Documentation Index](docs/README.md)** - Complete documentation hub
 - **[🏗️ Project Architecture](docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture and design patterns
 - **[📊 Architecture Diagrams](docs/architecture/SYSTEM_ARCHITECTURE_DIAGRAMS.md)** - Visual system architecture diagrams
 - **[🛠️ Technology Stack](docs/architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology documentation
 - **[📝 Coding Patterns](docs/development/CODING_PATTERNS.md)** - Coding standards and conventions
 - **[🚀 Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - Development setup & patterns
-- **[🗄️ Database Architecture](docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design & setup  
+- **[🗄️ Database Architecture](docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design & setup
 - **[🔌 API Documentation](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 - **[🌐 Deployment Guide](DEPLOYMENT.md)** - Production deployment
 - **[🔐 Secret Management](docs/reference/MANAGING_SECRETS_GCP.md)** - Secure secrets with Google Secret Manager
 - **[🧪 Testing Agent](docs/maintenance/TESTING_AGENT.md)** - Automated unit testing framework
 
 ### User Guides
+
 - **[🎯 Getting Started](docs/user-guides/GETTING_STARTED.md)** - New user onboarding
 - **[🎥 Streamer Guide](docs/user-guides/STREAMER_ONBOARDING_GUIDE.md)** - For content creators
 - **[🏆 Tournament Organizer](docs/user-guides/TOURNAMENT_ORGANIZER_GUIDE.md)** - Running tournaments
 - **[👥 Community Admin](docs/user-guides/COMMUNITY_ADMIN_GUIDE.md)** - Community management
 
 ### Feature Documentation
+
 - **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
 - **[🤖 AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
 - **[📺 Twitch Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform OAuth
@@ -247,6 +252,7 @@ Complete documentation is organized in the [docs/](docs/) directory:
 ## 🚀 Deployment
 
 This application is designed for deployment on Google Cloud Platform with the following architecture:
+
 - **Cloud Run**: Backend and frontend services
 - **SQLite Cloud**: Database hosting (or local SQLite files)
 - **Secret Manager**: Environment variables and credentials
@@ -290,6 +296,7 @@ For comprehensive deployment instructions and Google Cloud Platform setup, see t
 ## 🔒 Security
 
 ### Authentication Flow
+
 1. **Sign In**: Users click "Sign in with Google" button
 2. **OAuth Redirect**: Redirected to Google for authentication
 3. **Callback Processing**: Google redirects back with authorization code
@@ -297,6 +304,7 @@ For comprehensive deployment instructions and Google Cloud Platform setup, see t
 5. **User Access**: Protected routes verify JWT tokens and provide user data
 
 ### Security Features
+
 - JWT-based sessions with HTTP-only secure cookies
 - CSRF protection enabled
 - Rate limiting on all API endpoints
@@ -305,6 +313,7 @@ For comprehensive deployment instructions and Google Cloud Platform setup, see t
 - Secure environment variable management
 
 For comprehensive security documentation, see:
+
 - [SECURITY.md](./SECURITY.md) - Security policy and vulnerability reporting
 - [docs/security/SECURITY_IMPROVEMENTS.md](./docs/security/SECURITY_IMPROVEMENTS.md) - Security enhancements and best practices
 - [docs/security/SECURITY_REMEDIATION.md](./docs/security/SECURITY_REMEDIATION.md) - Guide for removing sensitive data from Git history
@@ -314,12 +323,14 @@ For comprehensive security documentation, see:
 The platform supports secure OAuth 2.0 integration with major streaming platforms:
 
 #### Twitch Integration 🎮
+
 - **PKCE Security**: Implements Proof Key for Code Exchange (RFC 7636) for enhanced security
 - **Automatic Token Refresh**: Handles token expiration and renewal automatically
 - **EventSub Webhooks**: Real-time stream status notifications
 - **Comprehensive Scopes**: Stream management, analytics, and user data access
 
 **Quick Start:**
+
 1. Create Twitch application at https://dev.twitch.tv/console/apps
 2. Configure OAuth redirect URLs (see [Developer Portal Setup](docs/features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md))
 3. Set environment variables:
@@ -331,16 +342,19 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 4. See [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed implementation
 
 #### YouTube Integration 📺
+
 - **PKCE Support**: Full PKCE implementation for secure authorization
 - **Channel Management**: Access to channel data and live stream settings
 - **Automatic Refresh**: Seamless token renewal
 
 #### Facebook Gaming Integration 🎯
+
 - **Page Management**: Access to gaming pages and posts
 - **Video Publishing**: Upload and manage video content
 - **Engagement Metrics**: Read page engagement data
 
 **Security Features:**
+
 - ✅ PKCE (Proof Key for Code Exchange) for all platforms
 - ✅ Cryptographically secure state parameters
 - ✅ Encrypted token storage in database
@@ -349,6 +363,7 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 - ✅ Single-use authorization codes
 
 **See Also:**
+
 - [Platform OAuth API Documentation](docs/reference/api/API_DOCUMENTATION.md#platform-oauth-api)
 - [Twitch OAuth Guide](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) for detailed Twitch implementation
 
@@ -357,12 +372,14 @@ The platform supports secure OAuth 2.0 integration with major streaming platform
 The Unit Testing Agent is a key feature of this repository that provides:
 
 ### Automated Test Generation
+
 - **Feature Coverage**: Automatically generates tests for all major platform features
 - **Best Practices**: Follows Jest and TypeScript testing best practices
 - **Mock Management**: Creates comprehensive mock implementations
 - **Edge Cases**: Includes error handling and edge case scenarios
 
 ### Test Categories
+
 1. **Authentication Tests**: OAuth flows, session management, security validation
 2. **Tournament Tests**: CRUD operations, business logic, participant management
 3. **Matchmaking Tests**: AI algorithms, compatibility scoring, filtering
@@ -370,6 +387,7 @@ The Unit Testing Agent is a key feature of this repository that provides:
 5. **Messaging Tests**: WebSocket communication, real-time delivery, persistence
 
 ### Development Integration
+
 - **NPM Scripts**: Easy-to-use commands for test execution
 - **Watch Mode**: Continuous testing during development
 - **Coverage Reports**: Detailed analysis of code coverage
@@ -388,6 +406,7 @@ The repository includes an automated documentation agent that maintains the issu
 - **Manual Enhancement**: Provides foundation for detailed manual updates
 
 **Usage:**
+
 ```bash
 # Manual run
 npm run history:update

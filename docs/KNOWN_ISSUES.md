@@ -30,6 +30,7 @@ This document tracks known issues in Shuffle & Sync with their workarounds and p
 When OAuth credentials (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET) are not properly configured, users may see a configuration error when attempting to login.
 
 **Symptoms:**
+
 - Browser redirects to `/api/auth/error?error=Configuration`
 - Login button doesn't work
 - May see `ERR_TOO_MANY_ACCEPT_CH_RESTARTS` in browser console
@@ -38,6 +39,7 @@ When OAuth credentials (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET) are not properly
 Missing or incorrect OAuth credentials in environment configuration.
 
 **Workaround:**
+
 1. Verify OAuth credentials are set in environment:
    ```bash
    npm run env:validate
@@ -65,6 +67,7 @@ Set up OAuth credentials during initial deployment following the [Deployment Gui
 Users may experience session timeouts if browser tabs remain inactive for extended periods, even if the session should still be valid.
 
 **Workaround:**
+
 - Refresh the page to restore the session
 - Configure longer session duration via `SESSION_MAX_AGE` environment variable
 - Default is 7 days (604800000 ms)
@@ -86,11 +89,13 @@ Implement automatic session refresh on user activity (planned for future release
 Occasional connection timeouts when using SQLite Cloud, particularly during high-traffic periods or when the database is located in a different region than the application.
 
 **Symptoms:**
+
 - Slow page loads
 - Intermittent 500 errors
 - Database query timeouts in logs
 
 **Workaround:**
+
 1. Ensure SQLite Cloud instance is in the same region as your Cloud Run deployment
 2. Implement connection retry logic (already included in database-unified.ts)
 3. Consider using local SQLite for development to avoid network latency
@@ -113,11 +118,13 @@ Connection pooling and retry mechanisms are already implemented. Ensure your SQL
 First request after a cold start may be slower due to database connection initialization.
 
 **Workaround:**
+
 - Cloud Run warm-up requests help reduce impact
 - Consider using minimum instances to keep services warm
 - Use health check endpoint to pre-warm connections
 
 **Configuration:**
+
 ```bash
 # Set minimum instances in Cloud Run
 gcloud run services update YOUR_SERVICE \
@@ -139,6 +146,7 @@ gcloud run services update YOUR_SERVICE \
 The `AUTH_URL` variable can be omitted in Cloud Run deployments as the system auto-detects the URL from request headers. However, this may cause confusion during initial setup.
 
 **Workaround:**
+
 - Set `AUTH_TRUST_HOST=true` (default)
 - Omit `AUTH_URL` for automatic detection
 - If custom domain is used, explicitly set `AUTH_URL` to your domain
@@ -157,6 +165,7 @@ The `AUTH_URL` variable can be omitted in Cloud Run deployments as the system au
 Building Docker images on systems with less than 4GB RAM may fail or be extremely slow.
 
 **Workaround:**
+
 1. Use Cloud Build instead of local Docker builds:
    ```bash
    npm run deploy:production
@@ -178,10 +187,12 @@ Building Docker images on systems with less than 4GB RAM may fail or be extremel
 Twitch tokens expire after a certain period. The system automatically refreshes tokens within 5 minutes of expiry, but manual intervention may be needed if refresh fails.
 
 **Symptoms:**
+
 - "Token expired" errors when accessing Twitch features
 - Stream status not updating
 
 **Workaround:**
+
 1. Disconnect and reconnect Twitch account via platform settings
 2. Manually trigger token refresh via API:
    ```bash
@@ -205,15 +216,18 @@ Automatic token refresh is implemented. Ensure `TWITCH_CLIENT_SECRET` is properl
 YouTube API has daily quota limits (10,000 units per day by default). Heavy usage may exhaust quota.
 
 **Symptoms:**
+
 - YouTube features stop working after heavy use
 - "Quota exceeded" errors in logs
 
 **Workaround:**
+
 1. Request quota increase from Google: https://developers.google.com/youtube/v3/getting-started#quota
 2. Implement caching for YouTube data (recommended)
 3. Monitor quota usage in Google Cloud Console
 
 **Prevention:**
+
 - Cache YouTube stream status for 1-2 minutes
 - Avoid excessive API calls in loops
 - Use webhooks instead of polling where possible
@@ -230,6 +244,7 @@ YouTube API has daily quota limits (10,000 units per day by default). Heavy usag
 WebSocket messaging may experience slight delays during very high traffic periods.
 
 **Workaround:**
+
 - Scale Cloud Run instances to handle more concurrent connections
 - Implement connection pooling
 - Consider using a dedicated WebSocket service for high-traffic deployments
@@ -251,10 +266,12 @@ Message queue implementation planned for future release to handle high-volume me
 Safari in Private Browsing mode may have issues with session cookies due to Safari's strict cookie policies.
 
 **Symptoms:**
+
 - Unable to login
 - Session not persisting
 
 **Workaround:**
+
 - Use Safari in normal (non-private) mode
 - Use alternative browsers (Chrome, Firefox, Edge) for better compatibility
 - Ensure cookies are enabled in Safari settings
@@ -271,6 +288,7 @@ Safari in Private Browsing mode may have issues with session cookies due to Safa
 Internet Explorer is not supported. The application requires modern browser features (ES6+, Web Components, etc.).
 
 **Workaround:**
+
 - Use a modern browser: Chrome, Firefox, Safari, or Edge
 - Minimum supported versions:
   - Chrome 90+

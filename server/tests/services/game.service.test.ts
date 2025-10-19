@@ -1,71 +1,71 @@
 /**
  * Game Service Unit Tests
- * 
+ *
  * Tests for game CRUD operations and business logic
  */
 
-import { gameService } from '../../services/games/game.service';
-import { db } from '../../../shared/database-unified';
-import { games } from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { gameService } from "../../services/games/game.service";
+import { db } from "../../../shared/database-unified";
+import { games } from "../../../shared/schema";
+import { eq } from "drizzle-orm";
 
 // Mock the database
-jest.mock('../../../shared/database-unified', () => ({
+jest.mock("../../../shared/database-unified", () => ({
   db: {
     insert: jest.fn(),
     select: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
-  }
+  },
 }));
 
 // TODO: Re-enable when games table is implemented in schema
-describe.skip('GameService', () => {
-  const mockUserId = 'user-123';
-  const mockGameId = 'game-456';
+describe.skip("GameService", () => {
+  const mockUserId = "user-123";
+  const mockGameId = "game-456";
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('createGame', () => {
-    it('should create a new game with valid data', async () => {
+  describe("createGame", () => {
+    it("should create a new game with valid data", async () => {
       const gameData = {
-        name: 'test-game',
-        displayName: 'Test Game',
-        description: 'A test game',
+        name: "test-game",
+        displayName: "Test Game",
+        description: "A test game",
         creatorId: mockUserId,
-        cardTypes: ['Hero', 'Spell'],
-        deckRules: { minDeckSize: 40 }
+        cardTypes: ["Hero", "Spell"],
+        deckRules: { minDeckSize: 40 },
       };
 
       const mockCreatedGame = {
         id: mockGameId,
         ...gameData,
         isPublished: false,
-        version: '1.0.0',
+        version: "1.0.0",
         createdAt: new Date(),
       };
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([mockCreatedGame])
-        })
+          returning: jest.fn().mockResolvedValue([mockCreatedGame]),
+        }),
       });
 
       const result = await gameService.createGame(mockUserId, gameData);
 
       expect(result).toBeDefined();
       expect(result.id).toBe(mockGameId);
-      expect(result.name).toBe('test-game');
+      expect(result.name).toBe("test-game");
       expect(result.isPublished).toBe(false);
       expect(db.insert).toHaveBeenCalledWith(games);
     });
 
-    it('should set default values for optional fields', async () => {
+    it("should set default values for optional fields", async () => {
       const gameData = {
-        name: 'minimal-game',
-        displayName: 'Minimal Game',
+        name: "minimal-game",
+        displayName: "Minimal Game",
         creatorId: mockUserId,
       };
 
@@ -73,7 +73,7 @@ describe.skip('GameService', () => {
         id: mockGameId,
         ...gameData,
         isPublished: false,
-        version: '1.0.0',
+        version: "1.0.0",
         playerCount: { min: 2, max: 4 },
         cardTypes: [],
         deckRules: {
@@ -86,32 +86,32 @@ describe.skip('GameService', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([mockCreatedGame])
-        })
+          returning: jest.fn().mockResolvedValue([mockCreatedGame]),
+        }),
       });
 
       const result = await gameService.createGame(mockUserId, gameData);
 
-      expect(result.version).toBe('1.0.0');
+      expect(result.version).toBe("1.0.0");
       expect(result.playerCount).toEqual({ min: 2, max: 4 });
     });
   });
 
-  describe('getGameById', () => {
-    it('should return a game by id', async () => {
+  describe("getGameById", () => {
+    it("should return a game by id", async () => {
       const mockGame = {
         id: mockGameId,
-        name: 'test-game',
-        displayName: 'Test Game',
+        name: "test-game",
+        displayName: "Test Game",
         creatorId: mockUserId,
       };
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       const result = await gameService.getGameById(mockGameId);
@@ -120,93 +120,99 @@ describe.skip('GameService', () => {
       expect(db.select).toHaveBeenCalled();
     });
 
-    it('should return null if game not found', async () => {
+    it("should return null if game not found", async () => {
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([]),
+          }),
+        }),
       });
 
-      const result = await gameService.getGameById('non-existent');
+      const result = await gameService.getGameById("non-existent");
 
       expect(result).toBeNull();
     });
   });
 
-  describe('updateGame', () => {
-    it('should update game when user is creator', async () => {
+  describe("updateGame", () => {
+    it("should update game when user is creator", async () => {
       const mockGame = {
         id: mockGameId,
-        name: 'test-game',
+        name: "test-game",
         creatorId: mockUserId,
       };
 
       const updates = {
-        displayName: 'Updated Game',
-        description: 'Updated description',
+        displayName: "Updated Game",
+        description: "Updated description",
       };
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       (db.update as jest.Mock).mockReturnValue({
         set: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            returning: jest.fn().mockResolvedValue([{ ...mockGame, ...updates }])
-          })
-        })
+            returning: jest
+              .fn()
+              .mockResolvedValue([{ ...mockGame, ...updates }]),
+          }),
+        }),
       });
 
-      const result = await gameService.updateGame(mockGameId, mockUserId, updates);
+      const result = await gameService.updateGame(
+        mockGameId,
+        mockUserId,
+        updates,
+      );
 
-      expect(result.displayName).toBe('Updated Game');
+      expect(result.displayName).toBe("Updated Game");
       expect(db.update).toHaveBeenCalledWith(games);
     });
 
-    it('should throw error when user is not creator', async () => {
+    it("should throw error when user is not creator", async () => {
       const mockGame = {
         id: mockGameId,
-        name: 'test-game',
-        creatorId: 'different-user',
+        name: "test-game",
+        creatorId: "different-user",
       };
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       await expect(
-        gameService.updateGame(mockGameId, mockUserId, { displayName: 'Hack' })
-      ).rejects.toThrow('Not authorized to update this game');
+        gameService.updateGame(mockGameId, mockUserId, { displayName: "Hack" }),
+      ).rejects.toThrow("Not authorized to update this game");
     });
 
-    it('should throw error when game not found', async () => {
+    it("should throw error when game not found", async () => {
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([]),
+          }),
+        }),
       });
 
       await expect(
-        gameService.updateGame('non-existent', mockUserId, {})
-      ).rejects.toThrow('Game not found');
+        gameService.updateGame("non-existent", mockUserId, {}),
+      ).rejects.toThrow("Game not found");
     });
   });
 
-  describe('deleteGame', () => {
-    it('should delete game when user is creator', async () => {
+  describe("deleteGame", () => {
+    it("should delete game when user is creator", async () => {
       const mockGame = {
         id: mockGameId,
         creatorId: mockUserId,
@@ -215,13 +221,13 @@ describe.skip('GameService', () => {
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       (db.delete as jest.Mock).mockReturnValue({
-        where: jest.fn().mockResolvedValue(undefined)
+        where: jest.fn().mockResolvedValue(undefined),
       });
 
       const result = await gameService.deleteGame(mockGameId, mockUserId);
@@ -230,28 +236,28 @@ describe.skip('GameService', () => {
       expect(db.delete).toHaveBeenCalledWith(games);
     });
 
-    it('should throw error when user is not creator', async () => {
+    it("should throw error when user is not creator", async () => {
       const mockGame = {
         id: mockGameId,
-        creatorId: 'different-user',
+        creatorId: "different-user",
       };
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       await expect(
-        gameService.deleteGame(mockGameId, mockUserId)
-      ).rejects.toThrow('Not authorized to delete this game');
+        gameService.deleteGame(mockGameId, mockUserId),
+      ).rejects.toThrow("Not authorized to delete this game");
     });
   });
 
-  describe('publishGame', () => {
-    it('should publish game when user is creator', async () => {
+  describe("publishGame", () => {
+    it("should publish game when user is creator", async () => {
       const mockGame = {
         id: mockGameId,
         creatorId: mockUserId,
@@ -261,17 +267,19 @@ describe.skip('GameService', () => {
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       (db.update as jest.Mock).mockReturnValue({
         set: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            returning: jest.fn().mockResolvedValue([{ ...mockGame, isPublished: true }])
-          })
-        })
+            returning: jest
+              .fn()
+              .mockResolvedValue([{ ...mockGame, isPublished: true }]),
+          }),
+        }),
       });
 
       const result = await gameService.publishGame(mockGameId, mockUserId);
@@ -280,15 +288,15 @@ describe.skip('GameService', () => {
     });
   });
 
-  describe('getAllGames', () => {
-    it('should return all games without filters', async () => {
+  describe("getAllGames", () => {
+    it("should return all games without filters", async () => {
       const mockGames = [
-        { id: 'game-1', name: 'game-1' },
-        { id: 'game-2', name: 'game-2' },
+        { id: "game-1", name: "game-1" },
+        { id: "game-2", name: "game-2" },
       ];
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockGames)
+        from: jest.fn().mockResolvedValue(mockGames),
       });
 
       const result = await gameService.getAllGames();
@@ -297,15 +305,13 @@ describe.skip('GameService', () => {
       expect(result).toEqual(mockGames);
     });
 
-    it('should filter by published status', async () => {
-      const mockGames = [
-        { id: 'game-1', isPublished: true },
-      ];
+    it("should filter by published status", async () => {
+      const mockGames = [{ id: "game-1", isPublished: true }];
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(mockGames)
-        })
+          where: jest.fn().mockResolvedValue(mockGames),
+        }),
       });
 
       const result = await gameService.getAllGames({ isPublished: true });
@@ -315,8 +321,8 @@ describe.skip('GameService', () => {
     });
   });
 
-  describe('getGameStats', () => {
-    it('should return game statistics', async () => {
+  describe("getGameStats", () => {
+    it("should return game statistics", async () => {
       const mockGame = {
         id: mockGameId,
         totalCards: 150,
@@ -327,9 +333,9 @@ describe.skip('GameService', () => {
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockGame])
-          })
-        })
+            limit: jest.fn().mockResolvedValue([mockGame]),
+          }),
+        }),
       });
 
       const result = await gameService.getGameStats(mockGameId);

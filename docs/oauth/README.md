@@ -18,6 +18,7 @@ Shuffle & Sync implements OAuth 2.0 (authorization code grant flow) for connecti
 ## Supported Platforms
 
 ### Twitch
+
 - **Authorization Endpoint**: `https://id.twitch.tv/oauth2/authorize`
 - **Token Endpoint**: `https://id.twitch.tv/oauth2/token`
 - **API Base**: `https://api.twitch.tv/helix`
@@ -25,12 +26,14 @@ Shuffle & Sync implements OAuth 2.0 (authorization code grant flow) for connecti
 - **Documentation**: [Twitch OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md)
 
 ### YouTube
+
 - **Authorization Endpoint**: `https://accounts.google.com/o/oauth2/v2/auth`
 - **Token Endpoint**: `https://oauth2.googleapis.com/token`
 - **API Base**: `https://www.googleapis.com/youtube/v3`
 - **Scopes**: Channel management, live streaming, memberships
 
 ### Facebook Gaming
+
 - **Authorization Endpoint**: `https://www.facebook.com/v18.0/dialog/oauth`
 - **Token Endpoint**: `https://graph.facebook.com/v18.0/oauth/access_token`
 - **API Base**: `https://graph.facebook.com/v18.0`
@@ -92,6 +95,7 @@ Cookie: authjs.session-token=<session-token>
 #### Step 2: Generate Authorization URL
 
 The server:
+
 1. Generates a cryptographically secure state parameter (64 hex characters)
 2. Generates a PKCE code verifier (Base64URL-encoded random bytes)
 3. Creates a code challenge from the verifier (SHA-256 hash, Base64URL-encoded)
@@ -100,6 +104,7 @@ The server:
 6. Returns the URL to the client
 
 **Response**:
+
 ```json
 {
   "authUrl": "https://id.twitch.tv/oauth2/authorize?client_id=xxx&redirect_uri=xxx&response_type=code&scope=xxx&state=xxx&code_challenge=xxx&code_challenge_method=S256&force_verify=true"
@@ -109,6 +114,7 @@ The server:
 #### Step 3: User Authorization
 
 The client redirects the user to the returned `authUrl`. The user:
+
 1. Reviews the requested permissions
 2. Authorizes (or denies) the application
 3. Is redirected back to the callback URL
@@ -118,11 +124,13 @@ The client redirects the user to the returned `authUrl`. The user:
 **Endpoint**: `GET /api/platforms/:platform/oauth/callback`
 
 The platform redirects to:
+
 ```
 /api/platforms/twitch/oauth/callback?code=abc123&state=xyz789
 ```
 
 The server:
+
 1. Validates the state parameter (matches stored state, not expired, correct user/platform)
 2. Retrieves the stored PKCE code verifier
 3. Exchanges the authorization code for tokens using PKCE
@@ -132,6 +140,7 @@ The server:
 7. Returns success
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -170,6 +179,7 @@ The verifier is stored server-side and sent during token exchange, proving that 
 ### Validation
 
 The callback endpoint validates:
+
 1. State exists and hasn't expired
 2. State's user ID matches authenticated user
 3. State's platform matches callback platform
@@ -179,6 +189,7 @@ The callback endpoint validates:
 ## Token Refresh
 
 Tokens are automatically refreshed when:
+
 - A platform API call detects token is expired/expiring
 - User explicitly requests a refresh via `/api/platforms/:platform/refresh`
 - Token expiry time indicates refresh needed (5-minute buffer)
@@ -206,6 +217,7 @@ if (tokenExpiresAt - currentTime < 5 minutes) {
 Initiate OAuth flow for a platform.
 
 **Parameters:**
+
 - `platform` (path): `twitch`, `youtube`, or `facebook`
 
 **Returns:** Authorization URL
@@ -219,6 +231,7 @@ Initiate OAuth flow for a platform.
 Handle OAuth callback from platform.
 
 **Parameters:**
+
 - `platform` (path): `twitch`, `youtube`, or `facebook`
 - `code` (query): Authorization code from platform
 - `state` (query): State parameter for CSRF validation
@@ -244,6 +257,7 @@ List connected platform accounts.
 Disconnect a platform account.
 
 **Parameters:**
+
 - `id` (path): Account UUID
 
 **Returns:** Success status
@@ -267,6 +281,7 @@ Get live streaming status across all platforms.
 Manually refresh a platform's access token.
 
 **Parameters:**
+
 - `platform` (path): `twitch`, `youtube`, or `facebook`
 
 **Returns:** Success status
@@ -309,17 +324,18 @@ gaming_user_picture     - Access gaming profile picture
 
 ### Common Errors
 
-| Error | Status | Description | Resolution |
-|-------|--------|-------------|------------|
-| `Invalid OAuth state` | 401 | State validation failed | User must restart OAuth flow |
-| `Missing OAuth parameters` | 400 | Code or state missing | Check callback URL parameters |
-| `Unsupported platform` | 400 | Invalid platform identifier | Use `twitch`, `youtube`, or `facebook` |
-| `Failed to exchange code` | 500 | Token exchange failed | Check platform credentials and network |
-| `Failed to fetch user info` | 500 | Platform API error | Verify platform API is operational |
+| Error                       | Status | Description                 | Resolution                             |
+| --------------------------- | ------ | --------------------------- | -------------------------------------- |
+| `Invalid OAuth state`       | 401    | State validation failed     | User must restart OAuth flow           |
+| `Missing OAuth parameters`  | 400    | Code or state missing       | Check callback URL parameters          |
+| `Unsupported platform`      | 400    | Invalid platform identifier | Use `twitch`, `youtube`, or `facebook` |
+| `Failed to exchange code`   | 500    | Token exchange failed       | Check platform credentials and network |
+| `Failed to fetch user info` | 500    | Platform API error          | Verify platform API is operational     |
 
 ### Handling Failed Authorization
 
 If a user denies authorization or the flow fails:
+
 1. Platform redirects to callback with `error` parameter
 2. Callback endpoint should handle `error` query parameter
 3. Return appropriate error message to user

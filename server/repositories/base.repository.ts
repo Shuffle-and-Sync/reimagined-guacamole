@@ -1,15 +1,19 @@
 /**
  * Base Repository Pattern Implementation
- * 
+ *
  * This module provides a base repository class that abstracts common database operations,
  * following Copilot best practices for database interaction patterns.
  */
 
-import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from 'drizzle-orm';
-import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
-import { logger } from '../logger';
-import { DatabaseError } from '../middleware/error-handling.middleware';
-import { withQueryTiming, type Database, type Transaction } from '@shared/database-unified';
+import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from "drizzle-orm";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
+import { logger } from "../logger";
+import { DatabaseError } from "../middleware/error-handling.middleware";
+import {
+  withQueryTiming,
+  type Database,
+  type Transaction,
+} from "@shared/database-unified";
 
 // Generic types for repository operations
 export interface PaginationOptions {
@@ -20,13 +24,23 @@ export interface PaginationOptions {
 
 export interface SortOptions {
   field: string;
-  direction?: 'asc' | 'desc';
+  direction?: "asc" | "desc";
 }
 
 export interface FilterOptions {
-  [key: string]: string | number | boolean | Date | null | undefined | 
-    string[] | number[] | 
-    { operator: 'gte' | 'lte' | 'gt' | 'lt' | 'like' | 'not'; value: unknown };
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | Date
+    | null
+    | undefined
+    | string[]
+    | number[]
+    | {
+        operator: "gte" | "lte" | "gt" | "lt" | "like" | "not";
+        value: unknown;
+      };
 }
 
 export interface QueryOptions {
@@ -53,9 +67,9 @@ export interface PaginatedResult<T> {
  */
 export abstract class BaseRepository<
   TTable extends SQLiteTable,
-  TEntity = TTable['$inferSelect'],
-  TInsert = TTable['$inferInsert'],
-  TUpdate = Partial<TInsert>
+  TEntity = TTable["$inferSelect"],
+  TInsert = TTable["$inferInsert"],
+  TUpdate = Partial<TInsert>,
 > {
   protected db: Database;
   protected table: TTable;
@@ -99,7 +113,7 @@ export abstract class BaseRepository<
           .select()
           .from(this.table as any)
           .where(sql`${(this.table as any).id} = ANY(${ids})`);
-        
+
         return result as TEntity[];
       } catch (error) {
         logger.error(`Failed to find ${this.tableName} by IDs`, error, { ids });
@@ -134,7 +148,9 @@ export abstract class BaseRepository<
         if (sort?.field) {
           const column = (this.table as any)[sort.field];
           if (column) {
-            query = query.orderBy(sort.direction === 'desc' ? desc(column) : asc(column)) as any;
+            query = query.orderBy(
+              sort.direction === "desc" ? desc(column) : asc(column),
+            ) as any;
           }
         }
 
@@ -152,7 +168,7 @@ export abstract class BaseRepository<
 
         const [data, totalResult] = await Promise.all([
           query.limit(limit).offset(offset),
-          countQuery
+          countQuery,
         ]);
 
         const total = totalResult[0]?.count || 0;
@@ -165,10 +181,12 @@ export abstract class BaseRepository<
           limit,
           totalPages,
           hasNext: page < totalPages,
-          hasPrevious: page > 1
+          hasPrevious: page > 1,
         };
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} records`, error, { options });
+        logger.error(`Failed to find ${this.tableName} records`, error, {
+          options,
+        });
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
       }
     });
@@ -181,7 +199,7 @@ export abstract class BaseRepository<
     return withQueryTiming(`${this.tableName}:findOne`, async () => {
       try {
         const whereConditions = this.buildWhereConditions(filters);
-        
+
         if (whereConditions.length === 0) {
           return null;
         }
@@ -194,7 +212,9 @@ export abstract class BaseRepository<
 
         return (result[0] as TEntity) || null;
       } catch (error) {
-        logger.error(`Failed to find one ${this.tableName}`, error, { filters });
+        logger.error(`Failed to find one ${this.tableName}`, error, {
+          filters,
+        });
         throw new DatabaseError(`Failed to find ${this.tableName}`);
       }
     });
@@ -235,10 +255,12 @@ export abstract class BaseRepository<
           .insert(this.table)
           .values(data as any)
           .returning();
-        
+
         return result as unknown as TEntity[];
       } catch (error) {
-        logger.error(`Failed to create multiple ${this.tableName}`, error, { count: data.length });
+        logger.error(`Failed to create multiple ${this.tableName}`, error, {
+          count: data.length,
+        });
         throw new DatabaseError(`Failed to create ${this.tableName} records`);
       }
     });
@@ -271,9 +293,11 @@ export abstract class BaseRepository<
     return withQueryTiming(`${this.tableName}:updateWhere`, async () => {
       try {
         const whereConditions = this.buildWhereConditions(filters);
-        
+
         if (whereConditions.length === 0) {
-          throw new DatabaseError('Update requires at least one filter condition');
+          throw new DatabaseError(
+            "Update requires at least one filter condition",
+          );
         }
 
         const result = await this.db
@@ -281,10 +305,13 @@ export abstract class BaseRepository<
           .set(data)
           .where(and(...whereConditions))
           .returning();
-        
+
         return result as unknown as TEntity[];
       } catch (error) {
-        logger.error(`Failed to update ${this.tableName} with filters`, error, { filters, data });
+        logger.error(`Failed to update ${this.tableName} with filters`, error, {
+          filters,
+          data,
+        });
         throw new DatabaseError(`Failed to update ${this.tableName} records`);
       }
     });
@@ -297,22 +324,22 @@ export abstract class BaseRepository<
     return withQueryTiming(`${this.tableName}:delete`, async () => {
       try {
         // Check if table has deletedAt column for soft delete
-        const hasDeletedAt = 'deletedAt' in this.table;
-        
+        const hasDeletedAt = "deletedAt" in this.table;
+
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
             .set({ deletedAt: new Date() } as any)
             .where(eq((this.table as any).id, id))
             .returning();
-          
+
           return (result as unknown[]).length > 0;
         } else {
           const result = await this.db
             .delete(this.table)
             .where(eq((this.table as any).id, id))
             .returning();
-          
+
           return (result as unknown[]).length > 0;
         }
       } catch (error) {
@@ -329,32 +356,36 @@ export abstract class BaseRepository<
     return withQueryTiming(`${this.tableName}:deleteWhere`, async () => {
       try {
         const whereConditions = this.buildWhereConditions(filters);
-        
+
         if (whereConditions.length === 0) {
-          throw new DatabaseError('Delete requires at least one filter condition');
+          throw new DatabaseError(
+            "Delete requires at least one filter condition",
+          );
         }
 
         // Check if table has deletedAt column for soft delete
-        const hasDeletedAt = 'deletedAt' in this.table;
-        
+        const hasDeletedAt = "deletedAt" in this.table;
+
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
             .set({ deletedAt: new Date() } as any)
             .where(and(...whereConditions))
             .returning();
-          
+
           return (result as unknown[]).length;
         } else {
           const result = await this.db
             .delete(this.table)
             .where(and(...whereConditions))
             .returning();
-          
+
           return (result as unknown[]).length;
         }
       } catch (error) {
-        logger.error(`Failed to delete ${this.tableName} with filters`, error, { filters });
+        logger.error(`Failed to delete ${this.tableName} with filters`, error, {
+          filters,
+        });
         throw new DatabaseError(`Failed to delete ${this.tableName} records`);
       }
     });
@@ -388,63 +419,74 @@ export abstract class BaseRepository<
    * Find entities with cursor-based pagination for better performance
    * Especially useful for large datasets where OFFSET becomes slow
    */
-  async findWithCursor(options: {
-    cursor?: string;
-    limit?: number;
-    sortField?: string;
-    sortDirection?: 'asc' | 'desc';
-    filters?: FilterOptions;
-  } = {}): Promise<{
+  async findWithCursor(
+    options: {
+      cursor?: string;
+      limit?: number;
+      sortField?: string;
+      sortDirection?: "asc" | "desc";
+      filters?: FilterOptions;
+    } = {},
+  ): Promise<{
     data: TEntity[];
     nextCursor?: string;
     hasMore: boolean;
   }> {
     return withQueryTiming(`${this.tableName}:findWithCursor`, async () => {
       try {
-        const { cursor, limit = 50, sortField = 'createdAt', sortDirection = 'desc', filters } = options;
+        const {
+          cursor,
+          limit = 50,
+          sortField = "createdAt",
+          sortDirection = "desc",
+          filters,
+        } = options;
         const maxLimit = Math.min(limit, 100);
-        
+
         // Build base query
         let query = this.db.select().from(this.table as any);
-        
+
         // Apply filters
         const conditions = [];
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
           conditions.push(...whereConditions);
         }
-        
+
         // Apply cursor condition for pagination
         if (cursor) {
           const cursorData = this.parseCursor(cursor);
           if (cursorData && cursorData.field === sortField) {
             const column = (this.table as any)[sortField];
             if (column) {
-              const cursorCondition = sortDirection === 'desc' 
-                ? lt(column, cursorData.value)
-                : gt(column, cursorData.value);
+              const cursorCondition =
+                sortDirection === "desc"
+                  ? lt(column, cursorData.value)
+                  : gt(column, cursorData.value);
               conditions.push(cursorCondition);
             }
           }
         }
-        
+
         // Apply all conditions
         if (conditions.length > 0) {
           query = query.where(and(...conditions)) as any;
         }
-        
+
         // Apply sorting
         const sortColumn = (this.table as any)[sortField];
         if (sortColumn) {
-          query = query.orderBy(sortDirection === 'desc' ? desc(sortColumn) : asc(sortColumn)) as any;
+          query = query.orderBy(
+            sortDirection === "desc" ? desc(sortColumn) : asc(sortColumn),
+          ) as any;
         }
-        
+
         // Fetch one extra item to check if there's more data
-        const data = await query.limit(maxLimit + 1) as TEntity[];
-        
+        const data = (await query.limit(maxLimit + 1)) as TEntity[];
+
         const hasMore = data.length > maxLimit;
         const results = hasMore ? data.slice(0, maxLimit) : data;
-        
+
         // Generate next cursor if there's more data
         let nextCursor: string | undefined;
         if (hasMore && results.length > 0) {
@@ -453,14 +495,16 @@ export abstract class BaseRepository<
             nextCursor = this.generateCursor(lastItem, sortField);
           }
         }
-        
+
         return {
           data: results,
           nextCursor,
-          hasMore
+          hasMore,
         };
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} with cursor`, error, { options });
+        logger.error(`Failed to find ${this.tableName} with cursor`, error, {
+          options,
+        });
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
       }
     });
@@ -469,27 +513,32 @@ export abstract class BaseRepository<
   /**
    * Generate cursor for pagination
    */
-  private generateCursor(item: TEntity | Record<string, unknown>, sortField: string): string {
+  private generateCursor(
+    item: TEntity | Record<string, unknown>,
+    sortField: string,
+  ): string {
     if (!item || !item[sortField as keyof typeof item]) {
-      return '';
+      return "";
     }
-    
+
     const itemAsRecord = item as Record<string, unknown>;
     const cursorData = {
       field: sortField,
       value: itemAsRecord[sortField],
-      id: itemAsRecord.id || ''
+      id: itemAsRecord.id || "",
     };
-    
-    return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+
+    return Buffer.from(JSON.stringify(cursorData)).toString("base64");
   }
 
   /**
    * Parse cursor data
    */
-  private parseCursor(cursor: string): { field: string; value: unknown; id: string } | null {
+  private parseCursor(
+    cursor: string,
+  ): { field: string; value: unknown; id: string } | null {
     try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      const decoded = Buffer.from(cursor, "base64").toString("utf-8");
       return JSON.parse(decoded);
     } catch {
       return null;
@@ -507,18 +556,25 @@ export abstract class BaseRepository<
   /**
    * Execute raw SQL query with proper error handling
    */
-  protected async executeRawQuery<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<T[]> {
+  protected async executeRawQuery<T = Record<string, unknown>>(
+    query: string,
+    params?: unknown[],
+  ): Promise<T[]> {
     return withQueryTiming(`${this.tableName}:rawQuery`, async () => {
       try {
         // Use sql.raw for simple queries without params, or use sql template for parameterized queries
-        const sqlQuery = params && params.length > 0 
-          ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
-          : sql.raw(query);
+        const sqlQuery =
+          params && params.length > 0
+            ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
+            : sql.raw(query);
         // @ts-expect-error: Temporary workaround for SQLite vs PostgreSQL type mismatch
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
-        logger.error(`Raw query failed for ${this.tableName}`, error, { query, params });
+        logger.error(`Raw query failed for ${this.tableName}`, error, {
+          query,
+          params,
+        });
         throw new DatabaseError(`Database query failed`);
       }
     });
@@ -539,26 +595,31 @@ export abstract class BaseRepository<
       if (Array.isArray(value)) {
         // IN clause for arrays
         conditions.push(sql`${column} = ANY(${value})`);
-      } else if (typeof value === 'object' && value !== null && 'operator' in value && typeof value.operator === 'string') {
+      } else if (
+        typeof value === "object" &&
+        value !== null &&
+        "operator" in value &&
+        typeof value.operator === "string"
+      ) {
         // Custom operators like { operator: 'gte', value: 10 }
         const operatorValue = value as { operator: string; value: unknown };
         switch (operatorValue.operator) {
-          case 'gte':
+          case "gte":
             conditions.push(sql`${column} >= ${operatorValue.value}`);
             break;
-          case 'lte':
+          case "lte":
             conditions.push(sql`${column} <= ${operatorValue.value}`);
             break;
-          case 'gt':
+          case "gt":
             conditions.push(sql`${column} > ${operatorValue.value}`);
             break;
-          case 'lt':
+          case "lt":
             conditions.push(sql`${column} < ${operatorValue.value}`);
             break;
-          case 'like':
+          case "like":
             conditions.push(sql`${column} ILIKE ${`%${operatorValue.value}%`}`);
             break;
-          case 'not':
+          case "not":
             conditions.push(sql`${column} != ${operatorValue.value}`);
             break;
         }
@@ -582,7 +643,9 @@ export abstract class BaseRepository<
         });
       } catch (error) {
         logger.error(`Transaction failed for ${this.tableName}`, error);
-        throw new DatabaseError(`Transaction failed for ${this.tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new DatabaseError(
+          `Transaction failed for ${this.tableName}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     });
   }
@@ -591,7 +654,7 @@ export abstract class BaseRepository<
    * Batch operations with transaction support for better performance
    */
   async batchOperation<T>(
-    operations: Array<(tx: Transaction) => Promise<T>>
+    operations: Array<(tx: Transaction) => Promise<T>>,
   ): Promise<T[]> {
     return this.transaction(async (tx) => {
       const results: T[] = [];

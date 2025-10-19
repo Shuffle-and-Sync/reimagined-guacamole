@@ -1,70 +1,74 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Plus, 
-  Calendar, 
-  Users, 
-  Activity, 
-  Play, 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Plus,
+  Calendar,
+  Users,
+  Activity,
   Settings,
   Video,
   Clock,
-  Eye
-} from 'lucide-react';
-import { useCollaborativeStreamEvents } from '../hooks/useCollaborativeStreaming';
-import { StreamEventForm } from '../components/StreamEventForm';
-import { CollaboratorManagement } from '../components/CollaboratorManagement';
-import { CoordinationDashboard } from '../components/CoordinationDashboard';
-import { SessionMonitor } from '../components/SessionMonitor';
-import { PlatformAccountManager } from '../components/PlatformAccountManager';
-import type { CollaborativeStreamEvent } from '../types';
+  Eye,
+} from "lucide-react";
+import { useCollaborativeStreamEvents } from "../hooks/useCollaborativeStreaming";
+import { StreamEventForm } from "../components/StreamEventForm";
+import { CollaboratorManagement } from "../components/CollaboratorManagement";
+import { CoordinationDashboard } from "../components/CoordinationDashboard";
+import { SessionMonitor } from "../components/SessionMonitor";
+import { PlatformAccountManager } from "../components/PlatformAccountManager";
+import type { CollaborativeStreamEvent } from "../types";
 
 export default function CollaborativeStreamingDashboard() {
-  const [, setLocation] = useLocation();
-  const [selectedEventId, setSelectedEventId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState('events');
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("events");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
+
   const { data: events = [], isLoading } = useCollaborativeStreamEvents();
-  
+
   // Now properly typed with React Query generics
 
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(eventId);
-    setActiveTab('coordination');
+    setActiveTab("coordination");
   };
 
-  const selectedEvent = events.find((event: CollaborativeStreamEvent) => event.id === selectedEventId);
+  const selectedEvent = events.find(
+    (event: CollaborativeStreamEvent) => event.id === selectedEventId,
+  );
 
   const formatDate = (date: string | Date) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getStatusColor = (status: string | null) => {
     const colors = {
-      planning: 'bg-blue-100 text-blue-800 border-blue-200',
-      scheduled: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      live: 'bg-green-100 text-green-800 border-green-200',
-      completed: 'bg-gray-100 text-gray-800 border-gray-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200',
+      planning: "bg-blue-100 text-blue-800 border-blue-200",
+      scheduled: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      live: "bg-green-100 text-green-800 border-green-200",
+      completed: "bg-gray-100 text-gray-800 border-gray-200",
+      cancelled: "bg-red-100 text-red-800 border-red-200",
     };
-    return colors[(status as keyof typeof colors) || 'planning'] || colors.planning;
+    return (
+      colors[(status as keyof typeof colors) || "planning"] || colors.planning
+    );
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 max-w-7xl" data-testid="loading-dashboard">
+      <div
+        className="container mx-auto p-6 max-w-7xl"
+        data-testid="loading-dashboard"
+      >
         <div className="animate-pulse space-y-6">
           <div className="w-64 h-8 bg-gray-300 rounded" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -78,7 +82,10 @@ export default function CollaborativeStreamingDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="collaborative-streaming-dashboard">
+    <div
+      className="container mx-auto p-6 max-w-7xl space-y-6"
+      data-testid="collaborative-streaming-dashboard"
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -87,7 +94,7 @@ export default function CollaborativeStreamingDashboard() {
             Coordinate multi-streamer events and manage collaborative broadcasts
           </p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-create-event">
@@ -114,11 +121,19 @@ export default function CollaborativeStreamingDashboard() {
             <Settings className="h-4 w-4 mr-2" />
             Platform Accounts
           </TabsTrigger>
-          <TabsTrigger value="coordination" disabled={!selectedEventId} data-testid="tab-coordination">
+          <TabsTrigger
+            value="coordination"
+            disabled={!selectedEventId}
+            data-testid="tab-coordination"
+          >
             <Activity className="h-4 w-4 mr-2" />
             Coordination
           </TabsTrigger>
-          <TabsTrigger value="monitor" disabled={!selectedEventId} data-testid="tab-monitor">
+          <TabsTrigger
+            value="monitor"
+            disabled={!selectedEventId}
+            data-testid="tab-monitor"
+          >
             <Eye className="h-4 w-4 mr-2" />
             Live Monitor
           </TabsTrigger>
@@ -129,11 +144,16 @@ export default function CollaborativeStreamingDashboard() {
             <Card>
               <CardContent className="text-center py-12">
                 <Video className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No Stream Events Yet</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  No Stream Events Yet
+                </h3>
                 <p className="text-muted-foreground mb-6">
                   Create your first collaborative streaming event to get started
                 </p>
-                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-first-event">
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  data-testid="button-create-first-event"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Create Your First Event
                 </Button>
@@ -150,19 +170,24 @@ export default function CollaborativeStreamingDashboard() {
                 >
                   <CardHeader className="space-y-2">
                     <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
-                      <Badge variant="outline" className={getStatusColor(event.status)}>
+                      <CardTitle className="text-lg line-clamp-2">
+                        {event.title}
+                      </CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={getStatusColor(event.status)}
+                      >
                         {event.status}
                       </Badge>
                     </div>
-                    
+
                     {event.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {event.description}
                       </p>
                     )}
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -174,25 +199,32 @@ export default function CollaborativeStreamingDashboard() {
                         <span>{event.maxCollaborators || 4} max</span>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex items-center gap-1 text-sm">
                         <span className="font-medium">Platforms:</span>
                         <div className="flex gap-1">
                           {(() => {
-                            const platforms = typeof event.streamingPlatforms === 'string'
-                              ? JSON.parse(event.streamingPlatforms || '[]')
-                              : (Array.isArray(event.streamingPlatforms) ? event.streamingPlatforms : []);
-                            
+                            const platforms =
+                              typeof event.streamingPlatforms === "string"
+                                ? JSON.parse(event.streamingPlatforms || "[]")
+                                : Array.isArray(event.streamingPlatforms)
+                                  ? event.streamingPlatforms
+                                  : [];
+
                             return platforms.map((platform: string) => (
-                              <Badge key={platform} variant="secondary" className="text-xs">
+                              <Badge
+                                key={platform}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {platform}
                               </Badge>
                             ));
                           })()}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-1 text-sm">
                         <span className="font-medium">Type:</span>
                         <Badge variant="outline" className="text-xs">
@@ -200,7 +232,7 @@ export default function CollaborativeStreamingDashboard() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <Button variant="outline" size="sm" className="w-full">
                       <Settings className="h-4 w-4 mr-2" />
                       Manage Event
@@ -226,10 +258,14 @@ export default function CollaborativeStreamingDashboard() {
                     <div>
                       <CardTitle>{selectedEvent.title}</CardTitle>
                       <p className="text-muted-foreground">
-                        Scheduled: {formatDate(selectedEvent.scheduledStartTime)}
+                        Scheduled:{" "}
+                        {formatDate(selectedEvent.scheduledStartTime)}
                       </p>
                     </div>
-                    <Badge variant="outline" className={getStatusColor(selectedEvent.status)}>
+                    <Badge
+                      variant="outline"
+                      className={getStatusColor(selectedEvent.status)}
+                    >
                       {selectedEvent.status}
                     </Badge>
                   </div>
@@ -237,14 +273,14 @@ export default function CollaborativeStreamingDashboard() {
               </Card>
 
               {/* Collaborator Management */}
-              <CollaboratorManagement 
-                eventId={selectedEvent.id} 
+              <CollaboratorManagement
+                eventId={selectedEvent.id}
                 isOwner={true} // TODO: Check if current user is creator
               />
 
               {/* Coordination Dashboard */}
-              <CoordinationDashboard 
-                eventId={selectedEvent.id} 
+              <CoordinationDashboard
+                eventId={selectedEvent.id}
                 isHost={true} // TODO: Check if current user is host
               />
             </div>
@@ -254,7 +290,8 @@ export default function CollaborativeStreamingDashboard() {
                 <Activity className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">Select an Event</h3>
                 <p className="text-muted-foreground">
-                  Choose a stream event from the events tab to access coordination tools
+                  Choose a stream event from the events tab to access
+                  coordination tools
                 </p>
               </CardContent>
             </Card>
@@ -274,12 +311,15 @@ export default function CollaborativeStreamingDashboard() {
                         Live Monitoring: {selectedEvent.title}
                       </CardTitle>
                       <p className="text-muted-foreground">
-                        Real-time status and metrics for your collaborative stream
+                        Real-time status and metrics for your collaborative
+                        stream
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      <span className="text-sm text-muted-foreground">Live</span>
+                      <span className="text-sm text-muted-foreground">
+                        Live
+                      </span>
                     </div>
                   </div>
                 </CardHeader>
@@ -294,7 +334,8 @@ export default function CollaborativeStreamingDashboard() {
                 <Eye className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">Select an Event</h3>
                 <p className="text-muted-foreground">
-                  Choose a stream event to monitor live metrics and collaborator status
+                  Choose a stream event to monitor live metrics and collaborator
+                  status
                 </p>
               </CardContent>
             </Card>

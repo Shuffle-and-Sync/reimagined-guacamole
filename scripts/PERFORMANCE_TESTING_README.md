@@ -11,11 +11,13 @@ Tests application performance under expected normal load conditions.
 **Purpose**: Validate that the application can handle typical production traffic levels.
 
 **Usage**:
+
 ```bash
 npm run test:load
 ```
 
 **Configuration** (via environment variables):
+
 ```bash
 TEST_URL=http://localhost:3000        # Target URL
 CONCURRENT_USERS=50                   # Number of concurrent users (default: 50)
@@ -24,11 +26,13 @@ LOAD_TEST_DURATION=60                 # Test duration in seconds (default: 60)
 ```
 
 **Example**:
+
 ```bash
 TEST_URL=http://localhost:3000 CONCURRENT_USERS=100 npm run test:load
 ```
 
 **Metrics Collected**:
+
 - Total requests and success/failure counts
 - Average response time
 - Min/Max response times
@@ -37,6 +41,7 @@ TEST_URL=http://localhost:3000 CONCURRENT_USERS=100 npm run test:load
 - Error details and types
 
 **Success Criteria**:
+
 - Success rate ≥95%
 - Average response time <500ms
 - P95 response time <1000ms
@@ -50,11 +55,13 @@ Tests application performance beyond expected load to identify breaking points.
 **Purpose**: Determine system capacity limits and identify performance degradation thresholds.
 
 **Usage**:
+
 ```bash
 npm run test:stress
 ```
 
 **Configuration** (via environment variables):
+
 ```bash
 TEST_URL=http://localhost:3000        # Target URL
 START_USERS=10                        # Initial concurrent users (default: 10)
@@ -65,17 +72,20 @@ STRESS_TEST_DURATION=300              # Total test duration in seconds (default:
 ```
 
 **Example**:
+
 ```bash
 TEST_URL=http://localhost:3000 MAX_USERS=300 npm run test:stress
 ```
 
 **Test Progression**:
+
 1. Starts with `START_USERS` concurrent users
 2. Every `INCREMENT_INTERVAL` seconds, adds `USER_INCREMENT` more users
 3. Continues until reaching `MAX_USERS` or `STRESS_TEST_DURATION`
 4. Reports metrics for each phase
 
 **Metrics Collected** (per phase):
+
 - Concurrent user count
 - Total requests
 - Success/failure counts
@@ -84,6 +94,7 @@ TEST_URL=http://localhost:3000 MAX_USERS=300 npm run test:stress
 - Error rate
 
 **Success Criteria**:
+
 - Success rate ≥90%
 - Average response time <1000ms
 - Breaking point identified when:
@@ -97,11 +108,13 @@ TEST_URL=http://localhost:3000 MAX_USERS=300 npm run test:stress
 Displays information about available performance tests and optimization results.
 
 **Usage**:
+
 ```bash
 npm run test:performance:demo
 ```
 
 **Shows**:
+
 - Available test configurations
 - Success criteria
 - Usage examples
@@ -115,6 +128,7 @@ npm run test:performance:demo
 ### Prerequisites
 
 1. **Application must be running**:
+
    ```bash
    npm run dev
    ```
@@ -128,6 +142,7 @@ npm run test:performance:demo
 ### Step-by-Step
 
 1. **Start the application**:
+
    ```bash
    npm run dev
    ```
@@ -135,11 +150,13 @@ npm run test:performance:demo
 2. **Open a new terminal** and navigate to the project directory
 
 3. **Run load test**:
+
    ```bash
    npm run test:load
    ```
 
 4. **Or run stress test**:
+
    ```bash
    npm run test:stress
    ```
@@ -166,6 +183,7 @@ Additional endpoints can be configured by modifying the `endpoints` array in the
 ### Load Test Results
 
 Example output:
+
 ```
 📊 Load Test Results
 =====================================================
@@ -189,6 +207,7 @@ Overall Throughput: 333.33 req/s
 ```
 
 **What to look for**:
+
 - ✅ Success rate >95%
 - ✅ Average response time <500ms
 - ✅ P95 <1000ms
@@ -197,6 +216,7 @@ Overall Throughput: 333.33 req/s
 ### Stress Test Results
 
 Example output:
+
 ```
 📊 Stress Test Results
 =====================================================
@@ -218,6 +238,7 @@ Phase 5 (50 users):
 ```
 
 **What to look for**:
+
 - System capacity: Maximum users before breaking point
 - Degradation pattern: How response times increase with load
 - Breaking point: When error rate >5% or avg response >2000ms
@@ -231,6 +252,7 @@ Phase 5 (50 users):
 **Cause**: Application is not running or URL is incorrect.
 
 **Solution**:
+
 1. Ensure application is running: `npm run dev`
 2. Verify URL in TEST_URL environment variable
 3. Check that the port is correct (default: 3000)
@@ -240,12 +262,14 @@ Phase 5 (50 users):
 **Cause**: Application struggling under load.
 
 **Possible issues**:
+
 - Database connection pool exhausted
 - Memory limits reached
 - CPU throttling
 - Rate limiting triggered
 
 **Solutions**:
+
 - Review application logs
 - Check database connection settings
 - Monitor system resources
@@ -256,6 +280,7 @@ Phase 5 (50 users):
 **Cause**: Background processes or network conditions.
 
 **Solutions**:
+
 - Run tests multiple times for average
 - Close unnecessary applications
 - Test on dedicated hardware/environment
@@ -268,6 +293,7 @@ Phase 5 (50 users):
 Based on application requirements:
 
 ### Load Test Targets
+
 - **Concurrent Users**: 50-100
 - **Success Rate**: ≥95%
 - **Average Response**: <500ms
@@ -275,6 +301,7 @@ Based on application requirements:
 - **Throughput**: >50 req/s
 
 ### Stress Test Targets
+
 - **Maximum Users**: 200+
 - **Success Rate**: ≥90%
 - **Average Response**: <1000ms
@@ -290,7 +317,7 @@ These tests can be integrated into CI/CD pipelines:
 # Example GitHub Actions workflow
 - name: Start application
   run: npm run dev &
-  
+
 - name: Wait for startup
   run: sleep 30
 

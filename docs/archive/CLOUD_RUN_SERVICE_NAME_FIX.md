@@ -7,6 +7,7 @@ This document describes the fix implemented for the Cloud Run login issue where 
 ## Problem Statement
 
 Users deploying to Cloud Run encountered:
+
 - **Error**: `ERR_TOO_MANY_ACCEPT_CH_RESTARTS`
 - **Redirect**: `/api/auth/error?error=Configuration`
 - **Service Name**: `shuffle-sync-front` (actual) vs `shuffle-sync-frontend` (configured)
@@ -15,6 +16,7 @@ Users deploying to Cloud Run encountered:
 ## Solution Architecture
 
 ### Before Fix
+
 ```
 User → shuffle-sync-front → NGINX (no BACKEND_URL) → 404 Error ❌
                               ↓
@@ -22,6 +24,7 @@ User → shuffle-sync-front → NGINX (no BACKEND_URL) → 404 Error ❌
 ```
 
 ### After Fix
+
 ```
 User → shuffle-sync-front → NGINX (BACKEND_URL set) → shuffle-sync-backend → Google OAuth ✓
                               ↓                              ↓
@@ -35,11 +38,13 @@ User → shuffle-sync-front → NGINX (BACKEND_URL set) → shuffle-sync-backend
 ### 1. Flexible Service Name Support (`cloudbuild-frontend.yaml`)
 
 **Before**:
+
 ```yaml
-- 'shuffle-sync-frontend'  # Hardcoded service name
+- "shuffle-sync-frontend" # Hardcoded service name
 ```
 
 **After**:
+
 ```yaml
 - '${_SERVICE_NAME}'  # Variable service name
 
@@ -48,6 +53,7 @@ substitutions:
 ```
 
 **Usage**:
+
 ```bash
 # Deploy to shuffle-sync-front
 gcloud builds submit --config cloudbuild-frontend.yaml \
@@ -59,6 +65,7 @@ gcloud builds submit --config cloudbuild-frontend.yaml \
 ### 2. Comprehensive Documentation (`docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md`)
 
 **Contents**:
+
 - Problem identification
 - Root cause analysis
 - Step-by-step fix with exact commands
@@ -69,6 +76,7 @@ gcloud builds submit --config cloudbuild-frontend.yaml \
 - Architecture explanation
 
 **Key Features**:
+
 - Uses actual user service names in examples
 - Explains the `reimagined-guacamole` placeholder issue
 - Provides automated diagnostic instructions
@@ -77,6 +85,7 @@ gcloud builds submit --config cloudbuild-frontend.yaml \
 ### 3. Enhanced Quick Fix Guide (`docs/QUICK_FIX_AUTH_ERROR.md`)
 
 **Added**:
+
 ```markdown
 ## 🚨 Service Name: shuffle-sync-front vs shuffle-sync-frontend
 
@@ -85,6 +94,7 @@ gcloud builds submit --config cloudbuild-frontend.yaml \
 ```
 
 **Impact**:
+
 - Immediate redirection to correct guide
 - Prevents users from following wrong instructions
 - Clear visual separation with emoji
@@ -92,11 +102,13 @@ gcloud builds submit --config cloudbuild-frontend.yaml \
 ### 4. Updated Diagnostic Script (`scripts/diagnose-auth-error.sh`)
 
 **Added**:
+
 ```bash
 echo "  - docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md (for shuffle-sync-front service issues)"
 ```
 
 **Existing Features** (already working):
+
 - Auto-detects both service name patterns
 - Finds services matching `shuffle.*front` and `shuffle.*back`
 - Provides specific fix commands
@@ -105,6 +117,7 @@ echo "  - docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md (for shuffle-sync-front service
 ### 5. README Integration
 
 **Added**:
+
 ```markdown
 - **[🔧 Fix: shuffle-sync-front Service Issues](docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md)**
 ```
@@ -114,6 +127,7 @@ echo "  - docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md (for shuffle-sync-front service
 ## User Quick Fix Instructions
 
 ### Step 1: Set Frontend BACKEND_URL
+
 ```bash
 gcloud run services update shuffle-sync-front \
   --region=us-central1 \
@@ -121,6 +135,7 @@ gcloud run services update shuffle-sync-front \
 ```
 
 ### Step 2: Set Backend OAuth Credentials
+
 ```bash
 gcloud run services update shuffle-sync-backend \
   --region=us-central1 \
@@ -131,12 +146,15 @@ gcloud run services update shuffle-sync-backend \
 ```
 
 ### Step 3: Configure Google OAuth
+
 Add this redirect URI to [Google OAuth Console](https://console.cloud.google.com/apis/credentials):
+
 ```
 https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
 ```
 
 ### Step 4: Verify
+
 ```bash
 # Test frontend proxies to backend
 curl https://shuffle-sync-front-683555795974.us-central1.run.app/api/auth/providers
@@ -145,6 +163,7 @@ curl https://shuffle-sync-front-683555795974.us-central1.run.app/api/auth/provid
 ```
 
 ### Step 5: Test Login
+
 1. Visit: https://shuffle-sync-front-683555795974.us-central1.run.app
 2. Click "Sign In"
 3. Authenticate with Google
@@ -153,22 +172,26 @@ curl https://shuffle-sync-front-683555795974.us-central1.run.app/api/auth/provid
 ## Automated Tools
 
 ### Diagnostic Tool
+
 ```bash
 npm run diagnose:auth
 ```
 
 **Features**:
+
 - Detects both service name patterns
 - Checks all environment variables
 - Provides specific fix commands
 - Validates service configuration
 
 ### Deployment Tool
+
 ```bash
 npm run deploy:cloudrun
 ```
 
 **Features**:
+
 - Guided deployment process
 - Checks prerequisites
 - Configures environment variables
@@ -177,12 +200,14 @@ npm run deploy:cloudrun
 ## About reimagined-guacamole Placeholder
 
 The `reimagined-guacamole` service showing a placeholder is:
+
 - **Different region**: `us-south1` (not `us-central1`)
 - **Different purpose**: Continuous deployment target
 - **Unrelated**: To the frontend/backend services
 - **Optional**: Can be deleted if not needed
 
 **To delete**:
+
 ```bash
 gcloud run services delete reimagined-guacamole --region=us-south1
 ```
@@ -190,6 +215,7 @@ gcloud run services delete reimagined-guacamole --region=us-south1
 ## Testing Checklist
 
 After applying the fix:
+
 - [ ] Frontend URL serves the app
 - [ ] Frontend proxies `/api/*` to backend
 - [ ] Backend responds to auth requests
@@ -201,19 +227,20 @@ After applying the fix:
 
 ## Files Changed
 
-| File | Lines | Description |
-|------|-------|-------------|
-| `cloudbuild-frontend.yaml` | +8 | Added service name flexibility |
-| `docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md` | +267 | New comprehensive guide |
-| `docs/QUICK_FIX_AUTH_ERROR.md` | +12 | Added prominent redirect |
-| `scripts/diagnose-auth-error.sh` | +1 | Added reference to new guide |
-| `README.md` | +1 | Added link to guide |
-| `ISSUE_FIX_SUMMARY.md` | +150 | Technical summary |
-| **Total** | **+439** | **6 files** |
+| File                                     | Lines    | Description                    |
+| ---------------------------------------- | -------- | ------------------------------ |
+| `cloudbuild-frontend.yaml`               | +8       | Added service name flexibility |
+| `docs/FIX_SHUFFLE_SYNC_FRONT_SERVICE.md` | +267     | New comprehensive guide        |
+| `docs/QUICK_FIX_AUTH_ERROR.md`           | +12      | Added prominent redirect       |
+| `scripts/diagnose-auth-error.sh`         | +1       | Added reference to new guide   |
+| `README.md`                              | +1       | Added link to guide            |
+| `ISSUE_FIX_SUMMARY.md`                   | +150     | Technical summary              |
+| **Total**                                | **+439** | **6 files**                    |
 
 ## Success Criteria
 
 The fix is successful when:
+
 - ✅ No "Configuration" error
 - ✅ No `ERR_TOO_MANY_ACCEPT_CH_RESTARTS`
 - ✅ Login works end-to-end
@@ -231,6 +258,7 @@ The fix is successful when:
 ## Future Improvements
 
 Potential enhancements:
+
 - [ ] Automated service name detection in Cloud Build
 - [ ] Pre-deployment validation script
 - [ ] Service name consistency checker

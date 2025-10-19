@@ -1,20 +1,44 @@
 /**
  * Database Utilities Module
- * 
+ *
  * This module provides utility functions for database operations,
  * following Copilot best practices for database interaction optimization.
  */
 
-import { SQL, sql, eq, and, or, inArray, isNull, isNotNull, gte, lte, gt, lt, like } from 'drizzle-orm';
-import type { SQLiteColumn } from 'drizzle-orm/sqlite-core';
-import { logger } from '../logger';
-import { DatabaseError } from '../middleware/error-handling.middleware';
+import {
+  SQL,
+  sql,
+  eq,
+  and,
+  or,
+  inArray,
+  isNull,
+  isNotNull,
+  gte,
+  lte,
+  gt,
+  lt,
+  like,
+} from "drizzle-orm";
+import type { SQLiteColumn } from "drizzle-orm/sqlite-core";
+import { logger } from "../logger";
+import { DatabaseError } from "../middleware/error-handling.middleware";
 
 // Database operation types
-export type DatabaseOperator = 
-  | 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' 
-  | 'like' | 'ilike' | 'in' | 'notIn' 
-  | 'isNull' | 'isNotNull' | 'between';
+export type DatabaseOperator =
+  | "eq"
+  | "ne"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "like"
+  | "ilike"
+  | "in"
+  | "notIn"
+  | "isNull"
+  | "isNotNull"
+  | "between";
 
 export interface FilterCondition {
   field: string;
@@ -31,7 +55,7 @@ export interface QueryBuilder {
   };
   sort?: {
     field: string;
-    direction: 'asc' | 'desc';
+    direction: "asc" | "desc";
   }[];
   pagination?: {
     page: number;
@@ -44,14 +68,17 @@ export interface QueryBuilder {
  */
 export function buildWhereConditions(
   filters: FilterCondition[],
-  tableColumns: Record<string, SQLiteColumn>
+  tableColumns: Record<string, SQLiteColumn>,
 ): SQL[] {
   const conditions: SQL[] = [];
 
   for (const filter of filters) {
     const column = tableColumns[filter.field];
     if (!column) {
-      logger.warn('Invalid filter field', { field: filter.field, availableFields: Object.keys(tableColumns) });
+      logger.warn("Invalid filter field", {
+        field: filter.field,
+        availableFields: Object.keys(tableColumns),
+      });
       continue;
     }
 
@@ -61,7 +88,7 @@ export function buildWhereConditions(
         conditions.push(condition);
       }
     } catch (error) {
-      logger.error('Error building filter condition', error, { filter });
+      logger.error("Error building filter condition", error, { filter });
       // Skip invalid conditions rather than failing the entire query
     }
   }
@@ -72,60 +99,63 @@ export function buildWhereConditions(
 /**
  * Build a single WHERE condition
  */
-function buildSingleCondition(column: SQLiteColumn, filter: FilterCondition): SQL | null {
+function buildSingleCondition(
+  column: SQLiteColumn,
+  filter: FilterCondition,
+): SQL | null {
   const { operator, value, values } = filter;
 
   switch (operator) {
-    case 'eq':
+    case "eq":
       return eq(column, value);
-    
-    case 'ne':
+
+    case "ne":
       return sql`${column} != ${value}`;
-    
-    case 'gt':
+
+    case "gt":
       return gt(column, value);
-    
-    case 'gte':
+
+    case "gte":
       return gte(column, value);
-    
-    case 'lt':
+
+    case "lt":
       return lt(column, value);
-    
-    case 'lte':
+
+    case "lte":
       return lte(column, value);
-    
-    case 'like':
+
+    case "like":
       return like(column, `%${value}%`);
-    
-    case 'ilike':
+
+    case "ilike":
       // SQLite's LIKE is case-insensitive by default
       return like(column, `%${value}%`);
-    
-    case 'in':
+
+    case "in":
       if (!values || values.length === 0) return null;
       return inArray(column, values);
-    
-    case 'notIn':
+
+    case "notIn":
       if (!values || values.length === 0) return null;
       return sql`${column} NOT IN ${values}`;
-    
-    case 'isNull':
+
+    case "isNull":
       return isNull(column);
-    
-    case 'isNotNull':
+
+    case "isNotNull":
       return isNotNull(column);
-    
-    case 'between': {
+
+    case "between": {
       if (!values || values.length !== 2) return null;
       const betweenCondition = and(
         gte(column, values[0]),
-        lte(column, values[1])
+        lte(column, values[1]),
       );
       return betweenCondition ?? null;
     }
-    
+
     default:
-      logger.warn('Unknown filter operator', { operator });
+      logger.warn("Unknown filter operator", { operator });
       return null;
   }
 }
@@ -136,7 +166,7 @@ function buildSingleCondition(column: SQLiteColumn, filter: FilterCondition): SQ
 export function buildSearchConditions(
   searchFields: string[],
   searchTerm: string,
-  tableColumns: Record<string, SQLiteColumn>
+  tableColumns: Record<string, SQLiteColumn>,
 ): SQL | null {
   if (!searchTerm.trim()) return null;
 
@@ -147,13 +177,12 @@ export function buildSearchConditions(
     const column = tableColumns[fieldName];
     if (column) {
       // SQLite's LIKE is case-insensitive by default
-      searchConditions.push(
-        like(column, `%${term}%`)
-      );
+      searchConditions.push(like(column, `%${term}%`));
     }
   }
 
-  const orCondition = searchConditions.length > 0 ? or(...searchConditions) : null;
+  const orCondition =
+    searchConditions.length > 0 ? or(...searchConditions) : null;
   return orCondition ?? null;
 }
 
@@ -161,15 +190,15 @@ export function buildSearchConditions(
  * Build ORDER BY clauses
  */
 export function buildOrderBy(
-  sortOptions: { field: string; direction: 'asc' | 'desc' }[],
-  tableColumns: Record<string, SQLiteColumn>
+  sortOptions: { field: string; direction: "asc" | "desc" }[],
+  tableColumns: Record<string, SQLiteColumn>,
 ): SQL[] {
   const orderClauses: SQL[] = [];
 
   for (const sort of sortOptions) {
     const column = tableColumns[sort.field];
     if (column) {
-      if (sort.direction === 'desc') {
+      if (sort.direction === "desc") {
         orderClauses.push(sql`${column} DESC`);
       } else {
         orderClauses.push(sql`${column} ASC`);
@@ -191,7 +220,7 @@ export function calculatePagination(page: number, limit: number) {
   return {
     page: safePage,
     limit: safeLimit,
-    offset
+    offset,
   };
 }
 
@@ -201,10 +230,10 @@ export function calculatePagination(page: number, limit: number) {
 export function buildPaginationMeta(
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ) {
   const totalPages = Math.ceil(total / limit);
-  
+
   return {
     total,
     page,
@@ -213,7 +242,7 @@ export function buildPaginationMeta(
     hasNext: page < totalPages,
     hasPrevious: page > 1,
     startIndex: (page - 1) * limit + 1,
-    endIndex: Math.min(page * limit, total)
+    endIndex: Math.min(page * limit, total),
   };
 }
 
@@ -221,7 +250,7 @@ export function buildPaginationMeta(
  * Validate and sanitize database input with enhanced SQL injection protection
  */
 export function sanitizeDatabaseInput(input: any): any {
-  if (typeof input === 'string') {
+  if (typeof input === "string") {
     // Enhanced SQL injection patterns
     const suspiciousPatterns = [
       // SQL keywords
@@ -240,56 +269,58 @@ export function sanitizeDatabaseInput(input: any): any {
       // Information schema queries
       /information_schema/gi,
       // System tables
-      /(\bsys\b|\bmysql\b|\bpostgres\b|\bpg_\b)/gi
+      /(\bsys\b|\bmysql\b|\bpostgres\b|\bpg_\b)/gi,
     ];
-    
+
     let isSuspicious = false;
     let detectedPatterns: string[] = [];
-    
+
     // Check for suspicious patterns and collect them
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(input)) {
         isSuspicious = true;
         detectedPatterns.push(pattern.source);
         // Sanitize aggressively
-        input = input.replace(pattern, '');
+        input = input.replace(pattern, "");
       }
     }
-    
+
     // Log if suspicious patterns were detected
     if (isSuspicious) {
-      logger.warn('Potential SQL injection attempt detected and sanitized', { 
+      logger.warn("Potential SQL injection attempt detected and sanitized", {
         input: input.substring(0, 100), // Only log first 100 chars for security
         detectedPatterns,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Remove potential XSS and other malicious patterns
-    return input
-      .replace(/[<>]/g, '') // Remove HTML tags
-      // eslint-disable-next-line no-control-regex
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/data:/gi, '') // Remove data: protocol
-      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-      .replace(/onload\s*=/gi, '') // Remove onload handlers
-      .replace(/onerror\s*=/gi, '') // Remove onerror handlers
-      .trim();
+    return (
+      input
+        .replace(/[<>]/g, "") // Remove HTML tags
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters
+        .replace(/javascript:/gi, "") // Remove javascript: protocol
+        .replace(/data:/gi, "") // Remove data: protocol
+        .replace(/vbscript:/gi, "") // Remove vbscript: protocol
+        .replace(/onload\s*=/gi, "") // Remove onload handlers
+        .replace(/onerror\s*=/gi, "") // Remove onerror handlers
+        .trim()
+    );
   }
-  
+
   if (Array.isArray(input)) {
-    return input.map(item => sanitizeDatabaseInput(item));
+    return input.map((item) => sanitizeDatabaseInput(item));
   }
-  
-  if (input && typeof input === 'object') {
+
+  if (input && typeof input === "object") {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(input)) {
       sanitized[key] = sanitizeDatabaseInput(value);
     }
     return sanitized;
   }
-  
+
   return input;
 }
 
@@ -297,7 +328,8 @@ export function sanitizeDatabaseInput(input: any): any {
  * Validate UUID format
  */
 export function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
@@ -315,35 +347,37 @@ export function isValidEmail(email: string): boolean {
 export async function executeWithRetry<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
-  let lastError: Error = new Error('Unknown database error');
+  let lastError: Error = new Error("Unknown database error");
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error: any) {
       lastError = error;
-      
+
       // Only retry on specific database errors
       if (shouldRetryDatabaseOperation(error) && attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
         logger.warn(`Database operation failed, retrying in ${delay}ms`, {
           attempt,
           maxRetries,
-          error: error.message
+          error: error.message,
         });
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       break;
     }
   }
 
-  logger.error('Database operation failed after all retries', lastError);
-  throw new DatabaseError(`Operation failed after ${maxRetries} attempts: ${lastError.message}`);
+  logger.error("Database operation failed after all retries", lastError);
+  throw new DatabaseError(
+    `Operation failed after ${maxRetries} attempts: ${lastError.message}`,
+  );
 }
 
 /**
@@ -352,16 +386,16 @@ export async function executeWithRetry<T>(
 function shouldRetryDatabaseOperation(error: any): boolean {
   // Retry on connection errors, timeouts, and temporary failures
   const retryableCodes = [
-    'ECONNRESET',
-    'ECONNREFUSED', 
-    'ETIMEDOUT',
-    'ENOTFOUND',
-    '08000', // PostgreSQL connection exception
-    '08003', // PostgreSQL connection does not exist
-    '08006', // PostgreSQL connection failure
-    '57P01', // PostgreSQL admin shutdown
-    '57P02', // PostgreSQL crash shutdown
-    '57P03'  // PostgreSQL cannot connect now
+    "ECONNRESET",
+    "ECONNREFUSED",
+    "ETIMEDOUT",
+    "ENOTFOUND",
+    "08000", // PostgreSQL connection exception
+    "08003", // PostgreSQL connection does not exist
+    "08006", // PostgreSQL connection failure
+    "57P01", // PostgreSQL admin shutdown
+    "57P02", // PostgreSQL crash shutdown
+    "57P03", // PostgreSQL cannot connect now
   ];
 
   const errorCode = error.code || error.errno;
@@ -386,7 +420,7 @@ export function formatDatabaseError(error: any): Record<string, any> {
     sqlState: error.sqlState,
     sqlMessage: error.sqlMessage,
     sql: error.sql,
-    stack: error.stack
+    stack: error.stack,
   };
 }
 
@@ -395,24 +429,28 @@ export function formatDatabaseError(error: any): Record<string, any> {
  */
 export const validators = {
   required: (value: any, fieldName: string): void => {
-    if (value === null || value === undefined || value === '') {
+    if (value === null || value === undefined || value === "") {
       throw new DatabaseError(`${fieldName} is required`);
     }
   },
 
   maxLength: (value: string, maxLen: number, fieldName: string): void => {
     if (value && value.length > maxLen) {
-      throw new DatabaseError(`${fieldName} cannot exceed ${maxLen} characters`);
+      throw new DatabaseError(
+        `${fieldName} cannot exceed ${maxLen} characters`,
+      );
     }
   },
 
   minLength: (value: string, minLen: number, fieldName: string): void => {
     if (value && value.length < minLen) {
-      throw new DatabaseError(`${fieldName} must be at least ${minLen} characters`);
+      throw new DatabaseError(
+        `${fieldName} must be at least ${minLen} characters`,
+      );
     }
   },
 
-  email: (value: string, fieldName: string = 'Email'): void => {
+  email: (value: string, fieldName: string = "Email"): void => {
     if (value && !isValidEmail(value)) {
       throw new DatabaseError(`${fieldName} must be a valid email address`);
     }
@@ -430,11 +468,16 @@ export const validators = {
     }
   },
 
-  inRange: (value: number, min: number, max: number, fieldName: string): void => {
+  inRange: (
+    value: number,
+    min: number,
+    max: number,
+    fieldName: string,
+  ): void => {
     if (value !== null && value !== undefined && (value < min || value > max)) {
       throw new DatabaseError(`${fieldName} must be between ${min} and ${max}`);
     }
-  }
+  },
 };
 
 /**
@@ -443,9 +486,9 @@ export const validators = {
 export interface CursorPaginationOptions {
   limit: number;
   cursor?: string; // Base64 encoded cursor for efficient pagination
-  direction?: 'forward' | 'backward';
+  direction?: "forward" | "backward";
   sortField?: string;
-  sortDirection?: 'asc' | 'desc';
+  sortDirection?: "asc" | "desc";
 }
 
 /**
@@ -455,7 +498,7 @@ export function parsePaginationQuery(query: any): {
   page?: number;
   limit?: number;
   cursor?: string;
-  sort?: { field: string; direction: 'asc' | 'desc' };
+  sort?: { field: string; direction: "asc" | "desc" };
 } {
   // Parse page with proper NaN handling
   let page: number | undefined;
@@ -463,27 +506,31 @@ export function parsePaginationQuery(query: any): {
     const parsed = parseInt(query.page);
     page = isNaN(parsed) ? 1 : Math.max(1, parsed);
   }
-  
+
   // Parse limit with proper NaN handling
   let limit: number | undefined;
   if (query.limit) {
     const parsed = parseInt(query.limit);
     limit = isNaN(parsed) ? 1 : Math.min(Math.max(1, parsed), 100);
   }
-  
+
   const cursor = query.cursor || undefined;
-  
-  let sort: { field: string; direction: 'asc' | 'desc' } | undefined;
-  if (query.sort && typeof query.sort === 'string' && query.sort.includes(':')) {
-    const [field, direction = 'asc'] = query.sort.split(':');
+
+  let sort: { field: string; direction: "asc" | "desc" } | undefined;
+  if (
+    query.sort &&
+    typeof query.sort === "string" &&
+    query.sort.includes(":")
+  ) {
+    const [field, direction = "asc"] = query.sort.split(":");
     if (field) {
-      sort = { 
-        field, 
-        direction: direction.toLowerCase() === 'desc' ? 'desc' : 'asc' 
+      sort = {
+        field,
+        direction: direction.toLowerCase() === "desc" ? "desc" : "asc",
       };
     }
   }
-  
+
   return { page, limit, cursor, sort };
 }
 
@@ -492,24 +539,26 @@ export function parsePaginationQuery(query: any): {
  */
 export function generateCursor(lastItem: any, sortField: string): string {
   if (!lastItem || !lastItem[sortField]) {
-    return '';
+    return "";
   }
-  
+
   const cursorData = {
     field: sortField,
     value: lastItem[sortField],
-    id: lastItem.id // Include ID for tie-breaking
+    id: lastItem.id, // Include ID for tie-breaking
   };
-  
-  return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+
+  return Buffer.from(JSON.stringify(cursorData)).toString("base64");
 }
 
 /**
  * Parse cursor data
  */
-export function parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+export function parseCursor(
+  cursor: string,
+): { field: string; value: any; id: string } | null {
   try {
-    const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+    const decoded = Buffer.from(cursor, "base64").toString("utf-8");
     return JSON.parse(decoded);
   } catch {
     return null;
@@ -521,7 +570,7 @@ export function parseCursor(cursor: string): { field: string; value: any; id: st
  */
 export const dbUtils = {
   buildWhereConditions,
-  buildSearchConditions,  
+  buildSearchConditions,
   buildOrderBy,
   calculatePagination,
   buildPaginationMeta,
@@ -534,7 +583,7 @@ export const dbUtils = {
   executeWithRetry,
   createHealthCheckQuery,
   formatDatabaseError,
-  validators
+  validators,
 };
 
 /**
@@ -547,21 +596,21 @@ export class CursorPagination {
   static buildCursorCondition(
     cursor: string | undefined,
     sortField: SQLiteColumn,
-    sortDirection: 'asc' | 'desc' = 'desc'
+    sortDirection: "asc" | "desc" = "desc",
   ): SQL | null {
     if (!cursor) return null;
-    
+
     try {
       const cursorData = this.parseCursor(cursor);
       if (!cursorData) return null;
-      
-      if (sortDirection === 'desc') {
+
+      if (sortDirection === "desc") {
         return lt(sortField, cursorData.value);
       } else {
         return gt(sortField, cursorData.value);
       }
     } catch (error) {
-      logger.warn('Invalid cursor provided for pagination', { cursor });
+      logger.warn("Invalid cursor provided for pagination", { cursor });
       return null;
     }
   }
@@ -571,24 +620,26 @@ export class CursorPagination {
    */
   static generateCursor(lastItem: any, sortField: string): string {
     if (!lastItem || !lastItem[sortField]) {
-      return '';
+      return "";
     }
-    
+
     const cursorData = {
       field: sortField,
       value: lastItem[sortField],
-      id: lastItem.id
+      id: lastItem.id,
     };
-    
-    return Buffer.from(JSON.stringify(cursorData)).toString('base64');
+
+    return Buffer.from(JSON.stringify(cursorData)).toString("base64");
   }
 
   /**
    * Parse cursor data safely
    */
-  static parseCursor(cursor: string): { field: string; value: any; id: string } | null {
+  static parseCursor(
+    cursor: string,
+  ): { field: string; value: any; id: string } | null {
     try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      const decoded = Buffer.from(cursor, "base64").toString("utf-8");
       return JSON.parse(decoded);
     } catch {
       return null;
@@ -607,22 +658,22 @@ export class BatchQueryOptimizer {
     items: T[],
     keyExtractor: (item: T) => K,
     queryFunction: (keys: K[]) => Promise<R[]>,
-    resultKeyExtractor: (result: R) => K
+    resultKeyExtractor: (result: R) => K,
   ): Promise<Map<K, R[]>> {
     if (items.length === 0) return new Map();
 
     try {
       const keys = items.map(keyExtractor);
       const uniqueKeys = Array.from(new Set(keys));
-      
+
       const results = await queryFunction(uniqueKeys);
       const resultMap = new Map<K, R[]>();
 
       // Initialize empty arrays for all keys
-      uniqueKeys.forEach(key => resultMap.set(key, []));
+      uniqueKeys.forEach((key) => resultMap.set(key, []));
 
       // Group results by key
-      results.forEach(result => {
+      results.forEach((result) => {
         const key = resultKeyExtractor(result);
         const existing = resultMap.get(key) || [];
         existing.push(result);
@@ -631,8 +682,8 @@ export class BatchQueryOptimizer {
 
       return resultMap;
     } catch (error) {
-      logger.error('Batch query failed:', error);
-      throw new DatabaseError('Failed to execute batch query');
+      logger.error("Batch query failed:", error);
+      throw new DatabaseError("Failed to execute batch query");
     }
   }
 
@@ -642,18 +693,20 @@ export class BatchQueryOptimizer {
   static async loadRelatedData<T, K, R>(
     entities: T[],
     relationKey: keyof T,
-    batchLoader: (ids: K[]) => Promise<R[]>
+    batchLoader: (ids: K[]) => Promise<R[]>,
   ): Promise<Map<K, R[]>> {
-    const ids = entities.map((entity) => entity[relationKey] as K).filter(Boolean);
+    const ids = entities
+      .map((entity) => entity[relationKey] as K)
+      .filter(Boolean);
     const uniqueIds = Array.from(new Set(ids));
-    
+
     if (uniqueIds.length === 0) return new Map();
 
     const relatedData = await batchLoader(uniqueIds);
     const dataMap = new Map<K, R[]>();
 
-    uniqueIds.forEach(id => dataMap.set(id, []));
-    
+    uniqueIds.forEach((id) => dataMap.set(id, []));
+
     // This would need to be customized based on how the related data is structured
     // For now, return an empty map as this is a generic utility
     return dataMap;

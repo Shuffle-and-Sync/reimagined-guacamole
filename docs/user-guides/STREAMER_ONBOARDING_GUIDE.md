@@ -24,26 +24,31 @@ Welcome, streamers! This guide will help you maximize Shuffle & Sync for your TC
 ### Key Benefits
 
 **🎥 Multi-Platform Support**
+
 - Connect Twitch, YouTube, and Facebook Gaming
 - Unified status across all platforms
 - Cross-platform collaboration tools
 
 **🤝 Collaboration Features**
+
 - Find and coordinate with other streamers
 - Schedule collaborative streams easily
 - Share audiences and grow together
 
 **🏆 Tournament Integration**
+
 - Stream tournaments automatically
 - Built-in bracket management
 - Viewer engagement tools
 
 **📊 Analytics & Insights** (Coming Soon)
+
 - Track viewer engagement
 - Monitor stream performance
 - Analyze growth metrics
 
 **💰 Monetization Support** (Coming Soon)
+
 - Revenue sharing from tournaments
 - Sponsorship opportunities
 - Creator fund access
@@ -57,6 +62,7 @@ Welcome, streamers! This guide will help you maximize Shuffle & Sync for your TC
 **Navigate to:** Profile > Settings > Streaming
 
 **Essential Information:**
+
 ```
 ✓ Username: Your streamer brand name
 ✓ Bio: Describe your content (TCG focus, schedule, style)
@@ -68,11 +74,13 @@ Welcome, streamers! This guide will help you maximize Shuffle & Sync for your TC
 ### Streaming Details
 
 **Primary Platform:**
+
 - Choose your main streaming platform
 - This appears prominently on your profile
 - You can still connect multiple platforms
 
 **Content Schedule:**
+
 ```
 Example:
 Monday: 7 PM - 11 PM EST (MTG Arena)
@@ -82,6 +90,7 @@ Saturday: 2 PM - 6 PM EST (Community Games)
 ```
 
 **Content Focus:**
+
 - Select your TCG specialties
 - Choose your formats (Commander, Standard, etc.)
 - Tag your content style (Competitive, Casual, Educational)
@@ -89,11 +98,13 @@ Saturday: 2 PM - 6 PM EST (Community Games)
 ### Streamer Verification
 
 **Eligibility:**
+
 - 100+ followers/subscribers on any platform
 - Regular streaming schedule (3+ times/week)
 - Active Shuffle & Sync profile
 
 **Benefits:**
+
 - Verified badge on profile
 - Featured in streamer directory
 - Priority event hosting
@@ -120,6 +131,7 @@ Saturday: 2 PM - 6 PM EST (Community Games)
 5. **Verify** your channel appears
 
 **What This Enables:**
+
 - Automatic "Live" status when streaming
 - Stream links on event pages
 - Integration with Shuffle & Sync events
@@ -141,6 +153,7 @@ Saturday: 2 PM - 6 PM EST (Community Games)
 6. **Verify** your channel appears
 
 **What This Enables:**
+
 - Live status detection
 - Stream embedding in events
 - YouTube chat integration (coming soon)
@@ -162,11 +175,13 @@ Saturday: 2 PM - 6 PM EST (Community Games)
 ### Managing Multiple Platforms
 
 **Set Primary Platform:**
+
 - Your main streaming platform
 - Displayed prominently on profile
 - Default for new events
 
 **Multi-Stream Setup:**
+
 ```
 Example Setup:
 Primary: Twitch
@@ -188,6 +203,7 @@ Benefits:
 **Navigate to:** Discover > Streamers
 
 **Filter Options:**
+
 - TCG game preference
 - Streaming platform
 - Time zone
@@ -195,6 +211,7 @@ Benefits:
 - Audience size
 
 **Connect with Streamers:**
+
 1. View their profile
 2. Check schedule compatibility
 3. Send collaboration request
@@ -205,6 +222,7 @@ Benefits:
 **Navigate to:** Events > Create > Collaborative Stream
 
 **Setup:**
+
 ```
 1. Event Details:
    - Stream title
@@ -232,21 +250,25 @@ Benefits:
 ### Collaborative Stream Types
 
 **1. Co-Stream Tournament:**
+
 - Both streamers broadcast same tournament
 - Different perspectives/commentary
 - Shared audience engagement
 
 **2. Versus Matches:**
+
 - Head-to-head gameplay
 - Dual stream setup
 - Viewer voting/predictions
 
 **3. Deck Building Challenge:**
+
 - Collaborative deck building
 - Time-limited challenges
 - Community voting
 
 **4. Community Games:**
+
 - Viewer participation
 - Multiple streamer hosts
 - Rotating gameplay
@@ -254,6 +276,7 @@ Benefits:
 ### During the Stream
 
 **Best Practices:**
+
 - Test all connections 30 minutes before
 - Coordinate start times precisely
 - Use Shuffle & Sync chat for coordination
@@ -269,6 +292,7 @@ Benefits:
 **Navigate to:** Events > Tournaments > [Select Tournament]
 
 **Set Up Stream:**
+
 ```
 1. Register as Participant:
    - Or register as Commentator
@@ -288,6 +312,7 @@ Benefits:
 ### Tournament Stream Features
 
 **Automated Features:**
+
 - Live bracket overlay
 - Auto-updating standings
 - Player profiles
@@ -295,6 +320,7 @@ Benefits:
 - Score displays
 
 **Interactive Elements:**
+
 - Viewer predictions
 - Chat polls
 - Prize pool tracking
@@ -305,6 +331,7 @@ Benefits:
 **Navigate to:** Events > Create > Tournament
 
 **Stream Settings:**
+
 ```
 Tournament Settings:
 ✓ Enable streaming
@@ -327,12 +354,14 @@ Streamer Benefits:
 ### Promotion Tools
 
 **Auto-Posting:**
+
 - Connect social media accounts
 - Auto-announce streams
 - Share tournament participation
 - Post highlights and clips
 
 **Event Promotion:**
+
 ```
 Built-in Tools:
 - Event pages with stream embeds
@@ -344,12 +373,14 @@ Built-in Tools:
 ### Audience Engagement
 
 **During Streams:**
+
 - TableSync for viewer games
 - Live polls and voting
 - Tournament participation
 - Giveaways (via third-party tools)
 
 **Between Streams:**
+
 - Community forum participation
 - Event scheduling and announcements
 - Content sharing (deck techs, highlights)
@@ -358,12 +389,14 @@ Built-in Tools:
 ### Growing Your Network
 
 **Collaborate Regularly:**
+
 - Weekly co-streams
 - Tournament series
 - Community events
 - Guest appearances
 
 **Community Building:**
+
 - Join multiple TCG communities
 - Participate in discussions
 - Help other streamers
@@ -376,6 +409,7 @@ Built-in Tools:
 ### Technical Setup
 
 **Before Every Stream:**
+
 ```
 ✓ Test stream quality (1080p recommended)
 ✓ Check audio levels
@@ -385,6 +419,7 @@ Built-in Tools:
 ```
 
 **Recommended Settings:**
+
 - Bitrate: 4500-6000 kbps (Twitch) / 6000-9000 kbps (YouTube)
 - Resolution: 1920x1080 (1080p)
 - Frame Rate: 60 FPS (for gameplay)
@@ -393,12 +428,14 @@ Built-in Tools:
 ### Content Strategy
 
 **Consistency:**
+
 - Maintain regular schedule
 - Use same time slots
 - Communicate schedule changes
 - Plan content in advance
 
 **Variety:**
+
 ```
 Weekly Schedule Example:
 Monday: Ranked ladder grinding
@@ -408,6 +445,7 @@ Saturday: Community games/viewer battles
 ```
 
 **Engagement:**
+
 - Respond to chat actively
 - Acknowledge subscribers/donors
 - Explain plays and decisions
@@ -416,12 +454,14 @@ Saturday: Community games/viewer battles
 ### Branding
 
 **Consistent Across Platforms:**
+
 - Same username/brand name
 - Matching profile pictures
 - Unified color scheme
 - Professional graphics
 
 **Profile Optimization:**
+
 - Clear, concise bio
 - High-quality visuals
 - Updated schedule
@@ -434,22 +474,26 @@ Saturday: Community games/viewer battles
 ### Revenue Streams
 
 **Tournament Revenue Sharing:**
+
 - Host paid tournaments
 - Share entry fees with platform
 - Prize pool management
 - Sponsor integration
 
 **Creator Fund:**
+
 - Monthly payouts for active streamers
 - Based on viewership and engagement
 - Community contribution bonuses
 
 **Sponsorships:**
+
 - Connect with TCG sponsors
 - Product promotion opportunities
 - Affiliate programs
 
 **Subscriptions/Memberships:**
+
 - Shuffle & Sync premium features
 - Exclusive content access
 - Community perks
@@ -457,12 +501,14 @@ Saturday: Community games/viewer battles
 ### Preparing for Monetization
 
 **Build Your Foundation:**
+
 - Grow consistent viewership
 - Engage with community
 - Maintain professional presence
 - Track performance metrics
 
 **Requirements (Estimated):**
+
 - 500+ average viewers, or
 - 1,000+ followers/subscribers, or
 - Consistent tournament hosting
@@ -472,12 +518,15 @@ Saturday: Community games/viewer battles
 ## Tips from Top Streamers
 
 **On Collaboration:**
+
 > "Collaboration is key. Every co-stream brought new viewers who became regulars." - Top MTG Streamer
 
 **On Community:**
+
 > "Shuffle & Sync makes it easy to find players for viewer games. Engagement went up 40%." - Pokemon TCG Creator
 
 **On Tournaments:**
+
 > "Streaming tournaments on Shuffle & Sync is seamless. The bracket overlay is a game-changer." - Tournament Organizer
 
 ---
@@ -485,11 +534,13 @@ Saturday: Community games/viewer battles
 ## Getting Help
 
 **Streamer Resources:**
+
 - [Technical Support](../troubleshooting/README.md)
 - [Platform OAuth Guide](../features/twitch/TWITCH_OAUTH_GUIDE.md)
 - [Community Forum](https://community.shuffleandsync.com)
 
 **Streamer Support:**
+
 - **Email:** streamers@shuffleandsync.com
 - **Discord:** #streamer-support channel
 - **Priority Support:** For verified streamers
@@ -506,6 +557,7 @@ Saturday: Community games/viewer battles
 6. **Engage with the community** daily
 
 **Need more help?** Check out:
+
 - [Getting Started Guide](GETTING_STARTED.md)
 - [Tournament Organizer Guide](TOURNAMENT_ORGANIZER_GUIDE.md)
 - [Platform Documentation](../features/twitch/TWITCH_OAUTH_GUIDE.md)

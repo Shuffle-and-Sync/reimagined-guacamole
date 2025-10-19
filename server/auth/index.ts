@@ -1,6 +1,10 @@
 // Auth adapter for Auth.js v5 Express.js integration
-import { requireAuth, optionalAuth, type AuthenticatedRequest } from './auth.middleware';
-import { Request } from 'express';
+import {
+  requireAuth,
+  optionalAuth,
+  type AuthenticatedRequest,
+} from "./auth.middleware";
+import { Request } from "express";
 
 // Auth middleware
 export const isAuthenticated = requireAuth;
@@ -14,13 +18,13 @@ export function getAuthUserId(req: Request): string {
   if (req.user?.id) {
     return req.user.id;
   }
-  
+
   // Try Auth.js session data
   if (req.auth?.user?.id) {
     return req.auth.user.id;
   }
-  
-  throw new Error('No authenticated user found');
+
+  throw new Error("No authenticated user found");
 }
 
 // Helper function to safely get user email from Auth.js session
@@ -29,12 +33,12 @@ export function getAuthUserEmail(req: Request): string | null {
   if (req.user?.email !== undefined) {
     return req.user.email;
   }
-  
+
   // Try Auth.js session data
   if (req.auth?.user?.email !== undefined) {
     return req.auth.user.email;
   }
-  
+
   return null;
 }
 
@@ -42,7 +46,11 @@ export function getAuthUserEmail(req: Request): string | null {
 export type { AuthenticatedRequest };
 
 // Re-export everything from middleware for convenience
-export * from './auth.middleware';
+export * from "./auth.middleware";
 
-// Export JWT-specific middleware for direct usage  
-export { requireJWTAuth, requireHybridAuth, optionalJWTAuth } from './auth.middleware';
+// Export JWT-specific middleware for direct usage
+export {
+  requireJWTAuth,
+  requireHybridAuth,
+  optionalJWTAuth,
+} from "./auth.middleware";

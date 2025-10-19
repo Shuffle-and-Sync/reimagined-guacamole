@@ -73,6 +73,7 @@ npm run test:alerts
 ### Access
 
 **Cloud Console:**
+
 ```bash
 # Open Cloud Monitoring
 echo "https://console.cloud.google.com/monitoring?project=$(gcloud config get-value project)"
@@ -82,6 +83,7 @@ echo "https://console.cloud.google.com/logs?project=$(gcloud config get-value pr
 ```
 
 **CLI Access:**
+
 ```bash
 # Set project
 gcloud config set project YOUR_PROJECT_ID
@@ -101,17 +103,20 @@ gcloud monitoring time-series list \
 ### 1. Application Health
 
 **Request Rate:**
+
 - Metric: `run.googleapis.com/request_count`
 - Normal: Varies by time of day (10-1000 req/min)
 - Alert: Sudden drop > 50% or spike > 200%
 
 **Error Rate:**
+
 - Metric: `run.googleapis.com/request_count` (response_code_class=5xx)
 - Normal: < 1%
 - Warning: > 1%
 - Critical: > 5%
 
 **Response Time:**
+
 - Metric: `run.googleapis.com/request_latencies`
 - Normal: p95 < 500ms, p99 < 1000ms
 - Warning: p95 > 1000ms
@@ -120,18 +125,21 @@ gcloud monitoring time-series list \
 ### 2. Infrastructure Health
 
 **CPU Utilization:**
+
 - Metric: `run.googleapis.com/container/cpu/utilizations`
 - Normal: < 70%
 - Warning: > 80%
 - Critical: > 90%
 
 **Memory Utilization:**
+
 - Metric: `run.googleapis.com/container/memory/utilizations`
 - Normal: < 75%
 - Warning: > 85%
 - Critical: > 95%
 
 **Container Instances:**
+
 - Metric: `run.googleapis.com/container/instance_count`
 - Normal: 1-10 instances
 - Alert: 0 instances (service down) or > 50 instances (traffic spike)
@@ -139,34 +147,41 @@ gcloud monitoring time-series list \
 ### 3. Database Health
 
 **Connection Count:**
+
 - Monitor active database connections
 - Normal: < 20 connections
 - Warning: > 30 connections
 - Critical: > 40 connections (pool exhaustion)
 
 **Query Performance:**
+
 - Log slow queries (> 1000ms)
 - Alert on average query time > 500ms
 
 **Database Size:**
+
 - Monitor database growth rate
 - Alert on unexpected growth (> 1GB/day)
 
 ### 4. Business Metrics
 
 **User Signups:**
+
 - Track daily signup rate
 - Alert on significant drops (> 50% decrease)
 
 **Active Users:**
+
 - Track daily/weekly active users
 - Alert on unusual patterns
 
 **Tournament Creation:**
+
 - Monitor tournament creation rate
 - Alert on failures or drops
 
 **Platform Connections:**
+
 - Track OAuth success/failure rates
 - Alert on > 10% failure rate
 
@@ -177,24 +192,28 @@ gcloud monitoring time-series list \
 ### Alert Severity Levels
 
 **P1 - Critical (Page Immediately)**
+
 - Service completely down
 - Error rate > 5%
 - Data corruption detected
 - Security incident
 
 **P2 - High (Notify within 15 minutes)**
+
 - Error rate > 2%
 - Response time > 2x normal
 - Database issues
 - Critical feature broken
 
 **P3 - Medium (Notify within 1 hour)**
+
 - Error rate > 1%
 - Response time > 1.5x normal
 - Non-critical feature issues
 - Resource usage warnings
 
 **P4 - Low (Daily digest)**
+
 - Minor performance degradation
 - Usage pattern anomalies
 - Recommendations and optimizations
@@ -233,6 +252,7 @@ gcloud alpha monitoring policies create \
 ```
 
 **Console Method:**
+
 1. Go to Cloud Monitoring > Alerting
 2. Click "Create Policy"
 3. Add conditions based on metrics
@@ -242,6 +262,7 @@ gcloud alpha monitoring policies create \
 ### Notification Channels
 
 **Setup Email:**
+
 ```bash
 gcloud alpha monitoring channels create \
   --display-name="On-Call Email" \
@@ -250,6 +271,7 @@ gcloud alpha monitoring channels create \
 ```
 
 **Setup Slack (via webhook):**
+
 ```bash
 gcloud alpha monitoring channels create \
   --display-name="Slack #alerts" \
@@ -258,6 +280,7 @@ gcloud alpha monitoring channels create \
 ```
 
 **Setup PagerDuty:**
+
 ```bash
 gcloud alpha monitoring channels create \
   --display-name="PagerDuty On-Call" \
@@ -278,13 +301,14 @@ gcloud alpha monitoring channels create \
 **Procedure:**
 
 1. **Assess Severity:**
+
    ```bash
    # Check current error rate
    gcloud run services logs read shuffle-sync-backend \
      --region us-central1 \
      --filter='severity=ERROR' \
      --limit=50
-   
+
    # Check affected endpoints
    gcloud run services logs read shuffle-sync-backend \
      --region us-central1 \
@@ -293,10 +317,11 @@ gcloud alpha monitoring channels create \
    ```
 
 2. **Quick Mitigation:**
+
    ```bash
    # If recent deployment, rollback immediately
    npm run rollback
-   
+
    # If not deployment-related, check for:
    # - Database connectivity
    # - External API failures
@@ -304,16 +329,17 @@ gcloud alpha monitoring channels create \
    ```
 
 3. **Investigation:**
+
    ```bash
    # Review error patterns
    gcloud run services logs read shuffle-sync-backend \
      --region us-central1 \
      --filter='severity=ERROR' \
      --format='table(timestamp,textPayload,labels.endpoint)'
-   
+
    # Check database health
    npm run db:health
-   
+
    # Check external dependencies
    curl https://api.twitch.tv/helix
    ```
@@ -338,6 +364,7 @@ gcloud alpha monitoring channels create \
 **Procedure:**
 
 1. **Identify Slow Endpoints:**
+
    ```bash
    # Find slow requests
    gcloud run services logs read shuffle-sync-backend \
@@ -347,12 +374,13 @@ gcloud alpha monitoring channels create \
    ```
 
 2. **Check Resources:**
+
    ```bash
    # Check CPU/Memory
    gcloud run services describe shuffle-sync-backend \
      --region us-central1 \
      --format='value(status.conditions)'
-   
+
    # Check instance count
    gcloud run metrics read \
      run.googleapis.com/container/instance_count \
@@ -361,6 +389,7 @@ gcloud alpha monitoring channels create \
    ```
 
 3. **Scale if Needed:**
+
    ```bash
    # Increase max instances temporarily
    gcloud run services update shuffle-sync-backend \
@@ -389,16 +418,18 @@ gcloud alpha monitoring channels create \
 **Procedure:**
 
 1. **Check Database Status:**
+
    ```bash
    # Test database connectivity
    npm run db:health
-   
+
    # Check connection pool
    # Review application logs
    npm run logs:production | grep "connection"
    ```
 
 2. **Quick Fix:**
+
    ```bash
    # Restart service to reset connection pool
    gcloud run services update shuffle-sync-backend \
@@ -427,12 +458,13 @@ gcloud alpha monitoring channels create \
 **Procedure:**
 
 1. **Verify Status:**
+
    ```bash
    # Check service status
    gcloud run services describe shuffle-sync-backend \
      --region us-central1 \
      --format='value(status.conditions)'
-   
+
    # Check recent deployments
    gcloud run revisions list \
      --service shuffle-sync-backend \
@@ -441,6 +473,7 @@ gcloud alpha monitoring channels create \
    ```
 
 2. **Check Logs:**
+
    ```bash
    # Get recent errors
    gcloud run services logs read shuffle-sync-backend \
@@ -450,6 +483,7 @@ gcloud alpha monitoring channels create \
    ```
 
 3. **Immediate Action:**
+
    ```bash
    # Rollback to last known good revision
    gcloud run services update-traffic shuffle-sync-backend \
@@ -482,17 +516,19 @@ gcloud alpha monitoring channels create \
         "widget": {
           "title": "Request Rate",
           "xyChart": {
-            "dataSets": [{
-              "timeSeriesQuery": {
-                "timeSeriesFilter": {
-                  "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\"",
-                  "aggregation": {
-                    "alignmentPeriod": "60s",
-                    "perSeriesAligner": "ALIGN_RATE"
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
                   }
                 }
               }
-            }]
+            ]
           }
         }
       },
@@ -502,17 +538,19 @@ gcloud alpha monitoring channels create \
         "widget": {
           "title": "Error Rate",
           "xyChart": {
-            "dataSets": [{
-              "timeSeriesQuery": {
-                "timeSeriesFilter": {
-                  "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" metric.label.response_code_class=\"5xx\"",
-                  "aggregation": {
-                    "alignmentPeriod": "60s",
-                    "perSeriesAligner": "ALIGN_RATE"
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" metric.label.response_code_class=\"5xx\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
                   }
                 }
               }
-            }]
+            ]
           }
         }
       }
@@ -522,6 +560,7 @@ gcloud alpha monitoring channels create \
 ```
 
 **Import Dashboard:**
+
 ```bash
 # Save JSON to file: backend-dashboard.json
 gcloud monitoring dashboards create --config-from-file=backend-dashboard.json
@@ -561,6 +600,7 @@ gcloud monitoring dashboards create --config-from-file=backend-dashboard.json
 ### Structured Logging
 
 **Log Levels:**
+
 - `ERROR`: Errors that need attention
 - `WARN`: Warnings that may need investigation
 - `INFO`: Informational messages
@@ -569,6 +609,7 @@ gcloud monitoring dashboards create --config-from-file=backend-dashboard.json
 ### Common Log Queries
 
 **Find errors in last hour:**
+
 ```bash
 gcloud logging read \
   'resource.type="cloud_run_revision" AND severity>=ERROR AND timestamp>="2024-01-01T12:00:00Z"' \
@@ -577,6 +618,7 @@ gcloud logging read \
 ```
 
 **Find slow requests:**
+
 ```bash
 gcloud logging read \
   'resource.type="cloud_run_revision" AND httpRequest.latency>"1s"' \
@@ -585,6 +627,7 @@ gcloud logging read \
 ```
 
 **Find specific error:**
+
 ```bash
 gcloud logging read \
   'resource.type="cloud_run_revision" AND textPayload:"Database connection failed"' \
@@ -592,6 +635,7 @@ gcloud logging read \
 ```
 
 **Track user activity:**
+
 ```bash
 gcloud logging read \
   'resource.type="cloud_run_revision" AND jsonPayload.userId="USER_ID"' \
@@ -601,6 +645,7 @@ gcloud logging read \
 ### Log-Based Metrics
 
 **Create custom metric:**
+
 ```bash
 gcloud logging metrics create high_error_rate \
   --description="Track high error rate patterns" \
@@ -621,6 +666,7 @@ gcloud logging metrics create high_error_rate \
 ### 2. Runbook Links
 
 Every alert should include:
+
 - Link to this runbook
 - Specific section for that alert
 - Dashboard link
@@ -666,6 +712,6 @@ npm run test:alerts
 
 **Revision History:**
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-10-18 | Initial runbook creation | System |
+| Version | Date       | Changes                  | Author |
+| ------- | ---------- | ------------------------ | ------ |
+| 1.0     | 2025-10-18 | Initial runbook creation | System |

@@ -1,6 +1,7 @@
 # Cloud Run Auth Error - Quick Reference Card
 
 ## The Error
+
 ```
 ERR_TOO_MANY_ACCEPT_CH_RESTARTS
 Redirects to: /api/auth/error?error=Configuration
@@ -9,19 +10,23 @@ Redirects to: /api/auth/error?error=Configuration
 ## Instant Fix (Copy & Paste)
 
 ### 1. Run Diagnostics
+
 ```bash
 npm run diagnose:auth
 ```
-*This will show you exactly what's wrong and how to fix it*
+
+_This will show you exactly what's wrong and how to fix it_
 
 ### 2. Quick Manual Fix
 
 #### Find Your Services
+
 ```bash
 gcloud run services list --region=us-central1 | grep shuffle
 ```
 
 #### Get Backend URL
+
 ```bash
 # Replace SERVICE_NAME with your actual backend service name
 gcloud run services describe SERVICE_NAME \
@@ -30,6 +35,7 @@ gcloud run services describe SERVICE_NAME \
 ```
 
 #### Fix Backend OAuth (if missing)
+
 ```bash
 # Replace SERVICE_NAME and add your actual credentials
 gcloud run services update SERVICE_NAME \
@@ -40,7 +46,8 @@ gcloud run services update SERVICE_NAME \
   --set-env-vars AUTH_TRUST_HOST=true
 ```
 
-#### Fix Frontend Proxy (if 404 on /api/*)
+#### Fix Frontend Proxy (if 404 on /api/\*)
+
 ```bash
 # Replace FRONTEND_SERVICE and BACKEND_URL with your actual values
 gcloud run services update FRONTEND_SERVICE \
@@ -49,6 +56,7 @@ gcloud run services update FRONTEND_SERVICE \
 ```
 
 #### Add Google OAuth Redirect URI
+
 ```
 1. Go to: https://console.cloud.google.com/apis/credentials
 2. Edit OAuth 2.0 Client ID
@@ -59,6 +67,7 @@ gcloud run services update FRONTEND_SERVICE \
 ## Common Service Names
 
 Your services might be named:
+
 - `shuffle-sync-frontend` OR `shuffle-sync-front`
 - `shuffle-sync-backend` OR `shuffle-sync-back`
 
@@ -67,29 +76,32 @@ Your services might be named:
 ## Automated Solutions
 
 ### Full Automated Deployment
+
 ```bash
 npm run deploy:cloudrun
 ```
 
 ### Automated Diagnostics
+
 ```bash
 npm run diagnose:auth
 ```
 
 ### Verification
+
 ```bash
 npm run verify:cloudrun
 ```
 
 ## Documentation
 
-| Issue | Document |
-|-------|----------|
-| gcloud commands | [GOOGLE_CLOUD_COMMANDS_REFERENCE.md](./GOOGLE_CLOUD_COMMANDS_REFERENCE.md) |
-| 5-min fix | [troubleshooting.md](./troubleshooting.md) |
+| Issue                | Document                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| gcloud commands      | [GOOGLE_CLOUD_COMMANDS_REFERENCE.md](./GOOGLE_CLOUD_COMMANDS_REFERENCE.md)         |
+| 5-min fix            | [troubleshooting.md](./troubleshooting.md)                                         |
 | Deep troubleshooting | [TROUBLESHOOTING_CONFIGURATION_ERROR.md](./TROUBLESHOOTING_CONFIGURATION_ERROR.md) |
-| Full deployment | [DEPLOYMENT.md](../DEPLOYMENT.md) |
-| Architecture | [DEPLOYMENT.md](../DEPLOYMENT.md) |
+| Full deployment      | [DEPLOYMENT.md](../DEPLOYMENT.md)                                                  |
+| Architecture         | [DEPLOYMENT.md](../DEPLOYMENT.md)                                                  |
 
 ## Checklist
 
@@ -119,6 +131,7 @@ curl https://your-frontend-url/api/auth/providers
 ## Environment Variable Reference
 
 ### Backend Required
+
 ```bash
 GOOGLE_CLIENT_ID=xxx
 GOOGLE_CLIENT_SECRET=xxx
@@ -129,6 +142,7 @@ NODE_ENV=production
 ```
 
 ### Frontend Required
+
 ```bash
 BACKEND_URL=https://your-backend-url (no trailing slash)
 ```

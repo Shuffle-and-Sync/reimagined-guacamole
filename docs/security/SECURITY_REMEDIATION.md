@@ -9,6 +9,7 @@ This guide provides step-by-step instructions for repository administrators to s
 ## Background
 
 The test suite identified that the following items may exist in Git history:
+
 - `.env.production` file containing production credentials
 - Problematic commit: `452a970b41758f0ae22e9adc578dd49b9adb815a`
 
@@ -54,11 +55,13 @@ Before starting this process, ensure you have:
 ## Step 1: Install git-filter-repo
 
 ### On macOS (using Homebrew)
+
 ```bash
 brew install git-filter-repo
 ```
 
 ### On Linux (using pip)
+
 ```bash
 pip3 install git-filter-repo
 ```
@@ -66,6 +69,7 @@ pip3 install git-filter-repo
 ### On Windows
 
 #### Option 1: Using pip (Recommended)
+
 If you have Python installed on Windows:
 
 ```powershell
@@ -74,6 +78,7 @@ pip install git-filter-repo
 ```
 
 If the command is not found after installation, you may need to add Python Scripts to your PATH:
+
 ```powershell
 # Find where pip installed git-filter-repo
 python -m pip show -f git-filter-repo
@@ -83,6 +88,7 @@ python -m pip show -f git-filter-repo
 ```
 
 #### Option 2: Manual Installation on Windows
+
 ```powershell
 # Download the script using PowerShell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo" -OutFile "git-filter-repo"
@@ -96,12 +102,14 @@ Move-Item -Path "git-filter-repo" -Destination "C:\Program Files\Git\usr\bin\git
 # with content: @python "C:\Program Files\Git\usr\bin\git-filter-repo" %*
 ```
 
-**Note for Windows Users**: 
+**Note for Windows Users**:
+
 - Ensure Python is installed (download from python.org if needed)
 - Run PowerShell as Administrator for installation
 - Git for Windows should be installed (git-scm.com)
 
 ### Manual Installation (Linux/macOS)
+
 ```bash
 # Download the script
 curl -o git-filter-repo https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo
@@ -114,6 +122,7 @@ sudo mv git-filter-repo /usr/local/bin/
 ```
 
 ### Verify Installation
+
 ```bash
 git filter-repo --version
 ```
@@ -121,9 +130,11 @@ git filter-repo --version
 ## Step 2: Prepare Your Environment
 
 ### 2.1 Create a Fresh Clone
+
 **Important**: Do NOT use your existing working copy. Create a fresh clone specifically for this operation.
 
 **On Linux/macOS:**
+
 ```bash
 # Navigate to a temporary directory
 cd /tmp
@@ -134,6 +145,7 @@ cd repo-cleanup
 ```
 
 **On Windows (PowerShell):**
+
 ```powershell
 # Navigate to a temporary directory
 cd $env:TEMP
@@ -148,6 +160,7 @@ cd repo-cleanup
 ### 2.2 Create a Backup
 
 **On Linux/macOS:**
+
 ```bash
 # Create a backup of the repository
 cd ..
@@ -155,6 +168,7 @@ tar -czf repo-backup-$(date +%Y%m%d-%H%M%S).tar.gz repo-cleanup/
 ```
 
 **On Windows (PowerShell):**
+
 ```powershell
 # Create a backup of the repository
 cd ..
@@ -171,6 +185,7 @@ Compress-Archive -Path repo-cleanup -DestinationPath "repo-backup-$timestamp.zip
 Navigate to your cloned repository and run:
 
 **On Linux/macOS:**
+
 ```bash
 cd /tmp/repo-cleanup
 
@@ -179,6 +194,7 @@ git filter-repo --invert-paths --path .env.production --force
 ```
 
 **On Windows (PowerShell):**
+
 ```powershell
 cd $env:TEMP\repo-cleanup
 
@@ -187,6 +203,7 @@ git filter-repo --invert-paths --path .env.production --force
 ```
 
 **What this does:**
+
 - `--invert-paths`: Removes the specified path instead of keeping it
 - `--path .env.production`: Specifies the file to remove
 - `--force`: Allows operation on a bare/mirror repository
@@ -196,6 +213,7 @@ git filter-repo --invert-paths --path .env.production --force
 If the commit `452a970b41758f0ae22e9adc578dd49b9adb815a` still exists and contains sensitive data:
 
 **On Linux/macOS:**
+
 ```bash
 # First, verify the commit exists
 git log --all --oneline | grep 452a970b4175
@@ -209,6 +227,7 @@ git filter-repo --commit-callback '
 ```
 
 **On Windows (PowerShell):**
+
 ```powershell
 # First, verify the commit exists
 git log --all --oneline | Select-String "452a970b4175"
@@ -255,6 +274,7 @@ Then restore the safe template files:
 ## Step 4: Verify the Cleanup
 
 ### 4.1 Check File Removal
+
 ```bash
 # Verify .env.production is completely removed from history
 git log --all --full-history -- .env.production
@@ -263,6 +283,7 @@ git log --all --full-history -- .env.production
 ```
 
 ### 4.2 Check Commit Removal
+
 ```bash
 # Verify the problematic commit is gone
 git show 452a970b41758f0ae22e9adc578dd49b9adb815a
@@ -271,6 +292,7 @@ git show 452a970b41758f0ae22e9adc578dd49b9adb815a
 ```
 
 ### 4.3 Search for Sensitive Patterns
+
 ```bash
 # Search for potential API keys or secrets in history
 git log --all -p | grep -i "api[_-]key"
@@ -285,6 +307,7 @@ git log --all -p | grep -i "password"
 **⚠️ CRITICAL WARNING**: This step will rewrite the repository history for all collaborators.
 
 ### 5.1 Notify All Team Members
+
 Before proceeding, send a notification to all contributors:
 
 ```
@@ -311,6 +334,7 @@ git push --force --tags origin
 ```
 
 ### 5.3 Verify Remote Repository
+
 ```bash
 # Clone the repository fresh and verify
 cd /tmp
@@ -331,7 +355,7 @@ Even after removing files from Git history, you must assume the credentials were
 Based on typical `.env.production` contents, rotate:
 
 - **Database credentials**: Change `DATABASE_URL` and all database passwords
-- **OAuth secrets**: Regenerate `GOOGLE_CLIENT_SECRET` and other OAuth credentials  
+- **OAuth secrets**: Regenerate `GOOGLE_CLIENT_SECRET` and other OAuth credentials
 - **API keys**: Regenerate all third-party API keys (SendGrid, Twitch, YouTube, etc.)
 - **Auth secrets**: Generate new `AUTH_SECRET` value
 - **Webhook tokens**: Regenerate `YOUTUBE_WEBHOOK_VERIFY_TOKEN` and similar tokens
@@ -392,6 +416,7 @@ npm run test -- server/tests/security/gitignore-env-protection.test.ts
 ### Common Issues
 
 **"I have unpushed commits, what do I do?"**
+
 1. Create patches of your commits: `git format-patch origin/main`
 2. Delete your local repository
 3. Clone fresh
@@ -399,6 +424,7 @@ npm run test -- server/tests/security/gitignore-env-protection.test.ts
 5. Review and commit
 
 **"Git says 'diverged histories'"**
+
 - Do NOT try to merge or pull
 - Delete your local clone and clone fresh
 - This is expected after history rewriting
@@ -406,7 +432,9 @@ npm run test -- server/tests/security/gitignore-env-protection.test.ts
 ## Step 8: Update Security Policies
 
 ### 8.1 Update .gitignore (Already Done)
+
 The repository already has comprehensive `.gitignore` rules:
+
 ```gitignore
 # Broad patterns to prevent ANY .env files
 *.env*
@@ -432,6 +460,7 @@ fi
 ```
 
 Make it executable:
+
 ```bash
 chmod +x .git/hooks/pre-commit
 ```
@@ -455,6 +484,7 @@ npm test -- server/tests/security/gitignore-env-protection.test.ts
 ```
 
 All tests should pass, including:
+
 - ✅ `.env.production` should not exist in Git history
 - ✅ Specific problematic commit should not exist
 - ✅ `.gitignore` should contain broad `.env` patterns
@@ -473,13 +503,17 @@ All tests should pass, including:
 ## Troubleshooting
 
 ### Issue: "git-filter-repo not found"
+
 **Solution**: Ensure git-filter-repo is installed and in your PATH. See Step 1.
 
 ### Issue: "Remote rejected (shallow update not allowed)"
+
 **Solution**: You're working with a shallow clone. Use `--mirror` when cloning as shown in Step 2.1.
 
 ### Issue: "Cannot force-push (protected branch)"
+
 **Solution**: Temporarily disable branch protection rules in GitHub:
+
 1. Go to Settings → Branches
 2. Edit branch protection rule for `main`
 3. Temporarily disable protection
@@ -487,10 +521,13 @@ All tests should pass, including:
 5. Re-enable protection immediately after
 
 ### Issue: "Team member's repository is broken after update"
+
 **Solution**: They must delete their local clone completely and clone fresh. Do NOT use `git pull`.
 
 ### Issue: "Lost commits after cleanup"
+
 **Solution**: Restore from the backup created in Step 2.2:
+
 ```bash
 cd /tmp
 tar -xzf repo-backup-*.tar.gz

@@ -3,10 +3,23 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
@@ -14,37 +27,37 @@ import { useToast } from "@/hooks/use-toast";
 
 // Forgot password form validation schema
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address').min(1, 'Email is required'),
+  email: z.string().email("Invalid email address").min(1, "Email is required"),
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
   useDocumentTitle("Forgot Password - Shuffle & Sync");
-  
+
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
-  const [email, setEmail] = useState('');
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
 
   // Form setup
   const form = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: '',
+      email: "",
     },
   });
 
   const handleForgotPassword = async (values: ForgotPasswordForm) => {
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: values.email,
@@ -56,15 +69,18 @@ export default function ForgotPassword() {
         setIsSubmitted(true);
         toast({
           title: "Reset link sent!",
-          description: "Please check your email for password reset instructions.",
+          description:
+            "Please check your email for password reset instructions.",
         });
       } else {
         const errorData = await response.json();
-        setError(errorData.message || 'Failed to send reset email. Please try again.');
+        setError(
+          errorData.message || "Failed to send reset email. Please try again.",
+        );
       }
     } catch (err) {
-      console.error('Forgot password error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      console.error("Forgot password error:", err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -72,15 +88,15 @@ export default function ForgotPassword() {
 
   const handleResendEmail = async () => {
     if (!email) return;
-    
+
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: email,
@@ -94,11 +110,11 @@ export default function ForgotPassword() {
         });
       } else {
         const errorData = await response.json();
-        setError(errorData.message || 'Failed to resend reset email.');
+        setError(errorData.message || "Failed to resend reset email.");
       }
     } catch (err) {
-      console.error('Resend reset email error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      console.error("Resend reset email error:", err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +125,9 @@ export default function ForgotPassword() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Check your email</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              Check your email
+            </CardTitle>
             <CardDescription className="text-center">
               Password reset instructions sent
             </CardDescription>
@@ -124,38 +142,38 @@ export default function ForgotPassword() {
                 <p className="text-sm text-muted-foreground">
                   We've sent password reset instructions to:
                 </p>
-                <p className="text-sm font-medium text-primary">
-                  {email}
-                </p>
+                <p className="text-sm font-medium text-primary">{email}</p>
               </div>
-              
+
               {error && (
                 <Alert variant="destructive" data-testid="alert-resend-error">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Didn't receive the email? Check your spam folder or try again.
                 </p>
-                
-                <Button 
+
+                <Button
                   onClick={handleResendEmail}
                   disabled={isLoading}
                   variant="outline"
                   className="w-full"
                   data-testid="button-resend-reset"
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isLoading ? 'Sending...' : 'Resend Reset Email'}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isLoading ? "Sending..." : "Resend Reset Email"}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={() => {
                     setIsSubmitted(false);
-                    setEmail('');
-                    setError('');
+                    setEmail("");
+                    setError("");
                     form.reset();
                   }}
                   variant="ghost"
@@ -166,9 +184,13 @@ export default function ForgotPassword() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="text-center">
-              <Link href="/auth/signin" className="text-sm text-primary hover:underline inline-flex items-center gap-1" data-testid="link-back-signin">
+              <Link
+                href="/auth/signin"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                data-testid="link-back-signin"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Sign In
               </Link>
@@ -183,20 +205,28 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Forgot Password</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Forgot Password
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your email address and we'll send you a reset link
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleForgotPassword)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleForgotPassword)}
+              className="space-y-4"
+            >
               {error && (
-                <Alert variant="destructive" data-testid="alert-forgot-password-error">
+                <Alert
+                  variant="destructive"
+                  data-testid="alert-forgot-password-error"
+                >
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -204,44 +234,52 @@ export default function ForgotPassword() {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email" 
+                      <Input
+                        type="email"
                         placeholder="Enter your email address"
                         data-testid="input-forgot-password-email"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full"
                 disabled={isLoading}
                 data-testid="button-send-reset-link"
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
+                {isLoading ? "Sending..." : "Send Reset Link"}
               </Button>
             </form>
           </Form>
-          
+
           <div className="text-center space-y-2">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{' '}
-              <Link href="/auth/signin" className="text-primary hover:underline font-medium" data-testid="link-back-signin">
+              Remember your password?{" "}
+              <Link
+                href="/auth/signin"
+                className="text-primary hover:underline font-medium"
+                data-testid="link-back-signin"
+              >
                 Sign in
               </Link>
             </div>
             <div className="text-sm">
-              <Link href="/auth/register" className="text-primary hover:underline" data-testid="link-register">
-                Don't have an account? Sign up
+              <Link
+                href="/auth/register"
+                className="text-primary hover:underline"
+                data-testid="link-register"
+              >
+                Don&apos;t have an account? Sign up
               </Link>
             </div>
           </div>
-          
+
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
             For security, reset links expire after 1 hour.
           </div>

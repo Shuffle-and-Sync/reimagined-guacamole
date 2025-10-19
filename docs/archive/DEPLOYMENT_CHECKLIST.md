@@ -18,6 +18,7 @@ bash scripts/deploy-cloud-run.sh
 > **Note**: For Windows users with Git Bash/MINGW64, always use `bash scripts/scriptname.sh` format for cross-platform compatibility.
 
 This script will:
+
 - Guide you through the entire deployment process
 - Check prerequisites and required APIs
 - Deploy backend service first
@@ -91,6 +92,7 @@ echo "Backend URL: $BACKEND_URL"
 ```
 
 **Checklist**:
+
 - [ ] Backend service deployed successfully
 - [ ] Backend URL noted and saved to `$BACKEND_URL` variable
 - [ ] Backend service is accessible: `curl $BACKEND_URL/api/health`
@@ -110,6 +112,7 @@ gcloud run services update $BACKEND_SERVICE \
 ```
 
 **Verify configuration**:
+
 ```bash
 gcloud run services describe $BACKEND_SERVICE \
   --region=$REGION \
@@ -117,6 +120,7 @@ gcloud run services describe $BACKEND_SERVICE \
 ```
 
 **Checklist**:
+
 - [ ] `GOOGLE_CLIENT_ID` is set
 - [ ] `GOOGLE_CLIENT_SECRET` is set
 - [ ] `AUTH_SECRET` is set (64+ character random string)
@@ -127,6 +131,7 @@ gcloud run services describe $BACKEND_SERVICE \
 ### Step 3: Configure Google OAuth
 
 1. **Get your backend URL** (from Step 1):
+
    ```bash
    echo $BACKEND_URL
    ```
@@ -136,11 +141,13 @@ gcloud run services describe $BACKEND_SERVICE \
 3. **Edit your OAuth 2.0 Client ID**
 
 4. **Add Authorized Redirect URI**:
+
    ```
    https://YOUR-BACKEND-URL/api/auth/callback/google
    ```
-   
+
    Example:
+
    ```
    https://shuffle-sync-backend-858080302197.us-central1.run.app/api/auth/callback/google
    ```
@@ -158,6 +165,7 @@ gcloud run services describe $BACKEND_SERVICE \
    ```
 
 **Checklist**:
+
 - [ ] Redirect URI added to Google OAuth Console
 - [ ] Redirect URI uses BACKEND URL (not frontend)
 - [ ] Redirect URI saved successfully
@@ -168,9 +176,10 @@ gcloud run services describe $BACKEND_SERVICE \
 **Option A: Update cloudbuild-frontend.yaml (Recommended)**
 
 1. Edit `cloudbuild-frontend.yaml`:
+
    ```yaml
-   - '--set-env-vars'
-   - 'BACKEND_URL=https://YOUR-BACKEND-URL'  # Update this line
+   - "--set-env-vars"
+   - "BACKEND_URL=https://YOUR-BACKEND-URL" # Update this line
    ```
 
 2. Deploy:
@@ -181,6 +190,7 @@ gcloud run services describe $BACKEND_SERVICE \
 **Option B: Deploy and update separately**
 
 1. Deploy frontend:
+
    ```bash
    gcloud builds submit --config cloudbuild-frontend.yaml
    ```
@@ -193,6 +203,7 @@ gcloud run services describe $BACKEND_SERVICE \
    ```
 
 **Verify frontend configuration**:
+
 ```bash
 gcloud run services describe $FRONTEND_SERVICE \
   --region=$REGION \
@@ -200,6 +211,7 @@ gcloud run services describe $FRONTEND_SERVICE \
 ```
 
 **Get frontend URL**:
+
 ```bash
 export FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE \
   --region=$REGION \
@@ -209,6 +221,7 @@ echo "Frontend URL: $FRONTEND_URL"
 ```
 
 **Checklist**:
+
 - [ ] Frontend service deployed successfully
 - [ ] `BACKEND_URL` is set on frontend service
 - [ ] `BACKEND_URL` matches actual backend URL from Step 1
@@ -217,6 +230,7 @@ echo "Frontend URL: $FRONTEND_URL"
 ### Step 5: Verify Deployment
 
 **Automated verification**:
+
 ```bash
 # Update script if using non-default service names
 FRONTEND_SERVICE=$FRONTEND_SERVICE \
@@ -227,18 +241,21 @@ bash scripts/verify-cloud-run-deployment.sh
 **Manual verification**:
 
 1. **Test backend health endpoint**:
+
    ```bash
    curl $BACKEND_URL/api/health
    # Should return: {"status":"ok","timestamp":"..."}
    ```
 
 2. **Test backend auth providers**:
+
    ```bash
    curl $BACKEND_URL/api/auth/providers
    # Should return: {"google":{"id":"google","name":"Google",...}}
    ```
 
 3. **Test frontend serves content**:
+
    ```bash
    curl -I $FRONTEND_URL
    # Should return: HTTP/1.1 200 OK
@@ -251,6 +268,7 @@ bash scripts/verify-cloud-run-deployment.sh
    ```
 
 **Checklist**:
+
 - [ ] Backend health endpoint responds with 200 OK
 - [ ] Backend auth providers endpoint returns OAuth providers
 - [ ] Frontend serves the React app
@@ -260,13 +278,14 @@ bash scripts/verify-cloud-run-deployment.sh
 ### Step 6: Test Authentication Flow
 
 1. **Open frontend in browser**:
+
    ```bash
    # macOS
    open $FRONTEND_URL
-   
+
    # Linux
    xdg-open $FRONTEND_URL
-   
+
    # Or copy and paste the URL
    echo $FRONTEND_URL
    ```
@@ -288,6 +307,7 @@ bash scripts/verify-cloud-run-deployment.sh
    - User profile should be visible
 
 **Checklist**:
+
 - [ ] "Sign In" button redirects to Google OAuth
 - [ ] Google OAuth consent screen appears
 - [ ] After authentication, redirects back to application
@@ -308,6 +328,7 @@ bash scripts/verify-cloud-run-deployment.sh
 ### Monitoring & Logs
 
 - [ ] Check backend logs for errors:
+
   ```bash
   gcloud logging read "resource.type=cloud_run_revision \
     AND resource.labels.service_name=$BACKEND_SERVICE" \
@@ -315,6 +336,7 @@ bash scripts/verify-cloud-run-deployment.sh
   ```
 
 - [ ] Check frontend logs for NGINX configuration:
+
   ```bash
   gcloud logging read "resource.type=cloud_run_revision \
     AND resource.labels.service_name=$FRONTEND_SERVICE" \
@@ -345,7 +367,7 @@ If you encounter issues, see:
    - Backend OAuth credentials missing
    - Service name mismatch
 
-2. **404 on /api/* endpoints**:
+2. **404 on /api/\* endpoints**:
    - Frontend not proxying to backend
    - `BACKEND_URL` not set on frontend
    - Frontend container needs redeployment
