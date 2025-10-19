@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/features/auth';
 import { useCommunity } from '@/features/communities';
 import { useToast } from '@/hooks/use-toast';
@@ -36,10 +36,12 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [primaryCommunity, setPrimaryCommunity] = useState('');
+  const lastInitializedUserRef = useRef<string | null>(null);
 
   // Initialize form values when user or dialog opens
   useEffect(() => {
-    if (user && open) {
+    if (user && open && lastInitializedUserRef.current !== user.id) {
+      lastInitializedUserRef.current = user.id;
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPrimaryCommunity(user.primaryCommunity || '');

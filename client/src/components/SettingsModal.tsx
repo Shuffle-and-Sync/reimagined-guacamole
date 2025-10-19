@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +22,9 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { user } = useAuth();
-  const { selectedCommunity, communities } = useCommunity();
+  const { selectedCommunity } = useCommunity();
   const { toast } = useToast();
+  const hasInitializedRef = useRef(false);
 
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -51,53 +51,38 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   });
 
   // Fetch user settings
-  const { data: userSettings, isLoading: settingsLoading } = useQuery<UserSettings>({
+  const { data: userSettings } = useQuery<UserSettings>({
     queryKey: ['/api/user/settings'],
     enabled: !!user?.id,
   });
 
   // Load settings from backend when available
   useEffect(() => {
-    if (userSettings) {
+    if (userSettings && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       // Parse JSON fields from database
       const notificationTypes = userSettings.notificationTypes 
         ? (typeof userSettings.notificationTypes === 'string' 
           ? JSON.parse(userSettings.notificationTypes) 
           : userSettings.notificationTypes)
-        : {};
+        : null;
       const privacySettings = userSettings.privacySettings 
         ? (typeof userSettings.privacySettings === 'string' 
           ? JSON.parse(userSettings.privacySettings) 
           : userSettings.privacySettings)
-        : {};
+        : null;
       const displayPreferences = userSettings.displayPreferences 
         ? (typeof userSettings.displayPreferences === 'string' 
           ? JSON.parse(userSettings.displayPreferences) 
           : userSettings.displayPreferences)
-        : {};
+        : null;
       
-      setPreferences({
-        theme: displayPreferences.theme || "system",
-        notifications: notificationTypes || {
-          email: true,
-          browser: true,
-          eventReminders: true,
-          socialUpdates: false,
-          weeklyDigest: true
-        },
-        privacy: privacySettings || {
-          profileVisible: true,
-          showOnlineStatus: true,
-          allowDirectMessages: true,
-          shareStreamingActivity: true
-        },
-        streaming: displayPreferences.streaming || {
-          defaultQuality: "720p",
-          autoStartRecording: false,
-          chatOverlay: true,
-          showViewerCount: true
-        }
-      });
+      setPreferences(prev => ({
+        theme: displayPreferences?.theme || prev.theme,
+        notifications: notificationTypes || prev.notifications,
+        privacy: privacySettings || prev.privacy,
+        streaming: displayPreferences?.streaming || prev.streaming
+      }));
     }
   }, [userSettings]);
 
