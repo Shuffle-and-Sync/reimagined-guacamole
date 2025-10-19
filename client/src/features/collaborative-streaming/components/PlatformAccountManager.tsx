@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +11,7 @@ import {
   CheckCircle,
   AlertCircle,
   Users,
-  Settings,
   RefreshCw,
-  Youtube,
-  Twitch,
-  Facebook,
   Shield,
   Clock,
   Eye,
@@ -121,7 +117,7 @@ export function PlatformAccountManager() {
       }
       return response.json();
     },
-    onSuccess: (data, platform) => {
+    onSuccess: (data) => {
       // Redirect to OAuth flow
       if (data && typeof data === "object" && "authUrl" in data) {
         window.location.href = (data as any).authUrl;
@@ -237,7 +233,6 @@ export function PlatformAccountManager() {
   const renderPlatformCard = (platform: string) => {
     const info = PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO];
     const account = getAccountByPlatform(platform);
-    const status = getPlatformStatus(platform);
     const connectionStatus = getConnectionStatus(platform);
     const IconComponent = info.icon;
 
