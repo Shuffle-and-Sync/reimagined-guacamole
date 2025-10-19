@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -95,9 +94,6 @@ export default function Calendar() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { selectedCommunity, communityTheme } = useCommunity();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
   const [viewMode, setViewMode] = useState("month");
   const [filterType, setFilterType] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -137,8 +133,6 @@ export default function Calendar() {
   // Fetch events for the selected community only
   const {
     data: events = [],
-    isLoading: eventsLoading,
-    refetch: refetchEvents,
   } = useQuery<ExtendedEvent[]>({
     queryKey: [
       "/api/events",
@@ -222,7 +216,9 @@ export default function Calendar() {
         ws.close();
       }
     };
-  }, [isAuthenticated, selectedCommunity, queryClient, toast]);
+    // queryClient and toast are stable references and don't need to be in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, selectedCommunity]);
 
   // Create event mutation
   const createEventMutation = useMutation({
@@ -1058,13 +1054,13 @@ export default function Calendar() {
                     <CalendarGrid
                       currentDate={currentMonth}
                       events={filteredEvents}
-                      onDateClick={(date) => {
-                        // Set the selected date when clicking a day
-                        setSelectedDate(format(date, "yyyy-MM-dd"));
+                      onDateClick={(_date) => {
+                        // Could set selected date or open date view here
+                        // Functionality not yet implemented
                       }}
-                      onEventClick={(event) => {
+                      onEventClick={(_event) => {
                         // Could open event details dialog here
-                        // Event clicked: event
+                        // Functionality not yet implemented
                       }}
                     />
                   </CardContent>
