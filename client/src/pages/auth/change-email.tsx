@@ -16,7 +16,6 @@ import {
   Mail,
   CheckCircle,
   XCircle,
-  RefreshCw,
   ArrowLeft,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
