@@ -33,7 +33,7 @@ export default function HelpCenter() {
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-3">
                 <i className="fas fa-tools text-primary text-2xl"></i>
-                We're Building Something Amazing
+                We&apos;re Building Something Amazing
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

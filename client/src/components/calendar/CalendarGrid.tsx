@@ -36,7 +36,7 @@ export function CalendarGrid({
 
   const getEventsForDay = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    // return events.filter(event => event.date === dateStr); // TODO: date property doesn't exist
+    // return events.filter(event => event.date === dateStr); // TODO: date property doesn&apos;t exist
     return events.filter((event) => {
       if (!event.startTime) return false;
       const eventDate = format(new Date(event.startTime), "yyyy-MM-dd");
@@ -93,7 +93,7 @@ export function CalendarGrid({
                       title={event.title}
                     >
                       {/* {event.time} {event.title} */}{" "}
-                      {/* TODO: time property doesn't exist */}
+                      {/* TODO: time property doesn&apos;t exist */}
                       {event.startTime &&
                         format(new Date(event.startTime), "HH:mm")}{" "}
                       {event.title}

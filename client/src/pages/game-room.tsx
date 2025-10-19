@@ -411,7 +411,7 @@ export default function GameRoom() {
         case "turn_change":
           toast({
             title: "Turn changed",
-            description: `It's now ${data.player}'s turn`,
+            description: `It&apos;s now ${data.player}'s turn`,
           });
           break;
       }

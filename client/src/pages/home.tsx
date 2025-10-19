@@ -438,7 +438,7 @@ export default function Home() {
                       className="text-sm text-blue-600 dark:text-blue-400"
                       style={{ fontFamily: communityTheme.fonts.body }}
                     >
-                      Your collaboration hub is ready. Let's create amazing
+                      Your collaboration hub is ready. Let&apos;s create amazing
                       content together!
                     </p>
                   </div>

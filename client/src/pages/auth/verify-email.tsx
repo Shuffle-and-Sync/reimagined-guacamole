@@ -220,7 +220,7 @@ export default function VerifyEmail() {
               Verification failed
             </h3>
             <p className="text-sm text-muted-foreground">
-              We couldn't verify your email address.
+              We couldn&apos;t verify your email address.
             </p>
           </div>
 

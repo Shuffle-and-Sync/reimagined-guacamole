@@ -241,7 +241,7 @@ export default function Tournaments() {
     // For active tournaments, omit restricted fields from the payload
     let updates;
     if (editingTournament.status === "active") {
-      // Remove fields that can't be changed for active tournaments
+      // Remove fields that can&apos;t be changed for active tournaments
       const { gameFormat, startDate, maxParticipants, ...allowedUpdates } =
         editForm;
       updates = allowedUpdates;

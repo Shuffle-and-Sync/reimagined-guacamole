@@ -348,7 +348,7 @@ export default function MfaVerify() {
             <Alert data-testid="alert-attempt-warning">
               <AlertDescription>
                 Multiple failed attempts detected. Consider using a backup code
-                or contact support if you're unable to access your authenticator
+                or contact support if you&apos;re unable to access your authenticator
                 app.
               </AlertDescription>
             </Alert>

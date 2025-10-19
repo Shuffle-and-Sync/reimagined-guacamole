@@ -56,7 +56,7 @@ const changePasswordSchema = z
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Passwords don&apos;t match",
     path: ["confirmPassword"],
   });
 
@@ -232,7 +232,7 @@ export default function AccountSettings() {
           toast({
             title: "Save your backup codes!",
             description:
-              "Download and store these codes safely - they won't be shown again.",
+              "Download and store these codes safely - they won&apos;t be shown again.",
           });
         }
       } else {

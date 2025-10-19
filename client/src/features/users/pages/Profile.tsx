@@ -208,7 +208,7 @@ export default function Profile() {
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
             <p className="text-muted-foreground">
-              The user profile you're looking for doesn't exist.
+              The user profile you&apos;re looking for doesn&apos;t exist.
             </p>
           </div>
         </div>

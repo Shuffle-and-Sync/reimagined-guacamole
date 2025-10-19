@@ -16,8 +16,8 @@ export function PodStatusBadge({
 }: PodStatusBadgeProps) {
   if (event.type !== "game_pod") return null;
 
-  // const playerSlots = event.playerSlots || 4; // TODO: playerSlots doesn't exist in schema
-  // const alternateSlots = event.alternateSlots || 2; // TODO: alternateSlots doesn't exist in schema
+  // const playerSlots = event.playerSlots || 4; // TODO: playerSlots doesn&apos;t exist in schema
+  // const alternateSlots = event.alternateSlots || 2; // TODO: alternateSlots doesn&apos;t exist in schema
   const playerSlots = 4; // Default player slots
   const alternateSlots = 2; // Default alternate slots
   const mainProgress = (mainPlayers / playerSlots) * 100;

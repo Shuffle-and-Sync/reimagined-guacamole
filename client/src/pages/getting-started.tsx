@@ -38,7 +38,7 @@ export default function GettingStarted() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                We're crafting the perfect onboarding experience. Our Getting
+                We&apos;re crafting the perfect onboarding experience. Our Getting
                 Started guide will feature:
               </p>
 

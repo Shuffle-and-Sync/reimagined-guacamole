@@ -231,7 +231,7 @@ export function DecksongDashboard({ user }: DecksongDashboardProps) {
                       className="text-purple-600 text-lg"
                       style={{ fontFamily: theme.fonts.accent }}
                     >
-                      Your tale begins now. Let's create something truly magical
+                      Your tale begins now. Let&apos;s create something truly magical
                       together
                     </p>
                   </div>

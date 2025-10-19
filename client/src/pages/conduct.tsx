@@ -129,7 +129,7 @@ export default function Conduct() {
                     help them learn
                   </li>
                   <li>
-                    <strong>Respect Boundaries:</strong> Don't pressure others
+                    <strong>Respect Boundaries:</strong> Don&apos;t pressure others
                     to play beyond their comfort level
                   </li>
                 </ul>
