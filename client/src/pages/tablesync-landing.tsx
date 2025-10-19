@@ -335,7 +335,7 @@ export default function TableSyncLanding() {
                 bg: "from-green-600 to-teal-600",
                 community: "Deckmaster",
               },
-            ].map((game, index) => (
+            ].map((game) => (
               <Card
                 key={game.name}
                 className="bg-white/10 backdrop-blur-sm border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 group"

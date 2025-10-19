@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { Logo } from "@/components/ui/logo";
 import { CommunityCard } from "@/features/communities";
 import { Header } from "@/shared/components";
 import { Footer } from "@/shared/components";
