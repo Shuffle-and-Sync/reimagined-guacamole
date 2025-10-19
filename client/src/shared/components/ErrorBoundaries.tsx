@@ -124,8 +124,8 @@ export class ErrorBoundary extends Component<
   }
 
   private renderErrorUI() {
-    const { level = "component", showDetails = false } = this.props;
-    const { error, errorInfo, errorId } = this.state;
+    const { level = "component" } = this.props;
+    // Note: showDetails, error, errorInfo, errorId reserved for enhanced error display
 
     // Different UI based on error level
     switch (level) {
