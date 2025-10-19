@@ -42,7 +42,7 @@ import {
 import { sql } from "drizzle-orm";
 
 // Import feature-based routes
-import { authRoutes } from "./features/auth/auth.routes";
+// Note: authRoutes reserved for future feature-based auth routing
 import {
   communitiesRoutes,
   userCommunitiesRouter,
@@ -68,11 +68,11 @@ import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
 import { gamesRoutes } from "./features/games/games.routes";
 
 // Import shared middleware
-import { errorHandler, requestLogger, corsHandler } from "./shared/middleware";
+// Note: errorHandler, requestLogger, corsHandler reserved for enhanced middleware setup
 import { securityHeaders } from "./validation";
 
 // Import Auth.js configuration and webhook routes
-import { ExpressAuth } from "@auth/express";
+// Note: ExpressAuth reserved for direct Auth.js integration
 // LAZY: Import auth routes after database initialization to avoid accessing db before it's ready
 // import authRoutesFixed from "./auth/auth.routes";
 import webhooksRouter from "./routes/webhooks";

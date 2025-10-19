@@ -15,7 +15,6 @@ const router = Router();
 router.get("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = getAuthUserId(authenticatedReq);
 
     // Parse pagination and filter parameters
@@ -42,7 +41,6 @@ router.get("/", isAuthenticated, async (req, res) => {
 router.post("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = getAuthUserId(authenticatedReq);
     const notification = await messagingService.createNotification(
       userId,
@@ -71,7 +69,6 @@ router.patch("/:id/read", isAuthenticated, async (req, res) => {
 router.patch("/read-all", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = getAuthUserId(authenticatedReq);
     await messagingService.markAllNotificationsAsRead(userId);
     res.json({ success: true });
@@ -91,7 +88,6 @@ export const messagesRouter = Router();
 messagesRouter.get("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = getAuthUserId(authenticatedReq);
 
     // Parse pagination and filter parameters
@@ -121,7 +117,6 @@ messagesRouter.get("/", isAuthenticated, async (req, res) => {
 messagesRouter.post("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = getAuthUserId(authenticatedReq);
     const message = await messagingService.sendMessage(userId, req.body);
     res.status(201).json(message);
@@ -139,7 +134,6 @@ export const conversationsRouter = Router();
 conversationsRouter.get("/:userId", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const user = authenticatedReq.user as any;
     const userId = assertRouteParam(req.params.userId, "userId");
 
     const currentUserId = getAuthUserId(authenticatedReq);

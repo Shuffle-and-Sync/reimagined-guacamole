@@ -1,4 +1,4 @@
-import type { UpsertUser } from "@shared/schema";
+// Note: UpsertUser type from @shared/schema reserved for user creation/update operations
 
 export interface UpdateProfileRequest {
   firstName?: string;
