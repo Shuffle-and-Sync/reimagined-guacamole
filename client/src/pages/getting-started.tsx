@@ -24,7 +24,7 @@ export default function GettingStarted() {
               Getting Started Guide
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Your complete guide to mastering Shuffle & Sync's streaming
+              Your complete guide to mastering Shuffle &amp; Sync&apos;s streaming
               coordination features.
             </p>
           </div>

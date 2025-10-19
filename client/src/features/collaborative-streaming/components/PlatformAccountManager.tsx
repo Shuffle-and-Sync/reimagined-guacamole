@@ -544,7 +544,7 @@ export function PlatformAccountManager() {
             <ExternalLink className="h-4 w-4" />
             <span>
               Connected platforms maintain their own privacy policies and terms
-              of service. Review each platform's documentation for details.
+              of service. Review each platform&apos;s documentation for details.
             </span>
           </div>
         </CardContent>

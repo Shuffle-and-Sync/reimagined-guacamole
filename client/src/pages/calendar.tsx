@@ -741,7 +741,7 @@ export default function Calendar() {
               {/* Today's Events */}
               <div>
                 <h2 className="text-2xl font-bold mb-4 community-heading">
-                  Today's {communityTheme.terminology.events}
+                  Today&apos;s {communityTheme.terminology.events}
                 </h2>
                 {todaysEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

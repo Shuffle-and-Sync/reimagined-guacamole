@@ -671,7 +671,7 @@ export default function TableSyncLanding() {
               </span>
             </h2>
             <p className="text-xl lg:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Join the world's most advanced platform for remote TCG gameplay
+              Join the world&apos;s most advanced platform for remote TCG gameplay
               and streaming coordination.
             </p>
 
