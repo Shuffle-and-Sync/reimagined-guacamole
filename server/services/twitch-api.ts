@@ -50,7 +50,7 @@ export interface TwitchWebhookEvent {
   event_type: string;
   event_timestamp: string;
   version: string;
-  event_data: any;
+  event_data: Record<string, unknown>;
 }
 
 export interface TwitchEventSubSubscription {
@@ -62,7 +62,7 @@ export interface TwitchEventSubSubscription {
     | "notification_failures_exceeded";
   type: string;
   version: string;
-  condition: Record<string, any>;
+  condition: Record<string, string | number>;
   transport: {
     method: "webhook";
     callback: string;

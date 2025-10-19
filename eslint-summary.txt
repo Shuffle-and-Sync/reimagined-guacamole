@@ -1,0 +1,1070 @@
+
+> shuffle-and-sync@1.0.0 lint
+> ./node_modules/.bin/eslint server client/src --fix --format stylish
+
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/components/SettingsModal.tsx
+  105:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  203:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/components/calendar/CSVUploadDialog.tsx
+  38:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/components/tournament/TournamentBracket.tsx
+  280:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  309:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  351:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  380:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/components/tournament/TournamentEditor.tsx
+   33:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   35:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/auth/types/index.ts
+  13:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/collaborative-streaming/components/PlatformAccountManager.tsx
+  123:41  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  126:22  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  150:22  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  176:22  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  547:47  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/collaborative-streaming/components/SessionMonitor.tsx
+  128:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/collaborative-streaming/hooks/useCollaborativeStreaming.ts
+   90:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  169:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  247:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  280:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  318:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/collaborative-streaming/types/index.ts
+  61:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/GamePodCalendar.tsx
+   8:11  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  12:3   warning  'communityId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  14:3   warning  'theme' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/BladeforgeDashboard.tsx
+  22:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/DeckmasterDashboard.tsx
+  21:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/DecksongDashboard.tsx
+   21:17  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  281:28  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  287:52  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/DuelcraftDashboard.tsx
+  21:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/PokeStreamDashboard.tsx
+   21:17  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  242:23  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/communities/components/realm-dashboards/ScryGatherDashboard.tsx
+   20:17  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  333:53  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/features/events/types/index.ts
+  15:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/hooks/use-toast.ts
+  16:7  warning  'actionTypes' is assigned a value but only used as a type. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/lib/logger.ts
+   3:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/lib/queryClient.ts
+  52:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/lib/websocket-client.ts
+   22:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   25:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   49:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   55:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   61:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  323:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  486:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  508:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  521:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  531:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  535:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  539:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  543:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  550:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  557:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/auth/signin.tsx
+  15:10  warning  'Label' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  27:25  warning  'Lock' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/auth/verify-email.tsx
+  279:19  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/calendar.tsx
+   79:12  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  225:35  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  305:35  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  381:22  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  744:24  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/community-forum.tsx
+    1:27  warning  'useEffect' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   27:10  warning  'Separator' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   28:10  warning  'ScrollArea' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   87:30  warning  'communityTheme' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  165:34  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/contact.tsx
+   83:14  warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  105:60  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/game-room.tsx
+    33:17  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+    65:11  warning  'selectedCommunity' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    66:9   warning  'queryClient' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    78:60  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+    94:10  warning  'recordedChunks' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   180:18  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   213:55  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   229:55  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   281:21  warning  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+   520:14  warning  'error' is defined but never used                                                             @typescript-eslint/no-unused-vars
+   547:52  warning  'playerId' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+   581:52  warning  'playerId' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  1020:37  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                               react/no-unescaped-entities
+  1020:51  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                               react/no-unescaped-entities
+  1029:50  warning  'index' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/getting-started.tsx
+  27:62  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/matchmaking.tsx
+  118:30  warning  'communityTheme' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  130:10  warning  'language' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  134:54  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  137:46  warning  'preferencesLoading' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  191:41  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  212:43  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  228:22  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  317:9   warning  'toggleFormat' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  823:36  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                react/no-unescaped-entities
+  847:36  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/privacy.tsx
+  168:46  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  168:59  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/tablesync-landing.tsx
+  674:29  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/tablesync.tsx
+   56:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  680:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/tournament-detail.tsx
+   38:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   40:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  451:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  458:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/pages/tournaments.tsx
+   96:40  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  121:22  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  147:22  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  163:16  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  186:22  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  224:29  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  244:15  warning  'gameFormat' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  244:27  warning  'startDate' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  244:38  warning  'maxParticipants' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  755:47  warning  Unexpected any. Specify a different type                                                    @typescript-eslint/no-explicit-any
+  909:51  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                             react/no-unescaped-entities
+  930:51  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                             react/no-unescaped-entities
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/shared/components/LazyLoad.tsx
+  44:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/shared/components/OptimizedComponents.tsx
+  80:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/shared/constants/queryKeys.ts
+  29:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  47:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/shared/hooks/useOptimizedQuery.ts
+   57:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/client/src/shared/utils/performance.ts
+   10:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   10:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   39:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   39:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.middleware.ts
+  491:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  497:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  513:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  513:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  530:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  530:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  539:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  561:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  612:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  613:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.routes.ts
+     9:3   warning  'requireAllPermissions' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    10:3   warning  'requireAnyPermission' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   741:41  warning  'notes' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  1201:23  warning  'notes' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/automated-fixes.ts
+   37:13  warning  'output' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   48:14  warning  'error' is defined but never used                                                  @typescript-eslint/no-unused-vars
+   95:13  warning  'output' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  106:14  warning  'error' is defined but never used                                                  @typescript-eslint/no-unused-vars
+  123:13  warning  'output' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  134:14  warning  'error' is defined but never used                                                  @typescript-eslint/no-unused-vars
+  151:13  warning  'output' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  163:14  warning  'error' is defined but never used                                                  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/backend-copilot-agent.ts
+  320:16  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/drizzle-analyzer.ts
+  279:5   warning  'metrics' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  434:16  warning  'error' is defined but never used                                          @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.config.ts
+  132:36  warning  'req' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  387:35  warning  'profile' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  478:16  warning  'e' is defined but never used                                                @typescript-eslint/no-unused-vars
+  487:29  warning  'isNewUser' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.middleware.ts
+  44:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.routes.ts
+  2:15  warning  'Router' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/mfa.ts
+  3:23  warning  'createHash' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/session-security.ts
+    3:10  warning  'createHash' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  513:53  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  586:24  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  776:71  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/tokens.ts
+  306:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/email-service.ts
+  37:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.service.ts
+   6:3   warning  'ForgotPasswordRequest' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   7:3   warning  'ResetPasswordRequest' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   8:3   warning  'AuthenticatedUser' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  15:38  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.types.ts
+  21:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/cards.routes.ts
+  24:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.types.ts
+  12:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.routes.ts
+  18:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.service.ts
+   51:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  320:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.routes.ts
+  303:20  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  303:30  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  303:40  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  303:45  warning  'next' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  303:51  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games-crud.routes.ts
+  105:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.service.ts
+    90:42  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   190:23  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   209:51  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   210:32  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   577:14  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   761:56  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   793:43  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   799:25  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   914:5   warning  'previousResults' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   914:22  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   948:62  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  1025:5   warning  'previousMatches' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1025:22  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.types.ts
+  20:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/index.ts
+  578:18  warning  'authError' is defined but never used                                   @typescript-eslint/no-unused-vars
+  772:18  warning  'authError' is defined but never used                                   @typescript-eslint/no-unused-vars
+  793:17  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  793:51  warning  'next' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/logger.ts
+   43:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   55:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/cache-middleware.ts
+   60:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/error-handling.middleware.ts
+  130:3   warning  'next' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  229:40  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  235:16  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/index.ts
+  129:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/performance.middleware.ts
+  187:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  295:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  334:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  336:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  348:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/security.middleware.ts
+  341:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  341:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  351:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/rate-limiting.ts
+  19:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/base.repository.ts
+    8:19  warning  'or' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   92:31  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+   93:36  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  114:31  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  115:39  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  137:57  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  143:61  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  149:41  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  153:18  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  160:31  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  209:31  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  231:27  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  256:27  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  278:36  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  332:47  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  333:38  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  340:38  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  372:47  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  400:75  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  405:61  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  447:57  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  460:43  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  473:54  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  477:43  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  481:16  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+  592:37  warning  Unexpected any. Specify a different type                              @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/user.repository.ts
+  151:11  warning  'includeDeleted' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  237:56  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  242:43  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  248:20  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes.ts
+     3:10  warning  'WebSocketServer' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+     3:27  warning  'WebSocket' is defined but never used. Allowed unused vars must match /^_/u                              @typescript-eslint/no-unused-vars
+    12:3   warning  'insertCommunitySchema' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+    14:3   warning  'insertEventAttendeeSchema' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+    15:3   warning  'insertGameSessionSchema' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+    18:3   warning  'insertStreamCoordinationSessionSchema' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+    33:3   warning  'verifyEmailVerificationJWT' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    55:10  warning  'NotFoundError' is defined but never used. Allowed unused vars must match /^_/u                          @typescript-eslint/no-unused-vars
+    55:25  warning  'ValidationError' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+    66:3   warning  'AppError' is assigned a value but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+    67:20  warning  'ValidationErr' is assigned a value but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+    68:3   warning  'AuthenticationError' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    69:3   warning  'AuthorizationError' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+    72:3   warning  'DatabaseError' is assigned a value but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+    81:10  warning  'websocketMessageSchema' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   100:3   warning  'validateJoinCommunitySchema' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+   101:3   warning  'validateJoinEventSchema' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   102:3   warning  'validateMessageSchema' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars
+   106:3   warning  'eventParamSchema' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   107:3   warning  'userParamSchema' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   108:3   warning  'communityParamSchema' is defined but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+   110:3   warning  'searchQuerySchema' is defined but never used. Allowed unused vars must match /^_/u                      @typescript-eslint/no-unused-vars
+   152:3   warning  'messageRateLimit' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+   288:36  warning  Unexpected any. Specify a different type                                                                 @typescript-eslint/no-explicit-any
+   608:13  warning  'userId' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  1200:15  warning  'userId' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  1343:15  warning  'userId' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  1391:15  warning  'userId' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  1392:15  warning  'eventId' is assigned a value but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+  1424:15  warning  'userId' is assigned a value but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+  1425:15  warning  'eventId' is assigned a value but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+  1634:16  warning  'error' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  2961:30  warning  Unexpected any. Specify a different type                                                                 @typescript-eslint/no-explicit-any
+  2980:30  warning  Unexpected any. Specify a different type                                                                 @typescript-eslint/no-explicit-any
+  3253:11  warning  'authenticatedReq' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  3338:13  warning  'authenticatedReq' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/analytics.ts
+  20:3   warning  'validateQuery' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  21:3   warning  'validateParamsWithSchema' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  22:3   warning  'userParamSchema' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  23:3   warning  'paginationQuerySchema' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  27:9   warning  'NotFoundError' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  27:44  warning  'ValidationError' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  43:12  warning  'error' is defined but never used                                                           @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/backup.ts
+  24:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/cache-health.ts
+  17:29  warning  'ValidationError' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  32:12  warning  'error' is defined but never used                                                           @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/database-health.ts
+  24:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  93:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/infrastructure-tests.ts
+  24:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/matching.ts
+  262:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/monitoring.ts
+   24:12  warning  'error' is defined but never used                                                  @typescript-eslint/no-unused-vars
+  115:11  warning  'status' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/webhooks.ts
+   6:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-algorithm-engine.ts
+   275:5   warning  'userPreferences' is defined but never used. Allowed unused args must match /^_/u             @typescript-eslint/no-unused-vars
+   276:5   warning  'candidatePreferences' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+   533:5   warning  'userHistory' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+   534:5   warning  'candidateHistory' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+  1060:5   warning  'optimalSlots' is defined but never used. Allowed unused args must match /^_/u                @typescript-eslint/no-unused-vars
+  1086:5   warning  'timezoneOffset' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+  1323:13  warning  'successfulCollabs' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1349:13  warning  'totalAdjustment' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-streaming-matcher.ts
+     2:10  warning  'aiAlgorithmEngine' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   403:5   warning  'userProfile' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+   444:5   warning  'criteria' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+   904:53  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+   942:52  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+   953:11  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+   954:5   warning  'userSettings' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+   954:19  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+   986:23  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  1009:5   warning  'matchingPrefs' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  1009:20  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  1010:5   warning  'userSettings' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+  1010:19  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/analytics-service.ts
+    4:3   warning  'UserActivityAnalytics' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+    5:3   warning  'CommunityAnalytics' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+    6:3   warning  'PlatformMetrics' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+    7:3   warning  'EventTracking' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+    8:3   warning  'ConversionFunnel' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    9:3   warning  'StreamAnalytics' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+   10:3   warning  'InsertUserActivityAnalytics' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   15:3   warning  'User' is defined but never used. Allowed unused vars must match /^_/u                         @typescript-eslint/no-unused-vars
+   16:3   warning  'Community' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+   30:31  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+   36:20  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  143:31  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  325:19  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  326:22  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  327:23  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  328:21  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  329:18  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  399:22  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  400:27  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  450:33  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  451:30  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  478:11  warning  'endTime' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  500:41  warning  'communityId' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  522:5   warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  523:5   warning  'startDate' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  524:14  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  530:5   warning  'communityId' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  531:5   warning  'startDate' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  532:14  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  538:5   warning  'communityId' is defined but never used. Allowed unused args must match /^_/u                  @typescript-eslint/no-unused-vars
+  539:5   warning  'startDate' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  540:14  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  545:43  warning  'startDate' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  545:70  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  550:31  warning  'data' is defined but never used. Allowed unused args must match /^_/u                         @typescript-eslint/no-unused-vars
+  550:37  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  550:43  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  555:51  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  566:41  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  566:66  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  571:45  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  571:70  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  577:5   warning  'activityData' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+  577:19  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  578:5   warning  'engagementMetrics' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+  578:24  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  579:5   warning  'collaborationData' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+  579:24  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  580:6   warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/backup-service.ts
+    7:10  warning  'promisify' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  449:31  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  488:9   warning  'outputFile' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  594:12  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/cache-service.ts
+  159:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  199:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition.ts
+  117:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  277:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/base.adapter.ts
+  23:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/custom.adapter.ts
+    8:10  warning  'eq' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+    8:14  warning  'and' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    8:19  warning  'like' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+    8:25  warning  'sql' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+    9:10  warning  'db' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+   12:10  warning  'logger' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   30:40  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   49:5   warning  'query' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+   50:5   warning  'options' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  106:21  warning  'id' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+  134:5   warning  'name' is defined but never used. Allowed unused args must match /^_/u            @typescript-eslint/no-unused-vars
+  135:5   warning  'options' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  169:37  warning  'limit' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  200:23  warning  'options' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/pokemon.adapter.ts
+  64:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/scryfall.adapter.ts
+  27:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/index.ts
+   8:10  warning  'eq' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+   9:10  warning  'db' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+  22:10  warning  'CustomGameAdapter' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/collaborative-streaming.ts
+    19:3   warning  'InsertStreamCoordinationSession' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   126:29  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   128:24  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   293:26  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   346:19  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   398:14  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   442:14  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   443:14  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   457:37  warning  'matches' is defined but never used. Allowed unused args must match /^_/u                          @typescript-eslint/no-unused-vars
+   457:46  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   457:54  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   511:45  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+   842:42  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+  1057:40  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+  1318:12  warning  Unexpected any. Specify a different type                                                           @typescript-eslint/no-explicit-any
+  1341:40  warning  'eventId' is defined but never used. Allowed unused args must match /^_/u                          @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notification.ts
+   33:61  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+   44:23  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+   95:20  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  124:27  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  142:12  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  173:17  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  189:17  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  303:59  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  310:60  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  319:37  warning  'userId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  319:62  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  336:18  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  381:61  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notifications.ts
+   13:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   31:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  168:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/error-tracking.ts
+  105:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  235:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/facebook-api.ts
+    40:21  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   270:41  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   272:11  warning  'errorType' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   314:46  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   349:46  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   394:46  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   404:37  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   557:25  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   709:31  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   752:23  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   991:14  warning  'error' is defined but never used                                                     @typescript-eslint/no-unused-vars
+  1003:5   warning  'callbackUrl' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  1004:5   warning  'verifyToken' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/games/game.service.ts
+   8:10  warning  'eq' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   8:14  warning  'and' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+   9:10  warning  'db' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  12:10  warning  'logger' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  26:19  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  52:19  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  55:15  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  56:11  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  66:20  warning  'userId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  66:36  warning  'gameData' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  70:21  warning  'gameId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  74:21  warning  'filters' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  82:20  warning  'gameId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  82:36  warning  'userId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  82:52  warning  'updates' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  86:20  warning  'gameId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  86:36  warning  'userId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  90:21  warning  'gameId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  90:37  warning  'userId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+  94:22  warning  'gameId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/graphics-generator.ts
+  75:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/infrastructure-test-service.ts
+    7:10  warning  'redisClient' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   16:13  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  155:15  warning  'initialAlerts' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  317:44  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  441:17  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  448:18  warning  'error' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  530:18  warning  'error' is defined but never used                                                         @typescript-eslint/no-unused-vars
+  782:27  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/monitoring-service.ts
+   42:28  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   53:29  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  700:43  warning  'severity' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-delivery.ts
+   47:50  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+   48:23  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+   49:21  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+   50:25  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  469:5   warning  'user' is defined but never used. Allowed unused args must match /^_/u                   @typescript-eslint/no-unused-vars
+  473:13  warning  'now' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  474:13  warning  'userTimezone' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  523:59  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-templates.ts
+   50:17  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   57:18  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   67:18  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   82:41  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   85:41  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  295:38  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  308:11  warning  'weeklyStats' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/platform-oauth.ts
+  143:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  316:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  411:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  458:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  466:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  485:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  657:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/real-time-matching-api.ts
+    11:10  warning  'storage' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+    45:14  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   435:16  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   567:51  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   586:5   warning  'request' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   661:14  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   678:16  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   713:16  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   745:16  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   757:14  warning  'error' is defined but never used                                              @typescript-eslint/no-unused-vars
+   884:5   warning  'request' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+   954:18  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   974:5   warning  'userProfile' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   974:18  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+   991:5   warning  'userProfile' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   991:18  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  1048:39  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  1049:37  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  1052:49  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+  1066:14  warning  Unexpected any. Specify a different type                                       @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/streaming-coordinator.ts
+    3:15  warning  'User' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   52:28  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  411:54  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  430:42  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  457:5   warning  'timeRange' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/twitch-api.ts
+   53:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  258:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/user.service.ts
+  11:3  warning  'UserUpdateData' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  18:3  warning  'AuthenticationError' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/waitlist.ts
+  202:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  202:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/youtube-api.ts
+    13:13  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   126:46  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   170:52  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   188:51  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   241:52  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   254:20  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   261:52  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   274:44  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   314:52  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   324:20  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   331:52  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   344:44  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   395:46  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   445:23  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   459:46  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   895:5   warning  'leaseSeconds' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  1196:46  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/middleware.ts
+   7:10  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+  10:3   warning  'next' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/types.ts
+  21:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/utils.ts
+    6:95  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+   96:44  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+  191:42  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+  211:3   warning  'paramName' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/startup-optimization.ts
+  32:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  96:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/storage.ts
+    99:8   warning  'ForumPostLike' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   100:8   warning  'ForumReplyLike' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   121:8   warning  'InsertFriendship' is defined but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+   127:8   warning  'InsertTournamentParticipant' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   134:8   warning  'InsertForumPostLike' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   135:8   warning  'InsertForumReplyLike' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   182:8   warning  'InsertUserMfaAttempts' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   193:8   warning  'InsertRevokedJwtToken' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+   194:8   warning  'RevokedJwtToken' is defined but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+   216:11  warning  'ExtendedEvent' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+   228:11  warning  'ExtendedTournament' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  1354:76  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1360:50  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1398:51  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1400:52  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1404:55  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1413:12  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1416:60  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1423:39  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  1508:7   warning  'sortBy' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  1964:55  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  2408:5   warning  'endDate' is defined but never used. Allowed unused args must match /^_/u                      @typescript-eslint/no-unused-vars
+  2502:55  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  3598:5   warning  'originalExpiry' is defined but never used. Allowed unused args must match /^_/u               @typescript-eslint/no-unused-vars
+  3599:5   warning  'ipAddress' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  3600:5   warning  'userAgent' is defined but never used. Allowed unused args must match /^_/u                    @typescript-eslint/no-unused-vars
+  3967:65  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4021:44  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  4029:45  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  4039:48  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  4047:44  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  4173:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4207:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4328:38  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4607:33  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4651:42  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4826:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  4931:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5016:34  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5112:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5165:28  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5266:14  warning  'error' is defined but never used                                                              @typescript-eslint/no-unused-vars
+  5315:29  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5378:14  warning  'error' is defined but never used                                                              @typescript-eslint/no-unused-vars
+  5406:51  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5472:43  warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  5510:27  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5518:5   warning  'userId' is defined but never used. Allowed unused args must match /^_/u                       @typescript-eslint/no-unused-vars
+  5529:49  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5565:44  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5643:69  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5662:36  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5736:22  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5737:19  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  5999:62  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6027:21  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6028:18  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6061:5   warning  'responseMessage' is defined but never used. Allowed unused args must match /^_/u              @typescript-eslint/no-unused-vars
+  6879:42  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6884:40  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6967:16  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  6980:42  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7005:16  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7018:42  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7518:48  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7545:61  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7847:55  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7847:66  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7920:16  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  7985:32  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  8017:54  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  8017:65  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+  8320:5   warning  'suspiciousActivity' is defined but never used. Allowed unused args must match /^_/u           @typescript-eslint/no-unused-vars
+  8509:64  warning  Unexpected any. Specify a different type                                                       @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/admin/admin-initialization.test.ts
+  1:32  warning  'beforeEach' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1:44  warning  'jest' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/auth-routes.test.ts
+  14:11  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/environment/env-validation.test.ts
+  1:10  warning  'jest' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/calendar.test.ts
+  8:34  warning  'jest' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/card-recognition.test.ts
+  9:8  warning  'MtgCard' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/events.integration.test.ts
+  14:3  warning  'beforeAll' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  15:3  warning  'afterAll' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  16:3  warning  'beforeEach' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/matchmaking.test.ts
+   8:34  warning  'jest' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+  52:11  warning  'criteria' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  57:20  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/messaging.test.ts
+  241:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  273:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  292:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  356:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/registration-login-integration.test.ts
+   86:15  warning  'registrationData' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  258:13  warning  'user' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  340:13  warning  'email' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  378:13  warning  'isPasswordValid' is assigned a value but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  479:13  warning  'updatedProfile' is assigned a value but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  493:13  warning  'oauthUser' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  557:13  warning  'validToken' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  630:13  warning  'loginCredentials' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  680:28  warning  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  681:28  warning  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  682:28  warning  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  683:28  warning  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  690:13  warning  'registrationData' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/twitch-oauth.test.ts
+  10:34  warning  'jest' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/features/universal-deck-building.e2e.test.ts
+  178:13  warning  'mtgMockResponse' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  731:13  warning  'createdGame' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/schema/cards-games-schema.test.ts
+   22:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  146:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/security/gitignore-env-protection.test.ts
+   40:19  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   46:27  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   84:27  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  106:17  warning  'result' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  112:25  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  143:23  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/security/security-audit-comprehensive.test.ts
+    8:34  warning  'beforeAll' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   28:23  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+  162:23  warning  Unexpected any. Specify a different type                                     @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/services/game.service.test.ts
+  10:10  warning  'eq' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/setup.ts
+  84:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/tests/utils/database.utils.test.ts
+   7:34  warning  'beforeEach' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+  11:3   warning  'buildOrderBy' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  20:10  warning  'sql' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  25:6   warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/database.utils.ts
+  612:14  warning  'error' is defined but never used                                                       @typescript-eslint/no-unused-vars
+  640:30  warning  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  705:11  warning  'relatedData' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/production-logger.ts
+   46:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-connection-manager.ts
+  184:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  354:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-env-validation.ts
+  142:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  212:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  222:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-message-validator.ts
+  211:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  253:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  288:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  288:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  332:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-server-enhanced.ts
+  318:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  360:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  401:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  438:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  467:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  546:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  620:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  647:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  669:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 789 problems (0 errors, 789 warnings)
+

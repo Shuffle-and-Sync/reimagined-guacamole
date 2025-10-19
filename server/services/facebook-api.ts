@@ -37,7 +37,7 @@ export interface FacebookLiveVideo {
   planned_start_time?: string;
   actual_start_time?: string;
   broadcast_start_time?: string;
-  ad_break_config?: any;
+  ad_break_config?: Record<string, unknown>;
   permalink_url?: string;
   embed_html?: string;
 }
@@ -96,6 +96,60 @@ export type FacebookAPIError =
   | "NETWORK_ERROR" // Network connectivity issue
   | "TOKEN_EXPIRED" // Access token expired
   | "UNKNOWN_ERROR"; // Fallback error type
+
+// Facebook API response types (internal)
+interface FacebookErrorResponse {
+  code?: number;
+  type?: string;
+  message?: string;
+}
+
+interface FacebookVideoItem {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  live_views?: number;
+  creation_time: string;
+  planned_start_time?: string;
+  actual_start_time?: string;
+  broadcast_start_time?: string;
+  permalink_url?: string;
+}
+
+interface FacebookPostItem {
+  id: string;
+  message?: string;
+  story?: string;
+  created_time: string;
+  updated_time?: string;
+  permalink_url?: string;
+  likes?: {
+    summary?: {
+      total_count?: number;
+    };
+  };
+  comments?: {
+    summary?: {
+      total_count?: number;
+    };
+  };
+  shares?: {
+    count?: number;
+  };
+}
+
+interface FacebookLiveVideoUpdate {
+  title?: string;
+  description?: string;
+  planned_start_time?: string;
+}
+
+interface FacebookPostData {
+  message: string;
+  access_token: string;
+  link?: string;
+}
 
 /**
  * Facebook Gaming API Service (Stub Implementation)
@@ -267,7 +321,7 @@ export class FacebookAPIService {
   /**
    * Map Facebook API errors to our error taxonomy
    */
-  private mapFacebookErrorToCode(error: any): FacebookAPIError {
+  private mapFacebookErrorToCode(error: FacebookErrorResponse): FacebookAPIError {
     const errorCode = error.code || 0;
     const errorType = error.type || "";
 
@@ -401,7 +455,7 @@ export class FacebookAPIService {
     }
 
     const videos: FacebookLiveVideo[] =
-      result.data.data?.map((video: any) => ({
+      result.data.data?.map((video: FacebookVideoItem) => ({
         id: video.id,
         title: video.title,
         description: video.description,
@@ -554,7 +608,7 @@ export class FacebookAPIService {
     }
 
     try {
-      const updateData: any = {};
+      const updateData: FacebookLiveVideoUpdate = {};
 
       if (updates.title) updateData.title = updates.title;
       if (updates.description) updateData.description = updates.description;
@@ -706,7 +760,7 @@ export class FacebookAPIService {
       }
 
       return (
-        data.data?.map((post: any) => ({
+        data.data?.map((post: FacebookPostItem) => ({
           id: post.id,
           message: post.message,
           story: post.story,
@@ -749,7 +803,7 @@ export class FacebookAPIService {
     }
 
     try {
-      const postData: any = {
+      const postData: FacebookPostData = {
         message,
         access_token: accessToken,
       };
@@ -765,7 +819,7 @@ export class FacebookAPIService {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams(postData).toString(),
+          body: new URLSearchParams(postData as unknown as Record<string, string>).toString(),
         },
       );
 
