@@ -227,7 +227,7 @@ export default function GameRoom() {
   }, []);
 
   // Initialize camera and microphone
-  const initializeMedia = async () => {
+  const initializeMedia = useCallback(async () => {
     try {
       setCameraError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -281,7 +281,7 @@ export default function GameRoom() {
       
       setCameraError(errorMessage);
     }
-  };
+  }, [connectedPlayers, user, createPeerConnection, toast]);
 
   // Clean up media stream on unmount
   useEffect(() => {
@@ -420,7 +420,7 @@ export default function GameRoom() {
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
-  const sendMessage = () => {
+  const sendMessage = useCallback(() => {
     if (!newMessage.trim() || !ws.current) return;
     
     ws.current.send(JSON.stringify({
@@ -435,9 +435,9 @@ export default function GameRoom() {
     }));
     
     setNewMessage("");
-  };
+  }, [newMessage, sessionId, user]);
 
-  const rollDice = (sides: number = 6) => {
+  const rollDice = useCallback((sides: number = 6) => {
     const result = Math.floor(Math.random() * sides) + 1;
     setDiceResult(result);
     
@@ -453,23 +453,23 @@ export default function GameRoom() {
     }));
     
     setTimeout(() => setDiceResult(null), 3000);
-  };
+  }, [sessionId, user]);
 
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     setIsTimerRunning(true);
     setGameTimer(0);
-  };
+  }, []);
 
-  const pauseTimer = () => {
+  const pauseTimer = useCallback(() => {
     setIsTimerRunning(false);
-  };
+  }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsTimerRunning(false);
     setGameTimer(0);
-  };
+  }, []);
 
-  const leaveRoom = async () => {
+  const leaveRoom = useCallback(async () => {
     if (!sessionId) return;
     
     try {
@@ -486,7 +486,7 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [sessionId, toast, setLocation]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -495,7 +495,33 @@ export default function GameRoom() {
   };
 
   // Screen Sharing Functions
-  const startScreenShare = async () => {
+  const stopScreenShare = useCallback(async () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
+    setIsScreenSharing(false);
+    
+    // Switch back to camera feed
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        peerConnections.current.forEach(async (pc, playerId) => {
+          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            await sender.replaceTrack(videoTrack);
+          }
+        });
+      }
+    }
+    
+    toast({
+      title: "Screen sharing stopped",
+      description: "Switched back to camera feed"
+    });
+  }, [screenStream, localStream, toast]);
+
+  const startScreenShare = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -545,36 +571,12 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [stopScreenShare, toast]);
 
-  const stopScreenShare = async () => {
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => track.stop());
-      setScreenStream(null);
-    }
-    setIsScreenSharing(false);
-    
-    // Switch back to camera feed
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        peerConnections.current.forEach(async (pc, playerId) => {
-          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-          if (sender) {
-            await sender.replaceTrack(videoTrack);
-          }
-        });
-      }
-    }
-    
-    toast({
-      title: "Screen sharing stopped",
-      description: "Switched back to camera feed"
-    });
-  };
+
 
   // Recording Functions
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     if (!localStream) {
       toast({
         title: "Cannot start recording",
@@ -651,9 +653,9 @@ export default function GameRoom() {
         variant: "destructive"
       });
     }
-  };
+  }, [localStream, remoteStreams, sessionId, toast]);
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       setMediaRecorder(null);
@@ -664,7 +666,7 @@ export default function GameRoom() {
         description: "Processing your recording..."
       });
     }
-  };
+  }, [mediaRecorder, toast]);
 
   if (isLoading) {
     return (
