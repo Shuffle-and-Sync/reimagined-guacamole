@@ -43,8 +43,8 @@ export type DatabaseOperator =
 export interface FilterCondition {
   field: string;
   operator: DatabaseOperator;
-  value: any;
-  values?: any[]; // For 'in', 'notIn', 'between' operators
+  value: unknown;
+  values?: unknown[]; // For 'in', 'notIn', 'between' operators
 }
 
 export interface QueryBuilder {
@@ -249,7 +249,7 @@ export function buildPaginationMeta(
 /**
  * Validate and sanitize database input with enhanced SQL injection protection
  */
-export function sanitizeDatabaseInput(input: any): any {
+export function sanitizeDatabaseInput(input: unknown): unknown {
   if (typeof input === "string") {
     // Enhanced SQL injection patterns
     const suspiciousPatterns = [
@@ -314,7 +314,7 @@ export function sanitizeDatabaseInput(input: any): any {
   }
 
   if (input && typeof input === "object") {
-    const sanitized: any = {};
+    const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(input)) {
       sanitized[key] = sanitizeDatabaseInput(value);
     }
@@ -354,7 +354,7 @@ export async function executeWithRetry<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: Error) {
       lastError = error;
 
       // Only retry on specific database errors
@@ -383,7 +383,7 @@ export async function executeWithRetry<T>(
 /**
  * Determine if a database error should trigger a retry
  */
-function shouldRetryDatabaseOperation(error: any): boolean {
+function shouldRetryDatabaseOperation(error: Error): boolean {
   // Retry on connection errors, timeouts, and temporary failures
   const retryableCodes = [
     "ECONNRESET",
@@ -412,7 +412,7 @@ export function createHealthCheckQuery(): SQL {
 /**
  * Format database error for logging
  */
-export function formatDatabaseError(error: any): Record<string, any> {
+export function formatDatabaseError(error: Error): Record<string, unknown> {
   return {
     message: error.message,
     code: error.code,
@@ -428,7 +428,7 @@ export function formatDatabaseError(error: any): Record<string, any> {
  * Common database constraints validation
  */
 export const validators = {
-  required: (value: any, fieldName: string): void => {
+  required: (value: unknown, fieldName: string): void => {
     if (value === null || value === undefined || value === "") {
       throw new DatabaseError(`${fieldName} is required`);
     }
@@ -494,7 +494,7 @@ export interface CursorPaginationOptions {
 /**
  * Parse cursor-based pagination parameters
  */
-export function parsePaginationQuery(query: any): {
+export function parsePaginationQuery(query: Record<string, unknown>): {
   page?: number;
   limit?: number;
   cursor?: string;
@@ -537,7 +537,7 @@ export function parsePaginationQuery(query: any): {
 /**
  * Generate cursor for next page in cursor-based pagination
  */
-export function generateCursor(lastItem: any, sortField: string): string {
+export function generateCursor(lastItem: Record<string, unknown>, sortField: string): string {
   if (!lastItem || !lastItem[sortField]) {
     return "";
   }
@@ -556,7 +556,7 @@ export function generateCursor(lastItem: any, sortField: string): string {
  */
 export function parseCursor(
   cursor: string,
-): { field: string; value: any; id: string } | null {
+): { field: string; value: unknown; id: string } | null {
   try {
     const decoded = Buffer.from(cursor, "base64").toString("utf-8");
     return JSON.parse(decoded);
@@ -618,7 +618,7 @@ export class CursorPagination {
   /**
    * Generate cursor from the last item in a result set
    */
-  static generateCursor(lastItem: any, sortField: string): string {
+  static generateCursor(lastItem: Record<string, unknown>, sortField: string): string {
     if (!lastItem || !lastItem[sortField]) {
       return "";
     }
