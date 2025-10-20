@@ -60,6 +60,22 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
 } as any;
 
+// Mock hasPointerCapture and related methods (required for Radix UI components)
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false);
+}
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = vi.fn();
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = vi.fn();
+}
+
+// Mock scrollIntoView (required for Radix UI Select and other components)
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = vi.fn();
+}
+
 // Suppress console errors in tests (optional - remove if debugging)
 const originalError = console.error;
 beforeAll(() => {

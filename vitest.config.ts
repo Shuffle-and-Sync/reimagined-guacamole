@@ -12,8 +12,8 @@ export default defineConfig({
   plugins: [react()],
 
   test: {
-    // Test environment - using happy-dom for better performance, can switch to jsdom if needed
-    environment: "happy-dom",
+    // Test environment - using jsdom for better Radix UI compatibility
+    environment: "jsdom",
 
     // Global test setup
     globals: true,
