@@ -16,6 +16,10 @@ describe("Game Creator API - Integration Tests", () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("Game Service Integration", () => {
     it("should create a new game", async () => {
       const newGame = {

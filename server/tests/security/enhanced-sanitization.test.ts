@@ -4,7 +4,14 @@
  * Tests for enhanced SQL injection prevention and additional security patterns
  */
 
-import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { sanitizeDatabaseInput } from "../../utils/database.utils";
 import { logger } from "../../logger";
 
@@ -21,6 +28,10 @@ jest.mock("../../logger", () => ({
 describe("Enhanced Input Sanitization Security Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
   });
 
   describe("Enhanced SQL Injection Protection", () => {
