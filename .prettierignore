@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+.vite/
+coverage/
+build/
+
+# Generated files
+*.d.ts
+
+# Database
+drizzle/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env*
+!.env.example
+!.env.production.template
+!.env.test
+
+# IDE
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+
+# System
+.DS_Store
+Thumbs.db
+*.pid
+
+# Git
+.git/
+.gitattributes
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Minified files
+*.min.js
+*.min.css
+
+# Backup files
+*.backup
+*.bak
