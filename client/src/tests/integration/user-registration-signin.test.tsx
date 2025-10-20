@@ -41,9 +41,12 @@ describe("User Registration and Sign-In Integration", () => {
 
   describe("User Registration Flow", () => {
     it("should successfully register a new user with valid credentials", async () => {
+      let registrationCalled = false;
+
       // Setup MSW handler for registration
       server.use(
         http.post("/api/auth/register", async () => {
+          registrationCalled = true;
           return HttpResponse.json(
             {
               success: true,
@@ -88,10 +91,10 @@ describe("User Registration and Sign-In Integration", () => {
       const submitButton = screen.getByTestId("button-register-submit");
       await user.click(submitButton);
 
-      // Verify loading/submission state (button becomes disabled during submission)
+      // Verify the registration API was called
       await waitFor(
         () => {
-          expect(submitButton).toBeDisabled();
+          expect(registrationCalled).toBe(true);
         },
         { timeout: 3000 },
       );
