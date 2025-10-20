@@ -9,13 +9,15 @@
 This audit comprehensively analyzes TypeScript type safety across the database layer of the Shuffle & Sync application. The audit identified **12 instances** of loose typing across 5 key files, with findings classified from Category A (Critical - Must Fix) to Category E (Acceptable - Leave As-Is).
 
 ### Key Findings
+
 - **Critical Issues (Category A):** 0
-- **High Priority (Category B):** 3  
+- **High Priority (Category B):** 3
 - **Medium Priority (Category C):** 4
 - **Low Priority (Category D):** 3
 - **Acceptable (Category E):** 2
 
 ### Overall Assessment
+
 The database layer demonstrates **good type safety practices** with most loose typing being either intentional for Drizzle ORM compatibility or properly isolated. The primary concerns are around explicit `any` types that could be replaced with more specific types to improve type safety and developer experience.
 
 ---
@@ -23,11 +25,14 @@ The database layer demonstrates **good type safety practices** with most loose t
 ## File 1: shared/database-unified.ts
 
 ### Summary
+
 Core database connection and utilities file. Contains 4 instances of loose typing, mostly related to Drizzle ORM integration.
 
 ### Instance 1: Transaction Type
+
 **Location:** Line 18  
 **Code:**
+
 ```typescript
 export type Transaction = any; // SQLite transaction type
 ```
@@ -35,6 +40,7 @@ export type Transaction = any; // SQLite transaction type
 **Category:** C - Medium Priority (Can Fix)
 
 **Analysis:**
+
 - **Type:** Explicit `any` type declaration
 - **Context:** Transaction type used throughout the application for database transactions
 - **Impact:** Loss of type safety in transaction callbacks, no IntelliSense for transaction operations
@@ -43,6 +49,7 @@ export type Transaction = any; // SQLite transaction type
 **Security Impact:** None - transactions are handled by Drizzle ORM internally
 
 **Recommendation:**
+
 ```typescript
 import type { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 
@@ -61,8 +68,10 @@ export type Transaction = SQLiteTransaction<
 ---
 
 ### Instance 2: SQLite Cloud Connection Cast
+
 **Location:** Line 64  
 **Code:**
+
 ```typescript
 db = drizzle(sqliteCloud as any, { schema });
 ```
@@ -70,6 +79,7 @@ db = drizzle(sqliteCloud as any, { schema });
 **Category:** E - Acceptable (Leave As-Is)
 
 **Analysis:**
+
 - **Type:** Type assertion to `any`
 - **Context:** Creating Drizzle instance with SQLite Cloud driver
 - **Impact:** Minimal - isolated to initialization, type safety restored after
@@ -82,6 +92,7 @@ db = drizzle(sqliteCloud as any, { schema });
 **Justification:** This is a necessary workaround for Drizzle ORM's type system which doesn't recognize the SQLite Cloud driver's interface. The driver is properly validated and the resulting `db` object is correctly typed.
 
 **Alternative Approach:**
+
 ```typescript
 // Create a properly typed adapter interface
 interface DrizzleCompatibleDriver {
@@ -98,8 +109,10 @@ db = drizzle(drizzleAdapter, { schema });
 ---
 
 ### Instance 3: Health Check Response Type
+
 **Location:** Lines 204-209  
 **Code:**
+
 ```typescript
 export async function checkDatabaseHealth(): Promise<{
   status: "healthy" | "unhealthy";
@@ -107,12 +120,13 @@ export async function checkDatabaseHealth(): Promise<{
   queryResponseTime?: number;
   performanceMetrics?: any;
   error?: string;
-}>
+}>;
 ```
 
 **Category:** B - High Priority (Should Fix)
 
 **Analysis:**
+
 - **Type:** `any` type in return object properties
 - **Context:** Database health check function returning monitoring data
 - **Impact:** Loss of IntelliSense for health check consumers, potential runtime errors
@@ -121,6 +135,7 @@ export async function checkDatabaseHealth(): Promise<{
 **Security Impact:** Low - health data is not user-controlled
 
 **Recommendation:**
+
 ```typescript
 export interface DatabaseConnectionInfo {
   type: string;
@@ -144,7 +159,7 @@ export interface DatabaseHealthResult {
   error?: string;
 }
 
-export async function checkDatabaseHealth(): Promise<DatabaseHealthResult>
+export async function checkDatabaseHealth(): Promise<DatabaseHealthResult>;
 ```
 
 **Justification:** These return types are consumed by health check endpoints and monitoring systems. Proper typing would improve API documentation and prevent runtime errors.
@@ -154,8 +169,10 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthResult>
 ---
 
 ### Instance 4: Prepared Statement Cache
+
 **Location:** Lines 245, 254, 259  
 **Code:**
+
 ```typescript
 private statements = new Map<string, any>();
 
@@ -171,6 +188,7 @@ public getOrPrepare<T = any>(key: string, queryBuilder: () => any): any {
 **Category:** D - Low Priority (Consider Leaving)
 
 **Analysis:**
+
 - **Type:** Multiple `any` types for prepared statement storage
 - **Context:** Caching prepared statements for performance
 - **Impact:** Loss of type safety for prepared statements, but operations are internal
@@ -179,6 +197,7 @@ public getOrPrepare<T = any>(key: string, queryBuilder: () => any): any {
 **Security Impact:** None - prepared statements provide SQL injection protection
 
 **Recommendation:** Consider generic typing:
+
 ```typescript
 private statements = new Map<string, unknown>();
 
@@ -202,10 +221,12 @@ public getOrPrepare<T>(
 
 ## File 2: server/storage.ts
 
-### Summary  
+### Summary
+
 Main storage layer implementation. Contains 0 instances of explicit `any` types. **Excellent type safety.**
 
 ### Key Observations:
+
 1. **Proper typing throughout:** All methods use proper types from schema
 2. **No type assertions:** No use of `as any` or similar assertions
 3. **Type guards:** Proper null checking with TypeScript's strict mode
@@ -218,21 +239,25 @@ Main storage layer implementation. Contains 0 instances of explicit `any` types.
 ## File 3: server/repositories/base.repository.ts
 
 ### Summary
+
 Base repository pattern implementation. Contains 5 instances of loose typing related to generic database operations.
 
 ### Instance 1: Table Type Assertion in findById
+
 **Location:** Line 92-94  
 **Code:**
+
 ```typescript
 const result = await this.db
   .select()
   .from(this.table as any)
-  .where(eq((this.table as any).id, id))
+  .where(eq((this.table as any).id, id));
 ```
 
 **Category:** D - Low Priority (Consider Leaving)
 
 **Analysis:**
+
 - **Type:** Type assertion to `any` for table access
 - **Context:** Generic repository accessing table properties
 - **Impact:** Localized loss of type safety in generic operations
@@ -243,6 +268,7 @@ const result = await this.db
 **Recommendation:** This is a known limitation when working with generic table types in Drizzle. The alternative approaches are significantly more complex:
 
 **Option 1:** Use type constraints (complex)
+
 ```typescript
 export abstract class BaseRepository<
   TTable extends SQLiteTable & { id: SQLiteColumn },
@@ -257,9 +283,11 @@ export abstract class BaseRepository<
 ---
 
 ### Instance 2: Repeated Pattern Across Methods
-**Locations:** Lines 114, 207, 231, 332, 340, etc.  
+
+**Locations:** Lines 114, 207, 231, 332, 340, etc.
 
 **Code Pattern:**
+
 ```typescript
 .from(this.table as any)
 .where(eq((this.table as any).id, id))
@@ -280,6 +308,7 @@ protected getTableColumn(columnName: keyof TEntity): any {
 ```
 
 Then use it:
+
 ```typescript
 .where(eq(this.getTableColumn('id'), id))
 ```
@@ -289,8 +318,10 @@ Then use it:
 ---
 
 ### Instance 3: Raw Query Execution
+
 **Location:** Lines 559-579  
 **Code:**
+
 ```typescript
 protected async executeRawQuery<T = Record<string, unknown>>(
   query: string,
@@ -306,6 +337,7 @@ protected async executeRawQuery<T = Record<string, unknown>>(
 **Category:** C - Medium Priority (Can Fix)
 
 **Analysis:**
+
 - **Type:** `@ts-expect-error` comment and type assertion
 - **Context:** Raw SQL query execution
 - **Impact:** Type safety completely bypassed
@@ -314,6 +346,7 @@ protected async executeRawQuery<T = Record<string, unknown>>(
 **Security Impact:** Medium - raw queries require careful review for SQL injection
 
 **Recommendation:**
+
 ```typescript
 protected async executeRawQuery<T extends Record<string, unknown>>(
   query: string,
@@ -325,7 +358,7 @@ protected async executeRawQuery<T extends Record<string, unknown>>(
       const sqlQuery = params && params.length > 0
         ? sql.raw(query) // Note: Should use sql`` for true parameterization
         : sql.raw(query);
-      
+
       const result = await this.db.execute(sqlQuery);
       // Validate result structure before returning
       return this.validateQueryResult<T>(result);
@@ -355,8 +388,10 @@ private validateQueryResult<T>(result: unknown): T[] {
 ---
 
 ### Instance 4: Filter Condition Building
+
 **Location:** Lines 586-632  
 **Code:**
+
 ```typescript
 protected buildWhereConditions(filters: FilterOptions): SQL[] {
   const conditions: SQL[] = [];
@@ -372,6 +407,7 @@ protected buildWhereConditions(filters: FilterOptions): SQL[] {
 **Category:** D - Low Priority (Consider Leaving)
 
 **Analysis:**
+
 - **Type:** Type assertion for table column access
 - **Context:** Dynamic filter building for generic repository
 - **Impact:** Localized to filter building logic
@@ -386,11 +422,14 @@ protected buildWhereConditions(filters: FilterOptions): SQL[] {
 ## File 4: server/utils/database.utils.ts
 
 ### Summary
+
 Database utility functions. Contains 1 instance of loose typing in cursor pagination.
 
 ### Instance 1: Cursor Parsing Return Type
+
 **Location:** Lines 638-645  
 **Code:**
+
 ```typescript
 static parseCursor(
   cursor: string,
@@ -407,6 +446,7 @@ static parseCursor(
 **Category:** C - Medium Priority (Can Fix)
 
 **Analysis:**
+
 - **Type:** `any` type in return value
 - **Context:** Parsing cursor for pagination
 - **Impact:** Loss of type safety for cursor value
@@ -415,6 +455,7 @@ static parseCursor(
 **Security Impact:** Low - cursor is base64 encoded, not directly user-controlled
 
 **Recommendation:**
+
 ```typescript
 export interface CursorData<T = unknown> {
   field: string;
@@ -428,14 +469,14 @@ static parseCursor<T = unknown>(
   try {
     const decoded = Buffer.from(cursor, "base64").toString("utf-8");
     const parsed = JSON.parse(decoded);
-    
+
     // Validate structure
-    if (!parsed || typeof parsed !== 'object' || 
+    if (!parsed || typeof parsed !== 'object' ||
         !('field' in parsed) || !('value' in parsed) || !('id' in parsed)) {
       logger.warn('Invalid cursor structure', { cursor: cursor.substring(0, 20) });
       return null;
     }
-    
+
     return parsed as CursorData<T>;
   } catch (error) {
     logger.warn('Failed to parse cursor', { error });
@@ -453,11 +494,14 @@ static parseCursor<T = unknown>(
 ## File 5: server/routes/database-health.ts
 
 ### Summary
+
 Database health check routes. Contains 1 instance of loose typing in statistics aggregation.
 
 ### Instance 1: Statistics Sum Reducer
+
 **Location:** Line 94  
 **Code:**
+
 ```typescript
 queryCount: Object.values(allStats).reduce(
   (sum, stat: any) => sum + stat.count,
@@ -468,6 +512,7 @@ queryCount: Object.values(allStats).reduce(
 **Category:** B - High Priority (Should Fix)
 
 **Analysis:**
+
 - **Type:** Explicit `any` type in reducer
 - **Context:** Calculating total query count from statistics
 - **Impact:** Loss of type safety in aggregation
@@ -476,6 +521,7 @@ queryCount: Object.values(allStats).reduce(
 **Security Impact:** None - statistics are internal
 
 **Recommendation:**
+
 ```typescript
 interface QueryStats {
   count: number;
@@ -500,14 +546,17 @@ const queryCount = Object.values(allStats).reduce(
 ## Additional Files Analyzed
 
 ### server/repositories/user.repository.ts
+
 **Status:** Not audited in detail (out of primary scope)  
 **Quick Assessment:** No obvious `any` types, extends BaseRepository properly
 
 ### Server Feature Files
+
 **Status:** Out of scope for this audit  
 **Recommendation:** Conduct separate audits for:
+
 - `server/features/auth/*`
-- `server/features/tournaments/*`  
+- `server/features/tournaments/*`
 - `server/features/matchmaking/*`
 - Other feature directories
 
@@ -523,7 +572,7 @@ const queryCount = Object.values(allStats).reduce(
    - **Action:** Define proper interfaces for health check return types
 
 2. **`server/routes/database-health.ts` - Statistics Reducer**
-   - **Effort:** Very Low  
+   - **Effort:** Very Low
    - **Impact:** Medium - prevents potential runtime errors
    - **Action:** Use proper QueryStats interface
 
@@ -568,11 +617,13 @@ const queryCount = Object.values(allStats).reduce(
 ## Implementation Plan
 
 ### Phase 1: Quick Wins (Estimated: 2-4 hours)
+
 1. Fix `server/routes/database-health.ts` statistics reducer (30 min)
 2. Define interfaces for health check return types (1 hour)
 3. Add generic typing to cursor parsing (1 hour)
 
 ### Phase 2: Medium Effort (Estimated: 4-8 hours)
+
 1. Update Transaction type to use Drizzle's types (2-3 hours)
    - Update all transaction callback signatures
    - Test thoroughly
@@ -580,6 +631,7 @@ const queryCount = Object.values(allStats).reduce(
 3. Add documentation for accepted `any` usages (1-2 hours)
 
 ### Phase 3: Future Considerations
+
 1. Consider refactoring generic repository pattern if issues arise
 2. Monitor for Drizzle ORM type improvements in future versions
 3. Conduct similar audits for feature directories
@@ -589,6 +641,7 @@ const queryCount = Object.values(allStats).reduce(
 ## Testing Recommendations
 
 ### Type Safety Validation
+
 ```bash
 # Run TypeScript compiler in strict mode
 npm run check
@@ -598,6 +651,7 @@ npm run test
 ```
 
 ### Specific Test Cases Needed
+
 1. Transaction callback type safety
 2. Health check response structure validation
 3. Cursor parsing edge cases
@@ -608,6 +662,7 @@ npm run test
 ## Security Considerations
 
 ### SQL Injection Risk Assessment
+
 **Current Status:** ✅ **GOOD**
 
 All identified `any` usages have been evaluated for SQL injection risk:
@@ -618,6 +673,7 @@ All identified `any` usages have been evaluated for SQL injection risk:
 - **User input sanitization:** Present in `database.utils.ts`
 
 ### Recommendation:
+
 1. Continue using Drizzle ORM's query builder for all standard operations
 2. Add validation layer for raw queries (see Category C, Instance 2)
 3. Maintain input sanitization in `sanitizeDatabaseInput` function
@@ -627,17 +683,20 @@ All identified `any` usages have been evaluated for SQL injection risk:
 ## Comparison with Best Practices
 
 ### ✅ Strengths
+
 1. **Minimal use of `any`:** Only 12 instances across 5 files
 2. **Drizzle ORM usage:** Provides strong type safety foundation
 3. **Proper schema types:** Schema types are properly exported and used
 4. **Generic patterns:** Effective use of generics where appropriate
 
 ### ⚠️ Areas for Improvement
+
 1. **Transaction types:** Can be more specific
 2. **Health check interfaces:** Need proper definition
 3. **Documentation:** Could be improved for accepted `any` usages
 
 ### 📊 Industry Comparison
+
 - **Above Average:** Most codebases have significantly more `any` usage
 - **Best Practice Alignment:** 85% alignment with TypeScript best practices
 - **Room for Improvement:** 15% - mostly in generic repository patterns
@@ -647,17 +706,21 @@ All identified `any` usages have been evaluated for SQL injection risk:
 ## Maintenance Recommendations
 
 ### Code Review Guidelines
+
 1. **New `any` usages:** Require justification and documentation
 2. **Alternative approaches:** Always consider generics first
 3. **Security review:** Required for raw queries and user input
 
 ### Monitoring
+
 1. Track number of `any` usages over time
 2. Review after major dependency updates (especially Drizzle ORM)
 3. Conduct quarterly type safety audits
 
 ### Documentation Standards
+
 For accepted `any` usages, include:
+
 ```typescript
 // ACCEPTED ANY: [Reason]
 // Category: [D or E]
@@ -673,6 +736,7 @@ export type Transaction = any;
 The Shuffle & Sync database layer demonstrates **strong type safety practices** with minimal and well-justified use of loose typing. The primary recommendations focus on improving type definitions for better developer experience and slightly enhanced type safety, rather than addressing critical security or functionality issues.
 
 ### Key Metrics
+
 - **Total Files Audited:** 5
 - **Total `any` Instances:** 12
 - **Critical Issues:** 0
@@ -680,6 +744,7 @@ The Shuffle & Sync database layer demonstrates **strong type safety practices** 
 - **Overall Grade:** **A- (Very Good)**
 
 ### Next Steps
+
 1. Implement Phase 1 quick wins
 2. Schedule Phase 2 improvements
 3. Document accepted patterns

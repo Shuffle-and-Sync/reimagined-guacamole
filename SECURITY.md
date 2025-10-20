@@ -10,7 +10,7 @@ We take the security of Shuffle & Sync seriously. If you believe you have found 
 
 Instead, please report security vulnerabilities by:
 
-1. **Email**: Contact the development team directly through the security contact information provided in our [detailed security documentation](./docs/SECURITY_IMPROVEMENTS.md)
+1. **Email**: Contact the development team directly through the security contact information provided in our [detailed security documentation](./docs/security/SECURITY_IMPROVEMENTS.md)
 2. **Private disclosure**: Use GitHub's private vulnerability reporting feature if available
 3. **Secure channels**: Contact us through the secure communication channels listed in our [contact page](./client/src/pages/contact.tsx)
 
@@ -42,11 +42,11 @@ Shuffle & Sync implements comprehensive security measures:
 - **Rate Limiting**: Protection against abuse and DoS attacks
 - **Security Headers**: Implemented security middleware
 
-For detailed information about our security improvements and measures, see [SECURITY_IMPROVEMENTS.md](./docs/SECURITY_IMPROVEMENTS.md).
+For detailed information about our security improvements and measures, see [SECURITY_IMPROVEMENTS.md](./docs/security/SECURITY_IMPROVEMENTS.md).
 
 ### Security Remediation
 
-If sensitive data (such as `.env.production` files or commits with credentials) is discovered in Git history, follow our comprehensive remediation guide: [SECURITY_REMEDIATION.md](./docs/SECURITY_REMEDIATION.md).
+If sensitive data (such as `.env.production` files or commits with credentials) is discovered in Git history, follow our comprehensive remediation guide: [SECURITY_REMEDIATION.md](./docs/security/SECURITY_REMEDIATION.md).
 
 This guide provides step-by-step instructions for safely removing sensitive data from Git history using `git-filter-repo`.
 

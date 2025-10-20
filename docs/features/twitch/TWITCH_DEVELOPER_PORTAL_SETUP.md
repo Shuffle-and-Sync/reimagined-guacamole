@@ -251,7 +251,7 @@ For real-time stream status updates:
 ### Documentation
 
 - [TWITCH_OAUTH_GUIDE.md](./TWITCH_OAUTH_GUIDE.md) - Detailed OAuth implementation guide
-- [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) - Platform OAuth API reference
+- [API_DOCUMENTATION.md](../../reference/api/API_DOCUMENTATION.md) - Platform OAuth API reference
 
 ### Twitch Resources
 

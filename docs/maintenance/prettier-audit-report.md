@@ -14,12 +14,14 @@ This comprehensive audit evaluated the formatting consistency of the Shuffle & S
 ### Key Findings
 
 ✅ **Strengths:**
+
 - Format script already exists in package.json
 - 84% of TypeScript/TSX files are already properly formatted
 - No configuration conflicts detected
 - Repository structure supports automated formatting
 
 ⚠️ **Issues Identified:**
+
 - **No Prettier installed** as a dev dependency (currently uses npx)
 - **No Prettier configuration file** (.prettierrc, etc.)
 - **No .prettierignore file** to exclude build artifacts
@@ -36,31 +38,39 @@ This comprehensive audit evaluated the formatting consistency of the Shuffle & S
 ### Current State
 
 #### Package.json Scripts
+
 ```json
 "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
 ```
+
 ✅ Format script exists and covers appropriate file types  
 ❌ No format:check script for validation  
 ❌ Prettier not in devDependencies
 
 #### Prettier Configuration
+
 ❌ **No configuration file found**
+
 - No .prettierrc, .prettierrc.json, .prettierrc.js
 - No prettier.config.js
 - No prettierConfig in package.json
 - Currently using Prettier defaults
 
 #### Editor Configuration
+
 ❌ **No .editorconfig file**  
 ❌ **No .vscode/settings.json**
 
 This means:
+
 - Different editors may use different settings
 - Developers need to manually configure their IDEs
 - Inconsistent indentation/line endings possible
 
 #### Git Integration
+
 ❌ **No .git-blame-ignore-revs file**
+
 - Bulk formatting commits will pollute git blame
 - Historical context will be lost
 
@@ -85,6 +95,7 @@ Based on React + TypeScript + Vite best practices, we recommend:
 ```
 
 **Rationale:**
+
 - `semi: true` - Explicit statement termination (TypeScript/JS standard)
 - `singleQuote: false` - Double quotes for consistency with JSX
 - `tabWidth: 2` - Standard for React/TypeScript projects
@@ -99,39 +110,39 @@ Based on React + TypeScript + Vite best practices, we recommend:
 
 ### Summary Statistics
 
-| Metric | Value |
-|--------|-------|
-| **Total files with issues** | 77 |
-| **Total source files** | ~500 |
-| **Compliance rate** | 84.6% |
+| Metric                      | Value |
+| --------------------------- | ----- |
+| **Total files with issues** | 77    |
+| **Total source files**      | ~500  |
+| **Compliance rate**         | 84.6% |
 | **Files requiring changes** | 15.4% |
 
 ### Breakdown by File Type
 
-| File Type | Total Files | Files with Issues | Percentage | Compliance |
-|-----------|-------------|-------------------|------------|------------|
-| **.tsx** (React components) | 117 | 18 | 15.4% | 84.6% ✅ |
-| **.ts** (TypeScript) | 203 | 34 | 16.7% | 83.3% ✅ |
-| **.md** (Markdown docs) | 160 | 23 | 14.4% | 85.6% ✅ |
-| **.json** (Config files) | 10 | 2 | 20.0% | 80.0% ✅ |
-| **.js** (JavaScript) | ~20 | 0 | 0% | 100% ✅ |
+| File Type                   | Total Files | Files with Issues | Percentage | Compliance |
+| --------------------------- | ----------- | ----------------- | ---------- | ---------- |
+| **.tsx** (React components) | 117         | 18                | 15.4%      | 84.6% ✅   |
+| **.ts** (TypeScript)        | 203         | 34                | 16.7%      | 83.3% ✅   |
+| **.md** (Markdown docs)     | 160         | 23                | 14.4%      | 85.6% ✅   |
+| **.json** (Config files)    | 10          | 2                 | 20.0%      | 80.0% ✅   |
+| **.js** (JavaScript)        | ~20         | 0                 | 0%         | 100% ✅    |
 
 ### Hotspot Directories
 
 Files with formatting issues are concentrated in these areas:
 
-| Directory | Files with Issues | Impact |
-|-----------|-------------------|---------|
-| **server/routes/** | 15 | High - Core API routes |
-| **.github/** | 12 | Medium - Documentation/templates |
-| **client/src/pages/** | 10 | High - User-facing pages |
-| **server/services/** | 7 | High - Business logic |
-| **server/** (root) | 6 | High - Server core files |
-| **Root .md files** | 10 | Low - Historical documentation |
-| **server/features/** | 5 | Medium - Feature modules |
-| **server/auth/** | 2 | High - Security critical |
-| **client/src/features/** | 4 | Medium - Feature components |
-| **docs/** | 1 | Low - Documentation |
+| Directory                | Files with Issues | Impact                           |
+| ------------------------ | ----------------- | -------------------------------- |
+| **server/routes/**       | 15                | High - Core API routes           |
+| **.github/**             | 12                | Medium - Documentation/templates |
+| **client/src/pages/**    | 10                | High - User-facing pages         |
+| **server/services/**     | 7                 | High - Business logic            |
+| **server/** (root)       | 6                 | High - Server core files         |
+| **Root .md files**       | 10                | Low - Historical documentation   |
+| **server/features/**     | 5                 | Medium - Feature modules         |
+| **server/auth/**         | 2                 | High - Security critical         |
+| **client/src/features/** | 4                 | Medium - Feature components      |
+| **docs/**                | 1                 | Low - Documentation              |
 
 ### Common Formatting Issues
 
@@ -152,6 +163,7 @@ Based on manual inspection of sample files, typical issues include:
 <summary>Complete list of 77 files (click to expand)</summary>
 
 #### GitHub/Documentation (12 files)
+
 - .github/client.instructions.md
 - .github/copilot-instructions.md
 - .github/GENERATION_SUMMARY.md
@@ -166,6 +178,7 @@ Based on manual inspection of sample files, typical issues include:
 - .github/shared.instructions.md
 
 #### Client - React Components (18 files)
+
 - client/src/components/tournament/TournamentBracket.tsx
 - client/src/features/auth/hooks/useAuth.ts
 - client/src/features/communities/components/realm-dashboards/DecksongDashboard.tsx
@@ -188,6 +201,7 @@ Based on manual inspection of sample files, typical issues include:
 - client/src/pages/tournaments.tsx
 
 #### Server - Core & Routes (34 files)
+
 - server/auth/auth.config.ts
 - server/auth/session-security.ts
 - server/features/communities/communities.service.ts
@@ -223,6 +237,7 @@ Based on manual inspection of sample files, typical issues include:
 - server/utils/websocket-server-enhanced.ts
 
 #### Root Documentation (11 files)
+
 - DATABASE_TYPE_SAFETY_AUDIT_SUMMARY.md
 - DATABASE_TYPE_SAFETY_AUDIT.md
 - docs/STREAMING_ROUTES_EXTRACTION.md
@@ -235,6 +250,7 @@ Based on manual inspection of sample files, typical issues include:
 - UNUSED_VARIABLES_CLEANUP_SUMMARY.md
 
 #### Configuration Files (2 files)
+
 - eslint-metrics.json
 - eslint-report.json
 
@@ -249,6 +265,7 @@ Based on manual inspection of sample files, typical issues include:
 **Current Status:** ⚠️ Partial Integration
 
 #### ESLint Configuration
+
 ✅ ESLint configured (eslint.config.js)  
 ✅ TypeScript ESLint plugin installed  
 ✅ React plugins configured  
@@ -257,6 +274,7 @@ Based on manual inspection of sample files, typical issues include:
 
 **Potential Conflicts:**
 ESLint and Prettier may have conflicting rules for:
+
 - Quote style
 - Semicolons
 - Trailing commas
@@ -268,9 +286,11 @@ ESLint and Prettier may have conflicting rules for:
 ### Editor Configuration
 
 #### VS Code
+
 ❌ **No .vscode/settings.json**
 
 Recommended settings:
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -291,9 +311,11 @@ Recommended settings:
 ```
 
 #### EditorConfig
+
 ❌ **No .editorconfig**
 
 This file ensures consistent basic formatting across all editors:
+
 ```ini
 root = true
 
@@ -318,11 +340,13 @@ trim_trailing_whitespace = false
 **Status:** ❌ Not Configured
 
 **Current Tools:**
+
 - No .husky directory
 - No lint-staged configuration
 - No pre-commit hook scripts
 
 **Impact:**
+
 - Developers can commit unformatted code
 - Formatting issues discovered only in code review
 - Wasted review time on style discussions
@@ -330,6 +354,7 @@ trim_trailing_whitespace = false
 
 **Recommendation:**
 Install and configure husky + lint-staged to:
+
 1. Run Prettier on staged files before commit
 2. Prevent commits with formatting issues
 3. Ensure 100% formatted code in repository
@@ -337,6 +362,7 @@ Install and configure husky + lint-staged to:
 ### CI/CD Pipeline
 
 **Current Workflows:**
+
 1. pages.yml - Documentation deployment
 2. update-issue-pr-history.yml - Issue tracking
 3. copilot-setup-steps.yml - Copilot configuration
@@ -344,12 +370,14 @@ Install and configure husky + lint-staged to:
 **Formatting Validation:** ❌ None
 
 **Impact:**
+
 - No automated enforcement of formatting standards
 - PRs can be merged with formatting issues
 - No safety net for developers without pre-commit hooks
 
 **Recommendation:**
 Add a formatting check job to CI pipeline:
+
 ```yaml
 - name: Check formatting
   run: npm run format:check
@@ -358,11 +386,13 @@ Add a formatting check job to CI pipeline:
 ### Build Process
 
 **Current Build Scripts:**
+
 - `npm run build` - Production build
 - `npm run check` - TypeScript type checking
 - `npm run lint` - ESLint with auto-fix
 
 **Formatting Integration:** ⚠️ Partial
+
 - Format script exists but not enforced
 - No pre-build formatting check
 - No format validation in build pipeline
@@ -372,6 +402,7 @@ Add a formatting check job to CI pipeline:
 ## Repository Context
 
 ### Project Statistics
+
 - **Type:** Full-stack React + TypeScript + Vite application
 - **Size:** 568 MB
 - **Source Files:** ~500 files
@@ -381,16 +412,17 @@ Add a formatting check job to CI pipeline:
 - **Tech Stack:** React 18.3.1, TypeScript 5.6+, Express.js, Vite 7.1.7
 
 ### Team Context
+
 - **Active Development:** Yes
 - **Open PRs:** Multiple (visible from branch)
 - **Recent Activity:** Performance optimization, ESLint audit
 - **Team Size:** Small to medium
 
 ### Related Initiatives
+
 1. **Performance Optimization PR** - In progress
    - Recommendation: Complete formatting BEFORE performance refactoring
    - Prevents mixing formatting and functional changes
-   
 2. **ESLint Audit** - Recently completed
    - eslint-audit-report.md exists
    - Good foundation for adding Prettier integration
@@ -400,21 +432,23 @@ Add a formatting check job to CI pipeline:
 ## Risk Assessment
 
 ### Low Risk Items ✅
+
 - Running Prettier on code (non-destructive, reversible)
 - Adding configuration files
 - Installing dev dependencies
 - Documentation changes
 
 ### Medium Risk Items ⚠️
+
 - Bulk formatting 77 files in one commit
   - Risk: Large diff, potential merge conflicts
   - Mitigation: Coordinate with active branches, use .git-blame-ignore-revs
-  
 - Changing package.json dependencies
   - Risk: Dependency conflicts
   - Mitigation: Use --legacy-peer-deps flag (already in use)
 
 ### High Risk Items 🔴
+
 - None identified - formatting is low-risk operation
 
 ### Mitigation Strategies
@@ -463,20 +497,24 @@ Add a formatting check job to CI pipeline:
 ## Files to Exclude
 
 ### Build Artifacts (already in .gitignore)
+
 - dist/
 - node_modules/
 - .vite/
 - coverage/
 
 ### Generated Files
+
 - package-lock.json (auto-generated)
-- *.d.ts (TypeScript declarations)
+- \*.d.ts (TypeScript declarations)
 - drizzle/ (migrations - may want to exclude)
 
 ### Large External Files
+
 - None identified
 
 ### Recommended .prettierignore
+
 ```
 # Dependencies
 node_modules/
@@ -520,15 +558,17 @@ drizzle/
 #### Example 1: TypeScript Formatting
 
 **Before:**
+
 ```typescript
 const config = {
-  api:    "https://api.example.com",
-  timeout:  5000,
-  retries: 3
-}
+  api: "https://api.example.com",
+  timeout: 5000,
+  retries: 3,
+};
 ```
 
 **After:**
+
 ```typescript
 const config = {
   api: "https://api.example.com",
@@ -542,16 +582,20 @@ const config = {
 #### Example 2: React Component
 
 **Before:**
+
 ```tsx
 export function UserCard({ user }: { user: User }) {
-  return <div className='card'>
-    <h2>{user.name}</h2>
-    <p>{user.email}</p>
-  </div>
+  return (
+    <div className="card">
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+    </div>
+  );
 }
 ```
 
 **After:**
+
 ```tsx
 export function UserCard({ user }: { user: User }) {
   return (
@@ -568,18 +612,21 @@ export function UserCard({ user }: { user: User }) {
 #### Example 3: Markdown
 
 **Before:**
+
 ```markdown
 ## Heading
+
 Some text without proper spacing
 
-
 ### Subheading
-|Column1|Column2|
-|---|---|
-|Data1|Data2|
+
+| Column1 | Column2 |
+| ------- | ------- |
+| Data1   | Data2   |
 ```
 
 **After:**
+
 ```markdown
 ## Heading
 
@@ -645,17 +692,20 @@ Some text without proper spacing
 Track these metrics to measure success:
 
 ### Immediate (Day 1)
+
 - ✅ All configuration files in place
 - ✅ Prettier installed as dev dependency
 - ✅ 100% of files passing format:check
 
 ### Short Term (Week 1)
+
 - ✅ Pre-commit hooks working for all developers
 - ✅ CI pipeline validating formatting
 - ✅ Zero formatting-related code review comments
 - ✅ Documentation complete and reviewed
 
 ### Long Term (Month 1+)
+
 - ✅ Zero formatting CI failures
 - ✅ 100% hook usage (all developers using pre-commit)
 - ✅ No manual formatting discussions in PRs
@@ -673,15 +723,19 @@ See **prettier-remediation-plan.md** for detailed execution steps, timeline, and
 ## Appendix
 
 ### Tools Used
+
 - Prettier 3.6.2 (via npx)
 - Custom bash scripts for statistics
 - Git for file analysis
 
 ### Audit Date
+
 - October 20, 2025
 
 ### Auditor
+
 - GitHub Copilot Agent
 
 ### Contact
+
 For questions about this audit or the remediation plan, consult the development team lead or refer to FORMATTING.md once created.
