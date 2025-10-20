@@ -3,6 +3,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import prettierConfig from "eslint-config-prettier";
 
 export default [
   // Base recommended rules
@@ -82,4 +83,7 @@ export default [
       "**/*.d.ts",
     ],
   },
+
+  // Prettier integration - must be last to override formatting rules
+  prettierConfig,
 ];
