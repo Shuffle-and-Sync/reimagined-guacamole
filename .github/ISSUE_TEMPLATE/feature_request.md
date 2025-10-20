@@ -1,9 +1,9 @@
 ---
 name: Feature Request
 about: Suggest an idea for Shuffle & Sync
-title: "[FEATURE] "
-labels: "enhancement"
-assignees: ""
+title: '[FEATURE] '
+labels: 'enhancement'
+assignees: ''
 ---
 
 ## 💡 Feature Summary

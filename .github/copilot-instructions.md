@@ -1,331 +1,599 @@
-# Copilot Instructions for Shuffle & Sync
+# Shuffle & Sync - GitHub Copilot Instructions
 
-## Project Overview
+## Repository Overview
 
-Shuffle & Sync is a comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
+**Shuffle & Sync** is a comprehensive trading card game (TCG) streaming coordination platform that enables streamers and content creators to connect, coordinate collaborative streams, and build community around popular card games like Magic: The Gathering, Pokemon, Lorcana, Yu-Gi-Oh, and others.
 
-### Core Features
+**Type**: Full-stack web application  
+**Size**: Medium (~300+ files, well-organized monorepo)  
+**Languages**: TypeScript (100%), JavaScript (build scripts)  
+**Primary Frameworks**: React 18 (frontend), Express.js (backend), Vite (build tool)  
+**Database**: Drizzle ORM with SQLite Cloud (production) / SQLite (development)
 
-- **Community-based Organization**: Users can join and participate in different TCG communities
-- **Collaborative Streaming**: Real-time coordination tools for multi-streamer events
-- **TableSync**: Remote TCG gameplay coordination with real-time board state synchronization
-- **Authentication System**: Secure Google OAuth 2.0 integration
-- **Tournament Management**: Create and manage TCG tournaments
-- **Matchmaking**: AI-powered matchmaking for players and streamers
-- **Calendar Integration**: Event scheduling and coordination
-- **Real-time Messaging**: Communication tools for coordination
+## High-Level Architecture
+
+```
+shuffle-and-sync/
+├── client/           # React frontend (Vite + TypeScript)
+│   ├── src/
+│   │   ├── components/    # Reusable UI components (Shadcn/ui)
+│   │   ├── features/      # Feature-based modules
+│   │   ├── pages/         # Route components
+│   │   ├── hooks/         # Custom React hooks
+│   │   └── lib/           # Utilities and configurations
+├── server/           # Express.js backend (Node.js + TypeScript)
+│   ├── features/          # Feature-based API routes
+│   ├── middleware/        # Express middleware
+│   ├── repositories/      # Data access layer
+│   ├── services/          # Business logic layer
+│   ├── utils/             # Utility functions
+│   └── tests/             # Unit and integration tests
+├── shared/           # Code shared between client and server
+│   ├── schema.ts          # Database schema (Drizzle ORM)
+│   └── database-unified.ts # Database utilities
+├── scripts/          # Build and utility scripts
+├── docs/             # Comprehensive documentation
+├── migrations/       # Database migration scripts
+└── deployment/       # Deployment configuration
+```
 
 ## Technology Stack
 
-### Frontend Architecture
+### Frontend
+- **React 18.3.1** with TypeScript 5.6+
+- **Vite 6.0** for fast builds and dev server
+- **Shadcn/ui** component library (Radix UI primitives)
+- **Tailwind CSS 3.4** for styling
+- **TanStack React Query v5** for server state
+- **Zustand** for client state management
+- **Wouter** for client-side routing
+- **React Hook Form** with Zod validation
 
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **UI Library**: Shadcn/ui components built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens and dark theme support
-- **State Management**: TanStack React Query for server state, Zustand for client state
-- **Routing**: Wouter for lightweight client-side routing
-- **Forms**: React Hook Form with Zod validation
+### Backend
+- **Node.js 18+** with Express.js 4.21
+- **TypeScript 5.6+** with ES modules
+- **Auth.js v5** (NextAuth.js) with Google OAuth 2.0
+- **Drizzle ORM 0.44.6** for database operations
+- **SQLite Cloud** (production) / SQLite (development)
+- **SendGrid** for transactional emails
+- **WebSocket (ws)** for real-time features
 
-### Backend Architecture
+### Build & Deployment
+- **esbuild** for backend bundling
+- **Google Cloud Platform**: Cloud Run, Secret Manager, Cloud Build
+- **Docker** for containerization
 
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript with ES modules
-- **Authentication**: Auth.js v5 (NextAuth.js) with Google OAuth 2.0
-- **Database**: SQLite Cloud
-- **ORM**: Drizzle ORM for type-safe database operations
-- **Session Storage**: Database sessions via Drizzle adapter
-- **Email**: SendGrid for transactional emails
-- **Real-time**: WebSocket support for live features
+## Build, Test, and Validation Commands
 
-## Project Structure
-
+### Prerequisites
+```bash
+# Ensure Node.js 18+ and npm 9+ are installed
+node --version  # Should be v18.0.0 or higher
+npm --version   # Should be v9.0.0 or higher
 ```
-/
-├── client/src/           # Frontend React application
-│   ├── components/       # Reusable UI components
-│   ├── features/         # Feature-based modules (auth, communities, etc.)
-│   ├── pages/           # Route components
-│   ├── hooks/           # Custom React hooks
-│   └── lib/             # Utility functions and configurations
-├── server/              # Backend Express application
-│   ├── features/        # Feature-based API routes and services
-│   ├── auth/           # Authentication configuration
-│   ├── middleware/     # Express middleware
-│   └── shared/         # Shared utilities and types
-└── shared/             # Code shared between client and server
-    ├── schema.ts       # Database schema definitions (Drizzle)
-    └── database-unified.ts # Database connection and utilities
+
+### Initial Setup
+```bash
+# Install dependencies (ALWAYS use --legacy-peer-deps flag)
+npm install --legacy-peer-deps
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# Initialize database
+npm run db:push
+npm run db:init
 ```
+
+### Development
+```bash
+# Start development server (runs on http://localhost:3000)
+npm run dev
+
+# The dev server runs both frontend and backend:
+# - Frontend: Vite dev server with HMR
+# - Backend: Express server with tsx
+# - Proxy: Vite proxies /api/* to backend
+
+# Type checking (always run before committing)
+npm run check
+
+# Database health check
+npm run db:health
+```
+
+### Building
+
+**CRITICAL**: The build process includes comprehensive initialization and verification. ALWAYS run the full build command:
+
+```bash
+# Full production build (includes pre-build validation)
+npm run build
+
+# What this does:
+# 1. Runs pre-build validation (bash scripts/pre-build.sh)
+# 2. Type checks all TypeScript files
+# 3. Builds frontend (Vite) → dist/public/
+# 4. Builds backend (esbuild) → dist/index.js
+# 5. Post-build verification
+
+# Verify build artifacts
+npm run build:verify
+
+# Verify runtime initialization
+npm run build:verify-runtime
+
+# Clean build (if needed)
+rm -rf dist node_modules
+npm install --legacy-peer-deps
+npm run build
+```
+
+**Build Artifacts Location**:
+- Backend bundle: `dist/index.js` (~700KB)
+- Frontend assets: `dist/public/` (~1-2MB)
+- Production dependencies: `node_modules/` (after `npm prune --production`)
+
+### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report (70%+ required)
+npm run test:coverage
+
+# Run specific test suites
+npm run test:features       # Feature tests
+npm run test:auth           # Authentication tests
+npm run test:security       # Security tests
+npm run test:unit           # Unit tests only
+
+# Auto-generate tests for new features
+npm run test:generate
+```
+
+### Linting and Formatting
+
+```bash
+# Lint and auto-fix issues
+npm run lint
+
+# Format code with Prettier
+npm run format
+```
+
+### Database Operations
+
+```bash
+# Push schema changes to database
+npm run db:push
+
+# Initialize database with seed data
+npm run db:init
+
+# Check database connection
+npm run db:health
+```
+
+## Critical Build Requirements
+
+### NPM Dependency Resolution
+
+**IMPORTANT**: This project REQUIRES the `--legacy-peer-deps` flag for all npm commands due to peer dependency conflicts in `@sqlitecloud/drivers` package.
+
+```bash
+# ✅ CORRECT - Always use this
+npm install --legacy-peer-deps
+npm ci --legacy-peer-deps
+
+# ❌ WRONG - Will fail with ERESOLVE errors
+npm install
+npm ci
+```
+
+**Why**: The `@sqlitecloud/drivers` package declares React Native peer dependencies which conflict with the web application's React 18.3.1. These are not needed for Node.js server usage and can be safely ignored.
+
+### Pre-Build Validation
+
+The project includes a comprehensive pre-build validation script that checks:
+- Node.js and npm versions
+- Required configuration files
+- Dependency installation
+- File permissions
+
+This runs automatically via the `prebuild` npm script before every `npm run build`.
+
+### Windows Compatibility
+
+For Windows users with Git Bash/MINGW64:
+```bash
+# Always use bash prefix for shell scripts
+bash scripts/pre-build.sh
+bash scripts/verify-build.sh
+```
+
+## Project Layout and Key Files
+
+### Configuration Files
+
+**Root Directory**:
+- `package.json` - Main dependencies and npm scripts
+- `tsconfig.json` - TypeScript configuration (ES modules, strict mode)
+- `vite.config.ts` - Frontend build configuration
+- `esbuild.config.js` - Backend build configuration (not actively used, build.js is primary)
+- `build.js` - Main build orchestration script
+- `.env.example` - Environment variable template
+- `.env.local` - Local development environment (not committed, create from .env.example)
+
+**Frontend**:
+- `client/src/main.tsx` - React application entry point
+- `client/src/App.tsx` - Root component with routing
+- `client/index.html` - HTML template
+- `tailwind.config.ts` - Tailwind CSS configuration
+- `components.json` - Shadcn/ui configuration
+
+**Backend**:
+- `server/index.ts` - Express server entry point
+- `server/static-server.ts` - Static file serving for production
+
+**Shared**:
+- `shared/schema.ts` - Database schema definitions (Drizzle ORM)
+- `shared/database-unified.ts` - Database connection and utilities
+
+### Database Schema
+
+**ORM**: Drizzle ORM (NO Prisma, NO direct SQL queries outside repositories)  
+**Schema Definition**: `shared/schema.ts`  
+**Connection**: `shared/database-unified.ts`
+
+**ALWAYS use Drizzle ORM for database operations**:
+```typescript
+// ✅ CORRECT - Use Drizzle ORM
+import { db } from '@shared/database-unified';
+import { users } from '@shared/schema';
+import { eq } from 'drizzle-orm';
+
+const user = await db.select().from(users).where(eq(users.id, userId));
+
+// ❌ WRONG - Never use raw SQL directly
+// const result = await db.run('SELECT * FROM users WHERE id = ?', [userId]);
+```
+
+### Key Tables and Schema
+
+**Core Tables**:
+- `users` - User accounts
+- `sessions`, `accounts`, `verificationTokens` - Auth.js tables (managed automatically)
+- `communities` - TCG game communities (Magic, Pokemon, etc.)
+- `userCommunities` - User-community memberships
+- `events` - Stream coordination events
+- `tournaments` - Tournament management
+- `games`, `cards`, `gameCardAttributes` - TableSync universal framework
+
+**Schema Features**:
+- Full TypeScript types and Zod validation
+- Comprehensive foreign key constraints
+- Indexes for performance
+- JSONB for flexible data (game mechanics, card attributes)
+
+### Validation and GitHub Workflows
+
+**Pre-commit Checks**:
+1. TypeScript type checking: `npm run check`
+2. Linting: `npm run lint`
+3. Tests: `npm test`
+
+**CI/CD Pipeline** (Cloud Build):
+- `cloudbuild.yaml` - Backend deployment
+- `cloudbuild-frontend.yaml` - Frontend deployment
+- Automated builds on push to main branch
+- Includes test suite execution
 
 ## Coding Patterns and Conventions
 
 ### File Organization
 
-- Use **feature-based structure** for both client and server
-- Group related components, hooks, and utilities together
-- Separate UI components (`/components/ui/`) from feature components
-- Keep shared types and schemas in the `/shared` directory
+**Feature-Based Structure** (NOT type-based):
+```typescript
+// ✅ GOOD - Feature-based
+/features/auth/
+  - components/LoginForm.tsx
+  - hooks/useAuth.ts
+  - services/auth-service.ts
+  - types.ts
+
+// ❌ BAD - Type-based
+/components/
+  - LoginForm.tsx
+  - TournamentCard.tsx
+/hooks/
+  - useAuth.ts
+  - useTournaments.ts
+```
 
 ### Naming Conventions
 
-- **Files**: kebab-case for filenames (`user-profile.tsx`, `auth.routes.ts`)
-- **Components**: PascalCase for React components (`UserProfile`, `CommunityCard`)
-- **Functions**: camelCase for functions and variables
-- **Constants**: UPPER_SNAKE_CASE for constants
-- **Database**: snake_case for database columns, camelCase for TypeScript interfaces
+- **Components**: PascalCase (e.g., `UserProfile.tsx`)
+- **Files**: kebab-case (e.g., `auth-service.ts`)
+- **Functions/Variables**: camelCase (e.g., `getUserById`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_FILE_SIZE`)
+- **Types/Interfaces**: PascalCase (e.g., `interface UserProfile {}`)
+- **Test files**: `*.test.ts` or `*.test.tsx`
 
-### TypeScript Patterns
+### Import Aliases
 
-- Use strict TypeScript configuration
-- Define interfaces for all API requests/responses
-- Use Zod schemas for runtime validation
-- Leverage Drizzle ORM's type safety for database operations
-- Use proper generic types for reusable components
+Use path aliases for cleaner imports:
+```typescript
+// ✅ GOOD - Use aliases
+import { db } from '@shared/database-unified';
+import { users } from '@shared/schema';
+import { Button } from '@/components/ui/button';
 
-### React Patterns
+// ❌ BAD - Relative paths
+import { db } from '../../../shared/database-unified';
+```
 
-- Use functional components with hooks
-- Implement custom hooks for shared logic
-- Use React Query for server state management
-- Implement proper error boundaries
-- Use Suspense for loading states where appropriate
+### Error Handling
 
-### API Design
+**Express Routes**: Use try-catch with proper error responses
+```typescript
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await userService.getById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+```
 
-- RESTful API design with feature-based routing
-- Consistent response formats with proper HTTP status codes
-- Input validation using Zod schemas
-- Proper error handling and logging
-- Rate limiting and security middleware
+**React Components**: Use error boundaries and suspense
+```typescript
+<ErrorBoundary fallback={<ErrorMessage />}>
+  <Suspense fallback={<Loading />}>
+    <UserProfile />
+  </Suspense>
+</ErrorBoundary>
+```
 
-## Database Schema Considerations
+### Validation
 
-### Database Architecture
+**Backend**: Use Zod schemas for request validation
+```typescript
+import { z } from 'zod';
 
-- **SQLite Cloud**: Cloud-hosted SQLite database for all data (development and production)
-- **Primary ORM**: Drizzle ORM (`shared/database-unified.ts`) - handles all runtime database operations
-- **Schema Definition**: `shared/schema.ts` (Drizzle) - authoritative schema source
-- **Session Strategy**: Database sessions via Drizzle adapter - Auth.js uses database-backed sessions
+const createUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(2).max(100),
+});
 
-> **Important**: The application uses SQLite Cloud accessed via Drizzle ORM for 100% of database operations. See [docs/architecture/DATABASE_ARCHITECTURE.md](../docs/architecture/DATABASE_ARCHITECTURE.md) for details.
+// In route handler
+const validated = createUserSchema.parse(req.body);
+```
 
-### Key Tables
+**Frontend**: Use React Hook Form with Zod
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-- **users**: User profiles with TCG community preferences
-- **communities**: TCG communities (MTG, Pokemon, Lorcana, etc.)
-- **user_communities**: Many-to-many relationship for community membership
-- **events**: Tournaments, streaming events, and calendar entries
-- **messages**: Real-time messaging system
-- **sessions**: Auth.js session tables managed by Drizzle adapter
+const form = useForm({
+  resolver: zodResolver(createUserSchema),
+});
+```
 
-### Important Relationships
+## Common Issues and Workarounds
 
-- Users have a primary community but can belong to multiple communities
-- Events are associated with specific communities
-- Real-time coordination features require WebSocket integration
+### Issue 1: npm install failures with ERESOLVE errors
 
-### Database Development Patterns
+**Problem**: `npm install` or `npm ci` fails with peer dependency conflicts related to `@sqlitecloud/drivers` and React Native dependencies.
 
-- **Schema Changes**: Always modify `shared/schema.ts` (Drizzle schema)
-- **Migrations**: Use `npm run db:push` (dev) or Drizzle Kit migrations (prod)
-- **Queries**: Always import from `shared/database-unified` for all database operations
-- **Transactions**: Use `withTransaction` helper from database-unified
-
-## Authentication & Security
-
-### Authentication Flow
-
-- Google OAuth 2.0 via Auth.js v5
-- **Database sessions via Drizzle adapter** - secure session management with database persistence
-- HTTP-only secure cookies
-- CSRF protection enabled
-
-### Security Considerations
-
-- Rate limiting on all API endpoints
-- Input validation and sanitization
-- Secure environment variable management
-- Proper CORS configuration
-- SQL injection prevention via Drizzle ORM's parameterized queries
-
-## Development Workflow
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Git
-- SQLite Cloud account or local SQLite database
-
-### Initial Setup
-
+**Solution**: ALWAYS use `--legacy-peer-deps` flag:
 ```bash
-# 1. Clone and install dependencies
-git clone https://github.com/Shuffle-and-Sync/reimagined-guacamole.git
-cd reimagined-guacamole
 npm install --legacy-peer-deps
-
-# 2. Environment setup
-cp .env.example .env.local
-# Edit .env.local with your configuration (see Environment Variables section)
-
-# 3. Initialize database
-npm run db:init
-npm run db:push
-
-# 4. Start development server
-npm run dev
+npm ci --legacy-peer-deps
 ```
 
-### Development Commands
+**Root Cause**: The `@sqlitecloud/drivers` package declares React Native peer dependencies which conflict with web React 18.3.1. These are not needed for Node.js and can be safely ignored.
 
-- **Development server**: `npm run dev` - Start server with hot reload at http://localhost:3000
-- **Build**: `npm run build` - Build the application for production
-- **Type checking**: `npm run check` - Run TypeScript type checking
-- **Database migrations**: `npm run db:push` - Push schema changes to database
-- **Health check**: `npm run health` - Check application health status
+### Issue 2: Build fails with "Cannot find module"
 
-### Testing Commands
+**Problem**: Build fails with TypeScript errors about missing modules or types.
 
-- **Run all tests**: `npm test` - Execute all test suites
-- **Watch mode**: `npm run test:watch` - Run tests in watch mode
-- **Coverage**: `npm run test:coverage` - Generate test coverage report
-- **Feature tests**: `npm run test:features` - Run feature-specific tests
-- **Individual suites**:
-  - `npm run test:auth` - Authentication tests
-  - `npm run test:tournaments` - Tournament tests
-  - `npm run test:matchmaking` - Matchmaking tests
-  - `npm run test:calendar` - Calendar tests
-  - `npm run test:messaging` - Messaging tests
+**Solution**:
+1. Ensure dependencies are installed: `npm install --legacy-peer-deps`
+2. Run type check to see specific errors: `npm run check`
+3. Verify tsconfig.json path mappings are correct
+4. Clean and rebuild: `rm -rf dist node_modules && npm install --legacy-peer-deps && npm run build`
 
-### Code Quality Commands
+### Issue 3: Database connection errors
 
-- **Lint**: `npm run lint` - Run ESLint and auto-fix issues
-- **Format**: `npm run format` - Format code with Prettier
-- **Copilot analysis**: `npm run copilot:analyze` - Run backend code analysis
-- **Auto-fix**: `npm run copilot:fix` - Apply automated fixes
+**Problem**: Application fails to connect to database with timeout or connection errors.
 
-### Code Quality Standards
+**Solution**:
+1. Check DATABASE_URL format:
+   - SQLite Cloud: `sqlitecloud://host:port/database?apikey=key`
+   - Local SQLite: `./dev.db` or `file:./dev.db`
+2. Test connection: `npm run db:health`
+3. For SQLite Cloud, verify API key and network connectivity
+4. For local development, ensure file exists and has proper permissions
 
-- Follow existing patterns in the codebase
-- Use TypeScript strict mode
-- Implement proper error handling
-- Add appropriate logging for debugging
-- Consider performance implications for real-time features
-- Run `npm run lint` and `npm run format` before committing
-- Ensure all tests pass with `npm test`
+### Issue 4: Authentication redirect URI mismatch
 
-### Testing Considerations
+**Problem**: OAuth login fails with "redirect_uri_mismatch" error.
 
-- Test authentication flows thoroughly
-- Validate real-time features work correctly
-- Test cross-platform streaming coordination
-- Ensure mobile responsiveness
-- Write tests for new features before implementing
-- Maintain test coverage above 80%
+**Solution**:
+1. Check Google Cloud Console OAuth credentials
+2. Ensure redirect URIs match EXACTLY (including protocol and trailing slashes):
+   - `https://your-domain.com/api/auth/callback/google`
+   - `https://your-backend-service.run.app/api/auth/callback/google`
+3. Verify AUTH_URL environment variable matches your deployment URL
+4. Set AUTH_TRUST_HOST=true for proxy/Cloud Run deployments
+5. Wait 5-10 minutes for Google to propagate changes
+6. Clear browser cache and retry
 
-## Feature-Specific Context
+### Issue 5: Build succeeds but dist/ artifacts missing
 
-### TCG Communities
+**Problem**: `npm run build` completes but `dist/` directory is empty or missing files.
 
-- Support for multiple card games (MTG, Pokemon, Lorcana, Yu-Gi-Oh, etc.)
-- Users can join multiple communities but have one primary community
-- Community-specific theming and preferences
+**Solution**:
+1. Check disk space availability: `df -h`
+2. Verify write permissions to `dist/`: `ls -la dist/`
+3. Review build output for errors
+4. Run verification: `npm run build:verify`
+5. Clean and rebuild: `rm -rf dist && npm run build`
 
-### Streaming Coordination
+### Issue 6: Tests fail with database errors
 
-- Multi-platform streaming support (Twitch, YouTube, Facebook Gaming)
-- Real-time status coordination between streamers
-- Platform API integrations for live status verification
+**Problem**: Tests fail with "database locked" or connection errors.
 
-### TableSync (Remote Gameplay)
+**Solution**:
+1. Ensure test database is properly configured
+2. Tests should use in-memory SQLite: `:memory:` or separate test.db file
+3. Close database connections after each test
+4. Use proper test setup/teardown in Jest configuration
 
-- Real-time board state synchronization
-- Game room management with player limits
-- Voice chat and communication tools integration
+### Issue 7: Windows Git Bash script failures
 
-### Tournament Management
+**Problem**: Shell scripts fail on Windows with MINGW64/Git Bash.
 
-- Bracket generation and management
-- Player registration and matchmaking
-- Prize distribution and revenue sharing calculations
+**Solution**: Always prefix shell scripts with `bash`:
+```bash
+# ✅ CORRECT
+bash scripts/pre-build.sh
 
-## Environment Variables
+# ❌ WRONG
+./scripts/pre-build.sh
+```
 
-### Required Variables
+### Issue 8: Development server port conflicts
+
+**Problem**: Dev server fails to start with "EADDRINUSE" error (port already in use).
+
+**Solution**:
+1. Check what's using port 3000: `lsof -i :3000` (macOS/Linux) or `netstat -ano | findstr :3000` (Windows)
+2. Kill the process using the port
+3. Or change port in server/index.ts: `const PORT = process.env.PORT || 3001;`
+
+### Issue 9: Production deployment health check failures
+
+**Problem**: Cloud Run deployment fails health checks and service shows as unhealthy.
+
+**Solution**:
+1. Check application logs: `gcloud run services logs read shuffle-sync-backend --region us-central1`
+2. Verify health endpoint is accessible: `curl https://your-service.run.app/health`
+3. Common causes:
+   - Database connection failure (check DATABASE_URL)
+   - Missing environment variables (check Secret Manager)
+   - Insufficient memory/CPU (increase Cloud Run resources)
+   - Long startup time (increase timeout in cloudbuild.yaml)
+
+### Issue 10: Type errors in Drizzle ORM queries
+
+**Problem**: TypeScript errors when using Drizzle ORM queries.
+
+**Solution**:
+1. Ensure schema is imported correctly: `import { users } from '@shared/schema';`
+2. Import Drizzle operators: `import { eq, and, or } from 'drizzle-orm';`
+3. Check schema types match query: `await db.select().from(users).where(eq(users.id, userId))`
+4. Re-run `npm run check` to see detailed type errors
+
+## Deployment Information
+
+### Environment Variables
+
+**Required for Production**:
+- `DATABASE_URL` - SQLite Cloud connection string
+- `AUTH_SECRET` - 32+ character secret for Auth.js (generate with `openssl rand -base64 32`)
+- `AUTH_URL` - Full URL of deployed backend (e.g., `https://your-service.run.app`)
+- `AUTH_TRUST_HOST` - Set to `true` for Cloud Run/proxy deployments
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `MASTER_ADMIN_EMAIL` - Email for master administrator account
+- `NODE_ENV` - Set to `production`
+
+**Optional**:
+- `SENDGRID_API_KEY` - For email functionality
+- `SENDGRID_FROM_EMAIL` - Sender email address
+- Platform-specific API keys (Twitch, YouTube, Facebook Gaming)
+
+### Deployment Commands
 
 ```bash
-# Database
-DATABASE_URL=sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YOUR_API_KEY
-# Or for local development:
-DATABASE_URL=./dev.db
+# Deploy to Google Cloud Run (production)
+npm run deploy:production
 
-# Authentication
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-AUTH_SECRET=your_secure_random_string
-AUTH_URL=https://your-domain.com
-AUTH_TRUST_HOST=true
+# Backend only
+npm run deploy:backend
 
-# External Services
-SENDGRID_API_KEY=your_sendgrid_key (optional)
+# Frontend only
+npm run deploy:frontend
+
+# Database migration
+npm run db:push
 ```
 
-## Common Tasks and Patterns
+### Pre-Deployment Checklist
 
-### Adding New Features
+1. ✅ Run tests: `npm test`
+2. ✅ Type check: `npm run check`
+3. ✅ Build locally: `npm run build && npm run build:verify`
+4. ✅ Verify environment variables are set
+5. ✅ Ensure Google OAuth redirect URIs are configured
+6. ✅ Database schema is up to date: `npm run db:push`
+7. ✅ Admin account is initialized: `npm run admin:init`
 
-1. Create feature directory in both `client/src/features/` and `server/features/`
-2. Define TypeScript interfaces in feature types file
-3. Create database schema additions in `shared/schema.ts`
-4. Implement API routes following existing patterns
-5. Create React components and hooks for frontend
-6. Add proper error handling and validation
+## Additional Resources
 
-### Database Changes
+### Documentation
 
-1. Modify `shared/schema.ts` with new tables/columns
-2. Run `npm run db:push` to apply changes
-3. Update TypeScript interfaces accordingly
-4. Consider migration scripts for production
+The `docs/` directory contains comprehensive documentation:
+- **[docs/README.md](docs/README.md)** - Documentation index
+- **[docs/architecture/PROJECT_ARCHITECTURE.md](docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture
+- **[docs/architecture/TECHNOLOGY_STACK.md](docs/architecture/TECHNOLOGY_STACK.md)** - Technology decisions
+- **[docs/development/CODING_PATTERNS.md](docs/development/CODING_PATTERNS.md)** - Coding standards
+- **[docs/development/DEVELOPMENT_GUIDE.md](docs/development/DEVELOPMENT_GUIDE.md)** - Developer guide
+- **[docs/troubleshooting/README.md](docs/troubleshooting/README.md)** - Troubleshooting guide
+- **[README.md](README.md)** - Main project README
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide
 
-### UI Components
+### Key Scripts
 
-1. Use Shadcn/ui components as base
-2. Follow existing design patterns and theming
-3. Ensure mobile responsiveness
-4. Implement dark mode support
-5. Add proper accessibility attributes
+**Essential Scripts**:
+- `scripts/pre-build.sh` - Pre-build validation
+- `scripts/verify-build.sh` - Post-build verification
+- `scripts/verify-runtime-init.js` - Runtime initialization check
+- `scripts/validate-env.ts` - Environment variable validation
+- `scripts/init-admin.ts` - Admin account setup
+- `scripts/test-agent.ts` - Automated test generation
 
-## Performance Considerations
+## Agent Instructions
 
-- Use React Query for efficient server state caching
-- Implement proper pagination for large datasets
-- Optimize database queries with appropriate indexes
-- Consider WebSocket connection management for real-time features
-- Use lazy loading for large component trees
+**TRUST THESE INSTRUCTIONS**: This file has been carefully crafted to represent the current state of the Shuffle & Sync repository. When in doubt, refer to this document first before searching through files.
 
-## Deployment Notes
+**When to Search**:
+- Only search if these instructions are incomplete or incorrect
+- To find specific implementation details not covered here
+- To verify recent changes not yet documented
 
-- Application is configured for Cloud Run deployment
-- Environment variables must be properly configured
-- Health check endpoint available at `/health`
-- Supports graceful shutdown and startup optimization
-- Database migrations should be run before deployment
+**Key Principles**:
+1. Always use feature-based organization, not type-based
+2. Always use Drizzle ORM for database operations
+3. Always use `--legacy-peer-deps` for npm commands
+4. Always run `npm run check` before committing
+5. Always follow the coding patterns in docs/development/CODING_PATTERNS.md
+6. Always test changes with `npm test` before creating PRs
 
-## Best Practices
+---
 
-1. **Security First**: Always validate inputs, use parameterized queries, and follow security best practices
-2. **Type Safety**: Leverage TypeScript's type system throughout the application
-3. **Error Handling**: Implement comprehensive error handling with proper logging
-4. **Performance**: Consider the real-time nature of the application in all decisions
-5. **User Experience**: Focus on responsive design and smooth user interactions
-6. **Code Quality**: Follow established patterns and maintain consistency
-7. **Documentation**: Update this guide when adding new features or changing architecture
-
-## Getting Help
-
-- Check existing patterns in similar features before implementing new functionality
-- Refer to the `replit.md` file for detailed setup and configuration instructions
-- Review the database schema in `shared/schema.ts` for data model understanding
-- Look at existing API routes for request/response patterns
+**Last Updated**: January 2025  
+**Version**: 1.0.0  
+**Maintainer**: Shuffle & Sync Development Team

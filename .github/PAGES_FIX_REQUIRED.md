@@ -7,7 +7,6 @@ The GitHub Pages workflow has been updated to prevent automatic deployment failu
 ## Issue
 
 GitHub Pages automatic deployment was failing with error:
-
 ```
 HttpError: Validation Failed (422)
 ```
@@ -48,7 +47,6 @@ HttpError: Validation Failed (422)
 ## Why This Happened
 
 The automatic GitHub Pages workflow (created by GitHub) fails when:
-
 - Pages is enabled BUT
 - The deployment source is set to "Deploy from a branch" instead of "GitHub Actions"
 
