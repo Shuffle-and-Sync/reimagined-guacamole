@@ -21,3 +21,6 @@ export * from "./mock-handlers";
 
 // User action helpers
 export * from "./user-actions.helper";
+
+// Error test utilities
+export * from "./error-test-utils";
