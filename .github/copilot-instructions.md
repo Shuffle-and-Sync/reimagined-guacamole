@@ -40,6 +40,7 @@ shuffle-and-sync/
 ## Technology Stack
 
 ### Frontend
+
 - **React 18.3.1** with TypeScript 5.6+
 - **Vite 6.0** for fast builds and dev server
 - **Shadcn/ui** component library (Radix UI primitives)
@@ -50,6 +51,7 @@ shuffle-and-sync/
 - **React Hook Form** with Zod validation
 
 ### Backend
+
 - **Node.js 18+** with Express.js 4.21
 - **TypeScript 5.6+** with ES modules
 - **Auth.js v5** (NextAuth.js) with Google OAuth 2.0
@@ -59,6 +61,7 @@ shuffle-and-sync/
 - **WebSocket (ws)** for real-time features
 
 ### Build & Deployment
+
 - **esbuild** for backend bundling
 - **Google Cloud Platform**: Cloud Run, Secret Manager, Cloud Build
 - **Docker** for containerization
@@ -66,6 +69,7 @@ shuffle-and-sync/
 ## Build, Test, and Validation Commands
 
 ### Prerequisites
+
 ```bash
 # Ensure Node.js 18+ and npm 9+ are installed
 node --version  # Should be v18.0.0 or higher
@@ -73,6 +77,7 @@ npm --version   # Should be v9.0.0 or higher
 ```
 
 ### Initial Setup
+
 ```bash
 # Install dependencies (ALWAYS use --legacy-peer-deps flag)
 npm install --legacy-peer-deps
@@ -87,6 +92,7 @@ npm run db:init
 ```
 
 ### Development
+
 ```bash
 # Start development server (runs on http://localhost:3000)
 npm run dev
@@ -131,6 +137,7 @@ npm run build
 ```
 
 **Build Artifacts Location**:
+
 - Backend bundle: `dist/index.js` (~700KB)
 - Frontend assets: `dist/public/` (~1-2MB)
 - Production dependencies: `node_modules/` (after `npm prune --production`)
@@ -201,6 +208,7 @@ npm ci
 ### Pre-Build Validation
 
 The project includes a comprehensive pre-build validation script that checks:
+
 - Node.js and npm versions
 - Required configuration files
 - Dependency installation
@@ -211,6 +219,7 @@ This runs automatically via the `prebuild` npm script before every `npm run buil
 ### Windows Compatibility
 
 For Windows users with Git Bash/MINGW64:
+
 ```bash
 # Always use bash prefix for shell scripts
 bash scripts/pre-build.sh
@@ -222,6 +231,7 @@ bash scripts/verify-build.sh
 ### Configuration Files
 
 **Root Directory**:
+
 - `package.json` - Main dependencies and npm scripts
 - `tsconfig.json` - TypeScript configuration (ES modules, strict mode)
 - `vite.config.ts` - Frontend build configuration
@@ -231,6 +241,7 @@ bash scripts/verify-build.sh
 - `.env.local` - Local development environment (not committed, create from .env.example)
 
 **Frontend**:
+
 - `client/src/main.tsx` - React application entry point
 - `client/src/App.tsx` - Root component with routing
 - `client/index.html` - HTML template
@@ -238,10 +249,12 @@ bash scripts/verify-build.sh
 - `components.json` - Shadcn/ui configuration
 
 **Backend**:
+
 - `server/index.ts` - Express server entry point
 - `server/static-server.ts` - Static file serving for production
 
 **Shared**:
+
 - `shared/schema.ts` - Database schema definitions (Drizzle ORM)
 - `shared/database-unified.ts` - Database connection and utilities
 
@@ -252,11 +265,12 @@ bash scripts/verify-build.sh
 **Connection**: `shared/database-unified.ts`
 
 **ALWAYS use Drizzle ORM for database operations**:
+
 ```typescript
 // ✅ CORRECT - Use Drizzle ORM
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const user = await db.select().from(users).where(eq(users.id, userId));
 
@@ -267,6 +281,7 @@ const user = await db.select().from(users).where(eq(users.id, userId));
 ### Key Tables and Schema
 
 **Core Tables**:
+
 - `users` - User accounts
 - `sessions`, `accounts`, `verificationTokens` - Auth.js tables (managed automatically)
 - `communities` - TCG game communities (Magic, Pokemon, etc.)
@@ -276,6 +291,7 @@ const user = await db.select().from(users).where(eq(users.id, userId));
 - `games`, `cards`, `gameCardAttributes` - TableSync universal framework
 
 **Schema Features**:
+
 - Full TypeScript types and Zod validation
 - Comprehensive foreign key constraints
 - Indexes for performance
@@ -284,11 +300,13 @@ const user = await db.select().from(users).where(eq(users.id, userId));
 ### Validation and GitHub Workflows
 
 **Pre-commit Checks**:
+
 1. TypeScript type checking: `npm run check`
 2. Linting: `npm run lint`
 3. Tests: `npm test`
 
 **CI/CD Pipeline** (Cloud Build):
+
 - `cloudbuild.yaml` - Backend deployment
 - `cloudbuild-frontend.yaml` - Frontend deployment
 - Automated builds on push to main branch
@@ -299,21 +317,19 @@ const user = await db.select().from(users).where(eq(users.id, userId));
 ### File Organization
 
 **Feature-Based Structure** (NOT type-based):
+
 ```typescript
 // ✅ GOOD - Feature-based
-/features/auth/
-  - components/LoginForm.tsx
-  - hooks/useAuth.ts
-  - services/auth-service.ts
-  - types.ts
-
-// ❌ BAD - Type-based
-/components/
-  - LoginForm.tsx
-  - TournamentCard.tsx
-/hooks/
-  - useAuth.ts
-  - useTournaments.ts
+/features/ahtu / -components / LoginForm.tsx -
+  hooks / useAuth.ts -
+  services / auth -
+  service.ts -
+  types.ts /
+    // ❌ BAD - Type-based
+    components /
+    -LoginForm.tsx -
+  TournamentCard.tsx / hooks / -useAuth.ts -
+  useTournaments.ts;
 ```
 
 ### Naming Conventions
@@ -328,35 +344,38 @@ const user = await db.select().from(users).where(eq(users.id, userId));
 ### Import Aliases
 
 Use path aliases for cleaner imports:
+
 ```typescript
 // ✅ GOOD - Use aliases
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { Button } from '@/components/ui/button';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 // ❌ BAD - Relative paths
-import { db } from '../../../shared/database-unified';
+import { db } from "../../../shared/database-unified";
 ```
 
 ### Error Handling
 
 **Express Routes**: Use try-catch with proper error responses
+
 ```typescript
-app.get('/api/users/:id', async (req, res) => {
+app.get("/api/users/:id", async (req, res) => {
   try {
     const user = await userService.getById(req.params.id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 ```
 
 **React Components**: Use error boundaries and suspense
+
 ```typescript
 <ErrorBoundary fallback={<ErrorMessage />}>
   <Suspense fallback={<Loading />}>
@@ -368,8 +387,9 @@ app.get('/api/users/:id', async (req, res) => {
 ### Validation
 
 **Backend**: Use Zod schemas for request validation
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const createUserSchema = z.object({
   email: z.string().email(),
@@ -381,9 +401,10 @@ const validated = createUserSchema.parse(req.body);
 ```
 
 **Frontend**: Use React Hook Form with Zod
+
 ```typescript
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const form = useForm({
   resolver: zodResolver(createUserSchema),
@@ -397,6 +418,7 @@ const form = useForm({
 **Problem**: `npm install` or `npm ci` fails with peer dependency conflicts related to `@sqlitecloud/drivers` and React Native dependencies.
 
 **Solution**: ALWAYS use `--legacy-peer-deps` flag:
+
 ```bash
 npm install --legacy-peer-deps
 npm ci --legacy-peer-deps
@@ -409,6 +431,7 @@ npm ci --legacy-peer-deps
 **Problem**: Build fails with TypeScript errors about missing modules or types.
 
 **Solution**:
+
 1. Ensure dependencies are installed: `npm install --legacy-peer-deps`
 2. Run type check to see specific errors: `npm run check`
 3. Verify tsconfig.json path mappings are correct
@@ -419,6 +442,7 @@ npm ci --legacy-peer-deps
 **Problem**: Application fails to connect to database with timeout or connection errors.
 
 **Solution**:
+
 1. Check DATABASE_URL format:
    - SQLite Cloud: `sqlitecloud://host:port/database?apikey=key`
    - Local SQLite: `./dev.db` or `file:./dev.db`
@@ -431,6 +455,7 @@ npm ci --legacy-peer-deps
 **Problem**: OAuth login fails with "redirect_uri_mismatch" error.
 
 **Solution**:
+
 1. Check Google Cloud Console OAuth credentials
 2. Ensure redirect URIs match EXACTLY (including protocol and trailing slashes):
    - `https://your-domain.com/api/auth/callback/google`
@@ -445,6 +470,7 @@ npm ci --legacy-peer-deps
 **Problem**: `npm run build` completes but `dist/` directory is empty or missing files.
 
 **Solution**:
+
 1. Check disk space availability: `df -h`
 2. Verify write permissions to `dist/`: `ls -la dist/`
 3. Review build output for errors
@@ -456,6 +482,7 @@ npm ci --legacy-peer-deps
 **Problem**: Tests fail with "database locked" or connection errors.
 
 **Solution**:
+
 1. Ensure test database is properly configured
 2. Tests should use in-memory SQLite: `:memory:` or separate test.db file
 3. Close database connections after each test
@@ -466,6 +493,7 @@ npm ci --legacy-peer-deps
 **Problem**: Shell scripts fail on Windows with MINGW64/Git Bash.
 
 **Solution**: Always prefix shell scripts with `bash`:
+
 ```bash
 # ✅ CORRECT
 bash scripts/pre-build.sh
@@ -479,6 +507,7 @@ bash scripts/pre-build.sh
 **Problem**: Dev server fails to start with "EADDRINUSE" error (port already in use).
 
 **Solution**:
+
 1. Check what's using port 3000: `lsof -i :3000` (macOS/Linux) or `netstat -ano | findstr :3000` (Windows)
 2. Kill the process using the port
 3. Or change port in server/index.ts: `const PORT = process.env.PORT || 3001;`
@@ -488,6 +517,7 @@ bash scripts/pre-build.sh
 **Problem**: Cloud Run deployment fails health checks and service shows as unhealthy.
 
 **Solution**:
+
 1. Check application logs: `gcloud run services logs read shuffle-sync-backend --region us-central1`
 2. Verify health endpoint is accessible: `curl https://your-service.run.app/health`
 3. Common causes:
@@ -501,6 +531,7 @@ bash scripts/pre-build.sh
 **Problem**: TypeScript errors when using Drizzle ORM queries.
 
 **Solution**:
+
 1. Ensure schema is imported correctly: `import { users } from '@shared/schema';`
 2. Import Drizzle operators: `import { eq, and, or } from 'drizzle-orm';`
 3. Check schema types match query: `await db.select().from(users).where(eq(users.id, userId))`
@@ -511,6 +542,7 @@ bash scripts/pre-build.sh
 ### Environment Variables
 
 **Required for Production**:
+
 - `DATABASE_URL` - SQLite Cloud connection string
 - `AUTH_SECRET` - 32+ character secret for Auth.js (generate with `openssl rand -base64 32`)
 - `AUTH_URL` - Full URL of deployed backend (e.g., `https://your-service.run.app`)
@@ -521,6 +553,7 @@ bash scripts/pre-build.sh
 - `NODE_ENV` - Set to `production`
 
 **Optional**:
+
 - `SENDGRID_API_KEY` - For email functionality
 - `SENDGRID_FROM_EMAIL` - Sender email address
 - Platform-specific API keys (Twitch, YouTube, Facebook Gaming)
@@ -556,10 +589,11 @@ npm run db:push
 ### Documentation
 
 The `docs/` directory contains comprehensive documentation:
-- **[docs/README.md](docs/README.md)** - Documentation index
-- **[docs/architecture/PROJECT_ARCHITECTURE.md](docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture
-- **[docs/architecture/TECHNOLOGY_STACK.md](docs/architecture/TECHNOLOGY_STACK.md)** - Technology decisions
-- **[docs/development/CODING_PATTERNS.md](docs/development/CODING_PATTERNS.md)** - Coding standards
+
+- **[docs/README.md](../docs/README.md)** - Documentation index
+- **[docs/architecture/PROJECT_ARCHITECTURE.md](../docs/architecture/PROJECT_ARCHITECTURE.md)** - System architecture
+- **[docs/architecture/TECHNOLOGY_STACK.md](../docs/architecture/TECHNOLOGY_STACK.md)** - Technology decisions
+- **[docs/development/CODING_PATTERNS.md](../docs/development/CODING_PATTERNS.md)** - Coding standards
 - **[docs/development/DEVELOPMENT_GUIDE.md](docs/development/DEVELOPMENT_GUIDE.md)** - Developer guide
 - **[docs/troubleshooting/README.md](docs/troubleshooting/README.md)** - Troubleshooting guide
 - **[README.md](README.md)** - Main project README
@@ -568,6 +602,7 @@ The `docs/` directory contains comprehensive documentation:
 ### Key Scripts
 
 **Essential Scripts**:
+
 - `scripts/pre-build.sh` - Pre-build validation
 - `scripts/verify-build.sh` - Post-build verification
 - `scripts/verify-runtime-init.js` - Runtime initialization check
@@ -580,11 +615,13 @@ The `docs/` directory contains comprehensive documentation:
 **TRUST THESE INSTRUCTIONS**: This file has been carefully crafted to represent the current state of the Shuffle & Sync repository. When in doubt, refer to this document first before searching through files.
 
 **When to Search**:
+
 - Only search if these instructions are incomplete or incorrect
 - To find specific implementation details not covered here
 - To verify recent changes not yet documented
 
 **Key Principles**:
+
 1. Always use feature-based organization, not type-based
 2. Always use Drizzle ORM for database operations
 3. Always use `--legacy-peer-deps` for npm commands
