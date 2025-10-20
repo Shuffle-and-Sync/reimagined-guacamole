@@ -5,7 +5,7 @@
  * admin-only endpoints, and permission checks.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
   createMockErrorResponse,
@@ -35,6 +35,11 @@ describe("RBAC Authorization Error Tests", () => {
     };
     mockRes = createMockErrorResponse();
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe("Insufficient Role Level", () => {

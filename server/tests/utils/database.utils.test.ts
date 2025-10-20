@@ -4,7 +4,7 @@
  * Unit tests for database utility functions following testing best practices.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import {
   buildWhereConditions,
   buildSearchConditions,
@@ -32,6 +32,13 @@ const mockColumns = {
 };
 
 describe("Database Utils", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("buildWhereConditions", () => {
     test("should build equality condition", () => {
       const filters: FilterCondition[] = [

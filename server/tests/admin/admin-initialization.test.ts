@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  jest,
+} from "@jest/globals";
 
 /**
  * Admin Account Initialization Tests
@@ -7,6 +14,13 @@ import { describe, it, expect, beforeEach, jest } from "@jest/globals";
  */
 
 describe("Admin Account Initialization", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("Environment Configuration", () => {
     it("should validate MASTER_ADMIN_EMAIL format", () => {
       const validEmails = [

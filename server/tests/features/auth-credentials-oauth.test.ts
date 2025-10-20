@@ -5,7 +5,14 @@
  * Ensures both authentication methods function correctly without conflicts
  */
 
-import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 // Mock user data
 const createMockUser = (overrides = {}) => ({
@@ -37,6 +44,10 @@ const createOAuthUser = (overrides = {}) => ({
 describe("Authentication: Credentials vs OAuth", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
   });
 
   describe("Custom Credentials Authentication", () => {
