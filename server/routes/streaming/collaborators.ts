@@ -29,7 +29,7 @@ router.post(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = getAuthUserId(authenticatedReq);
+      const _userId = getAuthUserId(authenticatedReq);
       const eventId = assertRouteParam(req.params.eventId, "eventId");
 
       const collaborator = await collaborativeStreaming.addCollaborator(
@@ -77,8 +77,8 @@ router.patch(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = getAuthUserId(authenticatedReq);
-      const eventId = assertRouteParam(req.params.eventId, "eventId");
+      const _userId = getAuthUserId(authenticatedReq);
+      const _eventId = assertRouteParam(req.params.eventId, "eventId");
       const collaboratorId = assertRouteParam(
         req.params.collaboratorId,
         "collaboratorId",
@@ -110,8 +110,8 @@ router.delete(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = getAuthUserId(authenticatedReq);
-      const eventId = assertRouteParam(req.params.eventId, "eventId");
+      const _userId = getAuthUserId(authenticatedReq);
+      const _eventId = assertRouteParam(req.params.eventId, "eventId");
       const collaboratorId = assertRouteParam(
         req.params.collaboratorId,
         "collaboratorId",
