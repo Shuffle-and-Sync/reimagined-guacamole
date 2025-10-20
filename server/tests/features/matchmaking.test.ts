@@ -3,9 +3,15 @@
  *
  * Comprehensive unit, integration, and E2E tests for matchmaking system
  * Testing Audit Part 3 - Matchmaking Feature Requirements
+ *
+ * Refactored for:
+ * - Test isolation with beforeEach/afterEach hooks
+ * - Centralized mock data factories
+ * - Better assertions and behavioral testing
  */
 
-import { describe, test, expect } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
+import { createMockUser } from "../__factories__";
 
 const createMockMatchingCriteria = (overrides = {}) => ({
   userId: "user-123",
@@ -50,6 +56,11 @@ const createMockQueue = (overrides = {}) => ({
 // ============================================================================
 
 describe("Matchmaking System - Unit Tests", () => {
+  // Cleanup after each test to prevent resource leaks
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("Compatibility Score Calculations", () => {
     test("should calculate compatibility scores", () => {
       const user1 = {
@@ -70,7 +81,12 @@ describe("Matchmaking System - Unit Tests", () => {
 
       const overallScore = (gameCompatibility + skillCompatibility) / 2;
 
+      // Better assertions - verify specific calculations
       expect(sharedGames).toContain("mtg");
+      expect(sharedGames.length).toBe(1);
+      expect(gameCompatibility).toBe(0.5); // 1 shared / 2 total
+      expect(skillCompatibility).toBe(1.0); // Same skill level
+      expect(overallScore).toBe(0.75); // (0.5 + 1.0) / 2
       expect(overallScore).toBeGreaterThan(0.5);
       expect(overallScore).toBeLessThanOrEqual(1.0);
     });
@@ -79,6 +95,7 @@ describe("Matchmaking System - Unit Tests", () => {
       const matches: unknown[] = []; // Simulate no matches found
 
       expect(matches).toHaveLength(0);
+      expect(matches).toEqual([]);
     });
 
     test("should respect user filters", () => {
