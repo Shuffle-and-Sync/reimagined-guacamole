@@ -79,7 +79,7 @@ router.get(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = getAuthUserId(authenticatedReq);
+      const _userId = getAuthUserId(authenticatedReq);
       const eventId = assertRouteParam(req.params.eventId, "eventId");
 
       const event = await storage.getCollaborativeStreamEvent(eventId);
