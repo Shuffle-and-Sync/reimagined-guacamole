@@ -1,0 +1,3673 @@
+{
+  "summary": {
+    "totalFiles": 130,
+    "testedFiles": 19,
+    "untestedFiles": 111,
+    "overallCoverage": 15,
+    "totalLines": 46941
+  },
+  "byDirectory": {
+    "server/admin": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 2068,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.middleware.ts",
+          "relativePath": "server/admin/admin.middleware.ts",
+          "lines": 508,
+          "directory": "server/admin",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.routes.ts",
+          "relativePath": "server/admin/admin.routes.ts",
+          "lines": 1560,
+          "directory": "server/admin",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        }
+      ]
+    },
+    "server/agents": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 951,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/automated-fixes.ts",
+          "relativePath": "server/agents/automated-fixes.ts",
+          "lines": 224,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/backend-copilot-agent.ts",
+          "relativePath": "server/agents/backend-copilot-agent.ts",
+          "lines": 366,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/drizzle-analyzer.ts",
+          "relativePath": "server/agents/drizzle-analyzer.ts",
+          "lines": 361,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        }
+      ]
+    },
+    "server/auth": {
+      "totalFiles": 9,
+      "testedFiles": 1,
+      "untestedFiles": 8,
+      "totalLines": 2522,
+      "coveragePercent": 11,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.config.ts",
+          "relativePath": "server/auth/auth.config.ts",
+          "lines": 394,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.middleware.ts",
+          "relativePath": "server/auth/auth.middleware.ts",
+          "lines": 355,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.routes.ts",
+          "relativePath": "server/auth/auth.routes.ts",
+          "lines": 4,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/device-fingerprinting.ts",
+          "relativePath": "server/auth/device-fingerprinting.ts",
+          "lines": 169,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/index.ts",
+          "relativePath": "server/auth/index.ts",
+          "lines": 33,
+          "directory": "server/auth",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/mfa.ts",
+          "relativePath": "server/auth/mfa.ts",
+          "lines": 173,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/password.ts",
+          "relativePath": "server/auth/password.ts",
+          "lines": 238,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/session-security.ts",
+          "relativePath": "server/auth/session-security.ts",
+          "lines": 870,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/tokens.ts",
+          "relativePath": "server/auth/tokens.ts",
+          "lines": 286,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        }
+      ]
+    },
+    "server": {
+      "totalFiles": 14,
+      "testedFiles": 4,
+      "untestedFiles": 10,
+      "totalLines": 11039,
+      "coveragePercent": 29,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/email-service.ts",
+          "relativePath": "server/email-service.ts",
+          "lines": 251,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/email.ts",
+          "relativePath": "server/email.ts",
+          "lines": 41,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/env-validation.ts",
+          "relativePath": "server/env-validation.ts",
+          "lines": 575,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": ["server/tests/environment/env-validation.test.ts"],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/health.ts",
+          "relativePath": "server/health.ts",
+          "lines": 27,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/index.ts",
+          "relativePath": "server/index.ts",
+          "lines": 648,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/logger.ts",
+          "relativePath": "server/logger.ts",
+          "lines": 155,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/rate-limiting.ts",
+          "relativePath": "server/rate-limiting.ts",
+          "lines": 88,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes.ts",
+          "relativePath": "server/routes.ts",
+          "lines": 1120,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": ["server/tests/auth-routes.test.ts"],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/startup-optimization.ts",
+          "relativePath": "server/startup-optimization.ts",
+          "lines": 111,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/static-server.ts",
+          "relativePath": "server/static-server.ts",
+          "lines": 66,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/storage.ts",
+          "relativePath": "server/storage.ts",
+          "lines": 7504,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/types.ts",
+          "relativePath": "server/types.ts",
+          "lines": 39,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/validation.ts",
+          "relativePath": "server/validation.ts",
+          "lines": 283,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/environment/env-validation.test.ts",
+            "server/tests/ux/form-validation.test.ts"
+          ],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/vite.ts",
+          "relativePath": "server/vite.ts",
+          "lines": 131,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        }
+      ]
+    },
+    "server/features/auth": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 223,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.routes.ts",
+          "relativePath": "server/features/auth/auth.routes.ts",
+          "lines": 108,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.service.ts",
+          "relativePath": "server/features/auth/auth.service.ts",
+          "lines": 96,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.types.ts",
+          "relativePath": "server/features/auth/auth.types.ts",
+          "lines": 19,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        }
+      ]
+    },
+    "server/features/cards": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 386,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/cards.routes.ts",
+          "relativePath": "server/features/cards/cards.routes.ts",
+          "lines": 196,
+          "directory": "server/features/cards",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/universal-cards.routes.ts",
+          "relativePath": "server/features/cards/universal-cards.routes.ts",
+          "lines": 190,
+          "directory": "server/features/cards",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/communities": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 251,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.routes.ts",
+          "relativePath": "server/features/communities/communities.routes.ts",
+          "lines": 121,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.service.ts",
+          "relativePath": "server/features/communities/communities.service.ts",
+          "lines": 112,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.types.ts",
+          "relativePath": "server/features/communities/communities.types.ts",
+          "lines": 18,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/events": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 637,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.routes.ts",
+          "relativePath": "server/features/events/events.routes.ts",
+          "lines": 238,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.service.ts",
+          "relativePath": "server/features/events/events.service.ts",
+          "lines": 341,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.types.ts",
+          "relativePath": "server/features/events/events.types.ts",
+          "lines": 58,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/game-stats": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 533,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.routes.ts",
+          "relativePath": "server/features/game-stats/game-stats.routes.ts",
+          "lines": 239,
+          "directory": "server/features/game-stats",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.service.ts",
+          "relativePath": "server/features/game-stats/game-stats.service.ts",
+          "lines": 294,
+          "directory": "server/features/game-stats",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/games": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 275,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games-crud.routes.ts",
+          "relativePath": "server/features/games/games-crud.routes.ts",
+          "lines": 220,
+          "directory": "server/features/games",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games.routes.ts",
+          "relativePath": "server/features/games/games.routes.ts",
+          "lines": 55,
+          "directory": "server/features/games",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/messaging": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 338,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.routes.ts",
+          "relativePath": "server/features/messaging/messaging.routes.ts",
+          "lines": 128,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.service.ts",
+          "relativePath": "server/features/messaging/messaging.service.ts",
+          "lines": 168,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.types.ts",
+          "relativePath": "server/features/messaging/messaging.types.ts",
+          "lines": 42,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/tournaments": {
+      "totalFiles": 3,
+      "testedFiles": 1,
+      "untestedFiles": 2,
+      "totalLines": 1023,
+      "coveragePercent": 33,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/index.ts",
+          "relativePath": "server/features/tournaments/index.ts",
+          "lines": 2,
+          "directory": "server/features/tournaments",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.routes.ts",
+          "relativePath": "server/features/tournaments/tournaments.routes.ts",
+          "lines": 263,
+          "directory": "server/features/tournaments",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.service.ts",
+          "relativePath": "server/features/tournaments/tournaments.service.ts",
+          "lines": 758,
+          "directory": "server/features/tournaments",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/features/users": {
+      "totalFiles": 3,
+      "testedFiles": 0,
+      "untestedFiles": 3,
+      "totalLines": 725,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.routes.ts",
+          "relativePath": "server/features/users/users.routes.ts",
+          "lines": 320,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.service.ts",
+          "relativePath": "server/features/users/users.service.ts",
+          "lines": 365,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.types.ts",
+          "relativePath": "server/features/users/users.types.ts",
+          "lines": 40,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/middleware": {
+      "totalFiles": 5,
+      "testedFiles": 1,
+      "untestedFiles": 4,
+      "totalLines": 1134,
+      "coveragePercent": 20,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/cache-middleware.ts",
+          "relativePath": "server/middleware/cache-middleware.ts",
+          "lines": 114,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/error-handling.middleware.ts",
+          "relativePath": "server/middleware/error-handling.middleware.ts",
+          "lines": 290,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/index.ts",
+          "relativePath": "server/middleware/index.ts",
+          "lines": 110,
+          "directory": "server/middleware",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/performance.middleware.ts",
+          "relativePath": "server/middleware/performance.middleware.ts",
+          "lines": 335,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/security.middleware.ts",
+          "relativePath": "server/middleware/security.middleware.ts",
+          "lines": 285,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "critical"
+        }
+      ]
+    },
+    "server/repositories": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 996,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/base.repository.ts",
+          "relativePath": "server/repositories/base.repository.ts",
+          "lines": 507,
+          "directory": "server/repositories",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "repository",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/user.repository.ts",
+          "relativePath": "server/repositories/user.repository.ts",
+          "lines": 489,
+          "directory": "server/repositories",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "repository",
+          "risk": "critical"
+        }
+      ]
+    },
+    "server/routes": {
+      "totalFiles": 13,
+      "testedFiles": 0,
+      "untestedFiles": 13,
+      "totalLines": 2958,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/analytics.ts",
+          "relativePath": "server/routes/analytics.ts",
+          "lines": 571,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/backup.ts",
+          "relativePath": "server/routes/backup.ts",
+          "lines": 267,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/cache-health.ts",
+          "relativePath": "server/routes/cache-health.ts",
+          "lines": 175,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/database-health.ts",
+          "relativePath": "server/routes/database-health.ts",
+          "lines": 138,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/forum.routes.ts",
+          "relativePath": "server/routes/forum.routes.ts",
+          "lines": 153,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/game-sessions.routes.ts",
+          "relativePath": "server/routes/game-sessions.routes.ts",
+          "lines": 121,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/infrastructure-tests.ts",
+          "relativePath": "server/routes/infrastructure-tests.ts",
+          "lines": 290,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/matching.ts",
+          "relativePath": "server/routes/matching.ts",
+          "lines": 409,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/monitoring.ts",
+          "relativePath": "server/routes/monitoring.ts",
+          "lines": 296,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/notification-preferences.ts",
+          "relativePath": "server/routes/notification-preferences.ts",
+          "lines": 174,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/platforms.routes.ts",
+          "relativePath": "server/routes/platforms.routes.ts",
+          "lines": 124,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/user-profile.routes.ts",
+          "relativePath": "server/routes/user-profile.routes.ts",
+          "lines": 167,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/webhooks.ts",
+          "relativePath": "server/routes/webhooks.ts",
+          "lines": 73,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        }
+      ]
+    },
+    "server/routes/auth": {
+      "totalFiles": 6,
+      "testedFiles": 1,
+      "untestedFiles": 5,
+      "totalLines": 1088,
+      "coveragePercent": 17,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/index.ts",
+          "relativePath": "server/routes/auth/index.ts",
+          "lines": 38,
+          "directory": "server/routes/auth",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/mfa.ts",
+          "relativePath": "server/routes/auth/mfa.ts",
+          "lines": 378,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/middleware.ts",
+          "relativePath": "server/routes/auth/middleware.ts",
+          "lines": 31,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/password.ts",
+          "relativePath": "server/routes/auth/password.ts",
+          "lines": 141,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/register.ts",
+          "relativePath": "server/routes/auth/register.ts",
+          "lines": 244,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/tokens.ts",
+          "relativePath": "server/routes/auth/tokens.ts",
+          "lines": 256,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        }
+      ]
+    },
+    "server/routes/streaming": {
+      "totalFiles": 5,
+      "testedFiles": 1,
+      "untestedFiles": 4,
+      "totalLines": 431,
+      "coveragePercent": 20,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/collaborators.ts",
+          "relativePath": "server/routes/streaming/collaborators.ts",
+          "lines": 122,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/coordination.ts",
+          "relativePath": "server/routes/streaming/coordination.ts",
+          "lines": 91,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/events.ts",
+          "relativePath": "server/routes/streaming/events.ts",
+          "lines": 165,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/index.ts",
+          "relativePath": "server/routes/streaming/index.ts",
+          "lines": 11,
+          "directory": "server/routes/streaming",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/suggestions.ts",
+          "relativePath": "server/routes/streaming/suggestions.ts",
+          "lines": 42,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        }
+      ]
+    },
+    "server/services": {
+      "totalFiles": 24,
+      "testedFiles": 1,
+      "untestedFiles": 23,
+      "totalLines": 12397,
+      "coveragePercent": 4,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-algorithm-engine.ts",
+          "relativePath": "server/services/ai-algorithm-engine.ts",
+          "lines": 1205,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-streaming-matcher.ts",
+          "relativePath": "server/services/ai-streaming-matcher.ts",
+          "lines": 851,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/analytics-service.ts",
+          "relativePath": "server/services/analytics-service.ts",
+          "lines": 518,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/backup-service.ts",
+          "relativePath": "server/services/backup-service.ts",
+          "lines": 494,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/cache-service.ts",
+          "relativePath": "server/services/cache-service.ts",
+          "lines": 239,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition.ts",
+          "relativePath": "server/services/card-recognition.ts",
+          "lines": 266,
+          "directory": "server/services",
+          "hasTest": true,
+          "testFiles": ["server/tests/features/card-recognition.test.ts"],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/collaborative-streaming.ts",
+          "relativePath": "server/services/collaborative-streaming.ts",
+          "lines": 1144,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notification.ts",
+          "relativePath": "server/services/enhanced-notification.ts",
+          "lines": 305,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notifications.ts",
+          "relativePath": "server/services/enhanced-notifications.ts",
+          "lines": 149,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/error-tracking.ts",
+          "relativePath": "server/services/error-tracking.ts",
+          "lines": 216,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/facebook-api.ts",
+          "relativePath": "server/services/facebook-api.ts",
+          "lines": 915,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/graphics-generator.ts",
+          "relativePath": "server/services/graphics-generator.ts",
+          "lines": 173,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/infrastructure-test-service.ts",
+          "relativePath": "server/services/infrastructure-test-service.ts",
+          "lines": 666,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/monitoring-service.ts",
+          "relativePath": "server/services/monitoring-service.ts",
+          "lines": 677,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-delivery.ts",
+          "relativePath": "server/services/notification-delivery.ts",
+          "lines": 453,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-templates.ts",
+          "relativePath": "server/services/notification-templates.ts",
+          "lines": 326,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/platform-oauth.ts",
+          "relativePath": "server/services/platform-oauth.ts",
+          "lines": 494,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/real-time-matching-api.ts",
+          "relativePath": "server/services/real-time-matching-api.ts",
+          "lines": 902,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/redis-client.ts",
+          "relativePath": "server/services/redis-client.ts",
+          "lines": 141,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/streaming-coordinator.ts",
+          "relativePath": "server/services/streaming-coordinator.ts",
+          "lines": 349,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/twitch-api.ts",
+          "relativePath": "server/services/twitch-api.ts",
+          "lines": 366,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/user.service.ts",
+          "relativePath": "server/services/user.service.ts",
+          "lines": 310,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/waitlist.ts",
+          "relativePath": "server/services/waitlist.ts",
+          "lines": 159,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/youtube-api.ts",
+          "relativePath": "server/services/youtube-api.ts",
+          "lines": 1079,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/services/card-recognition/adapters": {
+      "totalFiles": 5,
+      "testedFiles": 3,
+      "untestedFiles": 2,
+      "totalLines": 920,
+      "coveragePercent": 60,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/base.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/base.adapter.ts",
+          "lines": 51,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/custom.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/custom.adapter.ts",
+          "lines": 175,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/pokemon.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/pokemon.adapter.ts",
+          "lines": 293,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/scryfall.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/scryfall.adapter.ts",
+          "lines": 119,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/yugioh.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/yugioh.adapter.ts",
+          "lines": 282,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/services/card-recognition": {
+      "totalFiles": 1,
+      "testedFiles": 1,
+      "untestedFiles": 0,
+      "totalLines": 159,
+      "coveragePercent": 100,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/index.ts",
+          "relativePath": "server/services/card-recognition/index.ts",
+          "lines": 159,
+          "directory": "server/services/card-recognition",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/services/games": {
+      "totalFiles": 1,
+      "testedFiles": 1,
+      "untestedFiles": 0,
+      "totalLines": 79,
+      "coveragePercent": 100,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/games/game.service.ts",
+          "relativePath": "server/services/games/game.service.ts",
+          "lines": 79,
+          "directory": "server/services/games",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts",
+            "server/tests/services/game.service.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        }
+      ]
+    },
+    "server/shared": {
+      "totalFiles": 4,
+      "testedFiles": 1,
+      "untestedFiles": 3,
+      "totalLines": 418,
+      "coveragePercent": 25,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/constants.ts",
+          "relativePath": "server/shared/constants.ts",
+          "lines": 90,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/middleware.ts",
+          "relativePath": "server/shared/middleware.ts",
+          "lines": 69,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/types.ts",
+          "relativePath": "server/shared/types.ts",
+          "lines": 79,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/utils.ts",
+          "relativePath": "server/shared/utils.ts",
+          "lines": 180,
+          "directory": "server/shared",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/security/security.utils.test.ts",
+            "server/tests/utils/database.utils.test.ts"
+          ],
+          "category": "shared",
+          "risk": "medium"
+        }
+      ]
+    },
+    "server/utils": {
+      "totalFiles": 9,
+      "testedFiles": 2,
+      "untestedFiles": 7,
+      "totalLines": 2451,
+      "coveragePercent": 22,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/database.utils.ts",
+          "relativePath": "server/utils/database.utils.ts",
+          "lines": 514,
+          "directory": "server/utils",
+          "hasTest": true,
+          "testFiles": ["server/tests/utils/database.utils.test.ts"],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/production-logger.ts",
+          "relativePath": "server/utils/production-logger.ts",
+          "lines": 144,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/security.utils.ts",
+          "relativePath": "server/utils/security.utils.ts",
+          "lines": 154,
+          "directory": "server/utils",
+          "hasTest": true,
+          "testFiles": ["server/tests/security/security.utils.test.ts"],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/stream-key-security.ts",
+          "relativePath": "server/utils/stream-key-security.ts",
+          "lines": 77,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-connection-manager.ts",
+          "relativePath": "server/utils/websocket-connection-manager.ts",
+          "lines": 311,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-env-validation.ts",
+          "relativePath": "server/utils/websocket-env-validation.ts",
+          "lines": 206,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-message-validator.ts",
+          "relativePath": "server/utils/websocket-message-validator.ts",
+          "lines": 302,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-rate-limiter.ts",
+          "relativePath": "server/utils/websocket-rate-limiter.ts",
+          "lines": 117,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-server-enhanced.ts",
+          "relativePath": "server/utils/websocket-server-enhanced.ts",
+          "lines": 626,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        }
+      ]
+    },
+    "shared": {
+      "totalFiles": 3,
+      "testedFiles": 1,
+      "untestedFiles": 2,
+      "totalLines": 2939,
+      "coveragePercent": 33,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/database-unified.ts",
+          "relativePath": "shared/database-unified.ts",
+          "lines": 507,
+          "directory": "shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/schema.ts",
+          "relativePath": "shared/schema.ts",
+          "lines": 2316,
+          "directory": "shared",
+          "hasTest": true,
+          "testFiles": ["server/tests/schema/cards-games-schema.test.ts"],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/websocket-schemas.ts",
+          "relativePath": "shared/websocket-schemas.ts",
+          "lines": 116,
+          "directory": "shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        }
+      ]
+    }
+  },
+  "byCategory": {
+    "other": {
+      "totalFiles": 52,
+      "testedFiles": 7,
+      "untestedFiles": 45,
+      "totalLines": 21057,
+      "coveragePercent": 13,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.middleware.ts",
+          "relativePath": "server/admin/admin.middleware.ts",
+          "lines": 508,
+          "directory": "server/admin",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/admin/admin.routes.ts",
+          "relativePath": "server/admin/admin.routes.ts",
+          "lines": 1560,
+          "directory": "server/admin",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/automated-fixes.ts",
+          "relativePath": "server/agents/automated-fixes.ts",
+          "lines": 224,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/backend-copilot-agent.ts",
+          "relativePath": "server/agents/backend-copilot-agent.ts",
+          "lines": 366,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/agents/drizzle-analyzer.ts",
+          "relativePath": "server/agents/drizzle-analyzer.ts",
+          "lines": 361,
+          "directory": "server/agents",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.config.ts",
+          "relativePath": "server/auth/auth.config.ts",
+          "lines": 394,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.middleware.ts",
+          "relativePath": "server/auth/auth.middleware.ts",
+          "lines": 355,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.routes.ts",
+          "relativePath": "server/auth/auth.routes.ts",
+          "lines": 4,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/device-fingerprinting.ts",
+          "relativePath": "server/auth/device-fingerprinting.ts",
+          "lines": 169,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/index.ts",
+          "relativePath": "server/auth/index.ts",
+          "lines": 33,
+          "directory": "server/auth",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/mfa.ts",
+          "relativePath": "server/auth/mfa.ts",
+          "lines": 173,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/password.ts",
+          "relativePath": "server/auth/password.ts",
+          "lines": 238,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/session-security.ts",
+          "relativePath": "server/auth/session-security.ts",
+          "lines": 870,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/tokens.ts",
+          "relativePath": "server/auth/tokens.ts",
+          "lines": 286,
+          "directory": "server/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/email-service.ts",
+          "relativePath": "server/email-service.ts",
+          "lines": 251,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/email.ts",
+          "relativePath": "server/email.ts",
+          "lines": 41,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/env-validation.ts",
+          "relativePath": "server/env-validation.ts",
+          "lines": 575,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": ["server/tests/environment/env-validation.test.ts"],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/health.ts",
+          "relativePath": "server/health.ts",
+          "lines": 27,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/index.ts",
+          "relativePath": "server/index.ts",
+          "lines": 648,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/logger.ts",
+          "relativePath": "server/logger.ts",
+          "lines": 155,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/rate-limiting.ts",
+          "relativePath": "server/rate-limiting.ts",
+          "lines": 88,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/analytics.ts",
+          "relativePath": "server/routes/analytics.ts",
+          "lines": 571,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/index.ts",
+          "relativePath": "server/routes/auth/index.ts",
+          "lines": 38,
+          "directory": "server/routes/auth",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/mfa.ts",
+          "relativePath": "server/routes/auth/mfa.ts",
+          "lines": 378,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/middleware.ts",
+          "relativePath": "server/routes/auth/middleware.ts",
+          "lines": 31,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/password.ts",
+          "relativePath": "server/routes/auth/password.ts",
+          "lines": 141,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/register.ts",
+          "relativePath": "server/routes/auth/register.ts",
+          "lines": 244,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/tokens.ts",
+          "relativePath": "server/routes/auth/tokens.ts",
+          "lines": 256,
+          "directory": "server/routes/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/backup.ts",
+          "relativePath": "server/routes/backup.ts",
+          "lines": 267,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/cache-health.ts",
+          "relativePath": "server/routes/cache-health.ts",
+          "lines": 175,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/database-health.ts",
+          "relativePath": "server/routes/database-health.ts",
+          "lines": 138,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/forum.routes.ts",
+          "relativePath": "server/routes/forum.routes.ts",
+          "lines": 153,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/game-sessions.routes.ts",
+          "relativePath": "server/routes/game-sessions.routes.ts",
+          "lines": 121,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/infrastructure-tests.ts",
+          "relativePath": "server/routes/infrastructure-tests.ts",
+          "lines": 290,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/matching.ts",
+          "relativePath": "server/routes/matching.ts",
+          "lines": 409,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/monitoring.ts",
+          "relativePath": "server/routes/monitoring.ts",
+          "lines": 296,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/notification-preferences.ts",
+          "relativePath": "server/routes/notification-preferences.ts",
+          "lines": 174,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/platforms.routes.ts",
+          "relativePath": "server/routes/platforms.routes.ts",
+          "lines": 124,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/collaborators.ts",
+          "relativePath": "server/routes/streaming/collaborators.ts",
+          "lines": 122,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/coordination.ts",
+          "relativePath": "server/routes/streaming/coordination.ts",
+          "lines": 91,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/events.ts",
+          "relativePath": "server/routes/streaming/events.ts",
+          "lines": 165,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/index.ts",
+          "relativePath": "server/routes/streaming/index.ts",
+          "lines": 11,
+          "directory": "server/routes/streaming",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/suggestions.ts",
+          "relativePath": "server/routes/streaming/suggestions.ts",
+          "lines": 42,
+          "directory": "server/routes/streaming",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/user-profile.routes.ts",
+          "relativePath": "server/routes/user-profile.routes.ts",
+          "lines": 167,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/webhooks.ts",
+          "relativePath": "server/routes/webhooks.ts",
+          "lines": 73,
+          "directory": "server/routes",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes.ts",
+          "relativePath": "server/routes.ts",
+          "lines": 1120,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": ["server/tests/auth-routes.test.ts"],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/startup-optimization.ts",
+          "relativePath": "server/startup-optimization.ts",
+          "lines": 111,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/static-server.ts",
+          "relativePath": "server/static-server.ts",
+          "lines": 66,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/storage.ts",
+          "relativePath": "server/storage.ts",
+          "lines": 7504,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/types.ts",
+          "relativePath": "server/types.ts",
+          "lines": 39,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "low"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/validation.ts",
+          "relativePath": "server/validation.ts",
+          "lines": 283,
+          "directory": "server",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/environment/env-validation.test.ts",
+            "server/tests/ux/form-validation.test.ts"
+          ],
+          "category": "other",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/vite.ts",
+          "relativePath": "server/vite.ts",
+          "lines": 131,
+          "directory": "server",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "other",
+          "risk": "medium"
+        }
+      ]
+    },
+    "feature": {
+      "totalFiles": 24,
+      "testedFiles": 1,
+      "untestedFiles": 23,
+      "totalLines": 4391,
+      "coveragePercent": 4,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.routes.ts",
+          "relativePath": "server/features/auth/auth.routes.ts",
+          "lines": 108,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.service.ts",
+          "relativePath": "server/features/auth/auth.service.ts",
+          "lines": 96,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.types.ts",
+          "relativePath": "server/features/auth/auth.types.ts",
+          "lines": 19,
+          "directory": "server/features/auth",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/cards.routes.ts",
+          "relativePath": "server/features/cards/cards.routes.ts",
+          "lines": 196,
+          "directory": "server/features/cards",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/universal-cards.routes.ts",
+          "relativePath": "server/features/cards/universal-cards.routes.ts",
+          "lines": 190,
+          "directory": "server/features/cards",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.routes.ts",
+          "relativePath": "server/features/communities/communities.routes.ts",
+          "lines": 121,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.service.ts",
+          "relativePath": "server/features/communities/communities.service.ts",
+          "lines": 112,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.types.ts",
+          "relativePath": "server/features/communities/communities.types.ts",
+          "lines": 18,
+          "directory": "server/features/communities",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.routes.ts",
+          "relativePath": "server/features/events/events.routes.ts",
+          "lines": 238,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.service.ts",
+          "relativePath": "server/features/events/events.service.ts",
+          "lines": 341,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.types.ts",
+          "relativePath": "server/features/events/events.types.ts",
+          "lines": 58,
+          "directory": "server/features/events",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.routes.ts",
+          "relativePath": "server/features/game-stats/game-stats.routes.ts",
+          "lines": 239,
+          "directory": "server/features/game-stats",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.service.ts",
+          "relativePath": "server/features/game-stats/game-stats.service.ts",
+          "lines": 294,
+          "directory": "server/features/game-stats",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games-crud.routes.ts",
+          "relativePath": "server/features/games/games-crud.routes.ts",
+          "lines": 220,
+          "directory": "server/features/games",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games.routes.ts",
+          "relativePath": "server/features/games/games.routes.ts",
+          "lines": 55,
+          "directory": "server/features/games",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.routes.ts",
+          "relativePath": "server/features/messaging/messaging.routes.ts",
+          "lines": 128,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.service.ts",
+          "relativePath": "server/features/messaging/messaging.service.ts",
+          "lines": 168,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.types.ts",
+          "relativePath": "server/features/messaging/messaging.types.ts",
+          "lines": 42,
+          "directory": "server/features/messaging",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/index.ts",
+          "relativePath": "server/features/tournaments/index.ts",
+          "lines": 2,
+          "directory": "server/features/tournaments",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.routes.ts",
+          "relativePath": "server/features/tournaments/tournaments.routes.ts",
+          "lines": 263,
+          "directory": "server/features/tournaments",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.service.ts",
+          "relativePath": "server/features/tournaments/tournaments.service.ts",
+          "lines": 758,
+          "directory": "server/features/tournaments",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.routes.ts",
+          "relativePath": "server/features/users/users.routes.ts",
+          "lines": 320,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.service.ts",
+          "relativePath": "server/features/users/users.service.ts",
+          "lines": 365,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.types.ts",
+          "relativePath": "server/features/users/users.types.ts",
+          "lines": 40,
+          "directory": "server/features/users",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "feature",
+          "risk": "high"
+        }
+      ]
+    },
+    "middleware": {
+      "totalFiles": 5,
+      "testedFiles": 1,
+      "untestedFiles": 4,
+      "totalLines": 1134,
+      "coveragePercent": 20,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/cache-middleware.ts",
+          "relativePath": "server/middleware/cache-middleware.ts",
+          "lines": 114,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/error-handling.middleware.ts",
+          "relativePath": "server/middleware/error-handling.middleware.ts",
+          "lines": 290,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/index.ts",
+          "relativePath": "server/middleware/index.ts",
+          "lines": 110,
+          "directory": "server/middleware",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/performance.middleware.ts",
+          "relativePath": "server/middleware/performance.middleware.ts",
+          "lines": 335,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/security.middleware.ts",
+          "relativePath": "server/middleware/security.middleware.ts",
+          "lines": 285,
+          "directory": "server/middleware",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "middleware",
+          "risk": "critical"
+        }
+      ]
+    },
+    "repository": {
+      "totalFiles": 2,
+      "testedFiles": 0,
+      "untestedFiles": 2,
+      "totalLines": 996,
+      "coveragePercent": 0,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/base.repository.ts",
+          "relativePath": "server/repositories/base.repository.ts",
+          "lines": 507,
+          "directory": "server/repositories",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "repository",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/user.repository.ts",
+          "relativePath": "server/repositories/user.repository.ts",
+          "lines": 489,
+          "directory": "server/repositories",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "repository",
+          "risk": "critical"
+        }
+      ]
+    },
+    "service": {
+      "totalFiles": 31,
+      "testedFiles": 6,
+      "untestedFiles": 25,
+      "totalLines": 13555,
+      "coveragePercent": 19,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-algorithm-engine.ts",
+          "relativePath": "server/services/ai-algorithm-engine.ts",
+          "lines": 1205,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-streaming-matcher.ts",
+          "relativePath": "server/services/ai-streaming-matcher.ts",
+          "lines": 851,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/analytics-service.ts",
+          "relativePath": "server/services/analytics-service.ts",
+          "lines": 518,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/backup-service.ts",
+          "relativePath": "server/services/backup-service.ts",
+          "lines": 494,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/cache-service.ts",
+          "relativePath": "server/services/cache-service.ts",
+          "lines": 239,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/base.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/base.adapter.ts",
+          "lines": 51,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/custom.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/custom.adapter.ts",
+          "lines": 175,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/pokemon.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/pokemon.adapter.ts",
+          "lines": 293,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/scryfall.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/scryfall.adapter.ts",
+          "lines": 119,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/yugioh.adapter.ts",
+          "relativePath": "server/services/card-recognition/adapters/yugioh.adapter.ts",
+          "lines": 282,
+          "directory": "server/services/card-recognition/adapters",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/index.ts",
+          "relativePath": "server/services/card-recognition/index.ts",
+          "lines": 159,
+          "directory": "server/services/card-recognition",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition.ts",
+          "relativePath": "server/services/card-recognition.ts",
+          "lines": 266,
+          "directory": "server/services",
+          "hasTest": true,
+          "testFiles": ["server/tests/features/card-recognition.test.ts"],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/collaborative-streaming.ts",
+          "relativePath": "server/services/collaborative-streaming.ts",
+          "lines": 1144,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notification.ts",
+          "relativePath": "server/services/enhanced-notification.ts",
+          "lines": 305,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notifications.ts",
+          "relativePath": "server/services/enhanced-notifications.ts",
+          "lines": 149,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/error-tracking.ts",
+          "relativePath": "server/services/error-tracking.ts",
+          "lines": 216,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/facebook-api.ts",
+          "relativePath": "server/services/facebook-api.ts",
+          "lines": 915,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/games/game.service.ts",
+          "relativePath": "server/services/games/game.service.ts",
+          "lines": 79,
+          "directory": "server/services/games",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/features/universal-deck-building.e2e.test.ts",
+            "server/tests/features/universal-deck-building.integration.test.ts",
+            "server/tests/services/game.service.test.ts"
+          ],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/graphics-generator.ts",
+          "relativePath": "server/services/graphics-generator.ts",
+          "lines": 173,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/infrastructure-test-service.ts",
+          "relativePath": "server/services/infrastructure-test-service.ts",
+          "lines": 666,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/monitoring-service.ts",
+          "relativePath": "server/services/monitoring-service.ts",
+          "lines": 677,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-delivery.ts",
+          "relativePath": "server/services/notification-delivery.ts",
+          "lines": 453,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-templates.ts",
+          "relativePath": "server/services/notification-templates.ts",
+          "lines": 326,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/platform-oauth.ts",
+          "relativePath": "server/services/platform-oauth.ts",
+          "lines": 494,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/real-time-matching-api.ts",
+          "relativePath": "server/services/real-time-matching-api.ts",
+          "lines": 902,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/redis-client.ts",
+          "relativePath": "server/services/redis-client.ts",
+          "lines": 141,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/streaming-coordinator.ts",
+          "relativePath": "server/services/streaming-coordinator.ts",
+          "lines": 349,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/twitch-api.ts",
+          "relativePath": "server/services/twitch-api.ts",
+          "lines": 366,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/user.service.ts",
+          "relativePath": "server/services/user.service.ts",
+          "lines": 310,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/waitlist.ts",
+          "relativePath": "server/services/waitlist.ts",
+          "lines": 159,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/youtube-api.ts",
+          "relativePath": "server/services/youtube-api.ts",
+          "lines": 1079,
+          "directory": "server/services",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "service",
+          "risk": "high"
+        }
+      ]
+    },
+    "shared": {
+      "totalFiles": 7,
+      "testedFiles": 2,
+      "untestedFiles": 5,
+      "totalLines": 3357,
+      "coveragePercent": 29,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/constants.ts",
+          "relativePath": "server/shared/constants.ts",
+          "lines": 90,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/middleware.ts",
+          "relativePath": "server/shared/middleware.ts",
+          "lines": 69,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/types.ts",
+          "relativePath": "server/shared/types.ts",
+          "lines": 79,
+          "directory": "server/shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/shared/utils.ts",
+          "relativePath": "server/shared/utils.ts",
+          "lines": 180,
+          "directory": "server/shared",
+          "hasTest": true,
+          "testFiles": [
+            "server/tests/security/security.utils.test.ts",
+            "server/tests/utils/database.utils.test.ts"
+          ],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/database-unified.ts",
+          "relativePath": "shared/database-unified.ts",
+          "lines": 507,
+          "directory": "shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/schema.ts",
+          "relativePath": "shared/schema.ts",
+          "lines": 2316,
+          "directory": "shared",
+          "hasTest": true,
+          "testFiles": ["server/tests/schema/cards-games-schema.test.ts"],
+          "category": "shared",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/websocket-schemas.ts",
+          "relativePath": "shared/websocket-schemas.ts",
+          "lines": 116,
+          "directory": "shared",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "shared",
+          "risk": "medium"
+        }
+      ]
+    },
+    "util": {
+      "totalFiles": 9,
+      "testedFiles": 2,
+      "untestedFiles": 7,
+      "totalLines": 2451,
+      "coveragePercent": 22,
+      "files": [
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/database.utils.ts",
+          "relativePath": "server/utils/database.utils.ts",
+          "lines": 514,
+          "directory": "server/utils",
+          "hasTest": true,
+          "testFiles": ["server/tests/utils/database.utils.test.ts"],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/production-logger.ts",
+          "relativePath": "server/utils/production-logger.ts",
+          "lines": 144,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/security.utils.ts",
+          "relativePath": "server/utils/security.utils.ts",
+          "lines": 154,
+          "directory": "server/utils",
+          "hasTest": true,
+          "testFiles": ["server/tests/security/security.utils.test.ts"],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/stream-key-security.ts",
+          "relativePath": "server/utils/stream-key-security.ts",
+          "lines": 77,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "critical"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-connection-manager.ts",
+          "relativePath": "server/utils/websocket-connection-manager.ts",
+          "lines": 311,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-env-validation.ts",
+          "relativePath": "server/utils/websocket-env-validation.ts",
+          "lines": 206,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-message-validator.ts",
+          "relativePath": "server/utils/websocket-message-validator.ts",
+          "lines": 302,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-rate-limiter.ts",
+          "relativePath": "server/utils/websocket-rate-limiter.ts",
+          "lines": 117,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        },
+        {
+          "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/websocket-server-enhanced.ts",
+          "relativePath": "server/utils/websocket-server-enhanced.ts",
+          "lines": 626,
+          "directory": "server/utils",
+          "hasTest": false,
+          "testFiles": [],
+          "category": "util",
+          "risk": "medium"
+        }
+      ]
+    }
+  },
+  "criticalGaps": [
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/session-security.ts",
+      "relativePath": "server/auth/session-security.ts",
+      "lines": 870,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/base.repository.ts",
+      "relativePath": "server/repositories/base.repository.ts",
+      "lines": 507,
+      "directory": "server/repositories",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "repository",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/shared/database-unified.ts",
+      "relativePath": "shared/database-unified.ts",
+      "lines": 507,
+      "directory": "shared",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "shared",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/platform-oauth.ts",
+      "relativePath": "server/services/platform-oauth.ts",
+      "lines": 494,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/repositories/user.repository.ts",
+      "relativePath": "server/repositories/user.repository.ts",
+      "lines": 489,
+      "directory": "server/repositories",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "repository",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.config.ts",
+      "relativePath": "server/auth/auth.config.ts",
+      "lines": 394,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/mfa.ts",
+      "relativePath": "server/routes/auth/mfa.ts",
+      "lines": 378,
+      "directory": "server/routes/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.middleware.ts",
+      "relativePath": "server/auth/auth.middleware.ts",
+      "lines": 355,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/tokens.ts",
+      "relativePath": "server/auth/tokens.ts",
+      "lines": 286,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/middleware/security.middleware.ts",
+      "relativePath": "server/middleware/security.middleware.ts",
+      "lines": 285,
+      "directory": "server/middleware",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "middleware",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/tokens.ts",
+      "relativePath": "server/routes/auth/tokens.ts",
+      "lines": 256,
+      "directory": "server/routes/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/register.ts",
+      "relativePath": "server/routes/auth/register.ts",
+      "lines": 244,
+      "directory": "server/routes/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/password.ts",
+      "relativePath": "server/auth/password.ts",
+      "lines": 238,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/mfa.ts",
+      "relativePath": "server/auth/mfa.ts",
+      "lines": 173,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/device-fingerprinting.ts",
+      "relativePath": "server/auth/device-fingerprinting.ts",
+      "lines": 169,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/password.ts",
+      "relativePath": "server/routes/auth/password.ts",
+      "lines": 141,
+      "directory": "server/routes/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/database-health.ts",
+      "relativePath": "server/routes/database-health.ts",
+      "lines": 138,
+      "directory": "server/routes",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/game-sessions.routes.ts",
+      "relativePath": "server/routes/game-sessions.routes.ts",
+      "lines": 121,
+      "directory": "server/routes",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.routes.ts",
+      "relativePath": "server/features/auth/auth.routes.ts",
+      "lines": 108,
+      "directory": "server/features/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.service.ts",
+      "relativePath": "server/features/auth/auth.service.ts",
+      "lines": 96,
+      "directory": "server/features/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/utils/stream-key-security.ts",
+      "relativePath": "server/utils/stream-key-security.ts",
+      "lines": 77,
+      "directory": "server/utils",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "util",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/auth/middleware.ts",
+      "relativePath": "server/routes/auth/middleware.ts",
+      "lines": 31,
+      "directory": "server/routes/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/auth/auth.types.ts",
+      "relativePath": "server/features/auth/auth.types.ts",
+      "lines": 19,
+      "directory": "server/features/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/auth/auth.routes.ts",
+      "relativePath": "server/auth/auth.routes.ts",
+      "lines": 4,
+      "directory": "server/auth",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "critical"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-algorithm-engine.ts",
+      "relativePath": "server/services/ai-algorithm-engine.ts",
+      "lines": 1205,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/collaborative-streaming.ts",
+      "relativePath": "server/services/collaborative-streaming.ts",
+      "lines": 1144,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/youtube-api.ts",
+      "relativePath": "server/services/youtube-api.ts",
+      "lines": 1079,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/facebook-api.ts",
+      "relativePath": "server/services/facebook-api.ts",
+      "lines": 915,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/real-time-matching-api.ts",
+      "relativePath": "server/services/real-time-matching-api.ts",
+      "lines": 902,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/ai-streaming-matcher.ts",
+      "relativePath": "server/services/ai-streaming-matcher.ts",
+      "lines": 851,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.service.ts",
+      "relativePath": "server/features/tournaments/tournaments.service.ts",
+      "lines": 758,
+      "directory": "server/features/tournaments",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/monitoring-service.ts",
+      "relativePath": "server/services/monitoring-service.ts",
+      "lines": 677,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/infrastructure-test-service.ts",
+      "relativePath": "server/services/infrastructure-test-service.ts",
+      "lines": 666,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/analytics-service.ts",
+      "relativePath": "server/services/analytics-service.ts",
+      "lines": 518,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/backup-service.ts",
+      "relativePath": "server/services/backup-service.ts",
+      "lines": 494,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-delivery.ts",
+      "relativePath": "server/services/notification-delivery.ts",
+      "lines": 453,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/twitch-api.ts",
+      "relativePath": "server/services/twitch-api.ts",
+      "lines": 366,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.service.ts",
+      "relativePath": "server/features/users/users.service.ts",
+      "lines": 365,
+      "directory": "server/features/users",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/streaming-coordinator.ts",
+      "relativePath": "server/services/streaming-coordinator.ts",
+      "lines": 349,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.service.ts",
+      "relativePath": "server/features/events/events.service.ts",
+      "lines": 341,
+      "directory": "server/features/events",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/notification-templates.ts",
+      "relativePath": "server/services/notification-templates.ts",
+      "lines": 326,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.routes.ts",
+      "relativePath": "server/features/users/users.routes.ts",
+      "lines": 320,
+      "directory": "server/features/users",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/user.service.ts",
+      "relativePath": "server/services/user.service.ts",
+      "lines": 310,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notification.ts",
+      "relativePath": "server/services/enhanced-notification.ts",
+      "lines": 305,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.service.ts",
+      "relativePath": "server/features/game-stats/game-stats.service.ts",
+      "lines": 294,
+      "directory": "server/features/game-stats",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/tournaments/tournaments.routes.ts",
+      "relativePath": "server/features/tournaments/tournaments.routes.ts",
+      "lines": 263,
+      "directory": "server/features/tournaments",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/game-stats/game-stats.routes.ts",
+      "relativePath": "server/features/game-stats/game-stats.routes.ts",
+      "lines": 239,
+      "directory": "server/features/game-stats",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/cache-service.ts",
+      "relativePath": "server/services/cache-service.ts",
+      "lines": 239,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.routes.ts",
+      "relativePath": "server/features/events/events.routes.ts",
+      "lines": 238,
+      "directory": "server/features/events",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games-crud.routes.ts",
+      "relativePath": "server/features/games/games-crud.routes.ts",
+      "lines": 220,
+      "directory": "server/features/games",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/error-tracking.ts",
+      "relativePath": "server/services/error-tracking.ts",
+      "lines": 216,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/cards.routes.ts",
+      "relativePath": "server/features/cards/cards.routes.ts",
+      "lines": 196,
+      "directory": "server/features/cards",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/cards/universal-cards.routes.ts",
+      "relativePath": "server/features/cards/universal-cards.routes.ts",
+      "lines": 190,
+      "directory": "server/features/cards",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/custom.adapter.ts",
+      "relativePath": "server/services/card-recognition/adapters/custom.adapter.ts",
+      "lines": 175,
+      "directory": "server/services/card-recognition/adapters",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/graphics-generator.ts",
+      "relativePath": "server/services/graphics-generator.ts",
+      "lines": 173,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.service.ts",
+      "relativePath": "server/features/messaging/messaging.service.ts",
+      "lines": 168,
+      "directory": "server/features/messaging",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/routes/streaming/events.ts",
+      "relativePath": "server/routes/streaming/events.ts",
+      "lines": 165,
+      "directory": "server/routes/streaming",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "other",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/waitlist.ts",
+      "relativePath": "server/services/waitlist.ts",
+      "lines": 159,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/enhanced-notifications.ts",
+      "relativePath": "server/services/enhanced-notifications.ts",
+      "lines": 149,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/redis-client.ts",
+      "relativePath": "server/services/redis-client.ts",
+      "lines": 141,
+      "directory": "server/services",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.routes.ts",
+      "relativePath": "server/features/messaging/messaging.routes.ts",
+      "lines": 128,
+      "directory": "server/features/messaging",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.routes.ts",
+      "relativePath": "server/features/communities/communities.routes.ts",
+      "lines": 121,
+      "directory": "server/features/communities",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.service.ts",
+      "relativePath": "server/features/communities/communities.service.ts",
+      "lines": 112,
+      "directory": "server/features/communities",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/events/events.types.ts",
+      "relativePath": "server/features/events/events.types.ts",
+      "lines": 58,
+      "directory": "server/features/events",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/games/games.routes.ts",
+      "relativePath": "server/features/games/games.routes.ts",
+      "lines": 55,
+      "directory": "server/features/games",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/services/card-recognition/adapters/base.adapter.ts",
+      "relativePath": "server/services/card-recognition/adapters/base.adapter.ts",
+      "lines": 51,
+      "directory": "server/services/card-recognition/adapters",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "service",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/messaging/messaging.types.ts",
+      "relativePath": "server/features/messaging/messaging.types.ts",
+      "lines": 42,
+      "directory": "server/features/messaging",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/users/users.types.ts",
+      "relativePath": "server/features/users/users.types.ts",
+      "lines": 40,
+      "directory": "server/features/users",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    },
+    {
+      "path": "/home/runner/work/reimagined-guacamole/reimagined-guacamole/server/features/communities/communities.types.ts",
+      "relativePath": "server/features/communities/communities.types.ts",
+      "lines": 18,
+      "directory": "server/features/communities",
+      "hasTest": false,
+      "testFiles": [],
+      "category": "feature",
+      "risk": "high"
+    }
+  ],
+  "recommendations": [
+    "Overall coverage is 15%, below the 80% target",
+    "24 critical files have no tests - IMMEDIATE ACTION REQUIRED",
+    "45 high-risk files have no tests - prioritize for next sprint",
+    "Authentication coverage is 11% - should be 90%+ for security"
+  ]
+}
