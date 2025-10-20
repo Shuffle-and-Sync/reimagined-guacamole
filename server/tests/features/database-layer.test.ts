@@ -3,11 +3,24 @@
  *
  * Comprehensive unit, integration, and performance tests for database operations
  * Testing Audit Part 3 - Database Layer Requirements
+ *
+ * Refactored for:
+ * - Test isolation with beforeEach/afterEach hooks
+ * - Centralized mock data factories
+ * - Better assertions and behavioral testing
  */
 
-import { describe, test, expect, jest } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { users, tournaments, tournamentParticipants } from "@shared/schema";
 import { eq, and, or } from "drizzle-orm";
+import { createMockUser, createMockTournament } from "../__factories__";
 
 // Mock for performance testing
 const mockPerformanceNow = () => {
@@ -17,34 +30,20 @@ const mockPerformanceNow = () => {
   };
 };
 
-// Test data factories
-const createMockUser = (overrides = {}) => ({
-  id: `user-${Math.random().toString(36).substr(2, 9)}`,
-  email: `test-${Math.random().toString(36).substr(2, 9)}@example.com`,
-  firstName: "Test",
-  lastName: "User",
-  status: "active",
-  ...overrides,
-});
-
-const createMockTournament = (overrides = {}) => ({
-  id: `tournament-${Math.random().toString(36).substr(2, 9)}`,
-  name: "Test Tournament",
-  description: "A test tournament",
-  format: "single_elimination",
-  maxParticipants: 16,
-  status: "upcoming",
-  organizerId: "organizer-123",
-  communityId: "community-123",
-  startDate: new Date(Date.now() + 86400000),
-  ...overrides,
-});
-
 // ============================================================================
 // UNIT TESTS - Query Logic and Data Validation
 // ============================================================================
 
 describe("Database Layer - Unit Tests", () => {
+  // Reset mocks before each test
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Cleanup after each test
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("Query Logic", () => {
     test("should build correct WHERE conditions", () => {
       // Test equality condition

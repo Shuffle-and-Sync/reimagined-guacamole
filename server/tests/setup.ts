@@ -32,7 +32,7 @@ afterAll(() => {
   Object.assign(console, originalConsole);
 });
 
-// Global test utilities
+// Global test utilities (deprecated - use factories from __factories__ instead)
 global.testUtils = {
   // Mock user data factory
   createMockUser: (overrides = {}) => ({
@@ -87,3 +87,58 @@ declare global {
     sleep: (ms: number) => Promise<void>;
   };
 }
+
+/**
+ * Track active timers and intervals for cleanup
+ * This helps prevent resource leaks in tests
+ */
+const activeTimers = new Set<NodeJS.Timeout>();
+const activeIntervals = new Set<NodeJS.Timeout>();
+
+const originalSetTimeout = global.setTimeout;
+const originalSetInterval = global.setInterval;
+const originalClearTimeout = global.clearTimeout;
+const originalClearInterval = global.clearInterval;
+
+// Wrap setTimeout to track timers
+global.setTimeout = function (...args: any[]): any {
+  const timer = originalSetTimeout.apply(this, args as any);
+  activeTimers.add(timer);
+  return timer;
+} as any;
+
+// Wrap setInterval to track intervals
+global.setInterval = function (...args: any[]): any {
+  const interval = originalSetInterval.apply(this, args as any);
+  activeIntervals.add(interval);
+  return interval;
+} as any;
+
+// Wrap clearTimeout to untrack timers
+global.clearTimeout = function (timer: NodeJS.Timeout): void {
+  activeTimers.delete(timer);
+  originalClearTimeout(timer);
+};
+
+// Wrap clearInterval to untrack intervals
+global.clearInterval = function (interval: NodeJS.Timeout): void {
+  activeIntervals.delete(interval);
+  originalClearInterval(interval);
+};
+
+/**
+ * Clean up all active timers and intervals after all tests
+ */
+afterAll(() => {
+  // Clear all active timers
+  activeTimers.forEach((timer) => {
+    originalClearTimeout(timer);
+  });
+  activeTimers.clear();
+
+  // Clear all active intervals
+  activeIntervals.forEach((interval) => {
+    originalClearInterval(interval);
+  });
+  activeIntervals.clear();
+});

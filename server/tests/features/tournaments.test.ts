@@ -3,10 +3,28 @@
  *
  * Comprehensive unit, integration, and E2E tests for tournament management
  * Testing Audit Part 3 - Tournament Feature Requirements
+ *
+ * Refactored for:
+ * - Test isolation with beforeEach/afterEach hooks
+ * - Centralized mock data factories
+ * - Better assertions and behavioral testing
  */
 
-import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { tournamentsService } from "../../features/tournaments/tournaments.service";
+import {
+  createMockTournament,
+  createMockParticipant,
+  createMockRound,
+  createMockMatch,
+} from "../__factories__";
 
 // Mock dependencies
 jest.mock("../../storage", () => ({
@@ -43,58 +61,20 @@ jest.mock("@shared/database-unified", () => ({
 
 import { storage } from "../../storage";
 
-// Test data factories
-const createMockTournament = (overrides = {}) => ({
-  id: "tournament-123",
-  name: "Test Tournament",
-  description: "A test tournament",
-  format: "single_elimination",
-  maxParticipants: 16,
-  status: "upcoming",
-  organizerId: "organizer-123",
-  communityId: "community-123",
-  startDate: new Date(Date.now() + 86400000), // Tomorrow
-  participants: [],
-  rounds: [],
-  matches: [],
-  ...overrides,
-});
-
-const createMockParticipant = (overrides = {}) => ({
-  userId: "user-123",
-  tournamentId: "tournament-123",
-  seed: 1,
-  status: "active",
-  joinedAt: new Date(),
-  ...overrides,
-});
-
-const createMockRound = (overrides = {}) => ({
-  id: "round-123",
-  tournamentId: "tournament-123",
-  roundNumber: 1,
-  status: "upcoming",
-  matches: [],
-  ...overrides,
-});
-
-const createMockMatch = (overrides = {}) => ({
-  id: "match-123",
-  tournamentId: "tournament-123",
-  roundId: "round-123",
-  player1Id: "user-1",
-  player2Id: "user-2",
-  status: "pending",
-  ...overrides,
-});
-
 // ============================================================================
 // UNIT TESTS - Tournament Creation, Management, and Progression Logic
 // ============================================================================
 
 describe("Tournament System - Unit Tests", () => {
+  // Reset all mocks before each test for isolation
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  // Cleanup after each test
+  afterEach(() => {
+    // Clear any pending timers that might have been set during tests
+    jest.clearAllTimers();
   });
 
   describe("Tournament Creation Logic", () => {
