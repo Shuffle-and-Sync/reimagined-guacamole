@@ -5,7 +5,7 @@
  * missing tokens, expired tokens, invalid signatures, and more.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
   createMockErrorResponse,
@@ -36,6 +36,11 @@ describe("JWT Authentication Error Tests", () => {
     };
     mockRes = createMockErrorResponse();
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe("Missing Authorization Header", () => {

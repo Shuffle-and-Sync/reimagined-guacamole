@@ -5,7 +5,7 @@
  * ensuring users can only modify their own content.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
   createMockErrorResponse,
@@ -35,6 +35,11 @@ describe("Resource Ownership Authorization Error Tests", () => {
     };
     mockRes = createMockErrorResponse();
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe("Non-Owner Edit Attempt", () => {
