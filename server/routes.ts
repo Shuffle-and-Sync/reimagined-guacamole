@@ -52,7 +52,7 @@ import {
   extractDeviceContext,
 } from "./auth/device-fingerprinting";
 import { logger } from "./logger";
-import { NotFoundError, ValidationError } from "./types";
+// FIXED: Use ONLY error classes from middleware, removed conflicting imports from ./types
 import {
   errorHandlingMiddleware,
   errors,
@@ -64,10 +64,10 @@ import { waitlistService } from "./services/waitlist";
 const { asyncHandler } = errorHandlingMiddleware;
 const {
   AppError,
-  ValidationError: ValidationErr,
+  ValidationError,
   AuthenticationError,
   AuthorizationError,
-  NotFoundError: NotFoundErr,
+  NotFoundError,
   ConflictError,
   DatabaseError,
 } = errors;
@@ -77,6 +77,10 @@ import databaseHealthRouter from "./routes/database-health";
 import backupRouter from "./routes/backup";
 import monitoringRouter from "./routes/monitoring";
 import matchingRouter from "./routes/matching";
+import platformsRouter from "./routes/platforms.routes";
+import userProfileRouter from "./routes/user-profile.routes";
+import forumRouter from "./routes/forum.routes";
+import gameSessionsRouter from "./routes/game-sessions.routes";
 import { CollaborativeStreamingService } from "./services/collaborative-streaming";
 import { websocketMessageSchema } from "@shared/websocket-schemas";
 import EnhancedWebSocketServer from "./utils/websocket-server-enhanced";
@@ -174,173 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get("/api/health", healthCheck);
 
-  // Platform OAuth routes for account linking
-  app.get(
-    "/api/platforms/:platform/oauth/initiate",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const platform = assertRouteParam(req.params.platform, "platform");
-
-        if (!["twitch", "youtube", "facebook"].includes(platform)) {
-          return res.status(400).json({ message: "Unsupported platform" });
-        }
-
-        // Generate OAuth authorization URL
-        const authUrl = await generatePlatformOAuthURL(platform, userId);
-        return res.json({ authUrl });
-      } catch (error) {
-        logger.error("Platform OAuth initiation error:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to initiate OAuth flow" });
-      }
-    },
-  );
-
-  app.get(
-    "/api/platforms/:platform/oauth/callback",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const platform = assertRouteParam(req.params.platform, "platform");
-        const { code, state } = req.query;
-
-        if (!code || !state) {
-          return res.status(400).json({ message: "Missing OAuth parameters" });
-        }
-
-        // Exchange code for tokens and save to storage
-        const account = await handlePlatformOAuthCallback(
-          platform,
-          code as string,
-          state as string,
-          userId,
-        );
-        return res.json({
-          success: true,
-          platform: account.platform,
-          handle: account.handle,
-        });
-      } catch (error) {
-        logger.error("Platform OAuth callback error:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to complete OAuth flow" });
-      }
-    },
-  );
-
-  app.get("/api/platforms/accounts", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const accounts = await storage.getUserPlatformAccounts(userId);
-      return res.json(accounts);
-    } catch (error) {
-      logger.error("Get platform accounts error:", error);
-      return res
-        .status(500)
-        .json({ message: "Failed to fetch platform accounts" });
-    }
-  });
-
-  app.delete(
-    "/api/platforms/accounts/:id",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const id = assertRouteParam(req.params.id, "id");
-
-        // Verify ownership before deletion
-        const account = await storage.getUserPlatformAccounts(userId);
-        const targetAccount = account.find((acc) => acc.id === id);
-
-        if (!targetAccount) {
-          return res
-            .status(404)
-            .json({ message: "Platform account not found" });
-        }
-
-        await storage.deleteUserPlatformAccount(id);
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error("Delete platform account error:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to delete platform account" });
-      }
-    },
-  );
-
-  app.get("/api/platforms/status", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const accounts = await storage.getUserPlatformAccounts(userId);
-
-      const status: Record<string, any> = {};
-
-      for (const account of accounts) {
-        const now = new Date();
-        const isExpired =
-          account.tokenExpiresAt && account.tokenExpiresAt < now;
-
-        status[account.platform] = {
-          isConnected: account.isActive && !isExpired,
-          isExpired: !!isExpired,
-          expiryDate: account.tokenExpiresAt?.toISOString(),
-          lastChecked: now.toISOString(),
-        };
-      }
-
-      return res.json(status);
-    } catch (error) {
-      logger.error("Get platform status error:", error);
-      return res
-        .status(500)
-        .json({ message: "Failed to fetch platform status" });
-    }
-  });
-
-  app.post(
-    "/api/platforms/:platform/refresh",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const platform = assertRouteParam(req.params.platform, "platform");
-
-        // Import refresh function
-        const { refreshPlatformToken } = await import(
-          "./services/platform-oauth"
-        );
-
-        const newToken = await refreshPlatformToken(userId, platform);
-
-        if (!newToken) {
-          return res.status(400).json({ message: "Failed to refresh token" });
-        }
-
-        return res.json({
-          success: true,
-          message: "Token refreshed successfully",
-        });
-      } catch (error) {
-        logger.error("Refresh platform token error:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to refresh platform token" });
-      }
-    },
-  );
+  // REMOVED: Platform OAuth routes - now in routes/platforms.routes.ts
 
   // Auth routes
   app.get("/api/auth/user", isAuthenticated, async (req, res) => {
@@ -367,159 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch(
-    "/api/user/profile",
-    isAuthenticated,
-    validateRequest(validateUserProfileUpdateSchema),
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-
-        const {
-          firstName,
-          lastName,
-          primaryCommunity,
-          username,
-          bio,
-          location,
-          website,
-          status,
-          statusMessage,
-          timezone,
-          isPrivate,
-          showOnlineStatus,
-          allowDirectMessages,
-        } = req.body;
-
-        const updates: Partial<UpsertUser> = {};
-        if (firstName !== undefined) updates.firstName = firstName;
-        if (lastName !== undefined) updates.lastName = lastName;
-        if (primaryCommunity !== undefined)
-          updates.primaryCommunity = primaryCommunity;
-        if (username !== undefined) updates.username = username;
-        if (bio !== undefined) updates.bio = bio;
-        if (location !== undefined) updates.location = location;
-        if (website !== undefined) updates.website = website;
-        if (status !== undefined) updates.status = status;
-        if (statusMessage !== undefined) updates.statusMessage = statusMessage;
-        if (timezone !== undefined) updates.timezone = timezone;
-        if (isPrivate !== undefined) updates.isPrivate = isPrivate;
-        if (showOnlineStatus !== undefined)
-          updates.showOnlineStatus = showOnlineStatus;
-        if (allowDirectMessages !== undefined)
-          updates.allowDirectMessages = allowDirectMessages;
-
-        const updatedUser = await storage.updateUser(userId, updates);
-        return res.json(updatedUser);
-      } catch (error) {
-        logger.error("Failed to update user profile", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res.status(500).json({ message: "Failed to update profile" });
-      }
-    },
-  );
-
-  // Get user profile (for viewing other users' profiles)
-  app.get("/api/user/profile/:userId?", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const currentUserId = getAuthUserId(authenticatedReq);
-      const targetUserId = req.params.userId || currentUserId;
-
-      const user = await storage.getUser(targetUserId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Get additional profile data
-      const userCommunities = await storage.getUserCommunities(targetUserId);
-
-      return res.json({
-        ...user,
-        communities: userCommunities,
-        isOwnProfile: currentUserId === targetUserId,
-        friendCount: await storage.getFriendCount(targetUserId),
-      });
-    } catch (error) {
-      logger.error("Failed to fetch user profile", error, {
-        currentUserId: getAuthUserId(authenticatedReq),
-        targetUserId: req.params.userId,
-      });
-      return res.status(500).json({ message: "Failed to fetch profile" });
-    }
-  });
-
-  // Social links routes
-  app.get(
-    "/api/user/social-links/:userId?",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const currentUserId = getAuthUserId(authenticatedReq);
-        const targetUserId = req.params.userId || currentUserId;
-
-        const socialLinks = await storage.getUserSocialLinks(targetUserId);
-        return res.json(socialLinks);
-      } catch (error) {
-        logger.error("Failed to fetch social links", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res
-          .status(500)
-          .json({ message: "Failed to fetch social links" });
-      }
-    },
-  );
-
-  app.put(
-    "/api/user/social-links",
-    isAuthenticated,
-    validateRequest(validateSocialLinksSchema),
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const { links } = req.body;
-
-        const updatedLinks = await storage.updateUserSocialLinks(userId, links);
-        return res.json(updatedLinks);
-      } catch (error) {
-        logger.error("Failed to update social links", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res
-          .status(500)
-          .json({ message: "Failed to update social links" });
-      }
-    },
-  );
-
-  // Gaming profiles routes
-  app.get(
-    "/api/user/gaming-profiles/:userId?",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const currentUserId = getAuthUserId(authenticatedReq);
-        const targetUserId = req.params.userId || currentUserId;
-
-        const gamingProfiles =
-          await storage.getUserGamingProfiles(targetUserId);
-        return res.json(gamingProfiles);
-      } catch (error) {
-        logger.error("Failed to fetch gaming profiles", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res
-          .status(500)
-          .json({ message: "Failed to fetch gaming profiles" });
-      }
-    },
-  );
+  // REMOVED: User profile routes - now in routes/user-profile.routes.ts
+  // This includes: /profile, /social-links, /gaming-profiles, /settings, /export-data, /account
 
   // Friendship routes
   app.get("/api/friends", isAuthenticated, async (req, res) => {
@@ -659,36 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User settings routes
-  app.get("/api/user/settings", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const settings = await storage.getUserSettings(userId);
-      return res.json(settings);
-    } catch (error) {
-      logger.error("Failed to fetch user settings", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to fetch settings" });
-    }
-  });
-
-  app.put("/api/user/settings", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const settingsData = { ...req.body, userId };
-
-      const settings = await storage.upsertUserSettings(settingsData);
-      return res.json(settings);
-    } catch (error) {
-      logger.error("Failed to update user settings", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to update settings" });
-    }
-  });
+  // REMOVED: User settings routes - now in routes/user-profile.routes.ts
 
   // Matchmaking routes
   app.get("/api/matchmaking/preferences", isAuthenticated, async (req, res) => {
@@ -798,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tournament = await storage.getTournament(tournamentId);
 
       if (!tournament) {
-        throw new NotFoundErr("Tournament not found");
+        throw new NotFoundError("Tournament");
       }
 
       return res.json({
@@ -890,225 +548,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Forum routes
-  app.get("/api/forum/posts", async (req, res) => {
-    try {
-      const { communityId, category, limit, offset } = req.query;
+  // REMOVED: Forum routes - now in routes/forum.routes.ts
+  // This includes: posts CRUD, replies, likes/unlikes
 
-      if (!communityId) {
-        return res.status(400).json({ message: "Community ID is required" });
-      }
+  // ========================================
+  // REFACTORED ROUTE MODULES (with consistent error handling)
+  // ========================================
+  
+  // Platform OAuth and account linking
+  app.use("/api/platforms", platformsRouter);
+  
+  // User profile, settings, and account management
+  app.use("/api/user", userProfileRouter);
+  
+  // Forum posts and replies
+  app.use("/api/forum", forumRouter);
+  
+  // Game sessions (join, leave, spectate)
+  app.use("/api/game-sessions", gameSessionsRouter);
 
-      const posts = await storage.getForumPosts(communityId as string, {
-        category: category as string,
-        limit: limit ? parseInt(limit as string) : undefined,
-        offset: offset ? parseInt(offset as string) : undefined,
-      });
-
-      return res.json(posts);
-    } catch (error) {
-      logger.error("Failed to fetch forum posts", error, {
-        communityId: req.query.communityId,
-      });
-      return res.status(500).json({ message: "Failed to fetch forum posts" });
-    }
-  });
-
-  app.get("/api/forum/posts/:id", async (req, res) => {
-    try {
-      const postId = assertRouteParam(req.params.id, "id");
-      const userId = req.query.userId as string;
-
-      const post = await storage.getForumPost(postId, userId);
-      if (!post) {
-        return res.status(404).json({ message: "Forum post not found" });
-      }
-
-      return res.json(post);
-    } catch (error) {
-      logger.error("Failed to fetch forum post", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to fetch forum post" });
-    }
-  });
-
-  app.post("/api/forum/posts", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const postData = { ...req.body, authorId: userId };
-
-      const post = await storage.createForumPost(postData);
-      return res.json(post);
-    } catch (error) {
-      logger.error("Failed to create forum post", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to create forum post" });
-    }
-  });
-
-  app.put("/api/forum/posts/:id", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const postId = assertRouteParam(req.params.id, "id");
-      const userId = getAuthUserId(authenticatedReq);
-
-      // Check if user owns the post
-      const existingPost = await storage.getForumPost(postId);
-      if (!existingPost) {
-        return res.status(404).json({ message: "Forum post not found" });
-      }
-      if (existingPost.authorId !== userId) {
-        return res
-          .status(403)
-          .json({ message: "Not authorized to edit this post" });
-      }
-
-      const updatedPost = await storage.updateForumPost(postId, req.body);
-      return res.json(updatedPost);
-    } catch (error) {
-      logger.error("Failed to update forum post", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to update forum post" });
-    }
-  });
-
-  app.delete("/api/forum/posts/:id", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const postId = assertRouteParam(req.params.id, "id");
-      const userId = getAuthUserId(authenticatedReq);
-
-      // Check if user owns the post
-      const existingPost = await storage.getForumPost(postId);
-      if (!existingPost) {
-        return res.status(404).json({ message: "Forum post not found" });
-      }
-      if (existingPost.authorId !== userId) {
-        return res
-          .status(403)
-          .json({ message: "Not authorized to delete this post" });
-      }
-
-      await storage.deleteForumPost(postId);
-      return res.json({ success: true });
-    } catch (error) {
-      logger.error("Failed to delete forum post", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to delete forum post" });
-    }
-  });
-
-  app.post("/api/forum/posts/:id/like", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const postId = assertRouteParam(req.params.id, "id");
-      const userId = getAuthUserId(authenticatedReq);
-
-      await storage.likeForumPost(postId, userId);
-      return res.json({ success: true });
-    } catch (error) {
-      logger.error("Failed to like forum post", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to like forum post" });
-    }
-  });
-
-  app.delete("/api/forum/posts/:id/like", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const postId = assertRouteParam(req.params.id, "id");
-      const userId = getAuthUserId(authenticatedReq);
-
-      await storage.unlikeForumPost(postId, userId);
-      return res.json({ success: true });
-    } catch (error) {
-      logger.error("Failed to unlike forum post", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to unlike forum post" });
-    }
-  });
-
-  app.get("/api/forum/posts/:id/replies", async (req, res) => {
-    try {
-      const postId = req.params.id;
-      const userId = req.query.userId as string;
-
-      const replies = await storage.getForumReplies(postId, userId);
-      return res.json(replies);
-    } catch (error) {
-      logger.error("Failed to fetch forum replies", error, {
-        postId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to fetch forum replies" });
-    }
-  });
-
-  app.post(
-    "/api/forum/posts/:id/replies",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const postId = req.params.id;
-        const userId = getAuthUserId(authenticatedReq);
-        const replyData = { ...req.body, postId, authorId: userId };
-
-        const reply = await storage.createForumReply(replyData);
-        return res.json(reply);
-      } catch (error) {
-        logger.error("Failed to create forum reply", error, {
-          postId: req.params.id,
-        });
-        return res
-          .status(500)
-          .json({ message: "Failed to create forum reply" });
-      }
-    },
-  );
-
-  app.post("/api/forum/replies/:id/like", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const replyId = assertRouteParam(req.params.id, "id");
-      const userId = getAuthUserId(authenticatedReq);
-
-      await storage.likeForumReply(replyId, userId);
-      return res.json({ success: true });
-    } catch (error) {
-      logger.error("Failed to like forum reply", error, {
-        replyId: req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to like forum reply" });
-    }
-  });
-
-  app.delete(
-    "/api/forum/replies/:id/like",
-    isAuthenticated,
-    async (req, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const replyId = assertRouteParam(req.params.id, "id");
-        const userId = getAuthUserId(authenticatedReq);
-
-        await storage.unlikeForumReply(replyId, userId);
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error("Failed to unlike forum reply", error, {
-          replyId: req.params.id,
-        });
-        return res
-          .status(500)
-          .json({ message: "Failed to unlike forum reply" });
-      }
-    },
-  );
+  // ========================================
+  // INFRASTRUCTURE & MONITORING ROUTES
+  // ========================================
 
   // Analytics routes - comprehensive analytics system
   app.use("/api/analytics", analyticsRouter);
@@ -1527,55 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Data export route
-  app.get("/api/user/export-data", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-
-      // Get comprehensive user data for export
-      const userData = await storage.exportUserData(userId);
-
-      logger.info("Data export completed", { userId });
-      return res.json(userData);
-    } catch (error) {
-      logger.error("Failed to export user data", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to export data" });
-    }
-  });
-
-  // Account deletion route
-  app.delete("/api/user/account", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-
-      // Perform cascade deletion of user data
-      const success = await storage.deleteUserAccount(userId);
-
-      if (success) {
-        logger.info("Account deletion completed", { userId });
-
-        // Note: Auth.js handles session cleanup automatically when user is deleted
-        // Clear any additional cookies if needed
-        res.clearCookie("authjs.session-token");
-        res.clearCookie("__Secure-authjs.session-token");
-
-        return res.json({
-          message: "Account deleted successfully",
-        });
-      } else {
-        return res.status(404).json({ message: "User account not found" });
-      }
-    } catch (error) {
-      logger.error("Failed to delete user account", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to delete account" });
-    }
-  });
+  // REMOVED: Data export and account deletion routes - now in routes/user-profile.routes.ts
 
   // Password reset routes
   app.post(
@@ -3497,163 +2910,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Game session routes
-  app.get("/api/game-sessions", isAuthenticated, async (req, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { eventId, communityId, hostId, status } = req.query;
-      const gameSessions = await storage.getGameSessions({
-        eventId: eventId as string,
-        communityId: communityId as string,
-        hostId: hostId as string,
-        status: status as string,
-      });
-      return res.json(gameSessions);
-    } catch (error) {
-      logger.error("Failed to fetch game sessions", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post(
-    "/api/game-sessions",
-    isAuthenticated,
-    validateRequest(validateGameSessionSchema),
-    async (req: AuthenticatedRequest, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const sessionData = { ...req.body, hostId: userId };
-        const gameSession = await storage.createGameSession(sessionData);
-        return res.status(201).json(gameSession);
-      } catch (error) {
-        logger.error("Failed to create game session", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res.status(500).json({ message: "Internal server error" });
-      }
-    },
-  );
-
-  app.post(
-    "/api/game-sessions/:id/join",
-    isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const user = authenticatedReq.user;
-        const { id } = req.params;
-        await storage.joinGameSession(id, userId);
-
-        // Create notification for host when someone joins
-        const gameSession = await storage.getGameSessions({ eventId: id });
-        if (gameSession.length > 0 && gameSession[0]?.hostId) {
-          await storage.createNotification({
-            userId: gameSession[0].hostId,
-            type: "event_join",
-            title: "Player Joined Game",
-            message: `${user?.name || user?.email || "A player"} joined your game session`,
-            data: JSON.stringify({ gameSessionId: id, playerId: userId }),
-          });
-        }
-
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error("Failed to join game session", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res.status(500).json({ message: "Internal server error" });
-      }
-    },
-  );
-
-  // Get single game session
-  app.get("/api/game-sessions/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      const gameSession = await storage.getGameSessionById(id);
-
-      if (!gameSession) {
-        return res.status(404).json({ message: "Game session not found" });
-      }
-
-      return res.json(gameSession);
-    } catch (error) {
-      logger.error("Failed to fetch game session", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post(
-    "/api/game-sessions/:id/leave",
-    isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const user = authenticatedReq.user;
-        const { id } = req.params;
-        await storage.leaveGameSession(id, userId);
-
-        // Create notification for host when someone leaves
-        const gameSession = await storage.getGameSessions({ eventId: id });
-        if (gameSession.length > 0 && gameSession[0]?.hostId) {
-          await storage.createNotification({
-            userId: gameSession[0].hostId,
-            type: "event_leave",
-            title: "Player Left Game",
-            message: `${user?.name || user?.email || "A player"} left your game session`,
-            data: JSON.stringify({ gameSessionId: id, playerId: userId }),
-          });
-        }
-
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error("Failed to leave game session", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res.status(500).json({ message: "Internal server error" });
-      }
-    },
-  );
-
-  app.post(
-    "/api/game-sessions/:id/spectate",
-    isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const user = authenticatedReq.user;
-        const { id } = req.params;
-        await storage.spectateGameSession(id, userId);
-
-        // Create notification for host when someone starts spectating
-        const gameSession = await storage.getGameSessions({ eventId: id });
-        if (gameSession.length > 0 && gameSession[0]?.hostId) {
-          await storage.createNotification({
-            userId: gameSession[0].hostId,
-            type: "spectator_join",
-            title: "New Spectator",
-            message: `${user?.name || user?.email || "Someone"} is now spectating your game`,
-            data: JSON.stringify({ gameSessionId: id, spectatorId: userId }),
-          });
-        }
-
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error("Failed to spectate game session", error, {
-          userId: getAuthUserId(authenticatedReq),
-        });
-        return res.status(500).json({ message: "Internal server error" });
-      }
-    },
-  );
+  // REMOVED: Game session routes - now in routes/game-sessions.routes.ts
+  // This includes: get, create, join, leave, spectate game sessions
 
   app.post(
     "/api/game-sessions/:id/leave-spectating",
