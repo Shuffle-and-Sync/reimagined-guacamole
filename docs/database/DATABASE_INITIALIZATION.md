@@ -67,13 +67,38 @@ npm run db:health
 
 ## Environment Variables
 
-The script uses the `DATABASE_URL` environment variable if set, otherwise it uses the default SQLite Cloud connection string embedded in the script.
+**IMPORTANT**: The script requires the `DATABASE_URL` environment variable to be set. It will not use a hardcoded default and will exit with an error if the variable is not configured.
 
-To use a custom database:
+To configure your database connection:
 
-```bash
-export DATABASE_URL="sqlitecloud://your-server/your-database?apikey=your-key"
-npm run db:init
+1. **Copy the example environment file:**
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Edit `.env.local` and set your DATABASE_URL:**
+
+   ```bash
+   DATABASE_URL="sqlitecloud://your-server/your-database?apikey=your-key"
+   ```
+
+3. **Run the initialization:**
+
+   ```bash
+   npm run db:init
+   ```
+
+Example DATABASE_URL format:
+
+```
+DATABASE_URL=sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffle-and-sync-v2?apikey=YOUR_API_KEY
+```
+
+For local development, you can also use a local SQLite file:
+
+```
+DATABASE_URL=./dev.db
 ```
 
 ## Tables Created
@@ -109,9 +134,18 @@ npm run db:init
 
 If you see connection errors:
 
-1. Verify your API key is correct
-2. Check your internet connection
-3. Ensure the SQLite Cloud server is accessible
+1. **Check DATABASE_URL is set**: Ensure `.env.local` exists and contains a valid `DATABASE_URL`
+2. **Verify your API key is correct**: Double-check the API key in your connection string
+3. **Check your internet connection**: Ensure you can reach the SQLite Cloud server
+4. **Ensure the SQLite Cloud server is accessible**: Test connectivity to the host and port
+
+### Missing DATABASE_URL
+
+If you see "DATABASE_URL environment variable is not set":
+
+1. Create a `.env.local` file by copying `.env.example`
+2. Set the `DATABASE_URL` variable with your SQLite Cloud connection string
+3. Run `npm run db:init` again
 
 ### Tables Already Exist
 

@@ -136,9 +136,9 @@ DATABASE_URL="sqlitecloud://your-host.sqlite.cloud:8860/shuffleandsync?apikey=YO
 # DATABASE_URL="./dev.db"
 ```
 
-**Impact:** This doesn't affect the `db:init` script which uses its own hardcoded SQLite Cloud URL, but it does prevent the health check from running properly.
+**Impact:** Both the `db:init` script and health check now require the `DATABASE_URL` environment variable to be set. Neither uses a hardcoded fallback.
 
-**Recommendation:** Update `.env.local` to use the correct SQLite Cloud URL or ensure the health check script uses the same fallback mechanism as the init script.
+**Recommendation:** Create a `.env.local` file with your SQLite Cloud connection string before running `npm run db:init` or `npm run db:health`.
 
 ## 📋 Data Migration Considerations
 
