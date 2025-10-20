@@ -31,6 +31,18 @@ Security-focused documentation:
 1. [Security Policy](../SECURITY.md) - Main security policy
 2. [Security Improvements](security/SECURITY_IMPROVEMENTS.md) - Security enhancements and guidelines
 3. [Security Remediation](security/SECURITY_REMEDIATION.md) - Security issue remediation
+4. [Security Audit Report](security/SECURITY_AUDIT_REPORT.md) - Comprehensive security audit
+5. [Security Checklist Guide](security/SECURITY_CHECKLIST_GUIDE.md) - Security verification checklist
+
+### For QA and Testing
+
+Testing documentation and strategies:
+
+1. [Testing Overview](testing/TESTING.md) - Complete testing documentation
+2. [Testing Strategy](testing/TESTING_STRATEGY.md) - Testing approach and philosophy
+3. [Testing Roadmap](testing/TESTING_ROADMAP.md) - Testing implementation roadmap
+4. [Test Refactoring Guide](testing/TEST_REFACTORING_GUIDE.md) - Best practices for test refactoring
+5. [Test Coverage Audit](testing/test-coverage-audit.md) - Coverage analysis and gaps
 
 ### For Troubleshooters
 
@@ -79,26 +91,49 @@ Step-by-step guides:
 
 ### Database (`/database`)
 
-Database-specific documentation (17 files):
+Database-specific documentation (24 files):
 
 - **Overview**: [DATABASE_README.md](database/DATABASE_README.md), [DATABASE_FAQ.md](database/DATABASE_FAQ.md)
 - **Setup**: [DATABASE_INITIALIZATION.md](database/DATABASE_INITIALIZATION.md), [DATABASE_SETUP_CHECKLIST.md](database/DATABASE_SETUP_CHECKLIST.md)
 - **Optimization**: [DATABASE_PERFORMANCE.md](database/DATABASE_PERFORMANCE.md), [DRIZZLE_OPTIMIZATIONS.md](database/DRIZZLE_OPTIMIZATIONS.md)
 - **Reference**: [SQLITE_CLOUD_TABLES_COMPLETE.md](database/SQLITE_CLOUD_TABLES_COMPLETE.md)
+- **Migration**: [DATABASE_MIGRATION_README.md](database/DATABASE_MIGRATION_README.md), [DRIZZLE_MIGRATION_VERIFICATION.md](database/DRIZZLE_MIGRATION_VERIFICATION.md)
+- **Type Safety**: [DATABASE_TYPE_SAFETY_AUDIT.md](database/DATABASE_TYPE_SAFETY_AUDIT.md)
+
+### Testing (`/testing`)
+
+Testing documentation (19 files):
+
+- **Main Guides**: [TESTING.md](testing/TESTING.md), [TESTING_STRATEGY.md](testing/TESTING_STRATEGY.md), [TESTING_ROADMAP.md](testing/TESTING_ROADMAP.md)
+- **Test Refactoring**: [TEST_REFACTORING_GUIDE.md](testing/TEST_REFACTORING_GUIDE.md), [TEST_REFACTORING_SUMMARY.md](testing/TEST_REFACTORING_SUMMARY.md)
+- **Coverage**: [test-coverage-audit.md](testing/test-coverage-audit.md), [TEST_PYRAMID_ANALYSIS.md](testing/TEST_PYRAMID_ANALYSIS.md)
+- **Audit Reports**: [TESTING_AUDIT_SUMMARY.md](testing/TESTING_AUDIT_SUMMARY.md), [TESTING_AUDIT_PART1.md](testing/TESTING_AUDIT_PART1.md)
+
+### Performance (`/performance`)
+
+Performance optimization (8 files):
+
+- **Optimization**: [PERFORMANCE_OPTIMIZATION_CHECKLIST.md](performance/PERFORMANCE_OPTIMIZATION_CHECKLIST.md), [PERFORMANCE_OPTIMIZATION_SUMMARY.md](performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md)
+- **Monitoring**: [MONITORING_IMPLEMENTATION_SUMMARY.md](performance/MONITORING_IMPLEMENTATION_SUMMARY.md), [MONITORING_LOGGING_CHECKLIST.md](performance/MONITORING_LOGGING_CHECKLIST.md)
+- **React**: [USECALLBACK_OPTIMIZATION_GUIDE.md](performance/USECALLBACK_OPTIMIZATION_GUIDE.md)
 
 ### Deployment (`/deployment`)
 
-Deployment and production:
+Deployment and production (6 files):
 
 - **Admin Setup**: [ADMIN_SETUP.md](deployment/ADMIN_SETUP.md)
 - **Deployment Checklist**: [PRODUCTION_DEPLOYMENT_CHECKLIST.md](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md)
+- **Release**: [FINAL_VERIFICATION_CHECKLIST.md](deployment/FINAL_VERIFICATION_CHECKLIST.md), [DOCUMENTATION_RELEASE_CHECKLIST.md](deployment/DOCUMENTATION_RELEASE_CHECKLIST.md)
+- **Branch Protection**: [BRANCH_PROTECTION.md](deployment/BRANCH_PROTECTION.md)
 
 ### Development (`/development`)
 
-Development tools and setup:
+Development tools and setup (5 files):
 
 - **Getting Started**: [DEVELOPMENT_GUIDE.md](development/DEVELOPMENT_GUIDE.md)
 - **Copilot Agent**: [COPILOT_AGENT_IMPLEMENTATION.md](development/COPILOT_AGENT_IMPLEMENTATION.md)
+- **Build**: [BUILD_VERIFICATION_SUMMARY.md](development/BUILD_VERIFICATION_SUMMARY.md)
+- **Formatting**: [FORMATTING.md](development/FORMATTING.md)
 
 ### Troubleshooting (`/troubleshooting`)
 
@@ -110,10 +145,12 @@ Problem-solving guides:
 
 ### Security (`/security`)
 
-Security documentation:
+Security documentation (5 files):
 
 - **Improvements**: [SECURITY_IMPROVEMENTS.md](security/SECURITY_IMPROVEMENTS.md)
 - **Remediation**: [SECURITY_REMEDIATION.md](security/SECURITY_REMEDIATION.md)
+- **Audit**: [SECURITY_AUDIT_REPORT.md](security/SECURITY_AUDIT_REPORT.md), [SECURITY_AUDIT_SUMMARY.md](security/SECURITY_AUDIT_SUMMARY.md)
+- **Checklist**: [SECURITY_CHECKLIST_GUIDE.md](security/SECURITY_CHECKLIST_GUIDE.md)
 
 ### Features (`/features`)
 
@@ -132,10 +169,13 @@ Backend-specific documentation:
 
 ### Maintenance (`/maintenance`)
 
-Repository maintenance:
+Repository maintenance (16 files):
 
 - **Testing Agent**: [TESTING_AGENT.md](maintenance/TESTING_AGENT.md)
 - **Issue & PR History**: [ISSUE_PR_HISTORY.md](maintenance/ISSUE_PR_HISTORY.md)
+- **Code Quality**: [CODE_QUALITY_RELEASE_SUMMARY.md](maintenance/CODE_QUALITY_RELEASE_SUMMARY.md), [COVERAGE_ANALYSIS.md](maintenance/COVERAGE_ANALYSIS.md)
+- **Linting**: [ESLINT_AUDIT_SUMMARY.md](maintenance/ESLINT_AUDIT_SUMMARY.md), [PRETTIER_AUDIT_SUMMARY.md](maintenance/PRETTIER_AUDIT_SUMMARY.md)
+- **Type Safety**: [TYPE_SAFETY_AUDIT_README.md](maintenance/TYPE_SAFETY_AUDIT_README.md), [PLATFORM_API_TYPE_SAFETY_SUMMARY.md](maintenance/PLATFORM_API_TYPE_SAFETY_SUMMARY.md)
 - **History Agent**: [ISSUE_PR_HISTORY_AGENT.md](maintenance/ISSUE_PR_HISTORY_AGENT.md)
 
 ### Archive (`/archive`)
@@ -188,6 +228,30 @@ Historical documentation:
 **Configure Twitch OAuth?**
 → [Twitch OAuth Guide](features/twitch/TWITCH_OAUTH_GUIDE.md)
 
+**Write and run tests?**
+→ [Testing Overview](testing/TESTING.md) + [Testing Strategy](testing/TESTING_STRATEGY.md)
+
+**Review testing coverage?**
+→ [Test Coverage Audit](testing/test-coverage-audit.md)
+
+**Optimize application performance?**
+→ [Performance Optimization Checklist](performance/PERFORMANCE_OPTIMIZATION_CHECKLIST.md)
+
+**Set up monitoring?**
+→ [Monitoring & Logging Checklist](performance/MONITORING_LOGGING_CHECKLIST.md)
+
+**Review security issues?**
+→ [Security Audit Report](security/SECURITY_AUDIT_REPORT.md)
+
+**Improve code quality?**
+→ [Code Quality Release Summary](maintenance/CODE_QUALITY_RELEASE_SUMMARY.md)
+
+**Fix linting issues?**
+→ [ESLint Audit Summary](maintenance/ESLINT_AUDIT_SUMMARY.md)
+
+**Migrate from Prisma to Drizzle?**
+→ [Prisma to Drizzle Examples](database/PRISMA_TO_DRIZZLE_EXAMPLES.md)
+
 ## 📋 Documentation Standards
 
 When contributing to documentation:
@@ -209,11 +273,20 @@ When contributing to documentation:
 
 ## 📊 Documentation Statistics
 
-- **Total Documentation Files**: ~90 markdown files
-- **Organized Categories**: 12 main categories
+- **Total Documentation Files**: ~136 markdown files
+- **Organized Categories**: 18 main categories
 - **Root Documentation**: 6 essential files
-- **Archived Files**: 16 historical documents
+- **Testing Documentation**: 19 test-related files
+- **Database Documentation**: 24 database-related files
+- **Performance Documentation**: 8 performance-related files
+- **Security Documentation**: 5 security-related files
+- **Maintenance Documentation**: 16 maintenance-related files
+- **Archived Files**: 26 historical documents
 - **Feature Guides**: 11 feature-specific documents
+- **Average Lines per Document**: ~423 lines
+
+Last Updated: 2025-10-20 (after documentation reorganization)
+
 - **Database Docs**: 17 database-related files
 
 ---
