@@ -208,14 +208,19 @@ npm run db:health        # Connection test
 npm run db:init          # Initialize database
 
 # Testing
-npm run test              # Run all tests
-npm run test:unit         # Run unit tests only
-npm run test:integration  # Run integration tests only
-npm run test:e2e          # Run E2E tests only
-npm run test:coverage     # Generate coverage report (80%+ required)
-npm run test:watch        # Watch mode for development
-npm run test:security     # Run security tests
-npm run test:generate     # Auto-generate tests with AI agent
+npm run test                    # Run all tests (backend + frontend)
+npm run test:backend            # Run backend tests (Jest)
+npm run test:frontend           # Run frontend tests (Vitest)
+npm run test:frontend:watch     # Frontend tests in watch mode
+npm run test:frontend:ui        # Frontend tests with visual UI
+npm run test:frontend:coverage  # Frontend coverage report
+npm run test:unit               # Run backend unit tests only
+npm run test:integration        # Run integration tests only
+npm run test:e2e                # Run E2E tests only
+npm run test:coverage           # Generate coverage report (70%+ required)
+npm run test:watch              # Watch mode for development
+npm run test:security           # Run security tests
+npm run test:generate           # Auto-generate tests with AI agent
 
 # Code Quality
 npm run lint             # ESLint code linting (auto-fix)
@@ -236,6 +241,7 @@ Shuffle & Sync follows industry-standard testing practices with comprehensive te
 - **[📅 Testing Roadmap](TESTING_ROADMAP.md)** - Phased implementation plan
 - **[📊 Test Pyramid Analysis](TEST_PYRAMID_ANALYSIS.md)** - Test distribution analysis
 - **[🔒 Branch Protection](BRANCH_PROTECTION.md)** - CI/CD gates and requirements
+- **[⚛️ Frontend Testing Guide](docs/development/FRONTEND_TESTING.md)** - Vitest + React Testing Library
 
 **Quick Start**:
 
@@ -243,8 +249,12 @@ Shuffle & Sync follows industry-standard testing practices with comprehensive te
 # Run tests before committing
 npm test
 
+# Run frontend tests
+npm run test:frontend
+
 # Check coverage before creating PR
 npm run test:coverage
+npm run test:frontend:coverage
 
 # Run specific test categories
 npm run test:unit          # Fast unit tests

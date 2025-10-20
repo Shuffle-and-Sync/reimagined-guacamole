@@ -3,76 +3,78 @@
  *
  * Global test setup for frontend tests using Vitest.
  * This file runs before each test file.
- *
- * Note: This file is referenced in vitest.config.ts
- * Install @testing-library/jest-dom for custom matchers:
- * npm install --save-dev @testing-library/jest-dom
  */
 
-// Uncomment when @testing-library/jest-dom is installed:
-// import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
+import { afterEach, beforeAll, afterAll, vi } from "vitest";
+import { server } from "./mocks/server";
 
-// Type declaration for test globals
-// These will be available when running tests with Vitest or Jest
-declare global {
-   
-  var beforeAll: ((fn: () => void) => void) | undefined;
-   
-  var afterAll: ((fn: () => void) => void) | undefined;
-}
+// Start MSW server before all tests
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "warn" });
+});
 
-// Mock window.matchMedia (only runs in test environment)
-if (typeof window !== "undefined") {
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: (query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => true,
-    }),
-  });
+// Automatically cleanup after each test and reset MSW handlers
+afterEach(() => {
+  cleanup();
+  server.resetHandlers();
+});
 
-  // Mock IntersectionObserver
-  (global as any).IntersectionObserver = class IntersectionObserver {
-    constructor() {}
-    disconnect() {}
-    observe() {}
-    takeRecords() {
-      return [];
-    }
-    unobserve() {}
-  };
+// Stop MSW server after all tests
+afterAll(() => {
+  server.close();
+});
 
-  // Mock ResizeObserver
-  (global as any).ResizeObserver = class ResizeObserver {
-    constructor() {}
-    disconnect() {}
-    observe() {}
-    unobserve() {}
-  };
+// Mock window.matchMedia (required for responsive components)
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
-  // Suppress console warnings/errors during tests unless explicitly enabled
-  if (!process.env.VERBOSE_TESTS && typeof global.beforeAll !== "undefined") {
-    const originalError = console.error;
-    const originalWarn = console.warn;
-
-    global.beforeAll(() => {
-      console.error = () => {};
-      console.warn = () => {};
-    });
-
-    if (typeof global.afterAll !== "undefined") {
-      global.afterAll(() => {
-        console.error = originalError;
-        console.warn = originalWarn;
-      });
-    }
+// Mock IntersectionObserver (required for lazy loading components)
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  takeRecords() {
+    return [];
   }
-}
+  unobserve() {}
+} as any;
 
-export {};
+// Mock ResizeObserver (required for responsive components)
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+} as any;
+
+// Suppress console errors in tests (optional - remove if debugging)
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: any[]) => {
+    if (
+      typeof args[0] === "string" &&
+      (args[0].includes("Warning: ReactDOM.render") ||
+        args[0].includes("Not implemented: HTMLFormElement.prototype.submit"))
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
