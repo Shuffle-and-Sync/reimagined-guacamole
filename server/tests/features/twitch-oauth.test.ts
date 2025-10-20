@@ -7,12 +7,19 @@
  * - Token refresh functionality
  */
 
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test, beforeEach, afterEach } from "@jest/globals";
 import { randomBytes, createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 describe("Twitch OAuth Security Features", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("PKCE Implementation", () => {
     test("should generate unique code verifiers", () => {
       const verifier1 = randomBytes(32).toString("base64url");

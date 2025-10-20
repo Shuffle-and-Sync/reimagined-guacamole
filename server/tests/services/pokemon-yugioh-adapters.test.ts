@@ -15,6 +15,10 @@ describe("PokemonTCGAdapter", () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("searchCards", () => {
     it("should search Pokemon cards and transform to universal format", async () => {
       const mockPokemonResponse = {
@@ -146,6 +150,10 @@ describe("PokemonTCGAdapter", () => {
 describe("YuGiOhAdapter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
   });
 
   describe("searchCards", () => {
