@@ -80,6 +80,48 @@ jobs:
           path: coverage/
           retention-days: 7
 
+  # Frontend tests - Vitest + React Testing Library
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint-and-typecheck
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run frontend tests
+        run: npm run test:frontend:coverage
+        env:
+          NODE_ENV: test
+
+      - name: Upload frontend test coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: coverage/
+          retention-days: 7
+
+      - name: Comment PR with coverage
+        uses: romeovs/lcov-reporter-action@v0.4.0
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+          filter-changed-files: true
+        continue-on-error: true
+
   # Integration tests - database and service interactions
   integration-tests:
     name: Integration Tests
