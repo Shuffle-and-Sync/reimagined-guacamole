@@ -56,16 +56,27 @@ Database-specific documentation:
 - [Database Visual Guide](database/DATABASE_VISUAL_GUIDE.md) - Visual database documentation
 - [Database Performance](database/DATABASE_PERFORMANCE.md) - Performance optimization
 - [Database Improvements Summary](database/DATABASE_IMPROVEMENTS_SUMMARY.md) - Recent improvements
-- [Drizzle ORM Review](database/DRIZZLE_ORM_REVIEW.md) - ORM best practices
-- [Drizzle Optimizations](database/DRIZZLE_OPTIMIZATIONS.md) - Query optimizations
-- [Drizzle Type System Fixes](database/DRIZZLE_TYPE_SYSTEM_FIXES.md) - Type safety improvements
-- [Drizzle Dependencies](database/DRIZZLE_DEPENDENCIES.md) - Dependency management
-- [Schema Validation](database/SCHEMA_VALIDATION.md) - Schema validation tools
-- [Schema Error Resolution](database/SCHEMA_ERROR_RESOLUTION.md) - Schema error fixes
-- [Schema Mismatch Resolution](database/SCHEMA_MISMATCH_RESOLUTION.md) - Schema troubleshooting
-- [SQLite Cloud Tables](database/SQLITE_CLOUD_TABLES_COMPLETE.md) - Complete table reference
-- [Testing Verification](database/TESTING_VERIFICATION.md) - Database testing
-- [Optional Dependencies](database/OPTIONAL_DEPENDENCIES.md) - Optional database packages
+- **Drizzle ORM:**
+  - [Drizzle ORM Review](database/DRIZZLE_ORM_REVIEW.md) - ORM best practices
+  - [Drizzle Optimizations](database/DRIZZLE_OPTIMIZATIONS.md) - Query optimizations
+  - [Drizzle Type System Fixes](database/DRIZZLE_TYPE_SYSTEM_FIXES.md) - Type safety improvements
+  - [Drizzle Dependencies](database/DRIZZLE_DEPENDENCIES.md) - Dependency management
+  - [Drizzle Migration Verification](database/DRIZZLE_MIGRATION_VERIFICATION.md) - Migration verification
+  - [Prisma to Drizzle Examples](database/PRISMA_TO_DRIZZLE_EXAMPLES.md) - Migration examples
+- **Schema Management:**
+  - [Schema Validation](database/SCHEMA_VALIDATION.md) - Schema validation tools
+  - [Schema Error Resolution](database/SCHEMA_ERROR_RESOLUTION.md) - Schema error fixes
+  - [Schema Mismatch Resolution](database/SCHEMA_MISMATCH_RESOLUTION.md) - Schema troubleshooting
+  - [SQLite Cloud Tables](database/SQLITE_CLOUD_TABLES_COMPLETE.md) - Complete table reference
+- **Migration & Type Safety:**
+  - [Database Migration README](database/DATABASE_MIGRATION_README.md) - Migration guide
+  - [Database Type Safety Audit](database/DATABASE_TYPE_SAFETY_AUDIT.md) - Type safety audit
+  - [Database Type Safety Audit Summary](database/DATABASE_TYPE_SAFETY_AUDIT_SUMMARY.md) - Audit summary
+  - [Migration Status](database/MIGRATION_STATUS.md) - Current migration status
+  - [Migration Verification](database/MIGRATION_VERIFICATION.md) - Migration verification
+- **Testing:**
+  - [Testing Verification](database/TESTING_VERIFICATION.md) - Database testing
+  - [Optional Dependencies](database/OPTIONAL_DEPENDENCIES.md) - Optional database packages
 
 ### 🚀 Deployment (`/deployment`)
 
@@ -73,6 +84,10 @@ Deployment and operations:
 
 - [Admin Setup Guide](deployment/ADMIN_SETUP.md) - Complete administrator deployment setup
 - [Production Deployment Checklist](deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md) - Production deployment steps
+- [Branch Protection](deployment/BRANCH_PROTECTION.md) - Branch protection policies
+- [Documentation Release Checklist](deployment/DOCUMENTATION_RELEASE_CHECKLIST.md) - Documentation release process
+- [Final Release Verification Summary](deployment/FINAL_RELEASE_VERIFICATION_SUMMARY.md) - Release verification
+- [Final Verification Checklist](deployment/FINAL_VERIFICATION_CHECKLIST.md) - Pre-release checklist
 - See also: [Main Deployment Guide](../DEPLOYMENT.md) in repository root
 
 ### 🛠️ Development (`/development`)
@@ -82,6 +97,8 @@ Development setup and tools:
 - [Development Guide](development/DEVELOPMENT_GUIDE.md) - Getting started with development
 - **[Coding Patterns and Conventions](development/CODING_PATTERNS.md)** - Code standards and best practices
 - [Copilot Agent Implementation](development/COPILOT_AGENT_IMPLEMENTATION.md) - Copilot agent setup
+- [Build Verification Summary](development/BUILD_VERIFICATION_SUMMARY.md) - Build verification process
+- [Formatting Guide](development/FORMATTING.md) - Code formatting standards
 
 ### 🔧 Troubleshooting (`/troubleshooting`)
 
@@ -97,6 +114,9 @@ Security documentation and guidelines:
 
 - [Security Improvements](security/SECURITY_IMPROVEMENTS.md) - Security enhancements and guidelines
 - [Security Remediation](security/SECURITY_REMEDIATION.md) - Security issue remediation
+- [Security Audit Report](security/SECURITY_AUDIT_REPORT.md) - Comprehensive security audit
+- [Security Audit Summary](security/SECURITY_AUDIT_SUMMARY.md) - Audit summary
+- [Security Checklist Guide](security/SECURITY_CHECKLIST_GUIDE.md) - Security verification checklist
 - See also: [Security Policy](../SECURITY.md) in repository root
 
 ### 🧩 Features (`/features`)
@@ -152,13 +172,70 @@ Backend-specific documentation:
 - [Backend Copilot Agent](backend/BACKEND_COPILOT_AGENT.md) - Backend analysis agent
 - [Backend Copilot Analysis](backend/BACKEND_COPILOT_ANALYSIS.md) - Analysis results
 
+### 🧪 Testing (`/testing`)
+
+Testing documentation and strategies:
+
+- [Testing Overview](testing/TESTING.md) - Complete testing documentation
+- [Testing Strategy](testing/TESTING_STRATEGY.md) - Testing approach and philosophy
+- [Testing Roadmap](testing/TESTING_ROADMAP.md) - Testing implementation roadmap
+- [Test Refactoring Guide](testing/TEST_REFACTORING_GUIDE.md) - Best practices for test refactoring
+- [Test Refactoring Summary](testing/TEST_REFACTORING_SUMMARY.md) - Recent refactoring work
+- [Test Pyramid Analysis](testing/TEST_PYRAMID_ANALYSIS.md) - Test suite structure analysis
+- [Test Coverage Audit](testing/test-coverage-audit.md) - Coverage analysis and gaps
+- [Test Implementation Plan](testing/test-implementation-plan.md) - Implementation planning
+- **Audit Reports:**
+  - [Testing Audit Part 1](testing/TESTING_AUDIT_PART1.md) - Coverage analysis
+  - [Testing Audit Part 2: Architecture](testing/TESTING_AUDIT_PART2_ARCHITECTURE.md) - Architecture review
+  - [Testing Audit Part 2: Quality](testing/TESTING_AUDIT_PART2_QUALITY.md) - Quality assessment
+  - [Testing Audit Part 2: Summary](testing/TESTING_AUDIT_PART2_SUMMARY.md) - Part 2 overview
+  - [Testing Audit Part 3](testing/TESTING_AUDIT_PART3.md) - Additional findings
+  - [Testing Audit Part 5: Summary](testing/TESTING_AUDIT_PART5_SUMMARY.md) - Part 5 overview
+  - [Testing Audit Part 7: Summary](testing/TESTING_AUDIT_PART7_SUMMARY.md) - Part 7 overview
+  - [Testing Audit Summary](testing/TESTING_AUDIT_SUMMARY.md) - Complete audit overview
+- **Implementation Summaries:**
+  - [Test Implementation Summary](testing/TEST_IMPLEMENTATION_SUMMARY.md) - Implementation progress
+  - [Test Infrastructure Summary](testing/TEST_INFRASTRUCTURE_SUMMARY.md) - Infrastructure setup
+  - [Test Refactoring Complete](testing/TEST_REFACTORING_COMPLETE.md) - Refactoring completion report
+  - [Test Refactoring Implementation Summary](testing/TEST_REFACTORING_IMPLEMENTATION_SUMMARY.md) - Refactoring details
+
+### ⚡ Performance (`/performance`)
+
+Performance optimization documentation:
+
+- [useCallback Optimization Guide](performance/USECALLBACK_OPTIMIZATION_GUIDE.md) - React optimization guide
+- [Performance Implementation Summary](performance/PERFORMANCE_IMPLEMENTATION_SUMMARY.md) - Performance improvements
+- [Performance Optimization Checklist](performance/PERFORMANCE_OPTIMIZATION_CHECKLIST.md) - Optimization checklist
+- [Performance Optimization Summary](performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md) - Optimization results
+- [Performance Security Summary](performance/PERFORMANCE_SECURITY_SUMMARY.md) - Security and performance
+- [Performance Verification Report](performance/PERFORMANCE_VERIFICATION_REPORT.md) - Verification results
+- [Monitoring Implementation Summary](performance/MONITORING_IMPLEMENTATION_SUMMARY.md) - Monitoring setup
+- [Monitoring & Logging Checklist](performance/MONITORING_LOGGING_CHECKLIST.md) - Monitoring checklist
+
 ### 🔄 Maintenance (`/maintenance`)
 
-Repository maintenance and automation:
+Repository maintenance, code quality, and automation:
 
 - [Testing Agent](maintenance/TESTING_AGENT.md) - Automated testing agent documentation
 - [Issue & PR History](maintenance/ISSUE_PR_HISTORY.md) - Comprehensive catalog of resolved issues and pull requests
 - [Issue & PR History Agent](maintenance/ISSUE_PR_HISTORY_AGENT.md) - Automated documentation maintenance agent
+- **Code Quality:**
+  - [Code Quality Release Summary](maintenance/CODE_QUALITY_RELEASE_SUMMARY.md) - Code quality improvements
+  - [Coverage Analysis](maintenance/COVERAGE_ANALYSIS.md) - Test coverage analysis
+- **Linting & Formatting:**
+  - [ESLint Audit Summary](maintenance/ESLINT_AUDIT_SUMMARY.md) - ESLint audit results
+  - [ESLint Setup Summary](maintenance/ESLINT_SETUP_SUMMARY.md) - ESLint configuration
+  - [ESLint Audit Report](maintenance/eslint-audit-report.md) - Detailed audit report
+  - [ESLint Remediation Plan](maintenance/eslint-remediation-plan.md) - Remediation steps
+  - [Lint Resolution Summary](maintenance/LINT_RESOLUTION_SUMMARY.md) - Linting fixes
+  - [Prettier Audit Summary](maintenance/PRETTIER_AUDIT_SUMMARY.md) - Prettier audit results
+  - [Prettier Config Guide](maintenance/PRETTIER_CONFIG_GUIDE.md) - Prettier configuration
+  - [Prettier Audit Report](maintenance/prettier-audit-report.md) - Detailed audit report
+  - [Prettier Remediation Plan](maintenance/prettier-remediation-plan.md) - Remediation steps
+- **Type Safety:**
+  - [Type Safety Audit](maintenance/TYPE_SAFETY_AUDIT_README.md) - Type safety improvements
+  - [Platform API Type Safety Summary](maintenance/PLATFORM_API_TYPE_SAFETY_SUMMARY.md) - API type safety
+  - [Platform API Type Safety Audit Final](maintenance/PLATFORM_API_TYPE_SAFETY_AUDIT_FINAL.md) - Final audit
 
 ### 📦 Archive (`/archive`)
 
@@ -168,6 +245,16 @@ Historical and outdated documentation:
 - Various historical fix documentation and migration guides
 - [Cleanup Summary](archive/CLEANUP_SUMMARY.md) - Repository reorganization details
 - [Test Suite Review](archive/TEST_SUITE_REVIEW.md) - Historical test suite review
+- **Historical Implementation Summaries:**
+  - [Auth Routes Extraction Summary](archive/AUTH_ROUTES_EXTRACTION_SUMMARY.md)
+  - [Error Tests Implementation Summary](archive/ERROR_TESTS_IMPLEMENTATION_SUMMARY.md)
+  - [Feature Component Tests Summary](archive/FEATURE_COMPONENT_TESTS_SUMMARY.md)
+  - [Implementation Complete](archive/IMPLEMENTATION_COMPLETE.md)
+  - [Task Completion Summary](archive/TASK_COMPLETION_SUMMARY.md)
+  - [Unused Variables Cleanup Summary](archive/UNUSED_VARIABLES_CLEANUP_SUMMARY.md)
+  - [UX Release Checklist Summary](archive/UX_RELEASE_CHECKLIST_SUMMARY.md)
+  - [UX Verification Report](archive/UX_VERIFICATION_REPORT.md)
+  - [UX Visual Improvements](archive/UX_VISUAL_IMPROVEMENTS.md)
 
 ## 🔍 Quick Start Paths
 
