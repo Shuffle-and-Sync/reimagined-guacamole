@@ -346,7 +346,6 @@ export class FacebookAPIService {
    */
   private mapFacebookErrorToCode(error: FacebookErrorResponse): FacebookAPIError {
     const errorCode = error.code || 0;
-    const errorType = error.type || "";
 
     // Rate limiting
     if (errorCode === 4 || errorCode === 17 || errorCode === 341) {
@@ -1058,14 +1057,11 @@ export class FacebookAPIService {
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) {
-        console.warn(
-          "Invalid timestamp format, returning raw value:",
-          timestamp,
-        );
+        logger.warn("Invalid timestamp format, returning raw value", { timestamp });
         return timestamp;
       }
       return date.toISOString();
-    } catch (error) {
+    } catch {
       logger.warn("Error parsing timestamp, returning raw value", { timestamp });
       return timestamp;
     }
@@ -1077,8 +1073,8 @@ export class FacebookAPIService {
   async subscribeToWebhooks(
     pageId: string,
     accessToken: string,
-    callbackUrl: string,
-    verifyToken: string,
+    _callbackUrl: string,
+    _verifyToken: string,
   ): Promise<boolean> {
     if (!this.isConfigured()) {
       logger.warn("Facebook API not configured");
