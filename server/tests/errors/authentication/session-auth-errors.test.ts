@@ -5,7 +5,7 @@
  * missing sessions, expired sessions, invalid signatures, and more.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
   createMockErrorResponse,
@@ -37,6 +37,11 @@ describe("Session Authentication Error Tests", () => {
     };
     mockRes = createMockErrorResponse();
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe("Missing Session Cookie", () => {

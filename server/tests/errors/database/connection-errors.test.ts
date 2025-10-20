@@ -5,7 +5,7 @@
  * and connection pool exhaustion scenarios.
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
   createMockErrorResponse,
@@ -37,6 +37,11 @@ describe("Database Connection Error Tests", () => {
     };
     mockRes = createMockErrorResponse();
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe("Connection Refused Errors", () => {

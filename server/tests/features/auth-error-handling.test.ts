@@ -4,9 +4,16 @@
  * Tests for improved error handling and redirect loop prevention
  */
 
-import { describe, test, expect } from "@jest/globals";
+import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 
 describe("Authentication Error Handling", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("Configuration Error Detection", () => {
     test("should detect Configuration error from URL", () => {
       const errorUrl = "/api/auth/error?error=Configuration";
