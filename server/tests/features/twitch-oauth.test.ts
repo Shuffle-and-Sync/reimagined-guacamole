@@ -7,7 +7,7 @@
  * - Token refresh functionality
  */
 
-import { describe, expect, test, jest } from "@jest/globals";
+import { describe, expect, test } from "@jest/globals";
 import { randomBytes, createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
