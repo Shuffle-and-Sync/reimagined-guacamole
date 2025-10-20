@@ -987,7 +987,7 @@ export class YouTubeAPIService {
     topic: string,
     challenge: string,
     verifyToken: string,
-    leaseSeconds?: string,
+    _leaseSeconds?: string,
   ): string | null {
     // Validate required parameters
     if (!mode || !topic || !challenge || !verifyToken) {
