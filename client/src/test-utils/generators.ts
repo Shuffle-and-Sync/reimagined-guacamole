@@ -1,26 +1,28 @@
 /**
  * Frontend Test Data Generators
  *
- * Mock data generators for frontend component testing.
+ * Mock data generators for frontend component testing using Faker.
  * These create realistic test data that matches the shape of API responses.
  */
+
+import { faker } from "@faker-js/faker";
 
 /**
  * Generate a mock user
  */
 export function createMockUser(overrides = {}) {
   return {
-    id: `user-${Math.random().toString(36).substr(2, 9)}`,
-    email: `test-${Date.now()}@example.com`,
-    firstName: "Test",
-    lastName: "User",
-    username: `testuser${Date.now()}`,
+    id: faker.string.uuid(),
+    email: faker.internet.email(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    username: faker.internet.userName(),
     status: "active",
     role: "user",
     isEmailVerified: true,
     mfaEnabled: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -30,14 +32,14 @@ export function createMockUser(overrides = {}) {
  */
 export function createMockCommunity(overrides = {}) {
   return {
-    id: `community-${Math.random().toString(36).substr(2, 9)}`,
-    name: `Test Community ${Date.now()}`,
-    slug: `test-community-${Date.now()}`,
-    description: "A test community for testing",
-    game: "mtg",
+    id: faker.string.uuid(),
+    name: faker.company.name(),
+    slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
+    description: faker.lorem.sentence(),
+    game: faker.helpers.arrayElement(["mtg", "pokemon", "lorcana", "yugioh"]),
     isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -47,18 +49,18 @@ export function createMockCommunity(overrides = {}) {
  */
 export function createMockEvent(overrides = {}) {
   return {
-    id: `event-${Math.random().toString(36).substr(2, 9)}`,
-    title: `Test Event ${Date.now()}`,
-    description: "A test event for testing",
-    eventType: "tournament",
-    startTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-    endTime: new Date(Date.now() + 90000000).toISOString(), // Tomorrow + 1 hour
-    location: "Online",
-    maxParticipants: 8,
-    currentParticipants: 0,
+    id: faker.string.uuid(),
+    title: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    eventType: faker.helpers.arrayElement(["tournament", "casual", "workshop"]),
+    startTime: faker.date.future().toISOString(),
+    endTime: faker.date.future().toISOString(),
+    location: faker.helpers.arrayElement(["Online", "In-Person"]),
+    maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
+    currentParticipants: faker.number.int({ min: 0, max: 32 }),
     status: "upcoming",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -68,18 +70,18 @@ export function createMockEvent(overrides = {}) {
  */
 export function createMockTournament(overrides = {}) {
   return {
-    id: `tournament-${Math.random().toString(36).substr(2, 9)}`,
-    name: `Test Tournament ${Date.now()}`,
-    description: "A test tournament for testing",
-    format: "Standard",
-    startDate: new Date(Date.now() + 86400000).toISOString(),
-    endDate: new Date(Date.now() + 90000000).toISOString(),
-    maxParticipants: 32,
-    currentParticipants: 0,
+    id: faker.string.uuid(),
+    name: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    format: faker.helpers.arrayElement(["Standard", "Modern", "Commander"]),
+    startDate: faker.date.future().toISOString(),
+    endDate: faker.date.future().toISOString(),
+    maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
+    currentParticipants: faker.number.int({ min: 0, max: 32 }),
     status: "upcoming",
     registrationOpen: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -89,17 +91,22 @@ export function createMockTournament(overrides = {}) {
  */
 export function createMockCard(overrides = {}) {
   return {
-    id: `card-${Math.random().toString(36).substr(2, 9)}`,
-    name: `Test Card ${Date.now()}`,
+    id: faker.string.uuid(),
+    name: faker.commerce.productName(),
     gameId: "game-mtg-001",
-    setCode: "TEST",
-    cardNumber: "001",
-    rarity: "common",
-    types: ["Instant"],
-    colors: ["R"],
-    manaCost: "{R}",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    setCode: faker.string.alpha({ length: 3, casing: "upper" }),
+    cardNumber: faker.string.numeric(3),
+    rarity: faker.helpers.arrayElement([
+      "common",
+      "uncommon",
+      "rare",
+      "mythic",
+    ]),
+    types: [faker.helpers.arrayElement(["Instant", "Sorcery", "Creature"])],
+    colors: [faker.helpers.arrayElement(["W", "U", "B", "R", "G"])],
+    manaCost: `{${faker.helpers.arrayElement(["W", "U", "B", "R", "G"])}}`,
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -109,15 +116,18 @@ export function createMockCard(overrides = {}) {
  */
 export function createMockDeck(overrides = {}) {
   return {
-    id: `deck-${Math.random().toString(36).substr(2, 9)}`,
-    name: `Test Deck ${Date.now()}`,
-    format: "Standard",
-    colors: ["R", "G"],
+    id: faker.string.uuid(),
+    name: faker.company.buzzPhrase(),
+    format: faker.helpers.arrayElement(["Standard", "Modern", "Commander"]),
+    colors: faker.helpers.arrayElements(["W", "U", "B", "R", "G"], {
+      min: 1,
+      max: 3,
+    }),
     mainboard: [],
     sideboard: [],
-    description: "A test deck for testing",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    description: faker.lorem.paragraph(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -127,13 +137,13 @@ export function createMockDeck(overrides = {}) {
  */
 export function createMockGameSession(overrides = {}) {
   return {
-    id: `session-${Math.random().toString(36).substr(2, 9)}`,
-    eventId: `event-${Math.random().toString(36).substr(2, 9)}`,
+    id: faker.string.uuid(),
+    eventId: faker.string.uuid(),
     gameId: "game-mtg-001",
     players: [],
     status: "waiting",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
+    updatedAt: faker.date.recent().toISOString(),
     ...overrides,
   };
 }
@@ -143,12 +153,12 @@ export function createMockGameSession(overrides = {}) {
  */
 export function createMockMessage(overrides = {}) {
   return {
-    id: `message-${Math.random().toString(36).substr(2, 9)}`,
-    fromUserId: `user-${Math.random().toString(36).substr(2, 9)}`,
-    toUserId: `user-${Math.random().toString(36).substr(2, 9)}`,
-    content: "Test message content",
+    id: faker.string.uuid(),
+    fromUserId: faker.string.uuid(),
+    toUserId: faker.string.uuid(),
+    content: faker.lorem.sentence(),
     read: false,
-    createdAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
     ...overrides,
   };
 }
@@ -158,13 +168,13 @@ export function createMockMessage(overrides = {}) {
  */
 export function createMockNotification(overrides = {}) {
   return {
-    id: `notification-${Math.random().toString(36).substr(2, 9)}`,
-    userId: `user-${Math.random().toString(36).substr(2, 9)}`,
-    type: "info",
-    title: "Test Notification",
-    message: "This is a test notification",
+    id: faker.string.uuid(),
+    userId: faker.string.uuid(),
+    type: faker.helpers.arrayElement(["info", "success", "warning", "error"]),
+    title: faker.lorem.words(3),
+    message: faker.lorem.sentence(),
     read: false,
-    createdAt: new Date().toISOString(),
+    createdAt: faker.date.past().toISOString(),
     ...overrides,
   };
 }

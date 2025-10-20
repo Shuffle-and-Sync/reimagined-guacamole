@@ -42,6 +42,9 @@ yarn-error.log*
 # Test files
 test-results/
 playwright-report/
+.vitest/
+coverage/
+test-report.html
 
 # Temporary files
 tmp/

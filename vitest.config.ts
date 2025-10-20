@@ -1,19 +1,7 @@
 /**
  * Vitest Configuration for Frontend Testing
  *
- * This configuration is for testing React components using Vitest.
- *
- * To use this configuration:
- * 1. Install Vitest and related dependencies:
- *    npm install --save-dev vitest @vitest/ui @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
- *
- * 2. Add test scripts to package.json:
- *    "test:client": "vitest --config vitest.config.ts"
- *    "test:client:ui": "vitest --ui --config vitest.config.ts"
- *    "test:client:coverage": "vitest run --coverage --config vitest.config.ts"
- *
- * 3. Run tests:
- *    npm run test:client
+ * Configuration for testing React components using Vitest and React Testing Library.
  */
 
 import { defineConfig } from "vite";
@@ -24,8 +12,8 @@ export default defineConfig({
   plugins: [react()],
 
   test: {
-    // Test environment
-    environment: "jsdom",
+    // Test environment - using happy-dom for better performance, can switch to jsdom if needed
+    environment: "happy-dom",
 
     // Global test setup
     globals: true,
@@ -45,6 +33,7 @@ export default defineConfig({
       "**/dist/**",
       "**/cypress/**",
       "**/.{idea,git,cache,output,temp}/**",
+      "**/server/**",
     ],
 
     // Coverage configuration
@@ -59,6 +48,10 @@ export default defineConfig({
         "client/src/**/__tests__/**",
         "client/src/main.tsx",
         "client/src/vite-env.d.ts",
+        "**/*.d.ts",
+        "**/*.config.*",
+        "**/mockData/**",
+        "**/types/**",
       ],
 
       // Coverage thresholds
@@ -73,8 +66,19 @@ export default defineConfig({
     // Test timeout
     testTimeout: 10000,
 
+    // Parallel execution
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        singleThread: false,
+      },
+    },
+
     // Reporter configuration
-    reporters: ["verbose"],
+    reporters: ["default", "html"],
+    outputFile: {
+      html: "./coverage/test-report.html",
+    },
 
     // Mock configuration
     mockReset: true,
@@ -87,6 +91,10 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
       "@shared": path.resolve(__dirname, "shared"),
+      "@components": path.resolve(__dirname, "client", "src", "components"),
+      "@hooks": path.resolve(__dirname, "client", "src", "hooks"),
+      "@lib": path.resolve(__dirname, "client", "src", "lib"),
+      "@pages": path.resolve(__dirname, "client", "src", "pages"),
     },
   },
 });
