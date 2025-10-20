@@ -34,6 +34,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
 **Want to manually format?**
+
 ```bash
 npm run format
 ```
@@ -53,18 +54,20 @@ npm run format
 ### Why Prettier?
 
 **Before Prettier:**
+
 ```typescript
 // Different developers, different styles
-const user={name:"Alice",age:30,email:"alice@example.com"}
+const user = { name: "Alice", age: 30, email: "alice@example.com" };
 
 const user = {
-  name:    "Alice",
+  name: "Alice",
   age: 30,
-  email:   "alice@example.com"
-}
+  email: "alice@example.com",
+};
 ```
 
 **With Prettier:**
+
 ```typescript
 // Everyone writes the same style
 const user = {
@@ -75,6 +78,7 @@ const user = {
 ```
 
 **Benefits:**
+
 - No arguing about code style
 - Faster code reviews
 - Cleaner git diffs
@@ -104,16 +108,19 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 ### Step 3: Install Editor Extension (Recommended)
 
 #### VS Code
+
 1. Install [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 2. Settings are already configured in `.vscode/settings.json`
 3. Code will auto-format on save! ✨
 
 #### WebStorm / IntelliJ IDEA
+
 1. Go to Settings → Languages & Frameworks → JavaScript → Prettier
 2. Set Prettier package: `{project}/node_modules/prettier`
 3. Check "On save" and "On Reformat Code"
 
 #### Vim / Neovim
+
 ```vim
 " Add to your .vimrc
 Plug 'prettier/vim-prettier', { 'do': 'npm install' }
@@ -122,6 +129,7 @@ let g:prettier#autoformat_require_pragma = 0
 ```
 
 #### Sublime Text
+
 Install [JsPrettier](https://packagecontrol.io/packages/JsPrettier) via Package Control
 
 ### Step 4: Verify Setup
@@ -191,9 +199,11 @@ npm run format:check
 ### VS Code (Recommended)
 
 #### Automatic Setup
+
 The repository includes `.vscode/settings.json` with optimal settings. Just install the Prettier extension!
 
 #### Manual Setup
+
 If settings aren't applying:
 
 1. Open VS Code Settings (Cmd/Ctrl + ,)
@@ -203,6 +213,7 @@ If settings aren't applying:
 5. Select "Prettier - Code formatter"
 
 **Settings JSON:**
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -222,11 +233,13 @@ If settings aren't applying:
 3. **Check:** "Run on save" and "On Reformat Code"
 
 **Keyboard Shortcuts:**
+
 - Format Document: `Cmd/Ctrl + Alt + L`
 
 ### Vim / Neovim
 
 **Using vim-prettier:**
+
 ```vim
 " Auto-format on save
 let g:prettier#autoformat = 1
@@ -237,6 +250,7 @@ let g:prettier#autoformat_require_pragma = 0
 ```
 
 **Using ALE:**
+
 ```vim
 let g:ale_fixers = {
   \ 'typescript': ['prettier'],
@@ -250,6 +264,7 @@ let g:ale_fix_on_save = 1
 ### Emacs
 
 **Using prettier-js:**
+
 ```elisp
 (require 'prettier-js)
 (add-hook 'typescript-mode-hook 'prettier-js-mode)
@@ -317,6 +332,7 @@ We use [Husky](https://typicode.github.io/husky/) and [lint-staged](https://gith
 ### Configured Hooks
 
 **.husky/pre-commit:**
+
 ```bash
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
@@ -325,16 +341,12 @@ npx lint-staged
 ```
 
 **lint-staged (in package.json):**
+
 ```json
 {
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
+    "*.{ts,tsx,js,jsx}": ["prettier --write", "eslint --fix"],
+    "*.{json,md}": ["prettier --write"]
   }
 }
 ```
@@ -372,6 +384,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Reinstall hooks:**
+
    ```bash
    rm -rf .husky
    npm install --legacy-peer-deps
@@ -381,6 +394,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
    ```
 
 2. **Check file permissions:**
+
    ```bash
    chmod +x .husky/pre-commit
    ```
@@ -397,11 +411,13 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Install Prettier:**
+
    ```bash
    npm install --save-dev prettier --legacy-peer-deps
    ```
 
 2. **Clear npm cache:**
+
    ```bash
    rm -rf node_modules package-lock.json
    npm install --legacy-peer-deps
@@ -419,15 +435,17 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Verify eslint-config-prettier is installed:**
+
    ```bash
    npm list eslint-config-prettier
    ```
 
 2. **Check eslint.config.js:**
    Should include:
+
    ```javascript
    import prettierConfig from "eslint-config-prettier";
-   
+
    export default [
      // ... other config
      prettierConfig, // Must be last!
@@ -446,9 +464,11 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Check for multiple configs:**
+
    ```bash
    find . -name ".prettierrc*" -o -name "prettier.config.*"
    ```
+
    Should only be one `.prettierrc.json` in root
 
 2. **Check .prettierignore:**
@@ -465,6 +485,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Rebase your branch:**
+
    ```bash
    git checkout feature-branch
    git fetch origin
@@ -476,6 +497,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
    ```
 
 2. **Accept both changes, then format:**
+
    ```bash
    # In conflict resolution
    # Accept both versions
@@ -495,6 +517,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Format only changed files:**
+
    ```bash
    git diff --name-only | xargs npx prettier --write
    ```
@@ -514,11 +537,13 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 **Solutions:**
 
 1. **Run locally:**
+
    ```bash
    npm run format:check
    ```
 
 2. **Fix formatting:**
+
    ```bash
    npm run format
    git add -A
@@ -556,6 +581,7 @@ mv .husky/pre-commit.disabled .husky/pre-commit
 Rare situations where Prettier makes code less readable:
 
 #### Example 1: Alignment for readability
+
 ```typescript
 // prettier-ignore
 const matrix = [
@@ -566,12 +592,14 @@ const matrix = [
 ```
 
 #### Example 2: Regex patterns
+
 ```typescript
 // prettier-ignore
 const phoneRegex = /^\+?1?\s*?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 ```
 
 #### Example 3: Long template strings
+
 ```typescript
 // prettier-ignore
 const sql = `
@@ -615,6 +643,7 @@ const sql = `
 ### Q: How do I format files Prettier doesn't support?
 
 **A:** Prettier doesn't format all file types. For others:
+
 - **CSS/SCSS:** Prettier supports these
 - **Python:** Use Black
 - **Go:** Use gofmt
@@ -623,6 +652,7 @@ const sql = `
 ### Q: Can I disable Prettier for a directory?
 
 **A:** Yes, add to `.prettierignore`:
+
 ```
 directory-to-ignore/
 ```
@@ -630,6 +660,7 @@ directory-to-ignore/
 ### Q: What's the difference between Prettier and ESLint?
 
 **A:**
+
 - **Prettier:** Code formatting (whitespace, quotes, etc.)
 - **ESLint:** Code quality (bugs, best practices, etc.)
 - **Both:** We use both! ESLint catches bugs, Prettier formats code.
@@ -637,6 +668,7 @@ directory-to-ignore/
 ### Q: Why does Prettier format my code differently than my editor?
 
 **A:** Your editor may be using a different Prettier version or configuration. Make sure your editor uses the project's Prettier:
+
 - VS Code: Set "Prettier: Require Config" to true
 - Use project's node_modules/prettier
 
@@ -703,22 +735,26 @@ drizzle/
 ## Resources
 
 ### Official Documentation
+
 - [Prettier Website](https://prettier.io/)
 - [Prettier Playground](https://prettier.io/playground/) - Test formatting online
 - [Prettier Options](https://prettier.io/docs/en/options.html)
 
 ### Editor Plugins
+
 - [VS Code - Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 - [WebStorm - Built-in](https://www.jetbrains.com/help/webstorm/prettier.html)
 - [Vim - vim-prettier](https://github.com/prettier/vim-prettier)
 - [Sublime - JsPrettier](https://packagecontrol.io/packages/JsPrettier)
 
 ### Related Tools
+
 - [Husky](https://typicode.github.io/husky/) - Git hooks
 - [lint-staged](https://github.com/okonet/lint-staged) - Run linters on staged files
 - [ESLint](https://eslint.org/) - JavaScript linting
 
 ### Project Documentation
+
 - [prettier-audit-report.md](./prettier-audit-report.md) - Formatting audit results
 - [prettier-remediation-plan.md](./prettier-remediation-plan.md) - Implementation plan
 - [PRETTIER_CONFIG_GUIDE.md](./PRETTIER_CONFIG_GUIDE.md) - Configuration details
@@ -738,6 +774,7 @@ drizzle/
 ## Changelog
 
 ### 2025-10-20 - Initial Setup
+
 - Added Prettier configuration
 - Set up pre-commit hooks
 - Created comprehensive documentation

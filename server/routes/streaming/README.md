@@ -80,6 +80,7 @@ While this module handles HTTP routes, real-time features (WebSocket connections
 ## Error Handling
 
 All routes include proper error handling with:
+
 - HTTP status codes (200, 201, 400, 403, 404, 500)
 - Descriptive error messages
 - Logging via the application logger
@@ -136,4 +137,5 @@ npm run test:features
 ## Documentation
 
 For detailed information about the extraction process and architecture, see:
-- [Streaming Routes Extraction Guide](../../docs/STREAMING_ROUTES_EXTRACTION.md)
+
+- [Streaming Routes Extraction Guide](../../../docs/STREAMING_ROUTES_EXTRACTION.md)
