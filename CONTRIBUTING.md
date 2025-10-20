@@ -148,7 +148,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 │   └── database.ts     # Database utilities
 └── docs/              # Documentation
     ├── README.md         # Documentation index
-    ├── ISSUE_PR_HISTORY.md  # Historical context on resolved work
+    ├── docs/maintenance/ISSUE_PR_HISTORY.md  # Historical context on resolved work
     └── features/         # Feature-specific documentation
 ```
 
@@ -156,7 +156,7 @@ Thank you for your interest in contributing to **Shuffle & Sync** - the comprehe
 
 Before starting work on an issue or feature:
 
-1. **Check [Issue & PR History](./docs/ISSUE_PR_HISTORY.md)** - See how similar issues were resolved
+1. **Check [Issue & PR History](./docs/maintenance/ISSUE_PR_HISTORY.md)** - See how similar issues were resolved
 2. **Review related documentation** - Understand existing patterns and decisions
 3. **Search closed issues** - Learn from past solutions and discussions
 
@@ -212,7 +212,7 @@ Closes #123
 
 - **ESLint**: Follow configured ESLint rules (`npm run lint`)
   - Uses ESLint v9+ flat config format (`eslint.config.js`)
-  - See [ESLINT_SETUP_SUMMARY.md](ESLINT_SETUP_SUMMARY.md) for migration guide
+  - See [ESLINT_SETUP_SUMMARY.md](docs/maintenance/ESLINT_SETUP_SUMMARY.md) for migration guide
 - **Prettier**: Use consistent formatting (`npm run format`)
 - **File naming**: kebab-case for files, PascalCase for components
 - **Import order**: External → Internal → Relative imports
@@ -342,7 +342,7 @@ Before requesting features:
 
 **Instead**:
 
-1. Email the development team (details in [SECURITY.md](./docs/SECURITY_IMPROVEMENTS.md))
+1. Email the development team (details in [SECURITY.md](./docs/security/SECURITY_IMPROVEMENTS.md))
 2. Provide detailed information about the vulnerability
 3. Wait for acknowledgment before public disclosure
 
@@ -387,14 +387,14 @@ We recognize contributions through:
 
 1. **[Development Guide](./docs/development/DEVELOPMENT_GUIDE.md)** - Comprehensive development info
 2. **[API Documentation](./docs/api/API_DOCUMENTATION.md)** - Complete API reference
-3. **[Database Architecture](./docs/DATABASE_ARCHITECTURE.md)** - Database design and setup
-4. **[Testing Agent Guide](./docs/TESTING_AGENT.md)** - Testing framework details
+3. **[Database Architecture](./docs/architecture/DATABASE_ARCHITECTURE.md)** - Database design and setup
+4. **[Testing Agent Guide](./docs/maintenance/TESTING_AGENT.md)** - Testing framework details
 
 ### Common Issues
 
 **Environment setup problems**:
 
-- Check [Environment Variables Guide](./ENVIRONMENT_VARIABLES.md)
+- Check [Environment Variables Guide](./docs/reference/ENVIRONMENT_VARIABLES.md)
 - Run `npm run env:validate` to verify configuration
 - Ensure database is running and accessible
 
