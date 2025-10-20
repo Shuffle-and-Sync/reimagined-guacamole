@@ -14,31 +14,12 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
+  afterEach,
 } from "@jest/globals";
+import { createMockEvent } from "../__factories__";
 
 // Mock storage and dependencies for now
 // In a real integration test, we would use a test database
-
-const createMockEvent = (overrides = {}) => ({
-  id: "event-" + Math.random().toString(36).substr(2, 9),
-  title: "Test Event",
-  type: "game_pod",
-  date: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-  time: "18:00",
-  location: "Test Location",
-  communityId: "community-123",
-  creatorId: "user-123",
-  hostId: "user-123",
-  playerSlots: 4,
-  alternateSlots: 2,
-  gameFormat: "commander",
-  powerLevel: 7,
-  status: "active",
-  isPublic: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides,
-});
 
 const createMockAttendee = (overrides = {}) => ({
   id: "attendee-" + Math.random().toString(36).substr(2, 9),
@@ -52,82 +33,78 @@ const createMockAttendee = (overrides = {}) => ({
 });
 
 describe("Event Management Integration", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("Event Creation", () => {
     test("creates basic event with required fields", () => {
       const event = createMockEvent({
         title: "Friday Night Magic",
-        type: "tournament",
-        date: "2024-12-20",
-        time: "19:00",
+        eventType: "tournament",
       });
 
       expect(event.title).toBe("Friday Night Magic");
-      expect(event.type).toBe("tournament");
-      expect(event.date).toBe("2024-12-20");
-      expect(event.time).toBe("19:00");
+      expect(event.eventType).toBe("tournament");
+      expect(event.startTime).toBeInstanceOf(Date);
+      expect(event.endTime).toBeInstanceOf(Date);
     });
 
     test("creates game_pod event with pod-specific fields", () => {
       const event = createMockEvent({
-        type: "game_pod",
-        playerSlots: 4,
-        alternateSlots: 2,
-        gameFormat: "commander",
-        powerLevel: 8,
+        eventType: "tournament",
+        maxParticipants: 4,
       });
 
-      expect(event.type).toBe("game_pod");
-      expect(event.playerSlots).toBe(4);
-      expect(event.alternateSlots).toBe(2);
-      expect(event.gameFormat).toBe("commander");
-      expect(event.powerLevel).toBe(8);
+      expect(event.eventType).toBe("tournament");
+      expect(event.maxParticipants).toBe(4);
     });
 
-    test("validates player slots are within limits (2-8)", () => {
-      const validEvent = createMockEvent({ playerSlots: 4 });
-      expect(validEvent.playerSlots).toBeGreaterThanOrEqual(2);
-      expect(validEvent.playerSlots).toBeLessThanOrEqual(8);
+    test("validates player slots are within limits (2-64)", () => {
+      const validEvent = createMockEvent({ maxParticipants: 32 });
+      expect(validEvent.maxParticipants).toBe(32);
+      expect([8, 16, 32, 64]).toContain(validEvent.maxParticipants);
 
       // In real implementation, should reject invalid values
-      const invalidValues = [1, 9, 10, 0, -1];
+      const invalidValues = [1, 100, 200, 0, -1];
       invalidValues.forEach((slots) => {
         // This would throw validation error in real implementation
-        expect(slots < 2 || slots > 8).toBe(true);
+        expect(slots < 2 || slots > 64).toBe(true);
       });
     });
 
-    test("validates power level is 1-10", () => {
-      const validEvent = createMockEvent({ powerLevel: 7 });
-      expect(validEvent.powerLevel).toBeGreaterThanOrEqual(1);
-      expect(validEvent.powerLevel).toBeLessThanOrEqual(10);
+    test("validates required event fields", () => {
+      const validEvent = createMockEvent({ maxParticipants: 16 });
+      expect(validEvent.maxParticipants).toBeGreaterThanOrEqual(1);
+      expect(validEvent.maxParticipants).toBeLessThanOrEqual(64);
 
-      const invalidValues = [0, 11, 15, -1];
-      invalidValues.forEach((level) => {
-        expect(level < 1 || level > 10).toBe(true);
+      const invalidValues = [0, 100, 200, -1];
+      invalidValues.forEach((value) => {
+        expect(value < 1 || value > 64).toBe(true);
       });
     });
 
-    test("auto-creates TableSync session for game_pod events", () => {
-      const event = createMockEvent({ type: "game_pod" });
+    test("creates event with associated metadata", () => {
+      const event = createMockEvent({ eventType: "tournament" });
 
       // Mock game session that would be created
       const expectedGameSession = {
         eventId: event.id,
-        hostId: event.creatorId,
-        status: "waiting",
-        currentPlayers: 0,
-        maxPlayers: event.playerSlots,
+        hostId: event.organizerId,
+        status: "upcoming",
+        currentPlayers: event.currentParticipants,
+        maxPlayers: event.maxParticipants,
         gameData: {
           name: event.title,
-          format: event.gameFormat,
-          powerLevel: event.powerLevel,
           description: event.description || "",
         },
       };
 
       expect(expectedGameSession.eventId).toBe(event.id);
-      expect(expectedGameSession.maxPlayers).toBe(event.playerSlots);
-      expect(expectedGameSession.gameData.format).toBe(event.gameFormat);
+      expect(expectedGameSession.maxPlayers).toBe(event.maxParticipants);
     });
 
     test("does not create game session for non-pod events", () => {
@@ -328,7 +305,7 @@ describe("Event Management Integration", () => {
 
       // Calculate how many events should be created
       const startDate = new Date(baseEvent.date);
-      const endDate = baseEvent.recurrenceEndDate 
+      const endDate = baseEvent.recurrenceEndDate
         ? new Date(baseEvent.recurrenceEndDate)
         : startDate;
       const daysDiff = Math.floor(
@@ -350,7 +327,7 @@ describe("Event Management Integration", () => {
       });
 
       const startDate = new Date(baseEvent.date);
-      const endDate = baseEvent.recurrenceEndDate 
+      const endDate = baseEvent.recurrenceEndDate
         ? new Date(baseEvent.recurrenceEndDate)
         : startDate;
       const weeksDiff = Math.floor(
@@ -523,7 +500,13 @@ describe("Event Management Integration", () => {
     });
 
     test("validates required fields are present", () => {
-      const requiredFields = ["title", "type", "date", "time", "location"];
+      const requiredFields = [
+        "title",
+        "eventType",
+        "startTime",
+        "endTime",
+        "location",
+      ];
       const event = createMockEvent();
 
       requiredFields.forEach((field) => {

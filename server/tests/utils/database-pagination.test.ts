@@ -7,6 +7,13 @@
 import { dbUtils } from "../../utils/database.utils";
 
 describe("Database Pagination Utils", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
   describe("parsePaginationQuery", () => {
     it("should parse basic pagination parameters", () => {
       const query = {

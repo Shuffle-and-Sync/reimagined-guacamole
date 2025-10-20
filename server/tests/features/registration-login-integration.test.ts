@@ -12,7 +12,14 @@
  * - Error handling for both methods
  */
 
-import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 // Mock user data generators
 const createRegistrationData = (overrides = {}) => ({
@@ -37,6 +44,10 @@ const createOAuthProfile = (overrides = {}) => ({
 describe("Registration and Login Integration Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
   });
 
   describe("Custom Credentials Registration Flow", () => {
