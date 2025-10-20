@@ -8,6 +8,7 @@
 ---
 
 ## Table of Contents
+
 1. [Executive Summary](#executive-summary)
 2. [Pre-Execution Checklist](#pre-execution-checklist)
 3. [Detailed Execution Plan](#detailed-execution-plan)
@@ -24,6 +25,7 @@
 This plan outlines the step-by-step process to achieve 100% Prettier formatting compliance across the Shuffle & Sync repository. The remediation addresses 77 files requiring formatting updates and establishes automated enforcement mechanisms.
 
 ### Goals
+
 1. ✅ 100% Prettier-formatted codebase
 2. ✅ Zero formatting-related CI failures
 3. ✅ Pre-commit hooks for all developers
@@ -31,8 +33,10 @@ This plan outlines the step-by-step process to achieve 100% Prettier formatting 
 5. ✅ No formatting debates in code reviews
 
 ### Approach
+
 **Strategy:** All-at-once bulk formatting  
-**Rationale:** 
+**Rationale:**
+
 - Only 77 files need changes (15% of codebase)
 - Faster than incremental approach
 - Single commit for .git-blame-ignore-revs
@@ -78,11 +82,13 @@ This plan outlines the step-by-step process to achieve 100% Prettier formatting 
 ### Phase 1: Configuration Setup (30 minutes)
 
 #### Step 1.1: Install Prettier
+
 ```bash
 npm install --save-dev prettier@^3.6.2 --legacy-peer-deps
 ```
 
 **Validation:**
+
 ```bash
 npm list prettier
 # Should show: prettier@3.6.2
@@ -91,6 +97,7 @@ npm list prettier
 #### Step 1.2: Create Prettier Configuration
 
 **File:** `.prettierrc.json`
+
 ```json
 {
   "$schema": "https://json.schemastore.org/prettierrc",
@@ -109,6 +116,7 @@ npm list prettier
 ```
 
 **Validation:**
+
 ```bash
 npx prettier --help
 # Verify config is loaded
@@ -117,6 +125,7 @@ npx prettier --help
 #### Step 1.3: Create .prettierignore
 
 **File:** `.prettierignore`
+
 ```
 # Dependencies
 node_modules/
@@ -163,6 +172,7 @@ Thumbs.db
 ```
 
 **Validation:**
+
 ```bash
 npx prettier --check "dist/**/*" 2>&1
 # Should skip dist/ directory
@@ -171,6 +181,7 @@ npx prettier --check "dist/**/*" 2>&1
 #### Step 1.4: Update package.json Scripts
 
 Add these scripts to package.json:
+
 ```json
 {
   "scripts": {
@@ -182,6 +193,7 @@ Add these scripts to package.json:
 ```
 
 **Validation:**
+
 ```bash
 npm run format:check
 # Should report 77 files with issues
@@ -190,6 +202,7 @@ npm run format:check
 #### Step 1.5: Create .editorconfig
 
 **File:** `.editorconfig`
+
 ```ini
 root = true
 
@@ -211,6 +224,7 @@ indent_style = tab
 #### Step 1.6: Create VS Code Settings
 
 **File:** `.vscode/settings.json`
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -249,6 +263,7 @@ indent_style = tab
 ### Phase 2: ESLint-Prettier Integration (20 minutes)
 
 #### Step 2.1: Install ESLint-Prettier Integration
+
 ```bash
 npm install --save-dev eslint-config-prettier --legacy-peer-deps
 ```
@@ -256,18 +271,20 @@ npm install --save-dev eslint-config-prettier --legacy-peer-deps
 #### Step 2.2: Update eslint.config.js
 
 Add to the end of the configuration array:
+
 ```javascript
 import prettierConfig from "eslint-config-prettier";
 
 export default [
   // ... existing config
-  
+
   // Prettier integration - must be last
   prettierConfig,
 ];
 ```
 
 **Validation:**
+
 ```bash
 npm run lint
 # Should not report formatting-related errors
@@ -278,6 +295,7 @@ npm run lint
 ### Phase 3: Backup & Safety (10 minutes)
 
 #### Step 3.1: Create Backup Branch
+
 ```bash
 git checkout -b backup/pre-prettier-formatting
 git push origin backup/pre-prettier-formatting
@@ -285,12 +303,14 @@ git checkout main  # or your current branch
 ```
 
 #### Step 3.2: Tag Current State
+
 ```bash
 git tag pre-prettier-formatting
 git push origin pre-prettier-formatting
 ```
 
 #### Step 3.3: Verify Clean State
+
 ```bash
 git status
 # Should show: "nothing to commit, working tree clean"
@@ -302,15 +322,18 @@ git status
 ### Phase 4: Bulk Formatting (15 minutes)
 
 #### Step 4.1: Run Prettier on All Files
+
 ```bash
 npm run format
 ```
 
 **Expected Output:**
+
 - ~77 files will be modified
 - Watch for errors (there should be none)
 
 #### Step 4.2: Review Changes
+
 ```bash
 # See what changed
 git status
@@ -322,6 +345,7 @@ git diff README.md
 ```
 
 **What to Look For:**
+
 - ✅ Consistent indentation
 - ✅ Proper quote usage
 - ✅ Trailing commas added
@@ -330,11 +354,13 @@ git diff README.md
 - ❌ No breaking syntax changes
 
 #### Step 4.3: Validate Formatting
+
 ```bash
 npm run format:check
 ```
 
 **Expected Output:**
+
 ```
 All matched files use Prettier code style!
 ```
@@ -344,6 +370,7 @@ All matched files use Prettier code style!
 ### Phase 5: Testing & Validation (30 minutes)
 
 #### Step 5.1: Run Type Checking
+
 ```bash
 npm run check
 ```
@@ -351,6 +378,7 @@ npm run check
 **Expected:** No new TypeScript errors
 
 #### Step 5.2: Run Linting
+
 ```bash
 npm run lint
 ```
@@ -358,6 +386,7 @@ npm run lint
 **Expected:** No new ESLint errors
 
 #### Step 5.3: Run Tests
+
 ```bash
 npm test
 ```
@@ -365,6 +394,7 @@ npm test
 **Expected:** All tests pass (same as before formatting)
 
 #### Step 5.4: Test Build
+
 ```bash
 npm run build
 ```
@@ -374,12 +404,14 @@ npm run build
 #### Step 5.5: Spot Check Files
 
 Manually review these critical files:
+
 - server/index.ts (main entry point)
 - server/routes.ts (routing configuration)
 - client/src/App.tsx (React root)
 - shared/schema.ts (database schema)
 
 **Checklist:**
+
 - [ ] Imports still work
 - [ ] No syntax errors
 - [ ] Logic unchanged
@@ -390,11 +422,13 @@ Manually review these critical files:
 ### Phase 6: Commit & Push (10 minutes)
 
 #### Step 6.1: Stage All Changes
+
 ```bash
 git add -A
 ```
 
 #### Step 6.2: Commit with Descriptive Message
+
 ```bash
 git commit -m "chore: apply Prettier formatting to entire codebase
 
@@ -434,6 +468,7 @@ git commit -m "chore: add formatting commit to git-blame-ignore-revs"
 ```
 
 #### Step 6.4: Push Changes
+
 ```bash
 git push origin <branch-name>
 ```
@@ -443,6 +478,7 @@ git push origin <branch-name>
 ### Phase 7: Automation Setup (45 minutes)
 
 #### Step 7.1: Install Husky and lint-staged
+
 ```bash
 npm install --save-dev husky lint-staged --legacy-peer-deps
 npx husky install
@@ -451,27 +487,25 @@ npx husky install
 #### Step 7.2: Configure lint-staged
 
 Add to package.json:
+
 ```json
 {
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
+    "*.{ts,tsx,js,jsx}": ["prettier --write", "eslint --fix"],
+    "*.{json,md}": ["prettier --write"]
   }
 }
 ```
 
 #### Step 7.3: Create Pre-commit Hook
+
 ```bash
 npx husky add .husky/pre-commit "npx lint-staged"
 chmod +x .husky/pre-commit
 ```
 
 #### Step 7.4: Test Pre-commit Hook
+
 ```bash
 # Make a small change
 echo "// test" >> server/test-file.ts
@@ -489,6 +523,7 @@ rm server/test-file.ts
 #### Step 7.5: Add CI/CD Formatting Check
 
 Create `.github/workflows/formatting.yml`:
+
 ```yaml
 name: Code Formatting
 
@@ -503,19 +538,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-      
+          node-version: "18"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
-      
+
       - name: Check formatting
         run: npm run format:check
-      
+
       - name: Report
         if: failure()
         run: |
@@ -525,6 +560,7 @@ jobs:
 ```
 
 **Validation:**
+
 - Create test PR
 - Verify workflow runs
 - Verify formatting is checked
@@ -540,6 +576,7 @@ See FORMATTING.md deliverable (created separately)
 #### Step 8.2: Update README.md
 
 Add section to README.md:
+
 ```markdown
 ## Code Formatting
 
@@ -563,6 +600,7 @@ See [FORMATTING.md](./FORMATTING.md) for detailed guidelines.
 #### Step 8.3: Update CONTRIBUTING.md
 
 Add formatting guidelines:
+
 ```markdown
 ## Code Style
 
@@ -582,6 +620,7 @@ We use Prettier for consistent code formatting. Your code will be automatically 
 #### Step 9.1: Initial Announcement
 
 **Template Email/Slack Message:**
+
 ```
 📢 Prettier Formatting Update
 
@@ -618,6 +657,7 @@ Thanks!
 #### Step 9.2: Documentation in Onboarding
 
 Add to onboarding checklist:
+
 - [ ] Install Prettier VS Code extension
 - [ ] Verify pre-commit hooks work
 - [ ] Configure git blame ignore
@@ -626,8 +666,10 @@ Add to onboarding checklist:
 #### Step 9.3: PR Template Update
 
 Add to `.github/PULL_REQUEST_TEMPLATE.md`:
+
 ```markdown
 ## Checklist
+
 - [ ] Code is formatted with Prettier (`npm run format:check` passes)
 - [ ] ESLint passes (`npm run lint`)
 - [ ] Tests pass (`npm test`)
@@ -639,32 +681,32 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
 
 ### Option A: All-at-Once (Recommended)
 
-| Phase | Duration | Dependencies |
-|-------|----------|--------------|
-| **Phase 1:** Configuration | 30 min | None |
-| **Phase 2:** ESLint Integration | 20 min | Phase 1 |
-| **Phase 3:** Backup & Safety | 10 min | None |
-| **Phase 4:** Bulk Formatting | 15 min | Phase 1-3 |
-| **Phase 5:** Testing & Validation | 30 min | Phase 4 |
-| **Phase 6:** Commit & Push | 10 min | Phase 5 |
-| **Phase 7:** Automation Setup | 45 min | Phase 6 |
-| **Phase 8:** Documentation | 30 min | Phase 7 |
-| **Phase 9:** Team Communication | Ongoing | Phase 8 |
-| **Total** | **~3 hours** | - |
+| Phase                             | Duration     | Dependencies |
+| --------------------------------- | ------------ | ------------ |
+| **Phase 1:** Configuration        | 30 min       | None         |
+| **Phase 2:** ESLint Integration   | 20 min       | Phase 1      |
+| **Phase 3:** Backup & Safety      | 10 min       | None         |
+| **Phase 4:** Bulk Formatting      | 15 min       | Phase 1-3    |
+| **Phase 5:** Testing & Validation | 30 min       | Phase 4      |
+| **Phase 6:** Commit & Push        | 10 min       | Phase 5      |
+| **Phase 7:** Automation Setup     | 45 min       | Phase 6      |
+| **Phase 8:** Documentation        | 30 min       | Phase 7      |
+| **Phase 9:** Team Communication   | Ongoing      | Phase 8      |
+| **Total**                         | **~3 hours** | -            |
 
 **Team Adoption:** 1 week for all developers to update
 
 ### Option B: Incremental (If Needed)
 
-| Week | Directories | Files | Duration |
-|------|-------------|-------|----------|
-| Week 1 | Setup + .github/ | 12 | 1 hour |
-| Week 2 | client/src/pages/ | 10 | 30 min |
-| Week 3 | client/src/features/ | 4 | 15 min |
-| Week 4 | server/routes/ | 15 | 45 min |
-| Week 5 | server/services/ + server/features/ | 12 | 45 min |
-| Week 6 | Root docs + remaining | 24 | 1 hour |
-| **Total** | **All directories** | **77** | **~4 hours + 6 weeks** |
+| Week      | Directories                         | Files  | Duration               |
+| --------- | ----------------------------------- | ------ | ---------------------- |
+| Week 1    | Setup + .github/                    | 12     | 1 hour                 |
+| Week 2    | client/src/pages/                   | 10     | 30 min                 |
+| Week 3    | client/src/features/                | 4      | 15 min                 |
+| Week 4    | server/routes/                      | 15     | 45 min                 |
+| Week 5    | server/services/ + server/features/ | 12     | 45 min                 |
+| Week 6    | Root docs + remaining               | 24     | 1 hour                 |
+| **Total** | **All directories**                 | **77** | **~4 hours + 6 weeks** |
 
 **Recommendation:** Use Option A (all-at-once) unless team specifically requests incremental approach.
 
@@ -675,17 +717,21 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
 ### Scenario 1: Formatting Breaks Something
 
 **Symptoms:**
+
 - Tests fail after formatting
 - Build errors appear
 - Application doesn't start
 
 **Steps:**
+
 1. Identify the issue:
+
    ```bash
    git diff <commit-before-formatting>..HEAD
    ```
 
 2. Revert to backup:
+
    ```bash
    git reset --hard pre-prettier-formatting
    # or
@@ -693,6 +739,7 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
    ```
 
 3. Investigate specific file:
+
    ```bash
    git checkout <commit-before-formatting> -- path/to/problematic-file.ts
    ```
@@ -702,12 +749,15 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
 ### Scenario 2: Too Many Merge Conflicts
 
 **Symptoms:**
+
 - Multiple PRs have severe conflicts
 - Team unable to merge changes
 
 **Steps:**
+
 1. Pause PR merging
 2. Ask PR authors to rebase:
+
    ```bash
    git checkout feature-branch
    git fetch origin
@@ -723,10 +773,12 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
 ### Scenario 3: CI/CD Issues
 
 **Symptoms:**
+
 - Formatting checks fail incorrectly
 - CI can't install Prettier
 
 **Steps:**
+
 1. Check CI logs for specific error
 2. Verify .prettierignore is correct
 3. Ensure CI uses `npm ci --legacy-peer-deps`
@@ -740,6 +792,7 @@ Add to `.github/PULL_REQUEST_TEMPLATE.md`:
 ### Scenario 4: Complete Rollback Needed
 
 **Last Resort Only:**
+
 ```bash
 # Reset to before formatting
 git reset --hard pre-prettier-formatting
@@ -761,6 +814,7 @@ npm install --legacy-peer-deps
 ## Responsibilities
 
 ### Technical Lead
+
 - [ ] Review and approve plan
 - [ ] Schedule execution time
 - [ ] Coordinate with team
@@ -768,6 +822,7 @@ npm install --legacy-peer-deps
 - [ ] Approve final PR
 
 ### Developer Executing Plan (Copilot/Developer)
+
 - [ ] Execute Phases 1-8
 - [ ] Run all validations
 - [ ] Create PR with changes
@@ -775,6 +830,7 @@ npm install --legacy-peer-deps
 - [ ] Address any issues
 
 ### All Developers
+
 - [ ] Pull latest changes after merge
 - [ ] Install dependencies
 - [ ] Configure git blame ignore
@@ -782,6 +838,7 @@ npm install --legacy-peer-deps
 - [ ] Report any issues
 
 ### Code Reviewers
+
 - [ ] Verify formatting commit is pure style changes
 - [ ] Check tests pass
 - [ ] Validate documentation
@@ -795,36 +852,38 @@ npm install --legacy-peer-deps
 
 Track these metrics after implementation:
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| **Formatting Compliance** | 100% | `npm run format:check` |
-| **CI Pass Rate** | 100% | GitHub Actions history |
-| **Pre-commit Hook Usage** | 100% | Check commits for formatting |
-| **Developer Issues** | 0 critical | Team feedback |
-| **Build Success** | Same as before | CI/CD pipeline |
-| **Test Pass Rate** | Same as before | `npm test` |
+| Metric                    | Target         | How to Measure               |
+| ------------------------- | -------------- | ---------------------------- |
+| **Formatting Compliance** | 100%           | `npm run format:check`       |
+| **CI Pass Rate**          | 100%           | GitHub Actions history       |
+| **Pre-commit Hook Usage** | 100%           | Check commits for formatting |
+| **Developer Issues**      | 0 critical     | Team feedback                |
+| **Build Success**         | Same as before | CI/CD pipeline               |
+| **Test Pass Rate**        | Same as before | `npm test`                   |
 
 ### Week 2-4 Metrics
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| **Formatting Violations** | 0 | CI checks |
-| **Merge Conflicts** | <5 | GitHub PR count |
-| **Team Adoption** | 100% | Survey/check |
-| **Code Review Time** | Reduced | PR metrics |
-| **Formatting Discussions** | 0 | PR comments |
+| Metric                     | Target  | How to Measure  |
+| -------------------------- | ------- | --------------- |
+| **Formatting Violations**  | 0       | CI checks       |
+| **Merge Conflicts**        | <5      | GitHub PR count |
+| **Team Adoption**          | 100%    | Survey/check    |
+| **Code Review Time**       | Reduced | PR metrics      |
+| **Formatting Discussions** | 0       | PR comments     |
 
 ### Monthly Maintenance
 
 **First Monday of Each Month:**
 
 1. **Dependency Updates**
+
    ```bash
    npm outdated prettier
    npm update prettier --legacy-peer-deps
    ```
 
 2. **Validation**
+
    ```bash
    npm run format:check
    npm run lint
@@ -902,6 +961,7 @@ Track these metrics after implementation:
 **A:** You have two options:
 
 1. **Rebase after formatting merge** (recommended)
+
    ```bash
    git checkout feature-branch
    git fetch origin
@@ -924,14 +984,17 @@ Track these metrics after implementation:
 ### Q: Can I opt out of pre-commit hooks?
 
 **A:** No, pre-commit hooks are mandatory for code quality. However, you can temporarily skip them:
+
 ```bash
 git commit --no-verify -m "message"
 ```
+
 ⚠️ Warning: CI will still fail if formatting is wrong.
 
 ### Q: What if Prettier formats my code weirdly?
 
-**A:** 
+**A:**
+
 1. Check if your code has syntax errors first
 2. Use `// prettier-ignore` for specific cases (rare!)
 3. Discuss with team if rule should change
@@ -939,6 +1002,7 @@ git commit --no-verify -m "message"
 ### Q: How do I fix merge conflicts caused by formatting?
 
 **A:**
+
 1. Resolve conflicts normally
 2. Run `npm run format` on conflicted files
 3. Commit the resolution
@@ -946,6 +1010,7 @@ git commit --no-verify -m "message"
 ### Q: Will this affect git blame?
 
 **A:** Not if configured correctly:
+
 ```bash
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
@@ -957,6 +1022,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 ### A. File Checklist
 
 Configuration files to create:
+
 - [ ] .prettierrc.json
 - [ ] .prettierignore
 - [ ] .editorconfig
@@ -997,6 +1063,7 @@ npx husky install
 ### C. Time Estimates
 
 Detailed time breakdown:
+
 - Reading plans: 30 min
 - Configuration: 30 min
 - Integration: 20 min
@@ -1023,14 +1090,14 @@ Detailed time breakdown:
 **Date:** October 20, 2025  
 **Version:** 1.0
 
-**Reviewed By:** _________________  
-**Approved By:** _________________  
-**Date Approved:** _________________
+**Reviewed By:** ********\_********  
+**Approved By:** ********\_********  
+**Date Approved:** ********\_********
 
-**Execution Start:** _________________  
-**Execution Complete:** _________________  
-**Final Status:** _________________
+**Execution Start:** ********\_********  
+**Execution Complete:** ********\_********  
+**Final Status:** ********\_********
 
 ---
 
-*End of Remediation Plan*
+_End of Remediation Plan_

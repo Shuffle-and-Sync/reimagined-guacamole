@@ -34,17 +34,19 @@ This document explains the recommended Prettier configuration for the Shuffle & 
 **What it does:** Adds semicolons at the end of statements
 
 **Example:**
+
 ```typescript
 // With semi: true
 const name = "Alice";
 const age = 30;
 
 // With semi: false
-const name = "Alice"
-const age = 30
+const name = "Alice";
+const age = 30;
 ```
 
 **Rationale:**
+
 - ✅ Standard in TypeScript/JavaScript community
 - ✅ Prevents edge-case ASI (Automatic Semicolon Insertion) bugs
 - ✅ Clearer statement boundaries
@@ -60,17 +62,19 @@ const age = 30
 **What it does:** Uses double quotes for strings (except when avoiding escapes)
 
 **Example:**
+
 ```typescript
 // With singleQuote: false
 const greeting = "Hello, world!";
 const name = "Alice's cat";
 
 // With singleQuote: true
-const greeting = 'Hello, world!';
+const greeting = "Hello, world!";
 const name = "Alice's cat"; // Auto-switched to avoid escaping
 ```
 
 **Rationale:**
+
 - ✅ Consistent with JSX convention (JSX always uses double quotes)
 - ✅ Matches JSON format
 - ✅ Standard in React community
@@ -86,6 +90,7 @@ const name = "Alice's cat"; // Auto-switched to avoid escaping
 **What it does:** Uses 2 spaces for indentation
 
 **Example:**
+
 ```typescript
 // With tabWidth: 2
 function greet() {
@@ -96,13 +101,14 @@ function greet() {
 
 // With tabWidth: 4
 function greet() {
-    if (true) {
-        console.log("Hello");
-    }
+  if (true) {
+    console.log("Hello");
+  }
 }
 ```
 
 **Rationale:**
+
 - ✅ Standard for React/TypeScript projects
 - ✅ Saves horizontal space
 - ✅ Better for deeply nested JSX
@@ -118,6 +124,7 @@ function greet() {
 **What it does:** Adds trailing commas wherever possible (objects, arrays, function params)
 
 **Example:**
+
 ```typescript
 // With trailingComma: "all"
 const person = {
@@ -126,16 +133,9 @@ const person = {
   city: "NYC",
 };
 
-const colors = [
-  "red",
-  "green",
-  "blue",
-];
+const colors = ["red", "green", "blue"];
 
-function greet(
-  firstName: string,
-  lastName: string,
-) {
+function greet(firstName: string, lastName: string) {
   // ...
 }
 
@@ -143,11 +143,12 @@ function greet(
 const person = {
   name: "Alice",
   age: 30,
-  city: "NYC"
+  city: "NYC",
 };
 ```
 
 **Rationale:**
+
 - ✅ Cleaner git diffs (adding items doesn't modify previous line)
 - ✅ Easier to reorder items
 - ✅ Prevents forgotten commas when adding items
@@ -163,17 +164,19 @@ const person = {
 **What it does:** Wraps lines that exceed 80 characters
 
 **Example:**
+
 ```typescript
 // With printWidth: 80
-const message = 
-  "This is a very long message that will be wrapped " +
-  "to multiple lines";
+const message =
+  "This is a very long message that will be wrapped " + "to multiple lines";
 
 // With printWidth: 120
-const message = "This is a very long message that will be wrapped to multiple lines";
+const message =
+  "This is a very long message that will be wrapped to multiple lines";
 ```
 
 **Rationale:**
+
 - ✅ Classic standard (dates back to punch cards)
 - ✅ Readable on small screens
 - ✅ Easier to review in PR diffs
@@ -192,17 +195,19 @@ const message = "This is a very long message that will be wrapped to multiple li
 **What it does:** Always includes parentheses around arrow function parameters
 
 **Example:**
+
 ```typescript
 // With arrowParens: "always"
 const square = (x) => x * x;
 const greet = (name) => `Hello, ${name}`;
 
 // With arrowParens: "avoid"
-const square = x => x * x;
-const greet = name => `Hello, ${name}`;
+const square = (x) => x * x;
+const greet = (name) => `Hello, ${name}`;
 ```
 
 **Rationale:**
+
 - ✅ Consistent syntax regardless of parameter count
 - ✅ Easier to add types in TypeScript: `(x: number) => x * x`
 - ✅ Easier to add/remove parameters
@@ -218,6 +223,7 @@ const greet = name => `Hello, ${name}`;
 **What it does:** Uses Unix-style line endings (`\n`) instead of Windows (`\r\n`)
 
 **Example:**
+
 ```
 // With endOfLine: "lf"
 Line 1\n
@@ -229,6 +235,7 @@ Line 2\r\n
 ```
 
 **Rationale:**
+
 - ✅ Standard on Linux/macOS (deployment targets)
 - ✅ Smaller file sizes
 - ✅ Git handles conversion automatically
@@ -244,15 +251,17 @@ Line 2\r\n
 **What it does:** Adds spaces inside object literal braces
 
 **Example:**
+
 ```typescript
 // With bracketSpacing: true
 const obj = { name: "Alice", age: 30 };
 
 // With bracketSpacing: false
-const obj = {name: "Alice", age: 30};
+const obj = { name: "Alice", age: 30 };
 ```
 
 **Rationale:**
+
 - ✅ More readable
 - ✅ Standard in JavaScript community
 - ✅ Matches most style guides
@@ -267,6 +276,7 @@ const obj = {name: "Alice", age: 30};
 **What it does:** Uses double quotes in JSX attributes
 
 **Example:**
+
 ```jsx
 // With jsxSingleQuote: false
 <Component name="Alice" title="Hello World" />
@@ -276,6 +286,7 @@ const obj = {name: "Alice", age: 30};
 ```
 
 **Rationale:**
+
 - ✅ Standard HTML uses double quotes
 - ✅ Consistent with `singleQuote: false`
 - ✅ React documentation uses double quotes
@@ -290,6 +301,7 @@ const obj = {name: "Alice", age: 30};
 **What it does:** Only adds quotes around object properties when required
 
 **Example:**
+
 ```typescript
 // With quoteProps: "as-needed"
 const obj = {
@@ -300,13 +312,14 @@ const obj = {
 
 // With quoteProps: "consistent"
 const obj = {
-  "name": "Alice",
+  name: "Alice",
   "full-name": "Alice Smith",
-  "age": 30,
+  age: 30,
 };
 ```
 
 **Rationale:**
+
 - ✅ Cleaner code
 - ✅ Only quotes when necessary (special chars, keywords)
 - ✅ Standard in JavaScript
@@ -321,17 +334,21 @@ const obj = {
 **What it does:** Doesn't wrap markdown prose (respects original line breaks)
 
 **Example:**
+
 ```markdown
 <!-- With proseWrap: "preserve" -->
+
 This is a very long line that will not be wrapped by Prettier.
 It will stay as a single line even if it exceeds printWidth.
 
 <!-- With proseWrap: "always" -->
+
 This is a very long line that will be wrapped by Prettier into
 multiple lines to respect the printWidth setting.
 ```
 
 **Rationale:**
+
 - ✅ Respects author's intentional line breaks
 - ✅ Better for technical documentation
 - ✅ Prevents unwanted wrapping in code blocks
@@ -347,12 +364,15 @@ multiple lines to respect the printWidth setting.
 These settings are not explicitly configured, so Prettier uses defaults:
 
 ### `useTabs: false` (default)
+
 Use spaces instead of tabs for indentation
 
 ### `bracketSameLine: false` (default)
+
 Put the `>` of a multi-line JSX element on the next line
 
 **Example:**
+
 ```jsx
 <Component
   name="Alice"
@@ -361,9 +381,11 @@ Put the `>` of a multi-line JSX element on the next line
 ```
 
 ### `htmlWhitespaceSensitivity: "css"` (default)
+
 Respect CSS display property for HTML whitespace
 
 ### `embeddedLanguageFormatting: "auto"` (default)
+
 Format code inside template strings, CSS-in-JS, etc.
 
 ---
@@ -373,23 +395,28 @@ Format code inside template strings, CSS-in-JS, etc.
 These settings were considered but not chosen:
 
 ### ❌ `singleQuote: true`
+
 - Conflicts with JSX convention
 - Requires mental switching between JS and JSX
 
 ### ❌ `printWidth: 120`
+
 - Harder to review side-by-side
 - Encourages overly complex expressions
 - Poor mobile/small screen experience
 
 ### ❌ `trailingComma: "none"`
+
 - Worse git diffs
 - More error-prone when adding items
 
 ### ❌ `arrowParens: "avoid"`
+
 - Inconsistent with TypeScript type annotations
 - Confusing when adding/removing parameters
 
 ### ❌ `tabWidth: 4`
+
 - Not standard for web development
 - Wastes horizontal space in JSX
 
@@ -427,16 +454,19 @@ If needed, you can override settings for specific file types:
 ## Integration with Other Tools
 
 ### ESLint
+
 - Use `eslint-config-prettier` to disable conflicting ESLint rules
 - Let Prettier handle ALL formatting
 - Let ESLint handle code quality and logic issues
 
 ### EditorConfig
+
 - `.editorconfig` provides basic editor settings
 - Prettier configuration takes precedence for supported file types
 - EditorConfig handles files Prettier doesn't format
 
 ### TypeScript
+
 - Prettier doesn't change TypeScript semantics
 - Type annotations are preserved
 - Only formatting is changed
@@ -448,6 +478,7 @@ If needed, you can override settings for specific file types:
 To test a configuration change:
 
 1. **Backup current config:**
+
    ```bash
    cp .prettierrc.json .prettierrc.json.backup
    ```
@@ -455,6 +486,7 @@ To test a configuration change:
 2. **Edit `.prettierrc.json`**
 
 3. **Test on one file:**
+
    ```bash
    npx prettier --write server/index.ts
    git diff server/index.ts
@@ -466,6 +498,7 @@ To test a configuration change:
    - Does it break anything?
 
 5. **Rollback if needed:**
+
    ```bash
    mv .prettierrc.json.backup .prettierrc.json
    npm run format
@@ -492,6 +525,7 @@ To test a configuration change:
 ### Q: Can we change a Prettier setting after initial setup?
 
 **A:** Yes, but:
+
 1. Discuss with team first
 2. Update configuration file
 3. Run `npm run format` to reformat entire codebase
@@ -500,7 +534,8 @@ To test a configuration change:
 
 ### Q: What if I disagree with a Prettier formatting choice?
 
-**A:** 
+**A:**
+
 1. Check if there's a configuration option to change it
 2. Discuss with team - formatting is a team decision
 3. If no option exists, consider:
@@ -511,6 +546,7 @@ To test a configuration change:
 ### Q: Should we use `.prettierrc.js` or `.prettierrc.json`?
 
 **A:** Use `.prettierrc.json` for this project:
+
 - ✅ Simpler (no code execution)
 - ✅ Better editor support (IntelliSense)
 - ✅ Schema validation
@@ -519,6 +555,7 @@ To test a configuration change:
 ### Q: How do I format only certain file types?
 
 **A:** Modify the format script in package.json:
+
 ```json
 {
   "scripts": {
