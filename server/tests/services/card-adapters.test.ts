@@ -8,6 +8,7 @@ import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfa
 import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
 import { cardRecognitionService } from "../../services/card-recognition";
 import { db } from "../../../shared/database-unified";
+import { createMockCard, createMockGame } from "../__factories__";
 
 // Mock the old card recognition service
 jest.mock("../../services/card-recognition", () => ({
@@ -32,10 +33,14 @@ describe("ScryfallAdapter", () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("searchCards", () => {
     it("should search cards and transform to universal format", async () => {
       const mockMtgCards = [
-        {
+        createMockCard({
           id: "mtg-card-1",
           name: "Lightning Bolt",
           manaCost: "{R}",
@@ -44,7 +49,7 @@ describe("ScryfallAdapter", () => {
           setName: "Limited Edition Alpha",
           collectorNumber: "161",
           rarity: "common",
-        },
+        }),
       ];
 
       (cardRecognitionService.searchCards as jest.Mock).mockResolvedValue({
@@ -97,12 +102,12 @@ describe("ScryfallAdapter", () => {
 
   describe("getCardById", () => {
     it("should get card by ID and transform to universal format", async () => {
-      const mockCard = {
+      const mockCard = createMockCard({
         id: "card-123",
         name: "Black Lotus",
         manaCost: "{0}",
         typeLine: "Artifact",
-      };
+      });
 
       (cardRecognitionService.getCardById as jest.Mock).mockResolvedValue(
         mockCard,
@@ -127,11 +132,11 @@ describe("ScryfallAdapter", () => {
 
   describe("getCardByName", () => {
     it("should get card by name", async () => {
-      const mockCard = {
+      const mockCard = createMockCard({
         id: "card-456",
         name: "Mox Ruby",
         manaCost: "{0}",
-      };
+      });
 
       (cardRecognitionService.getCardByName as jest.Mock).mockResolvedValue(
         mockCard,
@@ -172,10 +177,10 @@ describe("ScryfallAdapter", () => {
 
   describe("getRandomCard", () => {
     it("should get random card", async () => {
-      const mockCard = {
+      const mockCard = createMockCard({
         id: "random-1",
         name: "Random Card",
-      };
+      });
 
       (cardRecognitionService.getRandomCard as jest.Mock).mockResolvedValue(
         mockCard,
@@ -210,15 +215,19 @@ describe.skip("CustomGameAdapter", () => {
     adapter = new CustomGameAdapter(testGameId);
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("searchCards", () => {
     it("should search cards from database", async () => {
       const mockCards = [
-        {
+        createMockCard({
           id: "custom-card-1",
           gameId: testGameId,
           name: "Dragon Hero",
           attributes: { power: 5, health: 5 },
-        },
+        }),
       ];
 
       const mockCount = { count: 1 };

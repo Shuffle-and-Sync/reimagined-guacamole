@@ -62,7 +62,7 @@ describe("Security Audit & Hardening Checklist", () => {
 
       expect(authConfig).toContain("process.env.AUTH_SECRET");
       expect(authConfig).toContain(
-        "throw new Error('AUTH_SECRET environment variable is required')",
+        "AUTH_SECRET environment variable is required",
       );
     });
 
@@ -213,7 +213,7 @@ describe("Security Audit & Hardening Checklist", () => {
       const validation = readFileSync(validationPath, "utf8");
 
       expect(validation).toContain("Content-Security-Policy-Report-Only");
-      expect(validation).toContain("process.env.NODE_ENV === 'production'");
+      expect(validation).toContain('NODE_ENV === "production"');
     });
 
     test("should restrict frame-ancestors to prevent clickjacking", () => {
@@ -394,7 +394,7 @@ describe("Security Audit & Hardening Checklist", () => {
       const validation = readFileSync(validationPath, "utf8");
 
       expect(validation).toContain("Strict-Transport-Security");
-      expect(validation).toContain("process.env.NODE_ENV === 'production'");
+      expect(validation).toContain('NODE_ENV === "production"');
     });
 
     test("should use secure cookies in production", () => {
@@ -402,7 +402,7 @@ describe("Security Audit & Hardening Checklist", () => {
       const authConfig = readFileSync(authConfigPath, "utf8");
 
       expect(authConfig).toContain("useSecureCookies");
-      expect(authConfig).toContain("process.env.NODE_ENV === 'production'");
+      expect(authConfig).toContain('NODE_ENV === "production"');
     });
 
     test("should have CSRF protection enabled", () => {

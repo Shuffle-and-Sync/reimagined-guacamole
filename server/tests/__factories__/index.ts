@@ -93,6 +93,7 @@ export function createMockTournament(overrides: Partial<any> = {}): any {
     communityId: generateId("community"),
     startDate: faker.date.future(),
     endDate: faker.date.future(),
+    participants: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
