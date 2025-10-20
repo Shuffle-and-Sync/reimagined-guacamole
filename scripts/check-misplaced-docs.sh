@@ -25,6 +25,7 @@ ALLOWED_ROOT_FILES=(
     "CONTRIBUTING.md"
     "replit.md"
     "LICENSE"
+    "DOCUMENTATION_CLEANUP_COMPLETE.md"
 )
 
 # Find all markdown files in root directory
