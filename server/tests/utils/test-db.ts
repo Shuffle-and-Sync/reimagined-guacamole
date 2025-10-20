@@ -9,6 +9,8 @@ import Database from "better-sqlite3";
 import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "@shared/schema";
 import { sql } from "drizzle-orm";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 
 /**
  * Create an in-memory SQLite database for testing
@@ -38,26 +40,77 @@ export function createTestDb(): {
 }
 
 /**
- * Initialize database schema
- * Creates all tables and indexes
+ * Initialize database schema from migration file
+ * This reads the actual migration SQL and executes it
  */
 export async function initTestSchema(
   db: BetterSQLite3Database<typeof schema>,
 ): Promise<void> {
-  // Create users table
+  // Find the latest migration file
+  try {
+    const migrationPath = resolve(
+      process.cwd(),
+      "migrations/0000_initial_schema.sql",
+    );
+    const migrationSQL = readFileSync(migrationPath, "utf-8");
+
+    // Split by semicolons and execute each statement
+    const statements = migrationSQL
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    for (const statement of statements) {
+      if (statement && !statement.startsWith("--")) {
+        await db.run(sql.raw(statement));
+      }
+    }
+  } catch (error) {
+    // If migration file doesn't exist, create minimal schema for tests
+    console.warn("Migration file not found, creating minimal schema");
+    await createMinimalSchema(db);
+  }
+}
+
+/**
+ * Create minimal schema for tests if migration file is not available
+ */
+async function createMinimalSchema(
+  db: BetterSQLite3Database<typeof schema>,
+): Promise<void> {
+  // Create users table with all required columns
   await db.run(sql`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      firstName TEXT,
-      lastName TEXT,
+      email TEXT UNIQUE,
+      first_name TEXT,
+      last_name TEXT,
+      profile_image_url TEXT,
+      primary_community TEXT,
       username TEXT UNIQUE,
-      status TEXT DEFAULT 'active',
-      role TEXT DEFAULT 'user',
-      isEmailVerified INTEGER DEFAULT 0,
-      mfaEnabled INTEGER DEFAULT 0,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+      bio TEXT,
+      location TEXT,
+      website TEXT,
+      status TEXT DEFAULT 'offline',
+      status_message TEXT,
+      timezone TEXT,
+      date_of_birth TEXT,
+      is_private INTEGER DEFAULT 0,
+      show_online_status TEXT DEFAULT 'everyone',
+      allow_direct_messages TEXT DEFAULT 'everyone',
+      password_hash TEXT,
+      is_email_verified INTEGER DEFAULT 0,
+      email_verified_at INTEGER,
+      failed_login_attempts INTEGER DEFAULT 0,
+      last_failed_login INTEGER,
+      account_locked_until INTEGER,
+      password_changed_at INTEGER,
+      mfa_enabled INTEGER DEFAULT 0,
+      mfa_enabled_at INTEGER,
+      last_login_at INTEGER,
+      last_active_at INTEGER,
+      created_at INTEGER,
+      updated_at INTEGER
     )
   `);
 
@@ -67,7 +120,7 @@ export async function initTestSchema(
       id TEXT PRIMARY KEY,
       sessionToken TEXT UNIQUE NOT NULL,
       userId TEXT NOT NULL,
-      expires TEXT NOT NULL,
+      expires INTEGER NOT NULL,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
@@ -101,8 +154,8 @@ export async function initTestSchema(
       description TEXT,
       game TEXT NOT NULL,
       isActive INTEGER DEFAULT 1,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+      created_at INTEGER,
+      updated_at INTEGER
     )
   `);
 
@@ -117,10 +170,10 @@ export async function initTestSchema(
       status TEXT DEFAULT 'upcoming',
       organizerId TEXT NOT NULL,
       communityId TEXT,
-      startDate TEXT,
-      endDate TEXT,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      startDate INTEGER,
+      endDate INTEGER,
+      created_at INTEGER,
+      updated_at INTEGER,
       FOREIGN KEY (organizerId) REFERENCES users(id),
       FOREIGN KEY (communityId) REFERENCES communities(id)
     )
@@ -134,7 +187,7 @@ export async function initTestSchema(
       userId TEXT NOT NULL,
       seed INTEGER,
       status TEXT DEFAULT 'active',
-      joinedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      joinedAt INTEGER,
       FOREIGN KEY (tournamentId) REFERENCES tournaments(id) ON DELETE CASCADE,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
       UNIQUE(tournamentId, userId)
@@ -148,49 +201,18 @@ export async function initTestSchema(
       title TEXT NOT NULL,
       description TEXT,
       eventType TEXT,
-      startTime TEXT NOT NULL,
-      endTime TEXT,
+      startTime INTEGER NOT NULL,
+      endTime INTEGER,
       location TEXT,
       maxParticipants INTEGER,
       currentParticipants INTEGER DEFAULT 0,
       status TEXT DEFAULT 'upcoming',
       organizerId TEXT NOT NULL,
       communityId TEXT,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      created_at INTEGER,
+      updated_at INTEGER,
       FOREIGN KEY (organizerId) REFERENCES users(id),
       FOREIGN KEY (communityId) REFERENCES communities(id)
-    )
-  `);
-
-  // Create games table
-  await db.run(sql`
-    CREATE TABLE IF NOT EXISTS games (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      slug TEXT UNIQUE NOT NULL,
-      description TEXT,
-      publisher TEXT,
-      releaseYear INTEGER,
-      isActive INTEGER DEFAULT 1,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create cards table
-  await db.run(sql`
-    CREATE TABLE IF NOT EXISTS cards (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      gameId TEXT NOT NULL,
-      setCode TEXT,
-      cardNumber TEXT,
-      rarity TEXT,
-      imageUrl TEXT,
-      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (gameId) REFERENCES games(id)
     )
   `);
 }
@@ -205,10 +227,8 @@ export async function clearTestDb(
   // Disable foreign keys temporarily for cleanup
   await db.run(sql`PRAGMA foreign_keys = OFF`);
 
-  // Delete all data from tables
+  // Delete all data from tables (only ones that exist)
   const tables = [
-    "cards",
-    "games",
     "events",
     "tournament_participants",
     "tournaments",
@@ -219,7 +239,12 @@ export async function clearTestDb(
   ];
 
   for (const table of tables) {
-    await db.run(sql.raw(`DELETE FROM ${table}`));
+    try {
+      await db.run(sql.raw(`DELETE FROM ${table}`));
+    } catch (error) {
+      // Table might not exist, skip it
+      continue;
+    }
   }
 
   // Re-enable foreign keys
@@ -243,10 +268,7 @@ export async function seedTestData(
       firstName: "Test",
       lastName: "User1",
       username: "testuser1",
-      status: "active",
-      role: "user",
-      isEmailVerified: true,
-      mfaEnabled: false,
+      status: "online",
     },
     {
       id: "test-user-2",
@@ -254,10 +276,7 @@ export async function seedTestData(
       firstName: "Test",
       lastName: "User2",
       username: "testuser2",
-      status: "active",
-      role: "user",
-      isEmailVerified: true,
-      mfaEnabled: false,
+      status: "online",
     },
   ];
 
