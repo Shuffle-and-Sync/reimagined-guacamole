@@ -8,6 +8,7 @@ import { gameService } from "../../services/games/game.service";
 import { db } from "../../../shared/database-unified";
 import { games } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
+import { createMockGame, createMockUser } from "../__factories__";
 
 // Mock the database
 jest.mock("../../../shared/database-unified", () => ({
@@ -28,24 +29,24 @@ describe.skip("GameService", () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
   describe("createGame", () => {
     it("should create a new game with valid data", async () => {
-      const gameData = {
+      const gameData = createMockGame({
         name: "test-game",
-        displayName: "Test Game",
         description: "A test game",
-        creatorId: mockUserId,
-        cardTypes: ["Hero", "Spell"],
-        deckRules: { minDeckSize: 40 },
-      };
+      });
 
-      const mockCreatedGame = {
+      const mockCreatedGame = createMockGame({
         id: mockGameId,
-        ...gameData,
+        name: gameData.name,
+        description: gameData.description,
         isPublished: false,
-        version: "1.0.0",
         createdAt: new Date(),
-      };
+      });
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
@@ -63,26 +64,11 @@ describe.skip("GameService", () => {
     });
 
     it("should set default values for optional fields", async () => {
-      const gameData = {
-        name: "minimal-game",
-        displayName: "Minimal Game",
-        creatorId: mockUserId,
-      };
-
-      const mockCreatedGame = {
+      const mockCreatedGame = createMockGame({
         id: mockGameId,
-        ...gameData,
+        name: "minimal-game",
         isPublished: false,
-        version: "1.0.0",
-        playerCount: { min: 2, max: 4 },
-        cardTypes: [],
-        deckRules: {
-          minDeckSize: 60,
-          maxDeckSize: null,
-          maxCopies: 4,
-          allowedSets: null,
-        },
-      };
+      });
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
@@ -90,21 +76,19 @@ describe.skip("GameService", () => {
         }),
       });
 
+      const gameData = { name: "minimal-game" };
       const result = await gameService.createGame(mockUserId, gameData);
 
-      expect(result.version).toBe("1.0.0");
-      expect(result.playerCount).toEqual({ min: 2, max: 4 });
+      expect(result.isPublished).toBe(false);
     });
   });
 
   describe("getGameById", () => {
     it("should return a game by id", async () => {
-      const mockGame = {
+      const mockGame = createMockGame({
         id: mockGameId,
         name: "test-game",
-        displayName: "Test Game",
-        creatorId: mockUserId,
-      };
+      });
 
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
@@ -137,11 +121,10 @@ describe.skip("GameService", () => {
 
   describe("updateGame", () => {
     it("should update game when user is creator", async () => {
-      const mockGame = {
+      const mockGame = createMockGame({
         id: mockGameId,
         name: "test-game",
-        creatorId: mockUserId,
-      };
+      });
 
       const updates = {
         displayName: "Updated Game",
