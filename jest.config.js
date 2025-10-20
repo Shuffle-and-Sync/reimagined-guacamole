@@ -105,9 +105,9 @@ export default {
 
   // Transform ignore patterns for node_modules
   // By default, Jest doesn't transform node_modules. However, some packages like
-  // nanoid and @node-rs/argon2 use pure ESM syntax and must be transformed.
+  // nanoid, @node-rs/argon2, and jose use pure ESM syntax and must be transformed.
   // The negative lookahead (?!...) tells Jest to transform these specific packages.
-  transformIgnorePatterns: ["node_modules/(?!nanoid|@node-rs/argon2)"],
+  transformIgnorePatterns: ["node_modules/(?!nanoid|@node-rs/argon2|jose)"],
 
   // Module file extensions
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
