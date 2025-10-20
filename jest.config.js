@@ -19,6 +19,8 @@ export default {
     "**/__tests__/**/*.test.js",
     "**/tests/**/*.test.ts",
     "**/tests/**/*.test.js",
+    "**/*.test.ts",
+    "**/*.test.js",
   ],
 
   // Module path mapping to match tsconfig paths
@@ -50,6 +52,26 @@ export default {
       lines: 70,
       statements: 70,
     },
+    // Critical path thresholds - will be enforced as coverage improves
+    // Uncomment when Phase 1 of testing roadmap is complete
+    // './server/auth/**/*.ts': {
+    //   branches: 90,
+    //   functions: 90,
+    //   lines: 90,
+    //   statements: 90,
+    // },
+    // './server/repositories/**/*.ts': {
+    //   branches: 90,
+    //   functions: 90,
+    //   lines: 90,
+    //   statements: 90,
+    // },
+    // './server/features/tournaments/**/*.ts': {
+    //   branches: 85,
+    //   functions: 85,
+    //   lines: 85,
+    //   statements: 85,
+    // },
   },
 
   // Transform configuration for TypeScript and ESM JavaScript
