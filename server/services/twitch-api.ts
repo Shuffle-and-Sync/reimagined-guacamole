@@ -6,6 +6,19 @@ import { createHmac, timingSafeEqual } from "crypto";
 const TWITCH_API_BASE = "https://api.twitch.tv/helix";
 const TWITCH_OAUTH_BASE = "https://id.twitch.tv/oauth2";
 
+// Types for Twitch OAuth token response
+interface TwitchOAuthTokenResponse {
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+  refresh_token?: string;
+}
+
+// Types for Twitch API generic response wrapper
+interface TwitchAPIResponse<T> {
+  data: T[];
+}
+
 // Types for Twitch API responses
 export interface TwitchUser {
   id: string;
@@ -112,7 +125,7 @@ export class TwitchAPIService {
         );
       }
 
-      const data = await response.json();
+      const data: TwitchOAuthTokenResponse = await response.json();
       this.accessToken = data.access_token;
       this.tokenExpiresAt = Date.now() + data.expires_in * 1000 - 60000; // Subtract 1 minute for safety
 
@@ -122,7 +135,7 @@ export class TwitchAPIService {
 
       return this.accessToken;
     } catch (error) {
-      console.error("Error getting Twitch access token:", error);
+      logger.error("Error getting Twitch access token", error);
       throw error;
     }
   }
@@ -130,10 +143,10 @@ export class TwitchAPIService {
   /**
    * Make authenticated request to Twitch API
    */
-  private async makeAPIRequest(
+  private async makeAPIRequest<T = unknown>(
     endpoint: string,
     options: RequestInit = {},
-  ): Promise<any> {
+  ): Promise<T> {
     const token = await this.getAppAccessToken();
 
     const response = await fetch(`${TWITCH_API_BASE}${endpoint}`, {
@@ -168,10 +181,10 @@ export class TwitchAPIService {
     }
 
     try {
-      const data = await this.makeAPIRequest(`/users?${params.toString()}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchUser>>(`/users?${params.toString()}`);
       return data.data?.[0] || null;
     } catch (error) {
-      console.error("Error fetching Twitch user:", error);
+      logger.error("Error fetching Twitch user", error);
       return null;
     }
   }
@@ -181,12 +194,12 @@ export class TwitchAPIService {
    */
   async getStream(userLogin: string): Promise<TwitchStream | null> {
     try {
-      const data = await this.makeAPIRequest(
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchStream>>(
         `/streams?user_login=${userLogin}`,
       );
       return data.data?.[0] || null;
     } catch (error) {
-      console.error("Error fetching Twitch stream:", error);
+      logger.error("Error fetching Twitch stream", error);
       return null;
     }
   }
@@ -202,10 +215,10 @@ export class TwitchAPIService {
       .join("&");
 
     try {
-      const data = await this.makeAPIRequest(`/streams?${params}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchStream>>(`/streams?${params}`);
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching Twitch streams:", error);
+      logger.error("Error fetching Twitch streams", error);
       return [];
     }
   }
@@ -226,10 +239,10 @@ export class TwitchAPIService {
     }
 
     try {
-      const data = await this.makeAPIRequest(`/games?${params.toString()}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchCategory>>(`/games?${params.toString()}`);
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching Twitch categories:", error);
+      logger.error("Error fetching Twitch categories", error);
       return [];
     }
   }
@@ -239,12 +252,12 @@ export class TwitchAPIService {
    */
   async searchCategories(query: string): Promise<TwitchCategory[]> {
     try {
-      const data = await this.makeAPIRequest(
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchCategory>>(
         `/search/categories?query=${encodeURIComponent(query)}`,
       );
       return data.data || [];
     } catch (error) {
-      console.error("Error searching Twitch categories:", error);
+      logger.error("Error searching Twitch categories", error);
       return [];
     }
   }
@@ -255,12 +268,12 @@ export class TwitchAPIService {
   async subscribeToEvent(
     type: string,
     version: string,
-    condition: Record<string, any>,
+    condition: Record<string, string | number>,
     callbackUrl: string,
     secret: string,
   ): Promise<TwitchEventSubSubscription | null> {
     try {
-      const data = await this.makeAPIRequest("/eventsub/subscriptions", {
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchEventSubSubscription>>("/eventsub/subscriptions", {
         method: "POST",
         body: JSON.stringify({
           type,
@@ -276,7 +289,7 @@ export class TwitchAPIService {
 
       return data.data?.[0] || null;
     } catch (error) {
-      console.error("Error subscribing to Twitch EventSub:", error);
+      logger.error("Error subscribing to Twitch EventSub", error);
       return null;
     }
   }
@@ -286,10 +299,10 @@ export class TwitchAPIService {
    */
   async getSubscriptions(): Promise<TwitchEventSubSubscription[]> {
     try {
-      const data = await this.makeAPIRequest("/eventsub/subscriptions");
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchEventSubSubscription>>("/eventsub/subscriptions");
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching Twitch EventSub subscriptions:", error);
+      logger.error("Error fetching Twitch EventSub subscriptions", error);
       return [];
     }
   }
@@ -307,7 +320,7 @@ export class TwitchAPIService {
       );
       return true;
     } catch (error) {
-      console.error("Error deleting Twitch EventSub subscription:", error);
+      logger.error("Error deleting Twitch EventSub subscription", error);
       return false;
     }
   }
@@ -399,7 +412,7 @@ export class TwitchAPIService {
     const secret = process.env.TWITCH_EVENTSUB_SECRET;
 
     if (!secret) {
-      console.error("TWITCH_EVENTSUB_SECRET not configured");
+      logger.error("TWITCH_EVENTSUB_SECRET not configured");
       res.status(500).send("Server configuration error");
       return null;
     }
@@ -411,7 +424,7 @@ export class TwitchAPIService {
       secret,
     );
     if (!verification.valid) {
-      console.warn("Twitch webhook verification failed:", verification.error);
+      logger.warn("Twitch webhook verification failed", { error: verification.error });
       res.status(403).send("Forbidden");
       return null;
     }

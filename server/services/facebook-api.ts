@@ -104,6 +104,29 @@ interface FacebookErrorResponse {
   message?: string;
 }
 
+interface FacebookMeResponse {
+  id: string;
+  name: string;
+}
+
+interface FacebookPageResponse {
+  id: string;
+  name: string;
+  about?: string;
+  category: string;
+  picture?: {
+    data: {
+      url: string;
+    };
+  };
+  fan_count?: number;
+  followers_count?: number;
+}
+
+interface FacebookLiveVideosResponse {
+  data?: FacebookVideoItem[];
+}
+
 interface FacebookVideoItem {
   id: string;
   title: string;
@@ -285,8 +308,8 @@ export class FacebookAPIService {
 
         return { success: true, data };
       } catch (error) {
-        console.error(
-          `Facebook API request attempt ${attempt + 1} failed:`,
+        logger.error(
+          `Facebook API request attempt ${attempt + 1} failed`,
           error,
         );
 
@@ -357,7 +380,7 @@ export class FacebookAPIService {
    */
   async getMe(
     accessToken: string,
-  ): Promise<FacebookAPIResult<{ id: string; name: string }>> {
+  ): Promise<FacebookAPIResult<FacebookMeResponse>> {
     if (!this.isConfigured()) {
       return {
         success: false,
@@ -365,7 +388,7 @@ export class FacebookAPIService {
       };
     }
 
-    const result = await this.makeAPIRequest<any>(`/me?fields=id,name`, {
+    const result = await this.makeAPIRequest<FacebookMeResponse>(`/me?fields=id,name`, {
       accessToken,
     });
 
@@ -400,13 +423,13 @@ export class FacebookAPIService {
       };
     }
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<FacebookPageResponse>(
       `/${encodeURIComponent(pageId)}?fields=id,name,about,category,picture,fan_count,followers_count`,
       { accessToken },
     );
 
-    if (!result.success) {
-      return { success: false, error: result.error };
+    if (!result.success || !result.data) {
+      return { success: false, error: result.error || { code: "INVALID_RESPONSE", message: "Invalid response from API" } };
     }
 
     const data = result.data;
@@ -445,13 +468,13 @@ export class FacebookAPIService {
       };
     }
 
-    const result = await this.makeAPIRequest<any>(
+    const result = await this.makeAPIRequest<FacebookLiveVideosResponse>(
       `/${encodeURIComponent(pageId)}/live_videos?fields=id,title,description,status,live_views,creation_time,planned_start_time,actual_start_time,broadcast_start_time,permalink_url`,
       { accessToken },
     );
 
-    if (!result.success) {
-      return { success: false, error: result.error };
+    if (!result.success || !result.data) {
+      return { success: false, error: result.error || { code: "INVALID_RESPONSE", message: "Invalid response from API" } };
     }
 
     const videos: FacebookLiveVideo[] =
@@ -459,7 +482,7 @@ export class FacebookAPIService {
         id: video.id,
         title: video.title,
         description: video.description,
-        status: video.status,
+        status: video.status as FacebookLiveVideo["status"],
         live_views: video.live_views,
         creation_time: video.creation_time,
         planned_start_time: video.planned_start_time,
@@ -482,7 +505,7 @@ export class FacebookAPIService {
     plannedStartTime?: Date,
   ): Promise<FacebookLiveVideoDetails | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -538,7 +561,7 @@ export class FacebookAPIService {
         }
       );
     } catch (error) {
-      console.error("Error creating Facebook live video:", error);
+      logger.error("Error creating Facebook live video", error);
       return null;
     }
   }
@@ -551,7 +574,7 @@ export class FacebookAPIService {
     accessToken: string,
   ): Promise<FacebookLiveVideoDetails | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -589,7 +612,7 @@ export class FacebookAPIService {
         rtmp_preview_url: data.rtmp_preview_url,
       };
     } catch (error) {
-      console.error("Error fetching Facebook live video details:", error);
+      logger.error("Error fetching Facebook live video details", error);
       return null;
     }
   }
@@ -603,7 +626,7 @@ export class FacebookAPIService {
     updates: Partial<FacebookLiveVideo>,
   ): Promise<FacebookLiveVideoDetails | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -678,7 +701,7 @@ export class FacebookAPIService {
         }
       );
     } catch (error) {
-      console.error("Error updating Facebook live video:", error);
+      logger.error("Error updating Facebook live video", error);
       return null;
     }
   }
@@ -691,7 +714,7 @@ export class FacebookAPIService {
     accessToken: string,
   ): Promise<boolean> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return false;
     }
 
@@ -724,7 +747,7 @@ export class FacebookAPIService {
 
       return data.success === true || response.ok;
     } catch (error) {
-      console.error("Error ending Facebook live video:", error);
+      logger.error("Error ending Facebook live video", error);
       return false;
     }
   }
@@ -738,7 +761,7 @@ export class FacebookAPIService {
     limit: number = 10,
   ): Promise<FacebookPost[]> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return [];
     }
 
@@ -783,7 +806,7 @@ export class FacebookAPIService {
         })) || []
       );
     } catch (error) {
-      console.error("Error fetching Facebook page posts:", error);
+      logger.error("Error fetching Facebook page posts", error);
       return [];
     }
   }
@@ -798,7 +821,7 @@ export class FacebookAPIService {
     link?: string,
   ): Promise<FacebookPost | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -846,7 +869,7 @@ export class FacebookAPIService {
         shares: { count: 0 },
       };
     } catch (error) {
-      console.error("Error creating Facebook post:", error);
+      logger.error("Error creating Facebook post", error);
       return null;
     }
   }
@@ -856,7 +879,7 @@ export class FacebookAPIService {
    */
   getAuthorizationUrl(redirectUri: string): { url: string; state: string } {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return { url: "", state: "" };
     }
 
@@ -919,21 +942,21 @@ export class FacebookAPIService {
   validateOAuthState(state: string, redirectUri: string): boolean {
     const stateData = this.oauthStates.get(state);
     if (!stateData) {
-      console.warn("Invalid OAuth state: not found");
+      logger.warn("Invalid OAuth state: not found");
       return false;
     }
 
     // Check if state is expired (10 minutes)
     const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
     if (stateData.timestamp < tenMinutesAgo) {
-      console.warn("Invalid OAuth state: expired");
+      logger.warn("Invalid OAuth state: expired");
       this.oauthStates.delete(state);
       return false;
     }
 
     // Check if redirect URI matches
     if (stateData.redirectUri !== redirectUri) {
-      console.warn("Invalid OAuth state: redirect URI mismatch");
+      logger.warn("Invalid OAuth state: redirect URI mismatch");
       this.oauthStates.delete(state);
       return false;
     }
@@ -951,7 +974,7 @@ export class FacebookAPIService {
     redirectUri: string,
   ): Promise<{ access_token: string; token_type: string } | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -981,7 +1004,7 @@ export class FacebookAPIService {
         token_type: data.token_type || "bearer",
       };
     } catch (error) {
-      console.error("Error exchanging Facebook OAuth code:", error);
+      logger.error("Error exchanging Facebook OAuth code", error);
       return null;
     }
   }
@@ -994,7 +1017,7 @@ export class FacebookAPIService {
     userAccessToken: string,
   ): Promise<string | null> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return null;
     }
 
@@ -1017,7 +1040,7 @@ export class FacebookAPIService {
 
       return data.access_token || null;
     } catch (error) {
-      console.error("Error getting Facebook page access token:", error);
+      logger.error("Error getting Facebook page access token", error);
       return null;
     }
   }
@@ -1043,7 +1066,7 @@ export class FacebookAPIService {
       }
       return date.toISOString();
     } catch (error) {
-      console.warn("Error parsing timestamp, returning raw value:", timestamp);
+      logger.warn("Error parsing timestamp, returning raw value", { timestamp });
       return timestamp;
     }
   }
@@ -1058,7 +1081,7 @@ export class FacebookAPIService {
     verifyToken: string,
   ): Promise<boolean> {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return false;
     }
 
@@ -1091,7 +1114,7 @@ export class FacebookAPIService {
 
       return data.success === true;
     } catch (error) {
-      console.error("Error subscribing to Facebook webhooks:", error);
+      logger.error("Error subscribing to Facebook webhooks", error);
       return false;
     }
   }
@@ -1116,7 +1139,7 @@ export class FacebookAPIService {
    */
   verifyWebhookSignature(signature: string, body: string): boolean {
     if (!this.isConfigured()) {
-      console.warn("Facebook API not configured");
+      logger.warn("Facebook API not configured");
       return false;
     }
 
@@ -1135,7 +1158,7 @@ export class FacebookAPIService {
         Buffer.from(expectedSignature, "hex"),
       );
     } catch (error) {
-      console.error("Error verifying webhook signature:", error);
+      logger.error("Error verifying webhook signature", error);
       return false;
     }
   }
