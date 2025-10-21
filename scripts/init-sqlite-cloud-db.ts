@@ -1589,27 +1589,28 @@ async function initializeDatabase() {
     console.log("  2. Start the development server: npm run dev");
     console.log("  3. Test authentication flows");
 
-    // Close the connection
-    if (db) {
-      await db.close();
-      console.log("🔌 Connection closed.");
-    }
-
     process.exit(0);
   } catch (error) {
-    console.error("\n❌ Database initialization failed:", error);
+    // Sanitize error message to prevent credential leaks
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    // Remove any potential DATABASE_URL or API keys from error message
+    const sanitizedMessage = errorMessage.replace(
+      /apikey=[^&\s]+/gi,
+      "apikey=***",
+    );
+    console.error("\n❌ Database initialization failed:", sanitizedMessage);
 
-    // Close the connection if it was established
+    process.exit(1);
+  } finally {
+    // Ensure connection is always closed
     if (db) {
       try {
         await db.close();
         console.log("🔌 Connection closed.");
       } catch (closeError) {
-        console.error("⚠️  Error closing connection:", closeError);
+        console.error("⚠️  Error closing connection");
       }
     }
-
-    process.exit(1);
   }
 }
 
