@@ -8,8 +8,8 @@ import { describe, test, expect, beforeEach, jest } from "@jest/globals";
 // Import your service and dependencies
 
 describe("Service Tests", () => {
-  let service: any;
-  let mockDependency: any;
+  let service: unknown;
+  let mockDependency: unknown;
 
   beforeEach(() => {
     // Create mocks for dependencies

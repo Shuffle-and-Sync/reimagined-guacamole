@@ -156,7 +156,7 @@ export class CacheService {
 
   async getApiResponse(
     endpoint: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
   ): Promise<any | null> {
     const key = this.generateApiCacheKey(endpoint, params);
     return await this.get(key);
@@ -164,7 +164,7 @@ export class CacheService {
 
   private generateApiCacheKey(
     endpoint: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
   ): string {
     const sortedParams = Object.keys(params)
       .sort()
@@ -173,7 +173,7 @@ export class CacheService {
           result[key] = params[key];
           return result;
         },
-        {} as Record<string, any>,
+        {} as Record<string, unknown>,
       );
 
     const paramString = JSON.stringify(sortedParams);

@@ -71,8 +71,7 @@ export class GraphicsGeneratorService {
     }
   }
 
-  private generateSVG(
-    event: any,
+  private generateSVG(event: unknown,
     config: GraphicTemplate,
     qrCodeDataUrl: string,
     template: string,

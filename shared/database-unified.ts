@@ -102,7 +102,7 @@ async function initializeConnection() {
       const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
 
       // Create Drizzle instance with SQLite Cloud
-      db = drizzle(sqliteCloud as any, { schema });
+      db = drizzle(sqliteCloud as unknown, { schema });
 
       // Test the connection
       await sqliteCloud.sql`SELECT 1 as test`;
@@ -335,9 +335,9 @@ export function withQueryTiming<T>(
 // Connection health monitoring
 export async function checkDatabaseHealth(): Promise<{
   status: "healthy" | "unhealthy";
-  connectionInfo?: any;
+  connectionInfo?: unknown;
   queryResponseTime?: number;
-  performanceMetrics?: any;
+  performanceMetrics?: unknown;
   error?: string;
 }> {
   try {

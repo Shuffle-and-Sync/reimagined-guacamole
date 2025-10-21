@@ -277,7 +277,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         queryKey: ["/api/tournaments", tournament.id, "details"],
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to start tournament",
         description: error.message || "Something went wrong",
@@ -306,7 +306,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         queryKey: ["/api/tournaments", tournament.id, "details"],
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to advance round",
         description: error.message || "Something went wrong",
@@ -348,7 +348,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         queryKey: ["/api/tournaments", tournament.id, "details"],
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to record match result",
         description: error.message || "Something went wrong",
@@ -377,7 +377,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
         window.location.href = `/app/room/${gameSession.id}`;
       }, 1000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to create game room",
         description: error.message || "Something went wrong",

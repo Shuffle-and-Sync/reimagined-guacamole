@@ -140,7 +140,7 @@ export abstract class BaseRepository<
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
           if (whereConditions.length > 0) {
-            query = query.where(and(...whereConditions)) as any;
+            query = query.where(and(...whereConditions)) as unknown;
           }
         }
 
@@ -150,7 +150,7 @@ export abstract class BaseRepository<
           if (column) {
             query = query.orderBy(
               sort.direction === "desc" ? desc(column) : asc(column),
-            ) as any;
+            ) as unknown;
           }
         }
 
@@ -402,7 +402,7 @@ export abstract class BaseRepository<
         if (filters && Object.keys(filters).length > 0) {
           const whereConditions = this.buildWhereConditions(filters);
           if (whereConditions.length > 0) {
-            query = query.where(and(...whereConditions)) as any;
+            query = query.where(and(...whereConditions)) as unknown;
           }
         }
 
@@ -470,7 +470,7 @@ export abstract class BaseRepository<
 
         // Apply all conditions
         if (conditions.length > 0) {
-          query = query.where(and(...conditions)) as any;
+          query = query.where(and(...conditions)) as unknown;
         }
 
         // Apply sorting
@@ -478,7 +478,7 @@ export abstract class BaseRepository<
         if (sortColumn) {
           query = query.orderBy(
             sortDirection === "desc" ? desc(sortColumn) : asc(sortColumn),
-          ) as any;
+          ) as unknown;
         }
 
         // Fetch one extra item to check if there's more data

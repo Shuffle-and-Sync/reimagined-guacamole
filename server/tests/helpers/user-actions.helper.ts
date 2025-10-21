@@ -67,8 +67,7 @@ export const authFlows = {
    * Simulate OAuth authentication flow
    */
   async oauthLogin(
-    provider: "google" | "twitch",
-    profile: any,
+    provider: "google" | "twitch", profile: unknown,
   ): Promise<MockResponse> {
     return authHandlers.oauthCallback(provider, profile);
   },
@@ -138,7 +137,7 @@ export const eventFlows = {
   /**
    * Update an event
    */
-  async updateEvent(eventId: string, updates: any): Promise<MockResponse> {
+  async updateEvent(eventId: string, updates: unknown): Promise<MockResponse> {
     return eventHandlers.update(eventId, updates);
   },
 
@@ -159,7 +158,7 @@ export const tournamentFlows = {
    */
   async createAndRegister(
     userId: string,
-    tournamentData?: any,
+    tournamentData?: unknown,
   ): Promise<{
     tournament: MockResponse;
     registration: MockResponse;
@@ -282,7 +281,7 @@ export const deckFlows = {
   /**
    * Create a new deck
    */
-  async createDeck(userId: string, deckData: any): Promise<MockResponse> {
+  async createDeck(userId: string, deckData: unknown): Promise<MockResponse> {
     const requiredFields = ["name", "format"];
     const missingFields = requiredFields.filter((field) => !deckData[field]);
 

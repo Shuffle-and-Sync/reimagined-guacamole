@@ -314,8 +314,7 @@ export class EnhancedWebSocketServer {
 
   private async processMessage(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     switch (message.type) {
       case "join_room":
@@ -356,8 +355,7 @@ export class EnhancedWebSocketServer {
 
   private async handleJoinRoom(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { sessionId, user } = message;
 
@@ -397,8 +395,7 @@ export class EnhancedWebSocketServer {
 
   private async handleChatMessage(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { sessionId, user, content } = message;
 
@@ -434,8 +431,7 @@ export class EnhancedWebSocketServer {
 
   private async handleGameAction(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { sessionId, action, user, data } = message;
 
@@ -463,8 +459,7 @@ export class EnhancedWebSocketServer {
 
   private async handleJoinCollabStream(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { eventId } = message;
 
@@ -542,8 +537,7 @@ export class EnhancedWebSocketServer {
 
   private async handlePhaseChange(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { eventId, newPhase } = message;
 
@@ -616,8 +610,7 @@ export class EnhancedWebSocketServer {
 
   private async handleCoordinationEvent(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { eventId, eventType, eventData } = message;
 
@@ -643,8 +636,7 @@ export class EnhancedWebSocketServer {
 
   private async handleCollaboratorStatusUpdate(
     ws: ExtendedWebSocket,
-    connectionId: string,
-    message: any,
+    connectionId: string, message: unknown,
   ): Promise<void> {
     const { eventId, statusUpdate } = message;
 

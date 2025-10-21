@@ -21,7 +21,7 @@ export interface SocialLinksRequest {
 }
 
 export interface UserSettingsRequest {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface FriendRequestRequest {
@@ -33,7 +33,7 @@ export interface FriendRequestResponse {
 }
 
 export interface MatchmakingPreferencesRequest {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface FindPlayersRequest {

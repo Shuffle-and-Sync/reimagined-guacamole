@@ -188,7 +188,7 @@ export default function Matchmaking() {
 
   // Save preferences mutation
   const savePreferencesMutation = useMutation({
-    mutationFn: async (preferencesData: any) => {
+    mutationFn: async (preferencesData: unknown) => {
       const response = await apiRequest(
         "PUT",
         "/api/matchmaking/preferences",
@@ -209,7 +209,7 @@ export default function Matchmaking() {
 
   // Find players mutation
   const findPlayersMutation = useMutation({
-    mutationFn: async (searchPreferences: any) => {
+    mutationFn: async (searchPreferences: unknown) => {
       const response = await apiRequest(
         "POST",
         "/api/matchmaking/find-players",
@@ -225,7 +225,7 @@ export default function Matchmaking() {
         description: `Found ${matches.length} compatible players for you.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setIsSearching(false);
       toast({
         title: "Search failed",

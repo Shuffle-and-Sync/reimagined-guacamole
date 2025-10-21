@@ -53,7 +53,7 @@ interface GameRoom {
   description: string;
   communityId: string;
   status: string;
-  gameData?: any;
+  gameData?: unknown;
   createdAt: string;
 }
 
@@ -97,7 +97,7 @@ export default function TableSync() {
 
   // Create game session mutation
   const createSessionMutation = useMutation({
-    mutationFn: async (sessionData: any) => {
+    mutationFn: async (sessionData: unknown) => {
       const response = await apiRequest(
         "POST",
         "/api/game-sessions",
@@ -677,7 +677,7 @@ export default function TableSync() {
                             Upcoming Game Pod Events
                           </h3>
                           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {gameEvents.map((event: any) => (
+                            {gameEvents.map((event: unknown) => (
                               <Card
                                 key={event.id}
                                 className="hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border-2"

@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 interface GamePodCalendarProps {
   communityId: string;
   communityName: string;
-  theme?: any;
+  theme?: unknown;
 }
 
 export function GamePodCalendar({

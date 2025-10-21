@@ -520,7 +520,7 @@ export class NotificationDeliveryService {
   /**
    * Register WebSocket connection for real-time notifications
    */
-  registerWebSocketConnection(userId: string, connection: any): void {
+  registerWebSocketConnection(userId: string, connection: unknown): void {
     this.webSocketConnections.set(userId, connection);
 
     connection.on("close", () => {

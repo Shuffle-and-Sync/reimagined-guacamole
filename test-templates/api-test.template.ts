@@ -12,9 +12,9 @@ import {
 } from "../test-utilities-setup/mocks";
 
 describe("API Endpoint Tests", () => {
-  let req: any;
-  let res: any;
-  let next: any;
+  let req: unknown;
+  let res: unknown;
+  let next: unknown;
 
   beforeEach(() => {
     req = mockRequest();

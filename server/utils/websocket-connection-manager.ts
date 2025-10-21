@@ -180,8 +180,7 @@ export class WebSocketConnectionManager {
    * Broadcast message to all connections in a game room
    */
   broadcastToGameRoom(
-    sessionId: string,
-    message: any,
+    sessionId: string, message: unknown,
     excludeConnectionId?: string,
   ): void {
     const connections = this.getGameRoomConnections(sessionId);
@@ -192,8 +191,7 @@ export class WebSocketConnectionManager {
    * Broadcast message to all connections in a collaborative room
    */
   broadcastToCollaborativeRoom(
-    eventId: string,
-    message: any,
+    eventId: string, message: unknown,
     excludeConnectionId?: string,
   ): void {
     const connections = this.getCollaborativeRoomConnections(eventId);
@@ -350,8 +348,7 @@ export class WebSocketConnectionManager {
   }
 
   private broadcastToConnections(
-    connections: ExtendedWebSocket[],
-    message: any,
+    connections: ExtendedWebSocket[], message: unknown,
     excludeConnectionId?: string,
   ): void {
     const messageStr = JSON.stringify(message);

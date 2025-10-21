@@ -35,7 +35,7 @@ export default function TournamentDetail() {
   } = useQuery<
     Tournament & {
       organizer: User;
-      community: any;
+      community: unknown;
       participants: (TournamentParticipant & { user: User })[];
       rounds?: unknown[];
       matches?: unknown[];

@@ -20,7 +20,7 @@ export interface UniversalCard {
   externalSource?: string;
 
   // Flexible attributes for game-specific data
-  attributes: Record<string, any>;
+  attributes: Record<string, unknown>;
 
   // Visual data
   imageUris?: Record<string, string>;

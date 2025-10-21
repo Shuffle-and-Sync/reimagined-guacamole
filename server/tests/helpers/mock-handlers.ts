@@ -144,7 +144,7 @@ export const authHandlers = {
   /**
    * Mock OAuth callback
    */
-  oauthCallback: (provider: string, profile: any): MockResponse => {
+  oauthCallback: (provider: string, profile: unknown): MockResponse => {
     if (!profile || !profile.email) {
       return {
         status: 400,
@@ -275,7 +275,7 @@ export const eventHandlers = {
   /**
    * Create an event
    */
-  create: (eventData: any): MockResponse => {
+  create: (eventData: unknown): MockResponse => {
     const requiredFields = ["title", "type", "startTime", "endTime"];
     const missingFields = requiredFields.filter((field) => !eventData[field]);
 
@@ -301,7 +301,7 @@ export const eventHandlers = {
   /**
    * Update an event
    */
-  update: (id: string, updates: any): MockResponse => {
+  update: (id: string, updates: unknown): MockResponse => {
     const event = Object.values(mockEvents).find((e) => e.id === id);
     if (!event) {
       return {

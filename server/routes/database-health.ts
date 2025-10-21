@@ -90,7 +90,7 @@ router.get("/stats", async (req, res) => {
         queries: allStats,
         slowQueries,
         queryCount: Object.values(allStats).reduce(
-          (sum, stat: any) => sum + stat.count,
+          (sum, stat: unknown) => sum + stat.count,
           0,
         ),
       },

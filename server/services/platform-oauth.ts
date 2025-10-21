@@ -140,7 +140,7 @@ export async function handlePlatformOAuthCallback(
   code: string,
   state: string,
   userId: string,
-): Promise<any> {
+): Promise<unknown> {
   // Validate state
   const storedState = oauthStates.get(state);
   if (
@@ -313,7 +313,7 @@ async function handleTwitchCallback(
   code: string,
   userId: string,
   storedState: OAuthState,
-): Promise<any> {
+): Promise<unknown> {
   const codeVerifier = storedState.codeVerifier;
 
   if (!codeVerifier) {
@@ -408,7 +408,7 @@ async function handleYouTubeCallback(
   code: string,
   userId: string,
   storedState: OAuthState,
-): Promise<any> {
+): Promise<unknown> {
   const codeVerifier = storedState.codeVerifier;
 
   if (!codeVerifier) {
@@ -482,7 +482,7 @@ async function handleYouTubeCallback(
 async function handleFacebookCallback(
   code: string,
   userId: string,
-): Promise<any> {
+): Promise<unknown> {
   const facebookService = new FacebookAPIService();
 
   // Exchange code for tokens
@@ -654,7 +654,7 @@ export async function resolvePlatformIdentifiers(userId: string): Promise<{
   facebook?: { pageId?: string; handle: string };
 }> {
   const accounts = await storage.getUserPlatformAccounts(userId);
-  const identifiers: any = {};
+  const identifiers: unknown = {};
 
   for (const account of accounts) {
     if (!account.isActive) continue;

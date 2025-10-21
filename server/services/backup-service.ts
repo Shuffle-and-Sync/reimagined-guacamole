@@ -446,7 +446,7 @@ class BackupService {
         AND name NOT LIKE 'sqlite_%'
       `);
 
-      return result.map((row: any) => row.table_name);
+      return result.map((row: unknown) => row.table_name);
     } catch (error) {
       logger.error("Failed to get table names", error);
       return [];
@@ -590,8 +590,7 @@ class BackupService {
   }
 
   private async notifyBackupFailure(
-    metadata: BackupMetadata,
-    error: any,
+    metadata: BackupMetadata, error: unknown,
   ): Promise<void> {
     if (this.config.notificationChannels.length === 0) return;
 

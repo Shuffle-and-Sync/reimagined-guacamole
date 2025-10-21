@@ -83,7 +83,7 @@ export function useOptimizedQuery<TData, TError = Error>(
 /**
  * Hook for coordinated multi-query loading states
  */
-export function useCoordinatedQueries<T extends Record<string, any>>(
+export function useCoordinatedQueries<T extends Record<string, unknown>>(
   queries: T,
 ): {
   data: { [K in keyof T]: T[K] extends { data: infer D } ? D : never };

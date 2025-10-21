@@ -234,7 +234,7 @@ export class UserRepository extends BaseRepository<
           let query = this.db.select().from(this.table);
 
           if (conditions.length > 0) {
-            query = query.where(and(...conditions)) as any;
+            query = query.where(and(...conditions)) as unknown;
           }
 
           // Apply sorting if specified
@@ -245,7 +245,7 @@ export class UserRepository extends BaseRepository<
                 baseOptions.sort.direction === "desc"
                   ? desc(column)
                   : asc(column),
-              ) as any;
+              ) as unknown;
             }
           }
 

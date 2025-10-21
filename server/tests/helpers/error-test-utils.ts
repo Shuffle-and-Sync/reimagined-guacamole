@@ -43,7 +43,7 @@ export function createMockErrorResponse() {
 /**
  * Extract error from response
  */
-export function extractError(mockResponse: any) {
+export function extractError(mockResponse: { capturedError: unknown }) {
   return mockResponse.capturedError;
 }
 

@@ -87,7 +87,7 @@ export const tournamentsService = {
     }
   },
 
-  async createTournament(tournamentData: any) {
+  async createTournament(tournamentData: unknown) {
     try {
       logger.info("Creating tournament", { tournamentData });
       return await storage.createTournament(tournamentData);

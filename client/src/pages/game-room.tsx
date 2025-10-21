@@ -30,7 +30,7 @@ interface GameSession {
     description: string;
     currentTurn?: string;
     turnOrder?: string[];
-    gameState?: any;
+    gameState?: unknown;
   };
   host: {
     id: string;
@@ -177,7 +177,7 @@ export default function GameRoom() {
   );
 
   const handleWebRTCOffer = useCallback(
-    async (data: any) => {
+    async (data: unknown) => {
       const { fromPlayer, offer } = data;
 
       if (!peerConnections.current.has(fromPlayer)) {
@@ -210,7 +210,7 @@ export default function GameRoom() {
     [createPeerConnection, sessionId],
   );
 
-  const handleWebRTCAnswer = useCallback(async (data: any) => {
+  const handleWebRTCAnswer = useCallback(async (data: unknown) => {
     const { fromPlayer, answer } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
 
@@ -226,7 +226,7 @@ export default function GameRoom() {
     }
   }, []);
 
-  const handleICECandidate = useCallback(async (data: any) => {
+  const handleICECandidate = useCallback(async (data: unknown) => {
     const { fromPlayer, candidate } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
 

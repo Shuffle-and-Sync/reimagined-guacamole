@@ -126,7 +126,7 @@ export const uploadMiddlewareStack = [
 /**
  * Utility function to apply middleware stack to Express app
  */
-export function applyMiddlewareStack(app: any, middlewareStack: unknown[]) {
+export function applyMiddlewareStack(app: unknown, middlewareStack: unknown[]) {
   middlewareStack.forEach((middleware) => {
     if (middleware) {
       app.use(middleware);
@@ -137,7 +137,7 @@ export function applyMiddlewareStack(app: any, middlewareStack: unknown[]) {
 /**
  * Express error handler setup utility
  */
-export function setupErrorHandlers(app: any) {
+export function setupErrorHandlers(app: unknown) {
   // 404 handler for unmatched routes
   app.use(notFound);
 
@@ -148,7 +148,7 @@ export function setupErrorHandlers(app: any) {
 /**
  * Health and metrics endpoints setup
  */
-export function setupMonitoringEndpoints(app: any) {
+export function setupMonitoringEndpoints(app: unknown) {
   app.get("/health", healthCheck);
   app.get("/metrics", metrics);
 }

@@ -102,7 +102,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   }, [userSettings]);
 
   const saveSettingsMutation = useMutation({
-    mutationFn: async (settingsData: any) => {
+    mutationFn: async (settingsData: unknown) => {
       const response = await apiRequest("PUT", "/api/user/settings", {
         notificationTypes: JSON.stringify(settingsData.notifications),
         privacySettings: JSON.stringify(settingsData.privacy),
@@ -120,7 +120,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/user/settings"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to save settings",
         description: error.message || "Something went wrong",
@@ -173,7 +173,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         description: "Your data export will be emailed to you within 24 hours.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to export data",
         description: error.message || "Something went wrong",
@@ -200,7 +200,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       // Redirect to login after account deletion
       window.location.href = "/api/logout";
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to delete account",
         description: error.message || "Something went wrong",

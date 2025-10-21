@@ -786,7 +786,7 @@ server.listen(
   app.use(sentryErrorHandler());
 
   // Basic error handler
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     console.error("Server error:", err.message);
     res.status(500).json({ message: "Internal server error" });
   });

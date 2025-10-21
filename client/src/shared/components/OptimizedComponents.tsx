@@ -77,7 +77,7 @@ interface ListItem {
   id: string;
   title: string;
   subtitle?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface OptimizedListProps {

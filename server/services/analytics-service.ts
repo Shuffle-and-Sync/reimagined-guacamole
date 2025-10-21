@@ -27,13 +27,13 @@ export interface AnalyticsEvent {
   eventAction: string;
   eventLabel?: string;
   eventValue?: number;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   context?: {
     userAgent?: string;
     ipAddress?: string;
     pageUrl?: string;
     referrerUrl?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -140,7 +140,7 @@ export class AnalyticsService {
     sessionId: string,
     completed: boolean = true,
     timeSpent?: number,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     try {
       const funnelData: InsertConversionFunnel = {
@@ -461,8 +461,8 @@ export class AnalyticsService {
     userId?: string;
     eventName: string;
     eventSource: string;
-    properties?: Record<string, any>;
-    context?: Record<string, any>;
+    properties?: Record<string, unknown>;
+    context?: Record<string, unknown>;
   }): Promise<void> {
     const eventData: InsertEventTracking = {
       userId: event.userId,
@@ -561,12 +561,12 @@ export class AnalyticsService {
     return [];
   }
 
-  private generateKeyInsights(_data: any): unknown[] {
+  private generateKeyInsights(_data: unknown): unknown[] {
     // Generate key insights from aggregated data
     return [];
   }
 
-  private async calculateRealTimeStats(): Promise<any> {
+  private async calculateRealTimeStats(): Promise<unknown> {
     // Calculate real-time platform statistics
     return {
       activeUsers: 0,
@@ -579,7 +579,7 @@ export class AnalyticsService {
     };
   }
 
-  private async calculateUserEngagement(_userId: string): Promise<any> {
+  private async calculateUserEngagement(_userId: string): Promise<unknown> {
     // Calculate user engagement metrics
     return {
       engagementScore: 0,
@@ -592,8 +592,7 @@ export class AnalyticsService {
   }
 
   private analyzeUserBehavior(
-    _activityData: unknown[],
-    _engagementMetrics: any,
+    _activityData: unknown[], _engagementMetrics: unknown,
     _collaborationData: unknown[],
   ): any {
     // Analyze user behavior and generate insights

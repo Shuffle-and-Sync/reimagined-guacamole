@@ -49,7 +49,7 @@ export interface StreamingNotification {
     | "host_request"
     | "collaboration_invite";
   message: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   isRead: boolean;
   createdAt: Date;
 }
@@ -406,7 +406,7 @@ export class StreamingCoordinator {
   /**
    * Handle platform webhook events
    */
-  async handlePlatformEvent(platform: string, event: any): Promise<void> {
+  async handlePlatformEvent(platform: string, event: unknown): Promise<void> {
     switch (platform) {
       case "twitch":
         await this.handleTwitchEvent(event);
@@ -425,7 +425,7 @@ export class StreamingCoordinator {
   /**
    * Handle Twitch-specific events
    */
-  private async handleTwitchEvent(event: any): Promise<void> {
+  private async handleTwitchEvent(event: unknown): Promise<void> {
     const eventType = event.event_type;
     const eventData = event.event_data;
 

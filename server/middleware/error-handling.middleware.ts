@@ -235,7 +235,7 @@ export function asyncHandler<T extends any[]>(
     res: Response,
     next: NextFunction,
     ...args: T
-  ) => Promise<any>,
+  ) => Promise<unknown>,
 ) {
   return (req: Request, res: Response, next: NextFunction, ...args: T) => {
     Promise.resolve(fn(req, res, next, ...args)).catch(next);

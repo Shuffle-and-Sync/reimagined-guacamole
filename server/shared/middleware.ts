@@ -3,8 +3,7 @@ import { logger } from "../logger";
 
 // Common middleware functions
 
-export const errorHandler = (
-  error: any,
+export const errorHandler = (error: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,

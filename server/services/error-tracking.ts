@@ -102,7 +102,7 @@ export function initializeSentry(): void {
  * Should be added before other error handlers but after all routes
  */
 export function sentryErrorHandler(): ErrorRequestHandler {
-  return (err: any, req: Request, res: Response, next: NextFunction) => {
+  return (err: unknown, req: Request, res: Response, next: NextFunction) => {
     // Capture error in Sentry
     Sentry.captureException(err);
 
@@ -155,7 +155,7 @@ export function sentryTracingHandler() {
  */
 export function captureException(
   error: Error | unknown,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): void {
   if (!process.env.SENTRY_DSN) {
     return;
@@ -179,7 +179,7 @@ export function captureException(
 export function captureMessage(
   message: string,
   level: Sentry.SeverityLevel = "info",
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): void {
   if (!process.env.SENTRY_DSN) {
     return;
@@ -232,7 +232,7 @@ export function clearUserContext(): void {
 export function addBreadcrumb(
   message: string,
   category: string,
-  data?: Record<string, any>,
+  data?: Record<string, unknown>,
 ): void {
   if (!process.env.SENTRY_DSN) {
     return;

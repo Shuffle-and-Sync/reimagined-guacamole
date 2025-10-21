@@ -93,7 +93,7 @@ export default function Tournaments() {
 
   // Create tournament mutation
   const createTournamentMutation = useMutation({
-    mutationFn: async (tournamentData: any) => {
+    mutationFn: async (tournamentData: unknown) => {
       const response = await apiRequest("POST", "/api/tournaments", {
         ...tournamentData,
         communityId: selectedCommunity?.id || "mtg",
@@ -118,7 +118,7 @@ export default function Tournaments() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to create tournament",
         description: error.message || "Something went wrong",
@@ -144,7 +144,7 @@ export default function Tournaments() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to join tournament",
         description: error.message || "Something went wrong",
@@ -160,7 +160,7 @@ export default function Tournaments() {
       updates,
     }: {
       tournamentId: string;
-      updates: any;
+      updates: unknown;
     }) => {
       const response = await apiRequest(
         "PATCH",
@@ -183,7 +183,7 @@ export default function Tournaments() {
       setEditingTournament(null);
       queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to update tournament",
         description: error.message || "Something went wrong",
@@ -752,7 +752,7 @@ export default function Tournaments() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tournaments.map((tournament: any) => (
+                {tournaments.map((tournament: unknown) => (
                   <Card
                     key={tournament.id}
                     className="hover:shadow-lg transition-shadow"

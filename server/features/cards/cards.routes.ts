@@ -21,7 +21,7 @@ const DEFAULT_GAME_ID = "mtg-official";
 /**
  * Add deprecation warning to response
  */
-function addDeprecationWarning(data: any) {
+function addDeprecationWarning(data: unknown) {
   return {
     ...data,
     _deprecated: {

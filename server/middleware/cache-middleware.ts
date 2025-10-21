@@ -57,7 +57,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
       const originalJson = res.json.bind(res);
 
       // Override json method to cache response
-      res.json = function (body: any) {
+      res.json = function (body: unknown) {
         // Check if we should skip caching this response
         if (
           !skipCacheIf(req, res) &&
@@ -108,7 +108,7 @@ export function invalidateCacheMiddleware(patterns: string[]) {
       const originalJson = res.json.bind(res);
 
       // Override json method to invalidate cache after successful response
-      res.json = function (body: any) {
+      res.json = function (body: unknown) {
         // Invalidate cache patterns after successful mutations
         if (res.statusCode >= 200 && res.statusCode < 300) {
           Promise.all(

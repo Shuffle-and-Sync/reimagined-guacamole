@@ -25,7 +25,7 @@ export class CustomGameAdapter implements ICardAdapter {
   /**
    * Transform database card to universal format
    */
-  private transformToUniversal(dbCard: any): UniversalCard {
+  private transformToUniversal(dbCard: unknown): UniversalCard {
     return {
       id: dbCard.id,
       gameId: dbCard.gameId,
@@ -89,7 +89,7 @@ export class CustomGameAdapter implements ICardAdapter {
         .offset(offset);
 
       return {
-        cards: results.map((card: any) => this.transformToUniversal(card)),
+        cards: results.map((card: unknown) => this.transformToUniversal(card)),
         total,
         page,
         hasMore: offset + results.length < total,
@@ -186,7 +186,7 @@ export class CustomGameAdapter implements ICardAdapter {
         .limit(limit);
 
       return {
-        suggestions: results.map((r: any) => ({ id: r.id, name: r.name })),
+        suggestions: results.map((r: unknown) => ({ id: r.id, name: r.name })),
       };
     } catch (error) {
       logger.error('Custom adapter autocomplete failed', error, { gameId: this.gameId, query, limit });

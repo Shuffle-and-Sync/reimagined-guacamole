@@ -125,7 +125,7 @@ export class CollaborativeStreamingService {
   ): Promise<{
     suggestedCollaborators: unknown[];
     strategicRecommendations: string[];
-    optimalScheduling: any;
+    optimalScheduling: unknown;
   }> {
     try {
       const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -290,7 +290,7 @@ export class CollaborativeStreamingService {
     collaborators: StreamCollaborator[];
     platformStatuses: Record<string, string>;
     activeViewers: number;
-    coordinationMetrics: any;
+    coordinationMetrics: unknown;
   }> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -342,8 +342,7 @@ export class CollaborativeStreamingService {
    */
   async handleCollaboratorJoin(
     eventId: string,
-    userId: string,
-    platformData: any,
+    userId: string, platformData: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -440,7 +439,7 @@ export class CollaborativeStreamingService {
   private async calculateOptimalScheduling(
     event: CollaborativeStreamEvent,
     matches: unknown[],
-  ): Promise<any> {
+  ): Promise<unknown> {
     // This would integrate with calendar systems and timezone coordination
     // For now, return basic scheduling optimization
     return {
@@ -508,7 +507,7 @@ export class CollaborativeStreamingService {
         throw new Error(`Collaborative event not found: ${eventId}`);
       }
 
-      const platformResults: Record<string, any> = {};
+      const platformResults: Record<string, unknown> = {};
       const platformErrors: string[] = [];
 
       // Validate current host before proceeding
@@ -839,7 +838,7 @@ export class CollaborativeStreamingService {
       const platformIdentifiers = await resolvePlatformIdentifiers(
         session.currentHost,
       );
-      const breakResults: Record<string, any> = {};
+      const breakResults: Record<string, unknown> = {};
 
       // Coordinate break on each active platform with real API calls
       const streamingPlatforms = event.streamingPlatforms
@@ -1054,7 +1053,7 @@ export class CollaborativeStreamingService {
       const platformIdentifiers = await resolvePlatformIdentifiers(
         session.currentHost,
       );
-      const endResults: Record<string, any> = {};
+      const endResults: Record<string, unknown> = {};
       const errors: string[] = [];
 
       // End streaming on each platform with real API calls
@@ -1314,8 +1313,7 @@ export class CollaborativeStreamingService {
    * Log coordination events for analytics and debugging
    */
   private async logCoordinationEvent(
-    eventId: string,
-    event: any,
+    eventId: string, event: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);

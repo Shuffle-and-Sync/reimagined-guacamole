@@ -901,7 +901,7 @@ export class AIStreamingMatcher {
   }
 
   // Data extraction methods
-  private extractStreamingPreferences(userSettings: any): StreamingPreferences {
+  private extractStreamingPreferences(userSettings: unknown): StreamingPreferences {
     const streamingSettings = userSettings?.streamingSettings || {};
 
     return {
@@ -939,7 +939,7 @@ export class AIStreamingMatcher {
     };
   }
 
-  private extractContentPreferences(matchingPrefs: any): ContentPreferences {
+  private extractContentPreferences(matchingPrefs: unknown): ContentPreferences {
     return {
       primaryGames: matchingPrefs?.selectedGames || ["MTG"],
       secondaryGames: matchingPrefs?.selectedFormats || [],
@@ -949,9 +949,7 @@ export class AIStreamingMatcher {
     };
   }
 
-  private extractAvailabilitySchedule(
-    user: any,
-    _userSettings: any,
+  private extractAvailabilitySchedule(user: unknown, _userSettings: unknown,
   ): AvailabilitySchedule {
     const defaultSchedule = {
       available: true,
@@ -1005,9 +1003,7 @@ export class AIStreamingMatcher {
     }
   }
 
-  private extractMatchingPreferences(
-    _matchingPrefs: any,
-    _userSettings: any,
+  private extractMatchingPreferences(_matchingPrefs: unknown, _userSettings: unknown,
   ): StreamingMatchPreferences {
     return {
       audienceSizeCompatibility: "similar",

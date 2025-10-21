@@ -138,7 +138,7 @@ export const queryOptimizations = {
   /**
    * Batch query invalidation
    */
-  batchInvalidate: (queryClient: any, patterns: string[][]) => {
+  batchInvalidate: (queryClient: unknown, patterns: string[][]) => {
     const invalidations = patterns.map((pattern) =>
       queryClient.invalidateQueries({ queryKey: pattern }),
     );
@@ -149,8 +149,7 @@ export const queryOptimizations = {
   /**
    * Selective data updates
    */
-  optimisticUpdate: <T>(
-    queryClient: any,
+  optimisticUpdate: <T>(queryClient: unknown,
     queryKey: string[],
     updater: (oldData: T) => T,
   ) => {

@@ -292,7 +292,7 @@ export function cacheMonitoringMiddleware(
 
   // Override json method to capture cache information
   const originalJson = res.json;
-  res.json = function (this: Response, obj: any): Response {
+  res.json = function (this: Response, obj: unknown): Response {
     const responseTime = Date.now() - startTime;
 
     // Check if response came from cache (would need cache implementation)

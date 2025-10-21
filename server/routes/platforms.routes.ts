@@ -113,7 +113,7 @@ router.get(
     const userId = getAuthUserId(authenticatedReq);
     const accounts = await storage.getUserPlatformAccounts(userId);
 
-    const status: Record<string, any> = {};
+    const status: Record<string, unknown> = {};
 
     for (const account of accounts) {
       const now = new Date();

@@ -61,7 +61,7 @@ interface PokemonCard {
   };
   tcgplayer?: {
     url: string;
-    prices?: any;
+    prices?: unknown;
   };
 }
 

@@ -85,7 +85,7 @@ export function teardownTestDatabase(sqlite: Database.Database) {
 /**
  * Seed test database with data
  */
-export async function seedTestDatabase(db: any, data: any = {}) {
+export async function seedTestDatabase(db: unknown, data: unknown = {}) {
   const { users = [], communities = [], events = [] } = data;
 
   // Insert seed data

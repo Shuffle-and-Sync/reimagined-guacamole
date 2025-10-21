@@ -47,14 +47,14 @@ export interface TemplateContext {
   updateMessage?: string;
   messagePreview?: string;
   viewerCount?: number;
-  weeklyStats?: any;
+  weeklyStats?: unknown;
   title?: string;
   message?: string;
   priority?: string;
   actionUrl?: string;
   actionText?: string;
   type?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class NotificationTemplateService {
@@ -64,7 +64,7 @@ export class NotificationTemplateService {
   generateNotification(
     type: string,
     context: TemplateContext,
-    customData?: any,
+    customData?: unknown,
   ): NotificationTemplate {
     const generator = this.getTemplateGenerator(type);
     if (!generator) {

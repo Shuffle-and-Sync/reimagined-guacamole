@@ -13,7 +13,7 @@ export interface TestResult {
   status: "pass" | "fail" | "warning";
   duration: number;
   message: string;
-  details?: any;
+  details?: unknown;
   error?: string;
 }
 
@@ -314,7 +314,7 @@ class InfrastructureTestService {
         const results = await Promise.all(queries);
         return {
           concurrentQueries: results.length,
-          allSuccessful: results.every((r: any) => r !== null),
+          allSuccessful: results.every((r: unknown) => r !== null),
         };
       }),
     );
@@ -779,7 +779,7 @@ class InfrastructureTestService {
   private async runTest(
     component: string,
     testName: string,
-    testFn: () => Promise<any>,
+    testFn: () => Promise<unknown>,
   ): Promise<TestResult> {
     const startTime = Date.now();
 

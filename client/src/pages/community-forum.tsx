@@ -161,7 +161,7 @@ export default function CommunityForum() {
 
   // Create forum post mutation
   const createPostMutation = useMutation({
-    mutationFn: async (postData: any) => {
+    mutationFn: async (postData: unknown) => {
       const response = await fetch("/api/forum/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

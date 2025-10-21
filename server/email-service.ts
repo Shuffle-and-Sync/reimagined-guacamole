@@ -34,7 +34,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    const emailData: any = {
+    const emailData: unknown = {
       to: params.to,
       from: params.from,
       subject: params.subject,

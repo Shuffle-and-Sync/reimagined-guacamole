@@ -586,8 +586,7 @@ export class SessionSecurityService {
    */
   private async calculateTrustScore(
     userId: string,
-    deviceHash: string,
-    historicalContext: any,
+    deviceHash: string, historicalContext: unknown,
   ): Promise<number> {
     try {
       let trustScore = 0.5; // Start with neutral trust
@@ -777,7 +776,7 @@ export class SessionSecurityService {
     return factors;
   }
 
-  private async getHistoricalSecurityContext(userId: string): Promise<any> {
+  private async getHistoricalSecurityContext(userId: string): Promise<unknown> {
     try {
       // Get user account information
       const user = await storage.getUser(userId);

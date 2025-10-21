@@ -642,7 +642,7 @@ export class CursorPagination {
    */
   static parseCursor(
     cursor: string,
-  ): { field: string; value: any; id: string } | null {
+  ): { field: string; value: unknown; id: string } | null {
     try {
       const decoded = Buffer.from(cursor, "base64").toString("utf-8");
       return JSON.parse(decoded);

@@ -12,7 +12,7 @@ export interface CalendarEvent {
   alternateSlots: number;
   gameFormat: string;
   powerLevel: number;
-  creator: any;
+  creator: unknown;
   creatorId: string;
   attendeeCount: number;
   mainPlayers: number;
@@ -20,7 +20,7 @@ export interface CalendarEvent {
 }
 
 export interface ExtendedEvent extends Event {
-  creator: any;
+  creator: unknown;
   community: Community | null;
   attendeeCount: number;
   isUserAttending?: boolean;

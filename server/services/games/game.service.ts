@@ -49,8 +49,8 @@ export interface GameUpdate {
   resourceTypes?: unknown[];
   zones?: string[];
   phaseStructure?: string[];
-  deckRules?: any;
-  theme?: any;
+  deckRules?: unknown;
+  theme?: unknown;
 }
 
 export class GameService {

@@ -39,7 +39,7 @@ export interface ServiceHealth {
   latency?: number;
   lastChecked: Date;
   error?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface Alert {
@@ -50,7 +50,7 @@ export interface Alert {
   timestamp: Date;
   resolved: boolean;
   resolvedAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface MonitoringConfig {

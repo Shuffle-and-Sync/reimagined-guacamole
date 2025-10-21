@@ -14,7 +14,7 @@ export const logger = {
     console.warn(`[WARN] ${message}`, ...args);
   },
 
-  error: (message: string, error?: any, ...args: unknown[]) => {
+  error: (message: string, error?: unknown, ...args: unknown[]) => {
     console.error(`[ERROR] ${message}`, error, ...args);
   },
 };

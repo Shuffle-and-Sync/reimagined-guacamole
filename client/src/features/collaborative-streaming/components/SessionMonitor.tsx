@@ -125,7 +125,7 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
     const interval = setInterval(() => {
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
-        type: eventTypes[Math.floor(Math.random() * eventTypes.length)] as any,
+        type: eventTypes[Math.floor(Math.random() * eventTypes.length)] as unknown,
         timestamp: new Date(),
         data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,
