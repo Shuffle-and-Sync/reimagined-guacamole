@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import Calendar from "./calendar";
 import { QueryClient } from "@tanstack/react-query";
+import * as authModule from "@/features/auth";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({
@@ -100,7 +101,7 @@ describe("Calendar Page", () => {
     });
 
     it("shows unauthenticated prompt when not logged in", () => {
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         user: null,
         isAuthenticated: false,
         isLoading: false,
@@ -112,7 +113,7 @@ describe("Calendar Page", () => {
     });
 
     it("shows loading state while checking authentication", () => {
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         user: null,
         isAuthenticated: false,
         isLoading: true,

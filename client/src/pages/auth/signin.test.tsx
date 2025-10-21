@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import SignIn from "./signin";
 import { QueryClient } from "@tanstack/react-query";
+import * as authModule from "@/features/auth";
 
 // Mock wouter
 vi.mock("wouter", () => ({
@@ -86,7 +87,7 @@ describe("Sign In Page", () => {
   describe("Google Sign In", () => {
     it("calls signIn with google provider when button clicked", async () => {
       const mockSignIn = vi.fn();
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         signIn: mockSignIn,
         isAuthenticated: false,
       });
@@ -134,9 +135,7 @@ describe("Sign In Page", () => {
         await user.tab(); // Blur the input
 
         await waitFor(() => {
-          expect(
-            screen.queryByText(/invalid email/i),
-          ).toBeInTheDocument();
+          expect(screen.queryByText(/invalid email/i)).toBeInTheDocument();
         });
       }
     });
@@ -174,7 +173,9 @@ describe("Sign In Page", () => {
       const mockLocationHref = vi.fn();
       Object.defineProperty(window, "location", {
         value: {
-          href: "",
+          get href() {
+            return "";
+          },
           set href(url) {
             mockLocationHref(url);
           },
@@ -182,7 +183,7 @@ describe("Sign In Page", () => {
         writable: true,
       });
 
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         signIn: vi.fn(),
         isAuthenticated: true,
       });
