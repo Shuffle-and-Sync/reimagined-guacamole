@@ -5250,7 +5250,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumPosts.id, postId));
-    } catch (_error) {
+    } catch (_error: unknown) {
       // Ignore if already liked
     }
   }
@@ -5362,7 +5362,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumReplies.id, replyId));
-    } catch (_error) {
+    } catch (_error: unknown) {
       // Ignore if already liked
     }
   }

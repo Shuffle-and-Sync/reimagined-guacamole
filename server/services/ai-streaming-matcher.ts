@@ -983,7 +983,7 @@ export class AIStreamingMatcher {
     try {
       // Get collaboration requests history
       // Simplified collaboration history for now
-      const requests: any[] = [];
+      const requests: unknown[] = [];
 
       return {
         totalCollaborations: requests.length,

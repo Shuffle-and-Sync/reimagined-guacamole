@@ -37,8 +37,8 @@ export default function TournamentDetail() {
       organizer: User;
       community: any;
       participants: (TournamentParticipant & { user: User })[];
-      rounds?: any[];
-      matches?: any[];
+      rounds?: unknown[];
+      matches?: unknown[];
       participantCount?: number;
       currentParticipants?: number;
     }
@@ -175,8 +175,8 @@ export default function TournamentDetail() {
                 Tournament Not Found
               </h2>
               <p className="text-muted-foreground mb-4">
-                The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t
-                have access to it.
+                The tournament you&apos;re looking for doesn&apos;t exist or you
+                don&apos;t have access to it.
               </p>
               <Button onClick={() => setLocation("/tournaments")}>
                 Back to Tournaments

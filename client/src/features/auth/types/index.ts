@@ -10,7 +10,7 @@ export interface AuthUser {
   username?: string | null;
   profileImageUrl?: string | null;
   primaryCommunity?: string | null;
-  communities?: any[] | null;
+  communities?: unknown[] | null;
 }
 
 export interface AuthSession {

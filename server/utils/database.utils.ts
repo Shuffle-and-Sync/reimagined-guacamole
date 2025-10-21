@@ -611,7 +611,7 @@ export class CursorPagination {
       } else {
         return gt(sortField, cursorData.value);
       }
-    } catch (_error) {
+    } catch (_error: unknown) {
       logger.warn("Invalid cursor provided for pagination", { cursor });
       return null;
     }

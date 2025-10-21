@@ -126,7 +126,7 @@ export const uploadMiddlewareStack = [
 /**
  * Utility function to apply middleware stack to Express app
  */
-export function applyMiddlewareStack(app: any, middlewareStack: any[]) {
+export function applyMiddlewareStack(app: any, middlewareStack: unknown[]) {
   middlewareStack.forEach((middleware) => {
     if (middleware) {
       app.use(middleware);

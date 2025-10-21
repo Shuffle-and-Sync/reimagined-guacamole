@@ -54,7 +54,7 @@ export function useOptimizedQuery<TData, TError = Error>(
 
   // Smart invalidation helper
   const smartInvalidate = useCallback(
-    (pattern?: any[]) => {
+    (pattern?: unknown[]) => {
       if (pattern) {
         queryClient.invalidateQueries({ queryKey: pattern });
       } else if (queryOptions.queryKey) {

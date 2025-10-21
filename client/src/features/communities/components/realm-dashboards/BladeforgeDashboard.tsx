@@ -19,7 +19,7 @@ interface User {
   lastName?: string;
   email?: string;
   profileImageUrl?: string;
-  communities?: any[];
+  communities?: unknown[];
 }
 
 interface BladeforgeDashboardProps {

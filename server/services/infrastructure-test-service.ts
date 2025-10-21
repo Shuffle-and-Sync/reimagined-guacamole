@@ -445,7 +445,7 @@ class InfrastructureTestService {
           AND name IN ('user_activity_logs', 'system_metrics', 'events')
         `);
           return { analyticsTablesExists: true };
-        } catch (_error) {
+        } catch (_error: unknown) {
           return {
             analyticsTablesExists: false,
             note: "Tables may not be created yet",
@@ -527,7 +527,7 @@ class InfrastructureTestService {
           AND name IN ('notifications', 'notification_preferences', 'messages')
         `);
           return { notificationTablesExist: true, count: result[0] };
-        } catch (_error) {
+        } catch (_error: unknown) {
           return {
             notificationTablesExist: false,
             error: "Tables may not be created yet",

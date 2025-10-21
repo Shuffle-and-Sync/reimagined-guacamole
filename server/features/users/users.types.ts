@@ -17,7 +17,7 @@ export interface UpdateProfileRequest {
 }
 
 export interface SocialLinksRequest {
-  links: any[];
+  links: unknown[];
 }
 
 export interface UserSettingsRequest {

@@ -69,7 +69,7 @@ export function getJsonResponse(res: any) {
  * Simulate API call
  */
 export async function callApi(
-  handler: (...args: any[]) => any,
+  handler: (...args: unknown[]) => any,
   req: any = mockRequest(),
   res: any = mockResponse(),
 ) {

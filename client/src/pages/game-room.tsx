@@ -278,7 +278,7 @@ export default function GameRoom() {
         title: "Camera enabled",
         description: "Video chat is now active for the game room.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log error for debugging
       if (import.meta.env.DEV) {
         console.error("Error accessing camera/microphone:", error);
@@ -517,7 +517,7 @@ export default function GameRoom() {
         description: "You have left the game room",
       });
       setLocation("/tablesync");
-    } catch (_error) {
+    } catch (_error: unknown) {
       toast({
         title: "Error leaving room",
         description: "Please try again",

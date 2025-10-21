@@ -12,7 +12,7 @@ import type { User } from "@shared/schema";
 export class AuthService {
   async getCurrentUser(
     userId: string,
-  ): Promise<(User & { communities?: any[] }) | null> {
+  ): Promise<(User & { communities?: unknown[] }) | null> {
     try {
       const user = await storage.getUser(userId);
       if (!user) {

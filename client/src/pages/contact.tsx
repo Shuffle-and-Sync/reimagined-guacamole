@@ -80,7 +80,7 @@ export default function Contact() {
         setSubject("");
         setMessage("");
       }
-    } catch (_error) {
+    } catch (_error: unknown) {
       toast({
         title: "Failed to send message",
         description: "Please try again later or contact us directly.",

@@ -32,8 +32,8 @@ interface TournamentEditorProps {
     organizer: User;
     community: any;
     participants: (TournamentParticipant & { user: User })[];
-    rounds?: any[];
-    matches?: any[];
+    rounds?: unknown[];
+    matches?: unknown[];
     participantCount?: number;
     currentParticipants?: number;
   };

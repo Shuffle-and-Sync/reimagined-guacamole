@@ -754,7 +754,7 @@ export class RealTimeMatchingAPI {
       );
 
       return prediction;
-    } catch (_error) {
+    } catch (_error: unknown) {
       // Fallback to heuristic estimation
       const compatibilityFactor = baseMatch.totalScore / 100;
 

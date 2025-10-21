@@ -56,7 +56,7 @@ export function CSVUploadDialog({
       header: true,
       complete: (results) => {
         const validationErrors: string[] = [];
-        const validData: any[] = [];
+        const validData: unknown[] = [];
 
         results.data.forEach((row: any, index) => {
           // Skip empty rows

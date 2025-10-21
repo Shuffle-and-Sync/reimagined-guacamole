@@ -110,14 +110,14 @@ const originalClearTimeout = global.clearTimeout;
 const originalClearInterval = global.clearInterval;
 
 // Wrap setTimeout to track timers
-global.setTimeout = function (...args: any[]): any {
+global.setTimeout = function (...args: unknown[]): any {
   const timer = originalSetTimeout.apply(this, args as any);
   activeTimers.add(timer);
   return timer;
 } as any;
 
 // Wrap setInterval to track intervals
-global.setInterval = function (...args: any[]): any {
+global.setInterval = function (...args: unknown[]): any {
   const interval = originalSetInterval.apply(this, args as any);
   activeIntervals.add(interval);
   return interval;

@@ -190,7 +190,7 @@ export function performanceMonitoringMiddleware(
 
   // Override end method to capture timing
   const originalEnd = res.end;
-  res.end = function (this: Response, ...args: any[]): Response {
+  res.end = function (this: Response, ...args: unknown[]): Response {
     const responseTime = Date.now() - startTime;
 
     // Record the request timing
@@ -331,7 +331,7 @@ export function databaseMonitoringMiddleware(
 
   // Log database stats periodically
   const originalEnd = res.end;
-  res.end = function (this: Response, ...args: any[]): Response {
+  res.end = function (this: Response, ...args: unknown[]): Response {
     // Log database stats for slow requests or errors
     if (res.statusCode >= 400 || Date.now() - (req as any).startTime > 1000) {
       const dbStats = dbMonitor.getStats();

@@ -323,11 +323,11 @@ export class AnalyticsService {
     timeframe: "24h" | "7d" | "30d" | "90d" = "7d",
   ): Promise<{
     timeframe: string;
-    userActivity: any[];
-    communityGrowth: any[];
-    streamingMetrics: any[];
-    platformHealth: any[];
-    keyInsights: any[];
+    userActivity: unknown[];
+    communityGrowth: unknown[];
+    streamingMetrics: unknown[];
+    platformHealth: unknown[];
+    keyInsights: unknown[];
   }> {
     try {
       const startDate = this.getTimeframeStartDate(timeframe);
@@ -404,9 +404,9 @@ export class AnalyticsService {
     engagementScore: number;
     preferredFeatures: string[];
     recommendedActions: string[];
-    activityPattern: any[];
-    activityPatterns: any[];
-    collaborationHistory: any[];
+    activityPattern: unknown[];
+    activityPatterns: unknown[];
+    collaborationHistory: unknown[];
   }> {
     try {
       const [activityData, engagementMetrics, collaborationData] =
@@ -561,7 +561,7 @@ export class AnalyticsService {
     return [];
   }
 
-  private generateKeyInsights(_data: any): any[] {
+  private generateKeyInsights(_data: any): unknown[] {
     // Generate key insights from aggregated data
     return [];
   }
@@ -592,9 +592,9 @@ export class AnalyticsService {
   }
 
   private analyzeUserBehavior(
-    _activityData: any[],
+    _activityData: unknown[],
     _engagementMetrics: any,
-    _collaborationData: any[],
+    _collaborationData: unknown[],
   ): any {
     // Analyze user behavior and generate insights
     return {

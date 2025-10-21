@@ -30,7 +30,7 @@ export class EnhancedNotificationService {
         webhook?: boolean;
       };
     },
-  ): Promise<{ notification: Notification; deliveryResults: any[] }> {
+  ): Promise<{ notification: Notification; deliveryResults: unknown[] }> {
     try {
       // Generate notification from template
       const template = notificationTemplateService.generateNotification(

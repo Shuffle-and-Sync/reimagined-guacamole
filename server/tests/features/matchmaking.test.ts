@@ -289,7 +289,7 @@ describe("Matchmaking System - Unit Tests", () => {
       ];
 
       // Pair closest two, leave third
-      const pairs: any[] = [];
+      const pairs: unknown[] = [];
       const remaining = [...players];
 
       if (remaining.length >= 2) {

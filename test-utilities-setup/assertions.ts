@@ -17,7 +17,7 @@ export function assertObjectContains(actual: any, expected: Partial<any>) {
  * Assert that an array contains objects matching criteria
  */
 export function assertArrayContainsObject(
-  array: any[],
+  array: unknown[],
   criteria: Partial<any>,
 ) {
   const match = array.find((item) => {

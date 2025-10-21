@@ -190,7 +190,7 @@ export const errorAssertions = {
     if (field) {
       expect(error.error.details?.validationErrors).toBeDefined();
       const fieldError = error.error.details.validationErrors.find(
-        (e: any) => e.field === field,
+        (e: unknown) => e.field === field,
       );
       expect(fieldError).toBeDefined();
     }

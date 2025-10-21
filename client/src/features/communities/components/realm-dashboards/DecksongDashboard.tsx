@@ -18,7 +18,7 @@ interface User {
   lastName?: string;
   email?: string;
   profileImageUrl?: string;
-  communities?: any[];
+  communities?: unknown[];
 }
 
 interface DecksongDashboardProps {
@@ -231,8 +231,8 @@ export function DecksongDashboard({ user }: DecksongDashboardProps) {
                       className="text-purple-600 text-lg"
                       style={{ fontFamily: theme.fonts.accent }}
                     >
-                      Your tale begins now. Let&apos;s create something truly magical
-                      together
+                      Your tale begins now. Let&apos;s create something truly
+                      magical together
                     </p>
                   </div>
                   <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0 text-lg px-4 py-2">

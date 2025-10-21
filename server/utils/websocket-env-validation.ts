@@ -139,7 +139,7 @@ export class WebSocketEnvironmentValidator {
     try {
       const authOrigin = new URL(authUrl).origin;
       origins.add(authOrigin);
-    } catch (_error) {
+    } catch (_error: unknown) {
       logger.warn("Could not parse AUTH_URL for allowed origins", { authUrl });
     }
 
@@ -209,7 +209,7 @@ export class WebSocketEnvironmentValidator {
       const url = new URL(authUrl);
       const protocol = wsProtocol === "wss" ? "https:" : "http:";
       return `${protocol}//${url.host}`;
-    } catch (_error) {
+    } catch (_error: unknown) {
       // Fallback for localhost
       const protocol = wsProtocol === "wss" ? "https:" : "http:";
       return `${protocol}//localhost:${port}`;
@@ -219,7 +219,7 @@ export class WebSocketEnvironmentValidator {
   private extractHostFromUrl(url: string): string {
     try {
       return new URL(url).host;
-    } catch (_error) {
+    } catch (_error: unknown) {
       logger.warn("Could not extract host from URL", { url });
       return "localhost";
     }

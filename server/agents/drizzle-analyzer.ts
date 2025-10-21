@@ -431,7 +431,7 @@ export class DrizzleAnalyzer {
             files.push(fullPath);
           }
         }
-      } catch (_error) {
+      } catch (_error: unknown) {
         // Skip directories that can't be read
       }
     }

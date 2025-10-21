@@ -45,9 +45,9 @@ export interface DeliveryResult {
  */
 export class NotificationDeliveryService {
   private webSocketConnections = new Map<string, any>(); // WebSocket connections per user
-  private emailQueue: any[] = []; // Email delivery queue
-  private smsQueue: any[] = []; // SMS delivery queue
-  private webhookQueue: any[] = []; // Webhook delivery queue
+  private emailQueue: unknown[] = []; // Email delivery queue
+  private smsQueue: unknown[] = []; // SMS delivery queue
+  private webhookQueue: unknown[] = []; // Webhook delivery queue
 
   /**
    * Send notification through all enabled channels based on user preferences

@@ -18,5 +18,5 @@ export interface AuthenticatedUser {
   email: string | null;
   firstName?: string | null;
   lastName?: string | null;
-  communities?: any[];
+  communities?: unknown[];
 }

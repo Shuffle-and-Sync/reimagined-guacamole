@@ -25,7 +25,7 @@ describe("Security Audit & Hardening Checklist", () => {
         const vulnerabilityCount = audit.metadata?.vulnerabilities?.total || 0;
 
         expect(vulnerabilityCount).toBe(0);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // npm audit exits with non-zero when vulnerabilities are found
         if (error.stdout) {
           const audit = JSON.parse(error.stdout);
@@ -159,7 +159,7 @@ describe("Security Audit & Hardening Checklist", () => {
         );
         // If we get here, .env.production was found
         fail(".env.production should not exist in git history");
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Good - grep returned no results (exit code 1) or other error
         // grep exits with 1 when no matches, which is what we want
         if (error.status === undefined) {

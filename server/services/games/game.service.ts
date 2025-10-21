@@ -20,7 +20,7 @@ export interface GameData {
   complexity?: number;
   ageRating?: string;
   cardTypes?: string[];
-  resourceTypes?: any[];
+  resourceTypes?: unknown[];
   zones?: string[];
   phaseStructure?: string[];
   deckRules?: {
@@ -46,7 +46,7 @@ export interface GameUpdate {
   complexity?: number;
   ageRating?: string;
   cardTypes?: string[];
-  resourceTypes?: any[];
+  resourceTypes?: unknown[];
   zones?: string[];
   phaseStructure?: string[];
   deckRules?: any;

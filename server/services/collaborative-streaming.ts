@@ -123,7 +123,7 @@ export class CollaborativeStreamingService {
     eventId: string,
     requesterId: string,
   ): Promise<{
-    suggestedCollaborators: any[];
+    suggestedCollaborators: unknown[];
     strategicRecommendations: string[];
     optimalScheduling: any;
   }> {
@@ -395,7 +395,7 @@ export class CollaborativeStreamingService {
    */
   private generateStrategicRecommendations(
     event: CollaborativeStreamEvent,
-    matches: any[],
+    matches: unknown[],
   ): string[] {
     const recommendations: string[] = [];
 
@@ -439,7 +439,7 @@ export class CollaborativeStreamingService {
    */
   private async calculateOptimalScheduling(
     event: CollaborativeStreamEvent,
-    matches: any[],
+    matches: unknown[],
   ): Promise<any> {
     // This would integrate with calendar systems and timezone coordination
     // For now, return basic scheduling optimization
@@ -454,7 +454,7 @@ export class CollaborativeStreamingService {
   /**
    * Calculate timezone coverage for global audience reach
    */
-  private calculateTimezoneCoverage(_matches: any[]): any {
+  private calculateTimezoneCoverage(_matches: unknown[]): any {
     // Analyze timezone distribution of potential collaborators
     return {
       primaryTimezone: "UTC-5",

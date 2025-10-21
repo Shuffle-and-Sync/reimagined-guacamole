@@ -45,7 +45,7 @@ export class AutomatedFixEngine {
         message: "ESLint auto-fixes completed successfully",
         changedFiles: [],
       };
-    } catch (_error) {
+    } catch (_error: unknown) {
       // ESLint returns non-zero exit code even when fixes are applied
       return {
         success: true,
@@ -103,7 +103,7 @@ export class AutomatedFixEngine {
         message: "TypeScript check passed successfully",
         changedFiles: [],
       };
-    } catch (_error) {
+    } catch (_error: unknown) {
       return {
         success: false,
         message: "TypeScript check found errors that need manual fixing",
@@ -131,7 +131,7 @@ export class AutomatedFixEngine {
         message: "Database health check passed",
         changedFiles: [],
       };
-    } catch (_error) {
+    } catch (_error: unknown) {
       return {
         success: false,
         message: "Database health check failed - check connection and schema",
@@ -160,7 +160,7 @@ export class AutomatedFixEngine {
         message: "All tests passed successfully",
         changedFiles: [],
       };
-    } catch (_error) {
+    } catch (_error: unknown) {
       return {
         success: false,
         message: "Some tests failed - manual review required",
