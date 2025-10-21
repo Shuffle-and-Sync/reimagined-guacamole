@@ -7,7 +7,7 @@
  * Database Configuration:
  * - Uses Drizzle ORM exclusively (NOT Prisma)
  * - No checks for Prisma Client or generated/prisma/ directory
- * - No checks for pg (PostgreSQL) driver
+ * - No checks for database-specific drivers (using SQLite Cloud)
  * - Uses SQLite Cloud with Drizzle ORM for all database operations
  */
 

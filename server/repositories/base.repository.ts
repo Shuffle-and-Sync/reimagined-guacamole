@@ -566,7 +566,7 @@ export abstract class BaseRepository<
         // Use db.execute() with sql.raw() - this is the correct Drizzle ORM API
         // Note: sql.raw() must be used with db.execute(), not db.run()
         const sqlQuery = sql.raw(query);
-        // @ts-expect-error: Temporary workaround for SQLite vs PostgreSQL type mismatch
+        // @ts-expect-error: Temporary workaround for type system limitation with dynamic SQL execution
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
