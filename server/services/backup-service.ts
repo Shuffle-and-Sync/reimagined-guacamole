@@ -4,7 +4,7 @@ import { logger } from "../logger";
 import path from "path";
 import fs from "fs/promises";
 import { spawn } from "child_process";
-import { promisify } from "util";
+
 import crypto from "crypto";
 
 export interface BackupMetadata {
@@ -485,7 +485,7 @@ class BackupService {
 
       if (options.compression) {
         // Use gzip compression
-        outputFile = filePath.replace(".gz", "");
+        _outputFile = filePath.replace(".gz", "");
         args.push("--compress=9");
       }
 

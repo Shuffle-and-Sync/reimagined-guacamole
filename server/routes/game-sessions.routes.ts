@@ -9,13 +9,13 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-import { logger } from "../logger";
+
 import { storage } from "../storage";
+import { validateRequest, validateGameSessionSchema } from "../validation";
 import {
-  validateRequest,
-  validateGameSessionSchema,
-} from "../validation";
-import { errors, errorHandlingMiddleware } from "../middleware/error-handling.middleware";
+  errors,
+  errorHandlingMiddleware,
+} from "../middleware/error-handling.middleware";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError } = errors;
@@ -77,7 +77,7 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
-    
+
     await storage.joinGameSession(id, userId);
 
     // Create notification for host when someone joins
@@ -105,7 +105,7 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
-    
+
     await storage.leaveGameSession(id, userId);
 
     // Create notification for host when someone leaves
@@ -133,7 +133,7 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
-    
+
     await storage.spectateGameSession(id, userId);
 
     // Create notification for host when someone starts spectating

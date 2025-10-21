@@ -11,7 +11,7 @@ import { Router } from "express";
 describe("Auth Routes - Wildcard Pattern", () => {
   test("/* pattern should be used for Express Router wildcard matching", () => {
     // This test validates the pattern we use in server/auth/auth.routes.ts
-    const router = Router();
+    const _router = Router();
 
     // The correct pattern for matching all sub-paths in a router
     const correctPattern = "/*";

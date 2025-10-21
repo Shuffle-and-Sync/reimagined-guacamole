@@ -34,7 +34,7 @@ export class AutomatedFixEngine {
       logger.info("🔧 Running ESLint with auto-fix...");
 
       const command = "npm run lint";
-      const output = execSync(command, {
+      const _output = execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -45,7 +45,7 @@ export class AutomatedFixEngine {
         message: "ESLint auto-fixes completed successfully",
         changedFiles: [],
       };
-    } catch (error) {
+    } catch (_error) {
       // ESLint returns non-zero exit code even when fixes are applied
       return {
         success: true,
@@ -92,7 +92,7 @@ export class AutomatedFixEngine {
       logger.info("📝 Running TypeScript type checking...");
 
       const command = "npm run check";
-      const output = execSync(command, {
+      const _output = execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -103,7 +103,7 @@ export class AutomatedFixEngine {
         message: "TypeScript check passed successfully",
         changedFiles: [],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         message: "TypeScript check found errors that need manual fixing",
@@ -120,7 +120,7 @@ export class AutomatedFixEngine {
       logger.info("🗄️ Running database health check...");
 
       const command = "npm run db:health";
-      const output = execSync(command, {
+      const _output = execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -131,7 +131,7 @@ export class AutomatedFixEngine {
         message: "Database health check passed",
         changedFiles: [],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         message: "Database health check failed - check connection and schema",
@@ -148,7 +148,7 @@ export class AutomatedFixEngine {
       logger.info("🧪 Running test suite...");
 
       const command = "npm run test";
-      const output = execSync(command, {
+      const _output = execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -160,7 +160,7 @@ export class AutomatedFixEngine {
         message: "All tests passed successfully",
         changedFiles: [],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         message: "Some tests failed - manual review required",

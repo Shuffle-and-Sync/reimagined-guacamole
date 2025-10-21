@@ -1,6 +1,6 @@
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
-import { randomBytes, createHash } from "crypto";
+import { randomBytes } from "crypto";
 import { logger } from "../logger";
 
 /**

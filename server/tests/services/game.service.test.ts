@@ -7,8 +7,8 @@
 import { gameService } from "../../services/games/game.service";
 import { db } from "../../../shared/database-unified";
 import { games } from "../../../shared/schema";
-import { eq } from "drizzle-orm";
-import { createMockGame, createMockUser } from "../__factories__";
+
+import { createMockGame } from "../__factories__";
 
 // Mock the database
 jest.mock("../../../shared/database-unified", () => ({

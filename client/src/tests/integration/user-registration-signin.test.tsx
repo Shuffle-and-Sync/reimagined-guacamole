@@ -20,7 +20,6 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/test-utils/mocks/server";
 import Register from "@/pages/auth/register";
 import SignIn from "@/pages/auth/signin";
-import { Router, Route } from "wouter";
 
 // Mock user data for the test
 const mockUser = {

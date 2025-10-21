@@ -11,7 +11,7 @@ import {
   tournamentHandlers,
   communityHandlers,
 } from "./mock-handlers";
-import { testDataGenerators } from "./database.helper";
+
 import type { MockResponse } from "./mock-handlers";
 
 /**
@@ -128,7 +128,7 @@ export const eventFlows = {
   /**
    * Leave an event
    */
-  async leaveEvent(eventId: string, userId: string): Promise<MockResponse> {
+  async leaveEvent(_eventId: string, _userId: string): Promise<MockResponse> {
     return {
       status: 200,
       message: "Successfully left event",
@@ -209,8 +209,8 @@ export const tournamentFlows = {
    * Unregister from a tournament
    */
   async unregister(
-    tournamentId: string,
-    userId: string,
+    _tournamentId: string,
+    _userId: string,
   ): Promise<MockResponse> {
     return {
       status: 200,
@@ -255,7 +255,7 @@ export const communityFlows = {
   /**
    * Leave a community
    */
-  async leave(userId: string, communityId: string): Promise<MockResponse> {
+  async leave(_userId: string, _communityId: string): Promise<MockResponse> {
     return {
       status: 200,
       message: "Successfully left community",
@@ -265,7 +265,7 @@ export const communityFlows = {
   /**
    * Get user's communities
    */
-  async getUserCommunities(userId: string): Promise<MockResponse> {
+  async getUserCommunities(_userId: string): Promise<MockResponse> {
     // Simulate getting communities for a user
     const allCommunities = communityHandlers.getAll();
     return {
@@ -328,8 +328,8 @@ export const deckFlows = {
    * Remove cards from a deck
    */
   async removeCards(
-    deckId: string,
-    cards: Array<{ cardId: string; quantity: number }>,
+    _deckId: string,
+    _cards: Array<{ cardId: string; quantity: number }>,
   ): Promise<MockResponse> {
     return {
       status: 200,
@@ -340,7 +340,7 @@ export const deckFlows = {
   /**
    * Validate deck against format rules
    */
-  async validateDeck(deckId: string, format: string): Promise<MockResponse> {
+  async validateDeck(_deckId: string, _format: string): Promise<MockResponse> {
     // Simplified validation
     return {
       status: 200,

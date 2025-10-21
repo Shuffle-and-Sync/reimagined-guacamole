@@ -8,14 +8,14 @@
 import {
   UserRepository,
   UserSearchOptions,
-  UserUpdateData,
+  _UserUpdateData,
   UserWithCommunities,
 } from "../repositories/user.repository";
 import { type User } from "@shared/schema";
 import { logger } from "../logger";
 import {
   ValidationError,
-  AuthenticationError,
+  _AuthenticationError,
   ConflictError,
 } from "../middleware/error-handling.middleware";
 import { PaginatedResult } from "../repositories/base.repository";

@@ -148,7 +148,7 @@ export class UserRepository extends BaseRepository<
           status,
           role,
           communityId,
-          includeDeleted,
+          _includeDeleted,
           ...baseOptions
         } = options;
 

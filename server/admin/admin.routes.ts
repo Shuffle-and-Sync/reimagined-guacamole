@@ -6,8 +6,8 @@ import { logger } from "../logger";
 import { assertRouteParam } from "../shared/utils";
 import {
   requirePermission,
-  requireAllPermissions,
-  requireAnyPermission,
+  _requireAllPermissions,
+  _requireAnyPermission,
   requireAdmin,
   auditAdminAction,
   comprehensiveAuditLogging,
@@ -738,7 +738,7 @@ router.post(
         return;
       }
 
-      const { action, reason, duration, notes } = validation.data;
+      const { action, reason, duration, _notes } = validation.data;
       const adminUserId = getAuthUserId(req);
 
       const user = await storage.getUser(userId);
@@ -1198,7 +1198,7 @@ router.post(
         return;
       }
 
-      const { reason, notes } = validation.data;
+      const { reason, _notes } = validation.data;
       const adminUserId = getAuthUserId(req);
 
       const action = await storage.getModerationAction(actionId);

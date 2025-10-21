@@ -9,9 +9,9 @@ interface GamePodCalendarProps {
 }
 
 export function GamePodCalendar({
-  communityId,
+  _communityId,
   communityName,
-  theme,
+  _theme,
 }: GamePodCalendarProps) {
   return (
     <Card>

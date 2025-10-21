@@ -37,7 +37,7 @@ describe("GitIgnore Environment File Protection", () => {
 
           // Check if Git would ignore it
           try {
-            const result = execSync(`git check-ignore -q "${tempFile}"`, {
+            const _result = execSync(`git check-ignore -q "${tempFile}"`, {
               cwd: ROOT_DIR,
               encoding: "utf8",
             });
@@ -103,7 +103,7 @@ describe("GitIgnore Environment File Protection", () => {
         const filePath = join(ROOT_DIR, file);
 
         try {
-          const result = execSync(`git check-ignore -q "${filePath}"`, {
+          const _result = execSync(`git check-ignore -q "${filePath}"`, {
             cwd: ROOT_DIR,
             encoding: "utf8",
           });

@@ -8,7 +8,7 @@
 import { logger } from "../logger";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import { aiAlgorithmEngine } from "./ai-algorithm-engine";
-import { storage } from "../storage";
+
 import type { ConnectedPlatform } from "./ai-streaming-matcher";
 
 // Real-time matching interfaces
@@ -583,7 +583,7 @@ export class RealTimeMatchingAPI {
 
   private sortMatchesByRelevance(
     matches: EnhancedStreamerMatch[],
-    request: RealTimeMatchRequest,
+    _request: RealTimeMatchRequest,
   ): EnhancedStreamerMatch[] {
     return matches.sort((a, b) => {
       // Multi-factor sorting
@@ -754,7 +754,7 @@ export class RealTimeMatchingAPI {
       );
 
       return prediction;
-    } catch (error) {
+    } catch (_error) {
       // Fallback to heuristic estimation
       const compatibilityFactor = baseMatch.totalScore / 100;
 
@@ -881,7 +881,7 @@ export class RealTimeMatchingAPI {
 
   private createFallbackResponse(
     requestId: string,
-    request: RealTimeMatchRequest,
+    _request: RealTimeMatchRequest,
   ): RealTimeMatchResponse {
     return {
       requestId,
@@ -971,7 +971,7 @@ export class RealTimeMatchingAPI {
   }
 
   private async analyzeEventOpportunities(
-    userProfile: any,
+    _userProfile: any,
   ): Promise<TrendingOpportunity[]> {
     // Simulate event-based opportunities
     return [
@@ -988,7 +988,7 @@ export class RealTimeMatchingAPI {
   }
 
   private async analyzePlatformOpportunities(
-    userProfile: any,
+    _userProfile: any,
   ): Promise<TrendingOpportunity[]> {
     // Simulate platform feature opportunities
     return [

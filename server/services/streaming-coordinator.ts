@@ -1,6 +1,6 @@
 import { twitchAPI } from "./twitch-api";
 import { storage } from "../storage";
-import type { User } from "@shared/schema";
+
 import { cacheService } from "./cache-service";
 import { logger } from "../logger";
 // import { notificationDelivery } from './notification-delivery'; // Commented out for now
@@ -211,9 +211,7 @@ export class StreamingCoordinator {
   /**
    * Check if a user is currently streaming on any platform
    */
-  async isUserStreaming(
-    userId: string,
-  ): Promise<{
+  async isUserStreaming(userId: string): Promise<{
     isStreaming: boolean;
     platform?: string;
     streamTitle?: string;
@@ -454,7 +452,7 @@ export class StreamingCoordinator {
    */
   async getStreamingAnalytics(
     userId: string,
-    timeRange: "week" | "month" | "year" = "month",
+    _timeRange: "week" | "month" | "year" = "month",
   ): Promise<{
     totalStreams: number;
     totalHours: number;

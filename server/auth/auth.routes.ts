@@ -1,5 +1,5 @@
 // Auth.js v5 Express.js integration routes
-import { type Router } from "express";
+
 import { ExpressAuth } from "@auth/express";
 import { authConfig } from "./auth.config";
 

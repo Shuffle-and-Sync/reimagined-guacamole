@@ -5,8 +5,6 @@
  * NOTE: games table not yet implemented in schema - custom games disabled
  */
 
-import { eq } from "drizzle-orm";
-import { db } from "../../../shared/database-unified";
 // TODO: Re-enable when games table is added to schema
 // import { games } from '../../../shared/schema';
 import { logger } from "../../logger";
@@ -19,7 +17,6 @@ import {
 import { scryfallAdapter } from "./adapters/scryfall.adapter";
 import { pokemonTCGAdapter } from "./adapters/pokemon.adapter";
 import { yugiohAdapter } from "./adapters/yugioh.adapter";
-import { CustomGameAdapter } from "./adapters/custom.adapter";
 
 export class UniversalCardService {
   private adapters = new Map<string, ICardAdapter>();

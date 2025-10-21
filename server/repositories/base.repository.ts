@@ -5,7 +5,7 @@
  * following Copilot best practices for database interaction patterns.
  */
 
-import { eq, and, or, SQL, sql, asc, desc, count, lt, gt } from "drizzle-orm";
+import { eq, and, SQL, sql, asc, desc, count, lt, gt } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";

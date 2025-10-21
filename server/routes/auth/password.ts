@@ -7,10 +7,7 @@ import {
   validatePasswordResetSchema,
 } from "../../validation";
 import { passwordResetRateLimit } from "../../rate-limiting";
-import {
-  validatePasswordStrength,
-  hashPassword,
-} from "../../auth/password";
+import { validatePasswordStrength, hashPassword } from "../../auth/password";
 import {
   generatePasswordResetJWT,
   verifyPasswordResetJWT,
@@ -74,7 +71,7 @@ router.post(
         message:
           "If an account with that email exists, a password reset link has been sent.",
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error("Password reset request failed", {
         email: req.body.email,
       });

@@ -18,9 +18,9 @@ import {
   globalErrorHandler,
   ValidationError,
   AuthenticationError,
-  AuthorizationError,
+  _AuthorizationError,
   NotFoundError,
-  DatabaseError,
+  _DatabaseError,
 } from "../../../middleware/error-handling.middleware";
 
 describe("End-to-End Error Scenario Tests", () => {

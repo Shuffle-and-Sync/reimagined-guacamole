@@ -274,7 +274,7 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      const initialTheme = result.current.communityTheme;
+      const _initialTheme = result.current.communityTheme;
 
       result.current.setSelectedCommunity(mockCommunities[0]);
 

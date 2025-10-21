@@ -575,7 +575,7 @@ server.listen(
         let userId;
         try {
           userId = getAuthUserId(req);
-        } catch (authError) {
+        } catch (_authError) {
           res.status(401).json({ message: "Authentication required" });
           return;
         }
@@ -605,22 +605,18 @@ server.listen(
 
         // Check if new email is same as current
         if (user.email === newEmail) {
-          res
-            .status(400)
-            .json({
-              message: "New email address must be different from current email",
-            });
+          res.status(400).json({
+            message: "New email address must be different from current email",
+          });
           return;
         }
 
         // Check if new email is already taken by another user
         const existingUser = await storage.getUserByEmail(newEmail);
         if (existingUser && existingUser.id !== userId) {
-          res
-            .status(409)
-            .json({
-              message: "Email address is already in use by another account",
-            });
+          res.status(409).json({
+            message: "Email address is already in use by another account",
+          });
           return;
         }
 
@@ -769,7 +765,7 @@ server.listen(
         let userId;
         try {
           userId = getAuthUserId(req);
-        } catch (authError) {
+        } catch (_authError) {
           res.status(401).json({ message: "Authentication required" });
           return;
         }
@@ -790,7 +786,7 @@ server.listen(
   app.use(sentryErrorHandler());
 
   // Basic error handler
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     console.error("Server error:", err.message);
     res.status(500).json({ message: "Internal server error" });
   });

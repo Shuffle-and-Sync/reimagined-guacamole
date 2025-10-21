@@ -21,7 +21,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
     return user?.email === "admin@shuffleandsync.com";
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 };
@@ -112,7 +112,7 @@ router.get("/health", async (req, res) => {
         .json({ success: false, error: "Admin access required" });
     }
 
-    const status = monitoringService.getStatus();
+    const _status = monitoringService.getStatus();
     const healthChecks = await monitoringService.performHealthChecks();
 
     return res.json({

@@ -10,8 +10,7 @@
  * - Better assertions and behavioral testing
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
-import { createMockUser } from "../__factories__";
+import { describe, test, expect, afterEach } from "@jest/globals";
 
 const createMockMatchingCriteria = (overrides = {}) => ({
   userId: "user-123",
@@ -229,7 +228,7 @@ describe("Matchmaking System - Unit Tests", () => {
 
     test("should track queue wait time", () => {
       const queuedAt = new Date(Date.now() - 60000); // 1 minute ago
-      const player = createMockPlayer({ queuedAt });
+      const _player = createMockPlayer({ queuedAt });
 
       const waitTime = Date.now() - queuedAt.getTime();
 
@@ -649,7 +648,7 @@ describe("Matchmaking System - E2E Tests", () => {
         createMockPlayer({ userId: "user-4", skillRating: 1490 }),
       ];
 
-      const queue = createMockQueue({ players });
+      const _queue = createMockQueue({ players });
 
       // Create pairs
       const pairs: unknown[] = [];

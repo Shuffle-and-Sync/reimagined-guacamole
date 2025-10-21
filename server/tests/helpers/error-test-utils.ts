@@ -5,7 +5,6 @@
  * across the Shuffle & Sync platform.
  */
 
-import { Response } from "express";
 import {
   ValidationError,
   AuthenticationError,

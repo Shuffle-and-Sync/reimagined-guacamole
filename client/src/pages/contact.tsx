@@ -80,7 +80,7 @@ export default function Contact() {
         setSubject("");
         setMessage("");
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Failed to send message",
         description: "Please try again later or contact us directly.",
@@ -102,8 +102,8 @@ export default function Contact() {
               Contact Us
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Have questions, feedback, or need support? We&apos;d love to hear from
-              you.
+              Have questions, feedback, or need support? We&apos;d love to hear
+              from you.
             </p>
           </div>
 
@@ -151,7 +151,7 @@ export default function Contact() {
                       type="text"
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      placeholder="What&apos;s this about?"
+                      placeholder="What's this about?"
                       required
                       data-testid="input-subject"
                     />

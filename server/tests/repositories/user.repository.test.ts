@@ -396,7 +396,7 @@ describe("UserRepository - User-Specific Operations", () => {
         .mockReturnValue({ returning: mockReturning });
       const mockSet = jest.fn().mockReturnValue({ where: mockWhereUpdate });
 
-      let selectCallCount = 0;
+      let _selectCallCount = 0;
       (mockDb.select as jest.Mock).mockImplementation(() => {
         selectCallCount++;
         return { from: mockFrom };
@@ -482,7 +482,7 @@ describe("UserRepository - User-Specific Operations", () => {
       const mockSet = jest.fn().mockReturnValue({ where: mockWhereUpdate });
       (mockDb.update as jest.Mock).mockReturnValue({ set: mockSet });
 
-      const result = await repository.updateProfile(existingUser.id, {
+      const _result = await repository.updateProfile(existingUser.id, {
         email: "new@example.com",
       });
 
@@ -660,15 +660,13 @@ describe("UserRepository - User-Specific Operations", () => {
           }),
           delete: jest.fn().mockReturnValue({
             where: jest.fn().mockReturnValue({
-              returning: jest
-                .fn()
-                .mockResolvedValue([
-                  {
-                    userId: testUser.id,
-                    communityId: testCommunity.id,
-                    isPrimary: false,
-                  },
-                ]),
+              returning: jest.fn().mockResolvedValue([
+                {
+                  userId: testUser.id,
+                  communityId: testCommunity.id,
+                  isPrimary: false,
+                },
+              ]),
             }),
           }),
           insert: jest.fn(),
@@ -727,15 +725,13 @@ describe("UserRepository - User-Specific Operations", () => {
           }),
           delete: jest.fn().mockReturnValue({
             where: jest.fn().mockReturnValue({
-              returning: jest
-                .fn()
-                .mockResolvedValue([
-                  {
-                    userId: testUser.id,
-                    communityId: testCommunity.id,
-                    isPrimary: true,
-                  },
-                ]),
+              returning: jest.fn().mockResolvedValue([
+                {
+                  userId: testUser.id,
+                  communityId: testCommunity.id,
+                  isPrimary: true,
+                },
+              ]),
             }),
           }),
           update: mockUpdate,

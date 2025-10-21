@@ -9,10 +9,13 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-import { logger } from "../logger";
+
 import { storage } from "../storage";
 import { assertRouteParam } from "../shared/utils";
-import { errors, errorHandlingMiddleware } from "../middleware/error-handling.middleware";
+import {
+  errors,
+  errorHandlingMiddleware,
+} from "../middleware/error-handling.middleware";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError, ValidationError, AuthorizationError } = errors;

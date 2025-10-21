@@ -115,7 +115,7 @@ export default function Matchmaking() {
 
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity, _communityTheme } = useCommunity();
 
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
@@ -127,14 +127,14 @@ export default function Matchmaking() {
   const [location, setLocation] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [availability, setAvailability] = useState("any");
-  const [language, setLanguage] = useState("english");
+  const [_language, setLanguage] = useState("english");
 
   // Search state
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Fetch user's matchmaking preferences
-  const { data: savedPreferences, isLoading: preferencesLoading } =
+  const { data: savedPreferences, isLoading: _preferencesLoading } =
     useQuery<MatchmakingPreferences>({
       queryKey: ["/api/matchmaking/preferences"],
       enabled: !!user?.id,
@@ -314,7 +314,7 @@ export default function Matchmaking() {
     );
   }, []);
 
-  const toggleFormat = useCallback((format: string) => {
+  const _toggleFormat = useCallback((format: string) => {
     setSelectedFormats((prev) =>
       prev.includes(format)
         ? prev.filter((f) => f !== format)

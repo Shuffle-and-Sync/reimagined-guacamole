@@ -536,7 +536,10 @@ export function parsePaginationQuery(query: Record<string, unknown>): {
 /**
  * Generate cursor for next page in cursor-based pagination
  */
-export function generateCursor(lastItem: Record<string, unknown>, sortField: string): string {
+export function generateCursor(
+  lastItem: Record<string, unknown>,
+  sortField: string,
+): string {
   if (!lastItem || !lastItem[sortField]) {
     return "";
   }
@@ -608,7 +611,7 @@ export class CursorPagination {
       } else {
         return gt(sortField, cursorData.value);
       }
-    } catch (error) {
+    } catch (_error) {
       logger.warn("Invalid cursor provided for pagination", { cursor });
       return null;
     }
@@ -617,7 +620,10 @@ export class CursorPagination {
   /**
    * Generate cursor from the last item in a result set
    */
-  static generateCursor(lastItem: Record<string, unknown>, sortField: string): string {
+  static generateCursor(
+    lastItem: Record<string, unknown>,
+    sortField: string,
+  ): string {
     if (!lastItem || !lastItem[sortField]) {
       return "";
     }
@@ -701,7 +707,7 @@ export class BatchQueryOptimizer {
 
     if (uniqueIds.length === 0) return new Map();
 
-    const relatedData = await batchLoader(uniqueIds);
+    const _relatedData = await batchLoader(uniqueIds);
     const dataMap = new Map<K, R[]>();
 
     uniqueIds.forEach((id) => dataMap.set(id, []));

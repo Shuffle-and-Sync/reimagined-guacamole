@@ -33,8 +33,6 @@ import {
   matchResults,
   forumPosts,
   forumReplies,
-  forumPostLikes,
-  forumReplyLikes,
   streamSessions,
   streamSessionCoHosts,
   streamSessionPlatforms,
@@ -96,8 +94,6 @@ import {
   type MatchResult,
   type ForumPost,
   type ForumReply,
-  type ForumPostLike,
-  type ForumReplyLike,
   type StreamSession,
   type StreamSessionCoHost,
   type StreamSessionPlatform,
@@ -118,21 +114,21 @@ import {
   type InsertEmailChangeToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
-  type InsertFriendship,
+  type _InsertFriendship,
   type InsertUserActivity,
   type InsertUserSettings,
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type UpdateTournament,
-  type InsertTournamentParticipant,
+  type _InsertTournamentParticipant,
   type InsertTournamentFormat,
   type InsertTournamentRound,
   type InsertTournamentMatch,
   type InsertMatchResult,
   type InsertForumPost,
   type InsertForumReply,
-  type InsertForumPostLike,
-  type InsertForumReplyLike,
+  type _InsertForumPostLike,
+  type _InsertForumReplyLike,
   type InsertStreamSession,
   type InsertStreamSessionCoHost,
   type InsertStreamSessionPlatform,
@@ -179,7 +175,7 @@ import {
   type UserMfaSettings,
   type InsertUserMfaSettings,
   type UserMfaAttempts,
-  type InsertUserMfaAttempts,
+  type _InsertUserMfaAttempts,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
   type MfaSecurityContext,
@@ -190,8 +186,8 @@ import {
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
-  type InsertRevokedJwtToken,
-  type RevokedJwtToken,
+  type _InsertRevokedJwtToken,
+  type _RevokedJwtToken,
 } from "@shared/schema";
 import {
   eq,
@@ -213,7 +209,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
-interface ExtendedEvent extends Event {
+interface _ExtendedEvent extends Event {
   date?: string;
   time?: string;
   gameFormat?: string;
@@ -225,7 +221,7 @@ interface ExtendedEvent extends Event {
   isPublic?: boolean;
 }
 
-interface ExtendedTournament extends Tournament {
+interface _ExtendedTournament extends Tournament {
   gameFormat?: string;
   rules?: Record<string, unknown>;
 }
@@ -1490,7 +1486,7 @@ export class DatabaseStorage implements IStorage {
       limit = 20,
       cursor,
       includeOffline = false,
-      sortBy = "lastActiveAt",
+      _sortBy = "lastActiveAt",
       sortDirection = "desc",
     } = options;
 
@@ -2390,7 +2386,7 @@ export class DatabaseStorage implements IStorage {
 
   async createRecurringEvents(
     data: InsertEvent,
-    endDate: string,
+    _endDate: string,
   ): Promise<Event[]> {
     // TODO: isRecurring, recurrencePattern, recurrenceInterval, date, time properties not in schema
     // if (!data.isRecurring || !data.recurrencePattern || !data.recurrenceInterval) {
@@ -3578,9 +3574,9 @@ export class DatabaseStorage implements IStorage {
     tokenType: string,
     reason: string,
     expiresAt: Date,
-    originalExpiry?: Date,
-    ipAddress?: string,
-    userAgent?: string,
+    _originalExpiry?: Date,
+    _ipAddress?: string,
+    _userAgent?: string,
   ): Promise<void> {
     await db.insert(revokedJwtTokens).values({
       jti,
@@ -4009,7 +4005,7 @@ export class DatabaseStorage implements IStorage {
     return gameSession;
   }
 
-  async joinGameSession(sessionId: string, userId: string): Promise<void> {
+  async joinGameSession(sessionId: string, _userId: string): Promise<void> {
     // Increment current players count
     await db
       .update(gameSessions)
@@ -4017,7 +4013,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async leaveGameSession(sessionId: string, userId: string): Promise<void> {
+  async leaveGameSession(sessionId: string, _userId: string): Promise<void> {
     // Decrement current players count
     await db
       .update(gameSessions)
@@ -4027,7 +4023,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async spectateGameSession(sessionId: string, userId: string): Promise<void> {
+  async spectateGameSession(sessionId: string, _userId: string): Promise<void> {
     // Increment spectator count
     await db
       .update(gameSessions)
@@ -4035,7 +4031,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async leaveSpectating(sessionId: string, userId: string): Promise<void> {
+  async leaveSpectating(sessionId: string, _userId: string): Promise<void> {
     // Decrement spectator count
     await db
       .update(gameSessions)
@@ -5254,7 +5250,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumPosts.id, postId));
-    } catch (error) {
+    } catch (_error) {
       // Ignore if already liked
     }
   }
@@ -5366,7 +5362,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumReplies.id, replyId));
-    } catch (error) {
+    } catch (_error) {
       // Ignore if already liked
     }
   }
@@ -5460,7 +5456,7 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  private async getAverageSessionDuration(userId: string): Promise<number> {
+  private async getAverageSessionDuration(_userId: string): Promise<number> {
     // Mock data for session duration - in production this would track actual sessions
     return Math.floor(Math.random() * 120) + 30; // 30-150 minutes
   }
@@ -5506,7 +5502,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async getWeeklyActivity(
-    userId: string,
+    _userId: string,
   ): Promise<Array<{ day: string; value: number }>> {
     // Mock weekly activity data - in production this would track actual user activity
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -6047,7 +6043,7 @@ export class DatabaseStorage implements IStorage {
   async respondToCollaborationRequest(
     id: string,
     status: "accepted" | "declined" | "cancelled",
-    responseMessage?: string,
+    _responseMessage?: string,
   ): Promise<CollaborationRequest> {
     try {
       // Note: collaborationRequests doesn't have a 'responseMessage' field
@@ -8300,7 +8296,7 @@ export class DatabaseStorage implements IStorage {
 
   async getBanEvasionRecords(
     userId?: string,
-    suspiciousActivity?: boolean,
+    _suspiciousActivity?: boolean,
   ): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
     const baseQuery = db
       .select({

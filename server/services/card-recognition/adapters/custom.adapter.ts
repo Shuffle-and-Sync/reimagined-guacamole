@@ -5,11 +5,9 @@
  * NOTE: Currently disabled - 'cards' table not yet implemented in schema
  */
 
-import { eq, and, like, sql } from "drizzle-orm";
-import { db } from "../../../../shared/database-unified";
 // TODO: Re-enable when cards table is added to schema
 // import { cards } from '../../../../shared/schema';
-import { logger } from "../../../logger";
+
 import type {
   ICardAdapter,
   UniversalCard,
@@ -46,8 +44,8 @@ export class CustomGameAdapter implements ICardAdapter {
   }
 
   async searchCards(
-    query: string,
-    options?: {
+    _query: string,
+    _options?: {
       set?: string;
       format?: string;
       page?: number;
@@ -103,7 +101,7 @@ export class CustomGameAdapter implements ICardAdapter {
     */
   }
 
-  async getCardById(id: string): Promise<UniversalCard | null> {
+  async getCardById(_id: string): Promise<UniversalCard | null> {
     // TODO: Re-enable when cards table is added to schema
     throw new Error(
       "Custom game adapter not yet implemented - cards table missing from schema",
@@ -131,8 +129,8 @@ export class CustomGameAdapter implements ICardAdapter {
   }
 
   async getCardByName(
-    name: string,
-    options?: { set?: string },
+    _name: string,
+    _options?: { set?: string },
   ): Promise<UniversalCard | null> {
     // TODO: Re-enable when cards table is added to schema
     throw new Error(
@@ -166,7 +164,7 @@ export class CustomGameAdapter implements ICardAdapter {
     */
   }
 
-  async autocomplete(query: string, limit = 20): Promise<AutocompleteResult> {
+  async autocomplete(query: string, _limit = 20): Promise<AutocompleteResult> {
     // TODO: Re-enable when cards table is added to schema
     throw new Error(
       "Custom game adapter not yet implemented - cards table missing from schema",
@@ -197,7 +195,7 @@ export class CustomGameAdapter implements ICardAdapter {
     */
   }
 
-  async getRandomCard(options?: {
+  async getRandomCard(_options?: {
     set?: string;
     format?: string;
   }): Promise<UniversalCard> {

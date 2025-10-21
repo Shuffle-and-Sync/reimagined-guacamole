@@ -4,7 +4,7 @@ import { cacheService } from "./cache-service";
 import { backupService } from "./backup-service";
 import { db } from "@shared/database-unified";
 import { sql } from "drizzle-orm";
-import { redisClient } from "./redis-client";
+
 import { storage } from "../storage";
 
 export interface TestResult {
@@ -152,7 +152,7 @@ class InfrastructureTestService {
     // Test alert creation (controlled test)
     suite.tests.push(
       await this.runTest("monitoring", "alert_system", async () => {
-        const initialAlerts = monitoringService.getAlerts().length;
+        const _initialAlerts = monitoringService.getAlerts().length;
 
         // Trigger a test alert via event emission (safe way to test)
         monitoringService.emit("alert", {
@@ -438,14 +438,14 @@ class InfrastructureTestService {
       await this.runTest("analytics", "data_models", async () => {
         // Test that analytics tables exist and are accessible
         try {
-          const result = await db.all(sql`
+          const _result = await db.all(sql`
           SELECT COUNT(*) as count 
           FROM sqlite_master 
           WHERE type = 'table' 
           AND name IN ('user_activity_logs', 'system_metrics', 'events')
         `);
           return { analyticsTablesExists: true };
-        } catch (error) {
+        } catch (_error) {
           return {
             analyticsTablesExists: false,
             note: "Tables may not be created yet",
@@ -527,7 +527,7 @@ class InfrastructureTestService {
           AND name IN ('notifications', 'notification_preferences', 'messages')
         `);
           return { notificationTablesExist: true, count: result[0] };
-        } catch (error) {
+        } catch (_error) {
           return {
             notificationTablesExist: false,
             error: "Tables may not be created yet",

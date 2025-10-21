@@ -697,7 +697,7 @@ class MonitoringService extends EventEmitter {
   /**
    * Check if alert can be created based on rate limiting
    */
-  private canCreateAlert(service: string, severity: string): boolean {
+  private canCreateAlert(service: string, _severity: string): boolean {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentAlerts = this.alerts.filter(
       (alert) => alert.service === service && alert.timestamp > hourAgo,

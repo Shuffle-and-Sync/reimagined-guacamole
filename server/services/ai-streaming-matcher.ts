@@ -1,5 +1,5 @@
 import { logger } from "../logger";
-import { aiAlgorithmEngine } from "./ai-algorithm-engine";
+
 import { storage } from "../storage";
 import { twitchAPI } from "./twitch-api";
 import { youtubeAPI } from "./youtube-api";
@@ -400,7 +400,7 @@ export class AIStreamingMatcher {
    */
   private async getStreamingCandidates(
     criteria: MatchingCriteria,
-    userProfile: StreamerProfile,
+    _userProfile: StreamerProfile,
   ): Promise<StreamerProfile[]> {
     try {
       // Get basic users first, then build streaming profiles
@@ -441,7 +441,7 @@ export class AIStreamingMatcher {
   private async calculateStreamingCompatibility(
     userProfile: StreamerProfile,
     candidates: StreamerProfile[],
-    criteria: MatchingCriteria,
+    _criteria: MatchingCriteria,
   ): Promise<StreamerMatch[]> {
     const matches: StreamerMatch[] = [];
 
@@ -951,7 +951,7 @@ export class AIStreamingMatcher {
 
   private extractAvailabilitySchedule(
     user: any,
-    userSettings: any,
+    _userSettings: any,
   ): AvailabilitySchedule {
     const defaultSchedule = {
       available: true,
@@ -1006,8 +1006,8 @@ export class AIStreamingMatcher {
   }
 
   private extractMatchingPreferences(
-    matchingPrefs: any,
-    userSettings: any,
+    _matchingPrefs: any,
+    _userSettings: any,
   ): StreamingMatchPreferences {
     return {
       audienceSizeCompatibility: "similar",

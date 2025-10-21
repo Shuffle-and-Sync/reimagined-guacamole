@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderWithProviders, screen } from "@/test-utils";
+import { renderWithProviders } from "@/test-utils";
 import TableSync from "./tablesync";
 import { QueryClient } from "@tanstack/react-query";
 

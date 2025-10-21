@@ -316,7 +316,7 @@ export class EnhancedNotificationService {
   /**
    * Generate weekly stats for a user
    */
-  private async generateWeeklyStats(userId: string): Promise<any> {
+  private async generateWeeklyStats(_userId: string): Promise<any> {
     // TODO: Implement weekly stats generation
     // This would aggregate user activity, events attended, streams watched, etc.
     return {

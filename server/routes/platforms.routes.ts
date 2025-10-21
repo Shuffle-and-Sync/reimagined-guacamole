@@ -9,14 +9,17 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-import { logger } from "../logger";
+
 import { assertRouteParam } from "../shared/utils";
 import { storage } from "../storage";
 import {
   generatePlatformOAuthURL,
   handlePlatformOAuthCallback,
 } from "../services/platform-oauth";
-import { errors, errorHandlingMiddleware } from "../middleware/error-handling.middleware";
+import {
+  errors,
+  errorHandlingMiddleware,
+} from "../middleware/error-handling.middleware";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError, ValidationError } = errors;
@@ -114,8 +117,7 @@ router.get(
 
     for (const account of accounts) {
       const now = new Date();
-      const isExpired =
-        account.tokenExpiresAt && account.tokenExpiresAt < now;
+      const isExpired = account.tokenExpiresAt && account.tokenExpiresAt < now;
 
       status[account.platform] = {
         isConnected: account.isActive && !isExpired,
@@ -138,9 +140,7 @@ router.post(
     const platform = assertRouteParam(req.params.platform, "platform");
 
     // Import refresh function
-    const { refreshPlatformToken } = await import(
-      "../services/platform-oauth"
-    );
+    const { refreshPlatformToken } = await import("../services/platform-oauth");
 
     const newToken = await refreshPlatformToken(userId, platform);
 

@@ -66,7 +66,7 @@ export async function initTestSchema(
         await db.execute(sql.raw(statement));
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // If migration file doesn't exist, create minimal schema for tests
     console.warn("Migration file not found, creating minimal schema");
     await createMinimalSchema(db);
@@ -243,7 +243,7 @@ export async function clearTestDb(
     try {
       // Use db.execute() with sql.raw() instead of db.run()
       await db.execute(sql.raw(`DELETE FROM ${table}`));
-    } catch (error) {
+    } catch (_error) {
       // Table might not exist, skip it
       continue;
     }

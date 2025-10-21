@@ -466,12 +466,12 @@ export class NotificationDeliveryService {
   private shouldDeliverNotification(
     notification: Notification,
     preferences: NotificationPreferences,
-    user: User,
+    _user: User,
   ): boolean {
     // Check quiet hours
     if (preferences.quietHours.enabled) {
-      const now = new Date();
-      const userTimezone = preferences.timezone || "UTC";
+      const _now = new Date();
+      const _userTimezone = preferences.timezone || "UTC";
       // TODO: Implement timezone checking
       // For now, skip quiet hours check
     }

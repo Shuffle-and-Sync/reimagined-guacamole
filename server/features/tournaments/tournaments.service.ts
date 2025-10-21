@@ -911,7 +911,7 @@ export const tournamentsService = {
    */
   generateSwissPairings(
     participants: (TournamentParticipant & { user: User })[],
-    previousResults: any[],
+    _previousResults: any[],
   ): PairingResult[] {
     // Simple Swiss pairing - pair participants with similar records
     // In a real implementation, this would consider previous matchups, colors, etc.
@@ -1022,7 +1022,7 @@ export const tournamentsService = {
   async generateNextEliminationRound(
     tournamentId: string,
     roundId: string,
-    previousMatches: any[],
+    _previousMatches: any[],
   ) {
     // TODO: Implement elimination advancement logic
     // For now, this is a placeholder

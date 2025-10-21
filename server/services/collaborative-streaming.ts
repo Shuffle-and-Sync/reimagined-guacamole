@@ -16,7 +16,7 @@ import type {
   StreamCoordinationSession,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
-  InsertStreamCoordinationSession,
+  _InsertStreamCoordinationSession,
 } from "@shared/schema";
 
 /**
@@ -454,7 +454,7 @@ export class CollaborativeStreamingService {
   /**
    * Calculate timezone coverage for global audience reach
    */
-  private calculateTimezoneCoverage(matches: any[]): any {
+  private calculateTimezoneCoverage(_matches: any[]): any {
     // Analyze timezone distribution of potential collaborators
     return {
       primaryTimezone: "UTC-5",
@@ -1338,7 +1338,7 @@ export class CollaborativeStreamingService {
   /**
    * Calculate average response time for coordination actions
    */
-  private calculateAverageResponseTime(eventId: string): number {
+  private calculateAverageResponseTime(_eventId: string): number {
     // Implementation for response time calculation
     return 2.5; // seconds average
   }

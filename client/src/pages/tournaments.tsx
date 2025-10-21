@@ -241,7 +241,7 @@ export default function Tournaments() {
     let updates;
     if (editingTournament.status === "active") {
       // Remove fields that can&apos;t be changed for active tournaments
-      const { gameFormat, startDate, maxParticipants, ...allowedUpdates } =
+      const { _gameFormat, _startDate, _maxParticipants, ...allowedUpdates } =
         editForm;
       updates = allowedUpdates;
     } else {
@@ -906,7 +906,9 @@ export default function Tournaments() {
                     <i className="fas fa-trophy text-primary"></i>
                     <span>Participating In</span>
                   </CardTitle>
-                  <CardDescription>Tournaments you&apos;ve joined</CardDescription>
+                  <CardDescription>
+                    Tournaments you&apos;ve joined
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
@@ -927,7 +929,9 @@ export default function Tournaments() {
                     <i className="fas fa-crown text-primary"></i>
                     <span>Organizing</span>
                   </CardTitle>
-                  <CardDescription>Tournaments you&apos;ve created</CardDescription>
+                  <CardDescription>
+                    Tournaments you&apos;ve created
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">

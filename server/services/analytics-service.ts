@@ -1,19 +1,19 @@
 import { storage } from "../storage";
 import { logger } from "../logger";
 import type {
-  UserActivityAnalytics,
-  CommunityAnalytics,
-  PlatformMetrics,
-  EventTracking,
-  ConversionFunnel,
-  StreamAnalytics,
-  InsertUserActivityAnalytics,
+  _UserActivityAnalytics,
+  _CommunityAnalytics,
+  _PlatformMetrics,
+  _EventTracking,
+  _ConversionFunnel,
+  _StreamAnalytics,
+  _InsertUserActivityAnalytics,
   InsertCommunityAnalytics,
   InsertPlatformMetrics,
   InsertEventTracking,
   InsertConversionFunnel,
-  User,
-  Community,
+  _User,
+  _Community,
 } from "@shared/schema";
 
 /**
@@ -489,7 +489,7 @@ export class AnalyticsService {
         ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
         : new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-    const endTime =
+    const _endTime =
       hour !== undefined
         ? new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour
         : new Date(startTime.getTime() + 24 * 60 * 60 * 1000); // 1 day
@@ -511,7 +511,7 @@ export class AnalyticsService {
     };
   }
 
-  private async getCommunityMemberCount(communityId: string): Promise<number> {
+  private async getCommunityMemberCount(_communityId: string): Promise<number> {
     // Get total members in community
     return 0; // Implement actual count
   }
@@ -533,35 +533,35 @@ export class AnalyticsService {
   }
 
   private async getUserActivityInsights(
-    userId?: string,
-    startDate?: Date,
+    _userId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement user activity insights
     return [];
   }
 
   private async getCommunityGrowthInsights(
-    communityId?: string,
-    startDate?: Date,
+    _communityId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement community growth insights
     return [];
   }
 
   private async getStreamingInsights(
-    communityId?: string,
-    startDate?: Date,
+    _communityId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement streaming insights
     return [];
   }
 
-  private async getPlatformHealthInsights(startDate?: Date): Promise<any[]> {
+  private async getPlatformHealthInsights(_startDate?: Date): Promise<any[]> {
     // Implement platform health insights
     return [];
   }
 
-  private generateKeyInsights(data: any): any[] {
+  private generateKeyInsights(_data: any): any[] {
     // Generate key insights from aggregated data
     return [];
   }
@@ -579,22 +579,22 @@ export class AnalyticsService {
     };
   }
 
-  private async calculateUserEngagement(userId: string): Promise<any> {
+  private async calculateUserEngagement(_userId: string): Promise<any> {
     // Calculate user engagement metrics
     return {
       engagementScore: 0,
     };
   }
 
-  private async getUserCollaborationHistory(userId: string): Promise<any[]> {
+  private async getUserCollaborationHistory(_userId: string): Promise<any[]> {
     // Get user collaboration history
     return [];
   }
 
   private analyzeUserBehavior(
-    activityData: any[],
-    engagementMetrics: any,
-    collaborationData: any[],
+    _activityData: any[],
+    _engagementMetrics: any,
+    _collaborationData: any[],
   ): any {
     // Analyze user behavior and generate insights
     return {
