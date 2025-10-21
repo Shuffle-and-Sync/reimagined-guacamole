@@ -25,6 +25,7 @@ const defaultSQLiteCloudUrl =
 // Check if DATABASE_URL is set and is a valid SQLite Cloud URL
 const envDatabaseUrl = process.env.DATABASE_URL;
 let databaseUrl: string;
+let useLocalSqlite = false;
 
 if (!envDatabaseUrl) {
   // No DATABASE_URL set, use default
@@ -35,6 +36,15 @@ if (!envDatabaseUrl) {
 } else if (envDatabaseUrl.startsWith("sqlitecloud://")) {
   // Valid SQLite Cloud URL
   databaseUrl = envDatabaseUrl;
+} else if (
+  envDatabaseUrl === ":memory:" ||
+  envDatabaseUrl.startsWith("file:") ||
+  envDatabaseUrl.endsWith(".db")
+) {
+  // Local SQLite database (in-memory or file-based) - for testing
+  databaseUrl = envDatabaseUrl;
+  useLocalSqlite = true;
+  console.log(`ℹ️  Using local SQLite database: ${envDatabaseUrl}`);
 } else {
   // DATABASE_URL is set but not a SQLite Cloud URL (e.g., Prisma Accelerate)
   // Use default SQLite Cloud URL instead
@@ -44,7 +54,11 @@ if (!envDatabaseUrl) {
   );
 }
 
-console.log(`🔌 Connecting to SQLite Cloud`);
+if (!useLocalSqlite) {
+  console.log(`🔌 Connecting to SQLite Cloud`);
+} else {
+  console.log(`🔌 Connecting to local SQLite database`);
+}
 
 // SQLite Cloud connection setup
 let db: Database;
@@ -52,24 +66,44 @@ let connectionTested = false;
 
 async function initializeConnection() {
   try {
-    const { Database: SQLiteCloudDatabase } = await import(
-      "@sqlitecloud/drivers"
-    );
-    const { drizzle } = await import("drizzle-orm/better-sqlite3");
+    if (useLocalSqlite) {
+      // Use local better-sqlite3 for testing
+      const BetterSqlite3 = (await import("better-sqlite3")).default;
+      const { drizzle } = await import("drizzle-orm/better-sqlite3");
 
-    // Create SQLite Cloud connection
-    const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
+      // Create local SQLite connection
+      const sqlite = new BetterSqlite3(databaseUrl);
+      sqlite.pragma("foreign_keys = ON");
 
-    // Create Drizzle instance with SQLite Cloud
-    db = drizzle(sqliteCloud as any, { schema });
+      // Create Drizzle instance with local SQLite
+      db = drizzle(sqlite, { schema });
 
-    // Test the connection
-    await sqliteCloud.sql`SELECT 1 as test`;
+      // Test the connection
+      sqlite.prepare("SELECT 1 as test").get();
 
-    console.log(`✅ Connected to SQLite Cloud successfully`);
-    connectionTested = true;
+      console.log(`✅ Connected to local SQLite database successfully`);
+      connectionTested = true;
+    } else {
+      // Use SQLite Cloud
+      const { Database: SQLiteCloudDatabase } = await import(
+        "@sqlitecloud/drivers"
+      );
+      const { drizzle } = await import("drizzle-orm/better-sqlite3");
+
+      // Create SQLite Cloud connection
+      const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
+
+      // Create Drizzle instance with SQLite Cloud
+      db = drizzle(sqliteCloud as any, { schema });
+
+      // Test the connection
+      await sqliteCloud.sql`SELECT 1 as test`;
+
+      console.log(`✅ Connected to SQLite Cloud successfully`);
+      connectionTested = true;
+    }
   } catch (error) {
-    console.error("❌ SQLite Cloud connection failed:", error);
+    console.error("❌ Database connection failed:", error);
     throw new Error(
       `Database connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
