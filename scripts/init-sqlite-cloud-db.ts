@@ -7,18 +7,38 @@
  */
 
 import { Database as SQLiteCloudDatabase } from "@sqlitecloud/drivers";
+import { config } from "dotenv";
+import { resolve } from "path";
 
-const databaseUrl =
-  process.env.DATABASE_URL ||
-  "sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffleandsync?apikey=WXRy8ecObcGjMYRmuTT7bAEnvblToCbV4bHqUv8g6oQ";
+// Load environment variables from .env.local (or .env)
+config({ path: resolve(process.cwd(), ".env.local") });
+config({ path: resolve(process.cwd(), ".env") });
 
 console.log("🚀 Initializing SQLite Cloud database...\n");
 
+// Check if DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL environment variable is not set.");
+  console.error("\n📝 Please set DATABASE_URL in your .env.local file:");
+  console.error(
+    "   DATABASE_URL=sqlitecloud://host:port/database?apikey=YOUR_API_KEY",
+  );
+  console.error("\n💡 Example:");
+  console.error(
+    "   DATABASE_URL=sqlitecloud://cgqwvg83nk.g4.sqlite.cloud:8860/shuffle-and-sync-v2?apikey=your-actual-api-key",
+  );
+  process.exit(1);
+}
+
+const databaseUrl = process.env.DATABASE_URL;
+
 async function initializeDatabase() {
+  let db: SQLiteCloudDatabase | null = null;
+
   try {
     // Connect to SQLite Cloud
     console.log("📡 Connecting to SQLite Cloud...");
-    const db = new SQLiteCloudDatabase(databaseUrl);
+    db = new SQLiteCloudDatabase(databaseUrl);
 
     // Test connection
     await db.sql`SELECT 1 as test`;
@@ -1571,8 +1591,26 @@ async function initializeDatabase() {
 
     process.exit(0);
   } catch (error) {
-    console.error("\n❌ Database initialization failed:", error);
+    // Sanitize error message to prevent credential leaks
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    // Remove any potential DATABASE_URL or API keys from error message
+    const sanitizedMessage = errorMessage.replace(
+      /apikey=[^&\s]+/gi,
+      "apikey=***",
+    );
+    console.error("\n❌ Database initialization failed:", sanitizedMessage);
+
     process.exit(1);
+  } finally {
+    // Ensure connection is always closed
+    if (db) {
+      try {
+        await db.close();
+        console.log("🔌 Connection closed.");
+      } catch (closeError) {
+        console.error("⚠️  Error closing connection");
+      }
+    }
   }
 }
 
