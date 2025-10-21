@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import TournamentDetail from "./tournament-detail";
 import { QueryClient } from "@tanstack/react-query";
+import * as authModule from "@/features/auth";
 
 // Mock wouter
 vi.mock("wouter", () => ({
@@ -119,7 +120,9 @@ describe("Tournament Detail Page", () => {
       renderWithProviders(<TournamentDetail />, { queryClient });
 
       await waitFor(() => {
-        expect(screen.getByText("Commander/EDH Tournament")).toBeInTheDocument();
+        expect(
+          screen.getByText("Commander/EDH Tournament"),
+        ).toBeInTheDocument();
       });
     });
 
@@ -201,7 +204,9 @@ describe("Tournament Detail Page", () => {
       renderWithProviders(<TournamentDetail />, { queryClient });
 
       await waitFor(() => {
-        expect(screen.getByTestId("button-edit-tournament")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("button-edit-tournament"),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -319,7 +324,7 @@ describe("Tournament Detail Page", () => {
     });
 
     it("shows authentication required when not logged in", () => {
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         user: null,
         isAuthenticated: false,
       });

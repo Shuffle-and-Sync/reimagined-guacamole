@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import Tournaments from "./tournaments";
 import { QueryClient } from "@tanstack/react-query";
+import * as authModule from "@/features/auth";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({
@@ -182,7 +183,9 @@ describe("Tournaments Page", () => {
   describe("Tournament Creation", () => {
     it("renders create tournament button", () => {
       renderWithProviders(<Tournaments />, { queryClient });
-      expect(screen.getByTestId("button-create-tournament")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("button-create-tournament"),
+      ).toBeInTheDocument();
     });
 
     it("opens create modal when button clicked", async () => {
@@ -277,7 +280,9 @@ describe("Tournaments Page", () => {
 
       await waitFor(() => {
         expect(screen.getByText("No active tournaments")).toBeInTheDocument();
-        expect(screen.getByText("No organized tournaments")).toBeInTheDocument();
+        expect(
+          screen.getByText("No organized tournaments"),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -317,7 +322,7 @@ describe("Tournaments Page", () => {
 
   describe("Authentication", () => {
     it("shows login prompt when not authenticated", () => {
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         user: null,
         isAuthenticated: false,
         isLoading: false,
@@ -330,7 +335,7 @@ describe("Tournaments Page", () => {
     });
 
     it("shows loading state while checking authentication", () => {
-      vi.mocked(require("@/features/auth").useAuth).mockReturnValue({
+      vi.mocked(authModule.useAuth).mockReturnValue({
         user: null,
         isAuthenticated: false,
         isLoading: true,
