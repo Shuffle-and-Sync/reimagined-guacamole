@@ -50,7 +50,7 @@ export async function initTestSchema(
   try {
     const migrationPath = resolve(
       process.cwd(),
-      "migrations/0000_initial_schema.sql",
+      "migrations/0000_pretty_bloodaxe.sql",
     );
     const migrationSQL = readFileSync(migrationPath, "utf-8");
 

@@ -11,7 +11,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// SQLite Schema - Migrated from PostgreSQL
+// SQLite Schema for SQLite Cloud
 // Note: SQLite doesn't support native enums. TEXT fields with validation are used instead.
 // Default timestamp values use INTEGER (Unix timestamp). Application layer handles conversions.
 

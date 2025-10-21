@@ -121,7 +121,6 @@ async function initializeConnection() {
 /**
  * Initialize schema for local SQLite databases synchronously
  * Creates essential tables needed for tests using SQLite-compatible SQL
- * Note: Migration files use PostgreSQL syntax, so we create tables manually
  */
 function initializeLocalSchemaSync(): void {
   try {

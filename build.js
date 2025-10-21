@@ -13,7 +13,7 @@ import config from "./esbuild.config.js";
  * Database Configuration:
  * - Uses Drizzle ORM exclusively (NOT Prisma)
  * - No Prisma client generation or migrations
- * - No PostgreSQL (pg) driver required
+ * - No additional database drivers required
  * - Uses SQLite Cloud with Drizzle ORM
  */
 

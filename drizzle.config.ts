@@ -61,7 +61,7 @@ const { url, authToken } = parseDbUrl(databaseUrl);
 export default defineConfig({
   out: "./migrations",
   schema: "./shared/schema.ts",
-  dialect: "turso",
+  dialect: "sqlite",
   dbCredentials: {
     url,
     authToken,

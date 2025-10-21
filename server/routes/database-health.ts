@@ -78,7 +78,7 @@ router.get("/stats", async (req, res) => {
     const allStats = monitor.getStats();
     const slowQueries = monitor.getSlowQueries(500); // Queries >500ms
 
-    // SQLite doesn't have a connection pool like PostgreSQL
+    // SQLite uses a single connection model, no connection pool
     const poolStats = {
       note: "SQLite uses single connection, pool stats not applicable",
     };
@@ -164,7 +164,7 @@ router.get("/pool", async (req, res) => {
         .json({ success: false, error: "Admin access required" });
     }
 
-    // SQLite doesn't have a connection pool like PostgreSQL
+    // SQLite uses a single connection model, no connection pool
     const poolInfo = {
       note: "SQLite uses single connection, pool configuration not applicable",
       databaseType: "SQLite Cloud",

@@ -268,8 +268,8 @@ export function sanitizeDatabaseInput(input: unknown): unknown {
       /(\bcast\b|\bconvert\b|\bchar\b|\bchr\b|\bascii\b|\bsubstring\b|\bmid\b|\bleft\b|\bright\b)/gi,
       // Information schema queries
       /information_schema/gi,
-      // System tables
-      /(\bsys\b|\bmysql\b|\bpostgres\b|\bpg_\b)/gi,
+      // System tables and database-specific keywords
+      /(\bsys\b|\bmysql\b|\bsqlite_master\b|\bsqlite_\b)/gi,
     ];
 
     let isSuspicious = false;
@@ -390,12 +390,11 @@ function shouldRetryDatabaseOperation(error: Error): boolean {
     "ECONNREFUSED",
     "ETIMEDOUT",
     "ENOTFOUND",
-    "08000", // PostgreSQL connection exception
-    "08003", // PostgreSQL connection does not exist
-    "08006", // PostgreSQL connection failure
-    "57P01", // PostgreSQL admin shutdown
-    "57P02", // PostgreSQL crash shutdown
-    "57P03", // PostgreSQL cannot connect now
+    // SQLite Cloud connection errors
+    "SQLITE_BUSY",
+    "SQLITE_LOCKED",
+    "SQLITE_PROTOCOL",
+    "SQLITE_IOERR",
   ];
 
   const errorCode = error.code || error.errno;
