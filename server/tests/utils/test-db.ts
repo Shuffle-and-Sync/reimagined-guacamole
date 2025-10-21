@@ -50,7 +50,7 @@ export async function initTestSchema(
   try {
     const migrationPath = resolve(
       process.cwd(),
-      "migrations/0000_initial_schema.sql",
+      "migrations/0000_pretty_bloodaxe.sql",
     );
     const migrationSQL = readFileSync(migrationPath, "utf-8");
 
@@ -62,7 +62,8 @@ export async function initTestSchema(
 
     for (const statement of statements) {
       if (statement && !statement.startsWith("--")) {
-        await db.run(sql.raw(statement));
+        // Use db.execute() with sql.raw() instead of db.run()
+        await db.execute(sql.raw(statement));
       }
     }
   } catch (error) {
@@ -240,7 +241,8 @@ export async function clearTestDb(
 
   for (const table of tables) {
     try {
-      await db.run(sql.raw(`DELETE FROM ${table}`));
+      // Use db.execute() with sql.raw() instead of db.run()
+      await db.execute(sql.raw(`DELETE FROM ${table}`));
     } catch (error) {
       // Table might not exist, skip it
       continue;

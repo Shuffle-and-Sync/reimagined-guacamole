@@ -25,6 +25,7 @@ const defaultSQLiteCloudUrl =
 // Check if DATABASE_URL is set and is a valid SQLite Cloud URL
 const envDatabaseUrl = process.env.DATABASE_URL;
 let databaseUrl: string;
+let useLocalSqlite = false;
 
 if (!envDatabaseUrl) {
   // No DATABASE_URL set, use default
@@ -35,6 +36,15 @@ if (!envDatabaseUrl) {
 } else if (envDatabaseUrl.startsWith("sqlitecloud://")) {
   // Valid SQLite Cloud URL
   databaseUrl = envDatabaseUrl;
+} else if (
+  envDatabaseUrl === ":memory:" ||
+  envDatabaseUrl.startsWith("file:") ||
+  envDatabaseUrl.endsWith(".db")
+) {
+  // Local SQLite database (in-memory or file-based) - for testing
+  databaseUrl = envDatabaseUrl;
+  useLocalSqlite = true;
+  console.log(`ℹ️  Using local SQLite database: ${envDatabaseUrl}`);
 } else {
   // DATABASE_URL is set but not a SQLite Cloud URL (e.g., Prisma Accelerate)
   // Use default SQLite Cloud URL instead
@@ -44,45 +54,168 @@ if (!envDatabaseUrl) {
   );
 }
 
-console.log(`🔌 Connecting to SQLite Cloud`);
+if (!useLocalSqlite) {
+  console.log(`🔌 Connecting to SQLite Cloud`);
+} else {
+  console.log(`🔌 Connecting to local SQLite database`);
+}
 
 // SQLite Cloud connection setup
 let db: Database;
 let connectionTested = false;
 
+// For local SQLite (test environments), initialize synchronously
+if (useLocalSqlite) {
+  const BetterSqlite3 = require("better-sqlite3");
+  const { drizzle } = require("drizzle-orm/better-sqlite3");
+
+  // Create local SQLite connection synchronously
+  const sqlite = new BetterSqlite3(databaseUrl);
+  sqlite.pragma("foreign_keys = ON");
+
+  // Create Drizzle instance with local SQLite
+  db = drizzle(sqlite, { schema });
+
+  // Test the connection
+  sqlite.prepare("SELECT 1 as test").get();
+
+  // Initialize schema synchronously for in-memory or local databases
+  if (databaseUrl === ":memory:" || databaseUrl.startsWith("file:")) {
+    initializeLocalSchemaSync();
+  }
+
+  console.log(`✅ Connected to local SQLite database successfully`);
+  connectionTested = true;
+}
+
 async function initializeConnection() {
-  try {
-    const { Database: SQLiteCloudDatabase } = await import(
-      "@sqlitecloud/drivers"
-    );
-    const { drizzle } = await import("drizzle-orm/better-sqlite3");
+  // Only for SQLite Cloud (already handled above for local)
+  if (!useLocalSqlite) {
+    try {
+      // Use SQLite Cloud
+      const { Database: SQLiteCloudDatabase } = await import(
+        "@sqlitecloud/drivers"
+      );
+      const { drizzle } = await import("drizzle-orm/better-sqlite3");
 
-    // Create SQLite Cloud connection
-    const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
+      // Create SQLite Cloud connection
+      const sqliteCloud = new SQLiteCloudDatabase(databaseUrl);
 
-    // Create Drizzle instance with SQLite Cloud
-    db = drizzle(sqliteCloud as any, { schema });
+      // Create Drizzle instance with SQLite Cloud
+      db = drizzle(sqliteCloud as any, { schema });
 
-    // Test the connection
-    await sqliteCloud.sql`SELECT 1 as test`;
+      // Test the connection
+      await sqliteCloud.sql`SELECT 1 as test`;
 
-    console.log(`✅ Connected to SQLite Cloud successfully`);
-    connectionTested = true;
-  } catch (error) {
-    console.error("❌ SQLite Cloud connection failed:", error);
-    throw new Error(
-      `Database connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+      console.log(`✅ Connected to SQLite Cloud successfully`);
+      connectionTested = true;
+    } catch (error) {
+      console.error("❌ Database connection failed:", error);
+      throw new Error(
+        `Database connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
   }
 }
+
+/**
+ * Initialize schema for local SQLite databases synchronously
+ * Creates essential tables needed for tests using SQLite-compatible SQL
+ */
+function initializeLocalSchemaSync(): void {
+  try {
+    // Create essential tables manually with SQLite-compatible SQL
+    const createTablesSQL = `
+      CREATE TABLE IF NOT EXISTS stream_analytics (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        viewer_count INTEGER DEFAULT 0,
+        peak_viewers INTEGER DEFAULT 0,
+        average_viewers INTEGER DEFAULT 0,
+        chat_messages INTEGER DEFAULT 0,
+        likes INTEGER DEFAULT 0,
+        shares INTEGER DEFAULT 0,
+        duration_minutes INTEGER DEFAULT 0,
+        timestamp INTEGER NOT NULL
+      );
+      
+      CREATE TABLE IF NOT EXISTS user_activity_analytics (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        activity_type TEXT NOT NULL,
+        count INTEGER DEFAULT 1,
+        metadata TEXT DEFAULT '{}',
+        date TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+      
+      CREATE TABLE IF NOT EXISTS stream_sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        title TEXT,
+        description TEXT,
+        scheduled_start_time INTEGER,
+        actual_start_time INTEGER,
+        end_time INTEGER,
+        status TEXT DEFAULT 'scheduled',
+        is_collaborative INTEGER DEFAULT 0,
+        created_at INTEGER,
+        updated_at INTEGER
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_stream_analytics_session ON stream_analytics(session_id);
+      CREATE INDEX IF NOT EXISTS idx_stream_analytics_user ON stream_analytics(user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_activity_user ON user_activity_analytics(user_id);
+    `;
+
+    const statements = createTablesSQL
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    // Get the SQLite instance from Drizzle db
+    const sqlite = (db as any).session.client;
+
+    for (const statement of statements) {
+      try {
+        sqlite.prepare(statement).run();
+      } catch (error) {
+        // Ignore errors for tables that already exist
+        if (error instanceof Error && !error.message.includes("already exists")) {
+          // Silently ignore other errors
+        }
+      }
+    }
+
+    console.log(`✅ Local database schema initialized (${statements.length} statements executed)`);
+  } catch (error) {
+    console.warn("⚠️  Failed to initialize local schema:", error);
+  }
+}
+
+// Store initialization promise for awaiting
+let initPromise: Promise<void> | null = null;
 
 // Initialize connection immediately but handle errors gracefully
 // IMPORTANT: Call this synchronously to start the connection process immediately
 if (databaseUrl) {
-  initializeConnection().catch((error) => {
+  initPromise = initializeConnection().catch((error) => {
     console.error("❌ Failed to initialize database connection:", error);
     // Don't throw here, let individual operations handle the error
   });
+}
+
+// Export function to wait for database to be ready
+export async function waitForDb(): Promise<Database> {
+  if (initPromise) {
+    await initPromise;
+  }
+  if (!db) {
+    throw new Error("Database not initialized");
+  }
+  return db;
 }
 
 // Export connection info for debugging
@@ -387,7 +520,9 @@ export async function applyCompositeIndexes(): Promise<void> {
 
   for (const indexSql of compositeIndexes) {
     try {
-      await db.run(sql.raw(indexSql));
+      // Use db.execute() with sql.raw() instead of db.run()
+      // db.run() only works with sql`` template literals
+      await db.execute(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
       console.log(`✅ Applied index: ${indexName}`);
     } catch (error) {

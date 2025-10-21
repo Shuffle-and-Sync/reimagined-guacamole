@@ -555,6 +555,7 @@ export abstract class BaseRepository<
 
   /**
    * Execute raw SQL query with proper error handling
+   * Note: This method should be used sparingly. Prefer using Drizzle's query builder.
    */
   protected async executeRawQuery<T = Record<string, unknown>>(
     query: string,
@@ -562,12 +563,10 @@ export abstract class BaseRepository<
   ): Promise<T[]> {
     return withQueryTiming(`${this.tableName}:rawQuery`, async () => {
       try {
-        // Use sql.raw for simple queries without params, or use sql template for parameterized queries
-        const sqlQuery =
-          params && params.length > 0
-            ? sql.raw(query) // Note: For truly parameterized queries, use sql`` template literal instead
-            : sql.raw(query);
-        // @ts-expect-error: Temporary workaround for SQLite vs PostgreSQL type mismatch
+        // Use db.execute() with sql.raw() - this is the correct Drizzle ORM API
+        // Note: sql.raw() must be used with db.execute(), not db.run()
+        const sqlQuery = sql.raw(query);
+        // @ts-expect-error: Temporary workaround for type system limitation with dynamic SQL execution
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
