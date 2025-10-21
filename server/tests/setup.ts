@@ -17,13 +17,22 @@ process.env.NODE_ENV = "test";
 // Mock console methods to reduce noise in tests
 const originalConsole = { ...console };
 
-beforeAll(() => {
+beforeAll(async () => {
   // Suppress console output during tests unless explicitly enabled
   if (!process.env.VERBOSE_TESTS) {
     console.log = jest.fn();
     console.info = jest.fn();
     console.warn = jest.fn();
     console.error = jest.fn();
+  }
+
+  // Wait for database to be initialized
+  // This ensures the database connection and schema are ready before tests run
+  try {
+    const { waitForDb } = await import("@shared/database-unified");
+    await waitForDb();
+  } catch (error) {
+    console.error("Failed to initialize database in test setup:", error);
   }
 });
 
