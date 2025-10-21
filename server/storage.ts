@@ -44,7 +44,7 @@ import {
   communityAnalytics,
   platformMetrics,
   eventTracking,
-  conversionFunnels,
+  conversionFunnel,
   collaborativeStreamEvents,
   streamCollaborators,
   streamCoordinationSessions,
@@ -459,9 +459,7 @@ export interface IStorage {
   getUserMfaAttempts(userId: string): Promise<UserMfaAttempts | undefined>;
   recordMfaFailure(userId: string): Promise<void>;
   resetMfaAttempts(userId: string): Promise<void>;
-  checkMfaLockout(
-    userId: string,
-  ): Promise<{
+  checkMfaLockout(userId: string): Promise<{
     isLocked: boolean;
     lockoutEndsAt?: Date;
     failedAttempts: number;
@@ -662,18 +660,14 @@ export interface IStorage {
   ): Promise<{ data: MatchedPlayer[]; hasMore: boolean }>;
 
   // Tournament operations
-  getTournaments(
-    communityId?: string,
-  ): Promise<
+  getTournaments(communityId?: string): Promise<
     (Tournament & {
       organizer: User;
       community: Community;
       participantCount: number;
     })[]
   >;
-  getTournament(
-    tournamentId: string,
-  ): Promise<
+  getTournament(tournamentId: string): Promise<
     | (Tournament & {
         organizer: User;
         community: Community;
@@ -719,9 +713,7 @@ export interface IStorage {
     matchId: string,
     data: Partial<InsertTournamentMatch>,
   ): Promise<TournamentMatch>;
-  getMatchResults(
-    matchId: string,
-  ): Promise<
+  getMatchResults(matchId: string): Promise<
     (MatchResult & {
       winner: User;
       loser?: User;
@@ -788,9 +780,7 @@ export interface IStorage {
       platforms: StreamSessionPlatform[];
     })[]
   >;
-  getStreamSession(
-    id: string,
-  ): Promise<
+  getStreamSession(id: string): Promise<
     | (StreamSession & {
         host: User;
         community?: Community;
@@ -868,9 +858,7 @@ export interface IStorage {
     sessionId: string,
     platform?: string,
   ): Promise<StreamAnalytics[]>;
-  getStreamAnalyticsSummary(
-    sessionId: string,
-  ): Promise<{
+  getStreamAnalyticsSummary(sessionId: string): Promise<{
     totalViewers: number;
     peakViewers: number;
     averageViewers: number;
@@ -1020,9 +1008,7 @@ export interface IStorage {
       assignedMod?: User;
     })[]
   >;
-  getContentReport(
-    id: string,
-  ): Promise<
+  getContentReport(id: string): Promise<
     | (ContentReport & {
         reporter?: User;
         reportedUser?: User;
@@ -1105,9 +1091,7 @@ export interface IStorage {
     itemIds: string[],
     moderatorId: string,
   ): Promise<ModerationQueue[]>;
-  getModeratorWorkload(
-    moderatorId?: string,
-  ): Promise<
+  getModeratorWorkload(moderatorId?: string): Promise<
     {
       moderatorId: string;
       activeTasks: number;
@@ -1116,7 +1100,10 @@ export interface IStorage {
     }[]
   >;
   escalateOverdueItems(thresholdHours?: number): Promise<ModerationQueue[]>;
-  calculateAutoPriority(itemType: string, metadata?: Record<string, unknown>): Promise<number>;
+  calculateAutoPriority(
+    itemType: string,
+    metadata?: Record<string, unknown>,
+  ): Promise<number>;
   getModerationQueueStats(): Promise<{
     totalOpen: number;
     totalAssigned: number;
@@ -1174,9 +1161,7 @@ export interface IStorage {
       reviewer?: User;
     })[]
   >;
-  getUserAppeal(
-    id: string,
-  ): Promise<
+  getUserAppeal(id: string): Promise<
     | (UserAppeal & {
         user: User;
         moderationAction?: ModerationAction;
@@ -2005,7 +1990,7 @@ export class DatabaseStorage implements IStorage {
 
     type AttendeeCount = { eventId: string; count: number };
     type UserAttendance = { eventId: string };
-    
+
     const eventsWithDetails = rawEvents.map((event) => ({
       ...event,
       creator: event.creator || {
@@ -3066,9 +3051,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userMfaAttempts.userId, userId));
   }
 
-  async checkMfaLockout(
-    userId: string,
-  ): Promise<{
+  async checkMfaLockout(userId: string): Promise<{
     isLocked: boolean;
     lockoutEndsAt?: Date;
     failedAttempts: number;
@@ -3859,11 +3842,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.createdAt))
       .limit(options?.limit || 50);
 
-    return results.map((r: { message: Message; sender: User | null; event: Event | null }) => ({
-      ...r.message,
-      sender: r.sender,
-      event: r.event,
-    }));
+    return results.map(
+      (r: { message: Message; sender: User | null; event: Event | null }) => ({
+        ...r.message,
+        sender: r.sender,
+        event: r.event,
+      }),
+    );
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -3985,11 +3970,17 @@ export class DatabaseStorage implements IStorage {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map((r: { gameSession: GameSession; host: User | null; event: Event | null }) => ({
-      ...r.gameSession,
-      host: r.host as User,
-      event: r.event as Event,
-    }));
+    return results.map(
+      (r: {
+        gameSession: GameSession;
+        host: User | null;
+        event: Event | null;
+      }) => ({
+        ...r.gameSession,
+        host: r.host as User,
+        event: r.event as Event,
+      }),
+    );
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -4458,15 +4449,16 @@ export class DatabaseStorage implements IStorage {
         preferences: MatchmakingPreferences | null;
         community: Community | null;
       };
-      
-      type ValidatedProfile = Omit<UserProfile, 'user' | 'gamingProfile'> & {
+
+      type ValidatedProfile = Omit<UserProfile, "user" | "gamingProfile"> & {
         user: User;
         gamingProfile: UserGamingProfile;
       };
-      
+
       const scoredMatches = userProfiles
-        .filter((profile): profile is ValidatedProfile => 
-          profile.user !== null && profile.gamingProfile !== null
+        .filter(
+          (profile): profile is ValidatedProfile =>
+            profile.user !== null && profile.gamingProfile !== null,
         )
         .map((profile): MatchedPlayer => {
           let score = 0;
@@ -4534,7 +4526,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Calculate power level based on gaming experience and stats
-  private calculatePowerLevel(gaming: UserGamingProfile | null, preferences: MatchmakingPreferences | null): number {
+  private calculatePowerLevel(
+    gaming: UserGamingProfile | null,
+    preferences: MatchmakingPreferences | null,
+  ): number {
     let powerLevel = 5; // Base level
 
     // Adjust based on skill level
@@ -4563,16 +4558,16 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Add slight variance based on preferences
-    const formats = JSON.parse(preferences?.preferredFormats || "[]") as string[];
+    const formats = JSON.parse(
+      preferences?.preferredFormats || "[]",
+    ) as string[];
     if (formats.length > 3) powerLevel += 1;
 
     return Math.min(Math.max(powerLevel, 1), 10);
   }
 
   // Tournament operations
-  async getTournaments(
-    communityId?: string,
-  ): Promise<
+  async getTournaments(communityId?: string): Promise<
     (Tournament & {
       organizer: User;
       community: Community;
@@ -4612,9 +4607,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getTournament(
-    tournamentId: string,
-  ): Promise<
+  async getTournament(tournamentId: string): Promise<
     | (Tournament & {
         organizer: User;
         community: Community;
@@ -4892,9 +4885,7 @@ export class DatabaseStorage implements IStorage {
     return match;
   }
 
-  async getMatchResults(
-    matchId: string,
-  ): Promise<
+  async getMatchResults(matchId: string): Promise<
     (MatchResult & {
       winner: User;
       loser?: User;
@@ -5692,9 +5683,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getStreamSession(
-    id: string,
-  ): Promise<
+  async getStreamSession(id: string): Promise<
     | (StreamSession & {
         host: User;
         community?: Community;
@@ -6138,9 +6127,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getStreamAnalyticsSummary(
-    sessionId: string,
-  ): Promise<{
+  async getStreamAnalyticsSummary(sessionId: string): Promise<{
     totalViewers: number;
     peakViewers: number;
     averageViewers: number;
@@ -6363,7 +6350,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<ConversionFunnel> {
     try {
       const [funnel] = await db
-        .insert(conversionFunnels)
+        .insert(conversionFunnel)
         .values(data)
         .returning();
       if (!funnel) {
@@ -6382,19 +6369,19 @@ export class DatabaseStorage implements IStorage {
     endDate?: Date,
   ): Promise<ConversionFunnel[]> {
     try {
-      const conditions = [eq(conversionFunnels.funnelName, funnelName)];
+      const conditions = [eq(conversionFunnel.funnelName, funnelName)];
       if (startDate) {
-        conditions.push(gte(conversionFunnels.createdAt, startDate));
+        conditions.push(gte(conversionFunnel.createdAt, startDate));
       }
       if (endDate) {
-        conditions.push(sql`${conversionFunnels.createdAt} <= ${endDate}`);
+        conditions.push(sql`${conversionFunnel.createdAt} <= ${endDate}`);
       }
 
       return await db
         .select()
-        .from(conversionFunnels)
+        .from(conversionFunnel)
         .where(and(...conditions))
-        .orderBy(conversionFunnels.createdAt, conversionFunnels.stepOrder);
+        .orderBy(conversionFunnel.createdAt, conversionFunnel.stepOrder);
     } catch (error) {
       console.error("Error getting conversion funnel data:", error);
       throw error;
@@ -7224,9 +7211,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getContentReport(
-    id: string,
-  ): Promise<
+  async getContentReport(id: string): Promise<
     | (ContentReport & {
         reporter?: User;
         reportedUser?: User;
@@ -7793,9 +7778,7 @@ export class DatabaseStorage implements IStorage {
     return assignedItems;
   }
 
-  async getModeratorWorkload(
-    moderatorId?: string,
-  ): Promise<
+  async getModeratorWorkload(moderatorId?: string): Promise<
     {
       moderatorId: string;
       activeTasks: number;
@@ -8523,9 +8506,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getUserAppeal(
-    id: string,
-  ): Promise<
+  async getUserAppeal(id: string): Promise<
     | (UserAppeal & {
         user: User;
         moderationAction?: ModerationAction;

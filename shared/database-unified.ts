@@ -387,7 +387,9 @@ export async function applyCompositeIndexes(): Promise<void> {
 
   for (const indexSql of compositeIndexes) {
     try {
-      await db.run(sql.raw(indexSql));
+      // Use db.execute() with sql.raw() instead of db.run()
+      // db.run() only works with sql`` template literals
+      await db.execute(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
       console.log(`✅ Applied index: ${indexName}`);
     } catch (error) {
