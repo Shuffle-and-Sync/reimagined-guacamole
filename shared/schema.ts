@@ -1784,7 +1784,7 @@ export const eventTracking = sqliteTable(
   ],
 );
 
-export const conversionFunnels = sqliteTable(
+export const conversionFunnel = sqliteTable(
   "conversion_funnels",
   {
     id: text("id")
@@ -2470,8 +2470,8 @@ export type PlatformMetrics = typeof platformMetrics.$inferSelect;
 export type InsertPlatformMetrics = typeof platformMetrics.$inferInsert;
 export type EventTracking = typeof eventTracking.$inferSelect;
 export type InsertEventTracking = typeof eventTracking.$inferInsert;
-export type ConversionFunnel = typeof conversionFunnels.$inferSelect;
-export type InsertConversionFunnel = typeof conversionFunnels.$inferInsert;
+export type ConversionFunnel = typeof conversionFunnel.$inferSelect;
+export type InsertConversionFunnel = typeof conversionFunnel.$inferInsert;
 
 // Collaborative streaming types
 export type CollaborativeStreamEvent =

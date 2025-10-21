@@ -322,6 +322,7 @@ export class AnalyticsService {
     communityId?: string,
     timeframe: "24h" | "7d" | "30d" | "90d" = "7d",
   ): Promise<{
+    timeframe: string;
     userActivity: any[];
     communityGrowth: any[];
     streamingMetrics: any[];
@@ -347,6 +348,7 @@ export class AnalyticsService {
       });
 
       return {
+        timeframe,
         userActivity,
         communityGrowth,
         streamingMetrics,
@@ -369,10 +371,12 @@ export class AnalyticsService {
    */
   async getRealTimeStats(): Promise<{
     activeUsers: number;
-    liveStreams: number;
-    totalViewers: number;
-    activeCommunities: number;
-    eventsToday: number;
+    activeStreams: number;
+    activeTournaments: number;
+    liveStreams?: number;
+    totalViewers?: number;
+    activeCommunities?: number;
+    eventsToday?: number;
   }> {
     try {
       const stats = await this.calculateRealTimeStats();
@@ -381,6 +385,8 @@ export class AnalyticsService {
       logger.error("Failed to get real-time stats", { error });
       return {
         activeUsers: 0,
+        activeStreams: 0,
+        activeTournaments: 0,
         liveStreams: 0,
         totalViewers: 0,
         activeCommunities: 0,
@@ -393,10 +399,13 @@ export class AnalyticsService {
    * Generate user behavior insights and recommendations
    */
   async generateUserInsights(userId: string): Promise<{
+    userId: string;
     engagementLevel: "low" | "medium" | "high";
+    engagementScore: number;
     preferredFeatures: string[];
     recommendedActions: string[];
     activityPattern: any[];
+    activityPatterns: any[];
     collaborationHistory: any[];
   }> {
     try {
@@ -412,7 +421,12 @@ export class AnalyticsService {
         engagementMetrics,
         collaborationData,
       );
-      return insights;
+      return {
+        userId,
+        ...insights,
+        activityPatterns: insights.activityPattern,
+        engagementScore: engagementMetrics?.engagementScore || 0,
+      };
     } catch (error) {
       logger.error("Failed to generate user insights", { error, userId });
       throw error;
@@ -556,6 +570,8 @@ export class AnalyticsService {
     // Calculate real-time platform statistics
     return {
       activeUsers: 0,
+      activeStreams: 0,
+      activeTournaments: 0,
       liveStreams: 0,
       totalViewers: 0,
       activeCommunities: 0,
@@ -565,7 +581,9 @@ export class AnalyticsService {
 
   private async calculateUserEngagement(userId: string): Promise<any> {
     // Calculate user engagement metrics
-    return {};
+    return {
+      engagementScore: 0,
+    };
   }
 
   private async getUserCollaborationHistory(userId: string): Promise<any[]> {
