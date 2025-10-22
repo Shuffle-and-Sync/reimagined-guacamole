@@ -5,12 +5,8 @@
  * demonstrating Copilot best practices for domain-specific data access.
  */
 
-import {
-  BaseRepository,
-  QueryOptions,
-  PaginatedResult,
-} from "../../repositories/base.repository";
-import { db } from "@shared/database-unified";
+import { eq, and, sql, ilike, or, count, desc, asc } from "drizzle-orm";
+import { db, withQueryTiming } from "@shared/database-unified";
 import {
   users,
   communities,
@@ -19,13 +15,16 @@ import {
   type User,
   type InsertUser,
 } from "@shared/schema";
-import { eq, and, sql, ilike, or, count, desc, asc } from "drizzle-orm";
 import { logger } from "../../logger";
-import { withQueryTiming } from "@shared/database-unified";
 import {
   ValidationError,
   NotFoundError,
 } from "../../middleware/error-handling.middleware";
+import {
+  BaseRepository,
+  QueryOptions,
+  PaginatedResult,
+} from "../../repositories/base.repository";
 
 export interface UserWithCommunities extends User {
   communities: Array<{

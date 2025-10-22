@@ -12,13 +12,13 @@
  */
 
 import { Router } from "express";
-import { z } from "zod";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 import { requireAuth } from "../../auth/auth.middleware";
 import { ValidationError, NotFoundError } from "../../shared/types";
-import { gameStatsService } from "./game-stats.service";
-import { validateRequest } from "../../validation";
 import { assertRouteParam } from "../../shared/utils";
+import { validateRequest } from "../../validation";
+import { gameStatsService } from "./game-stats.service";
 
 const router = Router();
 

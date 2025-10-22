@@ -1,9 +1,8 @@
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Header, Footer } from "@/shared/components";
 
 export default function Conduct() {
   useDocumentTitle("Code of Conduct - Shuffle & Sync");
@@ -129,8 +128,8 @@ export default function Conduct() {
                     help them learn
                   </li>
                   <li>
-                    <strong>Respect Boundaries:</strong> Don&apos;t pressure others
-                    to play beyond their comfort level
+                    <strong>Respect Boundaries:</strong> Don&apos;t pressure
+                    others to play beyond their comfort level
                   </li>
                 </ul>
               </div>

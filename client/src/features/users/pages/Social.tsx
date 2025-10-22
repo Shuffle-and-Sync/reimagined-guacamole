@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Header } from "@/shared/components";
 
 const SOCIAL_PLATFORMS = [
@@ -230,7 +230,7 @@ export default function Social() {
                   <Label htmlFor="content">Post Content</Label>
                   <Textarea
                     id="content"
-                    placeholder="What&apos;s on your mind? Share your latest TCG adventures..."
+                    placeholder="What's on your mind? Share your latest TCG adventures..."
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     className="min-h-[120px]"

@@ -1,18 +1,12 @@
 import { Router } from "express";
-import { storage } from "../../storage";
+import { validatePasswordStrength, hashPassword } from "../../auth/password";
+import { generateEmailVerificationJWT, TOKEN_EXPIRY } from "../../auth/tokens";
+import { sendEmailVerificationEmail } from "../../email-service";
 import { logger } from "../../logger";
 import { authRateLimit } from "../../rate-limiting";
+import { storage } from "../../storage";
 import { validateRequest } from "../../validation";
 import { registrationSchema } from "./middleware";
-import {
-  validatePasswordStrength,
-  hashPassword,
-} from "../../auth/password";
-import {
-  generateEmailVerificationJWT,
-  TOKEN_EXPIRY,
-} from "../../auth/tokens";
-import { sendEmailVerificationEmail } from "../../email-service";
 
 const router = Router();
 
@@ -46,8 +40,7 @@ router.post(
       const normalizedUsername = username.toLowerCase().trim();
 
       // Check if user already exists by email
-      const existingUserByEmail =
-        await storage.getUserByEmail(normalizedEmail);
+      const existingUserByEmail = await storage.getUserByEmail(normalizedEmail);
       if (existingUserByEmail) {
         logger.warn("Registration attempted with existing email", {
           email: normalizedEmail,
@@ -176,14 +169,11 @@ router.post(
       }
 
       if (!emailSent) {
-        logger.error(
-          "Failed to send verification email during registration",
-          {
-            userId,
-            email: normalizedEmail,
-            ip: req.ip,
-          },
-        );
+        logger.error("Failed to send verification email during registration", {
+          userId,
+          email: normalizedEmail,
+          ip: req.ip,
+        });
 
         // Log email sending failure
         await storage.createAuthAuditLog({

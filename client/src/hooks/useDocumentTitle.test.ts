@@ -4,8 +4,8 @@
  * Tests for the useDocumentTitle custom hook.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { useDocumentTitle } from "./useDocumentTitle";
 
 describe("useDocumentTitle", () => {

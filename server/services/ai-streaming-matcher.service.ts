@@ -1,10 +1,9 @@
+import type { User } from "@shared/schema";
 import { logger } from "../logger";
-
 import { storage } from "../storage";
+import { facebookAPI } from "./facebook-api";
 import { twitchAPI } from "./twitch-api";
 import { youtubeAPI } from "./youtube-api";
-import { facebookAPI } from "./facebook-api";
-import type { User } from "@shared/schema";
 
 // Enhanced streaming-specific matching interfaces
 export interface StreamerProfile {

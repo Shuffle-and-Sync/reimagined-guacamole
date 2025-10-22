@@ -1,12 +1,4 @@
 import { Router } from "express";
-import { storage } from "../../storage";
-import { logger } from "../../logger";
-import {
-  validateRequest,
-  validateEmailSchema,
-  validatePasswordResetSchema,
-} from "../../validation";
-import { passwordResetRateLimit } from "../../rate-limiting";
 import { validatePasswordStrength, hashPassword } from "../../auth/password";
 import {
   generatePasswordResetJWT,
@@ -14,6 +6,14 @@ import {
   TOKEN_EXPIRY,
 } from "../../auth/tokens";
 import { sendPasswordResetEmail } from "../../email-service";
+import { logger } from "../../logger";
+import { passwordResetRateLimit } from "../../rate-limiting";
+import { storage } from "../../storage";
+import {
+  validateRequest,
+  validateEmailSchema,
+  validatePasswordResetSchema,
+} from "../../validation";
 
 const router = Router();
 

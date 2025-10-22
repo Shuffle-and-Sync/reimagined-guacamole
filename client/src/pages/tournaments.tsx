@@ -1,5 +1,9 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import React, { useState, useCallback } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import type { Tournament } from "@shared/schema";
+import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,17 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -27,16 +20,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/shared/components";
-import { useCommunity } from "@/features/communities";
-import type { Tournament } from "@shared/schema";
-import { format } from "date-fns";
-import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 
 export default function Tournaments() {
   useDocumentTitle("Tournaments");

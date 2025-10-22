@@ -7,8 +7,8 @@
 
 import { Router } from "express";
 import { z } from "zod";
-import { universalCardService } from "../../services/card-recognition/index";
 import { logger } from "../../logger";
+import { universalCardService } from "../../services/card-recognition/index";
 
 const router = Router();
 

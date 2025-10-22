@@ -8,12 +8,12 @@
  * - Fetching friends and friend requests
  */
 
-import { storage } from "../../storage";
 import { logger } from "../../logger";
 import {
   ValidationError,
   NotFoundError,
 } from "../../middleware/error-handling.middleware";
+import { storage } from "../../storage";
 
 export class FriendsService {
   /**

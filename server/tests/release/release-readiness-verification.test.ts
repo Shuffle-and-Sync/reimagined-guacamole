@@ -16,12 +16,12 @@
  * - Documentation completeness
  */
 
+import fs from "fs";
+import path from "path";
 import { describe, it, expect } from "@jest/globals";
 import { db } from "@shared/database-unified";
 import * as schema from "@shared/schema";
 import { version } from "../../../package.json";
-import fs from "fs";
-import path from "path";
 
 describe("Release Readiness Verification", () => {
   describe("Build and Code Quality", () => {

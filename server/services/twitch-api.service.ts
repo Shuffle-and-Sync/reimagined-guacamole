@@ -1,6 +1,6 @@
+import { createHmac, timingSafeEqual } from "crypto";
 import { Request, Response } from "express";
 import { logger } from "../logger";
-import { createHmac, timingSafeEqual } from "crypto";
 
 // Twitch API configuration
 const TWITCH_API_BASE = "https://api.twitch.tv/helix";

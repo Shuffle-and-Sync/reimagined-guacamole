@@ -22,8 +22,8 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { UserRepository } from "../../features/users/users.repository";
 import type { Database, Transaction } from "@shared/database-unified";
+import { UserRepository } from "../../features/users/users.repository";
 import {
   ValidationError,
   NotFoundError,

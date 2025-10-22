@@ -5,6 +5,7 @@
  */
 
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import { logger } from "../../logger";
 import {
   detectCredentialLeak,
   sanitizeCredentials,
@@ -13,7 +14,6 @@ import {
   isSecureToken,
   auditSecurityConfiguration,
 } from "../../utils/security.utils";
-import { logger } from "../../logger";
 
 // Mock logger
 jest.mock("../../logger", () => ({

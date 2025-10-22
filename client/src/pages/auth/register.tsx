@@ -1,8 +1,12 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Check, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FaGoogle } from "react-icons/fa";
+import { Link } from "wouter";
 import { z } from "zod";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -20,9 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -30,11 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaGoogle } from "react-icons/fa";
-import { Loader2, Check, X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/features/auth";
-import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Registration form validation schema
 const registerSchema = z
@@ -490,8 +490,9 @@ export default function Register() {
           </div>
 
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            By creating an account, you&apos;ll be able to coordinate collaborative
-            streams, join tournaments, and connect with the TCG community.
+            By creating an account, you&apos;ll be able to coordinate
+            collaborative streams, join tournaments, and connect with the TCG
+            community.
           </div>
         </CardContent>
       </Card>

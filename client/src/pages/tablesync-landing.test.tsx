@@ -4,10 +4,10 @@
  * Tests for the TableSync Landing page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders } from "@/test-utils";
 import TableSyncLanding from "./tablesync-landing";
-import { QueryClient } from "@tanstack/react-query";
 
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({

@@ -9,17 +9,16 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-
-import { assertRouteParam } from "../shared/utils";
-import { storage } from "../storage";
-import {
-  generatePlatformOAuthURL,
-  handlePlatformOAuthCallback,
-} from "../services/platform-oauth.service";
 import {
   errors,
   errorHandlingMiddleware,
 } from "../middleware/error-handling.middleware";
+import {
+  generatePlatformOAuthURL,
+  handlePlatformOAuthCallback,
+} from "../services/platform-oauth.service";
+import { assertRouteParam } from "../shared/utils";
+import { storage } from "../storage";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError, ValidationError } = errors;

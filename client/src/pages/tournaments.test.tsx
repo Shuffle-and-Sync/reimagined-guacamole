@@ -4,11 +4,11 @@
  * Tests for the Tournaments page including tournament browsing, creation, and management.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as authModule from "@/features/auth";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import Tournaments from "./tournaments";
-import { QueryClient } from "@tanstack/react-query";
-import * as authModule from "@/features/auth";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

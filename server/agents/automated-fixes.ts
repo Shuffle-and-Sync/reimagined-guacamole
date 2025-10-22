@@ -4,9 +4,9 @@
  * Provides automated fixes for common code issues found during analysis.
  */
 
+import { execSync } from "child_process";
 import fs from "fs/promises";
 import path from "path";
-import { execSync } from "child_process";
 import { logger } from "../logger";
 import type { CodeIssue } from "./backend-copilot-agent";
 

@@ -4,11 +4,11 @@
  * Tests for the CommunityProvider context provider and useCommunity hook.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CommunityProvider, useCommunity } from "./CommunityProvider";
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Community } from "@shared/schema";
+import { CommunityProvider, useCommunity } from "./CommunityProvider";
 
 // Mock localStorage
 const localStorageMock = (() => {

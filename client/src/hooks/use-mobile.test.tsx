@@ -4,8 +4,8 @@
  * Tests for the useIsMobile custom hook.
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import { useIsMobile } from "./use-mobile";
 
 describe("useIsMobile", () => {

@@ -12,6 +12,7 @@
  * - Edge cases and security scenarios
  */
 
+import { Auth } from "@auth/core";
 import {
   describe,
   test,
@@ -21,7 +22,18 @@ import {
   jest,
 } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
+import { storage } from "../storage";
 import { createMockRequest, createMockResponse } from "../tests/__factories__";
+// Now import the middleware and mocked dependencies
+import {
+  requireAuth,
+  requireJWTAuth,
+  optionalAuth,
+  optionalJWTAuth,
+  requireHybridAuth,
+} from "./auth.middleware";
+import { enhancedSessionManager } from "./session-security";
+import { verifyAccessTokenJWT, validateTokenSecurity } from "./tokens";
 
 // Type definitions for test mocks
 interface MockAuthResponse {
@@ -91,19 +103,6 @@ jest.mock("../logger", () => ({
     debug: jest.fn(),
   },
 }));
-
-// Now import the middleware and mocked dependencies
-import {
-  requireAuth,
-  requireJWTAuth,
-  optionalAuth,
-  optionalJWTAuth,
-  requireHybridAuth,
-} from "./auth.middleware";
-import { Auth } from "@auth/core";
-import { verifyAccessTokenJWT, validateTokenSecurity } from "./tokens";
-import { storage } from "../storage";
-import { enhancedSessionManager } from "./session-security";
 
 const mockAuth = Auth as jest.MockedFunction<typeof Auth>;
 const mockVerifyAccessTokenJWT = verifyAccessTokenJWT as jest.MockedFunction<

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { twitchAPI } from "../services/twitch-api.service";
 import { streamingCoordinator } from "../services/streaming-coordinator.service";
+import { twitchAPI } from "../services/twitch-api.service";
 // Simple logger since logger is not exported from validation
 const logger = {
   info: (message: string, meta?: any) =>

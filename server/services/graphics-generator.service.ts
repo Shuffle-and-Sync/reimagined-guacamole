@@ -1,6 +1,6 @@
-import { storage } from "../storage";
-import { logger } from "../logger";
 import QRCode from "qrcode";
+import { logger } from "../logger";
+import { storage } from "../storage";
 
 export interface GraphicTemplate {
   name: string;

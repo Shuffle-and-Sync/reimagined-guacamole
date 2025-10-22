@@ -8,10 +8,10 @@
  * ignored by Git, with exceptions only for template files.
  */
 
-import { describe, test, expect } from "@jest/globals";
 import { execSync } from "child_process";
 import { existsSync, writeFileSync, unlinkSync, readFileSync } from "fs";
 import { join } from "path";
+import { describe, test, expect } from "@jest/globals";
 
 const ROOT_DIR = join(__dirname, "../../..");
 

@@ -1,18 +1,18 @@
 // Auth.js v5 configuration for Express.js integration
+import Credentials from "@auth/core/providers/credentials";
 import Google from "@auth/core/providers/google";
 import Twitch from "@auth/core/providers/twitch";
-import Credentials from "@auth/core/providers/credentials";
-import type { AuthConfig } from "@auth/core/types";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@shared/database-unified";
+import { logger } from "../logger";
+import { storage } from "../storage";
 import {
   comparePassword,
   checkAuthRateLimit,
   recordAuthFailure,
   clearAuthFailures,
 } from "./password";
-import { storage } from "../storage";
-import { logger } from "../logger";
+import type { AuthConfig } from "@auth/core/types";
 
 // Validate critical environment variables at startup
 if (!process.env.AUTH_SECRET) {

@@ -1,13 +1,5 @@
-import type { Express } from "express";
 import { createServer, type Server } from "http";
-
-import { storage } from "./storage";
-import {
-  isAuthenticated,
-  getAuthUserId,
-  _requireHybridAuth,
-  type AuthenticatedRequest,
-} from "./auth";
+import { z } from "zod";
 import {
   _insertCommunitySchema,
   insertEventSchema,
@@ -15,46 +7,51 @@ import {
   _insertGameSessionSchema,
   type _UpsertUser,
 } from "@shared/schema";
+import {
+  isAuthenticated,
+  getAuthUserId,
+  _requireHybridAuth,
+  type AuthenticatedRequest,
+} from "./auth";
 import { sendContactEmail } from "./email";
+import authRouter from "./features/auth/auth.routes";
+import { cardRecognitionRoutes } from "./features/cards/cards.routes";
+import { universalCardRoutes } from "./features/cards/universal-cards.routes";
+import { gamesCrudRoutes } from "./features/games/games-crud.routes";
+import { healthCheck } from "./health";
 import { logger } from "./logger";
-// FIXED: Use ONLY error classes from middleware, removed conflicting imports from ./types
 import {
   errorHandlingMiddleware,
   errors,
 } from "./middleware/error-handling.middleware";
-import { assertRouteParam } from "./shared/utils";
-import { graphicsGeneratorService } from "./services/graphics-generator.service";
-import { enhancedNotificationService } from "./services/enhanced-notifications.service";
-import { waitlistService } from "./services/waitlist.service";
-const { asyncHandler } = errorHandlingMiddleware;
-const {
-  _AppError,
-  _ValidationError,
-  _AuthenticationError,
-  _AuthorizationError,
-  NotFoundError,
-  ConflictError,
-  _DatabaseError,
-} = errors;
+import {
+  generalRateLimit,
+  _messageRateLimit,
+  eventCreationRateLimit,
+} from "./rate-limiting";
 import analyticsRouter from "./routes/analytics";
+import backupRouter from "./routes/backup";
 import cacheHealthRouter from "./routes/cache-health";
 import databaseHealthRouter from "./routes/database-health";
-import backupRouter from "./routes/backup";
-import monitoringRouter from "./routes/monitoring";
-import matchingRouter from "./routes/matching";
-import platformsRouter from "./routes/platforms.routes";
-import userProfileRouter from "./routes/user-profile.routes";
 import forumRouter from "./routes/forum.routes";
 import gameSessionsRouter from "./routes/game-sessions.routes";
+import matchingRouter from "./routes/matching";
+import monitoringRouter from "./routes/monitoring";
+import platformsRouter from "./routes/platforms.routes";
 import streamingRouter from "./routes/streaming";
-
-import EnhancedWebSocketServer from "./utils/websocket-server-enhanced";
-// Auth.js session validation will be done via session endpoint
-import { healthCheck } from "./health";
+import userProfileRouter from "./routes/user-profile.routes";
+import { enhancedNotificationService } from "./services/enhanced-notifications.service";
+import { graphicsGeneratorService } from "./services/graphics-generator.service";
 import {
   _generatePlatformOAuthURL,
   _handlePlatformOAuthCallback,
 } from "./services/platform-oauth.service";
+import { waitlistService } from "./services/waitlist.service";
+import { assertRouteParam } from "./shared/utils";
+import { storage } from "./storage";
+// FIXED: Use ONLY error classes from middleware, removed conflicting imports from ./types
+import EnhancedWebSocketServer from "./utils/websocket-server-enhanced";
+// Auth.js session validation will be done via session endpoint
 import {
   validateRequest,
   validateQuery,
@@ -74,16 +71,18 @@ import {
   paginationQuerySchema,
   _searchQuerySchema,
 } from "./validation";
-import { z } from "zod";
-import {
-  generalRateLimit,
-  _messageRateLimit,
-  eventCreationRateLimit,
-} from "./rate-limiting";
-import { cardRecognitionRoutes } from "./features/cards/cards.routes";
-import { universalCardRoutes } from "./features/cards/universal-cards.routes";
-import { gamesCrudRoutes } from "./features/games/games-crud.routes";
-import authRouter from "./features/auth/auth.routes";
+import type { Express } from "express";
+
+const { asyncHandler } = errorHandlingMiddleware;
+const {
+  _AppError,
+  _ValidationError,
+  _AuthenticationError,
+  _AuthorizationError,
+  NotFoundError,
+  ConflictError,
+  _DatabaseError,
+} = errors;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers middleware

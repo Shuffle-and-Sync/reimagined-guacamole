@@ -1,20 +1,11 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import React, { useState } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { User, Community, ForumPost, ForumReply } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,15 +14,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
-import type { User, Community, ForumPost, ForumReply } from "@shared/schema";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { queryClient } from "@/lib/queryClient";
+import { Footer, Header } from "@/shared/components";
 
 const FORUM_CATEGORIES = [
   {

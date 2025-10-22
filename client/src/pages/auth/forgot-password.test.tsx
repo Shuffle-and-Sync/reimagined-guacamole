@@ -4,10 +4,10 @@
  * Tests for the Forgot Password page including password reset flow.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import ForgotPassword from "./forgot-password";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock wouter
 vi.mock("wouter", () => ({

@@ -1,18 +1,18 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/features/auth";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from "react";
 import type {
   Tournament,
   TournamentMatch,
   TournamentRound,
   User,
 } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Extended match type with optional properties that may not exist in schema
 type ExtendedTournamentMatch = TournamentMatch & {
@@ -223,7 +223,10 @@ const MatchComponent = ({
                   size="sm"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => match.player1Id && onAdvanceMatch?.(match.id, match.player1Id)}
+                  onClick={() =>
+                    match.player1Id &&
+                    onAdvanceMatch?.(match.id, match.player1Id)
+                  }
                   disabled={!match.player1Id || !match.player2Id}
                   data-testid={`button-player1-wins-${match.id || "unknown"}`}
                 >
@@ -233,7 +236,10 @@ const MatchComponent = ({
                   size="sm"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => match.player2Id && onAdvanceMatch?.(match.id, match.player2Id)}
+                  onClick={() =>
+                    match.player2Id &&
+                    onAdvanceMatch?.(match.id, match.player2Id)
+                  }
                   disabled={!match.player1Id || !match.player2Id}
                   data-testid={`button-player2-wins-${match.id || "unknown"}`}
                 >

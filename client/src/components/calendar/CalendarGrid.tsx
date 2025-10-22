@@ -1,4 +1,3 @@
-import React from "react";
 import {
   format,
   startOfMonth,
@@ -9,8 +8,9 @@ import {
   startOfWeek,
   endOfWeek,
 } from "date-fns";
-import { Card } from "@/components/ui/card";
+import React from "react";
 import type { Event } from "@shared/schema";
+import { Card } from "@/components/ui/card";
 
 interface CalendarGridProps {
   currentDate: Date;

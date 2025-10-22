@@ -5,9 +5,9 @@
  * This ensures components have access to Router, QueryClient, Theme, and other context providers.
  */
 
-import React, { ReactElement } from "react";
-import { render, RenderOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, RenderOptions } from "@testing-library/react";
+import React, { ReactElement } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommunityProvider } from "@/features/communities";
 

@@ -4,8 +4,8 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { communitiesService } from "./communities.service";
 import { logger } from "../../logger";
+import { communitiesService } from "./communities.service";
 
 const router = Router();
 

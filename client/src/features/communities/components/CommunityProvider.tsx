@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import React, {
   createContext,
   useContext,
@@ -6,7 +7,6 @@ import React, {
   useRef,
   ReactNode,
 } from "react";
-import { useQuery } from "@tanstack/react-query";
 import type { Community } from "@shared/schema";
 import {
   getCommunityTheme,

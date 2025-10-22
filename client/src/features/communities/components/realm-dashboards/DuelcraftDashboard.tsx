@@ -1,4 +1,8 @@
 import React from "react";
+import { Link } from "wouter";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,12 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link } from "wouter";
 import { getCommunityTheme } from "../../utils/communityThemes";
 import { GamePodCalendar } from "../GamePodCalendar";
+
 interface User {
   id: string;
   firstName?: string;

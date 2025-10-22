@@ -8,15 +8,15 @@
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
+  globalErrorHandler,
+  ExternalServiceError,
+} from "../../../middleware/error-handling.middleware";
+import {
   createMockErrorResponse,
   verifyErrorResponse,
   externalAPIErrorSimulators,
   errorFactories,
 } from "../../helpers/error-test-utils";
-import {
-  globalErrorHandler,
-  ExternalServiceError,
-} from "../../../middleware/error-handling.middleware";
 
 describe("External Service Error Tests", () => {
   let mockReq: Partial<Request>;

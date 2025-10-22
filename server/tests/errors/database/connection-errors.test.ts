@@ -8,17 +8,17 @@
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
+  globalErrorHandler,
+  DatabaseError,
+  handleDatabaseError,
+} from "../../../middleware/error-handling.middleware";
+import {
   createMockErrorResponse,
   verifyErrorResponse,
   databaseErrorSimulators,
   errorAssertions,
   errorFactories,
 } from "../../helpers/error-test-utils";
-import {
-  globalErrorHandler,
-  DatabaseError,
-  handleDatabaseError,
-} from "../../../middleware/error-handling.middleware";
 
 describe("Database Connection Error Tests", () => {
   let mockReq: Partial<Request>;

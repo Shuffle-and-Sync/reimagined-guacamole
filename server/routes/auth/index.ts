@@ -4,12 +4,12 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { storage } from "../../storage";
 import { logger } from "../../logger";
-import passwordRouter from "./password";
+import { storage } from "../../storage";
 import mfaRouter from "./mfa";
-import tokensRouter from "./tokens";
+import passwordRouter from "./password";
 import registerRouter from "./register";
+import tokensRouter from "./tokens";
 
 const router = Router();
 

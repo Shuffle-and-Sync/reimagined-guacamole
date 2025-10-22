@@ -1,14 +1,13 @@
 import { logger } from "../logger";
 import { storage } from "../storage";
-
-import type {
-  DeviceContext,
-  DeviceFingerprintData,
-} from "./device-fingerprinting";
 import {
   generateDeviceFingerprint,
   validateDeviceContext,
   extractDeviceContext,
+} from "./device-fingerprinting";
+import type {
+  DeviceContext,
+  DeviceFingerprintData,
 } from "./device-fingerprinting";
 // TODO: Fix token imports - revokeTokenByJTI needs to be implemented
 // import { revokeTokenByJTI } from './tokens';

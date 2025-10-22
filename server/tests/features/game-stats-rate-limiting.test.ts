@@ -5,9 +5,9 @@
  * to prevent denial-of-service attacks
  */
 
-import { describe, test, expect } from "@jest/globals";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { describe, test, expect } from "@jest/globals";
 
 describe("Game Stats Rate Limiting", () => {
   const routesPath = join(

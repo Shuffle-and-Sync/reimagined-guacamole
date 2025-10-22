@@ -13,10 +13,10 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { WebSocketRateLimiter } from "../../utils/websocket-rate-limiter";
-import { messageValidator } from "../../utils/websocket-message-validator";
 import { WebSocketConnectionManager } from "../../utils/websocket-connection-manager";
 import { envValidator } from "../../utils/websocket-env-validation";
+import { messageValidator } from "../../utils/websocket-message-validator";
+import { WebSocketRateLimiter } from "../../utils/websocket-rate-limiter";
 import { createMockMessage } from "../__factories__";
 
 const createMockWebSocket = () => ({

@@ -1,14 +1,9 @@
 import { Router } from "express";
-import { storage } from "../../storage";
-import { logger } from "../../logger";
 import {
   requireHybridAuth,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { authRateLimit } from "../../rate-limiting";
-import { validateRequest } from "../../validation";
-import { refreshTokenSchema, revokeTokenSchema } from "./middleware";
 import {
   generateAccessTokenJWT,
   generateRefreshTokenJWT,
@@ -16,6 +11,11 @@ import {
   generateRefreshTokenId,
   TOKEN_EXPIRY,
 } from "../../auth/tokens";
+import { logger } from "../../logger";
+import { authRateLimit } from "../../rate-limiting";
+import { storage } from "../../storage";
+import { validateRequest } from "../../validation";
+import { refreshTokenSchema, revokeTokenSchema } from "./middleware";
 
 const router = Router();
 
@@ -236,38 +236,43 @@ router.post(
 );
 
 // Revoke all refresh tokens for user
-router.post("/revoke-all", requireHybridAuth, authRateLimit, async (req, res) => {
-  try {
-    const authenticatedReq = req as AuthenticatedRequest;
-    const userId = getAuthUserId(authenticatedReq);
+router.post(
+  "/revoke-all",
+  requireHybridAuth,
+  authRateLimit,
+  async (req, res) => {
+    try {
+      const authenticatedReq = req as AuthenticatedRequest;
+      const userId = getAuthUserId(authenticatedReq);
 
-    // Get count of active tokens before revoking
-    const activeTokens = await storage.getUserActiveRefreshTokens(userId);
-    const tokenCount = activeTokens.length;
+      // Get count of active tokens before revoking
+      const activeTokens = await storage.getUserActiveRefreshTokens(userId);
+      const tokenCount = activeTokens.length;
 
-    // Revoke all user's refresh tokens
-    await storage.revokeAllUserRefreshTokens(userId);
+      // Revoke all user's refresh tokens
+      await storage.revokeAllUserRefreshTokens(userId);
 
-    logger.info("All refresh tokens revoked for user", {
-      userId,
-      revokedTokenCount: tokenCount,
-      userAgent: req.headers["user-agent"],
-      ipAddress: req.ip,
-    });
+      logger.info("All refresh tokens revoked for user", {
+        userId,
+        revokedTokenCount: tokenCount,
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip,
+      });
 
-    return res.json({
-      message: "All tokens revoked successfully",
-      revokedTokenCount: tokenCount,
-    });
-  } catch (error) {
-    logger.error("All tokens revocation failed", error, {
-      userId: getAuthUserId(req as AuthenticatedRequest),
-      userAgent: req.headers["user-agent"],
-      ipAddress: req.ip,
-    });
-    return res.status(500).json({ message: "Failed to revoke all tokens" });
-  }
-});
+      return res.json({
+        message: "All tokens revoked successfully",
+        revokedTokenCount: tokenCount,
+      });
+    } catch (error) {
+      logger.error("All tokens revocation failed", error, {
+        userId: getAuthUserId(req as AuthenticatedRequest),
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip,
+      });
+      return res.status(500).json({ message: "Failed to revoke all tokens" });
+    }
+  },
+);
 
 // List all active refresh tokens
 router.get("/tokens", requireHybridAuth, async (req, res) => {

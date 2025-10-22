@@ -14,12 +14,12 @@
  * 7. Verify user is redirected to home page
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { renderWithProviders, screen, waitFor, userEvent } from "@/test-utils";
 import { http, HttpResponse } from "msw";
-import { server } from "@/test-utils/mocks/server";
+import { describe, it, expect, beforeEach } from "vitest";
 import Register from "@/pages/auth/register";
 import SignIn from "@/pages/auth/signin";
+import { renderWithProviders, screen, waitFor, userEvent } from "@/test-utils";
+import { server } from "@/test-utils/mocks/server";
 
 // Mock user data for the test
 const mockUser = {

@@ -1,9 +1,8 @@
 import React from "react";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Header, Footer } from "@/shared/components";
 
 export default function GettingStarted() {
   const handleGoHome = () => {
@@ -24,8 +23,8 @@ export default function GettingStarted() {
               Getting Started Guide
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Your complete guide to mastering Shuffle &amp; Sync&apos;s streaming
-              coordination features.
+              Your complete guide to mastering Shuffle &amp; Sync&apos;s
+              streaming coordination features.
             </p>
           </div>
 
@@ -38,8 +37,8 @@ export default function GettingStarted() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                We&apos;re crafting the perfect onboarding experience. Our Getting
-                Started guide will feature:
+                We&apos;re crafting the perfect onboarding experience. Our
+                Getting Started guide will feature:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">

@@ -4,11 +4,11 @@
  * Tests for the Form UI component using Vitest and React Testing Library.
  */
 
-import { describe, it, expect } from "vitest";
-import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { describe, it, expect } from "vitest";
+import { z } from "zod";
+import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import {
   Form,
   FormControl,

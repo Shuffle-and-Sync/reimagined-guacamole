@@ -1,5 +1,3 @@
-import { storage } from "../storage";
-import { logger } from "../logger";
 import type {
   _UserActivityAnalytics,
   _CommunityAnalytics,
@@ -15,6 +13,8 @@ import type {
   _User,
   _Community,
 } from "@shared/schema";
+import { logger } from "../logger";
+import { storage } from "../storage";
 
 /**
  * Analytics event data structures
@@ -592,7 +592,8 @@ export class AnalyticsService {
   }
 
   private analyzeUserBehavior(
-    _activityData: unknown[], _engagementMetrics: unknown,
+    _activityData: unknown[],
+    _engagementMetrics: unknown,
     _collaborationData: unknown[],
   ): any {
     // Analyze user behavior and generate insights

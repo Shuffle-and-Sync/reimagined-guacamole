@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
+import type { Community } from "@shared/schema";
 import { renderWithProviders, screen, fireEvent } from "@/test-utils";
 import { CommunityCard } from "./CommunityCard";
-import type { Community } from "@shared/schema";
 
 describe("CommunityCard Component", () => {
   const mockCommunity: Community = {

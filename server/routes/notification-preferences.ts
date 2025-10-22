@@ -1,9 +1,10 @@
 import { Router, type Request, type Response } from "express";
-import { enhancedNotificationService } from "../services/enhanced-notification.service";
 import {
   requireAuth as isAuthenticated,
   type AuthenticatedRequest,
 } from "../auth/auth.middleware";
+import { logger } from "../logger";
+import { enhancedNotificationService } from "../services/enhanced-notification.service";
 
 // Helper function to get user ID from authenticated request
 function getAuthUserId(req: AuthenticatedRequest): string {
@@ -12,7 +13,6 @@ function getAuthUserId(req: AuthenticatedRequest): string {
   }
   return req.user.id;
 }
-import { logger } from "../logger";
 
 const router = Router();
 

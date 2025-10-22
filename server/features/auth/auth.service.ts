@@ -1,13 +1,13 @@
 import { randomBytes } from "crypto";
-import { storage } from "../../storage";
+import type { User } from "@shared/schema";
 import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
+import { storage } from "../../storage";
 import type {
   _ForgotPasswordRequest,
   _ResetPasswordRequest,
   _AuthenticatedUser,
 } from "./auth.types";
-import type { User } from "@shared/schema";
 
 export class AuthService {
   async getCurrentUser(

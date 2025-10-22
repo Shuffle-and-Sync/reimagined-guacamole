@@ -2,8 +2,8 @@
 // This is a placeholder implementation for Facebook Gaming API integration
 // TODO: Implement full Facebook Gaming Creator API and Graph API integration
 
-import { logger } from "../logger";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+import { logger } from "../logger";
 
 export interface FacebookPage {
   id: string;

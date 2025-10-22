@@ -6,14 +6,14 @@
  */
 
 import { eq, and, SQL, sql, asc, desc, count, lt, gt } from "drizzle-orm";
-import type { SQLiteTable } from "drizzle-orm/sqlite-core";
-import { logger } from "../logger";
-import { DatabaseError } from "../middleware/error-handling.middleware";
 import {
   withQueryTiming,
   type Database,
   type Transaction,
 } from "@shared/database-unified";
+import { logger } from "../logger";
+import { DatabaseError } from "../middleware/error-handling.middleware";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 
 // Generic types for repository operations
 export interface PaginationOptions {

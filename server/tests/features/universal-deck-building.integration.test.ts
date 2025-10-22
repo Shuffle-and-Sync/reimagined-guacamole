@@ -4,8 +4,8 @@
  * Integration tests for Game Creator API and game-scoped card endpoints
  */
 
-import { gameService } from "../../services/games/game.service";
 import { universalCardService } from "../../services/card-recognition/index";
+import { gameService } from "../../services/games/game.service";
 
 // Mock services
 jest.mock("../../services/games/game.service");

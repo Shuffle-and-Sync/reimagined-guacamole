@@ -1,7 +1,7 @@
 import React from "react";
+import type { Event } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import type { Event } from "@shared/schema";
 
 interface PodStatusBadgeProps {
   event: Event;

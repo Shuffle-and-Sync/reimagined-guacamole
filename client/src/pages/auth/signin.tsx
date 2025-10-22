@@ -1,8 +1,12 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Mail } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FaGoogle } from "react-icons/fa";
+import { Link } from "wouter";
 import { z } from "zod";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import {
   Form,
   FormControl,
@@ -21,13 +22,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FaGoogle } from "react-icons/fa";
-import { Loader2, Mail } from "lucide-react";
 import { useAuth } from "@/features/auth";
-import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Login form validation schema
 const loginSchema = z.object({

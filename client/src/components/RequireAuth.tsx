@@ -1,6 +1,6 @@
 import React from "react";
-import { useAuth } from "@/features/auth";
 import { Redirect } from "wouter";
+import { useAuth } from "@/features/auth";
 
 interface RequireAuthProps {
   children: React.ReactNode;

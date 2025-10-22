@@ -5,11 +5,11 @@
  * handles basic interactions.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { renderWithProviders, screen, waitFor } from "@/test-utils";
 import { http, HttpResponse } from "msw";
-import { server } from "@/test-utils/mocks/server";
+import { describe, it, expect, beforeEach } from "vitest";
 import Matchmaking from "@/pages/matchmaking";
+import { renderWithProviders, screen, waitFor } from "@/test-utils";
+import { server } from "@/test-utils/mocks/server";
 
 const mockUser = {
   id: "test-user-123",

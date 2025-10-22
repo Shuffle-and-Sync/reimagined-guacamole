@@ -4,8 +4,8 @@
  * Utilities for managing security, credentials, and validation
  */
 
-import { logger } from "../logger";
 import crypto from "crypto";
+import { logger } from "../logger";
 
 /**
  * Validate that required environment variables are properly set

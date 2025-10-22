@@ -1,24 +1,16 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { addMonths, subMonths, format } from "date-fns";
 import React, { useState, useEffect } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import type { Event, Community } from "@shared/schema";
+import { CalendarGrid } from "@/components/calendar/CalendarGrid";
+import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
+import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
+import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
+import { PodStatusBadge } from "@/components/calendar/PodStatusBadge";
+import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -27,20 +19,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
-import { Header } from "@/shared/components";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
-import { CalendarGrid } from "@/components/calendar/CalendarGrid";
-import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
-import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
-import { PodStatusBadge } from "@/components/calendar/PodStatusBadge";
-import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
-import { addMonths, subMonths, format } from "date-fns";
-import type { Event, Community } from "@shared/schema";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { queryClient } from "@/lib/queryClient";
+import { Header } from "@/shared/components";
 
 const EVENT_TYPES = [
   {
@@ -131,9 +126,7 @@ export default function Calendar() {
   }, [selectedCommunity]);
 
   // Fetch events for the selected community only
-  const {
-    data: events = [],
-  } = useQuery<ExtendedEvent[]>({
+  const { data: events = [] } = useQuery<ExtendedEvent[]>({
     queryKey: [
       "/api/events",
       selectedCommunity?.id,

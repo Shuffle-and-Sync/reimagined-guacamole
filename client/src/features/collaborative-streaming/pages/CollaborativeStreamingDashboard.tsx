@@ -1,9 +1,3 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   Plus,
   Calendar,
@@ -14,12 +8,18 @@ import {
   Clock,
   Eye,
 } from "lucide-react";
-import { useCollaborativeStreamEvents } from "../hooks/useCollaborativeStreaming";
-import { StreamEventForm } from "../components/StreamEventForm";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollaboratorManagement } from "../components/CollaboratorManagement";
 import { CoordinationDashboard } from "../components/CoordinationDashboard";
-import { SessionMonitor } from "../components/SessionMonitor";
 import { PlatformAccountManager } from "../components/PlatformAccountManager";
+import { SessionMonitor } from "../components/SessionMonitor";
+import { StreamEventForm } from "../components/StreamEventForm";
+import { useCollaborativeStreamEvents } from "../hooks/useCollaborativeStreaming";
 import type { CollaborativeStreamEvent } from "../types";
 
 export default function CollaborativeStreamingDashboard() {

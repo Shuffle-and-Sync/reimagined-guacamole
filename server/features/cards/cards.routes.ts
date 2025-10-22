@@ -9,9 +9,9 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import { logger } from "../../logger";
 import { universalCardService } from "../../services/card-recognition/index";
 import { cardRecognitionService } from "../../services/card-recognition.service";
-import { logger } from "../../logger";
 
 const router = Router();
 

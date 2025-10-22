@@ -15,14 +15,13 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { storage } from "../../storage";
 import { logger } from "../../logger";
-
 // Import route modules from routes/auth
-import passwordRouter from "../../routes/auth/password";
 import mfaRouter from "../../routes/auth/mfa";
-import tokensRouter from "../../routes/auth/tokens";
+import passwordRouter from "../../routes/auth/password";
 import registerRouter from "../../routes/auth/register";
+import tokensRouter from "../../routes/auth/tokens";
+import { storage } from "../../storage";
 
 const router = Router();
 

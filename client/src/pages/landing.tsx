@@ -1,13 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
+import type { Community } from "@shared/schema";
+import { DemoModal } from "@/components/DemoModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { CommunityCard } from "@/features/communities";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { DemoModal } from "@/components/DemoModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import type { Community } from "@shared/schema";
+import { Header, Footer } from "@/shared/components";
 
 export default function Landing() {
   useDocumentTitle("TCG Streaming Coordination Platform");

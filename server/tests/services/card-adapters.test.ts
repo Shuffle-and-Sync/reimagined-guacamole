@@ -4,10 +4,10 @@
  * Tests for Scryfall and Custom game adapters
  */
 
-import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
-import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
-import { cardRecognitionService } from "../../services/card-recognition.service";
 import { db } from "../../../shared/database-unified";
+import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
+import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
+import { cardRecognitionService } from "../../services/card-recognition.service";
 import { createMockCard } from "../__factories__";
 
 // Mock the old card recognition service

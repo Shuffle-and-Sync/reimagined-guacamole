@@ -1,9 +1,8 @@
 import React from "react";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Header, Footer } from "@/shared/components";
 
 export default function APIDocs() {
   const handleGoHome = () => {

@@ -1,15 +1,3 @@
-import { logger } from "../logger";
-import { storage } from "../storage";
-import { streamingCoordinator } from "./streaming-coordinator";
-import { aiStreamingMatcher } from "./ai-streaming-matcher";
-import {
-  resolvePlatformIdentifiers,
-  getValidPlatformToken,
-} from "./platform-oauth";
-import { youtubeAPI } from "./youtube-api";
-import { twitchAPI } from "./twitch-api";
-import { facebookAPI } from "./facebook-api";
-
 import type {
   CollaborativeStreamEvent,
   StreamCollaborator,
@@ -18,6 +6,17 @@ import type {
   InsertStreamCollaborator,
   _InsertStreamCoordinationSession,
 } from "@shared/schema";
+import { logger } from "../logger";
+import { storage } from "../storage";
+import { aiStreamingMatcher } from "./ai-streaming-matcher";
+import { facebookAPI } from "./facebook-api";
+import {
+  resolvePlatformIdentifiers,
+  getValidPlatformToken,
+} from "./platform-oauth";
+import { streamingCoordinator } from "./streaming-coordinator";
+import { twitchAPI } from "./twitch-api";
+import { youtubeAPI } from "./youtube-api";
 
 /**
  * Collaborative Streaming Service

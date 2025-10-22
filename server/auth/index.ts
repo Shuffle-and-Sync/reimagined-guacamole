@@ -1,10 +1,10 @@
 // Auth adapter for Auth.js v5 Express.js integration
+import { Request } from "express";
 import {
   requireAuth,
   optionalAuth,
   type AuthenticatedRequest,
 } from "./auth.middleware";
-import { Request } from "express";
 
 // Auth middleware
 export const isAuthenticated = requireAuth;

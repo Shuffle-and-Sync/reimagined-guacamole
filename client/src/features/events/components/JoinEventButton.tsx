@@ -1,6 +1,8 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Users, UserMinus } from "lucide-react";
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,11 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserMinus } from "lucide-react";
 import type { CalendarEvent, Attendee } from "../types";
 
 interface JoinEventButtonProps {

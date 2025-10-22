@@ -9,14 +9,14 @@
  * - onSuccess callback invocations
  */
 
+import { http, HttpResponse } from "msw";
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
-import { JoinEventButton } from "./JoinEventButton";
-import { server } from "@/test-utils/mocks/server";
-import { http, HttpResponse } from "msw";
-import type { CalendarEvent } from "../types";
 import * as toastHook from "@/hooks/use-toast";
+import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
+import { server } from "@/test-utils/mocks/server";
+import { JoinEventButton } from "./JoinEventButton";
+import type { CalendarEvent } from "../types";
 
 // Mock the useToast hook
 const mockToast = vi.fn();

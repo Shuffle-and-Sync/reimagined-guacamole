@@ -1,9 +1,9 @@
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import React, { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/features/auth";
-import { useToast } from "@/hooks/use-toast";
+import type { Tournament, TournamentParticipant, User } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,9 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import type { Tournament, TournamentParticipant, User } from "@shared/schema";
-import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface TournamentEditorProps {
   tournament: Tournament & {

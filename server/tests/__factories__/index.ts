@@ -11,7 +11,6 @@
 
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
-import type { Request, Response } from "express";
 import type {
   User,
   Community,
@@ -27,6 +26,7 @@ import type {
   Message,
   Notification,
 } from "@shared/schema";
+import type { Request, Response } from "express";
 
 // Types not in schema but used in tests
 interface MockDeck {

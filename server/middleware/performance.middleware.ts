@@ -6,8 +6,8 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../logger";
 import { DatabaseMonitor } from "@shared/database-unified";
+import { logger } from "../logger";
 import { AuthenticatedRequest } from "../types";
 
 // Extended request with timing

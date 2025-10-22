@@ -1,9 +1,7 @@
-import { storage } from "../../storage";
-import { logger } from "../../logger";
 import type { Community, UserCommunity, ThemePreference } from "@shared/schema";
-import type {
-  ThemePreferencesRequest,
-} from "./communities.types";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
+import type { ThemePreferencesRequest } from "./communities.types";
 // Note: JoinCommunityRequest type reserved for future community join enhancements
 
 export class CommunitiesService {

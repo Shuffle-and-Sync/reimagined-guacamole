@@ -4,10 +4,9 @@
  * Tests for game CRUD operations and business logic
  */
 
-import { gameService } from "../../services/games/game.service";
 import { db } from "../../../shared/database-unified";
 import { games } from "../../../shared/schema";
-
+import { gameService } from "../../services/games/game.service";
 import { createMockGame } from "../__factories__";
 
 // Mock the database

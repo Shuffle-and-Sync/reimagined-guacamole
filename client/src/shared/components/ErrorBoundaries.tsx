@@ -1,3 +1,4 @@
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 /**
  * Comprehensive Error Boundary System

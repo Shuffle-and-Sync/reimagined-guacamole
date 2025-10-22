@@ -1,8 +1,11 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Smartphone, Key, ArrowLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
 import { z } from "zod";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -20,11 +21,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Smartphone, Key, ArrowLeft } from "lucide-react";
-import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // MFA verification form validation schema
 const mfaVerifySchema = z.object({
@@ -348,8 +348,8 @@ export default function MfaVerify() {
             <Alert data-testid="alert-attempt-warning">
               <AlertDescription>
                 Multiple failed attempts detected. Consider using a backup code
-                or contact support if you&apos;re unable to access your authenticator
-                app.
+                or contact support if you&apos;re unable to access your
+                authenticator app.
               </AlertDescription>
             </Alert>
           )}

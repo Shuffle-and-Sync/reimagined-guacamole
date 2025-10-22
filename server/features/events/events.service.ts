@@ -1,9 +1,9 @@
-import { storage } from "../../storage";
-import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
-import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { insertEventSchema } from "@shared/schema";
 import type { Event, EventAttendee } from "@shared/schema";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
+import { BatchQueryOptimizer } from "../../utils/database.utils";
 // Note: User type reserved for future user-related event features
 import type {
   EventFilters,

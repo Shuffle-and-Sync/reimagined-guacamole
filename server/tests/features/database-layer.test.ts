@@ -18,8 +18,8 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { users, tournaments, tournamentParticipants } from "@shared/schema";
 import { eq, and, or } from "drizzle-orm";
+import { users, tournaments, tournamentParticipants } from "@shared/schema";
 import { createMockUser, createMockTournament } from "../__factories__";
 
 // Mock for performance testing

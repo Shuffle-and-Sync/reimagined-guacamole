@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { storage } from "./storage";
 import { logger } from "./logger";
+import { storage } from "./storage";
 
 export async function healthCheck(_req: Request, res: Response) {
   const startTime = Date.now();

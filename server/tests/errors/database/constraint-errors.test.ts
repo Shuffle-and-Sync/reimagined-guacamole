@@ -8,16 +8,16 @@
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
+  globalErrorHandler,
+  DatabaseError,
+  ConflictError,
+} from "../../../middleware/error-handling.middleware";
+import {
   createMockErrorResponse,
   verifyErrorResponse,
   databaseErrorSimulators,
   errorFactories,
 } from "../../helpers/error-test-utils";
-import {
-  globalErrorHandler,
-  DatabaseError,
-  ConflictError,
-} from "../../../middleware/error-handling.middleware";
 
 describe("Database Constraint Violation Error Tests", () => {
   let mockReq: Partial<Request>;

@@ -4,20 +4,23 @@
  */
 
 import { Router } from "express";
+import type { UpsertUser } from "@shared/schema";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
 import { logger } from "../logger";
+import {
+  errors,
+  errorHandlingMiddleware,
+} from "../middleware/error-handling.middleware";
 import { storage } from "../storage";
-import type { UpsertUser } from "@shared/schema";
 import {
   validateRequest,
   validateUserProfileUpdateSchema,
   validateSocialLinksSchema,
 } from "../validation";
-import { errors, errorHandlingMiddleware } from "../middleware/error-handling.middleware";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError } = errors;
@@ -136,8 +139,7 @@ router.get(
     const currentUserId = getAuthUserId(authenticatedReq);
     const targetUserId = req.params.userId || currentUserId;
 
-    const gamingProfiles =
-      await storage.getUserGamingProfiles(targetUserId);
+    const gamingProfiles = await storage.getUserGamingProfiles(targetUserId);
     return res.json(gamingProfiles);
   }),
 );

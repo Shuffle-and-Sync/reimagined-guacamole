@@ -1,12 +1,12 @@
 import { Router } from "express";
+import { checkDatabaseHealth, DatabaseMonitor } from "@shared/database-unified";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-import { generalRateLimit } from "../rate-limiting";
-import { checkDatabaseHealth, DatabaseMonitor } from "@shared/database-unified";
 import { logger } from "../logger";
+import { generalRateLimit } from "../rate-limiting";
 
 const router = Router();
 

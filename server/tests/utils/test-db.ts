@@ -5,12 +5,12 @@
  * Ensures test isolation by creating fresh database instances for each test.
  */
 
-import Database from "better-sqlite3";
-import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "@shared/schema";
-import { sql } from "drizzle-orm";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import Database from "better-sqlite3";
+import { sql } from "drizzle-orm";
+import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import * as schema from "@shared/schema";
 
 /**
  * Create an in-memory SQLite database for testing

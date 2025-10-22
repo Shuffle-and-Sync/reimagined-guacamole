@@ -6,9 +6,9 @@
  */
 
 // Import all middleware modules
-import { securityMiddleware } from "./security.middleware";
 import { errorHandlingMiddleware } from "./error-handling.middleware";
 import { performanceMonitoring } from "./performance.middleware";
+import { securityMiddleware } from "./security.middleware";
 
 // Re-export individual middleware for granular control
 export { securityMiddleware } from "./security.middleware";

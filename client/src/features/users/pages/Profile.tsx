@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/features/auth";
-import { useCommunity } from "@/features/communities";
-import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
-import { Header } from "@/shared/components";
+import type { User, UserSocialLink, UserGamingProfile } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -15,9 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,12 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type {
-  User,
-  UserSocialLink,
-  UserGamingProfile,
-} from "@shared/schema";
+import { Header } from "@/shared/components";
 
 interface ExtendedUser extends User {
   socialLinks?: UserSocialLink[];

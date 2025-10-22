@@ -7,9 +7,9 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import { isAuthenticated } from "../auth";
 import { logger } from "../logger";
 import { realtimeMatchingAPI } from "../services/real-time-matching-api.service";
-import { isAuthenticated } from "../auth";
 import { assertRouteParam } from "../shared/utils";
 
 export const matchingRouter = Router();

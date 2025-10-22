@@ -1,12 +1,13 @@
 import { Router } from "express";
-import { storage } from "../../storage";
-import { logger } from "../../logger";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { authRateLimit } from "../../rate-limiting";
+import {
+  generateDeviceFingerprint,
+  extractDeviceContext,
+} from "../../auth/device-fingerprinting";
 import {
   generateTOTPSetup,
   verifyTOTPCode,
@@ -15,11 +16,10 @@ import {
   validateMFASetupRequirements,
   generateBackupCodes,
 } from "../../auth/mfa";
-import {
-  generateDeviceFingerprint,
-  extractDeviceContext,
-} from "../../auth/device-fingerprinting";
 import { verifyPassword } from "../../auth/password";
+import { logger } from "../../logger";
+import { authRateLimit } from "../../rate-limiting";
+import { storage } from "../../storage";
 
 const router = Router();
 
@@ -230,9 +230,7 @@ router.post("/verify", isAuthenticated, authRateLimit, async (req, res) => {
     const { code, isBackupCode = false } = req.body;
 
     if (!code) {
-      return res
-        .status(400)
-        .json({ message: "Verification code is required" });
+      return res.status(400).json({ message: "Verification code is required" });
     }
 
     // Extract device context for security validation

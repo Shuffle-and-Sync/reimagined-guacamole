@@ -4,10 +4,10 @@
  * Tests for the Account Settings page including profile management.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import AccountSettings from "./account-settings";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

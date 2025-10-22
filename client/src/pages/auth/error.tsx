@@ -1,5 +1,8 @@
+import { AlertTriangle, HelpCircle, Home, RotateCcw } from "lucide-react";
 import React from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useLocation } from "wouter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,10 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, HelpCircle, Home, RotateCcw } from "lucide-react";
-import { useLocation } from "wouter";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function AuthError() {
   useDocumentTitle("Authentication Error - Shuffle & Sync");

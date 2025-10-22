@@ -4,9 +4,9 @@
  * Global test setup and configuration for the test suite.
  */
 
+import { resolve } from "path";
 import { beforeAll, afterAll, jest } from "@jest/globals";
 import { config } from "dotenv";
-import { resolve } from "path";
 
 // Load test environment variables
 config({ path: resolve(process.cwd(), ".env.test") });

@@ -4,15 +4,15 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { usersService } from "./users.service";
-import { friendsService } from "./friends.service";
 import { logger } from "../../logger";
+import { assertRouteParam } from "../../shared/utils";
 import {
   validateRequest,
   validateUserProfileUpdateSchema,
   validateSocialLinksSchema,
 } from "../../validation";
-import { assertRouteParam } from "../../shared/utils";
+import { friendsService } from "./friends.service";
+import { usersService } from "./users.service";
 
 const router = Router();
 
