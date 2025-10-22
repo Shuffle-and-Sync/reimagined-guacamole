@@ -6,7 +6,7 @@ This document details the security vulnerabilities that were identified and reso
 
 A comprehensive security audit was conducted to identify and remediate critical security vulnerabilities in the codebase. The audit addressed hardcoded credentials, weak token generation, SQL injection risks, and sensitive data logging. All identified vulnerabilities have been resolved with proper security implementations.
 
-**LATEST UPDATE**: Additional security enhancements have been implemented to address console logging vulnerabilities, enhance SQL injection protection, and improve error handling robustness.
+**LATEST UPDATE**: Additional security enhancements have been implemented to address console logging vulnerabilities, enhance SQL injection protection, improve error handling robustness, and fix missing rate limiting on critical endpoints.
 
 ## Security Vulnerabilities Identified and Fixed
 
@@ -77,6 +77,102 @@ logger.error("Error fetching users", error, {
 ```
 
 **Impact:** Eliminates risk of sensitive data exposure in production logs with context-aware structured logging.
+
+### 2a. Missing Rate Limiting on Token Revocation Endpoint (HIGH) ✅ **[CodeQL Alert Fixed]**
+
+**Issue:** The `/revoke-all` token revocation endpoint was missing proper rate limiting, allowing potential denial-of-service attacks through expensive database operations.
+
+**Location:** `server/routes/auth/tokens.ts:241`
+
+**Alert:** CodeQL rule `js/missing-rate-limiting`
+
+**Vulnerable Code:**
+
+```typescript
+// Revoke all refresh tokens for user
+router.post(
+  "/revoke-all",
+  requireHybridAuth,
+  authRateLimit,  // Generic auth rate limiter - insufficient for this sensitive operation
+  async (req, res) => {
+    try {
+      // Expensive database operation
+      await storage.revokeAllUserRefreshTokens(userId);
+    }
+  }
+);
+```
+
+**Security Risk:**
+
+- Denial-of-service attacks through numerous rapid requests
+- Database performance degradation from expensive revocation operations
+- Legitimate users could be forced to be logged out repeatedly
+- Generic IP-based rate limiting allowed one attacker to affect all users
+
+**Fix:** Created dedicated user-specific rate limiter:
+
+```typescript
+// In server/rate-limiting.ts
+export const tokenRevocationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each user to 5 token revocation requests per windowMs
+  message: {
+    error: "Too many token revocation attempts",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  // Key by user ID to prevent one user from affecting others
+  keyGenerator: (req: Request) => {
+    const userId = safeGetUserId(req);
+    return userId || req.ip || "unknown";
+  },
+
+  // Custom handler for better logging and error response
+  handler: (req: Request, res: Response) => {
+    const userId = safeGetUserId(req);
+    logger.warn("Token revocation rate limit exceeded", {
+      userId,
+      ip: req.ip,
+      userAgent: req.get("user-agent"),
+      url: req.originalUrl,
+    });
+
+    res.status(429).json({
+      error: "Too many token revocation attempts",
+      message:
+        "You have made too many token revocation requests. Please try again in 15 minutes.",
+      retryAfter: 15 * 60, // seconds
+    });
+  },
+});
+
+// Updated route in server/routes/auth/tokens.ts
+router.post(
+  "/revoke-all",
+  requireHybridAuth,
+  tokenRevocationLimiter, // Dedicated strict rate limiter
+  async (req, res) => {
+    // ... implementation
+  },
+);
+```
+
+**Impact:**
+
+- Prevents denial-of-service attacks on token revocation endpoint
+- User-specific rate limiting isolates users from each other's actions
+- Enhanced logging for security monitoring and incident response
+- Clear error messages with retry-after information for better UX
+- CodeQL security alert resolved ✅
+
+**Test Coverage:**
+
+- 24 comprehensive test cases in `server/tests/auth/token-revocation-rate-limiting.test.ts`
+- Tests verify configuration, integration, security best practices, and validation
+- All existing auth tests continue to pass
 
 ### 3. SQL Injection Risk (HIGH) ✅ **[ENHANCED]**
 
