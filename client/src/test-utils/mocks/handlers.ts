@@ -7,6 +7,29 @@
 
 import { http, HttpResponse } from "msw";
 
+// Type definitions for request bodies
+interface RegisterRequestBody {
+  email: string;
+  username: string;
+  password?: string;
+}
+
+interface TournamentRequestBody {
+  name: string;
+  game: string;
+  format: string;
+  maxParticipants?: number;
+  [key: string]: unknown;
+}
+
+interface MatchmakingPreferencesBody {
+  preferredFormats?: string[];
+  powerLevel?: number;
+  playstyle?: string;
+  availability?: string;
+  [key: string]: unknown;
+}
+
 export const handlers = [
   // Auth endpoints
   http.get("/api/auth/session", () => {
@@ -85,7 +108,7 @@ export const handlers = [
 
   // Registration endpoint
   http.post("/api/auth/register", async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) as RegisterRequestBody;
     return HttpResponse.json(
       {
         success: true,
@@ -93,8 +116,8 @@ export const handlers = [
           "Registration successful! Please check your email to verify your account.",
         user: {
           id: "new-user-id",
-          email: (body as any).email,
-          username: (body as any).username,
+          email: body.email,
+          username: body.username,
         },
       },
       { status: 201 },
@@ -115,11 +138,11 @@ export const handlers = [
 
   // Tournament creation and registration
   http.post("/api/tournaments", async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) as TournamentRequestBody;
     return HttpResponse.json(
       {
         id: "new-tournament-" + Date.now(),
-        ...(body as any),
+        ...body,
         currentParticipants: 0,
         status: "upcoming",
         registrationOpen: true,
@@ -149,11 +172,11 @@ export const handlers = [
   }),
 
   http.post("/api/matchmaking/preferences", async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) as MatchmakingPreferencesBody;
     return HttpResponse.json({
       id: "pref-1",
       userId: "test-user-id",
-      ...(body as any),
+      ...body,
     });
   }),
 

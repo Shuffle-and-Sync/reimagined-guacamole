@@ -21,11 +21,13 @@ const originalSetTimeout = global.setTimeout;
 const originalClearTimeout = global.clearTimeout;
 
 // Wrap setTimeout to track timers
-global.setTimeout = function (...args: unknown[]): any {
-  const timer = originalSetTimeout.apply(this, args as any);
+global.setTimeout = function (
+  ...args: Parameters<typeof setTimeout>
+): ReturnType<typeof setTimeout> {
+  const timer = originalSetTimeout.apply(this, args);
   activeTimers.add(timer);
   return timer;
-} as any;
+} as typeof setTimeout;
 
 // Wrap clearTimeout to untrack timers
 global.clearTimeout = function (timer: ReturnType<typeof setTimeout>): void {
@@ -91,7 +93,7 @@ global.IntersectionObserver = class IntersectionObserver {
     return [];
   }
   unobserve() {}
-} as any;
+} as unknown as typeof global.IntersectionObserver;
 
 // Mock ResizeObserver (required for responsive components)
 global.ResizeObserver = class ResizeObserver {
@@ -99,7 +101,7 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-} as any;
+} as unknown as typeof global.ResizeObserver;
 
 // Mock hasPointerCapture and related methods (required for Radix UI components)
 if (!Element.prototype.hasPointerCapture) {
