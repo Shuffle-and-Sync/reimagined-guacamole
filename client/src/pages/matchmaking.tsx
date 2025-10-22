@@ -110,6 +110,22 @@ const SUGGESTED_PLAYERS = [
   },
 ];
 
+interface MatchResult {
+  id: string;
+  username: string;
+  avatar: string | null;
+  games: string[];
+  formats: string[];
+  powerLevel: number;
+  playstyle: string;
+  location: string;
+  availability: string;
+  matchScore: number;
+  commonInterests: string[];
+  lastOnline: string;
+  isOnline: boolean;
+}
+
 export default function Matchmaking() {
   useDocumentTitle("Matchmaking");
 
@@ -131,7 +147,7 @@ export default function Matchmaking() {
 
   // Search state
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<MatchResult[]>([]);
 
   // Fetch user's matchmaking preferences
   const { data: savedPreferences, isLoading: _preferencesLoading } =

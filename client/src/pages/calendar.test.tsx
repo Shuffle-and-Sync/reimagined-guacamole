@@ -32,7 +32,7 @@ vi.mock("@/features/communities", () => ({
     },
     communityTheme: {},
   })),
-  CommunityProvider: ({ children }: any) => children,
+  CommunityProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -91,7 +91,7 @@ describe("Calendar Page", () => {
         } as Response);
       }
       return Promise.reject(new Error("Not found"));
-    }) as any;
+    }) as typeof fetch;
   });
 
   describe("Page Structure", () => {

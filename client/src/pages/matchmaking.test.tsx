@@ -74,7 +74,7 @@ describe("Matchmaking Page", () => {
         } as Response);
       }
       return Promise.reject(new Error("Not found"));
-    }) as any;
+    }) as typeof fetch;
   });
 
   describe("Page Structure", () => {
@@ -237,7 +237,9 @@ describe("Matchmaking Page", () => {
       await user.click(preferencesTab);
 
       await waitFor(() => {
-        expect(screen.getByText("Communication Preferences")).toBeInTheDocument();
+        expect(
+          screen.getByText("Communication Preferences"),
+        ).toBeInTheDocument();
         expect(screen.getByText("Voice chat during games")).toBeInTheDocument();
         expect(
           screen.getByText("Video chat for webcam games"),

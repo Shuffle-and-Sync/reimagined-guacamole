@@ -97,7 +97,7 @@ describe("Tournaments Page", () => {
         } as Response);
       }
       return Promise.reject(new Error("Not found"));
-    }) as any;
+    }) as typeof fetch;
   });
 
   describe("Page Structure", () => {
@@ -154,7 +154,7 @@ describe("Tournaments Page", () => {
     it("shows loading skeleton while fetching", () => {
       global.fetch = vi.fn(
         () => new Promise((resolve) => setTimeout(resolve, 1000)),
-      ) as any;
+      ) as typeof fetch;
 
       renderWithProviders(<Tournaments />, { queryClient });
       const skeletons = document.querySelectorAll(".animate-pulse");
@@ -170,7 +170,7 @@ describe("Tournaments Page", () => {
           } as Response);
         }
         return Promise.reject(new Error("Not found"));
-      }) as any;
+      }) as typeof fetch;
 
       renderWithProviders(<Tournaments />, { queryClient });
 

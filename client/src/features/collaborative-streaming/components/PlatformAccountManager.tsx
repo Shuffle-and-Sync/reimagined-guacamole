@@ -117,10 +117,15 @@ export function PlatformAccountManager() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: unknown) => {
       // Redirect to OAuth flow
-      if (data && typeof data === "object" && "authUrl" in data) {
-        window.location.href = (data as any).authUrl;
+      if (
+        data &&
+        typeof data === "object" &&
+        "authUrl" in data &&
+        typeof (data as { authUrl: string }).authUrl === "string"
+      ) {
+        window.location.href = (data as { authUrl: string }).authUrl;
       }
     },
     onError: (error: unknown) => {

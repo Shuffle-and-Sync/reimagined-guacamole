@@ -14,7 +14,9 @@ import * as authModule from "@/features/auth";
 vi.mock("wouter", () => ({
   useParams: vi.fn(() => ({ id: "tournament1" })),
   useLocation: vi.fn(() => ["/tournaments/tournament1", vi.fn()]),
-  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 // Mock hooks
@@ -104,7 +106,7 @@ describe("Tournament Detail Page", () => {
         } as Response);
       }
       return Promise.reject(new Error("Not found"));
-    }) as any;
+    }) as typeof fetch;
   });
 
   describe("Page Structure", () => {
@@ -301,7 +303,7 @@ describe("Tournament Detail Page", () => {
     it("shows loading skeleton while fetching", () => {
       global.fetch = vi.fn(
         () => new Promise((resolve) => setTimeout(resolve, 1000)),
-      ) as any;
+      ) as typeof fetch;
 
       renderWithProviders(<TournamentDetail />, { queryClient });
       const skeletons = document.querySelectorAll(".animate-pulse");
@@ -314,7 +316,7 @@ describe("Tournament Detail Page", () => {
           ok: false,
           status: 404,
         } as Response),
-      ) as any;
+      ) as typeof fetch;
 
       renderWithProviders(<TournamentDetail />, { queryClient });
 
