@@ -13,6 +13,7 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import rateLimit from "express-rate-limit";
 import { requireAuth } from "../../auth/auth.middleware";
 import { ValidationError, NotFoundError } from "../../shared/types";
 import { gameStatsService } from "./game-stats.service";
@@ -20,6 +21,15 @@ import { validateRequest } from "../../validation";
 import { assertRouteParam } from "../../shared/utils";
 
 const router = Router();
+
+// Rate limiter for game stats routes
+const gameStatsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // maximum requests per window
+  message: "Too many requests for game stats, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Validation schemas
 const createGameResultSchema = z.object({
@@ -88,33 +98,38 @@ const gameStatsQuerySchema = z.object({
  * - sortBy: Sort field
  * - sortOrder: Sort direction
  */
-router.get("/", requireAuth, async (req, res, next): Promise<void> => {
-  try {
-    // Validate query parameters
-    const query = gameStatsQuerySchema.parse(req.query);
-    if (!req.user?.id) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+router.get(
+  "/",
+  gameStatsLimiter,
+  requireAuth,
+  async (req, res, next): Promise<void> => {
+    try {
+      // Validate query parameters
+      const query = gameStatsQuerySchema.parse(req.query);
+      if (!req.user?.id) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+      const userId = req.user.id;
+
+      // Calculate pagination offset
+      const offset = (query.page - 1) * query.limit;
+
+      const result = await gameStatsService.getUserGameStats(userId, {
+        ...query,
+        offset,
+      });
+
+      res.json({
+        success: true,
+        data: result,
+        message: "Game statistics retrieved successfully",
+      });
+    } catch (error) {
+      next(error);
     }
-    const userId = req.user.id;
-
-    // Calculate pagination offset
-    const offset = (query.page - 1) * query.limit;
-
-    const result = await gameStatsService.getUserGameStats(userId, {
-      ...query,
-      offset,
-    });
-
-    res.json({
-      success: true,
-      data: result,
-      message: "Game statistics retrieved successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * PUT /api/game-stats
@@ -153,25 +168,30 @@ router.put(
  * GET /api/game-stats/aggregate
  * Get aggregate statistics across all game types for the authenticated user
  */
-router.get("/aggregate", requireAuth, async (req, res, next): Promise<void> => {
-  try {
-    if (!req.user?.id) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+router.get(
+  "/aggregate",
+  gameStatsLimiter,
+  requireAuth,
+  async (req, res, next): Promise<void> => {
+    try {
+      if (!req.user?.id) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+      const userId = req.user.id;
+
+      const aggregateStats = await gameStatsService.getAggregateStats(userId);
+
+      res.json({
+        success: true,
+        data: aggregateStats,
+        message: "Aggregate statistics retrieved successfully",
+      });
+    } catch (error) {
+      next(error);
     }
-    const userId = req.user.id;
-
-    const aggregateStats = await gameStatsService.getAggregateStats(userId);
-
-    res.json({
-      success: true,
-      data: aggregateStats,
-      message: "Aggregate statistics retrieved successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * GET /api/game-stats/leaderboard
@@ -181,7 +201,7 @@ router.get("/aggregate", requireAuth, async (req, res, next): Promise<void> => {
  * - gameType: Optional filter by specific TCG type
  * - limit: Number of top players to return (default 20, max 100)
  */
-router.get("/leaderboard", async (req, res, next) => {
+router.get("/leaderboard", gameStatsLimiter, async (req, res, next) => {
   try {
     const { gameType, limit = 20 } = req.query;
 
@@ -252,6 +272,7 @@ router.post(
  */
 router.get(
   "/game-results",
+  gameStatsLimiter,
   requireAuth,
   async (req, res, next): Promise<void> => {
     try {
