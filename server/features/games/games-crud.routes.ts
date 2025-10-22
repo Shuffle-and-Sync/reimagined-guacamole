@@ -88,9 +88,13 @@ router.post("/", isAuthenticated, async (req, res) => {
       });
     }
 
-    logger.error("Failed to create game", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to create game",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res.status(500).json({ message: "Failed to create game" });
   }
 });
@@ -110,7 +114,10 @@ router.get("/", async (req, res) => {
     const games = await gameService.getAllGames(filters);
     return res.json(games);
   } catch (error) {
-    logger.error("Failed to fetch games", error);
+    logger.error(
+      "Failed to fetch games",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return res.status(500).json({ message: "Failed to fetch games" });
   }
 });
@@ -135,7 +142,11 @@ router.get("/:id", async (req, res) => {
           "Game service not yet implemented - games table missing from schema",
       });
     }
-    logger.error("Failed to fetch game", error, { gameId: req.params.id });
+    logger.error(
+      "Failed to fetch game",
+      error instanceof Error ? error : new Error(String(error)),
+      { gameId: req.params.id },
+    );
     return res.status(500).json({ message: "Failed to fetch game" });
   }
 });
@@ -176,10 +187,14 @@ router.put("/:id", isAuthenticated, async (req, res) => {
       }
     }
 
-    logger.error("Failed to update game", error, {
-      gameId: req.params.id,
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to update game",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        gameId: req.params.id,
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res.status(500).json({ message: "Failed to update game" });
   }
 });
@@ -211,10 +226,14 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
       }
     }
 
-    logger.error("Failed to delete game", error, {
-      gameId: req.params.id,
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to delete game",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        gameId: req.params.id,
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res.status(500).json({ message: "Failed to delete game" });
   }
 });
@@ -246,10 +265,14 @@ router.post("/:id/publish", isAuthenticated, async (req, res) => {
       }
     }
 
-    logger.error("Failed to publish game", error, {
-      gameId: req.params.id,
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to publish game",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        gameId: req.params.id,
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res.status(500).json({ message: "Failed to publish game" });
   }
 });
@@ -268,9 +291,13 @@ router.get("/:id/stats", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error("Failed to fetch game stats", error, {
-      gameId: req.params.id,
-    });
+    logger.error(
+      "Failed to fetch game stats",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        gameId: req.params.id,
+      },
+    );
     return res.status(500).json({ message: "Failed to fetch game stats" });
   }
 });

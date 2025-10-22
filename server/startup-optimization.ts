@@ -48,7 +48,10 @@ export async function initializeServicesParallel<
           return [name, result] as const;
         } catch (error) {
           endTimer(`service-${name}`);
-          logger.error(`Failed to initialize service: ${name}`, error);
+          logger.error(
+            `Failed to initialize service: ${name}`,
+            error instanceof Error ? error : new Error(String(error)),
+          );
           throw error;
         }
       }),
@@ -64,7 +67,10 @@ export async function initializeServicesParallel<
     return resultsObject;
   } catch (error) {
     endTimer("parallel-initialization");
-    logger.error("Service initialization failed", error);
+    logger.error(
+      "Service initialization failed",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw error;
   }
 }
@@ -91,8 +97,12 @@ export async function warmupCriticalPaths(): Promise<void> {
 /**
  * Setup graceful shutdown handlers for Cloud Run
  */
-export function setupGracefulShutdown(server: unknown,
-  clients?: { drizzle?: unknown; closeDatabaseConnections?: () => Promise<void> },
+export function setupGracefulShutdown(
+  server: unknown,
+  clients?: {
+    drizzle?: unknown;
+    closeDatabaseConnections?: () => Promise<void>;
+  },
 ): void {
   const gracefulShutdown = async (signal: string) => {
     logger.info(`Received ${signal}, starting graceful shutdown`);
@@ -131,7 +141,10 @@ export function setupGracefulShutdown(server: unknown,
         process.exit(1);
       }, 10000); // 10 second grace period
     } catch (error) {
-      logger.error("Error during graceful shutdown", error);
+      logger.error(
+        "Error during graceful shutdown",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       process.exit(1);
     }
   };

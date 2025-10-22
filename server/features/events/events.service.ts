@@ -20,9 +20,13 @@ export class EventsService {
     try {
       return await storage.getEvents(filters);
     } catch (error) {
-      logger.error("Failed to fetch events in EventsService", error, {
-        filters,
-      });
+      logger.error(
+        "Failed to fetch events in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          filters,
+        },
+      );
       throw error;
     }
   }
@@ -71,10 +75,14 @@ export class EventsService {
     try {
       return await storage.getEvent(id, userId);
     } catch (error) {
-      logger.error("Failed to fetch event in EventsService", error, {
-        eventId: id,
-        userId,
-      });
+      logger.error(
+        "Failed to fetch event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: id,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -98,9 +106,13 @@ export class EventsService {
       });
       return event;
     } catch (error) {
-      logger.error("Failed to create event in EventsService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to create event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -130,10 +142,14 @@ export class EventsService {
       });
       return updatedEvent;
     } catch (error) {
-      logger.error("Failed to update event in EventsService", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to update event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -152,10 +168,14 @@ export class EventsService {
       await storage.deleteEvent(eventId);
       logger.info("Event deleted", { eventId, userId });
     } catch (error) {
-      logger.error("Failed to delete event in EventsService", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to delete event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -212,11 +232,15 @@ export class EventsService {
 
       return result;
     } catch (error) {
-      logger.error("Failed to join event in EventsService", error, {
-        eventId,
-        userId,
-        joinData,
-      });
+      logger.error(
+        "Failed to join event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+          joinData,
+        },
+      );
       throw error;
     }
   }
@@ -226,10 +250,14 @@ export class EventsService {
       await storage.leaveEvent(eventId, userId);
       logger.info("User left event", { eventId, userId });
     } catch (error) {
-      logger.error("Failed to leave event in EventsService", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to leave event in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -238,9 +266,13 @@ export class EventsService {
     try {
       return await storage.getEventAttendees(eventId);
     } catch (error) {
-      logger.error("Failed to fetch event attendees in EventsService", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to fetch event attendees in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
       throw error;
     }
   }
@@ -249,9 +281,13 @@ export class EventsService {
     try {
       return await storage.getUserEventAttendance(userId);
     } catch (error) {
-      logger.error("Failed to fetch user events in EventsService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch user events in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -302,9 +338,13 @@ export class EventsService {
       });
       return createdEvents;
     } catch (error) {
-      logger.error("Failed to create bulk events in EventsService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to create bulk events in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -385,9 +425,13 @@ export class EventsService {
 
       return await storage.getCalendarEvents(filters);
     } catch (error) {
-      logger.error("Failed to fetch calendar events in EventsService", error, {
-        filters,
-      });
+      logger.error(
+        "Failed to fetch calendar events in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          filters,
+        },
+      );
       throw error;
     }
   }

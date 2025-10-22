@@ -43,7 +43,11 @@ export class EnhancedNotificationService {
 
       logger.info("Event reminders sent", { eventId, count: attendees.length });
     } catch (error) {
-      logger.error("Failed to send event reminders", error, { eventId });
+      logger.error(
+        "Failed to send event reminders",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
     }
   }
 
@@ -76,9 +80,13 @@ export class EnhancedNotificationService {
 
       logger.info("Event update notifications sent", { eventId, changes });
     } catch (error) {
-      logger.error("Failed to send event update notifications", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to send event update notifications",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
     }
   }
 
@@ -108,9 +116,13 @@ export class EnhancedNotificationService {
         count: attendees.length,
       });
     } catch (error) {
-      logger.error("Failed to send event cancellation notifications", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to send event cancellation notifications",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
     }
   }
 
@@ -149,9 +161,13 @@ export class EnhancedNotificationService {
         minutesUntilStart,
       });
     } catch (error) {
-      logger.error("Failed to send starting soon notifications", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to send starting soon notifications",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
     }
   }
 
@@ -174,10 +190,14 @@ export class EnhancedNotificationService {
 
       logger.info("Waitlist promotion notification sent", { eventId, userId });
     } catch (error) {
-      logger.error("Failed to send waitlist promotion notification", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to send waitlist promotion notification",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
     }
   }
 }

@@ -252,7 +252,10 @@ export class WebSocketMessageValidator {
         data: validationResult.data,
       };
     } catch (error) {
-      logger.error("Error validating incoming WebSocket message", error);
+      logger.error(
+        "Error validating incoming WebSocket message",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return {
         success: false,
         error: "Validation error",
@@ -287,7 +290,10 @@ export class WebSocketMessageValidator {
         data: validationResult.data,
       };
     } catch (error) {
-      logger.error("Error validating outgoing WebSocket message", error);
+      logger.error(
+        "Error validating outgoing WebSocket message",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return {
         success: false,
         error: "Validation error",

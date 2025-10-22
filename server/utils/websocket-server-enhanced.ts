@@ -45,7 +45,10 @@ export class EnhancedWebSocketServer {
     });
 
     this.wss.on("error", (error) => {
-      logger.error("WebSocket server error", error);
+      logger.error(
+        "WebSocket server error",
+        error instanceof Error ? error : new Error(String(error)),
+      );
     });
 
     logger.info("Enhanced WebSocket server initialized", {
@@ -95,7 +98,10 @@ export class EnhancedWebSocketServer {
       // Set up message handling
       this.setupMessageHandling(ws, connectionId);
     } catch (error) {
-      logger.error("WebSocket connection setup failed", error);
+      logger.error(
+        "WebSocket connection setup failed",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       this.closeConnectionWithError(
         ws,
         "Connection setup failed",
@@ -196,7 +202,10 @@ export class EnhancedWebSocketServer {
         token: cookies, // Store cookies as token for now
       };
     } catch (error) {
-      logger.error("WebSocket authentication error", error);
+      logger.error(
+        "WebSocket authentication error",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return {
         success: false,
         error: "Authentication error",
@@ -261,10 +270,14 @@ export class EnhancedWebSocketServer {
         // Process the message
         await this.processMessage(ws, connectionId, message);
       } catch (error) {
-        logger.error("Error processing WebSocket message", error, {
-          connectionId,
-          userId: ws.userId,
-        });
+        logger.error(
+          "Error processing WebSocket message",
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            connectionId,
+            userId: ws.userId,
+          },
+        );
 
         this.sendMessage(
           ws,
@@ -287,10 +300,14 @@ export class EnhancedWebSocketServer {
     });
 
     ws.on("error", (error: Error) => {
-      logger.error("WebSocket connection error", error, {
-        connectionId,
-        userId: ws.userId,
-      });
+      logger.error(
+        "WebSocket connection error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          connectionId,
+          userId: ws.userId,
+        },
+      );
     });
 
     // Handle ping/pong for connection health
@@ -529,7 +546,10 @@ export class EnhancedWebSocketServer {
 
       connectionManager.broadcastToCollaborativeRoom(eventId, joinMessage);
     } catch (error) {
-      logger.error("Failed to handle collab stream join", error);
+      logger.error(
+        "Failed to handle collab stream join",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       this.sendMessage(
         ws,
         messageValidator.createErrorMessage(
@@ -604,7 +624,10 @@ export class EnhancedWebSocketServer {
 
       connectionManager.broadcastToCollaborativeRoom(eventId, phaseMessage);
     } catch (error) {
-      logger.error("Failed to handle phase change", error);
+      logger.error(
+        "Failed to handle phase change",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       this.sendMessage(ws, {
         type: "phase_change_error",
         eventId,
@@ -686,7 +709,10 @@ export class EnhancedWebSocketServer {
 
       ws.send(JSON.stringify(validation.data));
     } catch (error) {
-      logger.error("Failed to send WebSocket message", error);
+      logger.error(
+        "Failed to send WebSocket message",
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
   }
 

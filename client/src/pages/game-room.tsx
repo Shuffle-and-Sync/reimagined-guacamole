@@ -71,7 +71,7 @@ export default function GameRoom() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { _selectedCommunity } = useCommunity();
+  const { selectedCommunity } = useCommunity();
   const _queryClient = useQueryClient();
 
   // Check if user is in spectator mode

@@ -110,7 +110,11 @@ export class UserService {
 
       return user;
     } catch (error) {
-      logger.error("Failed to create user", error, { email: data.email });
+      logger.error(
+        "Failed to create user",
+        error instanceof Error ? error : new Error(String(error)),
+        { email: data.email },
+      );
       throw error;
     }
   }
@@ -122,7 +126,11 @@ export class UserService {
     try {
       return await this.userRepository.findByIdWithCommunities(userId);
     } catch (error) {
-      logger.error("Failed to get user by ID", error, { userId });
+      logger.error(
+        "Failed to get user by ID",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -138,7 +146,11 @@ export class UserService {
 
       return await this.userRepository.findByEmail(email);
     } catch (error) {
-      logger.error("Failed to get user by email", error, { email });
+      logger.error(
+        "Failed to get user by email",
+        error instanceof Error ? error : new Error(String(error)),
+        { email },
+      );
       throw error;
     }
   }
@@ -157,7 +169,11 @@ export class UserService {
 
       return await this.userRepository.searchUsers(options);
     } catch (error) {
-      logger.error("Failed to search users", error, { options });
+      logger.error(
+        "Failed to search users",
+        error instanceof Error ? error : new Error(String(error)),
+        { options },
+      );
       throw error;
     }
   }
@@ -204,7 +220,11 @@ export class UserService {
       logger.info("User profile updated", { userId });
       return updatedUser;
     } catch (error) {
-      logger.error("Failed to update user profile", error, { userId });
+      logger.error(
+        "Failed to update user profile",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -242,7 +262,11 @@ export class UserService {
       logger.info("User email changed", { userId, newEmail });
       return updatedUser;
     } catch (error) {
-      logger.error("Failed to change user email", error, { userId, newEmail });
+      logger.error(
+        "Failed to change user email",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId, newEmail },
+      );
       throw error;
     }
   }
@@ -267,7 +291,11 @@ export class UserService {
         setAsPrimary,
       });
     } catch (error) {
-      logger.error("Failed to join community", error, { userId, communityId });
+      logger.error(
+        "Failed to join community",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId, communityId },
+      );
       throw error;
     }
   }
@@ -280,7 +308,11 @@ export class UserService {
       await this.userRepository.leaveCommunity(userId, communityId);
       logger.info("User left community", { userId, communityId });
     } catch (error) {
-      logger.error("Failed to leave community", error, { userId, communityId });
+      logger.error(
+        "Failed to leave community",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId, communityId },
+      );
       throw error;
     }
   }
@@ -296,10 +328,14 @@ export class UserService {
       await this.userRepository.setPrimaryCommunity(userId, communityId);
       logger.info("User primary community set", { userId, communityId });
     } catch (error) {
-      logger.error("Failed to set primary community", error, {
-        userId,
-        communityId,
-      });
+      logger.error(
+        "Failed to set primary community",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+          communityId,
+        },
+      );
       throw error;
     }
   }
@@ -311,7 +347,11 @@ export class UserService {
     try {
       return await this.userRepository.getUserStats(userId);
     } catch (error) {
-      logger.error("Failed to get user stats", error, { userId });
+      logger.error(
+        "Failed to get user stats",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -328,7 +368,11 @@ export class UserService {
 
       logger.info("User account deactivated", { userId });
     } catch (error) {
-      logger.error("Failed to deactivate user account", error, { userId });
+      logger.error(
+        "Failed to deactivate user account",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -341,7 +385,11 @@ export class UserService {
       await this.userRepository.softDeleteUser(userId);
       logger.info("User account deleted", { userId });
     } catch (error) {
-      logger.error("Failed to delete user account", error, { userId });
+      logger.error(
+        "Failed to delete user account",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -376,7 +424,11 @@ export class UserService {
 
       logger.info("Email verification sent", { userId, email: user.email });
     } catch (error) {
-      logger.error("Failed to send email verification", error, { userId });
+      logger.error(
+        "Failed to send email verification",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -390,7 +442,11 @@ export class UserService {
       // For now, throwing not implemented error
       throw new Error("Email verification not yet implemented");
     } catch (error) {
-      logger.error("Failed to verify email", error, { token });
+      logger.error(
+        "Failed to verify email",
+        error instanceof Error ? error : new Error(String(error)),
+        { token },
+      );
       throw error;
     }
   }

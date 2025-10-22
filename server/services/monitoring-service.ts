@@ -4,7 +4,7 @@ import os from "os";
 import { sql } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { logger } from "../logger";
-import { redisClient } from "./redis-client";
+import { redisClient } from "./redis-client.service";
 
 export interface SystemMetrics {
   timestamp: Date;
@@ -163,7 +163,10 @@ class MonitoringService extends EventEmitter {
     // Start metrics collection
     const metricsInterval = setInterval(() => {
       this.collectSystemMetrics().catch((error) => {
-        logger.error("Failed to collect system metrics", error);
+        logger.error(
+          "Failed to collect system metrics",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       });
     }, this.config.intervals.metrics);
     this.intervals.set("metrics", metricsInterval);
@@ -171,7 +174,10 @@ class MonitoringService extends EventEmitter {
     // Start health checks
     const healthInterval = setInterval(() => {
       this.performHealthChecks().catch((error) => {
-        logger.error("Failed to perform health checks", error);
+        logger.error(
+          "Failed to perform health checks",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       });
     }, this.config.intervals.healthCheck);
     this.intervals.set("health", healthInterval);
@@ -179,7 +185,10 @@ class MonitoringService extends EventEmitter {
     // Start alert evaluation
     const alertInterval = setInterval(() => {
       this.evaluateAlerts().catch((error) => {
-        logger.error("Failed to evaluate alerts", error);
+        logger.error(
+          "Failed to evaluate alerts",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       });
     }, this.config.intervals.alertCheck);
     this.intervals.set("alerts", alertInterval);
@@ -188,7 +197,10 @@ class MonitoringService extends EventEmitter {
     const cleanupInterval = setInterval(
       () => {
         this.cleanup().catch((error) => {
-          logger.error("Failed to cleanup old data", error);
+          logger.error(
+            "Failed to cleanup old data",
+            error instanceof Error ? error : new Error(String(error)),
+          );
         });
       },
       24 * 60 * 60 * 1000,
@@ -197,10 +209,16 @@ class MonitoringService extends EventEmitter {
 
     // Perform initial checks
     this.collectSystemMetrics().catch((error) => {
-      logger.error("Initial metrics collection failed", error);
+      logger.error(
+        "Initial metrics collection failed",
+        error instanceof Error ? error : new Error(String(error)),
+      );
     });
     this.performHealthChecks().catch((error) => {
-      logger.error("Initial health check failed", error);
+      logger.error(
+        "Initial health check failed",
+        error instanceof Error ? error : new Error(String(error)),
+      );
     });
 
     logger.info("Monitoring service started successfully");
@@ -303,7 +321,10 @@ class MonitoringService extends EventEmitter {
 
       return metrics;
     } catch (error) {
-      logger.error("Failed to collect system metrics", error);
+      logger.error(
+        "Failed to collect system metrics",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }
@@ -728,9 +749,13 @@ class MonitoringService extends EventEmitter {
       // - SMS alerts
       // - PagerDuty integration
     } catch (error) {
-      logger.error("Failed to send alert notification", error, {
-        alertId: alert.id,
-      });
+      logger.error(
+        "Failed to send alert notification",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          alertId: alert.id,
+        },
+      );
     }
   }
 

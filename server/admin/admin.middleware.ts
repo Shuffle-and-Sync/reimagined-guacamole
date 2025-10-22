@@ -185,10 +185,14 @@ export async function hasAdminRole(userId: string): Promise<boolean> {
         ),
     );
   } catch (error) {
-    logger.error("Error checking admin role", error, {
-      userId,
-      operation: "checking_admin_role",
-    });
+    logger.error(
+      "Error checking admin role",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        userId,
+        operation: "checking_admin_role",
+      },
+    );
     return false;
   }
 }
@@ -238,10 +242,14 @@ export async function hasPermission(
 
     return false;
   } catch (error) {
-    logger.error("Error checking permission", error, {
-      userId,
-      operation: "checking_permission",
-    });
+    logger.error(
+      "Error checking permission",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        userId,
+        operation: "checking_permission",
+      },
+    );
     return false;
   }
 }
@@ -281,21 +289,23 @@ export async function requireAdmin(
 
     next();
   } catch (error) {
-    logger.error("Admin role check error", error, {
-      userId: getAuthUserId(req),
-      operation: "admin_role_check_error",
-    });
+    logger.error(
+      "Admin role check error",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        userId: getAuthUserId(req),
+        operation: "admin_role_check_error",
+      },
+    );
     res.status(500).json({ message: "Permission check failed" });
     return;
   }
 }
 
 // Middleware to require specific permission
-export function requirePermission(permission: string): (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => Promise<void> {
+export function requirePermission(
+  permission: string,
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -332,10 +342,14 @@ export function requirePermission(permission: string): (
 
       next();
     } catch (error) {
-      logger.error("Admin permission check error", error, {
-        userId: getAuthUserId(req),
-        operation: "admin_permission_check_error",
-      });
+      logger.error(
+        "Admin permission check error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "admin_permission_check_error",
+        },
+      );
       res.status(500).json({
         message: "Permission check failed",
         code: "INTERNAL_ERROR",
@@ -346,11 +360,9 @@ export function requirePermission(permission: string): (
 }
 
 // Middleware to require multiple permissions (all must be present)
-export function requireAllPermissions(permissions: string[]): (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => Promise<void> {
+export function requireAllPermissions(
+  permissions: string[],
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -389,10 +401,14 @@ export function requireAllPermissions(permissions: string[]): (
 
       next();
     } catch (error) {
-      logger.error("Admin permissions check error", error, {
-        userId: getAuthUserId(req),
-        operation: "admin_permissions_check_error",
-      });
+      logger.error(
+        "Admin permissions check error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "admin_permissions_check_error",
+        },
+      );
       res.status(500).json({
         message: "Permissions check failed",
         code: "INTERNAL_ERROR",
@@ -403,11 +419,9 @@ export function requireAllPermissions(permissions: string[]): (
 }
 
 // Middleware to require any of the specified permissions
-export function requireAnyPermission(permissions: string[]): (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => Promise<void> {
+export function requireAnyPermission(
+  permissions: string[],
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -450,10 +464,14 @@ export function requireAnyPermission(permissions: string[]): (
 
       next();
     } catch (error) {
-      logger.error("Admin permissions check error", error, {
-        userId: getAuthUserId(req),
-        operation: "admin_permissions_check_error",
-      });
+      logger.error(
+        "Admin permissions check error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "admin_permissions_check_error",
+        },
+      );
       res.status(500).json({
         message: "Permissions check failed",
         code: "INTERNAL_ERROR",
@@ -464,12 +482,14 @@ export function requireAnyPermission(permissions: string[]): (
 }
 
 // Audit middleware to log all admin actions
-export function auditAdminAction(action: string): (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => Promise<void> {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function auditAdminAction(
+  action: string,
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const userId = getAuthUserId(req);
       const targetUserId = req.params.userId || req.body.userId || "";
@@ -485,10 +505,14 @@ export function auditAdminAction(action: string): (
 
       next();
     } catch (error) {
-      logger.error("Audit middleware error", error, {
-        userId: getAuthUserId(req),
-        operation: "audit_middleware_error",
-      });
+      logger.error(
+        "Audit middleware error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "audit_middleware_error",
+        },
+      );
       next(); // Continue even if audit setup fails
     }
   };

@@ -63,10 +63,14 @@ export class GraphicsGeneratorService {
       logger.info("Event graphic generated", { eventId, template });
       return svgDataUrl;
     } catch (error) {
-      logger.error("Failed to generate event graphic", error, {
-        eventId,
-        template,
-      });
+      logger.error(
+        "Failed to generate event graphic",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          template,
+        },
+      );
       throw error;
     }
   }

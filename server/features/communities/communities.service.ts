@@ -24,9 +24,13 @@ export class CommunitiesService {
       const community = await storage.getCommunity(id);
       return community || null;
     } catch (error) {
-      logger.error("Failed to fetch community in CommunitiesService", error, {
-        id,
-      });
+      logger.error(
+        "Failed to fetch community in CommunitiesService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          id,
+        },
+      );
       throw error;
     }
   }
@@ -51,10 +55,14 @@ export class CommunitiesService {
       logger.info("User joined community", { userId, communityId });
       return userCommunity;
     } catch (error) {
-      logger.error("Failed to join community in CommunitiesService", error, {
-        userId,
-        communityId,
-      });
+      logger.error(
+        "Failed to join community in CommunitiesService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+          communityId,
+        },
+      );
       throw error;
     }
   }

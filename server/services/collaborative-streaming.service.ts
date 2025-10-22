@@ -77,9 +77,13 @@ export class CollaborativeStreamingService {
 
       return event;
     } catch (error) {
-      logger.error("Failed to create collaborative streaming event", error, {
-        creatorId,
-      });
+      logger.error(
+        "Failed to create collaborative streaming event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          creatorId,
+        },
+      );
       throw error;
     }
   }
@@ -110,7 +114,11 @@ export class CollaborativeStreamingService {
 
       return collaborator;
     } catch (error) {
-      logger.error("Failed to add collaborator", error, { eventId });
+      logger.error(
+        "Failed to add collaborator",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
       throw error;
     }
   }
@@ -159,10 +167,14 @@ export class CollaborativeStreamingService {
         optimalScheduling,
       };
     } catch (error) {
-      logger.error("Failed to get collaboration suggestions", error, {
-        eventId,
-        requesterId,
-      });
+      logger.error(
+        "Failed to get collaboration suggestions",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          requesterId,
+        },
+      );
       throw error;
     }
   }
@@ -232,10 +244,14 @@ export class CollaborativeStreamingService {
 
       return session;
     } catch (error) {
-      logger.error("Failed to start coordination session", error, {
-        eventId,
-        hostUserId,
-      });
+      logger.error(
+        "Failed to start coordination session",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          hostUserId,
+        },
+      );
       throw error;
     }
   }
@@ -273,10 +289,14 @@ export class CollaborativeStreamingService {
         hostUserId,
       });
     } catch (error) {
-      logger.error("Failed to update coordination phase", error, {
-        eventId,
-        newPhase,
-      });
+      logger.error(
+        "Failed to update coordination phase",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          newPhase,
+        },
+      );
       throw error;
     }
   }
@@ -331,7 +351,11 @@ export class CollaborativeStreamingService {
         coordinationMetrics,
       };
     } catch (error) {
-      logger.error("Failed to get coordination status", error, { eventId });
+      logger.error(
+        "Failed to get coordination status",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
       throw error;
     }
   }
@@ -381,10 +405,14 @@ export class CollaborativeStreamingService {
         activeCount: activeCollaborators.length,
       });
     } catch (error) {
-      logger.error("Failed to handle collaborator join", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to handle collaborator join",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -489,10 +517,14 @@ export class CollaborativeStreamingService {
           break;
       }
     } catch (error) {
-      logger.error("Failed to coordinate platform actions", error, {
-        eventId,
-        phase,
-      });
+      logger.error(
+        "Failed to coordinate platform actions",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          phase,
+        },
+      );
     }
   }
 
@@ -587,9 +619,13 @@ export class CollaborativeStreamingService {
                     );
                   }
                 } catch (error) {
-                  logger.error("Failed to sync YouTube stream status", error, {
-                    eventId,
-                  });
+                  logger.error(
+                    "Failed to sync YouTube stream status",
+                    error instanceof Error ? error : new Error(String(error)),
+                    {
+                      eventId,
+                    },
+                  );
                   platformResults.youtube = {
                     status: "error",
                     error:
@@ -645,9 +681,13 @@ export class CollaborativeStreamingService {
                     );
                   }
                 } catch (error) {
-                  logger.error("Failed to sync Twitch stream status", error, {
-                    eventId,
-                  });
+                  logger.error(
+                    "Failed to sync Twitch stream status",
+                    error instanceof Error ? error : new Error(String(error)),
+                    {
+                      eventId,
+                    },
+                  );
                   platformResults.twitch = {
                     status: "error",
                     error:
@@ -744,9 +784,13 @@ export class CollaborativeStreamingService {
               });
           }
         } catch (error) {
-          logger.error(`Failed to start ${platformName} streaming`, error, {
-            eventId,
-          });
+          logger.error(
+            `Failed to start ${platformName} streaming`,
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              eventId,
+            },
+          );
           platformErrors.push(
             `${platformName}: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
@@ -811,9 +855,13 @@ export class CollaborativeStreamingService {
         errors: platformErrors,
       });
     } catch (error) {
-      logger.error("Failed to start cross-platform streaming", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to start cross-platform streaming",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
       throw error;
     }
   }
@@ -978,9 +1026,13 @@ export class CollaborativeStreamingService {
               });
           }
         } catch (error) {
-          logger.error(`Failed to coordinate break on ${platformName}`, error, {
-            eventId,
-          });
+          logger.error(
+            `Failed to coordinate break on ${platformName}`,
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              eventId,
+            },
+          );
           breakResults[platformName] = {
             status: "error",
             action: "break_failed",
@@ -1023,7 +1075,11 @@ export class CollaborativeStreamingService {
         results: breakResults,
       });
     } catch (error) {
-      logger.error("Failed to coordinate break", error, { eventId });
+      logger.error(
+        "Failed to coordinate break",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
       throw error;
     }
   }
@@ -1235,9 +1291,13 @@ export class CollaborativeStreamingService {
               });
           }
         } catch (error) {
-          logger.error(`Failed to end ${platformName} streaming`, error, {
-            eventId,
-          });
+          logger.error(
+            `Failed to end ${platformName} streaming`,
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              eventId,
+            },
+          );
           errors.push(
             `${platformName}: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
@@ -1304,9 +1364,13 @@ export class CollaborativeStreamingService {
         errors,
       });
     } catch (error) {
-      logger.error("Failed to end cross-platform streaming", error, {
-        eventId,
-      });
+      logger.error(
+        "Failed to end cross-platform streaming",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+        },
+      );
       // Clean up session even if there were errors
       this.activeCoordinationSessions.delete(eventId);
       throw error;
@@ -1334,7 +1398,11 @@ export class CollaborativeStreamingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to log coordination event", error, { eventId });
+      logger.error(
+        "Failed to log coordination event",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
     }
   }
 

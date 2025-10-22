@@ -135,7 +135,10 @@ export class BackendCopilotAgent {
       );
       return result;
     } catch (error) {
-      logger.error("❌ Backend analysis failed:", error);
+      logger.error(
+        "❌ Backend analysis failed:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }

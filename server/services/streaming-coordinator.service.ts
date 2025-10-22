@@ -1,9 +1,9 @@
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { cacheService } from "./cache-service";
-import { twitchAPI } from "./twitch-api";
+import { twitchAPI } from "./twitch-api.service";
 
-// import { notificationDelivery } from './notification-delivery'; // Commented out for now
+// import { notificationDelivery } from './notification-delivery.service'; // Commented out for now
 
 // Types for streaming coordination
 export interface StreamingPlatform {

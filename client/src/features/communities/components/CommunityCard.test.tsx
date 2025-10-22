@@ -15,11 +15,10 @@ describe("CommunityCard Component", () => {
     name: "Magic: The Gathering",
     displayName: "Magic: The Gathering",
     description: "The original and most popular TCG",
-    slug: "magic",
+    themeColor: "#0d47a1",
     iconClass: "fas fa-hat-wizard",
     isActive: true,
     createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
   };
 
   const mockOnSelect = vi.fn();
@@ -93,11 +92,10 @@ describe("CommunityCard Component", () => {
         name: "Pokemon TCG",
         displayName: "Pokémon Trading Card Game",
         description: "Gotta catch 'em all!",
-        slug: "pokemon",
+        themeColor: "#ffcb05",
         iconClass: "fas fa-bolt",
         isActive: true,
         createdAt: new Date("2024-01-01"),
-        updatedAt: new Date("2024-01-01"),
       };
 
       renderWithProviders(
@@ -288,11 +286,10 @@ describe("CommunityCard Component", () => {
         name: "Test",
         displayName: "Test Community",
         description: "Test Description",
-        slug: "test",
+        themeColor: "#000000",
         iconClass: "fas fa-test",
         isActive: true,
         createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       renderWithProviders(

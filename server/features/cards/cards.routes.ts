@@ -115,7 +115,10 @@ router.get("/search", async (req, res) => {
       });
     }
 
-    logger.error("Error searching cards", error);
+    logger.error(
+      "Error searching cards",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return res.status(500).json({ message: "Failed to search cards" });
   }
 });
@@ -145,7 +148,11 @@ router.get("/:id", async (req, res) => {
 
     return res.json(addDeprecationWarning(card));
   } catch (error) {
-    logger.error("Error fetching card by ID", error, { id: req.params.id });
+    logger.error(
+      "Error fetching card by ID",
+      error instanceof Error ? error : new Error(String(error)),
+      { id: req.params.id },
+    );
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -195,7 +202,10 @@ router.get("/named", async (req, res) => {
       });
     }
 
-    logger.error("Error fetching card by name", error);
+    logger.error(
+      "Error fetching card by name",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -230,7 +240,10 @@ router.get("/autocomplete", async (req, res) => {
       });
     }
 
-    logger.error("Error autocompleting card names", error);
+    logger.error(
+      "Error autocompleting card names",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return res.status(500).json({ message: "Failed to autocomplete" });
   }
 });
@@ -265,7 +278,10 @@ router.get("/random", async (req, res) => {
       });
     }
 
-    logger.error("Error fetching random card", error);
+    logger.error(
+      "Error fetching random card",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return res.status(500).json({ message: "Failed to fetch random card" });
   }
 });
@@ -281,7 +297,10 @@ router.get("/cache/stats", async (req, res) => {
     const stats = cardRecognitionService.getCacheStats();
     res.json(stats);
   } catch (error) {
-    logger.error("Error fetching cache stats", error);
+    logger.error(
+      "Error fetching cache stats",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     res.status(500).json({ message: "Failed to fetch cache stats" });
   }
 });

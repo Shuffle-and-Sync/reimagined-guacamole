@@ -246,7 +246,10 @@ export default function Matchmaking() {
       setIsSearching(false);
       toast({
         title: "Search failed",
-        description: error.message || "Failed to find matching players",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to find matching players",
         variant: "destructive",
       });
     },

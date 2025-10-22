@@ -29,25 +29,19 @@ describe("Progress Component", () => {
 
   describe("Props Validation", () => {
     it("accepts value of 0", () => {
-      const { _container } = renderWithProviders(
-        <Progress value={0} data-testid="progress" />,
-      );
+      renderWithProviders(<Progress value={0} data-testid="progress" />);
       const progress = screen.getByTestId("progress");
       expect(progress).toBeInTheDocument();
     });
 
     it("accepts value of 50", () => {
-      const { _container } = renderWithProviders(
-        <Progress value={50} data-testid="progress" />,
-      );
+      renderWithProviders(<Progress value={50} data-testid="progress" />);
       const progress = screen.getByTestId("progress");
       expect(progress).toBeInTheDocument();
     });
 
     it("accepts value of 100", () => {
-      const { _container } = renderWithProviders(
-        <Progress value={100} data-testid="progress" />,
-      );
+      renderWithProviders(<Progress value={100} data-testid="progress" />);
       const progress = screen.getByTestId("progress");
       expect(progress).toBeInTheDocument();
     });
@@ -248,9 +242,7 @@ describe("Progress Component", () => {
     });
 
     it("handles indeterminate state (no value)", () => {
-      const { _container } = renderWithProviders(
-        <Progress data-testid="progress" />,
-      );
+      renderWithProviders(<Progress data-testid="progress" />);
       const progress = screen.getByTestId("progress");
       expect(progress).toBeInTheDocument();
       expect(progress).toHaveAttribute("data-state", "indeterminate");

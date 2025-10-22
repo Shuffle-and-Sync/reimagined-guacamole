@@ -180,7 +180,8 @@ export class WebSocketConnectionManager {
    * Broadcast message to all connections in a game room
    */
   broadcastToGameRoom(
-    sessionId: string, message: unknown,
+    sessionId: string,
+    message: unknown,
     excludeConnectionId?: string,
   ): void {
     const connections = this.getGameRoomConnections(sessionId);
@@ -191,7 +192,8 @@ export class WebSocketConnectionManager {
    * Broadcast message to all connections in a collaborative room
    */
   broadcastToCollaborativeRoom(
-    eventId: string, message: unknown,
+    eventId: string,
+    message: unknown,
     excludeConnectionId?: string,
   ): void {
     const connections = this.getCollaborativeRoomConnections(eventId);
@@ -334,10 +336,14 @@ export class WebSocketConnectionManager {
     });
 
     ws.on("error", (error) => {
-      logger.error("WebSocket connection error", error, {
-        connectionId: ws.connectionId,
-        userId: ws.userId,
-      });
+      logger.error(
+        "WebSocket connection error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          connectionId: ws.connectionId,
+          userId: ws.userId,
+        },
+      );
     });
 
     ws.on("pong", () => {
@@ -348,7 +354,8 @@ export class WebSocketConnectionManager {
   }
 
   private broadcastToConnections(
-    connections: ExtendedWebSocket[], message: unknown,
+    connections: ExtendedWebSocket[],
+    message: unknown,
     excludeConnectionId?: string,
   ): void {
     const messageStr = JSON.stringify(message);
@@ -365,10 +372,14 @@ export class WebSocketConnectionManager {
             this.updateActivity(ws.connectionId);
           }
         } catch (error) {
-          logger.error("Failed to send WebSocket message", error, {
-            connectionId: ws.connectionId,
-            userId: ws.userId,
-          });
+          logger.error(
+            "Failed to send WebSocket message",
+            error instanceof Error ? error : new Error(String(error)),
+            {
+              connectionId: ws.connectionId,
+              userId: ws.userId,
+            },
+          );
         }
       }
     }
