@@ -1,14 +1,12 @@
 import { Router } from "express";
 import { storage } from "../../storage";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  insertStreamCollaboratorSchema,
-} from "@shared/schema";
+import { insertStreamCollaboratorSchema } from "@shared/schema";
 import {
   validateRequest,
   validateParams,
@@ -95,9 +93,7 @@ router.patch(
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),
       });
-      return res
-        .status(500)
-        .json({ message: "Failed to update collaborator" });
+      return res.status(500).json({ message: "Failed to update collaborator" });
     }
   },
 );
@@ -125,9 +121,7 @@ router.delete(
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),
       });
-      return res
-        .status(500)
-        .json({ message: "Failed to remove collaborator" });
+      return res.status(500).json({ message: "Failed to remove collaborator" });
     }
   },
 );

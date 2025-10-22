@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { redisClient } from "../services/redis-client";
+import { redisClient } from "../services/redis-client.service";
 import { cacheService } from "../services/cache-service";
 import { logger } from "../logger";
 import {

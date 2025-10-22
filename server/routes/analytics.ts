@@ -9,7 +9,7 @@ import {
   type AuthenticatedRequest,
 } from "../auth";
 import { generalRateLimit } from "../rate-limiting";
-import { streamingCoordinator } from "../services/streaming-coordinator";
+import { streamingCoordinator } from "../services/streaming-coordinator.service";
 import { cacheMiddleware, cacheConfigs } from "../middleware/cache-middleware";
 import {
   errorHandlingMiddleware,

@@ -239,7 +239,7 @@ function generateTwitchOAuthURL(state: string): string {
   if (!process.env.TWITCH_CLIENT_ID) {
     throw new Error("TWITCH_CLIENT_ID not configured");
   }
-  
+
   const params = new URLSearchParams({
     client_id: process.env.TWITCH_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/twitch/oauth/callback`,
@@ -271,7 +271,7 @@ function generateYouTubeOAuthURL(state: string): string {
   if (!process.env.YOUTUBE_CLIENT_ID) {
     throw new Error("YOUTUBE_CLIENT_ID not configured");
   }
-  
+
   const params = new URLSearchParams({
     client_id: process.env.YOUTUBE_CLIENT_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/youtube/oauth/callback`,
@@ -294,7 +294,7 @@ function generateFacebookOAuthURL(state: string): string {
   if (!process.env.FACEBOOK_APP_ID) {
     throw new Error("FACEBOOK_APP_ID not configured");
   }
-  
+
   const params = new URLSearchParams({
     client_id: process.env.FACEBOOK_APP_ID,
     redirect_uri: `${process.env.AUTH_URL}/api/platforms/facebook/oauth/callback`,
@@ -325,7 +325,7 @@ async function handleTwitchCallback(
   if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
     throw new Error("Twitch credentials not configured");
   }
-  
+
   const tokenParams: Record<string, string> = {
     client_id: process.env.TWITCH_CLIENT_ID,
     client_secret: process.env.TWITCH_CLIENT_SECRET,
@@ -357,7 +357,7 @@ async function handleTwitchCallback(
   if (!process.env.TWITCH_CLIENT_ID) {
     throw new Error("TWITCH_CLIENT_ID not configured");
   }
-  
+
   const userResponse = await fetch("https://api.twitch.tv/helix/users", {
     headers: {
       Authorization: `Bearer ${tokenData.access_token}`,
@@ -530,7 +530,7 @@ async function refreshTwitchToken(
     if (!process.env.TWITCH_CLIENT_ID || !process.env.TWITCH_CLIENT_SECRET) {
       throw new Error("Twitch credentials not configured");
     }
-    
+
     const response = await fetch("https://id.twitch.tv/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

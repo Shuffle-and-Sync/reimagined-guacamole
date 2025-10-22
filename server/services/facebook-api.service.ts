@@ -344,7 +344,9 @@ export class FacebookAPIService {
   /**
    * Map Facebook API errors to our error taxonomy
    */
-  private mapFacebookErrorToCode(error: FacebookErrorResponse): FacebookAPIError {
+  private mapFacebookErrorToCode(
+    error: FacebookErrorResponse,
+  ): FacebookAPIError {
     const errorCode = error.code || 0;
 
     // Rate limiting
@@ -387,9 +389,12 @@ export class FacebookAPIService {
       };
     }
 
-    const result = await this.makeAPIRequest<FacebookMeResponse>(`/me?fields=id,name`, {
-      accessToken,
-    });
+    const result = await this.makeAPIRequest<FacebookMeResponse>(
+      `/me?fields=id,name`,
+      {
+        accessToken,
+      },
+    );
 
     if (!result.success) {
       return { success: false, error: result.error };
@@ -428,7 +433,13 @@ export class FacebookAPIService {
     );
 
     if (!result.success || !result.data) {
-      return { success: false, error: result.error || { code: "INVALID_RESPONSE", message: "Invalid response from API" } };
+      return {
+        success: false,
+        error: result.error || {
+          code: "INVALID_RESPONSE",
+          message: "Invalid response from API",
+        },
+      };
     }
 
     const data = result.data;
@@ -473,7 +484,13 @@ export class FacebookAPIService {
     );
 
     if (!result.success || !result.data) {
-      return { success: false, error: result.error || { code: "INVALID_RESPONSE", message: "Invalid response from API" } };
+      return {
+        success: false,
+        error: result.error || {
+          code: "INVALID_RESPONSE",
+          message: "Invalid response from API",
+        },
+      };
     }
 
     const videos: FacebookLiveVideo[] =
@@ -841,7 +858,9 @@ export class FacebookAPIService {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams(postData as unknown as Record<string, string>).toString(),
+          body: new URLSearchParams(
+            postData as unknown as Record<string, string>,
+          ).toString(),
         },
       );
 
@@ -897,7 +916,7 @@ export class FacebookAPIService {
     if (!this.appId) {
       throw new Error("Facebook App ID not configured");
     }
-    
+
     const params = new URLSearchParams({
       client_id: this.appId,
       redirect_uri: redirectUri,
@@ -1057,12 +1076,16 @@ export class FacebookAPIService {
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) {
-        logger.warn("Invalid timestamp format, returning raw value", { timestamp });
+        logger.warn("Invalid timestamp format, returning raw value", {
+          timestamp,
+        });
         return timestamp;
       }
       return date.toISOString();
     } catch {
-      logger.warn("Error parsing timestamp, returning raw value", { timestamp });
+      logger.warn("Error parsing timestamp, returning raw value", {
+        timestamp,
+      });
       return timestamp;
     }
   }

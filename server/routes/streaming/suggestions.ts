@@ -1,14 +1,11 @@
 import { Router } from "express";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  validateParams,
-  validateUUID,
-} from "../../validation";
+import { validateParams, validateUUID } from "../../validation";
 import { assertRouteParam } from "../../shared/utils";
 import { logger } from "../../logger";
 

@@ -342,7 +342,8 @@ export class CollaborativeStreamingService {
    */
   async handleCollaboratorJoin(
     eventId: string,
-    userId: string, platformData: unknown,
+    userId: string,
+    platformData: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -1313,7 +1314,8 @@ export class CollaborativeStreamingService {
    * Log coordination events for analytics and debugging
    */
   private async logCoordinationEvent(
-    eventId: string, event: unknown,
+    eventId: string,
+    event: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);

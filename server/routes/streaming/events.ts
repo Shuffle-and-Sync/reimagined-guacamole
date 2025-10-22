@@ -1,14 +1,12 @@
 import { Router } from "express";
 import { storage } from "../../storage";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  insertCollaborativeStreamEventSchema,
-} from "@shared/schema";
+import { insertCollaborativeStreamEventSchema } from "@shared/schema";
 import {
   validateRequest,
   validateParams,

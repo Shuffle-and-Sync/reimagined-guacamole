@@ -21,7 +21,7 @@ import {
   sentryTracingHandler,
   sentryErrorHandler,
   flushSentry,
-} from "./services/error-tracking";
+} from "./services/error-tracking.service";
 initializeSentry();
 
 import express, { type Request, Response, NextFunction } from "express";

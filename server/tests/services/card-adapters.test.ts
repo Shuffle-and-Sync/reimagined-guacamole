@@ -6,7 +6,7 @@
 
 import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
 import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
-import { cardRecognitionService } from "../../services/card-recognition";
+import { cardRecognitionService } from "../../services/card-recognition.service";
 import { db } from "../../../shared/database-unified";
 import { createMockCard } from "../__factories__";
 

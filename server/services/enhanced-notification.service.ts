@@ -91,7 +91,8 @@ export class EnhancedNotificationService {
   /**
    * Send stream started notification
    */
-  async notifyStreamStarted(streamSession: unknown,
+  async notifyStreamStarted(
+    streamSession: unknown,
     followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
@@ -119,7 +120,8 @@ export class EnhancedNotificationService {
    */
   async notifyCollaborationInvite(
     fromUserId: string,
-    toUserId: string, collaborationRequest: unknown,
+    toUserId: string,
+    collaborationRequest: unknown,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
@@ -136,7 +138,8 @@ export class EnhancedNotificationService {
   /**
    * Send event reminder notifications
    */
-  async notifyEventReminder(event: unknown,
+  async notifyEventReminder(
+    event: unknown,
     attendees: string[],
     reminderTime: string = "15 minutes",
   ): Promise<void> {
@@ -166,7 +169,8 @@ export class EnhancedNotificationService {
    */
   async notifyFriendRequest(
     fromUserId: string,
-    toUserId: string, friendship: unknown,
+    toUserId: string,
+    friendship: unknown,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
@@ -181,7 +185,8 @@ export class EnhancedNotificationService {
   /**
    * Send tournament update notification
    */
-  async notifyTournamentUpdate(tournament: unknown,
+  async notifyTournamentUpdate(
+    tournament: unknown,
     participants: string[],
     updateType: string,
     updateMessage: string,
@@ -327,7 +332,8 @@ export class EnhancedNotificationService {
    * Update notification preferences for a user
    */
   async updateNotificationPreferences(
-    userId: string, preferences: unknown,
+    userId: string,
+    preferences: unknown,
   ): Promise<void> {
     try {
       const currentSettings = await storage.getUserSettings(userId);

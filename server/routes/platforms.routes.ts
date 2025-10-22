@@ -15,7 +15,7 @@ import { storage } from "../storage";
 import {
   generatePlatformOAuthURL,
   handlePlatformOAuthCallback,
-} from "../services/platform-oauth";
+} from "../services/platform-oauth.service";
 import {
   errors,
   errorHandlingMiddleware,

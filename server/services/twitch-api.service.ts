@@ -181,7 +181,9 @@ export class TwitchAPIService {
     }
 
     try {
-      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchUser>>(`/users?${params.toString()}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchUser>>(
+        `/users?${params.toString()}`,
+      );
       return data.data?.[0] || null;
     } catch (error) {
       logger.error("Error fetching Twitch user", error);
@@ -215,7 +217,9 @@ export class TwitchAPIService {
       .join("&");
 
     try {
-      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchStream>>(`/streams?${params}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchStream>>(
+        `/streams?${params}`,
+      );
       return data.data || [];
     } catch (error) {
       logger.error("Error fetching Twitch streams", error);
@@ -239,7 +243,9 @@ export class TwitchAPIService {
     }
 
     try {
-      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchCategory>>(`/games?${params.toString()}`);
+      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchCategory>>(
+        `/games?${params.toString()}`,
+      );
       return data.data || [];
     } catch (error) {
       logger.error("Error fetching Twitch categories", error);
@@ -273,7 +279,9 @@ export class TwitchAPIService {
     secret: string,
   ): Promise<TwitchEventSubSubscription | null> {
     try {
-      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchEventSubSubscription>>("/eventsub/subscriptions", {
+      const data = await this.makeAPIRequest<
+        TwitchAPIResponse<TwitchEventSubSubscription>
+      >("/eventsub/subscriptions", {
         method: "POST",
         body: JSON.stringify({
           type,
@@ -299,7 +307,9 @@ export class TwitchAPIService {
    */
   async getSubscriptions(): Promise<TwitchEventSubSubscription[]> {
     try {
-      const data = await this.makeAPIRequest<TwitchAPIResponse<TwitchEventSubSubscription>>("/eventsub/subscriptions");
+      const data = await this.makeAPIRequest<
+        TwitchAPIResponse<TwitchEventSubSubscription>
+      >("/eventsub/subscriptions");
       return data.data || [];
     } catch (error) {
       logger.error("Error fetching Twitch EventSub subscriptions", error);
@@ -424,7 +434,9 @@ export class TwitchAPIService {
       secret,
     );
     if (!verification.valid) {
-      logger.warn("Twitch webhook verification failed", { error: verification.error });
+      logger.warn("Twitch webhook verification failed", {
+        error: verification.error,
+      });
       res.status(403).send("Forbidden");
       return null;
     }

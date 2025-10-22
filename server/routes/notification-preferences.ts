@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { enhancedNotificationService } from "../services/enhanced-notification";
+import { enhancedNotificationService } from "../services/enhanced-notification.service";
 import {
   requireAuth as isAuthenticated,
   type AuthenticatedRequest,
@@ -127,11 +127,9 @@ router.post(
       } = req.body;
 
       if (!title || !message || !userIds || !Array.isArray(userIds)) {
-        return res
-          .status(400)
-          .json({
-            message: "Missing required fields: title, message, userIds",
-          });
+        return res.status(400).json({
+          message: "Missing required fields: title, message, userIds",
+        });
       }
 
       await enhancedNotificationService.sendSystemAnnouncement(

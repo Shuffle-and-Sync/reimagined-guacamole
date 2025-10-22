@@ -23,9 +23,9 @@ import {
   errors,
 } from "./middleware/error-handling.middleware";
 import { assertRouteParam } from "./shared/utils";
-import { graphicsGeneratorService } from "./services/graphics-generator";
-import { enhancedNotificationService } from "./services/enhanced-notifications";
-import { waitlistService } from "./services/waitlist";
+import { graphicsGeneratorService } from "./services/graphics-generator.service";
+import { enhancedNotificationService } from "./services/enhanced-notifications.service";
+import { waitlistService } from "./services/waitlist.service";
 const { asyncHandler } = errorHandlingMiddleware;
 const {
   _AppError,
@@ -54,7 +54,7 @@ import { healthCheck } from "./health";
 import {
   _generatePlatformOAuthURL,
   _handlePlatformOAuthCallback,
-} from "./services/platform-oauth";
+} from "./services/platform-oauth.service";
 import {
   validateRequest,
   validateQuery,

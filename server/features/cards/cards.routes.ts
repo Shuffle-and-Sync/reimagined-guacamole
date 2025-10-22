@@ -10,7 +10,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { universalCardService } from "../../services/card-recognition/index";
-import { cardRecognitionService } from "../../services/card-recognition";
+import { cardRecognitionService } from "../../services/card-recognition.service";
 import { logger } from "../../logger";
 
 const router = Router();
