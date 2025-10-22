@@ -9,7 +9,7 @@ import {
   BaseRepository,
   QueryOptions,
   PaginatedResult,
-} from "./base.repository";
+} from "../../repositories/base.repository";
 import { db } from "@shared/database-unified";
 import {
   users,
@@ -20,12 +20,12 @@ import {
   type InsertUser,
 } from "@shared/schema";
 import { eq, and, sql, ilike, or, count, desc, asc } from "drizzle-orm";
-import { logger } from "../logger";
+import { logger } from "../../logger";
 import { withQueryTiming } from "@shared/database-unified";
 import {
   ValidationError,
   NotFoundError,
-} from "../middleware/error-handling.middleware";
+} from "../../middleware/error-handling.middleware";
 
 export interface UserWithCommunities extends User {
   communities: Array<{

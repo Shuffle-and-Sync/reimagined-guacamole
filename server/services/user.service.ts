@@ -8,9 +8,8 @@
 import {
   UserRepository,
   UserSearchOptions,
-  _UserUpdateData,
   UserWithCommunities,
-} from "../repositories/user.repository";
+} from "../features/users/users.repository";
 import { type User } from "@shared/schema";
 import { logger } from "../logger";
 import {
