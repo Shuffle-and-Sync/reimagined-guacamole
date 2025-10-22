@@ -5,6 +5,8 @@
  * These helpers ensure consistent test state and reduce boilerplate in test files.
  */
 
+import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { db } from "@shared/database-unified";
 import {
   users,
@@ -15,8 +17,6 @@ import {
   games,
   cards,
 } from "@shared/schema";
-import { nanoid } from "nanoid";
-import { eq } from "drizzle-orm";
 
 /**
  * Test data generators for creating mock data

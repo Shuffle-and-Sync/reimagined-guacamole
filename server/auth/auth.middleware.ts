@@ -1,12 +1,12 @@
 // Auth.js v5 middleware for Express.js routes
-import type { Request, Response, NextFunction } from "express";
 import { Auth } from "@auth/core";
-import { authConfig } from "./auth.config";
-import { verifyAccessTokenJWT, validateTokenSecurity } from "./tokens";
-import { extractDeviceContext } from "./device-fingerprinting";
 import { logger } from "../logger";
 import { storage } from "../storage";
+import { authConfig } from "./auth.config";
+import { extractDeviceContext } from "./device-fingerprinting";
 import { enhancedSessionManager } from "./session-security";
+import { verifyAccessTokenJWT, validateTokenSecurity } from "./tokens";
+import type { Request, Response, NextFunction } from "express";
 
 // Auth.js session type
 export interface AuthSession {

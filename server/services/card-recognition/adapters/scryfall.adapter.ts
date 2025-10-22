@@ -5,8 +5,8 @@
  * Wraps the existing CardRecognitionService to provide the ICardAdapter interface
  */
 
-import { cardRecognitionService } from "../../card-recognition";
 import { logger } from "../../../logger";
+import { cardRecognitionService } from "../../card-recognition";
 import type {
   ICardAdapter,
   UniversalCard,

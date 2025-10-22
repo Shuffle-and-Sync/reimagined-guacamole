@@ -1,5 +1,5 @@
-import { storage } from "../storage";
 import { logger } from "../logger";
+import { storage } from "../storage";
 import { enhancedNotificationService } from "./enhanced-notifications";
 
 export class WaitlistService {

@@ -4,11 +4,11 @@
  * Tests for the Sign In page including Google OAuth and credentials login.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as authModule from "@/features/auth";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import SignIn from "./signin";
-import { QueryClient } from "@tanstack/react-query";
-import * as authModule from "@/features/auth";
 
 // Mock wouter
 vi.mock("wouter", () => ({

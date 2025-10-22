@@ -1,8 +1,8 @@
-import { twitchAPI } from "./twitch-api";
-import { storage } from "../storage";
-
-import { cacheService } from "./cache-service";
 import { logger } from "../logger";
+import { storage } from "../storage";
+import { cacheService } from "./cache-service";
+import { twitchAPI } from "./twitch-api";
+
 // import { notificationDelivery } from './notification-delivery'; // Commented out for now
 
 // Types for streaming coordination

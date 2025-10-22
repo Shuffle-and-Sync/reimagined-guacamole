@@ -4,10 +4,10 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { messagingService } from "./messaging.service";
 import { logger } from "../../logger";
-import { dbUtils } from "../../utils/database.utils";
 import { assertRouteParam } from "../../shared/utils";
+import { dbUtils } from "../../utils/database.utils";
+import { messagingService } from "./messaging.service";
 
 const router = Router();
 

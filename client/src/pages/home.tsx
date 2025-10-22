@@ -1,8 +1,7 @@
 import React, { useEffect, useCallback } from "react";
-import { useAuth } from "@/features/auth";
-import { useCommunity } from "@/features/communities";
-import { useToast } from "@/hooks/use-toast";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Link, useLocation } from "wouter";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,12 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Header } from "@/shared/components";
-import { Link, useLocation } from "wouter";
-import { getCommunityTheme } from "@/features/communities";
+import { useAuth } from "@/features/auth";
 import {
+  useCommunity,
+  getCommunityTheme,
   ScryGatherDashboard,
   PokeStreamDashboard,
   DecksongDashboard,
@@ -24,6 +21,9 @@ import {
   BladeforgeDashboard,
   DeckmasterDashboard,
 } from "@/features/communities";
+import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Header } from "@/shared/components";
 
 export default function Home() {
   const { toast } = useToast();

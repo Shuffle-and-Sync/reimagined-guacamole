@@ -4,11 +4,11 @@
  * Tests for the Tournament Detail page including bracket viewing and tournament management.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as authModule from "@/features/auth";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import TournamentDetail from "./tournament-detail";
-import { QueryClient } from "@tanstack/react-query";
-import * as authModule from "@/features/auth";
 
 // Mock wouter
 vi.mock("wouter", () => ({

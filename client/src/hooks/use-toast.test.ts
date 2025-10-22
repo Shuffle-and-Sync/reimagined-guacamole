@@ -4,8 +4,8 @@
  * Tests for the useToast custom hook and toast functionality.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach } from "vitest";
 import { useToast, toast } from "./use-toast";
 
 describe("useToast", () => {

@@ -15,13 +15,13 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
+import { storage } from "../storage";
 import {
   SessionSecurityService,
   EnhancedSessionManager,
   type SessionSecurityContext,
   type _SecurityRiskAssessment,
 } from "./session-security";
-import { storage } from "../storage";
 
 // Mock dependencies
 jest.mock("../storage");

@@ -4,10 +4,10 @@
  * Tests for the Game Room page including game session management.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import GameRoom from "./game-room";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

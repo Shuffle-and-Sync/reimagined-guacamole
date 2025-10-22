@@ -6,8 +6,8 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../logger";
 import rateLimit from "express-rate-limit";
+import { logger } from "../logger";
 import { validateUUID, sanitizeInput } from "../validation";
 
 // Security headers configuration

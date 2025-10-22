@@ -4,10 +4,10 @@
  * Tests for the Change Email page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import ChangeEmail from "./change-email";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

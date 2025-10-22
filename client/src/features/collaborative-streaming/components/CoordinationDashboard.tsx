@@ -1,16 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Play,
   Pause,
@@ -26,14 +13,27 @@ import {
   CheckCircle,
   Activity,
 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
+import { collaborativeStreamingWS } from "@/lib/websocket-client";
 import {
   useCoordinationStatus,
   useStartCoordinationSession,
   useUpdateCoordinationPhase,
 } from "../hooks/useCollaborativeStreaming";
-import { collaborativeStreamingWS } from "@/lib/websocket-client";
-import { useAuth } from "@/features/auth";
-import { useToast } from "@/hooks/use-toast";
 import type { CoordinationPhase, StreamMetrics } from "../types";
 
 type CoordinationDashboardProps = {

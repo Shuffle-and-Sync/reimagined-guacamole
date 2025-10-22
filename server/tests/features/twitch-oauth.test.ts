@@ -7,10 +7,10 @@
  * - Token refresh functionality
  */
 
-import { describe, expect, test, beforeEach, afterEach } from "@jest/globals";
 import { randomBytes, createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
+import { describe, expect, test, beforeEach, afterEach } from "@jest/globals";
 
 describe("Twitch OAuth Security Features", () => {
   beforeEach(() => {

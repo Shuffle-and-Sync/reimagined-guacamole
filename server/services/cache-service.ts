@@ -1,6 +1,6 @@
-import { redisClient } from "./redis-client";
-import { logger } from "../logger";
 import type { User, Community } from "@shared/schema";
+import { logger } from "../logger";
+import { redisClient } from "./redis-client";
 import type { StreamSession } from "./streaming-coordinator";
 
 /**

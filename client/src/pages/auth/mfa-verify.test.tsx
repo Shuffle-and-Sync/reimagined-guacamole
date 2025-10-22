@@ -4,10 +4,10 @@
  * Tests for the Multi-Factor Authentication verification page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import MFAVerify from "./mfa-verify";
-import { QueryClient } from "@tanstack/react-query";
 
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({

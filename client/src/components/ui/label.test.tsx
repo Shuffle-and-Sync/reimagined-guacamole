@@ -7,8 +7,8 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
 import { renderWithProviders, screen, userEvent } from "@/test-utils";
-import { Label } from "./label";
 import { Input } from "./input";
+import { Label } from "./label";
 
 describe("Label Component", () => {
   describe("Rendering", () => {

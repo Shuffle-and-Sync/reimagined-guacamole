@@ -4,10 +4,10 @@
  * Tests for the Registration page including form validation and OAuth registration.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent } from "@/test-utils";
 import Register from "./register";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock wouter
 vi.mock("wouter", () => ({

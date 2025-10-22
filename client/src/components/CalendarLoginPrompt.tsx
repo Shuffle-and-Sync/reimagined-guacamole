@@ -1,9 +1,9 @@
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Header } from "@/shared/components";
 import { TrophyIcon, UsersIcon, ClockIcon } from "lucide-react";
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/features/auth";
+import { Header } from "@/shared/components";
 
 export default function CalendarLoginPrompt() {
   const { signIn } = useAuth();

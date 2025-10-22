@@ -6,10 +6,10 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
-import { createTestDb, initTestSchema, clearTestDb } from "../utils/test-db";
-import { createMockUser } from "../__factories__";
-import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { users } from "@shared/schema";
+import { createMockUser } from "../__factories__";
+import { createTestDb, initTestSchema, clearTestDb } from "../utils/test-db";
 
 describe("User Management - Integration Tests", () => {
   let testDb: ReturnType<typeof createTestDb>;

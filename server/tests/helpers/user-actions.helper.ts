@@ -11,7 +11,6 @@ import {
   tournamentHandlers,
   communityHandlers,
 } from "./mock-handlers";
-
 import type { MockResponse } from "./mock-handlers";
 
 /**
@@ -67,7 +66,8 @@ export const authFlows = {
    * Simulate OAuth authentication flow
    */
   async oauthLogin(
-    provider: "google" | "twitch", profile: unknown,
+    provider: "google" | "twitch",
+    profile: unknown,
   ): Promise<MockResponse> {
     return authHandlers.oauthCallback(provider, profile);
   },

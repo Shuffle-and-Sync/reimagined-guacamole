@@ -1,7 +1,7 @@
-import { storage } from "../../storage";
-import { logger } from "../../logger";
-// Note: CursorPagination reserved for advanced pagination features
 import type { User, UpsertUser } from "@shared/schema";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
+// Note: CursorPagination reserved for advanced pagination features
 import type {
   UpdateProfileRequest,
   SocialLinksRequest,

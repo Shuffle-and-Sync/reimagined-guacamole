@@ -212,6 +212,8 @@
     "esbuild": "^0.25.9",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
     "happy-dom": "^20.0.8",

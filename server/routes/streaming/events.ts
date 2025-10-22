@@ -1,22 +1,20 @@
 import { Router } from "express";
-import { storage } from "../../storage";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
+import { insertCollaborativeStreamEventSchema } from "@shared/schema";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  insertCollaborativeStreamEventSchema,
-} from "@shared/schema";
+import { logger } from "../../logger";
+import { eventCreationRateLimit } from "../../rate-limiting";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
+import { assertRouteParam } from "../../shared/utils";
+import { storage } from "../../storage";
 import {
   validateRequest,
   validateParams,
   validateUUID,
 } from "../../validation";
-import { eventCreationRateLimit } from "../../rate-limiting";
-import { assertRouteParam } from "../../shared/utils";
-import { logger } from "../../logger";
 
 const router = Router();
 const collaborativeStreaming = CollaborativeStreamingService.getInstance();

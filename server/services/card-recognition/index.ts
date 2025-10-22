@@ -14,8 +14,8 @@ import {
   CardSearchResult,
   AutocompleteResult,
 } from "./adapters/base.adapter";
-import { scryfallAdapter } from "./adapters/scryfall.adapter";
 import { pokemonTCGAdapter } from "./adapters/pokemon.adapter";
+import { scryfallAdapter } from "./adapters/scryfall.adapter";
 import { yugiohAdapter } from "./adapters/yugioh.adapter";
 
 export class UniversalCardService {

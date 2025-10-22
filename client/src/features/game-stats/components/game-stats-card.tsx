@@ -11,7 +11,10 @@
  * - Error boundaries and loading states
  */
 
+import { Trophy, TrendingUp, Calendar, Edit3 } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,11 +22,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Trophy, TrendingUp, Calendar, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GameStatsCardProps, TCGType } from "../types";
 

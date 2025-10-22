@@ -4,10 +4,10 @@
  * Tests for the Authentication Error page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import AuthError from "./error";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock wouter
 vi.mock("wouter", () => ({

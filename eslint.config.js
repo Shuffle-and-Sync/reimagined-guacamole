@@ -3,6 +3,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import importPlugin from "eslint-plugin-import";
 import prettierConfig from "eslint-config-prettier";
 
 export default [
@@ -40,6 +41,7 @@ export default [
       "@typescript-eslint": tsPlugin,
       react: reactPlugin,
       "react-hooks": reactHooksPlugin,
+      import: importPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
@@ -61,10 +63,51 @@ export default [
       "no-undef": "off", // TypeScript handles this
       "react/no-unescaped-entities": "warn",
       "react/display-name": "warn",
+
+      // Import ordering rules
+      "import/order": [
+        "error",
+        {
+          groups: [
+            "builtin", // Node.js built-in modules
+            "external", // External packages (React, Express, etc.)
+            "internal", // Internal absolute imports (@/, @shared, etc.)
+            "parent", // Parent imports (../)
+            "sibling", // Sibling imports (./)
+            "index", // Index imports
+            "type", // Type imports
+          ],
+          pathGroups: [
+            {
+              pattern: "@shared/**",
+              group: "internal",
+              position: "before",
+            },
+            {
+              pattern: "@/**",
+              group: "internal",
+              position: "after",
+            },
+          ],
+          pathGroupsExcludedImportTypes: ["builtin"],
+          "newlines-between": "never",
+          alphabetize: {
+            order: "asc",
+            caseInsensitive: true,
+          },
+        },
+      ],
+      "import/first": "error",
+      "import/newline-after-import": "error",
+      "import/no-duplicates": "error",
     },
     settings: {
       react: {
         version: "detect",
+      },
+      "import/resolver": {
+        typescript: true,
+        node: true,
       },
     },
   },

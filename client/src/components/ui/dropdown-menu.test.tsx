@@ -7,6 +7,7 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
+import { Button } from "./button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { Button } from "./button";
 
 describe("Dropdown Menu Component", () => {
   describe("Rendering", () => {

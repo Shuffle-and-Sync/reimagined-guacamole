@@ -9,13 +9,12 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-
-import { storage } from "../storage";
-import { validateRequest, validateGameSessionSchema } from "../validation";
 import {
   errors,
   errorHandlingMiddleware,
 } from "../middleware/error-handling.middleware";
+import { storage } from "../storage";
+import { validateRequest, validateGameSessionSchema } from "../validation";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { NotFoundError } = errors;

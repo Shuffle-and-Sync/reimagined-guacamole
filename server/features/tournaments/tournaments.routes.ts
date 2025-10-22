@@ -4,9 +4,9 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { tournamentsService } from "./tournaments.service";
 import { logger } from "../../logger";
 import { assertRouteParam } from "../../shared/utils";
+import { tournamentsService } from "./tournaments.service";
 
 const router = Router();
 
@@ -142,11 +142,9 @@ router.post("/:id/start", isAuthenticated, async (req, res) => {
       userId: getAuthUserId(authenticatedReq),
       tournamentId: req.params.id,
     });
-    res
-      .status(500)
-      .json({
-        message: (error as Error).message || "Failed to start tournament",
-      });
+    res.status(500).json({
+      message: (error as Error).message || "Failed to start tournament",
+    });
   }
 });
 
@@ -167,12 +165,9 @@ router.post("/:id/advance", isAuthenticated, async (req, res) => {
       userId: getAuthUserId(authenticatedReq),
       tournamentId: req.params.id,
     });
-    res
-      .status(500)
-      .json({
-        message:
-          (error as Error).message || "Failed to advance tournament round",
-      });
+    res.status(500).json({
+      message: (error as Error).message || "Failed to advance tournament round",
+    });
   }
 });
 
@@ -207,11 +202,9 @@ router.post(
         tournamentId: req.params.id,
         matchId: req.params.matchId,
       });
-      res
-        .status(500)
-        .json({
-          message: (error as Error).message || "Failed to report match result",
-        });
+      res.status(500).json({
+        message: (error as Error).message || "Failed to report match result",
+      });
     }
   },
 );
@@ -258,12 +251,10 @@ router.post(
         tournamentId: req.params.id,
         matchId: req.params.matchId,
       });
-      res
-        .status(500)
-        .json({
-          message:
-            (error as Error).message || "Failed to create match game session",
-        });
+      res.status(500).json({
+        message:
+          (error as Error).message || "Failed to create match game session",
+      });
     }
   },
 );

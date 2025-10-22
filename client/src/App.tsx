@@ -1,11 +1,11 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import React, { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { RequireAuth } from "@/components/RequireAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommunityProvider } from "@/features/communities";
-import { RequireAuth } from "@/components/RequireAuth";
+import { queryClient } from "./lib/queryClient";
 
 // Loading component for lazy routes
 const PageLoader = () => (

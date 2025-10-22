@@ -1,9 +1,25 @@
 import {
+  eq,
+  and,
+  gte,
+  lte,
+  count,
+  sql,
+  or,
+  desc,
+  not,
+  asc,
+  ilike,
+  isNotNull,
+  inArray,
+  lt,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
+import {
   db,
   withQueryTiming,
   type Transaction,
 } from "@shared/database-unified";
-import { logger } from "./logger";
 import {
   users,
   communities,
@@ -189,23 +205,7 @@ import {
   type _InsertRevokedJwtToken,
   type _RevokedJwtToken,
 } from "@shared/schema";
-import {
-  eq,
-  and,
-  gte,
-  lte,
-  count,
-  sql,
-  or,
-  desc,
-  not,
-  asc,
-  ilike,
-  isNotNull,
-  inArray,
-  lt,
-} from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
+import { logger } from "./logger";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality

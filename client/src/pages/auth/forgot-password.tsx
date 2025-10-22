@@ -1,8 +1,11 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "wouter";
 import { z } from "zod";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -20,10 +21,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Forgot password form validation schema
 const forgotPasswordSchema = z.object({
@@ -153,7 +153,8 @@ export default function ForgotPassword() {
 
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Didn&apos;t receive the email? Check your spam folder or try again.
+                  Didn&apos;t receive the email? Check your spam folder or try
+                  again.
                 </p>
 
                 <Button

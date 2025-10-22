@@ -4,10 +4,10 @@
  * Tests for the Matchmaking page including player search, preferences, and connections.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
 import Matchmaking from "./matchmaking";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

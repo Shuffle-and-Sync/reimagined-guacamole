@@ -1,21 +1,19 @@
 import { Router } from "express";
-import { storage } from "../../storage";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
+import { insertStreamCollaboratorSchema } from "@shared/schema";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  insertStreamCollaboratorSchema,
-} from "@shared/schema";
+import { logger } from "../../logger";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
+import { assertRouteParam } from "../../shared/utils";
+import { storage } from "../../storage";
 import {
   validateRequest,
   validateParams,
   validateUUID,
 } from "../../validation";
-import { assertRouteParam } from "../../shared/utils";
-import { logger } from "../../logger";
 
 const router = Router();
 const collaborativeStreaming = CollaborativeStreamingService.getInstance();
@@ -95,9 +93,7 @@ router.patch(
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),
       });
-      return res
-        .status(500)
-        .json({ message: "Failed to update collaborator" });
+      return res.status(500).json({ message: "Failed to update collaborator" });
     }
   },
 );
@@ -125,9 +121,7 @@ router.delete(
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),
       });
-      return res
-        .status(500)
-        .json({ message: "Failed to remove collaborator" });
+      return res.status(500).json({ message: "Failed to remove collaborator" });
     }
   },
 );

@@ -19,6 +19,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { tournamentsService } from "../../features/tournaments/tournaments.service";
+import { storage } from "../../storage";
 import {
   createMockTournament,
   createMockParticipant,
@@ -58,8 +59,6 @@ jest.mock("../../logger", () => ({
 jest.mock("@shared/database-unified", () => ({
   withTransaction: jest.fn((callback) => callback({})),
 }));
-
-import { storage } from "../../storage";
 
 // ============================================================================
 // UNIT TESTS - Tournament Creation, Management, and Progression Logic

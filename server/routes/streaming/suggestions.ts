@@ -1,16 +1,13 @@
 import { Router } from "express";
-import { CollaborativeStreamingService } from "../../services/collaborative-streaming";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import {
-  validateParams,
-  validateUUID,
-} from "../../validation";
-import { assertRouteParam } from "../../shared/utils";
 import { logger } from "../../logger";
+import { CollaborativeStreamingService } from "../../services/collaborative-streaming.service";
+import { assertRouteParam } from "../../shared/utils";
+import { validateParams, validateUUID } from "../../validation";
 
 const router = Router();
 const collaborativeStreaming = CollaborativeStreamingService.getInstance();

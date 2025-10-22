@@ -8,13 +8,6 @@
 import { describe, test, expect, beforeEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
 import {
-  createMockErrorResponse,
-  verifyErrorResponse,
-  errorFactories,
-  createZodError,
-  errorAssertions,
-} from "../../helpers/error-test-utils";
-import {
   globalErrorHandler,
   ValidationError,
   AuthenticationError,
@@ -22,6 +15,13 @@ import {
   NotFoundError,
   _DatabaseError,
 } from "../../../middleware/error-handling.middleware";
+import {
+  createMockErrorResponse,
+  verifyErrorResponse,
+  errorFactories,
+  createZodError,
+  errorAssertions,
+} from "../../helpers/error-test-utils";
 
 describe("End-to-End Error Scenario Tests", () => {
   let mockReq: Partial<Request>;

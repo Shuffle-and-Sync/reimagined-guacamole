@@ -13,10 +13,12 @@ import {
   afterAll,
   jest,
 } from "@jest/globals";
-import { gameService } from "../../services/games/game.service";
-import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
 import { pokemonTCGAdapter } from "../../services/card-recognition/adapters/pokemon.adapter";
+import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
 import { yugiohAdapter } from "../../services/card-recognition/adapters/yugioh.adapter";
+// Import mocked service after mock
+import { universalCardService } from "../../services/card-recognition/index";
+import { gameService } from "../../services/games/game.service";
 
 // Mock external APIs
 jest.mock("../../services/card-recognition", () => ({
@@ -41,9 +43,6 @@ jest.mock("../../services/card-recognition/index", () => ({
     clearAdapterCache: jest.fn(),
   },
 }));
-
-// Import mocked service after mock
-import { universalCardService } from "../../services/card-recognition/index";
 
 // Mock fetch for external TCG APIs
 global.fetch = jest.fn();

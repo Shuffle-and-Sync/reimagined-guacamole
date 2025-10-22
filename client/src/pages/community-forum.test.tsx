@@ -4,10 +4,10 @@
  * Tests for the Community Forum page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import CommunityForum from "./community-forum";
-import { QueryClient } from "@tanstack/react-query";
 
 // Mock hooks
 vi.mock("@/features/auth", () => ({

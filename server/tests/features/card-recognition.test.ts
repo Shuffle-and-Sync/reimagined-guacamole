@@ -7,7 +7,7 @@
 import {
   cardRecognitionService,
   type _MtgCard,
-} from "../../services/card-recognition";
+} from "../../services/card-recognition.service";
 
 describe("Card Recognition Service", () => {
   beforeEach(() => {

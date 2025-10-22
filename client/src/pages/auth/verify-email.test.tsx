@@ -4,10 +4,10 @@
  * Tests for the Email Verification page.
  */
 
+import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithProviders, screen } from "@/test-utils";
 import VerifyEmail from "./verify-email";
-import { QueryClient } from "@tanstack/react-query";
 
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({

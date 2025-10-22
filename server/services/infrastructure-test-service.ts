@@ -1,11 +1,10 @@
-import { logger } from "../logger";
-import { monitoringService } from "./monitoring-service";
-import { cacheService } from "./cache-service";
-import { backupService } from "./backup-service";
-import { db } from "@shared/database-unified";
 import { sql } from "drizzle-orm";
-
+import { db } from "@shared/database-unified";
+import { logger } from "../logger";
 import { storage } from "../storage";
+import { backupService } from "./backup-service";
+import { cacheService } from "./cache-service";
+import { monitoringService } from "./monitoring-service";
 
 export interface TestResult {
   component: string;

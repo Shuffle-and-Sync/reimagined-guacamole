@@ -1,10 +1,9 @@
 import React from "react";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Header, Footer } from "@/shared/components";
 
 export default function Terms() {
   useDocumentTitle("Terms of Service - Shuffle & Sync");

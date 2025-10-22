@@ -6,13 +6,13 @@
 
 import { Router } from "express";
 import { z } from "zod";
-import { gameService } from "../../services/games/game.service";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import { gameService } from "../../services/games/game.service";
 
 const router = Router();
 
@@ -130,12 +130,10 @@ router.get("/:id", async (req, res) => {
       error instanceof Error &&
       error.message.includes("not yet implemented")
     ) {
-      return res
-        .status(501)
-        .json({
-          message:
-            "Game service not yet implemented - games table missing from schema",
-        });
+      return res.status(501).json({
+        message:
+          "Game service not yet implemented - games table missing from schema",
+      });
     }
     logger.error("Failed to fetch game", error, { gameId: req.params.id });
     return res.status(500).json({ message: "Failed to fetch game" });

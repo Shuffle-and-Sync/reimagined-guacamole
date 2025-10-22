@@ -7,14 +7,14 @@
 
 import { describe, test, expect, beforeEach } from "@jest/globals";
 import { Request, Response, NextFunction } from "express";
+import { z, ZodError } from "zod";
+import { globalErrorHandler } from "../../../middleware/error-handling.middleware";
 import {
   createMockErrorResponse,
   verifyErrorResponse,
   createZodError,
   errorAssertions,
 } from "../../helpers/error-test-utils";
-import { globalErrorHandler } from "../../../middleware/error-handling.middleware";
-import { z, ZodError } from "zod";
 
 describe("Zod Validation Error Tests", () => {
   let mockReq: Partial<Request>;

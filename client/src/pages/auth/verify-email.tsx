@@ -1,5 +1,8 @@
+import { Loader2, Mail, CheckCircle, XCircle } from "lucide-react";
 import React, { useEffect, useState, useCallback } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useLocation } from "wouter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,11 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, CheckCircle, XCircle } from "lucide-react";
-import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function VerifyEmail() {
   useDocumentTitle("Verify Email - Shuffle & Sync");
@@ -31,53 +31,56 @@ export default function VerifyEmail() {
   const token = urlParams.get("token");
   const emailParam = urlParams.get("email");
 
-  const verifyEmailToken = useCallback(async (verificationToken: string) => {
-    setIsLoading(true);
-    setError("");
+  const verifyEmailToken = useCallback(
+    async (verificationToken: string) => {
+      setIsLoading(true);
+      setError("");
 
-    try {
-      const response = await fetch(
-        `/api/email/verify-email?token=${encodeURIComponent(verificationToken)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
+      try {
+        const response = await fetch(
+          `/api/email/verify-email?token=${encodeURIComponent(verificationToken)}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        },
-      );
+        );
 
-      if (response.ok) {
-        setVerificationStatus("success");
-        toast({
-          title: "Email verified successfully!",
-          description: "You can now sign in to your account.",
-        });
+        if (response.ok) {
+          setVerificationStatus("success");
+          toast({
+            title: "Email verified successfully!",
+            description: "You can now sign in to your account.",
+          });
 
-        // Redirect to sign-in after 3 seconds
-        setTimeout(() => {
-          setLocation("/auth/signin?message=email_verified");
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-
-        if (
-          errorData.message?.includes("expired") ||
-          errorData.message?.includes("invalid")
-        ) {
-          setVerificationStatus("expired");
+          // Redirect to sign-in after 3 seconds
+          setTimeout(() => {
+            setLocation("/auth/signin?message=email_verified");
+          }, 3000);
         } else {
-          setVerificationStatus("error");
-          setError(errorData.message || "Email verification failed.");
+          const errorData = await response.json();
+
+          if (
+            errorData.message?.includes("expired") ||
+            errorData.message?.includes("invalid")
+          ) {
+            setVerificationStatus("expired");
+          } else {
+            setVerificationStatus("error");
+            setError(errorData.message || "Email verification failed.");
+          }
         }
+      } catch (err) {
+        console.error("Email verification error:", err);
+        setVerificationStatus("error");
+        setError("An unexpected error occurred. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Email verification error:", err);
-      setVerificationStatus("error");
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast, setLocation]);
+    },
+    [toast, setLocation],
+  );
 
   useEffect(() => {
     if (emailParam) {
@@ -276,8 +279,8 @@ export default function VerifyEmail() {
         {email && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Didn&apos;t receive the email? Check your spam folder or request a new
-              one.
+              Didn&apos;t receive the email? Check your spam folder or request a
+              new one.
             </p>
             <Button
               onClick={resendVerificationEmail}

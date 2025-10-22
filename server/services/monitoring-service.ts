@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
-import { logger } from "../logger";
-import os from "os";
 import fs from "fs/promises";
-import { db } from "@shared/database-unified";
+import os from "os";
 import { sql } from "drizzle-orm";
+import { db } from "@shared/database-unified";
+import { logger } from "../logger";
 import { redisClient } from "./redis-client";
 
 export interface SystemMetrics {

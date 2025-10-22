@@ -5,9 +5,9 @@
  * by checking the files that were previously causing strict mode errors.
  */
 
-import { describe, test, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { describe, test, expect } from "@jest/globals";
 
 describe("TypeScript Strict Mode Compliance", () => {
   const projectRoot = join(__dirname, "../../..");

@@ -5,8 +5,8 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
-import { validateRequest, validateGameSessionSchema } from "../../validation";
 import { storage } from "../../storage";
+import { validateRequest, validateGameSessionSchema } from "../../validation";
 
 const router = Router();
 

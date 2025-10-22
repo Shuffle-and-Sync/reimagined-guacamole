@@ -1,17 +1,17 @@
 import { Router } from "express";
-import { redisClient } from "../services/redis-client";
-import { cacheService } from "../services/cache-service";
-import { logger } from "../logger";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
-import { generalRateLimit } from "../rate-limiting";
+import { logger } from "../logger";
 import {
   errorHandlingMiddleware,
   errors,
 } from "../middleware/error-handling.middleware";
+import { generalRateLimit } from "../rate-limiting";
+import { cacheService } from "../services/cache-service";
+import { redisClient } from "../services/redis-client.service";
 
 const { asyncHandler } = errorHandlingMiddleware;
 const { AuthorizationError, _ValidationError } = errors;

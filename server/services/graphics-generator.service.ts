@@ -1,6 +1,6 @@
-import { storage } from "../storage";
-import { logger } from "../logger";
 import QRCode from "qrcode";
+import { logger } from "../logger";
+import { storage } from "../storage";
 
 export interface GraphicTemplate {
   name: string;
@@ -71,7 +71,8 @@ export class GraphicsGeneratorService {
     }
   }
 
-  private generateSVG(event: unknown,
+  private generateSVG(
+    event: unknown,
     config: GraphicTemplate,
     qrCodeDataUrl: string,
     template: string,

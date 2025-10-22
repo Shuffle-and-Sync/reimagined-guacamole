@@ -1,7 +1,7 @@
-import { z } from "zod";
 import { Request, Response, NextFunction } from "express";
-import { logger } from "./logger";
+import { z } from "zod";
 import { getAuthUserId } from "./auth";
+import { logger } from "./logger";
 
 // Safe helper to get user ID without throwing error
 function safeGetUserId(req: Request): string | undefined {

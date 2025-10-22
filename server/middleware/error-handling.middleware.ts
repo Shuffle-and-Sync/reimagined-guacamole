@@ -5,11 +5,11 @@
  * for maintainable, scalable error management across the application.
  */
 
-import { Request, Response, NextFunction } from "express";
 import { Server } from "http";
-import { logger } from "../logger";
-import { ZodError } from "zod";
+import { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
+import { ZodError } from "zod";
+import { logger } from "../logger";
 
 // Custom error types for better error categorization
 export class AppError extends Error {

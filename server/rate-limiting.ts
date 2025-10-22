@@ -1,7 +1,7 @@
-import rateLimit from "express-rate-limit";
 import { Request, Response } from "express";
-import { logger } from "./logger";
+import rateLimit from "express-rate-limit";
 import { getAuthUserId } from "./auth";
+import { logger } from "./logger";
 
 // Safe helper to get user ID without throwing error
 function safeGetUserId(req: Request): string | undefined {

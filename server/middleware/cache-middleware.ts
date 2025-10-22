@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { cacheService } from "../services/cache-service";
 import { logger } from "../logger";
+import { cacheService } from "../services/cache-service";
 import { AuthenticatedRequest } from "../types";
 
 /**

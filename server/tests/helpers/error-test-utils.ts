@@ -5,6 +5,7 @@
  * across the Shuffle & Sync platform.
  */
 
+import { ZodError } from "zod";
 import {
   ValidationError,
   AuthenticationError,
@@ -15,7 +16,6 @@ import {
   RateLimitError,
   ExternalServiceError,
 } from "../../middleware/error-handling.middleware";
-import { ZodError } from "zod";
 
 // Type definitions for error test utilities
 interface MockErrorResponse {

@@ -4,10 +4,10 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { eventsService } from "./events.service";
 import { logger } from "../../logger";
-import { validateRequest, validateEventSchema } from "../../validation";
 import { eventCreationRateLimit } from "../../rate-limiting";
+import { validateRequest, validateEventSchema } from "../../validation";
+import { eventsService } from "./events.service";
 
 const router = Router();
 

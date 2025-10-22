@@ -2,9 +2,9 @@
 // Production-ready implementation of YouTube Data API v3 and YouTube Live Streaming API integration
 // Includes OAuth 2.0, live broadcasting, webhook support with security and error handling
 
+import { createHmac, timingSafeEqual } from "crypto";
 import { logger } from "../logger";
 import { generateSecureToken } from "../utils/security.utils";
-import { createHmac, timingSafeEqual } from "crypto";
 
 // Structured error types for better error handling
 export interface YouTubeAPIError {
@@ -355,10 +355,7 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      logger.error(
-        "Error fetching YouTube video details",
-        videosResult.error,
-      );
+      logger.error("Error fetching YouTube video details", videosResult.error);
       return [];
     }
 
@@ -425,10 +422,7 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      logger.error(
-        "Error fetching YouTube video details",
-        videosResult.error,
-      );
+      logger.error("Error fetching YouTube video details", videosResult.error);
       return [];
     }
 
@@ -796,7 +790,7 @@ export class YouTubeAPIService {
       if (!this.clientId || !this.clientSecret) {
         throw new Error("YouTube client credentials not configured");
       }
-      
+
       const tokenParams: Record<string, string> = {
         client_id: this.clientId,
         client_secret: this.clientSecret,
@@ -931,10 +925,7 @@ export class YouTubeAPIService {
 
       return response.status === 202; // Accepted for verification
     } catch (error) {
-      logger.error(
-        "Error subscribing to YouTube channel notifications",
-        error,
-      );
+      logger.error("Error subscribing to YouTube channel notifications", error);
       return false;
     }
   }

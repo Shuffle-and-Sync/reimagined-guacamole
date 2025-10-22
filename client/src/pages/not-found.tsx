@@ -1,5 +1,7 @@
+import { AlertCircle, Home, ArrowLeft, Search } from "lucide-react";
 import React from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,9 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Home, ArrowLeft, Search } from "lucide-react";
-import { useLocation } from "wouter";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function NotFound() {
   useDocumentTitle("Page Not Found - Shuffle & Sync");
@@ -42,7 +42,8 @@ export default function NotFound() {
             404 - Page Not Found
           </CardTitle>
           <CardDescription className="text-base">
-            The page you&apos;re looking for doesn&apos;t exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been
+            moved.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

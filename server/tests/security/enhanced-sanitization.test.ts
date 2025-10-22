@@ -12,8 +12,8 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { sanitizeDatabaseInput } from "../../utils/database.utils";
 import { logger } from "../../logger";
+import { sanitizeDatabaseInput } from "../../utils/database.utils";
 
 // Mock logger to test warning calls
 jest.mock("../../logger", () => ({

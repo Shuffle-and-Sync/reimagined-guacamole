@@ -15,8 +15,8 @@ import { eq, gte, lte, sql } from "drizzle-orm";
 // Note: and, desc, asc, count, Transaction reserved for advanced query features
 import { db } from "@shared/database-unified";
 import { users } from "@shared/schema";
-import { NotFoundError, ValidationError } from "../../shared/types";
 import { logger } from "../../logger";
+import { NotFoundError, ValidationError } from "../../shared/types";
 
 // Types for service layer (would typically come from shared schema)
 interface GameStats {

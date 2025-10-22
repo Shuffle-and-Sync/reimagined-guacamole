@@ -20,9 +20,9 @@ import {
   lt,
   like,
 } from "drizzle-orm";
-import type { SQLiteColumn } from "drizzle-orm/sqlite-core";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
+import type { SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 // Database operation types
 export type DatabaseOperator =

@@ -5,13 +5,14 @@
  * demonstrating Copilot best practices for service layer architecture.
  */
 
+import { type User } from "@shared/schema";
+import { generateEmailVerificationJWT } from "../auth/tokens";
+import { sendEmailVerificationEmail } from "../email-service";
 import {
   UserRepository,
   UserSearchOptions,
-  _UserUpdateData,
   UserWithCommunities,
-} from "../repositories/user.repository";
-import { type User } from "@shared/schema";
+} from "../features/users/users.repository";
 import { logger } from "../logger";
 import {
   ValidationError,
@@ -19,8 +20,6 @@ import {
   ConflictError,
 } from "../middleware/error-handling.middleware";
 import { PaginatedResult } from "../repositories/base.repository";
-import { generateEmailVerificationJWT } from "../auth/tokens";
-import { sendEmailVerificationEmail } from "../email-service";
 
 export interface CreateUserData {
   name: string;

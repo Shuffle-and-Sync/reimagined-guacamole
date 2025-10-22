@@ -1,5 +1,9 @@
+import { Loader2, Mail, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import React, { useEffect, useState, useCallback } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Link, useLocation } from "wouter";
+import { z } from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,20 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Loader2,
-  Mail,
-  CheckCircle,
-  XCircle,
-  ArrowLeft,
-} from "lucide-react";
-import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Email change validation schema
 const emailChangeSchema = z.object({
@@ -59,55 +53,58 @@ export default function ChangeEmail() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
 
-  const confirmEmailChange = useCallback(async (verificationToken: string) => {
-    setIsConfirming(true);
-    setConfirmationError("");
+  const confirmEmailChange = useCallback(
+    async (verificationToken: string) => {
+      setIsConfirming(true);
+      setConfirmationError("");
 
-    try {
-      const response = await fetch(
-        `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
+      try {
+        const response = await fetch(
+          `/api/email/confirm-email-change?token=${encodeURIComponent(verificationToken)}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        },
-      );
+        );
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        setConfirmationStatus("success");
-        toast({
-          title: "Email updated successfully!",
-          description: "Your email address has been changed.",
-        });
+        if (response.ok) {
+          setConfirmationStatus("success");
+          toast({
+            title: "Email updated successfully!",
+            description: "Your email address has been changed.",
+          });
 
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          setLocation(data.redirectUrl || "/dashboard");
-        }, 3000);
-      } else {
-        if (
-          data.message?.includes("expired") ||
-          data.message?.includes("invalid")
-        ) {
-          setConfirmationStatus("expired");
+          // Redirect to dashboard after 3 seconds
+          setTimeout(() => {
+            setLocation(data.redirectUrl || "/dashboard");
+          }, 3000);
         } else {
-          setConfirmationStatus("error");
-          setConfirmationError(
-            data.message || "Email change confirmation failed.",
-          );
+          if (
+            data.message?.includes("expired") ||
+            data.message?.includes("invalid")
+          ) {
+            setConfirmationStatus("expired");
+          } else {
+            setConfirmationStatus("error");
+            setConfirmationError(
+              data.message || "Email change confirmation failed.",
+            );
+          }
         }
+      } catch (err) {
+        console.error("Email change confirmation error:", err);
+        setConfirmationStatus("error");
+        setConfirmationError("An unexpected error occurred. Please try again.");
+      } finally {
+        setIsConfirming(false);
       }
-    } catch (err) {
-      console.error("Email change confirmation error:", err);
-      setConfirmationStatus("error");
-      setConfirmationError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsConfirming(false);
-    }
-  }, [toast, setLocation]);
+    },
+    [toast, setLocation],
+  );
 
   const checkPendingRequest = useCallback(async () => {
     try {

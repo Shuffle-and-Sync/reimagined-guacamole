@@ -7,6 +7,7 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
+import { Button } from "./button";
 import {
   Dialog,
   DialogClose,
@@ -17,7 +18,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
-import { Button } from "./button";
 
 describe("Dialog Component", () => {
   describe("Rendering", () => {

@@ -4,14 +4,15 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { usersService } from "./users.service";
 import { logger } from "../../logger";
+import { assertRouteParam } from "../../shared/utils";
 import {
   validateRequest,
   validateUserProfileUpdateSchema,
   validateSocialLinksSchema,
 } from "../../validation";
-import { assertRouteParam } from "../../shared/utils";
+import { friendsService } from "./friends.service";
+import { usersService } from "./users.service";
 
 const router = Router();
 
@@ -207,7 +208,7 @@ friendsRouter.get("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const friends = await usersService.getFriends(userId);
+    const friends = await friendsService.getFriends(userId);
     res.json(friends);
   } catch (error) {
     logger.error("Failed to fetch friends", error, {
@@ -223,9 +224,13 @@ friendsRouter.delete("/:id", isAuthenticated, async (req, res) => {
     const userId = getAuthUserId(authenticatedReq);
     const id = assertRouteParam(req.params.id, "id");
 
-    await usersService.removeFriend(userId, id);
+    await friendsService.removeFriend(userId, id);
     res.json({ success: true });
   } catch (error) {
+    if (error instanceof Error && error.message.includes("not found")) {
+      return res.status(404).json({ message: "Friendship not found" });
+    }
+
     logger.error("Failed to remove friend", error, {
       userId: getAuthUserId(authenticatedReq),
     });
@@ -240,7 +245,7 @@ friendRequestsRouter.get("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const friendRequests = await usersService.getFriendRequests(userId);
+    const friendRequests = await friendsService.getFriendRequests(userId);
     res.json(friendRequests);
   } catch (error) {
     logger.error("Failed to fetch friend requests", error, {
@@ -254,25 +259,20 @@ friendRequestsRouter.post("/", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const requesterId = getAuthUserId(authenticatedReq);
-    const friendship = await usersService.sendFriendRequest(
+    const { addresseeId } = req.body;
+    const friendship = await friendsService.sendFriendRequest(
       requesterId,
-      req.body,
+      addresseeId,
     );
     return res.status(201).json(friendship);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === "Addressee ID is required") {
-        return res.status(400).json({ message: "Addressee ID is required" });
-      }
-      if (error.message === "Cannot send friend request to yourself") {
-        return res
-          .status(400)
-          .json({ message: "Cannot send friend request to yourself" });
-      }
-      if (error.message === "Friendship request already exists") {
-        return res
-          .status(400)
-          .json({ message: "Friendship request already exists" });
+      if (
+        error.message === "Addressee ID is required" ||
+        error.message === "Cannot send friend request to yourself" ||
+        error.message === "Friendship request already exists"
+      ) {
+        return res.status(400).json({ message: error.message });
       }
     }
 
@@ -286,23 +286,14 @@ friendRequestsRouter.post("/", isAuthenticated, async (req, res) => {
 friendRequestsRouter.put("/:id", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
-    const userId = getAuthUserId(authenticatedReq);
     const id = assertRouteParam(req.params.id, "id");
+    const { status } = req.body;
 
-    const friendship = await usersService.respondToFriendRequest(
-      userId,
-      id,
-      req.body,
-    );
+    const friendship = await friendsService.respondToFriendRequest(id, status);
     return res.json(friendship);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === "Status must be 'accepted' or 'declined'"
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Status must be 'accepted' or 'declined'" });
+    if (error instanceof Error && error.message === "Invalid status") {
+      return res.status(400).json({ message: error.message });
     }
 
     logger.error("Failed to respond to friend request", error, {

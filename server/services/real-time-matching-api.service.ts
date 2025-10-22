@@ -6,9 +6,8 @@
  */
 
 import { logger } from "../logger";
-import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import { aiAlgorithmEngine } from "./ai-algorithm-engine";
-
+import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import type { ConnectedPlatform } from "./ai-streaming-matcher";
 
 // Real-time matching interfaces

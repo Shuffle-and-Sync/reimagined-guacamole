@@ -7,15 +7,15 @@
 
 import { describe, it, expect } from "vitest";
 import { renderWithProviders } from "@/test-utils";
+import ApiDocs from "./api-docs";
+import Conduct from "./conduct";
+import Contact from "./contact";
+import GettingStarted from "./getting-started";
+import HelpCenter from "./help-center";
 import Home from "./home";
 import Landing from "./landing";
 import NotFound from "./not-found";
-import GettingStarted from "./getting-started";
-import Contact from "./contact";
 import Privacy from "./privacy";
-import Conduct from "./conduct";
-import HelpCenter from "./help-center";
-import ApiDocs from "./api-docs";
 
 describe("Pages Smoke Tests", () => {
   describe("Home Page", () => {

@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { apiRequest } from "@/lib/queryClient";
+import { Footer, Header } from "@/shared/components";
 
 export default function Contact() {
   useDocumentTitle("Contact Us");

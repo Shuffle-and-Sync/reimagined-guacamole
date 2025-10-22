@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { Bell, X, Check, Calendar, Users, MessageSquare } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,15 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Notification {
   id: string;

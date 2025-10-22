@@ -1,5 +1,3 @@
-import { storage } from "../../storage";
-import { logger } from "../../logger";
 import { withTransaction } from "@shared/database-unified";
 import {
   TournamentParticipant,
@@ -8,6 +6,8 @@ import {
   UpdateTournament,
   User,
 } from "@shared/schema";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
 // Note: Tournament, TournamentFormat, TournamentRound, TournamentMatch types reserved for enhanced tournament features
 
 // Tournament format types

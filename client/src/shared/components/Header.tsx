@@ -1,19 +1,19 @@
 import React, { useState } from "react";
-import { useAuth } from "@/features/auth";
-import { useCommunity } from "@/features/communities";
-import { Logo } from "@/components/ui/logo";
-import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "wouter";
+import { SettingsModal } from "@/components/SettingsModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserProfileDialog } from "@/features/users";
+import { Logo } from "@/components/ui/logo";
+import { useAuth } from "@/features/auth";
+import { useCommunity } from "@/features/communities";
 import { NotificationCenter } from "@/features/messaging";
-import { SettingsModal } from "@/components/SettingsModal";
-import { Link, useLocation } from "wouter";
+import { UserProfileDialog } from "@/features/users";
 
 export function Header() {
   const { user, isAuthenticated, isLoading } = useAuth();

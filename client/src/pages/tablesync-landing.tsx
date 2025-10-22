@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import { DemoModal } from "@/components/DemoModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Header } from "@/shared/components";
-import { Footer } from "@/shared/components";
-import { DemoModal } from "@/components/DemoModal";
-import { useState } from "react";
+import { Header, Footer } from "@/shared/components";
 
 export default function TableSyncLanding() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
@@ -671,8 +669,8 @@ export default function TableSyncLanding() {
               </span>
             </h2>
             <p className="text-xl lg:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Join the world&apos;s most advanced platform for remote TCG gameplay
-              and streaming coordination.
+              Join the world&apos;s most advanced platform for remote TCG
+              gameplay and streaming coordination.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

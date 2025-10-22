@@ -1,48 +1,25 @@
 // Load environment variables from .env.local for development only
-import { config } from "dotenv";
-import { resolve } from "path";
 import { existsSync } from "fs";
-
-// Only load .env.local in development or if it exists
-// Use a more defensive approach for path resolution
-const cwd = process.cwd();
-if (cwd && process.env.NODE_ENV !== "production") {
-  const envPath = resolve(cwd, ".env.local");
-  if (existsSync(envPath)) {
-    config({ path: envPath });
-  }
-}
-
+import { resolve } from "path";
+import { config } from "dotenv";
 // CRITICAL: Initialize Sentry BEFORE importing any other modules
 // This ensures error tracking captures all errors including initialization errors
-import {
-  initializeSentry,
-  sentryRequestHandler,
-  sentryTracingHandler,
-  sentryErrorHandler,
-  flushSentry,
-} from "./services/error-tracking";
-initializeSentry();
-
+import { sql } from "drizzle-orm";
 import express, { type Request, Response, NextFunction } from "express";
-import { serveStatic, log } from "./static-server";
-import { logger } from "./logger";
+import { z } from "zod";
 import { db, initializeDatabase } from "@shared/database-unified";
+import adminRoutes from "./admin/admin.routes";
+import { getAuthUserId } from "./auth";
+import {
+  generateEmailVerificationJWT,
+  verifyEmailVerificationJWT,
+  TOKEN_EXPIRY,
+} from "./auth/tokens";
+import { sendEmailVerificationEmail } from "./email-service";
 import {
   validateAndLogEnvironment,
   getEnvironmentStatus,
 } from "./env-validation";
-import {
-  startTimer,
-  endTimer,
-  setupGracefulShutdown,
-  logMemoryConfiguration,
-  warmupCriticalPaths,
-} from "./startup-optimization";
-import { sql } from "drizzle-orm";
-
-// Import feature-based routes
-// Note: authRoutes reserved for future feature-based auth routing
 import {
   communitiesRoutes,
   userCommunitiesRouter,
@@ -53,48 +30,66 @@ import {
   userEventsRouter,
   calendarEventsRouter,
 } from "./features/events/events.routes";
-import {
-  usersRoutes,
-  friendsRouter,
-  friendRequestsRouter,
-  matchmakingRouter,
-} from "./features/users/users.routes";
+import { gamesRoutes } from "./features/games/games.routes";
 import {
   notificationsRoutes,
   messagesRouter,
   conversationsRouter,
 } from "./features/messaging/messaging.routes";
 import { tournamentsRoutes } from "./features/tournaments/tournaments.routes";
-import { gamesRoutes } from "./features/games/games.routes";
-
+import {
+  usersRoutes,
+  friendsRouter,
+  friendRequestsRouter,
+  matchmakingRouter,
+} from "./features/users/users.routes";
+import { logger } from "./logger";
+import { authRateLimit } from "./rate-limiting";
+import infrastructureTestsRouter from "./routes/infrastructure-tests";
+import monitoringRouter from "./routes/monitoring";
+import notificationPreferencesRouter from "./routes/notification-preferences";
+import webhooksRouter from "./routes/webhooks";
+import {
+  initializeSentry,
+  sentryRequestHandler,
+  sentryTracingHandler,
+  sentryErrorHandler,
+  flushSentry,
+} from "./services/error-tracking.service";
+import { monitoringService } from "./services/monitoring-service";
+import {
+  startTimer,
+  endTimer,
+  setupGracefulShutdown,
+  logMemoryConfiguration,
+  warmupCriticalPaths,
+} from "./startup-optimization";
+import { serveStatic, log } from "./static-server";
+// Import feature-based routes
+// Note: authRoutes reserved for future feature-based auth routing
 // Import shared middleware
 // Note: errorHandler, requestLogger, corsHandler reserved for enhanced middleware setup
-import { securityHeaders } from "./validation";
-
+import { storage } from "./storage";
+import { auditSecurityConfiguration } from "./utils/security.utils";
+import {
+  validateEmailSchema,
+  validateRequest,
+  securityHeaders,
+} from "./validation";
 // Import Auth.js configuration and webhook routes
 // Note: ExpressAuth reserved for direct Auth.js integration
 // LAZY: Import auth routes after database initialization to avoid accessing db before it's ready
 // import authRoutesFixed from "./auth/auth.routes";
-import webhooksRouter from "./routes/webhooks";
-import notificationPreferencesRouter from "./routes/notification-preferences";
-import monitoringRouter from "./routes/monitoring";
-import infrastructureTestsRouter from "./routes/infrastructure-tests";
-import adminRoutes from "./admin/admin.routes";
-import { monitoringService } from "./services/monitoring-service";
-
-// Import email verification route dependencies
-import { validateEmailSchema, validateRequest } from "./validation";
-import { authRateLimit } from "./rate-limiting";
-import { sendEmailVerificationEmail } from "./email-service";
-import {
-  generateEmailVerificationJWT,
-  verifyEmailVerificationJWT,
-  TOKEN_EXPIRY,
-} from "./auth/tokens";
-import { storage } from "./storage";
-import { getAuthUserId } from "./auth";
-import { z } from "zod";
-import { auditSecurityConfiguration } from "./utils/security.utils";
+// Only load .env.local in development or if it exists
+// Use a more defensive approach for path resolution
+const cwd = process.cwd();
+if (cwd && process.env.NODE_ENV !== "production") {
+  const envPath = resolve(cwd, ".env.local");
+  if (existsSync(envPath)) {
+    config({ path: envPath });
+  }
+}
+initializeSentry();
 
 const app = express();
 

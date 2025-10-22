@@ -1,6 +1,6 @@
-import { storage } from "../storage";
-import { logger } from "../logger";
 import type { Notification, UserSettings, User } from "@shared/schema";
+import { logger } from "../logger";
+import { storage } from "../storage";
 
 /**
  * Notification delivery channels and preferences

@@ -4,9 +4,9 @@
  * Tests for the useAuth custom hook for authentication.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useAuth } from "./useAuth";
 import type { AuthSession } from "../types";
 

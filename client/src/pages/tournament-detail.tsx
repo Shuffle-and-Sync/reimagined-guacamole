@@ -1,9 +1,12 @@
-import React from "react";
-import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Header } from "@/shared/components";
+import { format } from "date-fns";
+import React, { useState } from "react";
+import { useParams, useLocation } from "wouter";
+import type { Tournament, TournamentParticipant, User } from "@shared/schema";
+import TournamentBracket from "@/components/tournament/TournamentBracket";
+import TournamentEditor from "@/components/tournament/TournamentEditor";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,14 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth";
-import TournamentBracket from "@/components/tournament/TournamentBracket";
-import TournamentEditor from "@/components/tournament/TournamentEditor";
-import type { Tournament, TournamentParticipant, User } from "@shared/schema";
-import { format } from "date-fns";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Header } from "@/shared/components";
 
 export default function TournamentDetail() {
   const { id: tournamentId } = useParams<{ id: string }>();

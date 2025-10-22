@@ -1,5 +1,5 @@
-import { logger } from "../logger";
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../logger";
 
 // Common utility functions
 

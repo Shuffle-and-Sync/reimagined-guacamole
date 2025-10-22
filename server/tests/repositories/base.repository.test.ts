@@ -21,10 +21,10 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { BaseRepository } from "../../repositories/base.repository";
 import type { Database } from "@shared/database-unified";
 import { users } from "@shared/schema";
 import { DatabaseError } from "../../middleware/error-handling.middleware";
+import { BaseRepository } from "../../repositories/base.repository";
 
 // Mock database and results
 const createMockDb = () => {

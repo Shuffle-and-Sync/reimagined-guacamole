@@ -4,9 +4,9 @@ import {
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../auth";
+import { logger } from "../logger";
 import { generalRateLimit } from "../rate-limiting";
 import { backupService } from "../services/backup-service";
-import { logger } from "../logger";
 
 const router = Router();
 

@@ -1,8 +1,3 @@
-import { useEffect, useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Activity,
   Users,
@@ -17,6 +12,11 @@ import {
   Eye,
   Heart,
 } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCoordinationStatus } from "../hooks/useCollaborativeStreaming";
 import type { CoordinationEvent, StreamMetrics } from "../types";
 
@@ -125,7 +125,9 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
     const interval = setInterval(() => {
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
-        type: eventTypes[Math.floor(Math.random() * eventTypes.length)] as unknown,
+        type: eventTypes[
+          Math.floor(Math.random() * eventTypes.length)
+        ] as unknown,
         timestamp: new Date(),
         data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,
