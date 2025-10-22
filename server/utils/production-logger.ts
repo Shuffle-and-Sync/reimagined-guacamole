@@ -82,7 +82,7 @@ export class ProductionLogger {
   /**
    * Recursively sanitize objects to remove sensitive data
    */
-  private sanitizeObject(obj: unknown): any {
+  private sanitizeObject(obj: unknown): unknown {
     if (Array.isArray(obj)) {
       return obj.map((item) => this.sanitizeObject(item));
     }
@@ -91,7 +91,7 @@ export class ProductionLogger {
       return obj;
     }
 
-    const sanitized: unknown = {};
+    const sanitized: Record<string, unknown> = {};
     const sensitiveKeys = [
       "password",
       "token",
