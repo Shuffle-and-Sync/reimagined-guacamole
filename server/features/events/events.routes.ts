@@ -8,7 +8,6 @@ import { eventsService } from "./events.service";
 import { logger } from "../../logger";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventCreationRateLimit } from "../../rate-limiting";
-import type { Request } from "express";
 
 const router = Router();
 

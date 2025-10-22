@@ -579,7 +579,7 @@ export const tournamentsService = {
         // TODO: Create internal method for status updates
         await storage.updateTournament(tournamentId, {
           status: "completed",
-        } as any);
+        } as Partial<UpdateTournament>);
 
         logger.info("Tournament completed", { tournamentId });
       }

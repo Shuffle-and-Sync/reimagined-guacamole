@@ -234,18 +234,19 @@ export class UserRepository extends BaseRepository<
           let query = this.db.select().from(this.table);
 
           if (conditions.length > 0) {
-            query = query.where(and(...conditions)) as unknown;
+            query = query.where(and(...conditions)) as typeof query;
           }
 
           // Apply sorting if specified
           if (baseOptions.sort?.field) {
-            const column = (this.table as any)[baseOptions.sort.field];
+            const column =
+              this.table[baseOptions.sort.field as keyof typeof this.table];
             if (column) {
               query = query.orderBy(
                 baseOptions.sort.direction === "desc"
                   ? desc(column)
                   : asc(column),
-              ) as unknown;
+              ) as typeof query;
             }
           }
 
