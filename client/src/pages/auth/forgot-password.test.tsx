@@ -11,7 +11,9 @@ import { QueryClient } from "@tanstack/react-query";
 
 // Mock wouter
 vi.mock("wouter", () => ({
-  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -36,7 +38,7 @@ describe("Forgot Password Page", () => {
         ok: true,
         json: async () => ({ success: true }),
       } as Response),
-    ) as any;
+    ) as typeof fetch;
   });
 
   describe("Page Structure", () => {

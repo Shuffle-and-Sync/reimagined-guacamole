@@ -12,7 +12,7 @@ import type { AuthSession } from "../types";
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof fetch;
 
 // Mock window.location
 const mockLocation = {

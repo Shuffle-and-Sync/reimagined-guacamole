@@ -431,7 +431,8 @@ export class RealTimeMatchingAPI {
 
   // Private helper methods
 
-  private async enhanceMatchWithRealtimeData(baseMatch: unknown,
+  private async enhanceMatchWithRealtimeData(
+    baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): Promise<EnhancedStreamerMatch> {
     try {
@@ -673,7 +674,8 @@ export class RealTimeMatchingAPI {
     }
   }
 
-  private calculateUrgencyScore(baseMatch: unknown,
+  private calculateUrgencyScore(
+    baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): number {
     let urgencyScore = 50; // Base score
@@ -707,7 +709,8 @@ export class RealTimeMatchingAPI {
     return "fair";
   }
 
-  private generateRecommendationReasons(baseMatch: unknown,
+  private generateRecommendationReasons(
+    baseMatch: unknown,
     availability: AvailabilityStatus,
     outcome: CollaborationOutcome,
   ): string[] {
@@ -738,7 +741,8 @@ export class RealTimeMatchingAPI {
     return reasons.length > 0 ? reasons : ["Compatible gaming preferences"];
   }
 
-  private async estimateCollaborationOutcome(baseMatch: unknown,
+  private async estimateCollaborationOutcome(
+    baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): Promise<CollaborationOutcome> {
     // Use ML model to estimate outcomes
@@ -750,7 +754,7 @@ export class RealTimeMatchingAPI {
       );
 
       return prediction;
-    } catch (_error: unknown) {
+    } catch {
       // Fallback to heuristic estimation
       const compatibilityFactor = baseMatch.totalScore / 100;
 
@@ -946,7 +950,8 @@ export class RealTimeMatchingAPI {
     }
   }
 
-  private async analyzeGameTrends(userProfile: unknown,
+  private async analyzeGameTrends(
+    userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate game trend analysis
     const trendingGames = ["Magic: The Gathering", "Pokemon", "Lorcana"];
@@ -965,7 +970,8 @@ export class RealTimeMatchingAPI {
       }));
   }
 
-  private async analyzeEventOpportunities(_userProfile: unknown,
+  private async analyzeEventOpportunities(
+    _userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate event-based opportunities
     return [
@@ -981,7 +987,8 @@ export class RealTimeMatchingAPI {
     ];
   }
 
-  private async analyzePlatformOpportunities(_userProfile: unknown,
+  private async analyzePlatformOpportunities(
+    _userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate platform feature opportunities
     return [
@@ -1055,7 +1062,8 @@ class MachineLearningModel {
 
   async predictSuccess(
     candidateId: string,
-    userId: string, context: unknown,
+    userId: string,
+    context: unknown,
   ): Promise<number> {
     // Simplified ML prediction
     const userPattern = this.userPatterns.get(userId) || { successRate: 0.7 };

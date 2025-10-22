@@ -12,7 +12,9 @@ import { QueryClient } from "@tanstack/react-query";
 // Mock wouter
 vi.mock("wouter", () => ({
   useLocation: vi.fn(() => ["/auth/error", vi.fn()]),
-  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 describe("Auth Error Page", () => {

@@ -57,6 +57,14 @@ interface GameMessage {
   type: "chat" | "game_action" | "system";
 }
 
+interface ConnectedPlayer {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  profileImageUrl?: string;
+}
+
 export default function GameRoom() {
   const params = useParams();
   const [, setLocation] = useLocation();
@@ -75,7 +83,9 @@ export default function GameRoom() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<GameMessage[]>([]);
-  const [connectedPlayers, setConnectedPlayers] = useState<any[]>([]);
+  const [connectedPlayers, setConnectedPlayers] = useState<ConnectedPlayer[]>(
+    [],
+  );
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
     new Map(),
@@ -517,7 +527,7 @@ export default function GameRoom() {
         description: "You have left the game room",
       });
       setLocation("/tablesync");
-    } catch (_error: unknown) {
+    } catch {
       toast({
         title: "Error leaving room",
         description: "Please try again",

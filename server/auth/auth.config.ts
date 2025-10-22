@@ -475,7 +475,7 @@ export const authConfig: AuthConfig = {
         if (urlObj.hostname === baseUrlObj.hostname) {
           return url;
         }
-      } catch (_e) {
+      } catch {
         // Invalid URL, fall through to default
       }
 

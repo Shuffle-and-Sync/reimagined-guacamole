@@ -39,30 +39,6 @@ interface MockSessionData {
   expires: string;
 }
 
-interface MockSessionSecurityResult {
-  isValid: boolean;
-  assessment: {
-    riskLevel: string;
-    riskScore: number;
-    trustScore: number;
-    riskFactors: string[];
-  };
-  actions: string[];
-}
-
-interface MockJWTPayload {
-  userId: string;
-  email: string;
-  iat?: number;
-  exp?: number;
-}
-
-interface MockJWTVerificationResult {
-  valid: boolean;
-  payload: MockJWTPayload;
-  securityWarnings: string[];
-}
-
 interface MockUserData {
   id: string;
   email: string;

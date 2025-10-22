@@ -40,7 +40,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
     return user?.email === "admin@shuffleandsync.com";
-  } catch (_error: unknown) {
+  } catch {
     return false;
   }
 };

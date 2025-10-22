@@ -41,6 +41,7 @@ export default function TournamentDetail() {
       matches?: unknown[];
       participantCount?: number;
       currentParticipants?: number;
+      rules?: string;
     }
   >({
     queryKey: ["/api/tournaments", tournamentId, "details"],
@@ -448,14 +449,14 @@ export default function TournamentDetail() {
                   </CardContent>
                 </Card>
 
-                {(tournament as any).rules && (
+                {tournament.rules && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Tournament Rules</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {(tournament as any).rules}
+                        {tournament.rules}
                       </p>
                     </CardContent>
                   </Card>

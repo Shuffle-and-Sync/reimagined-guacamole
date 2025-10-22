@@ -1109,8 +1109,10 @@ describe("Button States", () => {
   it("disables button while joining", async () => {
     const user = userEvent.setup();
 
-    let resolveJoin: any;
-    const joinPromise = new Promise((resolve) => {
+    let resolveJoin:
+      | ((value: Response | PromiseLike<Response>) => void)
+      | undefined;
+    const joinPromise = new Promise<Response>((resolve) => {
       resolveJoin = resolve;
     });
 
@@ -1241,8 +1243,10 @@ describe("Dialog Interactions", () => {
       attendees,
     );
 
-    let _resolveLeave: any;
-    const leavePromise = new Promise((resolve) => {
+    let resolveLeave:
+      | ((value: Response | PromiseLike<Response>) => void)
+      | undefined;
+    const leavePromise = new Promise<Response>((resolve) => {
       resolveLeave = resolve;
     });
 
