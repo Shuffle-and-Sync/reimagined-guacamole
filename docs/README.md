@@ -15,6 +15,7 @@ System design and architectural documentation:
 - **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
 - **[Architecture Review](architecture/ARCHITECTURE_REVIEW.md)** - Comprehensive architecture review and recommendations
 - **[Architecture Review Summary](architecture/ARCHITECTURE_REVIEW_SUMMARY.md)** - Quick reference for architecture improvements
+- **[Architecture Visual Comparison](architecture/ARCHITECTURE_VISUAL_COMPARISON.md)** - Visual diagrams of current vs. proposed architecture
 - **[Refactoring Action Plan](architecture/REFACTORING_ACTION_PLAN.md)** - Step-by-step action plan for architecture improvements
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
