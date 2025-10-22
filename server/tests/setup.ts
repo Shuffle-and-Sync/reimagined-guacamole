@@ -90,9 +90,13 @@ global.testUtils = {
 // Type declarations for global test utilities
 declare global {
   var testUtils: {
-    createMockUser: (overrides?: any) => any;
-    createMockRequest: (overrides?: any) => any;
-    createMockResponse: () => any;
+    createMockUser: (
+      overrides?: Record<string, unknown>,
+    ) => Record<string, unknown>;
+    createMockRequest: (
+      overrides?: Record<string, unknown>,
+    ) => Record<string, unknown>;
+    createMockResponse: () => Record<string, jest.Mock>;
     sleep: (ms: number) => Promise<void>;
   };
 }
@@ -110,18 +114,22 @@ const originalClearTimeout = global.clearTimeout;
 const originalClearInterval = global.clearInterval;
 
 // Wrap setTimeout to track timers
-global.setTimeout = function (...args: unknown[]): any {
-  const timer = originalSetTimeout.apply(this, args as any);
+global.setTimeout = function (
+  ...args: Parameters<typeof setTimeout>
+): ReturnType<typeof setTimeout> {
+  const timer = originalSetTimeout.apply(this, args);
   activeTimers.add(timer);
   return timer;
-} as unknown;
+} as typeof setTimeout;
 
 // Wrap setInterval to track intervals
-global.setInterval = function (...args: unknown[]): any {
-  const interval = originalSetInterval.apply(this, args as any);
+global.setInterval = function (
+  ...args: Parameters<typeof setInterval>
+): ReturnType<typeof setInterval> {
+  const interval = originalSetInterval.apply(this, args);
   activeIntervals.add(interval);
   return interval;
-} as unknown;
+} as typeof setInterval;
 
 // Wrap clearTimeout to untrack timers
 global.clearTimeout = function (timer: NodeJS.Timeout): void {
