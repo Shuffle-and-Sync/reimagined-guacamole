@@ -66,9 +66,13 @@ export function decryptStreamKey(encryptedKey: string): string {
 
     return decrypted;
   } catch (error) {
-    logger.error("Failed to decrypt stream key", error, {
-      operation: "decrypt_stream_key",
-    });
+    logger.error(
+      "Failed to decrypt stream key",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        operation: "decrypt_stream_key",
+      },
+    );
     return "";
   }
 }

@@ -81,10 +81,14 @@ export class WaitlistService {
         isWaitlisted: assignedPlayerType === "alternate",
       };
     } catch (error) {
-      logger.error("Failed to join event with waitlist", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to join event with waitlist",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -140,7 +144,11 @@ export class WaitlistService {
 
       return null;
     } catch (error) {
-      logger.error("Failed to promote from waitlist", error, { eventId });
+      logger.error(
+        "Failed to promote from waitlist",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
       throw error;
     }
   }
@@ -162,10 +170,14 @@ export class WaitlistService {
       const position = alternates.findIndex((a) => a.userId === userId);
       return position >= 0 ? position + 1 : 0;
     } catch (error) {
-      logger.error("Failed to get waitlist position", error, {
-        eventId,
-        userId,
-      });
+      logger.error(
+        "Failed to get waitlist position",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId,
+          userId,
+        },
+      );
       return 0;
     }
   }
@@ -190,7 +202,11 @@ export class WaitlistService {
 
       return waitlist;
     } catch (error) {
-      logger.error("Failed to get waitlist", error, { eventId });
+      logger.error(
+        "Failed to get waitlist",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
       return [];
     }
   }

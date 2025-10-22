@@ -195,10 +195,14 @@ export function validateRequest(schema: z.ZodSchema) {
       req.body = result.data;
       next();
     } catch (error) {
-      logger.error("Validation middleware error", error, {
-        url: req.url,
-        method: req.method,
-      });
+      logger.error(
+        "Validation middleware error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          url: req.url,
+          method: req.method,
+        },
+      );
       next(error);
     }
   };
@@ -219,10 +223,14 @@ export function validateQuery(schema: z.ZodSchema) {
       req.query = result.data;
       next();
     } catch (error) {
-      logger.error("Query validation middleware error", error, {
-        url: req.url,
-        method: req.method,
-      });
+      logger.error(
+        "Query validation middleware error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          url: req.url,
+          method: req.method,
+        },
+      );
       next(error);
     }
   };
@@ -275,10 +283,14 @@ export function validateParamsWithSchema(schema: z.ZodSchema) {
       req.params = result.data;
       next();
     } catch (error) {
-      logger.error("Parameter validation middleware error", error, {
-        url: req.url,
-        method: req.method,
-      });
+      logger.error(
+        "Parameter validation middleware error",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          url: req.url,
+          method: req.method,
+        },
+      );
       next(error);
     }
   };

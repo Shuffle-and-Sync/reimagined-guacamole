@@ -577,7 +577,10 @@ export class FacebookAPIService {
         }
       );
     } catch (error) {
-      logger.error("Error creating Facebook live video", error);
+      logger.error(
+        "Error creating Facebook live video",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -628,7 +631,10 @@ export class FacebookAPIService {
         rtmp_preview_url: data.rtmp_preview_url,
       };
     } catch (error) {
-      logger.error("Error fetching Facebook live video details", error);
+      logger.error(
+        "Error fetching Facebook live video details",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -717,7 +723,10 @@ export class FacebookAPIService {
         }
       );
     } catch (error) {
-      logger.error("Error updating Facebook live video", error);
+      logger.error(
+        "Error updating Facebook live video",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -763,7 +772,10 @@ export class FacebookAPIService {
 
       return data.success === true || response.ok;
     } catch (error) {
-      logger.error("Error ending Facebook live video", error);
+      logger.error(
+        "Error ending Facebook live video",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -822,7 +834,10 @@ export class FacebookAPIService {
         })) || []
       );
     } catch (error) {
-      logger.error("Error fetching Facebook page posts", error);
+      logger.error(
+        "Error fetching Facebook page posts",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return [];
     }
   }
@@ -887,7 +902,10 @@ export class FacebookAPIService {
         shares: { count: 0 },
       };
     } catch (error) {
-      logger.error("Error creating Facebook post", error);
+      logger.error(
+        "Error creating Facebook post",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -1022,7 +1040,10 @@ export class FacebookAPIService {
         token_type: data.token_type || "bearer",
       };
     } catch (error) {
-      logger.error("Error exchanging Facebook OAuth code", error);
+      logger.error(
+        "Error exchanging Facebook OAuth code",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -1058,7 +1079,10 @@ export class FacebookAPIService {
 
       return data.access_token || null;
     } catch (error) {
-      logger.error("Error getting Facebook page access token", error);
+      logger.error(
+        "Error getting Facebook page access token",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -1133,7 +1157,10 @@ export class FacebookAPIService {
 
       return data.success === true;
     } catch (error) {
-      logger.error("Error subscribing to Facebook webhooks", error);
+      logger.error(
+        "Error subscribing to Facebook webhooks",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -1177,7 +1204,10 @@ export class FacebookAPIService {
         Buffer.from(expectedSignature, "hex"),
       );
     } catch (error) {
-      logger.error("Error verifying webhook signature", error);
+      logger.error(
+        "Error verifying webhook signature",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }

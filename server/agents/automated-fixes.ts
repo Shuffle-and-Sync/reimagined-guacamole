@@ -203,7 +203,10 @@ export class AutomatedFixEngine {
         changedFiles: Array.from(fixedFiles),
       };
     } catch (error) {
-      logger.error("Code fixes failed:", error);
+      logger.error(
+        "Code fixes failed:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return {
         success: false,
         message: "Code fixes failed",

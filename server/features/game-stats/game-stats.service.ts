@@ -380,7 +380,10 @@ class GameStatsService {
       // In a real implementation, this would also recalculate statistics
       return true;
     } catch (error) {
-      logger.error("Error deleting game result:", error);
+      logger.error(
+        "Error deleting game result:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }

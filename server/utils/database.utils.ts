@@ -88,7 +88,11 @@ export function buildWhereConditions(
         conditions.push(condition);
       }
     } catch (error) {
-      logger.error("Error building filter condition", error, { filter });
+      logger.error(
+        "Error building filter condition",
+        error instanceof Error ? error : new Error(String(error)),
+        { filter },
+      );
       // Skip invalid conditions rather than failing the entire query
     }
   }
@@ -703,7 +707,10 @@ export class BatchQueryOptimizer {
 
       return resultMap;
     } catch (error) {
-      logger.error("Batch query failed:", error);
+      logger.error(
+        "Batch query failed:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw new DatabaseError("Failed to execute batch query");
     }
   }

@@ -108,7 +108,10 @@ export class DrizzleAnalyzer {
         performanceMetrics,
       };
     } catch (error) {
-      logger.error("❌ Drizzle analysis failed:", error);
+      logger.error(
+        "❌ Drizzle analysis failed:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }

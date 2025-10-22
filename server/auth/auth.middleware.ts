@@ -368,10 +368,14 @@ export async function requireJWTAuth(
 
     next();
   } catch (error) {
-    logger.error("JWT authentication error", error, {
-      ip: req.ip,
-      userAgent: req.headers["user-agent"],
-    });
+    logger.error(
+      "JWT authentication error",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
+    );
     res.status(500).json({ message: "Authentication failed" });
   }
 }

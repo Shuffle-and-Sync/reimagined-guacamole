@@ -371,7 +371,7 @@ export default function Calendar() {
       return;
     }
 
-    const eventData: unknown = {
+    const eventData: Record<string, unknown> = {
       title: newEventTitle,
       type: newEventType,
       date: newEventDate,

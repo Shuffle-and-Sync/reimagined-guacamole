@@ -132,7 +132,10 @@ export function PlatformAccountManager() {
     onError: (error: unknown) => {
       toast({
         title: "Connection Failed",
-        description: error.message || "Failed to initiate platform connection",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to initiate platform connection",
         variant: "destructive",
       });
       setConnectingPlatform(null);
@@ -156,7 +159,10 @@ export function PlatformAccountManager() {
     onError: (error: unknown) => {
       toast({
         title: "Disconnection Failed",
-        description: error.message || "Failed to disconnect platform account",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to disconnect platform account",
         variant: "destructive",
       });
     },
@@ -182,7 +188,10 @@ export function PlatformAccountManager() {
     onError: (error: unknown) => {
       toast({
         title: "Refresh Failed",
-        description: error.message || "Failed to refresh platform token",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to refresh platform token",
         variant: "destructive",
       });
     },

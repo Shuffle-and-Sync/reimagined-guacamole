@@ -6401,7 +6401,10 @@ export class DatabaseStorage implements IStorage {
       }
       return event;
     } catch (error) {
-      logger.error("Failed to create collaborative stream event", error);
+      logger.error(
+        "Failed to create collaborative stream event",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }
@@ -6416,7 +6419,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(collaborativeStreamEvents.id, id));
       return event || null;
     } catch (error) {
-      logger.error("Failed to get collaborative stream event", error, { id });
+      logger.error(
+        "Failed to get collaborative stream event",
+        error instanceof Error ? error : new Error(String(error)),
+        { id },
+      );
       throw error;
     }
   }
@@ -6436,9 +6443,13 @@ export class DatabaseStorage implements IStorage {
       }
       return event;
     } catch (error) {
-      logger.error("Failed to update collaborative stream event", error, {
-        id,
-      });
+      logger.error(
+        "Failed to update collaborative stream event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          id,
+        },
+      );
       throw error;
     }
   }
@@ -6449,9 +6460,13 @@ export class DatabaseStorage implements IStorage {
         .delete(collaborativeStreamEvents)
         .where(eq(collaborativeStreamEvents.id, id));
     } catch (error) {
-      logger.error("Failed to delete collaborative stream event", error, {
-        id,
-      });
+      logger.error(
+        "Failed to delete collaborative stream event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          id,
+        },
+      );
       throw error;
     }
   }
@@ -6465,9 +6480,13 @@ export class DatabaseStorage implements IStorage {
         .from(collaborativeStreamEvents)
         .where(eq(collaborativeStreamEvents.organizerId, userId));
     } catch (error) {
-      logger.error("Failed to get user collaborative stream events", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to get user collaborative stream events",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -6486,7 +6505,10 @@ export class DatabaseStorage implements IStorage {
       }
       return collaborator;
     } catch (error) {
-      logger.error("Failed to create stream collaborator", error);
+      logger.error(
+        "Failed to create stream collaborator",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }
@@ -6499,7 +6521,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(streamCollaborators.id, id));
       return collaborator || null;
     } catch (error) {
-      logger.error("Failed to get stream collaborator", error, { id });
+      logger.error(
+        "Failed to get stream collaborator",
+        error instanceof Error ? error : new Error(String(error)),
+        { id },
+      );
       throw error;
     }
   }
@@ -6519,7 +6545,11 @@ export class DatabaseStorage implements IStorage {
       }
       return collaborator;
     } catch (error) {
-      logger.error("Failed to update stream collaborator", error, { id });
+      logger.error(
+        "Failed to update stream collaborator",
+        error instanceof Error ? error : new Error(String(error)),
+        { id },
+      );
       throw error;
     }
   }
@@ -6530,7 +6560,11 @@ export class DatabaseStorage implements IStorage {
         .delete(streamCollaborators)
         .where(eq(streamCollaborators.id, id));
     } catch (error) {
-      logger.error("Failed to delete stream collaborator", error, { id });
+      logger.error(
+        "Failed to delete stream collaborator",
+        error instanceof Error ? error : new Error(String(error)),
+        { id },
+      );
       throw error;
     }
   }
@@ -6544,9 +6578,13 @@ export class DatabaseStorage implements IStorage {
         .from(streamCollaborators)
         .where(eq(streamCollaborators.eventId, streamEventId));
     } catch (error) {
-      logger.error("Failed to get stream collaborators", error, {
-        streamEventId,
-      });
+      logger.error(
+        "Failed to get stream collaborators",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          streamEventId,
+        },
+      );
       throw error;
     }
   }
@@ -6565,7 +6603,10 @@ export class DatabaseStorage implements IStorage {
       }
       return session;
     } catch (error) {
-      logger.error("Failed to create stream coordination session", error);
+      logger.error(
+        "Failed to create stream coordination session",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }
@@ -6580,7 +6621,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(streamCoordinationSessions.id, id));
       return session || null;
     } catch (error) {
-      logger.error("Failed to get stream coordination session", error, { id });
+      logger.error(
+        "Failed to get stream coordination session",
+        error instanceof Error ? error : new Error(String(error)),
+        { id },
+      );
       throw error;
     }
   }
@@ -6600,9 +6645,13 @@ export class DatabaseStorage implements IStorage {
       }
       return session;
     } catch (error) {
-      logger.error("Failed to update stream coordination session", error, {
-        id,
-      });
+      logger.error(
+        "Failed to update stream coordination session",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          id,
+        },
+      );
       throw error;
     }
   }
@@ -6613,9 +6662,13 @@ export class DatabaseStorage implements IStorage {
         .delete(streamCoordinationSessions)
         .where(eq(streamCoordinationSessions.id, id));
     } catch (error) {
-      logger.error("Failed to delete stream coordination session", error, {
-        id,
-      });
+      logger.error(
+        "Failed to delete stream coordination session",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          id,
+        },
+      );
       throw error;
     }
   }
@@ -6627,7 +6680,10 @@ export class DatabaseStorage implements IStorage {
         .from(streamCoordinationSessions)
         .where(eq(streamCoordinationSessions.currentPhase, "live"));
     } catch (error) {
-      logger.error("Failed to get active coordination sessions", error);
+      logger.error(
+        "Failed to get active coordination sessions",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   }

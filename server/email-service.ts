@@ -46,10 +46,14 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     await mailService.send(emailData);
     return true;
   } catch (error) {
-    logger.error("Failed to send email via SendGrid", error, {
-      to: params.to,
-      subject: params.subject,
-    });
+    logger.error(
+      "Failed to send email via SendGrid",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        to: params.to,
+        subject: params.subject,
+      },
+    );
     return false;
   }
 }

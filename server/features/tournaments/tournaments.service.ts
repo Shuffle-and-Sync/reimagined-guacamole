@@ -29,9 +29,13 @@ export const tournamentsService = {
     try {
       return await storage.getTournaments(communityId);
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournaments", error, {
-        communityId,
-      });
+      logger.error(
+        "Service error: Failed to fetch tournaments",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          communityId,
+        },
+      );
       throw error;
     }
   },
@@ -40,9 +44,13 @@ export const tournamentsService = {
     try {
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournament", error, {
-        tournamentId,
-      });
+      logger.error(
+        "Service error: Failed to fetch tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+        },
+      );
       throw error;
     }
   },
@@ -92,9 +100,13 @@ export const tournamentsService = {
       logger.info("Creating tournament", { tournamentData });
       return await storage.createTournament(tournamentData);
     } catch (error) {
-      logger.error("Service error: Failed to create tournament", error, {
-        tournamentData,
-      });
+      logger.error(
+        "Service error: Failed to create tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentData,
+        },
+      );
       throw error;
     }
   },
@@ -104,10 +116,14 @@ export const tournamentsService = {
       logger.info("User joining tournament", { tournamentId, userId });
       return await storage.joinTournament(tournamentId, userId);
     } catch (error) {
-      logger.error("Service error: Failed to join tournament", error, {
-        tournamentId,
-        userId,
-      });
+      logger.error(
+        "Service error: Failed to join tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          userId,
+        },
+      );
       throw error;
     }
   },
@@ -117,10 +133,14 @@ export const tournamentsService = {
       logger.info("User leaving tournament", { tournamentId, userId });
       return await storage.leaveTournament(tournamentId, userId);
     } catch (error) {
-      logger.error("Service error: Failed to leave tournament", error, {
-        tournamentId,
-        userId,
-      });
+      logger.error(
+        "Service error: Failed to leave tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          userId,
+        },
+      );
       throw error;
     }
   },
@@ -232,11 +252,15 @@ export const tournamentsService = {
       logger.info("Tournament updated successfully", { tournamentId, updates });
       return updatedTournament;
     } catch (error) {
-      logger.error("Service error: Failed to update tournament", error, {
-        tournamentId,
-        updates,
-        userId,
-      });
+      logger.error(
+        "Service error: Failed to update tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          updates,
+          userId,
+        },
+      );
       throw error;
     }
   },
@@ -252,7 +276,10 @@ export const tournamentsService = {
     try {
       return await storage.getTournamentFormats();
     } catch (error) {
-      logger.error("Service error: Failed to fetch tournament formats", error);
+      logger.error(
+        "Service error: Failed to fetch tournament formats",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       throw error;
     }
   },
@@ -301,10 +328,14 @@ export const tournamentsService = {
       });
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to start tournament", error, {
-        tournamentId,
-        organizerId,
-      });
+      logger.error(
+        "Service error: Failed to start tournament",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          organizerId,
+        },
+      );
       throw error;
     }
   },
@@ -347,10 +378,14 @@ export const tournamentsService = {
           throw new Error(`Unsupported tournament format: ${format}`);
       }
     } catch (error) {
-      logger.error("Service error: Failed to generate bracket", error, {
-        tournamentId,
-        format,
-      });
+      logger.error(
+        "Service error: Failed to generate bracket",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          format,
+        },
+      );
       throw error;
     }
   },
@@ -586,10 +621,14 @@ export const tournamentsService = {
 
       return await storage.getTournament(tournamentId);
     } catch (error) {
-      logger.error("Service error: Failed to advance round", error, {
-        tournamentId,
-        organizerId,
-      });
+      logger.error(
+        "Service error: Failed to advance round",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          organizerId,
+        },
+      );
       throw error;
     }
   },
@@ -668,12 +707,16 @@ export const tournamentsService = {
       });
       return { match: updatedMatch, result: matchResult };
     } catch (error) {
-      logger.error("Service error: Failed to report match result", error, {
-        tournamentId,
-        matchId,
-        winnerId,
-        reporterId,
-      });
+      logger.error(
+        "Service error: Failed to report match result",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+          matchId,
+          winnerId,
+          reporterId,
+        },
+      );
       throw error;
     }
   },
@@ -716,9 +759,13 @@ export const tournamentsService = {
         currentParticipants: participants.length,
       };
     } catch (error) {
-      logger.error("Service error: Failed to get tournament details", error, {
-        tournamentId,
-      });
+      logger.error(
+        "Service error: Failed to get tournament details",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tournamentId,
+        },
+      );
       throw error;
     }
   },

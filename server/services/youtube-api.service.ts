@@ -642,7 +642,10 @@ export class YouTubeAPIService {
         ingestionAddress: data.cdn.ingestionInfo.ingestionAddress,
       };
     } catch (error) {
-      logger.error("Error creating YouTube live stream", error);
+      logger.error(
+        "Error creating YouTube live stream",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -686,7 +689,10 @@ export class YouTubeAPIService {
       // Validate that binding was successful by checking for expected response structure
       return response.ok && data.id && data.snippet;
     } catch (error) {
-      logger.error("Error binding YouTube broadcast to stream", error);
+      logger.error(
+        "Error binding YouTube broadcast to stream",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -732,7 +738,10 @@ export class YouTubeAPIService {
       // Validate transition was successful by checking status matches expected state
       return response.ok && data.id && data.status?.lifeCycleStatus;
     } catch (error) {
-      logger.error("Error transitioning YouTube broadcast", error);
+      logger.error(
+        "Error transitioning YouTube broadcast",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -834,7 +843,10 @@ export class YouTubeAPIService {
         token_type: data.token_type || "Bearer",
       };
     } catch (error) {
-      logger.error("Error exchanging YouTube OAuth code", error);
+      logger.error(
+        "Error exchanging YouTube OAuth code",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -886,7 +898,10 @@ export class YouTubeAPIService {
         token_type: data.token_type || "Bearer",
       };
     } catch (error) {
-      logger.error("Error refreshing YouTube access token", error);
+      logger.error(
+        "Error refreshing YouTube access token",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }
@@ -925,7 +940,10 @@ export class YouTubeAPIService {
 
       return response.status === 202; // Accepted for verification
     } catch (error) {
-      logger.error("Error subscribing to YouTube channel notifications", error);
+      logger.error(
+        "Error subscribing to YouTube channel notifications",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -1039,7 +1057,10 @@ export class YouTubeAPIService {
 
       return timingSafeEqual(signatureBuffer, expectedBuffer);
     } catch (error) {
-      logger.error("Error verifying YouTube webhook signature", error);
+      logger.error(
+        "Error verifying YouTube webhook signature",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
@@ -1110,7 +1131,10 @@ export class YouTubeAPIService {
       );
       return null;
     } catch (error) {
-      logger.error("Error parsing YouTube webhook notification", error);
+      logger.error(
+        "Error parsing YouTube webhook notification",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return null;
     }
   }

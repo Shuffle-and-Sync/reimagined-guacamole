@@ -95,7 +95,11 @@ export abstract class BaseRepository<
 
         return (result[0] as TEntity) || null;
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} by ID`, error, { id });
+        logger.error(
+          `Failed to find ${this.tableName} by ID`,
+          error instanceof Error ? error : new Error(String(error)),
+          { id },
+        );
         throw new DatabaseError(`Failed to find ${this.tableName}`);
       }
     });
@@ -116,7 +120,11 @@ export abstract class BaseRepository<
 
         return result as TEntity[];
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} by IDs`, error, { ids });
+        logger.error(
+          `Failed to find ${this.tableName} by IDs`,
+          error instanceof Error ? error : new Error(String(error)),
+          { ids },
+        );
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
       }
     });
@@ -182,9 +190,13 @@ export abstract class BaseRepository<
           hasPrevious: page > 1,
         };
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} records`, error, {
-          options,
-        });
+        logger.error(
+          `Failed to find ${this.tableName} records`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            options,
+          },
+        );
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
       }
     });
@@ -210,9 +222,13 @@ export abstract class BaseRepository<
 
         return (result[0] as TEntity) || null;
       } catch (error) {
-        logger.error(`Failed to find one ${this.tableName}`, error, {
-          filters,
-        });
+        logger.error(
+          `Failed to find one ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            filters,
+          },
+        );
         throw new DatabaseError(`Failed to find ${this.tableName}`);
       }
     });
@@ -235,7 +251,11 @@ export abstract class BaseRepository<
 
         return result[0] as TEntity;
       } catch (error) {
-        logger.error(`Failed to create ${this.tableName}`, error, { data });
+        logger.error(
+          `Failed to create ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          { data },
+        );
         throw new DatabaseError(`Failed to create ${this.tableName}`);
       }
     });
@@ -256,9 +276,13 @@ export abstract class BaseRepository<
 
         return result as unknown as TEntity[];
       } catch (error) {
-        logger.error(`Failed to create multiple ${this.tableName}`, error, {
-          count: data.length,
-        });
+        logger.error(
+          `Failed to create multiple ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            count: data.length,
+          },
+        );
         throw new DatabaseError(`Failed to create ${this.tableName} records`);
       }
     });
@@ -278,7 +302,11 @@ export abstract class BaseRepository<
 
         return (result as unknown as TEntity[])[0] || null;
       } catch (error) {
-        logger.error(`Failed to update ${this.tableName}`, error, { id, data });
+        logger.error(
+          `Failed to update ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          { id, data },
+        );
         throw new DatabaseError(`Failed to update ${this.tableName}`);
       }
     });
@@ -306,10 +334,14 @@ export abstract class BaseRepository<
 
         return result as unknown as TEntity[];
       } catch (error) {
-        logger.error(`Failed to update ${this.tableName} with filters`, error, {
-          filters,
-          data,
-        });
+        logger.error(
+          `Failed to update ${this.tableName} with filters`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            filters,
+            data,
+          },
+        );
         throw new DatabaseError(`Failed to update ${this.tableName} records`);
       }
     });
@@ -341,7 +373,11 @@ export abstract class BaseRepository<
           return (result as unknown[]).length > 0;
         }
       } catch (error) {
-        logger.error(`Failed to delete ${this.tableName}`, error, { id });
+        logger.error(
+          `Failed to delete ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          { id },
+        );
         throw new DatabaseError(`Failed to delete ${this.tableName}`);
       }
     });
@@ -381,9 +417,13 @@ export abstract class BaseRepository<
           return (result as unknown[]).length;
         }
       } catch (error) {
-        logger.error(`Failed to delete ${this.tableName} with filters`, error, {
-          filters,
-        });
+        logger.error(
+          `Failed to delete ${this.tableName} with filters`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            filters,
+          },
+        );
         throw new DatabaseError(`Failed to delete ${this.tableName} records`);
       }
     });
@@ -407,7 +447,11 @@ export abstract class BaseRepository<
         const result = await query;
         return result[0]?.count || 0;
       } catch (error) {
-        logger.error(`Failed to count ${this.tableName}`, error, { filters });
+        logger.error(
+          `Failed to count ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          { filters },
+        );
         throw new DatabaseError(`Failed to count ${this.tableName} records`);
       }
     });
@@ -500,9 +544,13 @@ export abstract class BaseRepository<
           hasMore,
         };
       } catch (error) {
-        logger.error(`Failed to find ${this.tableName} with cursor`, error, {
-          options,
-        });
+        logger.error(
+          `Failed to find ${this.tableName} with cursor`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            options,
+          },
+        );
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
       }
     });
@@ -568,10 +616,14 @@ export abstract class BaseRepository<
         const result = await this.db.execute(sqlQuery);
         return result as unknown as T[];
       } catch (error) {
-        logger.error(`Raw query failed for ${this.tableName}`, error, {
-          query,
-          params,
-        });
+        logger.error(
+          `Raw query failed for ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            query,
+            params,
+          },
+        );
         throw new DatabaseError(`Database query failed`);
       }
     });
@@ -639,7 +691,10 @@ export abstract class BaseRepository<
           return await callback(tx);
         });
       } catch (error) {
-        logger.error(`Transaction failed for ${this.tableName}`, error);
+        logger.error(
+          `Transaction failed for ${this.tableName}`,
+          error instanceof Error ? error : new Error(String(error)),
+        );
         throw new DatabaseError(
           `Transaction failed for ${this.tableName}: ${error instanceof Error ? error.message : "Unknown error"}`,
         );

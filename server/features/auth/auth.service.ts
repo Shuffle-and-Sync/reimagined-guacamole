@@ -27,7 +27,11 @@ export class AuthService {
         communities: userCommunities,
       };
     } catch (error) {
-      logger.error("Failed to fetch user in AuthService", error, { userId });
+      logger.error(
+        "Failed to fetch user in AuthService",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
       throw error;
     }
   }
@@ -82,9 +86,13 @@ export class AuthService {
 
       return { email: user.email };
     } catch (error) {
-      logger.error("Failed to verify reset token in AuthService", error, {
-        token: token.substring(0, 8) + "***",
-      });
+      logger.error(
+        "Failed to verify reset token in AuthService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          token: token.substring(0, 8) + "***",
+        },
+      );
       throw error;
     }
   }
@@ -115,9 +123,13 @@ export class AuthService {
       logger.info("Password reset successful", { email: emailForLog });
       return true;
     } catch (error) {
-      logger.error("Failed to reset password in AuthService", error, {
-        token: token.substring(0, 8) + "***",
-      });
+      logger.error(
+        "Failed to reset password in AuthService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          token: token.substring(0, 8) + "***",
+        },
+      );
       throw error;
     }
   }

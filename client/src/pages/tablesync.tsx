@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useLocation } from "wouter";
+import type { Event } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,7 +79,9 @@ export default function TableSync() {
   });
 
   // Fetch upcoming game pod events that users can join
-  const { data: gameEvents = [], isLoading: isLoadingEvents } = useQuery({
+  const { data: gameEvents = [], isLoading: isLoadingEvents } = useQuery<
+    Event[]
+  >({
     queryKey: ["/api/events", "game_pod", "upcoming"],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -677,7 +680,7 @@ export default function TableSync() {
                             Upcoming Game Pod Events
                           </h3>
                           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {gameEvents.map((event: unknown) => (
+                            {gameEvents.map((event) => (
                               <Card
                                 key={event.id}
                                 className="hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border-2"
