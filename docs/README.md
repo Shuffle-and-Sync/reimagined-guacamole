@@ -13,6 +13,10 @@ System design and architectural documentation:
 - **[Project Architecture](architecture/PROJECT_ARCHITECTURE.md)** - Complete project architecture overview
 - **[System Architecture Diagrams](architecture/SYSTEM_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams (Mermaid)
 - **[Technology Stack](architecture/TECHNOLOGY_STACK.md)** - Comprehensive technology stack documentation
+- **[Architecture Review](architecture/ARCHITECTURE_REVIEW.md)** - Comprehensive architecture review and recommendations
+- **[Architecture Review Summary](architecture/ARCHITECTURE_REVIEW_SUMMARY.md)** - Quick reference for architecture improvements
+- **[Architecture Visual Comparison](architecture/ARCHITECTURE_VISUAL_COMPARISON.md)** - Visual diagrams of current vs. proposed architecture
+- **[Refactoring Action Plan](architecture/REFACTORING_ACTION_PLAN.md)** - Step-by-step action plan for architecture improvements
 - [Authentication System](architecture/AUTHENTICATION.md) - Authentication system overview and design
 - [Database Architecture](architecture/DATABASE_ARCHITECTURE.md) - Database design and architecture
 - [Games & Cards Schema](architecture/GAMES_CARDS_SCHEMA.md) - TCG game and card data schema
@@ -263,7 +267,14 @@ Historical and outdated documentation:
 1. Start with [Development Guide](development/DEVELOPMENT_GUIDE.md)
 2. Review [Database Architecture](architecture/DATABASE_ARCHITECTURE.md)
 3. Check [API Documentation](reference/api/API_DOCUMENTATION.md)
-4. Read [Express Patterns](guides/EXPRESS_PATTERNS.md)
+4. Read [Coding Patterns](development/CODING_PATTERNS.md)
+5. Read [Express Patterns](guides/EXPRESS_PATTERNS.md)
+
+### For Architecture Review
+
+1. [Architecture Review Summary](architecture/ARCHITECTURE_REVIEW_SUMMARY.md) - Quick overview of findings
+2. [Architecture Review](architecture/ARCHITECTURE_REVIEW.md) - Complete review with detailed analysis
+3. [Refactoring Action Plan](architecture/REFACTORING_ACTION_PLAN.md) - Concrete steps for improvements
 
 ### For Deployment
 
