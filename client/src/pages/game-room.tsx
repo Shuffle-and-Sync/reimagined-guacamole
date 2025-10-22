@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
+import { getErrorMessage } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -298,13 +299,14 @@ export default function GameRoom() {
       let errorMessage =
         "Camera and microphone access is needed for video chat.";
 
-      if (error.name === "NotAllowedError") {
+      const errorObj = error as { name?: string };
+      if (errorObj.name === "NotAllowedError") {
         errorMessage =
           "Please allow camera and microphone access in your browser settings.";
-      } else if (error.name === "NotFoundError") {
+      } else if (errorObj.name === "NotFoundError") {
         errorMessage =
           "No camera or microphone found. Please connect a camera to use video chat.";
-      } else if (error.name === "NotSupportedError") {
+      } else if (errorObj.name === "NotSupportedError") {
         errorMessage =
           "Video chat is not supported in this browser or environment.";
       }

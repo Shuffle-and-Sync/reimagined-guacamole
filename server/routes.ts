@@ -1185,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Initialize the 6 default gaming communities
-async function initializeDefaultCommunities() {
+async function initializeDefaultCommunities(): Promise<void> {
   const defaultCommunities = [
     {
       id: "scry-gather",

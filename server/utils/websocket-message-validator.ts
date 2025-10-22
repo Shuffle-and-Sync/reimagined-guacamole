@@ -2,6 +2,19 @@ import { z } from "zod";
 import { websocketMessageSchema } from "@shared/websocket-schemas";
 import { logger } from "../logger";
 
+// Type for WebRTC SDP (Session Description Protocol)
+const webrtcSDPSchema = z.object({
+  type: z.enum(["offer", "answer"]),
+  sdp: z.string(),
+});
+
+// Type for WebRTC ICE candidate
+const webrtcICECandidateSchema = z.object({
+  candidate: z.string(),
+  sdpMLineIndex: z.number().nullable(),
+  sdpMid: z.string().nullable(),
+});
+
 // Outgoing WebSocket message schemas
 export const outgoingMessageSchemas = {
   // Error messages
@@ -9,7 +22,7 @@ export const outgoingMessageSchemas = {
     type: z.literal("error"),
     message: z.string(),
     code: z.string().optional(),
-    details: z.any().optional(),
+    details: z.unknown().optional(),
   }),
 
   // Game room messages
@@ -49,27 +62,27 @@ export const outgoingMessageSchemas = {
     type: z.literal("game_action"),
     action: z.string(),
     player: z.string(),
-    result: z.any().optional(),
-    data: z.record(z.any()),
+    result: z.unknown().optional(),
+    data: z.record(z.unknown()),
   }),
 
   // WebRTC messages
   webrtc_offer: z.object({
     type: z.literal("webrtc_offer"),
     fromPlayer: z.string(),
-    offer: z.any(),
+    offer: webrtcSDPSchema,
   }),
 
   webrtc_answer: z.object({
     type: z.literal("webrtc_answer"),
     fromPlayer: z.string(),
-    answer: z.any(),
+    answer: webrtcSDPSchema,
   }),
 
   webrtc_ice_candidate: z.object({
     type: z.literal("webrtc_ice_candidate"),
     fromPlayer: z.string(),
-    candidate: z.any(),
+    candidate: webrtcICECandidateSchema,
   }),
 
   camera_status: z.object({
@@ -143,7 +156,7 @@ export const outgoingMessageSchemas = {
     type: z.literal("coordination_event_broadcast"),
     eventId: z.string(),
     eventType: z.string(),
-    eventData: z.record(z.any()),
+    eventData: z.record(z.unknown()),
     broadcastBy: z.object({
       userId: z.string(),
       userName: z.string(),
@@ -155,7 +168,7 @@ export const outgoingMessageSchemas = {
     type: z.literal("collaborator_status_changed"),
     eventId: z.string(),
     userId: z.string(),
-    statusUpdate: z.record(z.any()),
+    statusUpdate: z.record(z.unknown()),
     timestamp: z.string(),
   }),
 
@@ -285,12 +298,12 @@ export class WebSocketMessageValidator {
   /**
    * Sanitize message content to prevent XSS and other security issues
    */
-  sanitizeMessage(message: unknown): any {
+  sanitizeMessage(message: unknown): unknown {
     if (typeof message !== "object" || message === null) {
       return message;
     }
 
-    const sanitized = { ...message };
+    const sanitized = { ...(message as Record<string, unknown>) };
 
     // Sanitize string fields that might contain user input
     const stringFields = ["content", "message", "error", "name", "userName"];

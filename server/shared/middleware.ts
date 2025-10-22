@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../logger";
+import { getErrorMessage, isError } from "@shared/type-utils";
 
 // Common middleware functions
 
@@ -7,8 +8,10 @@ export const errorHandler = (error: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,
-) => {
-  logger.error("Unhandled error in request", error, {
+): void => {
+  const errorForLogging = isError(error) ? error : new Error(getErrorMessage(error));
+  
+  logger.error("Unhandled error in request", errorForLogging, {
     method: req.method,
     url: req.url,
     userAgent: req.get("User-Agent"),
@@ -17,10 +20,12 @@ export const errorHandler = (error: unknown,
 
   // Don't leak internal error details in production
   const isDevelopment = process.env.NODE_ENV === "development";
+  const message = getErrorMessage(error);
+  const stack = isError(error) ? error.stack : undefined;
 
   res.status(500).json({
     message: "Internal server error",
-    ...(isDevelopment && { error: error.message, stack: error.stack }),
+    ...(isDevelopment && { error: message, stack }),
   });
 };
 

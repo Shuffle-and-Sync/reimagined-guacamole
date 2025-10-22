@@ -7499,7 +7499,7 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation queue operations
   async addToModerationQueue(
-    data: InsertModerationQueue & { metadata?: any },
+    data: InsertModerationQueue & { metadata?: Record<string, unknown> },
   ): Promise<ModerationQueue> {
     // Auto-calculate priority if not provided
     let enhancedData = { ...data };

@@ -15,7 +15,10 @@ import * as schema from "./schema";
 // Export schema and transaction types for use in repositories
 export type Schema = typeof schema;
 export type Database = BetterSQLite3Database<Schema>;
-export type Transaction = any; // SQLite transaction type
+// Transaction type using proper Drizzle ORM transaction type
+export type Transaction = Parameters<
+  Parameters<Database["transaction"]>[0]
+>[0];
 
 // Handle missing or invalid DATABASE_URL gracefully for Cloud Run health checks
 // Default SQLite Cloud URL
@@ -375,7 +378,8 @@ export async function checkDatabaseHealth(): Promise<{
 // Prepared statement cache for commonly used queries
 export class PreparedStatementCache {
   private static instance: PreparedStatementCache;
-  private statements = new Map<string, any>();
+  // Use unknown instead of any for better type safety
+  private statements = new Map<string, unknown>();
 
   public static getInstance(): PreparedStatementCache {
     if (!PreparedStatementCache.instance) {
@@ -384,12 +388,18 @@ export class PreparedStatementCache {
     return PreparedStatementCache.instance;
   }
 
-  public getOrPrepare<T = any>(key: string, queryBuilder: () => any): any {
+  /**
+   * Get or prepare a statement with proper typing
+   * @param key Cache key for the statement
+   * @param queryBuilder Function that builds and prepares the query
+   * @returns The prepared statement of type T
+   */
+  public getOrPrepare<T>(key: string, queryBuilder: () => T): T {
     if (!this.statements.has(key)) {
-      const prepared = queryBuilder().prepare();
+      const prepared = queryBuilder();
       this.statements.set(key, prepared);
     }
-    return this.statements.get(key)!;
+    return this.statements.get(key) as T;
   }
 
   public clear(): void {

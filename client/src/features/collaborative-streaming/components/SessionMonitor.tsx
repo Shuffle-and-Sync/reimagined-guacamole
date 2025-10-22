@@ -13,6 +13,7 @@ import {
   Heart,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
+import { isWebSocketMessageType } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,11 +124,17 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
       "message",
     ];
     const interval = setInterval(() => {
+      const randomType = eventTypes[
+        Math.floor(Math.random() * eventTypes.length)
+      ];
+      // Validate the type before creating the event
+      if (!isWebSocketMessageType(randomType)) {
+        return;
+      }
+      
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
-        type: eventTypes[
-          Math.floor(Math.random() * eventTypes.length)
-        ] as unknown,
+        type: randomType,
         timestamp: new Date(),
         data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,

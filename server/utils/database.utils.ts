@@ -212,7 +212,14 @@ export function buildOrderBy(
 /**
  * Calculate pagination offset
  */
-export function calculatePagination(page: number, limit: number) {
+export function calculatePagination(
+  page: number,
+  limit: number,
+): {
+  page: number;
+  limit: number;
+  offset: number;
+} {
   const safePage = Math.max(1, page);
   const safeLimit = Math.min(Math.max(1, limit), 100); // Max 100 items per page
   const offset = (safePage - 1) * safeLimit;
@@ -231,7 +238,16 @@ export function buildPaginationMeta(
   total: number,
   page: number,
   limit: number,
-) {
+): {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  startIndex: number;
+  endIndex: number;
+} {
   const totalPages = Math.ceil(total / limit);
 
   return {
