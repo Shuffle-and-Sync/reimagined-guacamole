@@ -28,6 +28,16 @@ interface CSVUploadDialogProps {
   communityId: string;
 }
 
+interface CSVEventRow {
+  title?: string;
+  type?: string;
+  date?: string;
+  time?: string;
+  location?: string;
+  description?: string;
+  [key: string]: string | undefined;
+}
+
 export function CSVUploadDialog({
   isOpen,
   onClose,
@@ -35,7 +45,7 @@ export function CSVUploadDialog({
   communityId,
 }: CSVUploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<any[]>([]);
+  const [preview, setPreview] = useState<CSVEventRow[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -56,22 +66,23 @@ export function CSVUploadDialog({
       header: true,
       complete: (results) => {
         const validationErrors: string[] = [];
-        const validData: unknown[] = [];
+        const validData: CSVEventRow[] = [];
 
         results.data.forEach((row: unknown, index) => {
+          const csvRow = row as CSVEventRow;
           // Skip empty rows
-          if (!row.title && !row.date) return;
+          if (!csvRow.title && !csvRow.date) return;
 
           // Validate required fields
-          if (!row.title)
+          if (!csvRow.title)
             validationErrors.push(`Row ${index + 1}: Missing title`);
-          if (!row.type)
+          if (!csvRow.type)
             validationErrors.push(`Row ${index + 1}: Missing type`);
-          if (!row.date)
+          if (!csvRow.date)
             validationErrors.push(`Row ${index + 1}: Missing date`);
-          if (!row.time)
+          if (!csvRow.time)
             validationErrors.push(`Row ${index + 1}: Missing time`);
-          if (!row.location)
+          if (!csvRow.location)
             validationErrors.push(`Row ${index + 1}: Missing location`);
 
           // Validate event type
@@ -82,14 +93,14 @@ export function CSVUploadDialog({
             "game_pod",
             "community",
           ];
-          if (row.type && !validTypes.includes(row.type)) {
+          if (csvRow.type && !validTypes.includes(csvRow.type)) {
             validationErrors.push(
-              `Row ${index + 1}: Invalid type '${row.type}'. Must be one of: ${validTypes.join(", ")}`,
+              `Row ${index + 1}: Invalid type '${csvRow.type}'. Must be one of: ${validTypes.join(", ")}`,
             );
           }
 
-          if (Object.keys(row).some((key) => row[key])) {
-            validData.push(row);
+          if (Object.keys(csvRow).some((key) => csvRow[key])) {
+            validData.push(csvRow);
           }
         });
 

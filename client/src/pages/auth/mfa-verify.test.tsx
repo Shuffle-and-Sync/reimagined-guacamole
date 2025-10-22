@@ -31,7 +31,7 @@ describe("MFA Verify Page", () => {
         ok: true,
         json: async () => ({ success: true }),
       } as Response),
-    ) as any;
+    ) as typeof fetch;
   });
 
   describe("Page Structure", () => {

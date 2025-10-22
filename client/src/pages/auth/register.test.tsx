@@ -11,7 +11,9 @@ import { QueryClient } from "@tanstack/react-query";
 
 // Mock wouter
 vi.mock("wouter", () => ({
-  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 // Mock hooks

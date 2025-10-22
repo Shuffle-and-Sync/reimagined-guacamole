@@ -66,8 +66,8 @@ describe("useToast", () => {
     it("assigns unique id to each toast", () => {
       const { result } = renderHook(() => useToast());
 
-      let toast1Id: string;
-      let toast2Id: string;
+      let toast1Id = "";
+      let toast2Id = "";
 
       act(() => {
         const t1 = result.current.toast({ title: "Toast 1" });
@@ -79,7 +79,7 @@ describe("useToast", () => {
         toast2Id = t2.id;
       });
 
-      expect(toast1Id!).not.toBe(toast2Id!);
+      expect(toast1Id).not.toBe(toast2Id);
     });
 
     it("respects toast limit", () => {
@@ -100,7 +100,7 @@ describe("useToast", () => {
     it("dismisses a specific toast", async () => {
       const { result } = renderHook(() => useToast());
 
-      let toastId: string;
+      let toastId = "";
 
       act(() => {
         const t = result.current.toast({ title: "Test Toast" });
@@ -110,7 +110,7 @@ describe("useToast", () => {
       expect(result.current.toasts).toHaveLength(1);
 
       act(() => {
-        result.current.dismiss(toastId!);
+        result.current.dismiss(toastId);
       });
 
       // Toast is marked as closed

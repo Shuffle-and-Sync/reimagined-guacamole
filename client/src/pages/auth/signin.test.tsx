@@ -12,7 +12,9 @@ import * as authModule from "@/features/auth";
 
 // Mock wouter
 vi.mock("wouter", () => ({
-  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 // Mock hooks
@@ -55,7 +57,7 @@ describe("Sign In Page", () => {
         } as Response);
       }
       return Promise.reject(new Error("Not found"));
-    }) as any;
+    }) as typeof fetch;
   });
 
   describe("Page Structure", () => {
@@ -206,7 +208,7 @@ describe("Sign In Page", () => {
           } as Response);
         }
         return Promise.reject(new Error("Not found"));
-      }) as any;
+      }) as typeof fetch;
 
       renderWithProviders(<SignIn />, { queryClient });
 
