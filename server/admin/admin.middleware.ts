@@ -510,10 +510,10 @@ export function comprehensiveAuditLogging(
 }
 
 // Sanitize sensitive data for audit logging
-function sanitizeForAudit(data: unknown): any {
+function sanitizeForAudit(data: unknown): Record<string, unknown> | unknown {
   if (!data) return data;
 
-  const sanitized = { ...data };
+  const sanitized = { ...(data as Record<string, unknown>) };
   const sensitiveFields = [
     "password",
     "token",
@@ -527,7 +527,10 @@ function sanitizeForAudit(data: unknown): any {
   ];
 
   // Recursively redact sensitive fields
-  function redactSensitive(obj: unknown, path = ""): any {
+  function redactSensitive(
+    obj: unknown,
+    path = "",
+  ): Record<string, unknown> | unknown {
     if (typeof obj !== "object" || obj === null) return obj;
 
     if (Array.isArray(obj)) {
@@ -536,7 +539,7 @@ function sanitizeForAudit(data: unknown): any {
       );
     }
 
-    const result: unknown = {};
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       const keyLower = key.toLowerCase();
       const shouldRedact = sensitiveFields.some((field) =>
@@ -558,7 +561,11 @@ function sanitizeForAudit(data: unknown): any {
 }
 
 // Helper to log response for audit
-function logResponseForAudit(req: Request, res: Response, responseData: unknown) {
+function logResponseForAudit(
+  req: Request,
+  res: Response,
+  responseData: unknown,
+) {
   if (res.locals.auditLogged) return; // Prevent duplicate logging
   res.locals.auditLogged = true;
 

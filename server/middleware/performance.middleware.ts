@@ -8,6 +8,13 @@
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../logger";
 import { DatabaseMonitor } from "@shared/database-unified";
+import { AuthenticatedRequest } from "../types";
+
+// Extended request with timing
+interface RequestWithTiming extends Partial<AuthenticatedRequest> {
+  requestId?: string;
+  startTime?: number;
+}
 
 // Performance metrics interface
 export interface PerformanceMetrics {
@@ -184,7 +191,7 @@ export function performanceMonitoringMiddleware(
 
   // Get request ID from headers or generate one
   const requestId =
-    (req as any).requestId ||
+    (req as RequestWithTiming).requestId ||
     (res.getHeader("X-Request-ID") as string) ||
     "unknown";
 
@@ -203,7 +210,7 @@ export function performanceMonitoringMiddleware(
       timestamp: new Date(),
       userAgent: req.get("User-Agent"),
       ip: req.ip,
-      userId: (req as any).user?.id,
+      userId: (req as RequestWithTiming).user?.id,
     });
 
     // Decrement active connections
@@ -213,6 +220,7 @@ export function performanceMonitoringMiddleware(
     res.setHeader("X-Response-Time", `${responseTime}ms`);
 
     // Call original end method
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return originalEnd.apply(this, args as any);
   };
 
@@ -333,7 +341,10 @@ export function databaseMonitoringMiddleware(
   const originalEnd = res.end;
   res.end = function (this: Response, ...args: unknown[]): Response {
     // Log database stats for slow requests or errors
-    if (res.statusCode >= 400 || Date.now() - (req as any).startTime > 1000) {
+    if (
+      res.statusCode >= 400 ||
+      Date.now() - ((req as RequestWithTiming).startTime ?? 0) > 1000
+    ) {
       const dbStats = dbMonitor.getStats();
       if (Object.keys(dbStats).length > 0) {
         logger.info("Database performance stats", {
@@ -345,6 +356,7 @@ export function databaseMonitoringMiddleware(
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return originalEnd.apply(this, args as any);
   };
 
