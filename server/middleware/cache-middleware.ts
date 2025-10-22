@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { cacheService } from "../services/cache-service";
 import { logger } from "../logger";
+import { AuthenticatedRequest } from "../types";
 
 /**
  * Cache middleware for API responses
@@ -93,7 +94,7 @@ function defaultKeyGenerator(req: Request): string {
   const baseUrl = req.baseUrl || "";
   const path = req.path || "";
   const query = JSON.stringify(req.query || {});
-  const userId = (req as any).user?.id || "anonymous";
+  const userId = (req as Partial<AuthenticatedRequest>).user?.id || "anonymous";
 
   return `api:${baseUrl}${path}:${userId}:${Buffer.from(query).toString("base64")}`;
 }
@@ -155,7 +156,8 @@ export const cacheConfigs = {
   userCache: {
     ttl: 300, // 5 minutes
     keyGenerator: (req: Request) => {
-      const userId = (req as any).user?.id || "anonymous";
+      const userId =
+        (req as Partial<AuthenticatedRequest>).user?.id || "anonymous";
       const path = req.path;
       const query = JSON.stringify(req.query);
       return `user:${userId}:${path}:${Buffer.from(query).toString("base64")}`;

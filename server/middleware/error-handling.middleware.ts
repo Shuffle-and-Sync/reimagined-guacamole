@@ -229,7 +229,7 @@ export function globalErrorHandler(
  * Async error handler wrapper
  * Use this to wrap async route handlers to automatically catch errors
  */
-export function asyncHandler<T extends any[]>(
+export function asyncHandler<T extends unknown[]>(
   fn: (
     req: Request,
     res: Response,

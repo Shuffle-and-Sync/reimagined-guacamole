@@ -338,7 +338,7 @@ export function createRequestSizeLimitMiddleware(
 
 // Helper functions
 
-function sanitizeObjectInputs(obj: unknown): any {
+function sanitizeObjectInputs(obj: unknown): unknown {
   if (typeof obj === "string") {
     return sanitizeInput(obj);
   }
@@ -348,7 +348,7 @@ function sanitizeObjectInputs(obj: unknown): any {
   }
 
   if (obj && typeof obj === "object") {
-    const sanitized: unknown = {};
+    const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       sanitized[key] = sanitizeObjectInputs(value);
     }

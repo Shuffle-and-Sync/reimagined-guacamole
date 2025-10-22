@@ -187,7 +187,10 @@ export const tournamentsService = {
       }
 
       // Validate format if being updated (note: schema uses 'format', not 'gameFormat')
-      if ((updates as any).format !== undefined && status === "active") {
+      if (
+        (updates as Partial<UpdateTournament>).format !== undefined &&
+        status === "active"
+      ) {
         throw new Error("Cannot change game format for active tournaments");
       }
 
@@ -204,10 +207,12 @@ export const tournamentsService = {
         "rules",
       ] as const;
 
+      type AllowedField = (typeof ALLOWED_UPDATE_FIELDS)[number];
+
       const sanitizedUpdates: Partial<UpdateTournament> = {};
       for (const [key, value] of Object.entries(updates)) {
-        if (ALLOWED_UPDATE_FIELDS.includes(key as any)) {
-          (sanitizedUpdates as any)[key] = value;
+        if (ALLOWED_UPDATE_FIELDS.includes(key as AllowedField)) {
+          (sanitizedUpdates as Record<string, unknown>)[key] = value;
         } else {
           logger.warn("Blocked unauthorized field update attempt", {
             field: key,
@@ -574,7 +579,7 @@ export const tournamentsService = {
         // TODO: Create internal method for status updates
         await storage.updateTournament(tournamentId, {
           status: "completed",
-        } as any);
+        } as Partial<UpdateTournament>);
 
         logger.info("Tournament completed", { tournamentId });
       }

@@ -514,7 +514,13 @@ export class SessionSecurityService {
               (activity) =>
                 activity.details && typeof activity.details === "object",
             )
-            .map((activity) => (activity.details as any)?.deviceFingerprint)
+            .map((activity) => {
+              const details =
+                typeof activity.details === "string"
+                  ? JSON.parse(activity.details)
+                  : activity.details;
+              return (details as Record<string, unknown>)?.deviceFingerprint;
+            })
             .filter(Boolean),
         );
         flags.multipleDevicesSimultaneous = recentDevices.size > 2;
@@ -586,7 +592,8 @@ export class SessionSecurityService {
    */
   private async calculateTrustScore(
     userId: string,
-    deviceHash: string, historicalContext: unknown,
+    deviceHash: string,
+    historicalContext: unknown,
   ): Promise<number> {
     try {
       let trustScore = 0.5; // Start with neutral trust
