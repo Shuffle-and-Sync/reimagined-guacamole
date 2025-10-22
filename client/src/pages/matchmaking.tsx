@@ -115,7 +115,7 @@ export default function Matchmaking() {
 
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity, _communityTheme } = useCommunity();
 
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
@@ -127,14 +127,14 @@ export default function Matchmaking() {
   const [location, setLocation] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [availability, setAvailability] = useState("any");
-  const [language, setLanguage] = useState("english");
+  const [_language, setLanguage] = useState("english");
 
   // Search state
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Fetch user's matchmaking preferences
-  const { data: savedPreferences, isLoading: preferencesLoading } =
+  const { data: savedPreferences, isLoading: _preferencesLoading } =
     useQuery<MatchmakingPreferences>({
       queryKey: ["/api/matchmaking/preferences"],
       enabled: !!user?.id,
@@ -188,7 +188,7 @@ export default function Matchmaking() {
 
   // Save preferences mutation
   const savePreferencesMutation = useMutation({
-    mutationFn: async (preferencesData: any) => {
+    mutationFn: async (preferencesData: unknown) => {
       const response = await apiRequest(
         "PUT",
         "/api/matchmaking/preferences",
@@ -209,7 +209,7 @@ export default function Matchmaking() {
 
   // Find players mutation
   const findPlayersMutation = useMutation({
-    mutationFn: async (searchPreferences: any) => {
+    mutationFn: async (searchPreferences: unknown) => {
       const response = await apiRequest(
         "POST",
         "/api/matchmaking/find-players",
@@ -225,7 +225,7 @@ export default function Matchmaking() {
         description: `Found ${matches.length} compatible players for you.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setIsSearching(false);
       toast({
         title: "Search failed",
@@ -314,7 +314,7 @@ export default function Matchmaking() {
     );
   }, []);
 
-  const toggleFormat = useCallback((format: string) => {
+  const _toggleFormat = useCallback((format: string) => {
     setSelectedFormats((prev) =>
       prev.includes(format)
         ? prev.filter((f) => f !== format)

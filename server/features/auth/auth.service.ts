@@ -3,16 +3,16 @@ import { storage } from "../../storage";
 import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
 import type {
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  AuthenticatedUser,
+  _ForgotPasswordRequest,
+  _ResetPasswordRequest,
+  _AuthenticatedUser,
 } from "./auth.types";
 import type { User } from "@shared/schema";
 
 export class AuthService {
   async getCurrentUser(
     userId: string,
-  ): Promise<(User & { communities?: any[] }) | null> {
+  ): Promise<(User & { communities?: unknown[] }) | null> {
     try {
       const user = await storage.getUser(userId);
       if (!user) {

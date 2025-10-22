@@ -76,7 +76,7 @@ const EVENT_TYPES = [
 ];
 
 type ExtendedEvent = Event & {
-  creator: any;
+  creator: unknown;
   community: Community | null;
   attendeeCount: number;
   isUserAttending?: boolean;
@@ -222,7 +222,7 @@ export default function Calendar() {
 
   // Create event mutation
   const createEventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
+    mutationFn: async (eventData: unknown) => {
       const response = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -302,7 +302,7 @@ export default function Calendar() {
 
   // Update event mutation
   const updateEventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
+    mutationFn: async (eventData: unknown) => {
       const { id, ...updateData } = eventData;
       const response = await fetch(`/api/events/${id}`, {
         method: "PUT",
@@ -378,7 +378,7 @@ export default function Calendar() {
       return;
     }
 
-    const eventData: any = {
+    const eventData: unknown = {
       title: newEventTitle,
       type: newEventType,
       date: newEventDate,

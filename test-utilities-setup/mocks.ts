@@ -16,7 +16,7 @@ import { jest } from "@jest/globals";
 /**
  * Mock Express Request
  */
-export function mockRequest(overrides: Partial<any> = {}) {
+export function mockRequest(overrides: Partial<unknown> = {}) {
   return {
     body: {},
     params: {},
@@ -38,7 +38,7 @@ export function mockRequest(overrides: Partial<any> = {}) {
  * Mock Express Response
  */
 export function mockResponse() {
-  const res: any = {
+  const res: unknown = {
     statusCode: 200,
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
@@ -198,7 +198,7 @@ export function mockCacheService() {
 
   return {
     get: jest.fn((key: string) => cache.get(key)),
-    set: jest.fn((key: string, value: any, ttl?: number) => {
+    set: jest.fn((key: string, value: unknown, ttl?: number) => {
       cache.set(key, value);
       return Promise.resolve();
     }),

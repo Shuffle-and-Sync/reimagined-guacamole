@@ -488,13 +488,13 @@ export function comprehensiveAuditLogging(
   const originalJson = res.json;
 
   // Override res.send to capture all responses
-  res.send = function (data: any) {
+  res.send = function (data: unknown) {
     logResponseForAudit(req, res, data);
     return originalSend.call(this, data);
   };
 
   // Override res.json to capture all JSON responses
-  res.json = function (data: any) {
+  res.json = function (data: unknown) {
     logResponseForAudit(req, res, data);
     return originalJson.call(this, data);
   };
@@ -510,7 +510,7 @@ export function comprehensiveAuditLogging(
 }
 
 // Sanitize sensitive data for audit logging
-function sanitizeForAudit(data: any): any {
+function sanitizeForAudit(data: unknown): any {
   if (!data) return data;
 
   const sanitized = { ...data };
@@ -527,7 +527,7 @@ function sanitizeForAudit(data: any): any {
   ];
 
   // Recursively redact sensitive fields
-  function redactSensitive(obj: any, path = ""): any {
+  function redactSensitive(obj: unknown, path = ""): any {
     if (typeof obj !== "object" || obj === null) return obj;
 
     if (Array.isArray(obj)) {
@@ -536,7 +536,7 @@ function sanitizeForAudit(data: any): any {
       );
     }
 
-    const result: any = {};
+    const result: unknown = {};
     for (const [key, value] of Object.entries(obj)) {
       const keyLower = key.toLowerCase();
       const shouldRedact = sensitiveFields.some((field) =>
@@ -558,7 +558,7 @@ function sanitizeForAudit(data: any): any {
 }
 
 // Helper to log response for audit
-function logResponseForAudit(req: Request, res: Response, responseData: any) {
+function logResponseForAudit(req: Request, res: Response, responseData: unknown) {
   if (res.locals.auditLogged) return; // Prevent duplicate logging
   res.locals.auditLogged = true;
 
@@ -609,8 +609,8 @@ declare global {
         adminUserId: string;
         action: string;
         targetUserId: string;
-        requestBody?: any;
-        requestParams?: any;
+        requestBody?: unknown;
+        requestParams?: unknown;
       };
     }
   }

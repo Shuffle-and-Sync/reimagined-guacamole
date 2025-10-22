@@ -129,7 +129,7 @@ export const authConfig: AuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials, _req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
@@ -384,7 +384,7 @@ export const authConfig: AuthConfig = {
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, _profile }) {
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
@@ -392,7 +392,7 @@ export const authConfig: AuthConfig = {
             logger.error("OAuth user missing email", { userId: user.id });
             return false;
           }
-          
+
           let existingUser = await storage.getUserByEmail(user.email);
 
           if (!existingUser) {
@@ -475,7 +475,7 @@ export const authConfig: AuthConfig = {
         if (urlObj.hostname === baseUrlObj.hostname) {
           return url;
         }
-      } catch (e) {
+      } catch (_e) {
         // Invalid URL, fall through to default
       }
 
@@ -484,7 +484,7 @@ export const authConfig: AuthConfig = {
   },
 
   events: {
-    signIn({ user, account, isNewUser }) {
+    signIn({ user, account, _isNewUser }) {
       console.log(`User ${user.email} signed in via ${account?.provider}`);
     },
     signOut() {

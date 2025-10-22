@@ -8,7 +8,7 @@
 import { logger } from "../logger";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import { aiAlgorithmEngine } from "./ai-algorithm-engine";
-import { storage } from "../storage";
+
 import type { ConnectedPlatform } from "./ai-streaming-matcher";
 
 // Real-time matching interfaces
@@ -42,7 +42,7 @@ export interface RealTimeMatchResponse {
 }
 
 export interface EnhancedStreamerMatch {
-  candidate: any; // StreamerProfile
+  candidate: unknown; // StreamerProfile
   compatibilityScore: number;
   matchStrength: "perfect" | "excellent" | "good" | "fair";
   availability: AvailabilityStatus;
@@ -431,8 +431,7 @@ export class RealTimeMatchingAPI {
 
   // Private helper methods
 
-  private async enhanceMatchWithRealtimeData(
-    baseMatch: any,
+  private async enhanceMatchWithRealtimeData(baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): Promise<EnhancedStreamerMatch> {
     try {
@@ -564,7 +563,7 @@ export class RealTimeMatchingAPI {
     // Filter by platform
     if (request.preferences?.platformFilter?.length) {
       filtered = filtered.filter((match) =>
-        match.candidate.platforms.some((platform: any) =>
+        match.candidate.platforms.some((platform: unknown) =>
           request.preferences?.platformFilter?.includes(platform.platform),
         ),
       );
@@ -583,7 +582,7 @@ export class RealTimeMatchingAPI {
 
   private sortMatchesByRelevance(
     matches: EnhancedStreamerMatch[],
-    request: RealTimeMatchRequest,
+    _request: RealTimeMatchRequest,
   ): EnhancedStreamerMatch[] {
     return matches.sort((a, b) => {
       // Multi-factor sorting
@@ -658,7 +657,7 @@ export class RealTimeMatchingAPI {
         ),
         responseTime: ["immediate", "within_hour", "within_day"][
           Math.floor(Math.random() * 3)
-        ] as any,
+        ] as unknown,
         timezone: "UTC",
         preferredNotificationMethod: ["discord", "email", "platform_dm"],
       };
@@ -674,8 +673,7 @@ export class RealTimeMatchingAPI {
     }
   }
 
-  private calculateUrgencyScore(
-    baseMatch: any,
+  private calculateUrgencyScore(baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): number {
     let urgencyScore = 50; // Base score
@@ -709,8 +707,7 @@ export class RealTimeMatchingAPI {
     return "fair";
   }
 
-  private generateRecommendationReasons(
-    baseMatch: any,
+  private generateRecommendationReasons(baseMatch: unknown,
     availability: AvailabilityStatus,
     outcome: CollaborationOutcome,
   ): string[] {
@@ -741,8 +738,7 @@ export class RealTimeMatchingAPI {
     return reasons.length > 0 ? reasons : ["Compatible gaming preferences"];
   }
 
-  private async estimateCollaborationOutcome(
-    baseMatch: any,
+  private async estimateCollaborationOutcome(baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): Promise<CollaborationOutcome> {
     // Use ML model to estimate outcomes
@@ -754,7 +750,7 @@ export class RealTimeMatchingAPI {
       );
 
       return prediction;
-    } catch (error) {
+    } catch (_error: unknown) {
       // Fallback to heuristic estimation
       const compatibilityFactor = baseMatch.totalScore / 100;
 
@@ -881,7 +877,7 @@ export class RealTimeMatchingAPI {
 
   private createFallbackResponse(
     requestId: string,
-    request: RealTimeMatchRequest,
+    _request: RealTimeMatchRequest,
   ): RealTimeMatchResponse {
     return {
       requestId,
@@ -950,8 +946,7 @@ export class RealTimeMatchingAPI {
     }
   }
 
-  private async analyzeGameTrends(
-    userProfile: any,
+  private async analyzeGameTrends(userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate game trend analysis
     const trendingGames = ["Magic: The Gathering", "Pokemon", "Lorcana"];
@@ -970,8 +965,7 @@ export class RealTimeMatchingAPI {
       }));
   }
 
-  private async analyzeEventOpportunities(
-    userProfile: any,
+  private async analyzeEventOpportunities(_userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate event-based opportunities
     return [
@@ -987,8 +981,7 @@ export class RealTimeMatchingAPI {
     ];
   }
 
-  private async analyzePlatformOpportunities(
-    userProfile: any,
+  private async analyzePlatformOpportunities(_userProfile: unknown,
   ): Promise<TrendingOpportunity[]> {
     // Simulate platform feature opportunities
     return [
@@ -1049,7 +1042,7 @@ class MachineLearningModel {
   private userPatterns: Map<string, any> = new Map();
   private collaborationSuccess: Map<string, number> = new Map();
 
-  async recordOutcome(matchId: string, outcome: any): Promise<void> {
+  async recordOutcome(matchId: string, outcome: unknown): Promise<void> {
     const history = this.outcomeHistory.get(matchId) || [];
     history.push({
       ...outcome,
@@ -1062,8 +1055,7 @@ class MachineLearningModel {
 
   async predictSuccess(
     candidateId: string,
-    userId: string,
-    context: any,
+    userId: string, context: unknown,
   ): Promise<number> {
     // Simplified ML prediction
     const userPattern = this.userPatterns.get(userId) || { successRate: 0.7 };

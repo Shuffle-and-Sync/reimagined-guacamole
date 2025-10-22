@@ -4,7 +4,7 @@ import { logger } from "../logger";
 import path from "path";
 import fs from "fs/promises";
 import { spawn } from "child_process";
-import { promisify } from "util";
+
 import crypto from "crypto";
 
 export interface BackupMetadata {
@@ -446,7 +446,7 @@ class BackupService {
         AND name NOT LIKE 'sqlite_%'
       `);
 
-      return result.map((row: any) => row.table_name);
+      return result.map((row: unknown) => row.table_name);
     } catch (error) {
       logger.error("Failed to get table names", error);
       return [];
@@ -485,7 +485,7 @@ class BackupService {
 
       if (options.compression) {
         // Use gzip compression
-        outputFile = filePath.replace(".gz", "");
+        _outputFile = filePath.replace(".gz", "");
         args.push("--compress=9");
       }
 
@@ -590,8 +590,7 @@ class BackupService {
   }
 
   private async notifyBackupFailure(
-    metadata: BackupMetadata,
-    error: any,
+    metadata: BackupMetadata, error: unknown,
   ): Promise<void> {
     if (this.config.notificationChannels.length === 0) return;
 

@@ -19,11 +19,9 @@ import {
   SessionSecurityService,
   EnhancedSessionManager,
   type SessionSecurityContext,
-  type SecurityRiskAssessment,
+  type _SecurityRiskAssessment,
 } from "./session-security";
 import { storage } from "../storage";
-import { logger } from "../logger";
-import type { DeviceContext } from "./device-fingerprinting";
 
 // Mock dependencies
 jest.mock("../storage");

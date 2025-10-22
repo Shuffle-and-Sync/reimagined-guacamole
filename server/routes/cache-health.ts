@@ -14,7 +14,7 @@ import {
 } from "../middleware/error-handling.middleware";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { AuthorizationError, ValidationError } = errors;
+const { AuthorizationError, _ValidationError } = errors;
 
 const router = Router();
 
@@ -29,7 +29,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
     return user?.email === "admin@shuffleandsync.com";
-  } catch (error) {
+  } catch (_error: unknown) {
     return false;
   }
 };
@@ -203,12 +203,10 @@ router.delete("/clear", async (req, res) => {
 
     // Only allow in development environments - disabled in production
     if (process.env.NODE_ENV === "production") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "Cache clearing disabled in production",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "Cache clearing disabled in production",
+      });
     }
 
     // Additional confirmation required

@@ -58,7 +58,7 @@ export interface CoordinationEvent {
     | "platform_status"
     | "message";
   timestamp: Date;
-  data: any;
+  data: unknown;
   userId?: string;
   message?: string;
 }

@@ -183,7 +183,7 @@ describe("Toast Component", () => {
     });
 
     it("applies custom className to ToastViewport", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <ToastProvider>
           <Toast open>
             <ToastTitle>Toast</ToastTitle>
@@ -413,7 +413,7 @@ describe("Toast Component", () => {
     });
 
     it("applies viewport positioning classes", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <ToastProvider>
           <Toast open>
             <ToastTitle>Toast</ToastTitle>

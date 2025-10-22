@@ -8,7 +8,7 @@ import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import {
   buildWhereConditions,
   buildSearchConditions,
-  buildOrderBy,
+  _buildOrderBy,
   calculatePagination,
   buildPaginationMeta,
   sanitizeDatabaseInput,
@@ -17,7 +17,6 @@ import {
   validators,
   type FilterCondition,
 } from "../../utils/database.utils";
-import { sql } from "drizzle-orm";
 
 // Mock database column for testing
 const mockColumn = {

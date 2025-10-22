@@ -26,7 +26,7 @@ export const queryKeys = {
   // Event queries
   events: {
     all: ["/api/events"] as const,
-    list: (filters?: Record<string, any>) =>
+    list: (filters?: Record<string, unknown>) =>
       [...queryKeys.events.all, "list", filters] as const,
     detail: (id: string) => [...queryKeys.events.all, "detail", id] as const,
     byUserCommunity: (userId: string, communityId: string) =>
@@ -44,7 +44,7 @@ export const queryKeys = {
   // User queries
   users: {
     all: ["/api/users"] as const,
-    list: (filters?: Record<string, any>) =>
+    list: (filters?: Record<string, unknown>) =>
       [...queryKeys.users.all, "list", filters] as const,
     detail: (id: string) => [...queryKeys.users.all, "detail", id] as const,
     profile: (id: string) => [...queryKeys.users.all, "profile", id] as const,
@@ -71,7 +71,7 @@ export const queryUtils = {
   /**
    * Invalidate all queries for a specific feature
    */
-  invalidateFeature: (queryClient: any, feature: keyof typeof queryKeys) => {
+  invalidateFeature: (queryClient: unknown, feature: keyof typeof queryKeys) => {
     return queryClient.invalidateQueries({
       queryKey: queryKeys[feature].all,
     });
@@ -80,7 +80,7 @@ export const queryUtils = {
   /**
    * Remove all queries for a specific feature
    */
-  removeFeature: (queryClient: any, feature: keyof typeof queryKeys) => {
+  removeFeature: (queryClient: unknown, feature: keyof typeof queryKeys) => {
     return queryClient.removeQueries({
       queryKey: queryKeys[feature].all,
     });
@@ -89,8 +89,7 @@ export const queryUtils = {
   /**
    * Prefetch related data for better UX
    */
-  prefetchRelatedData: async (
-    queryClient: any,
+  prefetchRelatedData: async (queryClient: unknown,
     type: "user" | "community" | "event",
     id: string,
   ) => {

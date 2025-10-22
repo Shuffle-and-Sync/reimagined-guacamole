@@ -159,7 +159,7 @@ try {
       // Test that we can query the table (will fail if table doesn't exist)
       await database.execute(`SELECT 1 FROM ${tableName} LIMIT 1`);
       console.log(`✅ Table exists: ${tableName}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.message?.includes("no such table")) {
         console.error(`❌ Missing table: ${tableName}`);
         totalErrors++;

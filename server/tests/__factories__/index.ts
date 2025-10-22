@@ -368,7 +368,7 @@ export function createMockResponse(): any {
 export function createMockList<T>(
   factory: (overrides?: any) => T,
   count: number,
-  overrides: any[] = [],
+  overrides: unknown[] = [],
 ): T[] {
   return Array.from({ length: count }, (_, i) => factory(overrides[i] || {}));
 }

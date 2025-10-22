@@ -1,5 +1,5 @@
 import { logger } from "../logger";
-import { aiAlgorithmEngine } from "./ai-algorithm-engine";
+
 import { storage } from "../storage";
 import { twitchAPI } from "./twitch-api";
 import { youtubeAPI } from "./youtube-api";
@@ -400,7 +400,7 @@ export class AIStreamingMatcher {
    */
   private async getStreamingCandidates(
     criteria: MatchingCriteria,
-    userProfile: StreamerProfile,
+    _userProfile: StreamerProfile,
   ): Promise<StreamerProfile[]> {
     try {
       // Get basic users first, then build streaming profiles
@@ -441,7 +441,7 @@ export class AIStreamingMatcher {
   private async calculateStreamingCompatibility(
     userProfile: StreamerProfile,
     candidates: StreamerProfile[],
-    criteria: MatchingCriteria,
+    _criteria: MatchingCriteria,
   ): Promise<StreamerMatch[]> {
     const matches: StreamerMatch[] = [];
 
@@ -901,7 +901,7 @@ export class AIStreamingMatcher {
   }
 
   // Data extraction methods
-  private extractStreamingPreferences(userSettings: any): StreamingPreferences {
+  private extractStreamingPreferences(userSettings: unknown): StreamingPreferences {
     const streamingSettings = userSettings?.streamingSettings || {};
 
     return {
@@ -939,7 +939,7 @@ export class AIStreamingMatcher {
     };
   }
 
-  private extractContentPreferences(matchingPrefs: any): ContentPreferences {
+  private extractContentPreferences(matchingPrefs: unknown): ContentPreferences {
     return {
       primaryGames: matchingPrefs?.selectedGames || ["MTG"],
       secondaryGames: matchingPrefs?.selectedFormats || [],
@@ -949,9 +949,7 @@ export class AIStreamingMatcher {
     };
   }
 
-  private extractAvailabilitySchedule(
-    user: any,
-    userSettings: any,
+  private extractAvailabilitySchedule(user: unknown, _userSettings: unknown,
   ): AvailabilitySchedule {
     const defaultSchedule = {
       available: true,
@@ -983,7 +981,7 @@ export class AIStreamingMatcher {
     try {
       // Get collaboration requests history
       // Simplified collaboration history for now
-      const requests: any[] = [];
+      const requests: unknown[] = [];
 
       return {
         totalCollaborations: requests.length,
@@ -1005,9 +1003,7 @@ export class AIStreamingMatcher {
     }
   }
 
-  private extractMatchingPreferences(
-    matchingPrefs: any,
-    userSettings: any,
+  private extractMatchingPreferences(_matchingPrefs: unknown, _userSettings: unknown,
   ): StreamingMatchPreferences {
     return {
       audienceSizeCompatibility: "similar",

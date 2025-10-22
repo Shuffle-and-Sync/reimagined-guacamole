@@ -276,7 +276,7 @@ export class DrizzleAnalyzer {
     lineNumber: number,
     content: string,
     issues: CodeIssue[],
-    metrics: DrizzleAnalysisResult["performanceMetrics"],
+    _metrics: DrizzleAnalysisResult["performanceMetrics"],
   ): void {
     const relativePath = path.relative(this.projectRoot, file);
 
@@ -431,7 +431,7 @@ export class DrizzleAnalyzer {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (_error: unknown) {
         // Skip directories that can't be read
       }
     }

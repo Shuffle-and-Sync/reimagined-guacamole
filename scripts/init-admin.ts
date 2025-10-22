@@ -113,7 +113,7 @@ async function createAdminUser(config: AdminConfig) {
   const userId = crypto.randomUUID();
 
   // Prepare user data
-  const userData: any = {
+  const userData: unknown = {
     id: userId,
     email: config.email,
     firstName: config.firstName,

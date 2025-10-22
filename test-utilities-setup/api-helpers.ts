@@ -9,7 +9,7 @@ import { mockRequest, mockResponse } from "./mocks";
 /**
  * Create authenticated request
  */
-export function createAuthenticatedRequest(user: any, overrides: any = {}) {
+export function createAuthenticatedRequest(user: unknown, overrides: unknown = {}) {
   return mockRequest({
     user,
     session: {
@@ -23,7 +23,7 @@ export function createAuthenticatedRequest(user: any, overrides: any = {}) {
 /**
  * Create admin request
  */
-export function createAdminRequest(admin: any, overrides: any = {}) {
+export function createAdminRequest(admin: unknown, overrides: unknown = {}) {
   return createAuthenticatedRequest(admin, {
     user: { ...admin, role: "admin" },
     ...overrides,
@@ -33,7 +33,7 @@ export function createAdminRequest(admin: any, overrides: any = {}) {
 /**
  * Assert successful response
  */
-export function assertSuccessResponse(res: any, expectedStatus = 200) {
+export function assertSuccessResponse(res: unknown, expectedStatus = 200) {
   expect(res.status).toHaveBeenCalledWith(expectedStatus);
   expect(res.json).toHaveBeenCalled();
 }
@@ -41,8 +41,7 @@ export function assertSuccessResponse(res: any, expectedStatus = 200) {
 /**
  * Assert error response
  */
-export function assertErrorResponse(
-  res: any,
+export function assertErrorResponse(res: unknown,
   expectedStatus: number,
   expectedError?: string,
 ) {
@@ -60,7 +59,7 @@ export function assertErrorResponse(
 /**
  * Extract JSON response from mock response
  */
-export function getJsonResponse(res: any) {
+export function getJsonResponse(res: unknown) {
   const jsonCall = res.json.mock.calls[0];
   return jsonCall ? jsonCall[0] : null;
 }
@@ -69,9 +68,9 @@ export function getJsonResponse(res: any) {
  * Simulate API call
  */
 export async function callApi(
-  handler: (...args: any[]) => any,
-  req: any = mockRequest(),
-  res: any = mockResponse(),
+  handler: (...args: unknown[]) => any,
+  req: unknown = mockRequest(),
+  res: unknown = mockResponse(),
 ) {
   await handler(req, res);
   return { req, res, data: getJsonResponse(res) };

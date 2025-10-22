@@ -80,7 +80,7 @@ describe("Database Constraint Violation Error Tests", () => {
     });
 
     test("should handle unique username constraint", () => {
-      const constraintError =
+      const _constraintError =
         databaseErrorSimulators.constraintViolation("unique_username");
 
       const conflictError = new ConflictError("Username already exists", {

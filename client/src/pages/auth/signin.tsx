@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import {
   Form,
   FormControl,
@@ -24,7 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FaGoogle } from "react-icons/fa";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";

@@ -17,14 +17,14 @@ import {
 } from "../middleware/error-handling.middleware";
 import {
   validateRequest,
-  validateQuery,
-  validateParamsWithSchema,
-  userParamSchema,
-  paginationQuerySchema,
+  _validateQuery,
+  _validateParamsWithSchema,
+  _userParamSchema,
+  _paginationQuerySchema,
 } from "../validation";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { NotFoundError, AuthorizationError, ValidationError } = errors;
+const { _NotFoundError, AuthorizationError, _ValidationError } = errors;
 
 const router = Router();
 
@@ -40,7 +40,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
     return user?.email === "admin@shuffleandsync.com";
-  } catch (error) {
+  } catch (_error: unknown) {
     return false;
   }
 };
@@ -379,12 +379,10 @@ router.get(
       if (userId) {
         const authUserId = getAuthUserId(authenticatedReq);
         if (userId !== authUserId && !(await isAdmin(authUserId))) {
-          return res
-            .status(403)
-            .json({
-              success: false,
-              error: "Cannot access other users dashboard data",
-            });
+          return res.status(403).json({
+            success: false,
+            error: "Cannot access other users dashboard data",
+          });
         }
       }
 

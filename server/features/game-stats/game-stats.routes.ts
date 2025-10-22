@@ -250,57 +250,65 @@ router.post(
  * GET /api/game-results
  * Get user's game results with filtering and pagination
  */
-router.get("/game-results", requireAuth, async (req, res, next): Promise<void> => {
-  try {
-    const query = gameStatsQuerySchema.parse(req.query);
-    if (!req.user?.id) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+router.get(
+  "/game-results",
+  requireAuth,
+  async (req, res, next): Promise<void> => {
+    try {
+      const query = gameStatsQuerySchema.parse(req.query);
+      if (!req.user?.id) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+      const userId = req.user.id;
+
+      const offset = (query.page - 1) * query.limit;
+
+      const results = await gameStatsService.getUserGameResults(userId, {
+        ...query,
+        offset,
+      });
+
+      res.json({
+        success: true,
+        data: results,
+        message: "Game results retrieved successfully",
+      });
+    } catch (error) {
+      next(error);
     }
-    const userId = req.user.id;
-
-    const offset = (query.page - 1) * query.limit;
-
-    const results = await gameStatsService.getUserGameResults(userId, {
-      ...query,
-      offset,
-    });
-
-    res.json({
-      success: true,
-      data: results,
-      message: "Game results retrieved successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * DELETE /api/game-results/:id
  * Delete a specific game result (only if user owns it)
  */
-router.delete("/game-results/:id", requireAuth, async (req, res, next): Promise<void> => {
-  try {
-    const id = assertRouteParam(req.params.id, "id");
-    if (!req.user?.id) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+router.delete(
+  "/game-results/:id",
+  requireAuth,
+  async (req, res, next): Promise<void> => {
+    try {
+      const id = assertRouteParam(req.params.id, "id");
+      if (!req.user?.id) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+      const userId = req.user.id;
+
+      await gameStatsService.deleteGameResult(id, userId);
+
+      res.status(204).send();
+    } catch (error) {
+      next(error);
     }
-    const userId = req.user.id;
-
-    await gameStatsService.deleteGameResult(id, userId);
-
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * Error handling middleware for this router
  */
-router.use((error: any, req: any, res: any, next: any) => {
+router.use((error: unknown, req: unknown, res: unknown, _next: unknown) => {
   console.error("Game Stats API Error:", error);
 
   if (error instanceof z.ZodError) {

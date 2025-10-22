@@ -1,19 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+
 import { storage } from "./storage";
 import {
   isAuthenticated,
   getAuthUserId,
-  requireHybridAuth,
+  _requireHybridAuth,
   type AuthenticatedRequest,
 } from "./auth";
 import {
-  insertCommunitySchema,
+  _insertCommunitySchema,
   insertEventSchema,
-  insertEventAttendeeSchema,
-  insertGameSessionSchema,
-  type UpsertUser,
+  _insertEventAttendeeSchema,
+  _insertGameSessionSchema,
+  type _UpsertUser,
 } from "@shared/schema";
 import { sendContactEmail } from "./email";
 import { logger } from "./logger";
@@ -28,13 +28,13 @@ import { enhancedNotificationService } from "./services/enhanced-notifications";
 import { waitlistService } from "./services/waitlist";
 const { asyncHandler } = errorHandlingMiddleware;
 const {
-  AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
+  _AppError,
+  _ValidationError,
+  _AuthenticationError,
+  _AuthorizationError,
   NotFoundError,
   ConflictError,
-  DatabaseError,
+  _DatabaseError,
 } = errors;
 import analyticsRouter from "./routes/analytics";
 import cacheHealthRouter from "./routes/cache-health";
@@ -47,37 +47,37 @@ import userProfileRouter from "./routes/user-profile.routes";
 import forumRouter from "./routes/forum.routes";
 import gameSessionsRouter from "./routes/game-sessions.routes";
 import streamingRouter from "./routes/streaming";
-import { websocketMessageSchema } from "@shared/websocket-schemas";
+
 import EnhancedWebSocketServer from "./utils/websocket-server-enhanced";
 // Auth.js session validation will be done via session endpoint
 import { healthCheck } from "./health";
 import {
-  generatePlatformOAuthURL,
-  handlePlatformOAuthCallback,
+  _generatePlatformOAuthURL,
+  _handlePlatformOAuthCallback,
 } from "./services/platform-oauth";
 import {
   validateRequest,
   validateQuery,
   validateParamsWithSchema,
   securityHeaders,
-  validateUserProfileUpdateSchema,
+  _validateUserProfileUpdateSchema,
   validateEventSchema,
-  validateSocialLinksSchema,
-  validateJoinCommunitySchema,
-  validateJoinEventSchema,
-  validateMessageSchema,
-  validateGameSessionSchema,
+  _validateSocialLinksSchema,
+  _validateJoinCommunitySchema,
+  _validateJoinEventSchema,
+  _validateMessageSchema,
+  _validateGameSessionSchema,
   uuidParamSchema,
-  eventParamSchema,
-  userParamSchema,
-  communityParamSchema,
+  _eventParamSchema,
+  _userParamSchema,
+  _communityParamSchema,
   paginationQuerySchema,
-  searchQuerySchema,
+  _searchQuerySchema,
 } from "./validation";
 import { z } from "zod";
 import {
   generalRateLimit,
-  messageRateLimit,
+  _messageRateLimit,
   eventCreationRateLimit,
 } from "./rate-limiting";
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/friend-requests/:id", isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const userId = getAuthUserId(authenticatedReq);
+      const _userId = getAuthUserId(authenticatedReq);
       const id = assertRouteParam(req.params.id, "id");
       const { status } = req.body;
 
@@ -330,7 +330,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }),
     ),
     asyncHandler(async (req, res) => {
-      const { community: communityId, page, limit } = req.query as Record<string, string>;
+      const {
+        community: communityId,
+        page,
+        limit,
+      } = req.query as Record<string, string>;
       const tournaments = await storage.getTournaments(communityId);
       return res.json({
         success: true,
@@ -450,16 +454,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // REFACTORED ROUTE MODULES (with consistent error handling)
   // ========================================
-  
+
   // Platform OAuth and account linking
   app.use("/api/platforms", platformsRouter);
-  
+
   // User profile, settings, and account management
   app.use("/api/user", userProfileRouter);
-  
+
   // Forum posts and replies
   app.use("/api/forum", forumRouter);
-  
+
   // Game sessions (join, leave, spectate)
   app.use("/api/game-sessions", gameSessionsRouter);
 
@@ -495,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // COLLABORATIVE STREAMING API ROUTES
   // ========================================
-  
+
   // Collaborative streaming routes - real-time stream coordination and collaboration
   // REFACTORED: Moved to routes/streaming/ (events, collaborators, coordination, suggestions)
   app.use("/api/collaborative-streams", streamingRouter);
@@ -739,75 +743,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.put("/api/events/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      const userId = getAuthUserId(authenticatedReq);
+  app.put(
+    "/api/events/:id",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const { id } = req.params;
+        const userId = getAuthUserId(authenticatedReq);
 
-      // Check if user owns the event
-      const existingEvent = await storage.getEvent(id);
-      if (!existingEvent) {
-        return res.status(404).json({ message: "Event not found" });
+        // Check if user owns the event
+        const existingEvent = await storage.getEvent(id);
+        if (!existingEvent) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        if (existingEvent.creatorId !== userId) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to edit this event" });
+        }
+
+        const eventData = insertEventSchema.partial().parse(req.body);
+        const updatedEvent = await storage.updateEvent(id, eventData);
+
+        // Send update notifications
+        const changes: string[] = [];
+        if (
+          eventData.startTime &&
+          eventData.startTime !== existingEvent.startTime
+        )
+          changes.push("schedule");
+        if (eventData.location && eventData.location !== existingEvent.location)
+          changes.push("location");
+
+        if (changes.length > 0) {
+          enhancedNotificationService
+            .sendEventUpdatedNotification(id, changes)
+            .catch((err) =>
+              logger.error("Failed to send update notification", err),
+            );
+        }
+
+        return res.json(updatedEvent);
+      } catch (error) {
+        logger.error("Failed to update event", error, {
+          eventId: req.params.id,
+        });
+        return res.status(500).json({ message: "Failed to update event" });
       }
-      if (existingEvent.creatorId !== userId) {
-        return res
-          .status(403)
-          .json({ message: "Not authorized to edit this event" });
+    },
+  );
+
+  app.delete(
+    "/api/events/:id",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const { id } = req.params;
+        const userId = getAuthUserId(authenticatedReq);
+
+        // Check if user owns the event
+        const existingEvent = await storage.getEvent(id);
+        if (!existingEvent) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        if (existingEvent.creatorId !== userId) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to delete this event" });
+        }
+
+        await storage.deleteEvent(id);
+        return res.json({ success: true });
+      } catch (error) {
+        logger.error("Failed to delete event", error, {
+          eventId: req.params.id,
+        });
+        return res.status(500).json({ message: "Failed to delete event" });
       }
-
-      const eventData = insertEventSchema.partial().parse(req.body);
-      const updatedEvent = await storage.updateEvent(id, eventData);
-
-      // Send update notifications
-      const changes: string[] = [];
-      if (
-        eventData.startTime &&
-        eventData.startTime !== existingEvent.startTime
-      )
-        changes.push("schedule");
-      if (eventData.location && eventData.location !== existingEvent.location)
-        changes.push("location");
-
-      if (changes.length > 0) {
-        enhancedNotificationService
-          .sendEventUpdatedNotification(id, changes)
-          .catch((err) =>
-            logger.error("Failed to send update notification", err),
-          );
-      }
-
-      return res.json(updatedEvent);
-    } catch (error) {
-      logger.error("Failed to update event", error, { eventId: req.params.id });
-      return res.status(500).json({ message: "Failed to update event" });
-    }
-  });
-
-  app.delete("/api/events/:id", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { id } = req.params;
-      const userId = getAuthUserId(authenticatedReq);
-
-      // Check if user owns the event
-      const existingEvent = await storage.getEvent(id);
-      if (!existingEvent) {
-        return res.status(404).json({ message: "Event not found" });
-      }
-      if (existingEvent.creatorId !== userId) {
-        return res
-          .status(403)
-          .json({ message: "Not authorized to delete this event" });
-      }
-
-      await storage.deleteEvent(id);
-      return res.json({ success: true });
-    } catch (error) {
-      logger.error("Failed to delete event", error, { eventId: req.params.id });
-      return res.status(500).json({ message: "Failed to delete event" });
-    }
-  });
+    },
+  );
 
   // Event attendance routes
   app.post(
@@ -971,93 +987,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Graphics generation route
-  app.post("/api/graphics/generate", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const { eventId, template = "modern", includeQR = true } = req.body;
+  app.post(
+    "/api/graphics/generate",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const _authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const { eventId, template = "modern", includeQR = true } = req.body;
 
-      if (!eventId) {
-        return res.status(400).json({ message: "Event ID is required" });
-      }
+        if (!eventId) {
+          return res.status(400).json({ message: "Event ID is required" });
+        }
 
-      // Verify user has access to this event
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ message: "Event not found" });
-      }
+        // Verify user has access to this event
+        const event = await storage.getEvent(eventId);
+        if (!event) {
+          return res.status(404).json({ message: "Event not found" });
+        }
 
-      const graphicDataUrl =
-        await graphicsGeneratorService.generateEventGraphic(
-          eventId,
+        const graphicDataUrl =
+          await graphicsGeneratorService.generateEventGraphic(
+            eventId,
+            template,
+            includeQR,
+          );
+
+        return res.json({
+          dataUrl: graphicDataUrl,
           template,
-          includeQR,
-        );
+          eventId,
+        });
+      } catch (error) {
+        logger.error("Failed to generate graphic", error, {
+          eventId: req.body.eventId,
+        });
+        return res.status(500).json({ message: "Failed to generate graphic" });
+      }
+    },
+  );
 
-      return res.json({
-        dataUrl: graphicDataUrl,
-        template,
-        eventId,
-      });
-    } catch (error) {
-      logger.error("Failed to generate graphic", error, {
-        eventId: req.body.eventId,
-      });
-      return res.status(500).json({ message: "Failed to generate graphic" });
-    }
-  });
+  app.get(
+    "/api/user/events",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
 
-  app.get("/api/user/events", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-
-      const attendance = await storage.getUserEventAttendance(userId);
-      return res.json(attendance);
-    } catch (error) {
-      logger.error("Failed to fetch user events", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Failed to fetch user events" });
-    }
-  });
+        const attendance = await storage.getUserEventAttendance(userId);
+        return res.json(attendance);
+      } catch (error) {
+        logger.error("Failed to fetch user events", error, {
+          userId: getAuthUserId(authenticatedReq),
+        });
+        return res.status(500).json({ message: "Failed to fetch user events" });
+      }
+    },
+  );
 
   // Notification routes
-  app.get("/api/notifications", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const { unreadOnly, limit } = req.query;
-      const notifications = await storage.getUserNotifications(userId, {
-        unreadOnly: unreadOnly === "true",
-        limit: limit ? parseInt(limit as string) : undefined,
-      });
-      return res.json(notifications);
-    } catch (error) {
-      logger.error("Failed to fetch notifications", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  app.get(
+    "/api/notifications",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { unreadOnly, limit } = req.query;
+        const notifications = await storage.getUserNotifications(userId, {
+          unreadOnly: unreadOnly === "true",
+          limit: limit ? parseInt(limit as string) : undefined,
+        });
+        return res.json(notifications);
+      } catch (error) {
+        logger.error("Failed to fetch notifications", error, {
+          userId: getAuthUserId(authenticatedReq),
+        });
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
-  app.post("/api/notifications", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const notificationData = { ...req.body, userId: userId };
-      const notification = await storage.createNotification(notificationData);
-      return res.status(201).json(notification);
-    } catch (error) {
-      logger.error("Failed to create notification", error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  app.post(
+    "/api/notifications",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const notificationData = { ...req.body, userId: userId };
+        const notification = await storage.createNotification(notificationData);
+        return res.status(201).json(notification);
+      } catch (error) {
+        logger.error("Failed to create notification", error);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
   app.patch(
     "/api/notifications/:id/read",
     isAuthenticated,
     async (req: AuthenticatedRequest, res) => {
-      const authenticatedReq = req as AuthenticatedRequest;
+      const _authenticatedReq = req as AuthenticatedRequest;
       try {
         const { id } = req.params;
         await storage.markNotificationAsRead(id);
@@ -1109,20 +1141,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const messageData = { ...req.body, senderId: userId };
-      const message = await storage.sendMessage(messageData);
-      return res.status(201).json(message);
-    } catch (error) {
-      logger.error("Failed to send message", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  app.post(
+    "/api/messages",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const messageData = { ...req.body, senderId: userId };
+        const message = await storage.sendMessage(messageData);
+        return res.status(201).json(message);
+      } catch (error) {
+        logger.error("Failed to send message", error, {
+          userId: getAuthUserId(authenticatedReq),
+        });
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
   app.get("/api/conversations/:userId", isAuthenticated, async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
@@ -1140,55 +1176,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calendar routes for game pod scheduling
-  app.post("/api/events/bulk", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const { events } = req.body;
+  app.post(
+    "/api/events/bulk",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const { events } = req.body;
 
-      if (!Array.isArray(events) || events.length === 0) {
-        return res.status(400).json({ message: "Events array is required" });
+        if (!Array.isArray(events) || events.length === 0) {
+          return res.status(400).json({ message: "Events array is required" });
+        }
+
+        // Add creator and host information to each event
+        const eventData = events.map((event: Record<string, unknown>) => ({
+          ...event,
+          creatorId: userId,
+          hostId: userId,
+        }));
+
+        const createdEvents = await storage.createBulkEvents(eventData);
+        return res.status(201).json(createdEvents);
+      } catch (error) {
+        logger.error("Failed to create bulk events", error, {
+          userId: getAuthUserId(authenticatedReq),
+        });
+        return res.status(500).json({ message: "Internal server error" });
       }
+    },
+  );
 
-      // Add creator and host information to each event
-      const eventData = events.map((event: Record<string, unknown>) => ({
-        ...event,
-        creatorId: userId,
-        hostId: userId,
-      }));
+  app.post(
+    "/api/events/recurring",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res) => {
+      const authenticatedReq = req as AuthenticatedRequest;
+      try {
+        const userId = getAuthUserId(authenticatedReq);
+        const eventData = {
+          ...req.body,
+          creatorId: userId,
+          hostId: userId,
+        };
 
-      const createdEvents = await storage.createBulkEvents(eventData);
-      return res.status(201).json(createdEvents);
-    } catch (error) {
-      logger.error("Failed to create bulk events", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post("/api/events/recurring", isAuthenticated, async (req: AuthenticatedRequest, res) => {
-    const authenticatedReq = req as AuthenticatedRequest;
-    try {
-      const userId = getAuthUserId(authenticatedReq);
-      const eventData = {
-        ...req.body,
-        creatorId: userId,
-        hostId: userId,
-      };
-
-      const createdEvents = await storage.createRecurringEvents(
-        eventData,
-        req.body.recurrenceEndDate,
-      );
-      return res.status(201).json(createdEvents);
-    } catch (error) {
-      logger.error("Failed to create recurring events", error, {
-        userId: getAuthUserId(authenticatedReq),
-      });
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
+        const createdEvents = await storage.createRecurringEvents(
+          eventData,
+          req.body.recurrenceEndDate,
+        );
+        return res.status(201).json(createdEvents);
+      } catch (error) {
+        logger.error("Failed to create recurring events", error, {
+          userId: getAuthUserId(authenticatedReq),
+        });
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
   app.get("/api/calendar/events", async (req, res) => {
     try {

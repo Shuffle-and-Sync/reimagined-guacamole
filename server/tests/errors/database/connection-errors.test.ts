@@ -62,7 +62,7 @@ describe("Database Connection Error Tests", () => {
     });
 
     test("should return 500 status for connection refused", () => {
-      const connectionError = databaseErrorSimulators.connectionError();
+      const _connectionError = databaseErrorSimulators.connectionError();
       const dbError = errorFactories.database("Database connection refused");
 
       globalErrorHandler(

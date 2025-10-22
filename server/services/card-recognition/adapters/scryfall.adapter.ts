@@ -24,7 +24,7 @@ export class ScryfallAdapter implements ICardAdapter {
   /**
    * Transform MTG card to universal format
    */
-  private transformToUniversal(mtgCard: any): UniversalCard {
+  private transformToUniversal(mtgCard: unknown): UniversalCard {
     return {
       id: mtgCard.id,
       gameId: this.MTG_GAME_ID,

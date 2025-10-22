@@ -199,7 +199,7 @@ export class WaitlistService {
 // Helper method for storage (needs to be added to storage.ts)
 declare module "../storage" {
   interface DatabaseStorage {
-    updateEventAttendee(id: string, data: any): Promise<any>;
+    updateEventAttendee(id: string, data: unknown): Promise<unknown>;
   }
 }
 

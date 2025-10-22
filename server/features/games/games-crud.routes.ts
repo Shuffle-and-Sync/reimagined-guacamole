@@ -102,7 +102,7 @@ router.get("/", async (req, res) => {
   try {
     const { published, official, creator } = req.query;
 
-    const filters: any = {};
+    const filters: unknown = {};
     if (published !== undefined) filters.isPublished = published === "true";
     if (official !== undefined) filters.isOfficial = official === "true";
     if (creator) filters.creatorId = creator as string;

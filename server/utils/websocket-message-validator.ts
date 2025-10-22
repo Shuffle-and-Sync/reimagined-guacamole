@@ -208,16 +208,16 @@ export type OutgoingWebSocketMessage = z.infer<
 
 export interface ValidationResult {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export class WebSocketMessageValidator {
   /**
    * Validate incoming WebSocket message
    */
-  validateIncoming(rawMessage: any): ValidationResult {
+  validateIncoming(rawMessage: unknown): ValidationResult {
     try {
       const validationResult = websocketMessageSchema.safeParse(rawMessage);
 
@@ -250,7 +250,7 @@ export class WebSocketMessageValidator {
   /**
    * Validate outgoing WebSocket message
    */
-  validateOutgoing(message: any): ValidationResult {
+  validateOutgoing(message: unknown): ValidationResult {
     try {
       const validationResult =
         outgoingWebSocketMessageSchema.safeParse(message);
@@ -285,7 +285,7 @@ export class WebSocketMessageValidator {
   /**
    * Sanitize message content to prevent XSS and other security issues
    */
-  sanitizeMessage(message: any): any {
+  sanitizeMessage(message: unknown): any {
     if (typeof message !== "object" || message === null) {
       return message;
     }
@@ -329,7 +329,7 @@ export class WebSocketMessageValidator {
   createErrorMessage(
     error: string,
     code?: string,
-    details?: any,
+    details?: unknown,
   ): OutgoingWebSocketMessage {
     return {
       type: "error",

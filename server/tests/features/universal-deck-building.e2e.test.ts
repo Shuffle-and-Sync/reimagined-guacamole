@@ -175,7 +175,7 @@ describe("Universal Deck-Building E2E Tests", () => {
   describe("Multi-Game Card Search Workflow", () => {
     test("E2E: Search cards across MTG, Pokemon, and Yu-Gi-Oh", async () => {
       // Mock MTG search
-      const mtgMockResponse = {
+      const _mtgMockResponse = {
         cards: [
           {
             id: "mtg-1",
@@ -728,7 +728,7 @@ describe("Universal Deck-Building E2E Tests", () => {
       };
 
       (gameService.createGame as jest.Mock).mockResolvedValue(game);
-      const createdGame = await gameService.createGame("user-123", game);
+      const _createdGame = await gameService.createGame("user-123", game);
 
       // Step 2: Search for cards
       (universalCardService.searchCards as jest.Mock).mockResolvedValue({

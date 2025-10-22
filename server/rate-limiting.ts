@@ -16,7 +16,7 @@ function safeGetUserId(req: Request): string | undefined {
 const logRateLimit = (
   req: Request,
   limitType: string,
-  additionalData?: any,
+  additionalData?: unknown,
 ) => {
   logger.warn(`${limitType} rate limit exceeded`, {
     ip: req.ip,

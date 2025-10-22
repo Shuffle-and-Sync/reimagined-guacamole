@@ -30,7 +30,7 @@ export class EnhancedNotificationService {
         webhook?: boolean;
       };
     },
-  ): Promise<{ notification: Notification; deliveryResults: any[] }> {
+  ): Promise<{ notification: Notification; deliveryResults: unknown[] }> {
     try {
       // Generate notification from template
       const template = notificationTemplateService.generateNotification(
@@ -41,7 +41,7 @@ export class EnhancedNotificationService {
       // Create notification in database
       const notificationData: InsertNotification = {
         userId,
-        type: type as any, // Type assertion for notification type enum
+        type: type as unknown, // Type assertion for notification type enum
         title: template.title,
         message: template.message,
         priority: options?.priority || template.priority,
@@ -91,8 +91,7 @@ export class EnhancedNotificationService {
   /**
    * Send stream started notification
    */
-  async notifyStreamStarted(
-    streamSession: any,
+  async notifyStreamStarted(streamSession: unknown,
     followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
@@ -120,8 +119,7 @@ export class EnhancedNotificationService {
    */
   async notifyCollaborationInvite(
     fromUserId: string,
-    toUserId: string,
-    collaborationRequest: any,
+    toUserId: string, collaborationRequest: unknown,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
@@ -138,8 +136,7 @@ export class EnhancedNotificationService {
   /**
    * Send event reminder notifications
    */
-  async notifyEventReminder(
-    event: any,
+  async notifyEventReminder(event: unknown,
     attendees: string[],
     reminderTime: string = "15 minutes",
   ): Promise<void> {
@@ -169,8 +166,7 @@ export class EnhancedNotificationService {
    */
   async notifyFriendRequest(
     fromUserId: string,
-    toUserId: string,
-    friendship: any,
+    toUserId: string, friendship: unknown,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
@@ -185,8 +181,7 @@ export class EnhancedNotificationService {
   /**
    * Send tournament update notification
    */
-  async notifyTournamentUpdate(
-    tournament: any,
+  async notifyTournamentUpdate(tournament: unknown,
     participants: string[],
     updateType: string,
     updateMessage: string,
@@ -300,7 +295,7 @@ export class EnhancedNotificationService {
   /**
    * Register WebSocket for real-time notifications
    */
-  registerWebSocketConnection(userId: string, connection: any): void {
+  registerWebSocketConnection(userId: string, connection: unknown): void {
     notificationDeliveryService.registerWebSocketConnection(userId, connection);
   }
 
@@ -316,7 +311,7 @@ export class EnhancedNotificationService {
   /**
    * Generate weekly stats for a user
    */
-  private async generateWeeklyStats(userId: string): Promise<any> {
+  private async generateWeeklyStats(_userId: string): Promise<unknown> {
     // TODO: Implement weekly stats generation
     // This would aggregate user activity, events attended, streams watched, etc.
     return {
@@ -332,8 +327,7 @@ export class EnhancedNotificationService {
    * Update notification preferences for a user
    */
   async updateNotificationPreferences(
-    userId: string,
-    preferences: any,
+    userId: string, preferences: unknown,
   ): Promise<void> {
     try {
       const currentSettings = await storage.getUserSettings(userId);
@@ -378,7 +372,7 @@ export class EnhancedNotificationService {
   /**
    * Get notification preferences for a user
    */
-  async getNotificationPreferences(userId: string): Promise<any> {
+  async getNotificationPreferences(userId: string): Promise<unknown> {
     try {
       const userSettings = await storage.getUserSettings(userId);
       if (!userSettings?.notificationTypes) {

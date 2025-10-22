@@ -114,7 +114,7 @@ export class CardRecognitionService {
       const data = await response.json();
 
       // Transform Scryfall data to our format
-      const cards: MtgCard[] = data.data.map((card: any) =>
+      const cards: MtgCard[] = data.data.map((card: unknown) =>
         this.transformScryfallCard(card),
       );
 
@@ -274,7 +274,7 @@ export class CardRecognitionService {
   /**
    * Transform Scryfall API response to our card format
    */
-  private transformScryfallCard(scryfallCard: any): MtgCard {
+  private transformScryfallCard(scryfallCard: unknown): MtgCard {
     return {
       id: scryfallCard.id,
       oracleId: scryfallCard.oracle_id,

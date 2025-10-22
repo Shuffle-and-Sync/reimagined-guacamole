@@ -10,7 +10,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { eq } from "drizzle-orm";
 // Import your schema and repository
 
-let testDb: any;
+let testDb: unknown;
 let sqlite: Database.Database;
 
 describe("Repository Tests", () => {

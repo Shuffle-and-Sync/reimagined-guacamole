@@ -49,7 +49,7 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5, // 5 minutes - more reasonable default
       gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 4xx errors except 401, 403
         if (
           error?.message?.includes("401") ||
@@ -65,7 +65,7 @@ export const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry mutations on client errors
         if (error?.message?.match(/4\d\d/)) {
           return false;

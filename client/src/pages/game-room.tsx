@@ -30,7 +30,7 @@ interface GameSession {
     description: string;
     currentTurn?: string;
     turnOrder?: string[];
-    gameState?: any;
+    gameState?: unknown;
   };
   host: {
     id: string;
@@ -62,8 +62,8 @@ export default function GameRoom() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity } = useCommunity();
-  const queryClient = useQueryClient();
+  const { _selectedCommunity } = useCommunity();
+  const _queryClient = useQueryClient();
 
   // Check if user is in spectator mode
   const searchParams = new URLSearchParams(window.location.search);
@@ -91,7 +91,7 @@ export default function GameRoom() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [_recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -177,7 +177,7 @@ export default function GameRoom() {
   );
 
   const handleWebRTCOffer = useCallback(
-    async (data: any) => {
+    async (data: unknown) => {
       const { fromPlayer, offer } = data;
 
       if (!peerConnections.current.has(fromPlayer)) {
@@ -210,7 +210,7 @@ export default function GameRoom() {
     [createPeerConnection, sessionId],
   );
 
-  const handleWebRTCAnswer = useCallback(async (data: any) => {
+  const handleWebRTCAnswer = useCallback(async (data: unknown) => {
     const { fromPlayer, answer } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
 
@@ -226,7 +226,7 @@ export default function GameRoom() {
     }
   }, []);
 
-  const handleICECandidate = useCallback(async (data: any) => {
+  const handleICECandidate = useCallback(async (data: unknown) => {
     const { fromPlayer, candidate } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
 
@@ -278,7 +278,7 @@ export default function GameRoom() {
         title: "Camera enabled",
         description: "Video chat is now active for the game room.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log error for debugging
       if (import.meta.env.DEV) {
         console.error("Error accessing camera/microphone:", error);
@@ -517,7 +517,7 @@ export default function GameRoom() {
         description: "You have left the game room",
       });
       setLocation("/tablesync");
-    } catch (error) {
+    } catch (_error: unknown) {
       toast({
         title: "Error leaving room",
         description: "Please try again",
@@ -544,7 +544,7 @@ export default function GameRoom() {
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
-        peerConnections.current.forEach(async (pc, playerId) => {
+        peerConnections.current.forEach(async (pc, _playerId) => {
           const sender = pc.getSenders().find((s) => s.track?.kind === "video");
           if (sender) {
             await sender.replaceTrack(videoTrack);
@@ -578,7 +578,7 @@ export default function GameRoom() {
       // Replace video track in all peer connections
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        peerConnections.current.forEach(async (pc, playerId) => {
+        peerConnections.current.forEach(async (pc, _playerId) => {
           const sender = pc.getSenders().find((s) => s.track?.kind === "video");
           if (sender) {
             await sender.replaceTrack(videoTrack);
@@ -1026,7 +1026,7 @@ export default function GameRoom() {
                   </div>
 
                   {/* Remote Videos (Other Players) */}
-                  {connectedPlayers.map((player, index) => {
+                  {connectedPlayers.map((player, _index) => {
                     const hasStream = remoteStreams.has(player.id);
                     return (
                       <div

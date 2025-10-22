@@ -87,7 +87,7 @@ export function useCreateCollaborativeStreamEvent() {
         description: `"${data.title}" has been created successfully.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Creating Event",
         description:
@@ -130,7 +130,7 @@ export function useUpdateCollaborativeStreamEvent() {
           "Your collaborative stream event has been updated successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Updating Event",
         description:
@@ -166,7 +166,7 @@ export function useDeleteCollaborativeStreamEvent() {
           "Your collaborative stream event has been deleted successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Deleting Event",
         description:
@@ -205,7 +205,7 @@ export function useAddStreamCollaborator() {
         description: "The collaborator has been added to your stream event.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Adding Collaborator",
         description:
@@ -244,7 +244,7 @@ export function useRemoveStreamCollaborator() {
           "The collaborator has been removed from your stream event.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Removing Collaborator",
         description:
@@ -277,7 +277,7 @@ export function useStartCoordinationSession() {
           "Your collaborative stream coordination session is now active.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Starting Session",
         description: error.message || "Failed to start coordination session.",
@@ -315,7 +315,7 @@ export function useUpdateCoordinationPhase() {
         description: `Stream phase updated to ${variables.phase}.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Error Updating Phase",
         description: error.message || "Failed to update coordination phase.",

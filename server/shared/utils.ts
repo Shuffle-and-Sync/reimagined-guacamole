@@ -3,7 +3,9 @@ import { Request, Response, NextFunction } from "express";
 
 // Common utility functions
 
-export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
+export const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
@@ -208,7 +210,7 @@ export const assertRouteParam = (
 
 export const validateRouteParam = (
   param: string | undefined,
-  paramName: string,
+  _paramName: string,
 ): param is string => {
   return param !== undefined && param.length > 0;
 };

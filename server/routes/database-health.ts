@@ -21,7 +21,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
     const user = await storage.getUser(userId);
     // In production, implement proper role-based access control
     return user?.email === "admin@shuffleandsync.com";
-  } catch (error) {
+  } catch (_error: unknown) {
     return false;
   }
 };
@@ -90,7 +90,7 @@ router.get("/stats", async (req, res) => {
         queries: allStats,
         slowQueries,
         queryCount: Object.values(allStats).reduce(
-          (sum, stat: any) => sum + stat.count,
+          (sum, stat: unknown) => sum + stat.count,
           0,
         ),
       },

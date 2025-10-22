@@ -30,10 +30,10 @@ import { format } from "date-fns";
 interface TournamentEditorProps {
   tournament: Tournament & {
     organizer: User;
-    community: any;
+    community: unknown;
     participants: (TournamentParticipant & { user: User })[];
-    rounds?: any[];
-    matches?: any[];
+    rounds?: unknown[];
+    matches?: unknown[];
     participantCount?: number;
     currentParticipants?: number;
   };
@@ -75,7 +75,7 @@ export default function TournamentEditor({
 
   // Update tournament mutation
   const updateTournamentMutation = useMutation({
-    mutationFn: async (updates: any) => {
+    mutationFn: async (updates: unknown) => {
       const response = await apiRequest(
         "PATCH",
         `/api/tournaments/${tournament.id}`,
@@ -91,7 +91,7 @@ export default function TournamentEditor({
       setHasChanges(false);
       queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Failed to update tournament",
         description: error.message || "Something went wrong",
@@ -114,7 +114,7 @@ export default function TournamentEditor({
   ];
 
   // Handle form changes
-  const handleGeneralFormChange = (field: string, value: any) => {
+  const handleGeneralFormChange = (field: string, value: unknown) => {
     setGeneralForm((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };

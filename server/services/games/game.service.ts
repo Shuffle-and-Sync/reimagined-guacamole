@@ -5,11 +5,8 @@
  * NOTE: Currently disabled - 'games' table not yet implemented in schema
  */
 
-import { eq, and } from "drizzle-orm";
-import { db } from "../../../shared/database-unified";
 // TODO: Re-enable when games table is added to schema
 // import { games } from '../../../shared/schema';
-import { logger } from "../../logger";
 
 export interface GameData {
   name: string;
@@ -23,7 +20,7 @@ export interface GameData {
   complexity?: number;
   ageRating?: string;
   cardTypes?: string[];
-  resourceTypes?: any[];
+  resourceTypes?: unknown[];
   zones?: string[];
   phaseStructure?: string[];
   deckRules?: {
@@ -49,11 +46,11 @@ export interface GameUpdate {
   complexity?: number;
   ageRating?: string;
   cardTypes?: string[];
-  resourceTypes?: any[];
+  resourceTypes?: unknown[];
   zones?: string[];
   phaseStructure?: string[];
-  deckRules?: any;
-  theme?: any;
+  deckRules?: unknown;
+  theme?: unknown;
 }
 
 export class GameService {
@@ -63,15 +60,15 @@ export class GameService {
     );
   }
 
-  async createGame(userId: string, gameData: GameData) {
+  async createGame(_userId: string, _gameData: GameData) {
     this.throwNotImplemented();
   }
 
-  async getGameById(gameId: string) {
+  async getGameById(_gameId: string) {
     this.throwNotImplemented();
   }
 
-  async getAllGames(filters?: {
+  async getAllGames(_filters?: {
     isPublished?: boolean;
     isOfficial?: boolean;
     creatorId?: string;
@@ -79,19 +76,19 @@ export class GameService {
     this.throwNotImplemented();
   }
 
-  async updateGame(gameId: string, userId: string, updates: GameUpdate) {
+  async updateGame(_gameId: string, _userId: string, _updates: GameUpdate) {
     this.throwNotImplemented();
   }
 
-  async deleteGame(gameId: string, userId: string) {
+  async deleteGame(_gameId: string, _userId: string) {
     this.throwNotImplemented();
   }
 
-  async publishGame(gameId: string, userId: string) {
+  async publishGame(_gameId: string, _userId: string) {
     this.throwNotImplemented();
   }
 
-  async getGameStats(gameId: string) {
+  async getGameStats(_gameId: string) {
     this.throwNotImplemented();
   }
 }

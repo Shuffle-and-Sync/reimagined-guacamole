@@ -11,7 +11,7 @@ import {
   tournamentHandlers,
   communityHandlers,
 } from "./mock-handlers";
-import { testDataGenerators } from "./database.helper";
+
 import type { MockResponse } from "./mock-handlers";
 
 /**
@@ -67,8 +67,7 @@ export const authFlows = {
    * Simulate OAuth authentication flow
    */
   async oauthLogin(
-    provider: "google" | "twitch",
-    profile: any,
+    provider: "google" | "twitch", profile: unknown,
   ): Promise<MockResponse> {
     return authHandlers.oauthCallback(provider, profile);
   },
@@ -128,7 +127,7 @@ export const eventFlows = {
   /**
    * Leave an event
    */
-  async leaveEvent(eventId: string, userId: string): Promise<MockResponse> {
+  async leaveEvent(_eventId: string, _userId: string): Promise<MockResponse> {
     return {
       status: 200,
       message: "Successfully left event",
@@ -138,7 +137,7 @@ export const eventFlows = {
   /**
    * Update an event
    */
-  async updateEvent(eventId: string, updates: any): Promise<MockResponse> {
+  async updateEvent(eventId: string, updates: unknown): Promise<MockResponse> {
     return eventHandlers.update(eventId, updates);
   },
 
@@ -159,7 +158,7 @@ export const tournamentFlows = {
    */
   async createAndRegister(
     userId: string,
-    tournamentData?: any,
+    tournamentData?: unknown,
   ): Promise<{
     tournament: MockResponse;
     registration: MockResponse;
@@ -209,8 +208,8 @@ export const tournamentFlows = {
    * Unregister from a tournament
    */
   async unregister(
-    tournamentId: string,
-    userId: string,
+    _tournamentId: string,
+    _userId: string,
   ): Promise<MockResponse> {
     return {
       status: 200,
@@ -255,7 +254,7 @@ export const communityFlows = {
   /**
    * Leave a community
    */
-  async leave(userId: string, communityId: string): Promise<MockResponse> {
+  async leave(_userId: string, _communityId: string): Promise<MockResponse> {
     return {
       status: 200,
       message: "Successfully left community",
@@ -265,7 +264,7 @@ export const communityFlows = {
   /**
    * Get user's communities
    */
-  async getUserCommunities(userId: string): Promise<MockResponse> {
+  async getUserCommunities(_userId: string): Promise<MockResponse> {
     // Simulate getting communities for a user
     const allCommunities = communityHandlers.getAll();
     return {
@@ -282,7 +281,7 @@ export const deckFlows = {
   /**
    * Create a new deck
    */
-  async createDeck(userId: string, deckData: any): Promise<MockResponse> {
+  async createDeck(userId: string, deckData: unknown): Promise<MockResponse> {
     const requiredFields = ["name", "format"];
     const missingFields = requiredFields.filter((field) => !deckData[field]);
 
@@ -328,8 +327,8 @@ export const deckFlows = {
    * Remove cards from a deck
    */
   async removeCards(
-    deckId: string,
-    cards: Array<{ cardId: string; quantity: number }>,
+    _deckId: string,
+    _cards: Array<{ cardId: string; quantity: number }>,
   ): Promise<MockResponse> {
     return {
       status: 200,
@@ -340,7 +339,7 @@ export const deckFlows = {
   /**
    * Validate deck against format rules
    */
-  async validateDeck(deckId: string, format: string): Promise<MockResponse> {
+  async validateDeck(_deckId: string, _format: string): Promise<MockResponse> {
     // Simplified validation
     return {
       status: 200,

@@ -18,7 +18,7 @@ interface User {
   lastName?: string;
   email?: string;
   profileImageUrl?: string;
-  communities?: any[];
+  communities?: unknown[];
 }
 
 interface PokeStreamDashboardProps {
@@ -238,8 +238,8 @@ export function PokeStreamDashboard({ user }: PokeStreamDashboardProps) {
                       className="text-blue-600"
                       style={{ fontFamily: theme.fonts.body }}
                     >
-                      Your Pokedex has been activated and you&apos;re ready to catch
-                      &apos;em all!
+                      Your Pokedex has been activated and you&apos;re ready to
+                      catch &apos;em all!
                     </p>
                   </div>
                   <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white border-0">

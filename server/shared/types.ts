@@ -18,7 +18,7 @@ export interface AuthenticatedRequest extends Request {
     };
     expires: string;
   };
-  session?: any;
+  session?: unknown;
 }
 
 export interface ApiResponse<T = any> {

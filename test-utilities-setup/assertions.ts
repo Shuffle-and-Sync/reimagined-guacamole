@@ -7,7 +7,7 @@
 /**
  * Assert that an object matches a subset
  */
-export function assertObjectContains(actual: any, expected: Partial<any>) {
+export function assertObjectContains(actual: unknown, expected: Partial<unknown>) {
   for (const key in expected) {
     expect(actual).toHaveProperty(key, expected[key]);
   }
@@ -17,8 +17,8 @@ export function assertObjectContains(actual: any, expected: Partial<any>) {
  * Assert that an array contains objects matching criteria
  */
 export function assertArrayContainsObject(
-  array: any[],
-  criteria: Partial<any>,
+  array: unknown[],
+  criteria: Partial<unknown>,
 ) {
   const match = array.find((item) => {
     return Object.keys(criteria).every((key) => item[key] === criteria[key]);
@@ -29,8 +29,7 @@ export function assertArrayContainsObject(
 /**
  * Assert that a database query was called with specific parameters
  */
-export function assertQueryCalled(
-  mockDb: any,
+export function assertQueryCalled(mockDb: unknown,
   method: string,
   tableName: string,
 ) {
@@ -57,7 +56,7 @@ export async function assertThrowsError(
 /**
  * Assert that a value is a valid date
  */
-export function assertValidDate(value: any) {
+export function assertValidDate(value: unknown) {
   expect(value).toBeInstanceOf(Date);
   expect(value.getTime()).not.toBeNaN();
 }
@@ -65,7 +64,7 @@ export function assertValidDate(value: any) {
 /**
  * Assert that a value is a valid UUID/nanoid
  */
-export function assertValidId(value: any) {
+export function assertValidId(value: unknown) {
   expect(typeof value).toBe("string");
   expect(value.length).toBeGreaterThan(0);
 }
@@ -81,7 +80,7 @@ export function assertValidEmail(email: string) {
 /**
  * Assert that pagination metadata is correct
  */
-export function assertValidPagination(pagination: any) {
+export function assertValidPagination(pagination: unknown) {
   expect(pagination).toHaveProperty("page");
   expect(pagination).toHaveProperty("perPage");
   expect(pagination).toHaveProperty("total");
@@ -94,7 +93,7 @@ export function assertValidPagination(pagination: any) {
 /**
  * Assert response has correct structure
  */
-export function assertApiResponse(response: any, expectedData?: any) {
+export function assertApiResponse(response: unknown, expectedData?: any) {
   expect(response).toHaveProperty("success");
 
   if (expectedData) {
@@ -106,7 +105,7 @@ export function assertApiResponse(response: any, expectedData?: any) {
 /**
  * Assert error response has correct structure
  */
-export function assertErrorStructure(response: any) {
+export function assertErrorStructure(response: unknown) {
   expect(response).toHaveProperty("error");
   expect(response).toHaveProperty("message");
   expect(typeof response.error).toBe("string");

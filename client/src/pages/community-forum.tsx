@@ -24,8 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -84,7 +83,7 @@ export default function CommunityForum() {
   useDocumentTitle("Community Forum");
 
   const { user } = useAuth();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity, _communityTheme } = useCommunity();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
@@ -162,7 +161,7 @@ export default function CommunityForum() {
 
   // Create forum post mutation
   const createPostMutation = useMutation({
-    mutationFn: async (postData: any) => {
+    mutationFn: async (postData: unknown) => {
       const response = await fetch("/api/forum/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

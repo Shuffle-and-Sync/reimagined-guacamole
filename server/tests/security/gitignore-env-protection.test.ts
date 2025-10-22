@@ -37,13 +37,13 @@ describe("GitIgnore Environment File Protection", () => {
 
           // Check if Git would ignore it
           try {
-            const result = execSync(`git check-ignore -q "${tempFile}"`, {
+            const _result = execSync(`git check-ignore -q "${tempFile}"`, {
               cwd: ROOT_DIR,
               encoding: "utf8",
             });
             // If check-ignore succeeds (exit code 0), file is ignored
             expect(true).toBe(true);
-          } catch (error: any) {
+          } catch (error: unknown) {
             // If check-ignore fails (non-zero exit), file is NOT ignored
             if (error.status !== 0) {
               throw new Error(
@@ -81,7 +81,7 @@ describe("GitIgnore Environment File Protection", () => {
               encoding: "utf8",
             });
             expect(true).toBe(true);
-          } catch (error: any) {
+          } catch (error: unknown) {
             if (error.status !== 0) {
               throw new Error(
                 `Pattern "${file}" is NOT ignored by Git but should be!`,
@@ -103,13 +103,13 @@ describe("GitIgnore Environment File Protection", () => {
         const filePath = join(ROOT_DIR, file);
 
         try {
-          const result = execSync(`git check-ignore -q "${filePath}"`, {
+          const _result = execSync(`git check-ignore -q "${filePath}"`, {
             cwd: ROOT_DIR,
             encoding: "utf8",
           });
           // If we reach here, file is ignored - which is WRONG for these files
           throw new Error(`File "${file}" is ignored but should be allowed!`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Non-zero exit code means file is NOT ignored - which is correct
           if (error.status !== 0) {
             expect(true).toBe(true);
@@ -140,7 +140,7 @@ describe("GitIgnore Environment File Protection", () => {
         }
 
         expect(result.trim()).toBe("");
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (error.message?.includes("critical security issue")) {
           throw error;
         }

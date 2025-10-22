@@ -3,7 +3,7 @@
  * Covers tokens.ts authentication module
  */
 
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect } from "@jest/globals";
 import {
   TOKEN_EXPIRY,
   generateEmailVerificationJWT,

@@ -9,7 +9,7 @@ import { nanoid } from "nanoid";
 /**
  * Create test session
  */
-export function createTestSession(userId: string, options: any = {}) {
+export function createTestSession(userId: string, options: unknown = {}) {
   return {
     userId,
     token: options.token || nanoid(32),
@@ -30,7 +30,7 @@ export function createExpiredSession(userId: string) {
 /**
  * Create JWT payload
  */
-export function createJwtPayload(userId: string, options: any = {}) {
+export function createJwtPayload(userId: string, options: unknown = {}) {
   return {
     sub: userId,
     iat: Math.floor(Date.now() / 1000),

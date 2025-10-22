@@ -731,7 +731,7 @@ describe("JoinEventButton", () => {
 
   describe("Event Emission - Join as Alternate", () => {
     it("joins directly as alternate when only alternate slots available", async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
 
       const onlyAlternatesEvent: CalendarEvent = {
         ...mockEvent,
@@ -791,7 +791,7 @@ describe("JoinEventButton", () => {
     });
 
     it("shows loading state during leave mutation", async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
 
       renderWithProviders(
         <JoinEventButton
@@ -850,7 +850,7 @@ describe("JoinEventButton", () => {
 
   it("has proper success handling configured for leave mutation", async () => {
     // Verify the component renders the leave button when user is attending
-    const attendees: Attendee[] = [
+    const _attendees: Attendee[] = [
       {
         userId: "test-user-123",
         eventId: mockEvent.id,
@@ -889,7 +889,7 @@ describe("JoinEventButton", () => {
 
 describe("Event Emission - Leave Event", () => {
   it("calls onSuccess when leave is successful", async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
 
     const attendees: Attendee[] = [
       {
@@ -1241,7 +1241,7 @@ describe("Dialog Interactions", () => {
       attendees,
     );
 
-    let resolveLeave: any;
+    let _resolveLeave: any;
     const leavePromise = new Promise((resolve) => {
       resolveLeave = resolve;
     });

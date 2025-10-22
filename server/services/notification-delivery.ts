@@ -45,9 +45,9 @@ export interface DeliveryResult {
  */
 export class NotificationDeliveryService {
   private webSocketConnections = new Map<string, any>(); // WebSocket connections per user
-  private emailQueue: any[] = []; // Email delivery queue
-  private smsQueue: any[] = []; // SMS delivery queue
-  private webhookQueue: any[] = []; // Webhook delivery queue
+  private emailQueue: unknown[] = []; // Email delivery queue
+  private smsQueue: unknown[] = []; // SMS delivery queue
+  private webhookQueue: unknown[] = []; // Webhook delivery queue
 
   /**
    * Send notification through all enabled channels based on user preferences
@@ -466,12 +466,12 @@ export class NotificationDeliveryService {
   private shouldDeliverNotification(
     notification: Notification,
     preferences: NotificationPreferences,
-    user: User,
+    _user: User,
   ): boolean {
     // Check quiet hours
     if (preferences.quietHours.enabled) {
-      const now = new Date();
-      const userTimezone = preferences.timezone || "UTC";
+      const _now = new Date();
+      const _userTimezone = preferences.timezone || "UTC";
       // TODO: Implement timezone checking
       // For now, skip quiet hours check
     }
@@ -520,7 +520,7 @@ export class NotificationDeliveryService {
   /**
    * Register WebSocket connection for real-time notifications
    */
-  registerWebSocketConnection(userId: string, connection: any): void {
+  registerWebSocketConnection(userId: string, connection: unknown): void {
     this.webSocketConnections.set(userId, connection);
 
     connection.on("close", () => {

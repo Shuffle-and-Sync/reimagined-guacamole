@@ -48,7 +48,7 @@ export class EventsService {
       );
 
       // Attach attendees to each event
-      const eventsWithAttendees = events.map((event: any) => ({
+      const eventsWithAttendees = events.map((event: unknown) => ({
         ...event,
         attendees: attendeesMap.get(event.id) || [],
         attendeeCount: attendeesMap.get(event.id)?.length || 0,
@@ -317,7 +317,7 @@ export class EventsService {
       // Validate recurrencePattern
       const validPatterns = ["daily", "weekly", "monthly"] as const;
       const recurrencePattern = validPatterns.includes(
-        recurringRequest.recurrencePattern as any,
+        recurringRequest.recurrencePattern as unknown,
       )
         ? (recurringRequest.recurrencePattern as "daily" | "weekly" | "monthly")
         : undefined;

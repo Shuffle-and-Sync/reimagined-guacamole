@@ -123,7 +123,7 @@ export function PlatformAccountManager() {
         window.location.href = (data as any).authUrl;
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Connection Failed",
         description: error.message || "Failed to initiate platform connection",
@@ -147,7 +147,7 @@ export function PlatformAccountManager() {
         description: "Platform account has been successfully disconnected",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Disconnection Failed",
         description: error.message || "Failed to disconnect platform account",
@@ -173,7 +173,7 @@ export function PlatformAccountManager() {
         description: "Platform access token has been successfully refreshed",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Refresh Failed",
         description: error.message || "Failed to refresh platform token",

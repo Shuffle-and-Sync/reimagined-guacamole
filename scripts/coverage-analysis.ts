@@ -89,7 +89,7 @@ function countLines(filePath: string): number {
       );
     });
     return lines.length;
-  } catch (_error) {
+  } catch (_error: unknown) {
     return 0;
   }
 }

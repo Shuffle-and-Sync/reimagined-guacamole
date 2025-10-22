@@ -16,7 +16,7 @@ import type {
   StreamCoordinationSession,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
-  InsertStreamCoordinationSession,
+  _InsertStreamCoordinationSession,
 } from "@shared/schema";
 
 /**
@@ -123,9 +123,9 @@ export class CollaborativeStreamingService {
     eventId: string,
     requesterId: string,
   ): Promise<{
-    suggestedCollaborators: any[];
+    suggestedCollaborators: unknown[];
     strategicRecommendations: string[];
-    optimalScheduling: any;
+    optimalScheduling: unknown;
   }> {
     try {
       const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -290,7 +290,7 @@ export class CollaborativeStreamingService {
     collaborators: StreamCollaborator[];
     platformStatuses: Record<string, string>;
     activeViewers: number;
-    coordinationMetrics: any;
+    coordinationMetrics: unknown;
   }> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -342,8 +342,7 @@ export class CollaborativeStreamingService {
    */
   async handleCollaboratorJoin(
     eventId: string,
-    userId: string,
-    platformData: any,
+    userId: string, platformData: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -395,7 +394,7 @@ export class CollaborativeStreamingService {
    */
   private generateStrategicRecommendations(
     event: CollaborativeStreamEvent,
-    matches: any[],
+    matches: unknown[],
   ): string[] {
     const recommendations: string[] = [];
 
@@ -439,8 +438,8 @@ export class CollaborativeStreamingService {
    */
   private async calculateOptimalScheduling(
     event: CollaborativeStreamEvent,
-    matches: any[],
-  ): Promise<any> {
+    matches: unknown[],
+  ): Promise<unknown> {
     // This would integrate with calendar systems and timezone coordination
     // For now, return basic scheduling optimization
     return {
@@ -454,7 +453,7 @@ export class CollaborativeStreamingService {
   /**
    * Calculate timezone coverage for global audience reach
    */
-  private calculateTimezoneCoverage(matches: any[]): any {
+  private calculateTimezoneCoverage(_matches: unknown[]): any {
     // Analyze timezone distribution of potential collaborators
     return {
       primaryTimezone: "UTC-5",
@@ -508,7 +507,7 @@ export class CollaborativeStreamingService {
         throw new Error(`Collaborative event not found: ${eventId}`);
       }
 
-      const platformResults: Record<string, any> = {};
+      const platformResults: Record<string, unknown> = {};
       const platformErrors: string[] = [];
 
       // Validate current host before proceeding
@@ -839,7 +838,7 @@ export class CollaborativeStreamingService {
       const platformIdentifiers = await resolvePlatformIdentifiers(
         session.currentHost,
       );
-      const breakResults: Record<string, any> = {};
+      const breakResults: Record<string, unknown> = {};
 
       // Coordinate break on each active platform with real API calls
       const streamingPlatforms = event.streamingPlatforms
@@ -1054,7 +1053,7 @@ export class CollaborativeStreamingService {
       const platformIdentifiers = await resolvePlatformIdentifiers(
         session.currentHost,
       );
-      const endResults: Record<string, any> = {};
+      const endResults: Record<string, unknown> = {};
       const errors: string[] = [];
 
       // End streaming on each platform with real API calls
@@ -1314,8 +1313,7 @@ export class CollaborativeStreamingService {
    * Log coordination events for analytics and debugging
    */
   private async logCoordinationEvent(
-    eventId: string,
-    event: any,
+    eventId: string, event: unknown,
   ): Promise<void> {
     try {
       const session = this.activeCoordinationSessions.get(eventId);
@@ -1338,7 +1336,7 @@ export class CollaborativeStreamingService {
   /**
    * Calculate average response time for coordination actions
    */
-  private calculateAverageResponseTime(eventId: string): number {
+  private calculateAverageResponseTime(_eventId: string): number {
     // Implementation for response time calculation
     return 2.5; // seconds average
   }

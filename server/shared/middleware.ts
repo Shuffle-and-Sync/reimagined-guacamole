@@ -3,11 +3,10 @@ import { logger } from "../logger";
 
 // Common middleware functions
 
-export const errorHandler = (
-  error: any,
+export const errorHandler = (error: unknown,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   logger.error("Unhandled error in request", error, {
     method: req.method,

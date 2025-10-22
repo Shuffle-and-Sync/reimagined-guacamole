@@ -272,8 +272,8 @@ export class AIAlgorithmEngine {
   async analyzeGameCompatibility(
     userGames: string[],
     candidateGames: string[],
-    userPreferences?: GamePreferences,
-    candidatePreferences?: GamePreferences,
+    _userPreferences?: GamePreferences,
+    _candidatePreferences?: GamePreferences,
   ): Promise<GameCompatibilityResult> {
     try {
       // Direct game matches
@@ -530,8 +530,8 @@ export class AIAlgorithmEngine {
   async analyzeStreamingStyleMatch(
     userStyle: StreamingStyleData,
     candidateStyle: StreamingStyleData,
-    userHistory?: StreamerHistoryData,
-    candidateHistory?: StreamerHistoryData,
+    _userHistory?: StreamerHistoryData,
+    _candidateHistory?: StreamerHistoryData,
   ): Promise<StreamingStyleMatch> {
     try {
       // Content delivery style compatibility
@@ -785,7 +785,10 @@ export class AIAlgorithmEngine {
     return ageOverlap * 0.6 + geoOverlap * 0.4;
   }
 
-  private calculateAgeOverlap(userAges: Record<string, number>, candidateAges: Record<string, number>): number {
+  private calculateAgeOverlap(
+    userAges: Record<string, number>,
+    candidateAges: Record<string, number>,
+  ): number {
     if (!userAges || !candidateAges) return 0.5; // Default moderate overlap
 
     const ageGroups = ["13-17", "18-24", "25-34", "35-44", "45+"];
@@ -1057,7 +1060,7 @@ export class AIAlgorithmEngine {
   private calculateGlobalReachPotential(
     userTz: string,
     candidateTz: string,
-    optimalSlots: string[],
+    _optimalSlots: string[],
   ): number {
     // Assess how well their combined timezones cover global audiences
     const regions: string[] = [];
@@ -1083,7 +1086,7 @@ export class AIAlgorithmEngine {
   private findWeekendOpportunities(
     userSchedule: ScheduleData,
     candidateSchedule: ScheduleData,
-    timezoneOffset: number,
+    _timezoneOffset: number,
   ): string[] {
     const weekendSlots: string[] = [];
 
@@ -1256,7 +1259,10 @@ export class AIAlgorithmEngine {
     return personalities;
   }
 
-  private calculateContentSynergy(userStyle: StreamingStyleData, candidateStyle: StreamingStyleData): number {
+  private calculateContentSynergy(
+    userStyle: StreamingStyleData,
+    candidateStyle: StreamingStyleData,
+  ): number {
     // Calculate how well their content styles work together
     let synergy = 0.5; // Base synergy
 
@@ -1320,7 +1326,7 @@ export class AIAlgorithmEngine {
           (sum, outcome) => sum + outcome.successScore,
           0,
         ) / collaborationOutcomes.length;
-      const successfulCollabs = collaborationOutcomes.filter(
+      const _successfulCollabs = collaborationOutcomes.filter(
         (o) => o.successScore > 0.7,
       );
 
@@ -1346,7 +1352,7 @@ export class AIAlgorithmEngine {
 
       // Adjust weights based on factor success correlation
       const adjustmentFactor = 0.1; // Conservative adjustment
-      const totalAdjustment = adjustmentFactor;
+      const _totalAdjustment = adjustmentFactor;
 
       if (avgSuccess > 0.8) {
         // System performing well, minimal adjustments

@@ -61,7 +61,10 @@ export class AuthorizationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(resource: string = "Resource", context?: Record<string, unknown>) {
+  constructor(
+    resource: string = "Resource",
+    context?: Record<string, unknown>,
+  ) {
     super(`${resource} not found`, 404, "NOT_FOUND_ERROR", true, context);
   }
 }
@@ -127,7 +130,7 @@ export function globalErrorHandler(
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ): void {
   const requestId = (res.getHeader("X-Request-ID") as string) || nanoid();
   const timestamp = new Date().toISOString();
@@ -232,7 +235,7 @@ export function asyncHandler<T extends any[]>(
     res: Response,
     next: NextFunction,
     ...args: T
-  ) => Promise<any>,
+  ) => Promise<unknown>,
 ) {
   return (req: Request, res: Response, next: NextFunction, ...args: T) => {
     Promise.resolve(fn(req, res, next, ...args)).catch(next);

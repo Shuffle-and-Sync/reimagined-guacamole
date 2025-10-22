@@ -41,7 +41,7 @@ export function LazyLoadWrapper({
 /**
  * HOC for lazy loading components with error boundaries
  */
-export function withLazyLoading<P extends Record<string, any>>(
+export function withLazyLoading<P extends Record<string, unknown>>(
   importFn: () => Promise<{ default: ComponentType<P> }>,
   fallback?: React.ReactNode,
 ) {

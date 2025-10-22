@@ -33,8 +33,6 @@ import {
   matchResults,
   forumPosts,
   forumReplies,
-  forumPostLikes,
-  forumReplyLikes,
   streamSessions,
   streamSessionCoHosts,
   streamSessionPlatforms,
@@ -96,8 +94,6 @@ import {
   type MatchResult,
   type ForumPost,
   type ForumReply,
-  type ForumPostLike,
-  type ForumReplyLike,
   type StreamSession,
   type StreamSessionCoHost,
   type StreamSessionPlatform,
@@ -118,21 +114,21 @@ import {
   type InsertEmailChangeToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
-  type InsertFriendship,
+  type _InsertFriendship,
   type InsertUserActivity,
   type InsertUserSettings,
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type UpdateTournament,
-  type InsertTournamentParticipant,
+  type _InsertTournamentParticipant,
   type InsertTournamentFormat,
   type InsertTournamentRound,
   type InsertTournamentMatch,
   type InsertMatchResult,
   type InsertForumPost,
   type InsertForumReply,
-  type InsertForumPostLike,
-  type InsertForumReplyLike,
+  type _InsertForumPostLike,
+  type _InsertForumReplyLike,
   type InsertStreamSession,
   type InsertStreamSessionCoHost,
   type InsertStreamSessionPlatform,
@@ -179,7 +175,7 @@ import {
   type UserMfaSettings,
   type InsertUserMfaSettings,
   type UserMfaAttempts,
-  type InsertUserMfaAttempts,
+  type _InsertUserMfaAttempts,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
   type MfaSecurityContext,
@@ -190,8 +186,8 @@ import {
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
-  type InsertRevokedJwtToken,
-  type RevokedJwtToken,
+  type _InsertRevokedJwtToken,
+  type _RevokedJwtToken,
 } from "@shared/schema";
 import {
   eq,
@@ -213,7 +209,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
-interface ExtendedEvent extends Event {
+interface _ExtendedEvent extends Event {
   date?: string;
   time?: string;
   gameFormat?: string;
@@ -225,7 +221,7 @@ interface ExtendedEvent extends Event {
   isPublic?: boolean;
 }
 
-interface ExtendedTournament extends Tournament {
+interface _ExtendedTournament extends Tournament {
   gameFormat?: string;
   rules?: Record<string, unknown>;
 }
@@ -1336,13 +1332,13 @@ export class DatabaseStorage implements IStorage {
 
     // Add role filter (requires join with userRoles)
     if (role) {
-      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId)) as any;
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId)) as unknown;
       conditions.push(eq(userRoles.role, role));
     }
 
     // Apply conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
+      query = query.where(and(...conditions)) as unknown;
     }
 
     // Add sorting
@@ -1380,13 +1376,13 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (order === "asc") {
-        query = query.orderBy(asc(sortColumn)) as any;
+        query = query.orderBy(asc(sortColumn)) as unknown;
       } else {
-        query = query.orderBy(desc(sortColumn)) as any;
+        query = query.orderBy(desc(sortColumn)) as unknown;
       }
     } else {
       // Default sort
-      query = query.orderBy(desc(users.createdAt)) as any;
+      query = query.orderBy(desc(users.createdAt)) as unknown;
     }
 
     // Get total count with same filters
@@ -1395,10 +1391,10 @@ export class DatabaseStorage implements IStorage {
       countQuery = countQuery.leftJoin(
         userRoles,
         eq(users.id, userRoles.userId),
-      ) as any;
+      ) as unknown;
     }
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions)) as any;
+      countQuery = countQuery.where(and(...conditions)) as unknown;
     }
     const countResult = await countQuery;
     const total = countResult?.[0]?.count ?? 0;
@@ -1490,7 +1486,7 @@ export class DatabaseStorage implements IStorage {
       limit = 20,
       cursor,
       includeOffline = false,
-      sortBy = "lastActiveAt",
+      _sortBy = "lastActiveAt",
       sortDirection = "desc",
     } = options;
 
@@ -2390,7 +2386,7 @@ export class DatabaseStorage implements IStorage {
 
   async createRecurringEvents(
     data: InsertEvent,
-    endDate: string,
+    _endDate: string,
   ): Promise<Event[]> {
     // TODO: isRecurring, recurrencePattern, recurrenceInterval, date, time properties not in schema
     // if (!data.isRecurring || !data.recurrencePattern || !data.recurrenceInterval) {
@@ -3578,9 +3574,9 @@ export class DatabaseStorage implements IStorage {
     tokenType: string,
     reason: string,
     expiresAt: Date,
-    originalExpiry?: Date,
-    ipAddress?: string,
-    userAgent?: string,
+    _originalExpiry?: Date,
+    _ipAddress?: string,
+    _userAgent?: string,
   ): Promise<void> {
     await db.insert(revokedJwtTokens).values({
       jti,
@@ -4009,7 +4005,7 @@ export class DatabaseStorage implements IStorage {
     return gameSession;
   }
 
-  async joinGameSession(sessionId: string, userId: string): Promise<void> {
+  async joinGameSession(sessionId: string, _userId: string): Promise<void> {
     // Increment current players count
     await db
       .update(gameSessions)
@@ -4017,7 +4013,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async leaveGameSession(sessionId: string, userId: string): Promise<void> {
+  async leaveGameSession(sessionId: string, _userId: string): Promise<void> {
     // Decrement current players count
     await db
       .update(gameSessions)
@@ -4027,7 +4023,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async spectateGameSession(sessionId: string, userId: string): Promise<void> {
+  async spectateGameSession(sessionId: string, _userId: string): Promise<void> {
     // Increment spectator count
     await db
       .update(gameSessions)
@@ -4035,7 +4031,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gameSessions.id, sessionId));
   }
 
-  async leaveSpectating(sessionId: string, userId: string): Promise<void> {
+  async leaveSpectating(sessionId: string, _userId: string): Promise<void> {
     // Decrement spectator count
     await db
       .update(gameSessions)
@@ -4161,7 +4157,7 @@ export class DatabaseStorage implements IStorage {
         ),
       );
 
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -4195,7 +4191,7 @@ export class DatabaseStorage implements IStorage {
         ),
       );
 
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -4316,7 +4312,7 @@ export class DatabaseStorage implements IStorage {
     const activities = await limitedQuery.orderBy(
       sql`${userActivities.createdAt} DESC`,
     );
-    return activities.map((activity: any) => ({
+    return activities.map((activity: unknown) => ({
       ...activity,
       community: activity.community || undefined,
     }));
@@ -4599,7 +4595,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const results = await query;
-    return results.map((result: any) => ({
+    return results.map((result: unknown) => ({
       ...result.tournament,
       organizer: result.organizer,
       community: result.community,
@@ -4641,7 +4637,7 @@ export class DatabaseStorage implements IStorage {
       ...tournament.tournament,
       organizer: tournament.organizer,
       community: tournament.community,
-      participants: participants.map((p: any) => ({
+      participants: participants.map((p: unknown) => ({
         ...p.participant,
         user: p.user,
       })),
@@ -4816,7 +4812,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(tournamentMatches.matchNumber); // Use matchNumber instead of bracketPosition
 
     const results = await query;
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r.match,
       player1: r.player1 ?? undefined,
       player2: r.player2 ?? undefined,
@@ -4919,7 +4915,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(matchResults.createdAt));
 
     const results = await query;
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r.result,
       winner: r.winner,
       loser: r.loser ?? undefined,
@@ -5004,7 +5000,7 @@ export class DatabaseStorage implements IStorage {
             verifiedResult.winnerId === matchResult.winnerId
               ? verifiedResult.loserScore
               : verifiedResult.winnerScore,
-          status: "completed" as any,
+          status: "completed" as unknown,
           endTime: new Date(),
         })
         .where(eq(tournamentMatches.id, matchResult.matchId));
@@ -5100,7 +5096,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tournamentMatches.tournamentId, tournamentId))
       .orderBy(tournamentMatches.matchNumber, tournamentMatches.createdAt); // Use matchNumber instead of bracketPosition
 
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r.match,
       player1: r.player1 || undefined,
       player2: r.player2 || undefined,
@@ -5153,7 +5149,7 @@ export class DatabaseStorage implements IStorage {
 
     const results = await query;
 
-    return results.map((r: any) => ({
+    return results.map((r: unknown) => ({
       ...r.post,
       author: r.author,
       community: r.community,
@@ -5254,7 +5250,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumPosts.id, postId));
-    } catch (error) {
+    } catch (_error: unknown) {
       // Ignore if already liked
     }
   }
@@ -5303,7 +5299,7 @@ export class DatabaseStorage implements IStorage {
 
     // Add like status if user is provided
     const enrichedReplies = await Promise.all(
-      replies.map(async (r: any) => {
+      replies.map(async (r: unknown) => {
         let isLiked = false;
         if (userId) {
           const [like] = await db
@@ -5366,7 +5362,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumReplies.id, replyId));
-    } catch (error) {
+    } catch (_error: unknown) {
       // Ignore if already liked
     }
   }
@@ -5394,7 +5390,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics operations
-  async getAnalyticsData(userId: string): Promise<any> {
+  async getAnalyticsData(userId: string): Promise<unknown> {
     // Get user's comprehensive analytics data
     const userAnalytics = {
       userStats: {
@@ -5460,7 +5456,7 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  private async getAverageSessionDuration(userId: string): Promise<number> {
+  private async getAverageSessionDuration(_userId: string): Promise<number> {
     // Mock data for session duration - in production this would track actual sessions
     return Math.floor(Math.random() * 120) + 30; // 30-150 minutes
   }
@@ -5498,7 +5494,7 @@ export class DatabaseStorage implements IStorage {
       .from(userGamingProfiles)
       .groupBy(userGamingProfiles.communityId);
 
-    return result.map((r: any) => ({
+    return result.map((r: unknown) => ({
       game: r.communityId,
       players: r.count,
       change: Math.floor(Math.random() * 20) - 10, // Mock change percentage
@@ -5506,7 +5502,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async getWeeklyActivity(
-    userId: string,
+    _userId: string,
   ): Promise<Array<{ day: string; value: number }>> {
     // Mock weekly activity data - in production this would track actual user activity
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -5517,7 +5513,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Data export operations
-  async exportUserData(userId: string): Promise<any> {
+  async exportUserData(userId: string): Promise<unknown> {
     // Get all user data for export
     const userData = await this.getUser(userId);
     const socialLinks = await this.getUserSocialLinks(userId);
@@ -5553,7 +5549,7 @@ export class DatabaseStorage implements IStorage {
       socialLinks,
       gamingProfiles,
       matchmakingPreferences: matchmakingPrefs,
-      tournaments: userTournaments.map((t: any) => t.tournament),
+      tournaments: userTournaments.map((t: unknown) => t.tournament),
       friends,
       exportDate: new Date().toISOString(),
       platform: "Shuffle & Sync",
@@ -5650,7 +5646,7 @@ export class DatabaseStorage implements IStorage {
 
       // Get co-hosts and platforms for each session
       const enrichedResults = await Promise.all(
-        results.map(async (result: any) => {
+        results.map(async (result: unknown) => {
           const [coHosts, platforms] = await Promise.all([
             db
               .select()
@@ -5722,8 +5718,8 @@ export class DatabaseStorage implements IStorage {
       ]);
 
       const coHosts = coHostsData
-        .filter((ch: any) => ch.user)
-        .map((ch: any) => ({
+        .filter((ch: unknown) => ch.user)
+        .map((ch: unknown) => ({
           ...ch.coHost,
           user: ch.user,
         }));
@@ -6013,8 +6009,8 @@ export class DatabaseStorage implements IStorage {
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       return results
-        .filter((r: any) => r.fromUser && r.toUser)
-        .map((r: any) => ({
+        .filter((r: unknown) => r.fromUser && r.toUser)
+        .map((r: unknown) => ({
           ...r.request,
           fromUser: r.fromUser,
           toUser: r.toUser,
@@ -6047,7 +6043,7 @@ export class DatabaseStorage implements IStorage {
   async respondToCollaborationRequest(
     id: string,
     status: "accepted" | "declined" | "cancelled",
-    responseMessage?: string,
+    _responseMessage?: string,
   ): Promise<CollaborationRequest> {
     try {
       // Note: collaborationRequests doesn't have a 'responseMessage' field
@@ -6868,7 +6864,7 @@ export class DatabaseStorage implements IStorage {
 
     let recentViolationPenalty = 0;
     const now = Date.now();
-    moderationHistory.forEach((action: any) => {
+    moderationHistory.forEach((action: unknown) => {
       const actionDate = new Date(
         action.timestamp || action.createdAt,
       ).getTime();
@@ -6951,7 +6947,7 @@ export class DatabaseStorage implements IStorage {
   async recordPositiveAction(
     userId: string,
     actionType: string,
-    metadata?: any,
+    metadata?: unknown,
   ): Promise<void> {
     // Get current reputation
     const reputation = await this.getUserReputation(userId);
@@ -6989,7 +6985,7 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     actionType: string,
     severity: "minor" | "moderate" | "severe",
-    metadata?: any,
+    metadata?: unknown,
   ): Promise<void> {
     // Get current reputation
     const reputation = await this.getUserReputation(userId);
@@ -7527,7 +7523,7 @@ export class DatabaseStorage implements IStorage {
           data.metadata.reporterReputationScore;
       }
       if (data.metadata.riskScore && !enhancedData.riskScore) {
-        enhancedData.riskScore = data.metadata.riskScore as any;
+        enhancedData.riskScore = data.metadata.riskScore as unknown;
       }
     }
 
@@ -7827,7 +7823,7 @@ export class DatabaseStorage implements IStorage {
 
       let avgCompletionTime = 0;
       if (completedTasks.length > 0) {
-        const totalTime = completedTasks.reduce((sum: any, task: any) => {
+        const totalTime = completedTasks.reduce((sum: unknown, task: unknown) => {
           if (task.completedAt && task.createdAt) {
             return (
               sum + (task.completedAt.getTime() - task.createdAt.getTime())
@@ -7900,7 +7896,7 @@ export class DatabaseStorage implements IStorage {
 
   async calculateAutoPriority(
     itemType: string,
-    metadata?: any,
+    metadata?: unknown,
   ): Promise<number> {
     let basePriority = 5; // Default priority
 
@@ -7965,7 +7961,7 @@ export class DatabaseStorage implements IStorage {
     };
 
     // Process status counts
-    statusCounts.forEach((row: any) => {
+    statusCounts.forEach((row: unknown) => {
       switch (row.status) {
         case "open":
           stats.totalOpen = row.count;
@@ -7997,7 +7993,7 @@ export class DatabaseStorage implements IStorage {
       .limit(100);
 
     if (recentCompleted.length > 0) {
-      const totalTime = recentCompleted.reduce((sum: any, item: any) => {
+      const totalTime = recentCompleted.reduce((sum: unknown, item: unknown) => {
         if (item.completedAt && item.createdAt) {
           return sum + (item.completedAt.getTime() - item.createdAt.getTime());
         }
@@ -8300,7 +8296,7 @@ export class DatabaseStorage implements IStorage {
 
   async getBanEvasionRecords(
     userId?: string,
-    suspiciousActivity?: boolean,
+    _suspiciousActivity?: boolean,
   ): Promise<(BanEvasionTracking & { user: User; bannedUser?: User })[]> {
     const baseQuery = db
       .select({

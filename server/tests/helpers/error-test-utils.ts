@@ -5,7 +5,6 @@
  * across the Shuffle & Sync platform.
  */
 
-import { Response } from "express";
 import {
   ValidationError,
   AuthenticationError,
@@ -44,7 +43,7 @@ export function createMockErrorResponse() {
 /**
  * Extract error from response
  */
-export function extractError(mockResponse: any) {
+export function extractError(mockResponse: { capturedError: unknown }) {
   return mockResponse.capturedError;
 }
 
@@ -191,7 +190,7 @@ export const errorAssertions = {
     if (field) {
       expect(error.error.details?.validationErrors).toBeDefined();
       const fieldError = error.error.details.validationErrors.find(
-        (e: any) => e.field === field,
+        (e: unknown) => e.field === field,
       );
       expect(fieldError).toBeDefined();
     }

@@ -9,7 +9,7 @@ export interface SetPrimaryCommunityRequest {
 export interface ThemePreferencesRequest {
   communityId?: string;
   themeMode?: string;
-  customColors?: any;
+  customColors?: unknown;
 }
 
 export interface CommunityMembership {

@@ -41,7 +41,7 @@ declare global {
           createdAt: number;
           expiresAt: number;
         };
-        [key: string]: any;
+        [key: string]: unknown;
       };
       // JWT-specific data
       jwtPayload?: {

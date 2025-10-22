@@ -29,7 +29,7 @@ export function endTimer(name: string): number {
  * Initialize essential services in parallel where possible
  */
 export async function initializeServicesParallel<
-  T extends Record<string, () => Promise<any>>,
+  T extends Record<string, () => Promise<unknown>>,
 >(services: T): Promise<{ [K in keyof T]: Awaited<ReturnType<T[K]>> }> {
   startTimer("parallel-initialization");
 
@@ -91,9 +91,8 @@ export async function warmupCriticalPaths(): Promise<void> {
 /**
  * Setup graceful shutdown handlers for Cloud Run
  */
-export function setupGracefulShutdown(
-  server: any,
-  clients?: { drizzle?: any; closeDatabaseConnections?: () => Promise<void> },
+export function setupGracefulShutdown(server: unknown,
+  clients?: { drizzle?: unknown; closeDatabaseConnections?: () => Promise<void> },
 ): void {
   const gracefulShutdown = async (signal: string) => {
     logger.info(`Received ${signal}, starting graceful shutdown`);

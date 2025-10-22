@@ -94,7 +94,7 @@ describe("Registration and Login Integration Tests", () => {
       ];
 
       weakPasswords.forEach((password) => {
-        const registrationData = createRegistrationData({ password });
+        const _registrationData = createRegistrationData({ password });
 
         const isValid =
           password.length >= 12 &&
@@ -266,7 +266,7 @@ describe("Registration and Login Integration Tests", () => {
         password: "WrongPassword123!",
       };
 
-      const user = {
+      const _user = {
         id: "user-id",
         email: loginCredentials.email,
         passwordHash: "$argon2id$v=19$m=65536,t=3,p=4$differenthash",
@@ -348,7 +348,7 @@ describe("Registration and Login Integration Tests", () => {
     });
 
     test("should apply rate limiting after multiple failed attempts", () => {
-      const email = "test@example.com";
+      const _email = "test@example.com";
       const failedAttempts = [
         { timestamp: Date.now() - 10000 }, // 10 sec ago
         { timestamp: Date.now() - 20000 }, // 20 sec ago
@@ -386,7 +386,7 @@ describe("Registration and Login Integration Tests", () => {
         mfaEnabled: true,
       };
 
-      const isPasswordValid = true;
+      const _isPasswordValid = true;
       const requiresMFA = user.mfaEnabled;
 
       expect(requiresMFA).toBe(true);
@@ -487,7 +487,7 @@ describe("Registration and Login Integration Tests", () => {
       };
 
       // OAuth callback should update user
-      const updatedProfile = {
+      const _updatedProfile = {
         name: "New Name",
         image: "https://example.com/new-avatar.jpg",
       };
@@ -501,7 +501,7 @@ describe("Registration and Login Integration Tests", () => {
     });
 
     test("should create session immediately for OAuth login", () => {
-      const oauthUser = {
+      const _oauthUser = {
         id: "oauth-user-id",
         email: "oauth@example.com",
         name: "OAuth User",
@@ -565,7 +565,7 @@ describe("Registration and Login Integration Tests", () => {
         isEmailVerified: false,
       };
 
-      const validToken = "valid-jwt-token";
+      const _validToken = "valid-jwt-token";
 
       // After verification
       const updatedUser = {
@@ -638,7 +638,7 @@ describe("Registration and Login Integration Tests", () => {
       expect(verifiedUser.isEmailVerified).toBe(true);
 
       // Step 3: Login attempt
-      const loginCredentials = {
+      const _loginCredentials = {
         email: registrationData.email,
         password: registrationData.password,
       };
@@ -698,7 +698,7 @@ describe("Registration and Login Integration Tests", () => {
     });
 
     test("should handle network errors during registration", () => {
-      const registrationData = createRegistrationData();
+      const _registrationData = createRegistrationData();
 
       // Simulate network error
       const error = new Error("Network request failed");

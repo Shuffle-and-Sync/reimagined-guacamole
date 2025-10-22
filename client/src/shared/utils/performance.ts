@@ -7,7 +7,10 @@ export const performance_utils = {
   /**
    * Measure function execution time
    */
-  measure: <T extends (...args: any[]) => any>(fn: T, label?: string): T => {
+  measure: <T extends (...args: unknown[]) => any>(
+    fn: T,
+    label?: string,
+  ): T => {
     return ((...args: Parameters<T>) => {
       const start = performance.now();
       const result = fn(...args);
@@ -24,7 +27,10 @@ export const performance_utils = {
   /**
    * Debounce function calls for performance
    */
-  debounce: <T extends (...args: any[]) => any>(fn: T, delay: number): T => {
+  debounce: <T extends (...args: unknown[]) => any>(
+    fn: T,
+    delay: number,
+  ): T => {
     let timeoutId: NodeJS.Timeout;
 
     return ((...args: Parameters<T>) => {
@@ -36,7 +42,10 @@ export const performance_utils = {
   /**
    * Throttle function calls
    */
-  throttle: <T extends (...args: any[]) => any>(fn: T, limit: number): T => {
+  throttle: <T extends (...args: unknown[]) => any>(
+    fn: T,
+    limit: number,
+  ): T => {
     let inThrottle: boolean;
 
     return ((...args: Parameters<T>) => {
@@ -51,7 +60,7 @@ export const performance_utils = {
   /**
    * Memoize expensive calculations
    */
-  memoize: <T extends (...args: any[]) => any>(fn: T): T => {
+  memoize: <T extends (...args: unknown[]) => any>(fn: T): T => {
     const cache = new Map();
 
     return ((...args: Parameters<T>) => {
@@ -129,7 +138,7 @@ export const queryOptimizations = {
   /**
    * Batch query invalidation
    */
-  batchInvalidate: (queryClient: any, patterns: string[][]) => {
+  batchInvalidate: (queryClient: unknown, patterns: string[][]) => {
     const invalidations = patterns.map((pattern) =>
       queryClient.invalidateQueries({ queryKey: pattern }),
     );
@@ -140,8 +149,7 @@ export const queryOptimizations = {
   /**
    * Selective data updates
    */
-  optimisticUpdate: <T>(
-    queryClient: any,
+  optimisticUpdate: <T>(queryClient: unknown,
     queryKey: string[],
     updater: (oldData: T) => T,
   ) => {

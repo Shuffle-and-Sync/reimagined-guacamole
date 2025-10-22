@@ -21,7 +21,7 @@ const originalSetTimeout = global.setTimeout;
 const originalClearTimeout = global.clearTimeout;
 
 // Wrap setTimeout to track timers
-global.setTimeout = function (...args: any[]): any {
+global.setTimeout = function (...args: unknown[]): any {
   const timer = originalSetTimeout.apply(this, args as any);
   activeTimers.add(timer);
   return timer;
@@ -120,7 +120,7 @@ if (!Element.prototype.scrollIntoView) {
 // Suppress console errors in tests (optional - remove if debugging)
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === "string" &&
       (args[0].includes("Warning: ReactDOM.render") ||

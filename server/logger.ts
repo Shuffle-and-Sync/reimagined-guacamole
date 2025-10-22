@@ -53,9 +53,9 @@ class Logger {
     level: string,
     message: string,
     error?: Error | any,
-    context?: any,
+    context?: unknown,
   ): string {
-    const logEntry: any = {
+    const logEntry: unknown = {
       timestamp: new Date().toISOString(),
       level: level.toLowerCase(),
       message,
@@ -153,7 +153,7 @@ class Logger {
     path: string,
     statusCode: number,
     duration: number,
-    response?: any,
+    response?: unknown,
   ): void {
     if (this.isDevelopment) {
       let logLine = `${method} ${path} ${statusCode} in ${duration}ms`;

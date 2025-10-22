@@ -130,7 +130,7 @@ describe("Select Component", () => {
     });
 
     it("displays selected value", async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
 
       renderWithProviders(
         <Select defaultValue="option2">

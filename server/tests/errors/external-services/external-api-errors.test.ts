@@ -44,7 +44,7 @@ describe("External Service Error Tests", () => {
 
   describe("Network Errors", () => {
     test("should handle network connection failure", () => {
-      const networkError = externalAPIErrorSimulators.networkError();
+      const _networkError = externalAPIErrorSimulators.networkError();
       const serviceError = new ExternalServiceError(
         "Twitch API",
         "Network request failed",
@@ -81,7 +81,7 @@ describe("External Service Error Tests", () => {
 
   describe("Timeout Errors", () => {
     test("should handle request timeout", () => {
-      const timeoutError = externalAPIErrorSimulators.timeout();
+      const _timeoutError = externalAPIErrorSimulators.timeout();
       const serviceError = new ExternalServiceError(
         "Twitch API",
         "Request timeout after 30 seconds",

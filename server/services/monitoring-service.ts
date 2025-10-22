@@ -39,7 +39,7 @@ export interface ServiceHealth {
   latency?: number;
   lastChecked: Date;
   error?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface Alert {
@@ -50,7 +50,7 @@ export interface Alert {
   timestamp: Date;
   resolved: boolean;
   resolvedAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface MonitoringConfig {
@@ -697,7 +697,7 @@ class MonitoringService extends EventEmitter {
   /**
    * Check if alert can be created based on rate limiting
    */
-  private canCreateAlert(service: string, severity: string): boolean {
+  private canCreateAlert(service: string, _severity: string): boolean {
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentAlerts = this.alerts.filter(
       (alert) => alert.service === service && alert.timestamp > hourAgo,

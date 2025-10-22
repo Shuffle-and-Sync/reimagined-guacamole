@@ -259,7 +259,7 @@ matchingRouter.post("/subscribe", isAuthenticated, async (req, res) => {
 
     // Create callback for real-time updates
     // In a real implementation, this would use WebSockets or SSE
-    const callback = (matches: any) => {
+    const callback = (matches: unknown) => {
       logger.debug("Real-time match update", {
         userId,
         matchCount: matches.matches.length,

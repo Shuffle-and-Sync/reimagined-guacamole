@@ -185,7 +185,7 @@ export function createMockNotification(overrides = {}) {
 export function createMockList<T>(
   generator: (overrides?: any) => T,
   count: number,
-  overrides: any[] = [],
+  overrides: unknown[] = [],
 ): T[] {
   return Array.from({ length: count }, (_, i) => generator(overrides[i] || {}));
 }
@@ -232,7 +232,7 @@ export function createSuccessResponse<T>(data: T, message = "Success") {
 export function createErrorResponse(
   status: number,
   message: string,
-  errors: any[] = [],
+  errors: unknown[] = [],
 ) {
   return {
     status,

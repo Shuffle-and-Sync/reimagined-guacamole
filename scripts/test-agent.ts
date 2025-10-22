@@ -472,7 +472,7 @@ describe('AI Matchmaking', () => {
       skillLevel: 'expert'
     });
 
-    const matches: any[] = []; // Simulate no matches found
+    const matches: unknown[] = []; // Simulate no matches found
     
     expect(matches).toHaveLength(0);
   });

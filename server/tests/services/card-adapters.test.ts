@@ -8,7 +8,7 @@ import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfa
 import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
 import { cardRecognitionService } from "../../services/card-recognition";
 import { db } from "../../../shared/database-unified";
-import { createMockCard, createMockGame } from "../__factories__";
+import { createMockCard } from "../__factories__";
 
 // Mock the old card recognition service
 jest.mock("../../services/card-recognition", () => ({

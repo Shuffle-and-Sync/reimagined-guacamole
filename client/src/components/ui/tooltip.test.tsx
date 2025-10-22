@@ -156,7 +156,7 @@ describe("Tooltip Component", () => {
     });
 
     it("supports keyboard navigation", async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
 
       renderWithProviders(
         <TooltipProvider delayDuration={0}>

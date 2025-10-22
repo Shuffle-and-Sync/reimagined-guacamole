@@ -43,7 +43,7 @@ export class ProductionLogger {
    * Create a production-safe logger function
    */
   private createProductionLogger(level: "info" | "warn" | "error" | "debug") {
-    return (...args: any[]) => {
+    return (...args: unknown[]) => {
       // In production, only log errors and warnings through the structured logger
       if (level === "error") {
         logger.error("Console error in production", {
@@ -62,7 +62,7 @@ export class ProductionLogger {
   /**
    * Sanitize log arguments to remove sensitive information
    */
-  private sanitizeLogArgs(args: any[]): any[] {
+  private sanitizeLogArgs(args: unknown[]): unknown[] {
     return args.map((arg) => {
       if (typeof arg === "string") {
         // Remove potential sensitive patterns
@@ -82,7 +82,7 @@ export class ProductionLogger {
   /**
    * Recursively sanitize objects to remove sensitive data
    */
-  private sanitizeObject(obj: any): any {
+  private sanitizeObject(obj: unknown): any {
     if (Array.isArray(obj)) {
       return obj.map((item) => this.sanitizeObject(item));
     }
@@ -91,7 +91,7 @@ export class ProductionLogger {
       return obj;
     }
 
-    const sanitized: any = {};
+    const sanitized: unknown = {};
     const sensitiveKeys = [
       "password",
       "token",
@@ -139,18 +139,18 @@ export class ProductionLogger {
    */
   createSafeLogger() {
     return {
-      debug: (...args: any[]) => {
+      debug: (...args: unknown[]) => {
         if (!this.isProduction) {
           logger.debug("Debug log", { args });
         }
       },
-      info: (...args: any[]) => {
+      info: (...args: unknown[]) => {
         logger.info("Info log", { args: this.sanitizeLogArgs(args) });
       },
-      warn: (...args: any[]) => {
+      warn: (...args: unknown[]) => {
         logger.warn("Warning log", { args: this.sanitizeLogArgs(args) });
       },
-      error: (...args: any[]) => {
+      error: (...args: unknown[]) => {
         logger.error("Error log", { args: this.sanitizeLogArgs(args) });
       },
     };

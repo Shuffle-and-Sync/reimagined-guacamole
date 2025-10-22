@@ -1,19 +1,19 @@
 import { storage } from "../storage";
 import { logger } from "../logger";
 import type {
-  UserActivityAnalytics,
-  CommunityAnalytics,
-  PlatformMetrics,
-  EventTracking,
-  ConversionFunnel,
-  StreamAnalytics,
-  InsertUserActivityAnalytics,
+  _UserActivityAnalytics,
+  _CommunityAnalytics,
+  _PlatformMetrics,
+  _EventTracking,
+  _ConversionFunnel,
+  _StreamAnalytics,
+  _InsertUserActivityAnalytics,
   InsertCommunityAnalytics,
   InsertPlatformMetrics,
   InsertEventTracking,
   InsertConversionFunnel,
-  User,
-  Community,
+  _User,
+  _Community,
 } from "@shared/schema";
 
 /**
@@ -27,13 +27,13 @@ export interface AnalyticsEvent {
   eventAction: string;
   eventLabel?: string;
   eventValue?: number;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   context?: {
     userAgent?: string;
     ipAddress?: string;
     pageUrl?: string;
     referrerUrl?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -140,7 +140,7 @@ export class AnalyticsService {
     sessionId: string,
     completed: boolean = true,
     timeSpent?: number,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): Promise<void> {
     try {
       const funnelData: InsertConversionFunnel = {
@@ -323,11 +323,11 @@ export class AnalyticsService {
     timeframe: "24h" | "7d" | "30d" | "90d" = "7d",
   ): Promise<{
     timeframe: string;
-    userActivity: any[];
-    communityGrowth: any[];
-    streamingMetrics: any[];
-    platformHealth: any[];
-    keyInsights: any[];
+    userActivity: unknown[];
+    communityGrowth: unknown[];
+    streamingMetrics: unknown[];
+    platformHealth: unknown[];
+    keyInsights: unknown[];
   }> {
     try {
       const startDate = this.getTimeframeStartDate(timeframe);
@@ -404,9 +404,9 @@ export class AnalyticsService {
     engagementScore: number;
     preferredFeatures: string[];
     recommendedActions: string[];
-    activityPattern: any[];
-    activityPatterns: any[];
-    collaborationHistory: any[];
+    activityPattern: unknown[];
+    activityPatterns: unknown[];
+    collaborationHistory: unknown[];
   }> {
     try {
       const [activityData, engagementMetrics, collaborationData] =
@@ -461,8 +461,8 @@ export class AnalyticsService {
     userId?: string;
     eventName: string;
     eventSource: string;
-    properties?: Record<string, any>;
-    context?: Record<string, any>;
+    properties?: Record<string, unknown>;
+    context?: Record<string, unknown>;
   }): Promise<void> {
     const eventData: InsertEventTracking = {
       userId: event.userId,
@@ -489,7 +489,7 @@ export class AnalyticsService {
         ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
         : new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-    const endTime =
+    const _endTime =
       hour !== undefined
         ? new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour
         : new Date(startTime.getTime() + 24 * 60 * 60 * 1000); // 1 day
@@ -511,7 +511,7 @@ export class AnalyticsService {
     };
   }
 
-  private async getCommunityMemberCount(communityId: string): Promise<number> {
+  private async getCommunityMemberCount(_communityId: string): Promise<number> {
     // Get total members in community
     return 0; // Implement actual count
   }
@@ -533,40 +533,40 @@ export class AnalyticsService {
   }
 
   private async getUserActivityInsights(
-    userId?: string,
-    startDate?: Date,
+    _userId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement user activity insights
     return [];
   }
 
   private async getCommunityGrowthInsights(
-    communityId?: string,
-    startDate?: Date,
+    _communityId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement community growth insights
     return [];
   }
 
   private async getStreamingInsights(
-    communityId?: string,
-    startDate?: Date,
+    _communityId?: string,
+    _startDate?: Date,
   ): Promise<any[]> {
     // Implement streaming insights
     return [];
   }
 
-  private async getPlatformHealthInsights(startDate?: Date): Promise<any[]> {
+  private async getPlatformHealthInsights(_startDate?: Date): Promise<any[]> {
     // Implement platform health insights
     return [];
   }
 
-  private generateKeyInsights(data: any): any[] {
+  private generateKeyInsights(_data: unknown): unknown[] {
     // Generate key insights from aggregated data
     return [];
   }
 
-  private async calculateRealTimeStats(): Promise<any> {
+  private async calculateRealTimeStats(): Promise<unknown> {
     // Calculate real-time platform statistics
     return {
       activeUsers: 0,
@@ -579,22 +579,21 @@ export class AnalyticsService {
     };
   }
 
-  private async calculateUserEngagement(userId: string): Promise<any> {
+  private async calculateUserEngagement(_userId: string): Promise<unknown> {
     // Calculate user engagement metrics
     return {
       engagementScore: 0,
     };
   }
 
-  private async getUserCollaborationHistory(userId: string): Promise<any[]> {
+  private async getUserCollaborationHistory(_userId: string): Promise<any[]> {
     // Get user collaboration history
     return [];
   }
 
   private analyzeUserBehavior(
-    activityData: any[],
-    engagementMetrics: any,
-    collaborationData: any[],
+    _activityData: unknown[], _engagementMetrics: unknown,
+    _collaborationData: unknown[],
   ): any {
     // Analyze user behavior and generate insights
     return {

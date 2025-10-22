@@ -29,7 +29,7 @@ describe("Progress Component", () => {
 
   describe("Props Validation", () => {
     it("accepts value of 0", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <Progress value={0} data-testid="progress" />,
       );
       const progress = screen.getByTestId("progress");
@@ -37,7 +37,7 @@ describe("Progress Component", () => {
     });
 
     it("accepts value of 50", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <Progress value={50} data-testid="progress" />,
       );
       const progress = screen.getByTestId("progress");
@@ -45,7 +45,7 @@ describe("Progress Component", () => {
     });
 
     it("accepts value of 100", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <Progress value={100} data-testid="progress" />,
       );
       const progress = screen.getByTestId("progress");
@@ -248,7 +248,7 @@ describe("Progress Component", () => {
     });
 
     it("handles indeterminate state (no value)", () => {
-      const { container } = renderWithProviders(
+      const { _container } = renderWithProviders(
         <Progress data-testid="progress" />,
       );
       const progress = screen.getByTestId("progress");
