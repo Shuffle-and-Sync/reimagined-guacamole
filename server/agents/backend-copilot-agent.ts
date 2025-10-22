@@ -317,7 +317,7 @@ export class BackendCopilotAgent {
             files.push(fullPath);
           }
         }
-      } catch (_error: unknown) {
+      } catch {
         // Skip directories that can't be read
       }
     }

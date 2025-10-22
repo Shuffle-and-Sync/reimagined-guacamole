@@ -517,7 +517,7 @@ export default function GameRoom() {
         description: "You have left the game room",
       });
       setLocation("/tablesync");
-    } catch (_error: unknown) {
+    } catch {
       toast({
         title: "Error leaving room",
         description: "Please try again",

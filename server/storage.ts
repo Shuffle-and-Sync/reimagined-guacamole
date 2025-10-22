@@ -1332,7 +1332,10 @@ export class DatabaseStorage implements IStorage {
 
     // Add role filter (requires join with userRoles)
     if (role) {
-      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId)) as unknown;
+      query = query.leftJoin(
+        userRoles,
+        eq(users.id, userRoles.userId),
+      ) as unknown;
       conditions.push(eq(userRoles.role, role));
     }
 
@@ -5250,7 +5253,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumPosts.id, postId));
-    } catch (_error: unknown) {
+    } catch {
       // Ignore if already liked
     }
   }
@@ -5362,7 +5365,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(forumReplies.id, replyId));
-    } catch (_error: unknown) {
+    } catch {
       // Ignore if already liked
     }
   }
@@ -7823,14 +7826,17 @@ export class DatabaseStorage implements IStorage {
 
       let avgCompletionTime = 0;
       if (completedTasks.length > 0) {
-        const totalTime = completedTasks.reduce((sum: unknown, task: unknown) => {
-          if (task.completedAt && task.createdAt) {
-            return (
-              sum + (task.completedAt.getTime() - task.createdAt.getTime())
-            );
-          }
-          return sum;
-        }, 0);
+        const totalTime = completedTasks.reduce(
+          (sum: unknown, task: unknown) => {
+            if (task.completedAt && task.createdAt) {
+              return (
+                sum + (task.completedAt.getTime() - task.createdAt.getTime())
+              );
+            }
+            return sum;
+          },
+          0,
+        );
         avgCompletionTime = totalTime / completedTasks.length / (1000 * 60); // Convert to minutes
       }
 
@@ -7993,12 +7999,17 @@ export class DatabaseStorage implements IStorage {
       .limit(100);
 
     if (recentCompleted.length > 0) {
-      const totalTime = recentCompleted.reduce((sum: unknown, item: unknown) => {
-        if (item.completedAt && item.createdAt) {
-          return sum + (item.completedAt.getTime() - item.createdAt.getTime());
-        }
-        return sum;
-      }, 0);
+      const totalTime = recentCompleted.reduce(
+        (sum: unknown, item: unknown) => {
+          if (item.completedAt && item.createdAt) {
+            return (
+              sum + (item.completedAt.getTime() - item.createdAt.getTime())
+            );
+          }
+          return sum;
+        },
+        0,
+      );
       stats.avgCompletionTime = Math.round(
         totalTime / recentCompleted.length / (1000 * 60),
       ); // Convert to minutes

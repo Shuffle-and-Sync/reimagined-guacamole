@@ -71,7 +71,7 @@ router.post(
         message:
           "If an account with that email exists, a password reset link has been sent.",
       });
-    } catch (_error: unknown) {
+    } catch {
       logger.error("Password reset request failed", {
         email: req.body.email,
       });

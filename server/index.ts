@@ -575,7 +575,7 @@ server.listen(
         let userId;
         try {
           userId = getAuthUserId(req);
-        } catch (_authError) {
+        } catch {
           res.status(401).json({ message: "Authentication required" });
           return;
         }
@@ -765,7 +765,7 @@ server.listen(
         let userId;
         try {
           userId = getAuthUserId(req);
-        } catch (_authError) {
+        } catch {
           res.status(401).json({ message: "Authentication required" });
           return;
         }
