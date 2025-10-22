@@ -1,11 +1,11 @@
 import type { InsertNotification, Notification } from "@shared/schema";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { notificationDeliveryService } from "./notification-delivery";
+import { notificationDeliveryService } from "./notification-delivery.service";
 import {
   notificationTemplateService,
   type TemplateContext,
-} from "./notification-templates";
+} from "./notification-templates.service";
 
 /**
  * Enhanced notification service with multi-channel delivery and templating

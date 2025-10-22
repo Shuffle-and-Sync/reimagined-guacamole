@@ -4,7 +4,7 @@ import os from "os";
 import { sql } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { logger } from "../logger";
-import { redisClient } from "./redis-client";
+import { redisClient } from "./redis-client.service";
 
 export interface SystemMetrics {
   timestamp: Date;
