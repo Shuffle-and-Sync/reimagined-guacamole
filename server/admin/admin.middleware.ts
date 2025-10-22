@@ -291,7 +291,11 @@ export async function requireAdmin(
 }
 
 // Middleware to require specific permission
-export function requirePermission(permission: string) {
+export function requirePermission(permission: string): (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -342,7 +346,11 @@ export function requirePermission(permission: string) {
 }
 
 // Middleware to require multiple permissions (all must be present)
-export function requireAllPermissions(permissions: string[]) {
+export function requireAllPermissions(permissions: string[]): (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -395,7 +403,11 @@ export function requireAllPermissions(permissions: string[]) {
 }
 
 // Middleware to require any of the specified permissions
-export function requireAnyPermission(permissions: string[]) {
+export function requireAnyPermission(permissions: string[]): (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> {
   return async (
     req: Request,
     res: Response,
@@ -452,8 +464,12 @@ export function requireAnyPermission(permissions: string[]) {
 }
 
 // Audit middleware to log all admin actions
-export function auditAdminAction(action: string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export function auditAdminAction(action: string): (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthUserId(req);
       const targetUserId = req.params.userId || req.body.userId || "";

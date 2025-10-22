@@ -121,7 +121,7 @@ export default function Tournaments() {
     onError: (error: unknown) => {
       toast({
         title: "Failed to create tournament",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -147,7 +147,7 @@ export default function Tournaments() {
     onError: (error: unknown) => {
       toast({
         title: "Failed to join tournament",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -186,7 +186,7 @@ export default function Tournaments() {
     onError: (error: unknown) => {
       toast({
         title: "Failed to update tournament",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },

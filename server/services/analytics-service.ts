@@ -595,7 +595,13 @@ export class AnalyticsService {
     _activityData: unknown[],
     _engagementMetrics: unknown,
     _collaborationData: unknown[],
-  ): any {
+  ): {
+    engagementLevel: string;
+    preferredFeatures: string[];
+    recommendedActions: string[];
+    activityPattern: unknown[];
+    collaborationHistory: unknown[];
+  } {
     // Analyze user behavior and generate insights
     return {
       engagementLevel: "medium",

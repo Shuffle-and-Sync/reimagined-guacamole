@@ -79,10 +79,10 @@ export class NotificationTemplateService {
    */
   private getTemplateGenerator(
     type: string,
-  ): ((context: TemplateContext, data?: any) => NotificationTemplate) | null {
+  ): ((context: TemplateContext, data?: unknown) => NotificationTemplate) | null {
     const generators: Record<
       string,
-      (context: TemplateContext, data?: any) => NotificationTemplate
+      (context: TemplateContext, data?: unknown) => NotificationTemplate
     > = {
       streamStarted: this.streamStartedTemplate,
       streamEnded: this.streamEndedTemplate,

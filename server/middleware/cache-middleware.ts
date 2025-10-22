@@ -16,7 +16,9 @@ export interface CacheOptions {
 /**
  * Express middleware for caching API responses
  */
-export function cacheMiddleware(options: CacheOptions = {}) {
+export function cacheMiddleware(
+  options: CacheOptions = {},
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   const {
     ttl = 60, // Default 1 minute
     keyGenerator = defaultKeyGenerator,
@@ -24,7 +26,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     skipCacheIf = () => false,
   } = options;
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Skip caching for non-GET requests
       if (req.method !== "GET") {
@@ -102,8 +104,10 @@ function defaultKeyGenerator(req: Request): string {
 /**
  * Cache invalidation middleware
  */
-export function invalidateCacheMiddleware(patterns: string[]) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export function invalidateCacheMiddleware(
+  patterns: string[],
+): (req: Request, res: Response, next: NextFunction) => Promise<void> {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Store original json method
       const originalJson = res.json.bind(res);

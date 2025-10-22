@@ -1,6 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import React, { useState, useEffect, useRef } from "react";
 import type { UserSettings } from "@shared/schema";
+import { 
+  getErrorMessage, 
+  isUserSettings, 
+  type UserSettings as TypedUserSettings 
+} from "@shared/type-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,6 +108,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (settingsData: unknown) => {
+      // Validate the settings data
+      if (!isUserSettings(settingsData)) {
+        throw new Error("Invalid settings data format");
+      }
+      
       const response = await apiRequest("PUT", "/api/user/settings", {
         notificationTypes: JSON.stringify(settingsData.notifications),
         privacySettings: JSON.stringify(settingsData.privacy),
@@ -123,7 +133,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     onError: (error: unknown) => {
       toast({
         title: "Failed to save settings",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -176,7 +186,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     onError: (error: unknown) => {
       toast({
         title: "Failed to export data",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -203,7 +213,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     onError: (error: unknown) => {
       toast({
         title: "Failed to delete account",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },

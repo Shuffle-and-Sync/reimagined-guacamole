@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import React, { useState, useEffect, useCallback } from "react";
 import type { MatchmakingPreferences } from "@shared/schema";
+import { getErrorMessage } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

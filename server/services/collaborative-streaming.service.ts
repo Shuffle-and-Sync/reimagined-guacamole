@@ -453,7 +453,11 @@ export class CollaborativeStreamingService {
   /**
    * Calculate timezone coverage for global audience reach
    */
-  private calculateTimezoneCoverage(_matches: unknown[]): any {
+  private calculateTimezoneCoverage(_matches: unknown[]): {
+    primaryTimezone: string;
+    coverage: string;
+    suggestedAlternatives: string[];
+  } {
     // Analyze timezone distribution of potential collaborators
     return {
       primaryTimezone: "UTC-5",

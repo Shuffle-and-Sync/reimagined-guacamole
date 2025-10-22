@@ -6,6 +6,7 @@ import type {
   TournamentRound,
   User,
 } from "@shared/schema";
+import { getErrorMessage } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -286,7 +287,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
     onError: (error: unknown) => {
       toast({
         title: "Failed to start tournament",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -315,7 +316,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
     onError: (error: unknown) => {
       toast({
         title: "Failed to advance round",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -357,7 +358,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
     onError: (error: unknown) => {
       toast({
         title: "Failed to record match result",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
@@ -386,7 +387,7 @@ export const TournamentBracket = ({ tournament }: TournamentBracketProps) => {
     onError: (error: unknown) => {
       toast({
         title: "Failed to create game room",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },

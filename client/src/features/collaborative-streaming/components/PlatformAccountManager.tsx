@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { SiTwitch, SiYoutube, SiFacebook } from "react-icons/si";
 import { SafeUserPlatformAccount } from "@shared/schema";
+import { getErrorMessage } from "@shared/type-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

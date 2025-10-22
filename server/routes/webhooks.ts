@@ -1,13 +1,19 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { streamingCoordinator } from "../services/streaming-coordinator.service";
 import { twitchAPI } from "../services/twitch-api.service";
+
+// Logger metadata type
+interface LogMetadata {
+  [key: string]: unknown;
+}
+
 // Simple logger since logger is not exported from validation
 const logger = {
-  info: (message: string, meta?: any) =>
+  info: (message: string, meta?: LogMetadata): void =>
     console.log(`[INFO] ${message}`, meta || ""),
-  error: (message: string, meta?: any) =>
+  error: (message: string, meta?: LogMetadata): void =>
     console.error(`[ERROR] ${message}`, meta || ""),
-  warn: (message: string, meta?: any) =>
+  warn: (message: string, meta?: LogMetadata): void =>
     console.warn(`[WARN] ${message}`, meta || ""),
 };
 

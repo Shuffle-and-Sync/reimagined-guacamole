@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import type { Tournament, TournamentParticipant, User } from "@shared/schema";
+import { getErrorMessage } from "@shared/type-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,7 +95,7 @@ export default function TournamentEditor({
     onError: (error: unknown) => {
       toast({
         title: "Failed to update tournament",
-        description: error.message || "Something went wrong",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     },
