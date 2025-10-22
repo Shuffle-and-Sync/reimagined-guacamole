@@ -100,3 +100,40 @@ export const eventCreationRateLimit = rateLimit({
     });
   },
 });
+
+// Strict rate limiter for token revocation operations
+// This is stricter and user-specific to prevent abuse of expensive database operations
+export const tokenRevocationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each user to 5 token revocation requests per windowMs
+  message: {
+    error: "Too many token revocation attempts",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+
+  // Key by user ID to prevent one user from affecting others
+  keyGenerator: (req: Request) => {
+    const userId = safeGetUserId(req);
+    return userId || req.ip || "unknown";
+  },
+
+  // Custom handler for better logging and error response
+  handler: (req: Request, res: Response) => {
+    const userId = safeGetUserId(req);
+    logger.warn("Token revocation rate limit exceeded", {
+      userId,
+      ip: req.ip,
+      userAgent: req.get("user-agent"),
+      url: req.originalUrl,
+    });
+
+    res.status(429).json({
+      error: "Too many token revocation attempts",
+      message:
+        "You have made too many token revocation requests. Please try again in 15 minutes.",
+      retryAfter: 15 * 60, // seconds
+    });
+  },
+});

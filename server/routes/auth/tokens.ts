@@ -12,7 +12,7 @@ import {
   TOKEN_EXPIRY,
 } from "../../auth/tokens";
 import { logger } from "../../logger";
-import { authRateLimit } from "../../rate-limiting";
+import { authRateLimit, tokenRevocationLimiter } from "../../rate-limiting";
 import { storage } from "../../storage";
 import { validateRequest } from "../../validation";
 import { refreshTokenSchema, revokeTokenSchema } from "./middleware";
@@ -239,7 +239,7 @@ router.post(
 router.post(
   "/revoke-all",
   requireHybridAuth,
-  authRateLimit,
+  tokenRevocationLimiter, // Dedicated strict rate limiter for token revocation
   async (req, res) => {
     try {
       const authenticatedReq = req as AuthenticatedRequest;
