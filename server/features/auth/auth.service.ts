@@ -4,9 +4,9 @@ import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import type {
-  _ForgotPasswordRequest,
-  _ResetPasswordRequest,
-  _AuthenticatedUser,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  AuthenticatedUser,
 } from "./auth.types";
 
 export class AuthService {

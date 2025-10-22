@@ -1,16 +1,16 @@
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import {
-  _insertCommunitySchema,
+  insertCommunitySchema,
   insertEventSchema,
-  _insertEventAttendeeSchema,
-  _insertGameSessionSchema,
-  type _UpsertUser,
+  insertEventAttendeeSchema,
+  insertGameSessionSchema,
+  type UpsertUser,
 } from "@shared/schema";
 import {
   isAuthenticated,
   getAuthUserId,
-  _requireHybridAuth,
+  requireHybridAuth,
   type AuthenticatedRequest,
 } from "./auth";
 import { sendContactEmail } from "./email";
@@ -26,7 +26,7 @@ import {
 } from "./middleware/error-handling.middleware";
 import {
   generalRateLimit,
-  _messageRateLimit,
+  messageRateLimit,
   eventCreationRateLimit,
 } from "./rate-limiting";
 import analyticsRouter from "./routes/analytics";
@@ -43,8 +43,8 @@ import userProfileRouter from "./routes/user-profile.routes";
 import { enhancedNotificationService } from "./services/enhanced-notifications.service";
 import { graphicsGeneratorService } from "./services/graphics-generator.service";
 import {
-  _generatePlatformOAuthURL,
-  _handlePlatformOAuthCallback,
+  generatePlatformOAuthURL,
+  handlePlatformOAuthCallback,
 } from "./services/platform-oauth.service";
 import { waitlistService } from "./services/waitlist.service";
 import { assertRouteParam } from "./shared/utils";
@@ -57,15 +57,15 @@ import {
   validateQuery,
   validateParamsWithSchema,
   securityHeaders,
-  _validateUserProfileUpdateSchema,
+  validateUserProfileUpdateSchema,
   validateEventSchema,
-  _validateSocialLinksSchema,
-  _validateJoinCommunitySchema,
-  _validateJoinEventSchema,
-  _validateMessageSchema,
-  _validateGameSessionSchema,
+  validateSocialLinksSchema,
+  validateJoinCommunitySchema,
+  validateJoinEventSchema,
+  validateMessageSchema,
+  validateGameSessionSchema,
   uuidParamSchema,
-  _eventParamSchema,
+  eventParamSchema,
   _userParamSchema,
   _communityParamSchema,
   paginationQuerySchema,

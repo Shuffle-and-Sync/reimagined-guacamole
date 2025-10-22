@@ -138,20 +138,12 @@ export function createMockCommunity(
   return {
     id: generateId("community"),
     name,
-    slug: faker.helpers.slugify(name).toLowerCase(),
+    displayName: name,
     description: faker.lorem.sentence(),
-    game: faker.helpers.arrayElement(["mtg", "pokemon", "lorcana", "yugioh"]),
+    themeColor: faker.color.rgb(),
+    iconClass: "fas fa-gamepad",
     isActive: true,
-    logoUrl: null,
-    bannerUrl: null,
-    rules: null,
-    memberCount: 0,
-    organizerId: null,
-    discordServerId: null,
-    twitchTeamId: null,
-    youtubeChannelId: null,
     createdAt: now,
-    updatedAt: now,
     ...overrides,
   };
 }

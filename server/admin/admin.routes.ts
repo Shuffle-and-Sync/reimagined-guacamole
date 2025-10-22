@@ -7,8 +7,8 @@ import { assertRouteParam } from "../shared/utils";
 import { storage } from "../storage";
 import {
   requirePermission,
-  _requireAllPermissions,
-  _requireAnyPermission,
+  requireAllPermissions,
+  requireAnyPermission,
   requireAdmin,
   auditAdminAction,
   comprehensiveAuditLogging,
