@@ -83,6 +83,7 @@ import {
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
 import { universalCardRoutes } from "./features/cards/universal-cards.routes";
 import { gamesCrudRoutes } from "./features/games/games-crud.routes";
+import authRouter from "./features/auth/auth.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers middleware
@@ -101,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // REMOVED: Platform OAuth routes - now in routes/platforms.routes.ts
 
-  // Auth routes - authentication, MFA, tokens, password reset, registration
+  // Auth routes - authentication, MFA, tokens, password reset, registration (from features/auth)
   app.use("/api/auth", authRouter);
 
   // Friendship routes

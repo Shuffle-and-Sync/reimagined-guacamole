@@ -1,17 +1,28 @@
+/**
+ * Auth Routes - Feature-based routing
+ *
+ * Consolidates all authentication-related routes including:
+ * - User authentication endpoints
+ * - Password reset functionality
+ * - MFA (Multi-Factor Authentication)
+ * - Token management (JWT)
+ * - User registration
+ */
+
 import { Router } from "express";
 import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
 } from "../../auth";
-import { authService } from "./auth.service";
+import { storage } from "../../storage";
 import { logger } from "../../logger";
-import {
-  validateRequest,
-  validateEmailSchema,
-  validatePasswordResetSchema,
-} from "../../validation";
-import { authRateLimit, passwordResetRateLimit } from "../../rate-limiting";
+
+// Import route modules from routes/auth
+import passwordRouter from "../../routes/auth/password";
+import mfaRouter from "../../routes/auth/mfa";
+import tokensRouter from "../../routes/auth/tokens";
+import registerRouter from "../../routes/auth/register";
 
 const router = Router();
 
@@ -20,13 +31,18 @@ router.get("/user", isAuthenticated, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
-    const user = await authService.getCurrentUser(userId);
-
+    const user = await storage.getUser(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.json(user);
+    // Get user's communities
+    const userCommunities = await storage.getUserCommunities(userId);
+
+    return res.json({
+      ...user,
+      communities: userCommunities,
+    });
   } catch (error) {
     logger.error("Failed to fetch user", error, {
       userId: getAuthUserId(authenticatedReq),
@@ -35,97 +51,11 @@ router.get("/user", isAuthenticated, async (req, res) => {
   }
 });
 
-// Request password reset
-router.post(
-  "/forgot-password",
-  passwordResetRateLimit,
-  validateRequest(validateEmailSchema),
-  async (req, res) => {
-    try {
-      const { email } = req.body;
+// Mount sub-routers for auth functionality
+router.use("/", passwordRouter); // /forgot-password, /verify-reset-token/:token, /reset-password
+router.use("/mfa", mfaRouter); // /mfa/setup, /mfa/enable, /mfa/disable, /mfa/verify, /mfa/backup-codes/regenerate, /mfa/status
+router.use("/", tokensRouter); // /refresh, /revoke, /revoke-all, /tokens
+router.use("/register", registerRouter); // /register
 
-      if (!email) {
-        return res.status(400).json({ message: "Email is required" });
-      }
-
-      const baseUrl = req.protocol + "://" + req.get("host");
-      await authService.requestPasswordReset(email, baseUrl);
-
-      return res.json({
-        message:
-          "If an account with that email exists, a password reset link has been sent.",
-      });
-    } catch (error) {
-      logger.error("Failed to process forgot password request", error, {
-        email: req.body.email,
-      });
-      return res
-        .status(500)
-        .json({ message: "Failed to process password reset request" });
-    }
-  },
-);
-
-// Verify reset token
-router.get("/verify-reset-token/:token", async (req, res) => {
-  try {
-    const { token } = req.params;
-
-    const result = await authService.verifyResetToken(token);
-
-    if (!result) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired reset token" });
-    }
-
-    return res.json({ message: "Token is valid", email: result.email });
-  } catch (error) {
-    logger.error("Failed to verify reset token", error, {
-      token: req.params.token?.substring(0, 8) + "***",
-    });
-    return res.status(500).json({ message: "Failed to verify reset token" });
-  }
-});
-
-// Reset password
-router.post(
-  "/reset-password",
-  authRateLimit,
-  validateRequest(validatePasswordResetSchema),
-  async (req, res) => {
-    try {
-      const { token, newPassword } = req.body;
-
-      if (!token || !newPassword) {
-        return res
-          .status(400)
-          .json({ message: "Token and new password are required" });
-      }
-
-      const success = await authService.resetPassword(token, newPassword);
-
-      if (!success) {
-        return res
-          .status(400)
-          .json({ message: "Invalid or expired reset token" });
-      }
-
-      return res.json({ message: "Password reset successful" });
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "Password must be at least 8 characters long"
-      ) {
-        return res.status(400).json({ message: error.message });
-      }
-
-      logger.error("Failed to reset password", error, {
-        token: req.body.token?.substring(0, 8) + "***",
-      });
-      return res.status(500).json({ message: "Failed to reset password" });
-    }
-  },
-);
-
+export default router;
 export { router as authRoutes };
