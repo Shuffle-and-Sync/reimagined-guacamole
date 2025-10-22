@@ -17,22 +17,52 @@ import {
 } from "../../middleware/error-handling.middleware";
 import { ZodError } from "zod";
 
+// Type definitions for error test utilities
+interface MockErrorResponse {
+  status: jest.Mock;
+  json: jest.Mock;
+  send: jest.Mock;
+  setHeader: jest.Mock;
+  getHeader: jest.Mock;
+  end: jest.Mock;
+  capturedError: ErrorResponseData | null;
+}
+
+interface ErrorResponseData {
+  success: boolean;
+  error: {
+    code: string;
+    message: string;
+    statusCode: number;
+    requestId: string;
+    timestamp: string;
+    details?: {
+      validationErrors?: Array<{ field: string; message: string }>;
+    };
+  };
+}
+
+interface DatabaseErrorWithCode extends Error {
+  code: string;
+  constraint?: string;
+}
+
 /**
  * Mock response creator with error capturing
  */
-export function createMockErrorResponse() {
-  const res = {
+export function createMockErrorResponse(): MockErrorResponse {
+  const res: MockErrorResponse = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
     setHeader: jest.fn().mockReturnThis(),
     getHeader: jest.fn(),
     end: jest.fn().mockReturnThis(),
-    capturedError: null as any,
+    capturedError: null,
   };
 
   // Capture the error response
-  res.json.mockImplementation((data) => {
+  res.json.mockImplementation((data: ErrorResponseData) => {
     res.capturedError = data;
     return res;
   });
@@ -51,30 +81,32 @@ export function extractError(mockResponse: { capturedError: unknown }) {
  * Verify error response format
  */
 export function verifyErrorResponse(
-  mockResponse: any,
+  mockResponse: MockErrorResponse,
   expectedStatus: number,
   expectedErrorCode: string,
-) {
+): ErrorResponseData {
   expect(mockResponse.status).toHaveBeenCalledWith(expectedStatus);
 
   const error = extractError(mockResponse);
   expect(error).toBeDefined();
-  expect(error.success).toBe(false);
-  expect(error.error).toBeDefined();
-  expect(error.error.code).toBe(expectedErrorCode);
-  expect(error.error.message).toBeDefined();
-  expect(error.error.requestId).toBeDefined();
-  expect(error.error.timestamp).toBeDefined();
+  expect(error?.success).toBe(false);
+  expect(error?.error).toBeDefined();
+  expect(error?.error.code).toBe(expectedErrorCode);
+  expect(error?.error.message).toBeDefined();
+  expect(error?.error.requestId).toBeDefined();
+  expect(error?.error.timestamp).toBeDefined();
 
-  return error;
+  return error as ErrorResponseData;
 }
 
 /**
  * Error factory for testing
  */
 export const errorFactories = {
-  validation: (message = "Validation failed", context?: any) =>
-    new ValidationError(message, context),
+  validation: (
+    message = "Validation failed",
+    context?: Record<string, unknown>,
+  ) => new ValidationError(message, context),
 
   authentication: (message = "Authentication required") =>
     new AuthenticationError(message),
@@ -99,33 +131,39 @@ export const errorFactories = {
  * Database error simulators
  */
 export const databaseErrorSimulators = {
-  connectionError: () => {
-    const error: any = new Error("Connection failed");
+  connectionError: (): DatabaseErrorWithCode => {
+    const error = new Error("Connection failed") as DatabaseErrorWithCode;
     error.code = "ECONNREFUSED";
     return error;
   },
 
-  timeoutError: () => {
-    const error: any = new Error("Operation timed out");
+  timeoutError: (): DatabaseErrorWithCode => {
+    const error = new Error("Operation timed out") as DatabaseErrorWithCode;
     error.code = "ETIMEDOUT";
     return error;
   },
 
-  constraintViolation: (constraint = "unique_email") => {
-    const error: any = new Error(`Constraint violation: ${constraint}`);
+  constraintViolation: (constraint = "unique_email"): DatabaseErrorWithCode => {
+    const error = new Error(
+      `Constraint violation: ${constraint}`,
+    ) as DatabaseErrorWithCode;
     error.code = "SQLITE_CONSTRAINT";
     error.constraint = constraint;
     return error;
   },
 
-  foreignKeyViolation: () => {
-    const error: any = new Error("Foreign key constraint failed");
+  foreignKeyViolation: (): DatabaseErrorWithCode => {
+    const error = new Error(
+      "Foreign key constraint failed",
+    ) as DatabaseErrorWithCode;
     error.code = "SQLITE_CONSTRAINT_FOREIGNKEY";
     return error;
   },
 
-  notNullViolation: (column = "email") => {
-    const error: any = new Error(`NOT NULL constraint failed: ${column}`);
+  notNullViolation: (column = "email"): DatabaseErrorWithCode => {
+    const error = new Error(
+      `NOT NULL constraint failed: ${column}`,
+    ) as DatabaseErrorWithCode;
     error.code = "SQLITE_CONSTRAINT_NOTNULL";
     return error;
   },
@@ -149,14 +187,14 @@ export function createZodError(
  * External API error simulators
  */
 export const externalAPIErrorSimulators = {
-  networkError: () => {
-    const error: any = new Error("Network request failed");
+  networkError: (): DatabaseErrorWithCode => {
+    const error = new Error("Network request failed") as DatabaseErrorWithCode;
     error.code = "ECONNRESET";
     return error;
   },
 
-  timeout: () => {
-    const error: any = new Error("Request timeout");
+  timeout: (): DatabaseErrorWithCode => {
+    const error = new Error("Request timeout") as DatabaseErrorWithCode;
     error.code = "ETIMEDOUT";
     return error;
   },
@@ -184,34 +222,34 @@ export const externalAPIErrorSimulators = {
  * Assert helpers
  */
 export const errorAssertions = {
-  expectValidationError: (error: any, field?: string) => {
+  expectValidationError: (error: ErrorResponseData, field?: string) => {
     expect(error.error.code).toBe("VALIDATION_ERROR");
     expect(error.error.statusCode).toBe(400);
     if (field) {
       expect(error.error.details?.validationErrors).toBeDefined();
-      const fieldError = error.error.details.validationErrors.find(
-        (e: unknown) => e.field === field,
+      const fieldError = error.error.details?.validationErrors?.find(
+        (e) => e.field === field,
       );
       expect(fieldError).toBeDefined();
     }
   },
 
-  expectAuthenticationError: (error: any) => {
+  expectAuthenticationError: (error: ErrorResponseData) => {
     expect(error.error.code).toBe("AUTHENTICATION_ERROR");
     expect(error.error.statusCode).toBe(401);
   },
 
-  expectAuthorizationError: (error: any) => {
+  expectAuthorizationError: (error: ErrorResponseData) => {
     expect(error.error.code).toBe("AUTHORIZATION_ERROR");
     expect(error.error.statusCode).toBe(403);
   },
 
-  expectNotFoundError: (error: any) => {
+  expectNotFoundError: (error: ErrorResponseData) => {
     expect(error.error.code).toBe("NOT_FOUND_ERROR");
     expect(error.error.statusCode).toBe(404);
   },
 
-  expectDatabaseError: (error: any) => {
+  expectDatabaseError: (error: ErrorResponseData) => {
     expect(error.error.code).toBe("DATABASE_ERROR");
     expect(error.error.statusCode).toBe(500);
   },

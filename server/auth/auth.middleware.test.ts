@@ -23,6 +23,53 @@ import {
 import { Request, Response, NextFunction } from "express";
 import { createMockRequest, createMockResponse } from "../tests/__factories__";
 
+// Type definitions for test mocks
+interface MockAuthResponse {
+  ok: boolean;
+  json: () => Promise<MockSessionData>;
+}
+
+interface MockSessionData {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    image: string | null;
+  };
+  expires: string;
+}
+
+interface MockSessionSecurityResult {
+  isValid: boolean;
+  assessment: {
+    riskLevel: string;
+    riskScore: number;
+    trustScore: number;
+    riskFactors: string[];
+  };
+  actions: string[];
+}
+
+interface MockJWTPayload {
+  userId: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
+interface MockJWTVerificationResult {
+  valid: boolean;
+  payload: MockJWTPayload;
+  securityWarnings: string[];
+}
+
+interface MockUserData {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 // Mock all dependencies BEFORE importing the middleware
 jest.mock("@auth/core", () => ({
   Auth: jest.fn(),
@@ -99,7 +146,7 @@ const mockValidateSessionSecurity =
 
 describe("Auth Middleware - Authentication Checks", () => {
   let mockReq: Partial<Request>;
-  let mockRes: any;
+  let mockRes: Partial<Response>;
   let mockNext: NextFunction;
 
   beforeEach(() => {
@@ -138,7 +185,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       // Mock session security validation
       mockValidateSessionSecurity.mockResolvedValue({
@@ -150,7 +197,7 @@ describe("Auth Middleware - Authentication Checks", () => {
           riskFactors: [],
         },
         actions: [],
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -176,7 +223,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateSessionSecurity.mockResolvedValue({
         isValid: true,
@@ -187,7 +234,7 @@ describe("Auth Middleware - Authentication Checks", () => {
           riskFactors: [],
         },
         actions: [],
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -206,7 +253,7 @@ describe("Auth Middleware - Authentication Checks", () => {
 
       mockAuth.mockResolvedValue({
         ok: false,
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -219,7 +266,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => ({ user: null }),
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -232,7 +279,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => ({}),
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -267,7 +314,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       // Session security validation should fail for expired sessions
       mockValidateSessionSecurity.mockResolvedValue({
@@ -279,7 +326,7 @@ describe("Auth Middleware - Authentication Checks", () => {
           riskFactors: ["expired_session"],
         },
         actions: ["terminate_session"],
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -305,7 +352,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateSessionSecurity.mockRejectedValue(
         new Error("Security service unavailable"),
@@ -327,7 +374,7 @@ describe("Auth Middleware - Authentication Checks", () => {
 
       mockAuth.mockResolvedValue({
         ok: false,
-      } as any);
+      } as MockAuthResponse);
 
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -349,7 +396,7 @@ describe("Auth Middleware - Authentication Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -406,10 +453,10 @@ describe("Auth Middleware - JWT Authentication", () => {
         valid: true,
         payload: mockPayload,
         securityWarnings: [],
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateTokenSecurity.mockReturnValue(true);
-      mockGetUser.mockResolvedValue(mockUser as any);
+      mockGetUser.mockResolvedValue(mockUser as MockUserData);
 
       await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -441,10 +488,10 @@ describe("Auth Middleware - JWT Authentication", () => {
         valid: true,
         payload: mockPayload,
         securityWarnings: ["token_near_expiry"],
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateTokenSecurity.mockReturnValue(true);
-      mockGetUser.mockResolvedValue(mockUser as any);
+      mockGetUser.mockResolvedValue(mockUser as MockUserData);
 
       await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -484,7 +531,7 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: false,
         error: "Invalid signature",
-      } as any);
+      } as MockAuthResponse);
 
       await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -507,7 +554,7 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: true,
         payload: mockPayload,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateTokenSecurity.mockReturnValue(false);
 
@@ -532,7 +579,7 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: true,
         payload: mockPayload,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateTokenSecurity.mockReturnValue(true);
       mockGetUser.mockResolvedValue(null);
@@ -552,7 +599,7 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: false,
         error: "Token expired",
-      } as any);
+      } as MockAuthResponse);
 
       await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -594,9 +641,9 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: true,
         payload: mockPayload,
-      } as any);
+      } as MockAuthResponse);
 
-      mockGetUser.mockResolvedValue(mockUser as any);
+      mockGetUser.mockResolvedValue(mockUser as MockUserData);
 
       await optionalJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -610,7 +657,7 @@ describe("Auth Middleware - JWT Authentication", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: false,
         error: "Invalid token",
-      } as any);
+      } as MockAuthResponse);
 
       await optionalJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -656,10 +703,10 @@ describe("Auth Middleware - Hybrid Authentication", () => {
     mockVerifyAccessTokenJWT.mockResolvedValue({
       valid: true,
       payload: mockPayload,
-    } as any);
+    } as MockAuthResponse);
 
     mockValidateTokenSecurity.mockReturnValue(true);
-    mockGetUser.mockResolvedValue(mockUser as any);
+    mockGetUser.mockResolvedValue(mockUser as MockUserData);
 
     await requireHybridAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -689,7 +736,7 @@ describe("Auth Middleware - Hybrid Authentication", () => {
     mockAuth.mockResolvedValue({
       ok: true,
       json: async () => mockSessionData,
-    } as any);
+    } as MockAuthResponse);
 
     mockValidateSessionSecurity.mockResolvedValue({
       isValid: true,
@@ -700,7 +747,7 @@ describe("Auth Middleware - Hybrid Authentication", () => {
         riskFactors: [],
       },
       actions: [],
-    } as any);
+    } as MockAuthResponse);
 
     await requireHybridAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -744,7 +791,7 @@ describe("Auth Middleware - Edge Cases", () => {
     mockAuth.mockResolvedValue({
       ok: true,
       json: async () => mockSessionData,
-    } as any);
+    } as MockAuthResponse);
 
     mockValidateSessionSecurity.mockResolvedValue({
       isValid: true,
@@ -755,7 +802,7 @@ describe("Auth Middleware - Edge Cases", () => {
         riskFactors: [],
       },
       actions: [],
-    } as any);
+    } as MockAuthResponse);
 
     // Simulate concurrent requests
     const promises = [
@@ -792,7 +839,7 @@ describe("Auth Middleware - Edge Cases", () => {
     mockAuth.mockResolvedValue({
       ok: true,
       json: async () => mockSessionData,
-    } as any);
+    } as MockAuthResponse);
 
     mockValidateSessionSecurity.mockResolvedValue({
       isValid: true,
@@ -803,7 +850,7 @@ describe("Auth Middleware - Edge Cases", () => {
         riskFactors: ["unusual_location", "new_device"],
       },
       actions: [],
-    } as any);
+    } as MockAuthResponse);
 
     await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -835,7 +882,7 @@ describe("Auth Middleware - Edge Cases", () => {
     mockAuth.mockResolvedValue({
       ok: true,
       json: async () => mockSessionData,
-    } as any);
+    } as MockAuthResponse);
 
     await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -861,7 +908,7 @@ describe("Auth Middleware - Edge Cases", () => {
     mockVerifyAccessTokenJWT.mockResolvedValue({
       valid: true,
       payload: mockPayload,
-    } as any);
+    } as MockAuthResponse);
 
     mockValidateTokenSecurity.mockReturnValue(true);
 
@@ -871,7 +918,7 @@ describe("Auth Middleware - Edge Cases", () => {
       email: null,
       firstName: null,
       lastName: null,
-    } as any);
+    } as MockAuthResponse);
 
     await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -926,7 +973,7 @@ describe("Auth Middleware - Authorization Checks", () => {
       mockAuth.mockResolvedValue({
         ok: true,
         json: async () => mockSessionData,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateSessionSecurity.mockResolvedValue({
         isValid: true,
@@ -937,7 +984,7 @@ describe("Auth Middleware - Authorization Checks", () => {
           riskFactors: [],
         },
         actions: [],
-      } as any);
+      } as MockAuthResponse);
 
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
@@ -970,10 +1017,10 @@ describe("Auth Middleware - Authorization Checks", () => {
       mockVerifyAccessTokenJWT.mockResolvedValue({
         valid: true,
         payload: mockPayload,
-      } as any);
+      } as MockAuthResponse);
 
       mockValidateTokenSecurity.mockReturnValue(true);
-      mockGetUser.mockResolvedValue(mockUser as any);
+      mockGetUser.mockResolvedValue(mockUser as MockUserData);
 
       await requireJWTAuth(mockReq as Request, mockRes as Response, mockNext);
 

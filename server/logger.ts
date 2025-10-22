@@ -40,7 +40,11 @@ class Logger {
   /**
    * Format message for human-readable output (development)
    */
-  private formatMessage(level: string, message: string, context?: any): string {
+  private formatMessage(
+    level: string,
+    message: string,
+    context?: Record<string, unknown>,
+  ): string {
     const timestamp = new Date().toISOString();
     const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : "";
     return `[${timestamp}] [${level}] ${message}${contextStr}`;
@@ -52,10 +56,10 @@ class Logger {
   private formatStructured(
     level: string,
     message: string,
-    error?: Error | any,
+    error?: Error | Record<string, unknown>,
     context?: unknown,
   ): string {
-    const logEntry: unknown = {
+    const logEntry: Record<string, unknown> = {
       timestamp: new Date().toISOString(),
       level: level.toLowerCase(),
       message,
@@ -80,8 +84,8 @@ class Logger {
     }
 
     // Add request ID if available (from async local storage or context)
-    if (context?.requestId) {
-      logEntry.requestId = context.requestId;
+    if (context && typeof context === "object" && "requestId" in context) {
+      logEntry.requestId = (context as Record<string, unknown>).requestId;
     }
 
     return JSON.stringify(logEntry);
@@ -91,7 +95,11 @@ class Logger {
     return level <= this.logLevel;
   }
 
-  error(message: string, error?: Error | any, context?: any): void {
+  error(
+    message: string,
+    error?: Error | Record<string, unknown>,
+    context?: Record<string, unknown>,
+  ): void {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
       if (this.useStructuredLogging) {
         console.error(this.formatStructured("ERROR", message, error, context));
@@ -109,7 +117,7 @@ class Logger {
     }
   }
 
-  warn(message: string, context?: any): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LOG_LEVELS.WARN)) {
       if (this.useStructuredLogging) {
         console.warn(
@@ -121,7 +129,7 @@ class Logger {
     }
   }
 
-  info(message: string, context?: any): void {
+  info(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LOG_LEVELS.INFO)) {
       if (this.useStructuredLogging) {
         console.info(
@@ -133,7 +141,7 @@ class Logger {
     }
   }
 
-  debug(message: string, context?: any): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LOG_LEVELS.DEBUG)) {
       if (this.useStructuredLogging) {
         console.log(

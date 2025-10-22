@@ -11,6 +11,60 @@
 
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
+import type { Request, Response } from "express";
+import type {
+  User,
+  Community,
+  Event,
+  Session,
+  Account,
+  Tournament,
+  TournamentParticipant,
+  TournamentRound,
+  TournamentMatch,
+  Game,
+  Card,
+  Message,
+  Notification,
+} from "@shared/schema";
+
+// Types not in schema but used in tests
+interface MockDeck {
+  id: string;
+  name: string;
+  userId: string;
+  gameId: string;
+  format: string;
+  colors: string[];
+  mainboard: unknown[];
+  sideboard: unknown[];
+  description: string;
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface MockGoogleProfile {
+  id: string;
+  email: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  verified_email: boolean;
+  locale: string;
+}
+
+interface MockTwitchProfile {
+  id: string;
+  login: string;
+  display_name: string;
+  email: string;
+  profile_image_url: string;
+  broadcaster_type: string;
+  description: string;
+  type: string;
+}
 
 /**
  * Generate a unique test ID
@@ -23,19 +77,39 @@ function generateId(prefix: string = "test"): string {
  * User Factory
  * Creates a mock user with sensible defaults
  */
-export function createMockUser(overrides: Partial<any> = {}): any {
+export function createMockUser(overrides: Partial<User> = {}): User {
+  const now = new Date();
   return {
     id: generateId("user"),
     email: faker.internet.email(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     username: faker.internet.userName().toLowerCase(),
-    status: "active",
-    role: "user",
+    profileImageUrl: null,
+    primaryCommunity: null,
+    bio: null,
+    location: null,
+    website: null,
+    status: "offline",
+    statusMessage: null,
+    timezone: null,
+    dateOfBirth: null,
+    isPrivate: false,
+    showOnlineStatus: "everyone",
+    allowDirectMessages: "everyone",
+    passwordHash: null,
     isEmailVerified: true,
+    emailVerifiedAt: now,
+    failedLoginAttempts: 0,
+    lastFailedLogin: null,
+    accountLockedUntil: null,
+    passwordChangedAt: null,
     mfaEnabled: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    mfaEnabledAt: null,
+    lastLoginAt: now,
+    lastActiveAt: now,
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -44,9 +118,8 @@ export function createMockUser(overrides: Partial<any> = {}): any {
  * Admin User Factory
  * Creates a mock admin user
  */
-export function createMockAdmin(overrides: Partial<any> = {}): any {
+export function createMockAdmin(overrides: Partial<User> = {}): User {
   return createMockUser({
-    role: "admin",
     email: "admin@test.com",
     username: "admin",
     ...overrides,
@@ -57,8 +130,11 @@ export function createMockAdmin(overrides: Partial<any> = {}): any {
  * Community Factory
  * Creates a mock community
  */
-export function createMockCommunity(overrides: Partial<any> = {}): any {
+export function createMockCommunity(
+  overrides: Partial<Community> = {},
+): Community {
   const name = faker.company.name();
+  const now = new Date();
   return {
     id: generateId("community"),
     name,
@@ -66,8 +142,16 @@ export function createMockCommunity(overrides: Partial<any> = {}): any {
     description: faker.lorem.sentence(),
     game: faker.helpers.arrayElement(["mtg", "pokemon", "lorcana", "yugioh"]),
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    logoUrl: null,
+    bannerUrl: null,
+    rules: null,
+    memberCount: 0,
+    organizerId: null,
+    discordServerId: null,
+    twitchTeamId: null,
+    youtubeChannelId: null,
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -76,11 +160,21 @@ export function createMockCommunity(overrides: Partial<any> = {}): any {
  * Tournament Factory
  * Creates a mock tournament
  */
-export function createMockTournament(overrides: Partial<any> = {}): any {
+export function createMockTournament(
+  overrides: Partial<Tournament> = {},
+): Tournament {
+  const now = new Date();
+  const startDate = faker.date.future();
   return {
     id: generateId("tournament"),
     name: faker.company.catchPhrase(),
     description: faker.lorem.paragraph(),
+    gameType: faker.helpers.arrayElement([
+      "mtg",
+      "pokemon",
+      "lorcana",
+      "yugioh",
+    ]),
     format: faker.helpers.arrayElement([
       "single_elimination",
       "double_elimination",
@@ -88,14 +182,15 @@ export function createMockTournament(overrides: Partial<any> = {}): any {
       "round_robin",
     ]),
     maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
+    currentParticipants: 0,
+    prizePool: null,
     status: "upcoming",
     organizerId: generateId("user"),
     communityId: generateId("community"),
-    startDate: faker.date.future(),
-    endDate: faker.date.future(),
-    participants: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    startDate,
+    endDate: faker.date.future({ refDate: startDate }),
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -104,13 +199,16 @@ export function createMockTournament(overrides: Partial<any> = {}): any {
  * Tournament Participant Factory
  * Creates a mock tournament participant
  */
-export function createMockParticipant(overrides: Partial<any> = {}): any {
+export function createMockParticipant(
+  overrides: Partial<TournamentParticipant> = {},
+): TournamentParticipant {
   return {
     id: generateId("participant"),
     tournamentId: generateId("tournament"),
     userId: generateId("user"),
+    status: "registered",
     seed: faker.number.int({ min: 1, max: 64 }),
-    status: "active",
+    finalRank: null,
     joinedAt: new Date(),
     ...overrides,
   };
@@ -120,25 +218,30 @@ export function createMockParticipant(overrides: Partial<any> = {}): any {
  * Event Factory
  * Creates a mock event
  */
-export function createMockEvent(overrides: Partial<any> = {}): any {
+export function createMockEvent(overrides: Partial<Event> = {}): Event {
   const startTime = faker.date.future();
   const endTime = new Date(startTime.getTime() + 3600000 * 3); // 3 hours later
+  const now = new Date();
 
   return {
     id: generateId("event"),
     title: faker.company.catchPhrase(),
     description: faker.lorem.paragraph(),
-    eventType: faker.helpers.arrayElement(["tournament", "casual", "workshop"]),
+    type: faker.helpers.arrayElement(["tournament", "stream", "community"]),
+    status: "active",
     startTime,
     endTime,
     location: faker.helpers.arrayElement(["Online", "In-Person"]),
-    maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
-    currentParticipants: 0,
-    status: "upcoming",
-    organizerId: generateId("user"),
+    isVirtual: true,
+    maxAttendees: faker.helpers.arrayElement([8, 16, 32, 64]),
+    playerSlots: null,
+    alternateSlots: null,
+    creatorId: generateId("user"),
+    hostId: null,
+    coHostId: null,
     communityId: generateId("community"),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -147,15 +250,18 @@ export function createMockEvent(overrides: Partial<any> = {}): any {
  * Round Factory
  * Creates a mock tournament round
  */
-export function createMockRound(overrides: Partial<any> = {}): any {
+export function createMockRound(
+  overrides: Partial<TournamentRound> = {},
+): TournamentRound {
   return {
     id: generateId("round"),
     tournamentId: generateId("tournament"),
     roundNumber: 1,
-    status: "upcoming",
-    matches: [],
+    name: null,
+    status: "pending",
+    startTime: null,
+    endTime: null,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   };
 }
@@ -164,19 +270,22 @@ export function createMockRound(overrides: Partial<any> = {}): any {
  * Match Factory
  * Creates a mock tournament match
  */
-export function createMockMatch(overrides: Partial<any> = {}): any {
+export function createMockMatch(
+  overrides: Partial<TournamentMatch> = {},
+): TournamentMatch {
   return {
     id: generateId("match"),
     tournamentId: generateId("tournament"),
     roundId: generateId("round"),
+    matchNumber: 1,
     player1Id: generateId("user"),
     player2Id: generateId("user"),
-    status: "pending",
     winnerId: null,
-    player1Score: 0,
-    player2Score: 0,
+    status: "pending",
+    tableNumber: null,
+    startTime: null,
+    endTime: null,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   };
 }
@@ -185,18 +294,17 @@ export function createMockMatch(overrides: Partial<any> = {}): any {
  * Game Factory
  * Creates a mock game
  */
-export function createMockGame(overrides: Partial<any> = {}): any {
+export function createMockGame(overrides: Partial<Game> = {}): Game {
   const name = faker.commerce.productName();
+  const now = new Date();
   return {
     id: generateId("game"),
     name,
-    slug: faker.helpers.slugify(name).toLowerCase(),
+    code: faker.string.alpha({ length: 3, casing: "upper" }),
     description: faker.lorem.paragraph(),
-    publisher: faker.company.name(),
-    releaseYear: faker.number.int({ min: 1990, max: 2024 }),
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -205,22 +313,30 @@ export function createMockGame(overrides: Partial<any> = {}): any {
  * Card Factory
  * Creates a mock card
  */
-export function createMockCard(overrides: Partial<any> = {}): any {
+export function createMockCard(overrides: Partial<Card> = {}): Card {
+  const now = new Date();
   return {
     id: generateId("card"),
     name: faker.commerce.productName(),
     gameId: generateId("game"),
-    setCode: faker.string.alpha({ length: 3, casing: "upper" }),
-    cardNumber: faker.string.numeric(3),
+    type: faker.helpers.arrayElement([
+      "Creature",
+      "Instant",
+      "Sorcery",
+      "Enchantment",
+    ]),
     rarity: faker.helpers.arrayElement([
       "common",
       "uncommon",
       "rare",
       "mythic",
     ]),
+    setCode: faker.string.alpha({ length: 3, casing: "upper" }),
+    setName: faker.commerce.productName(),
     imageUrl: faker.image.url(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    metadata: null,
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -229,7 +345,8 @@ export function createMockCard(overrides: Partial<any> = {}): any {
  * Deck Factory
  * Creates a mock deck
  */
-export function createMockDeck(overrides: Partial<any> = {}): any {
+export function createMockDeck(overrides: Partial<MockDeck> = {}): MockDeck {
+  const now = new Date();
   return {
     id: generateId("deck"),
     name: faker.company.buzzPhrase(),
@@ -244,8 +361,8 @@ export function createMockDeck(overrides: Partial<any> = {}): any {
     sideboard: [],
     description: faker.lorem.paragraph(),
     isPublic: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -254,7 +371,7 @@ export function createMockDeck(overrides: Partial<any> = {}): any {
  * Session Factory (Auth.js)
  * Creates a mock session
  */
-export function createMockSession(overrides: Partial<any> = {}): any {
+export function createMockSession(overrides: Partial<Session> = {}): Session {
   const expires = new Date();
   expires.setDate(expires.getDate() + 30); // 30 days from now
 
@@ -262,7 +379,7 @@ export function createMockSession(overrides: Partial<any> = {}): any {
     id: generateId("session"),
     sessionToken: nanoid(32),
     userId: generateId("user"),
-    expires: expires.toISOString(),
+    expires,
     ...overrides,
   };
 }
@@ -271,7 +388,7 @@ export function createMockSession(overrides: Partial<any> = {}): any {
  * Account Factory (Auth.js OAuth)
  * Creates a mock OAuth account
  */
-export function createMockAccount(overrides: Partial<any> = {}): any {
+export function createMockAccount(overrides: Partial<Account> = {}): Account {
   return {
     id: generateId("account"),
     userId: generateId("user"),
@@ -293,15 +410,18 @@ export function createMockAccount(overrides: Partial<any> = {}): any {
  * Message Factory
  * Creates a mock message
  */
-export function createMockMessage(overrides: Partial<any> = {}): any {
+export function createMockMessage(overrides: Partial<Message> = {}): Message {
   return {
     id: generateId("message"),
-    fromUserId: generateId("user"),
-    toUserId: generateId("user"),
+    senderId: generateId("user"),
+    receiverId: generateId("user"),
+    recipientId: null,
+    eventId: null,
+    communityId: null,
     content: faker.lorem.sentence(),
-    read: false,
+    isRead: false,
+    readAt: null,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   };
 }
@@ -310,14 +430,19 @@ export function createMockMessage(overrides: Partial<any> = {}): any {
  * Notification Factory
  * Creates a mock notification
  */
-export function createMockNotification(overrides: Partial<any> = {}): any {
+export function createMockNotification(
+  overrides: Partial<Notification> = {},
+): Notification {
   return {
     id: generateId("notification"),
     userId: generateId("user"),
-    type: faker.helpers.arrayElement(["info", "success", "warning", "error"]),
+    type: faker.helpers.arrayElement(["event_join", "message", "system"]),
+    priority: "normal",
     title: faker.lorem.words(3),
     message: faker.lorem.sentence(),
-    read: false,
+    data: null,
+    isRead: false,
+    readAt: null,
     createdAt: new Date(),
     ...overrides,
   };
@@ -327,14 +452,16 @@ export function createMockNotification(overrides: Partial<any> = {}): any {
  * Request Factory (Express)
  * Creates a mock Express request object
  */
-export function createMockRequest(overrides: Partial<any> = {}): any {
+export function createMockRequest(
+  overrides: Partial<Request> = {},
+): Partial<Request> {
   return {
     body: {},
     params: {},
     query: {},
     headers: {},
-    user: null,
-    session: null,
+    user: undefined,
+    session: undefined,
     ip: "127.0.0.1",
     method: "GET",
     url: "/test",
@@ -347,17 +474,19 @@ export function createMockRequest(overrides: Partial<any> = {}): any {
  * Response Factory (Express)
  * Creates a mock Express response object
  */
-export function createMockResponse(): any {
-  const res: any = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-    setHeader: jest.fn().mockReturnThis(),
-    getHeader: jest.fn(),
-    end: jest.fn().mockReturnThis(),
-    redirect: jest.fn().mockReturnThis(),
-    cookie: jest.fn().mockReturnThis(),
-    clearCookie: jest.fn().mockReturnThis(),
+export function createMockResponse(): Partial<Response> {
+  const res: Partial<Response> = {
+    status: jest.fn().mockReturnThis() as unknown as Response["status"],
+    json: jest.fn().mockReturnThis() as unknown as Response["json"],
+    send: jest.fn().mockReturnThis() as unknown as Response["send"],
+    setHeader: jest.fn().mockReturnThis() as unknown as Response["setHeader"],
+    getHeader: jest.fn() as unknown as Response["getHeader"],
+    end: jest.fn().mockReturnThis() as unknown as Response["end"],
+    redirect: jest.fn().mockReturnThis() as unknown as Response["redirect"],
+    cookie: jest.fn().mockReturnThis() as unknown as Response["cookie"],
+    clearCookie: jest
+      .fn()
+      .mockReturnThis() as unknown as Response["clearCookie"],
   };
   return res;
 }
@@ -366,9 +495,9 @@ export function createMockResponse(): any {
  * Generate multiple items using a factory
  */
 export function createMockList<T>(
-  factory: (overrides?: any) => T,
+  factory: (overrides?: Partial<T>) => T,
   count: number,
-  overrides: unknown[] = [],
+  overrides: Partial<T>[] = [],
 ): T[] {
   return Array.from({ length: count }, (_, i) => factory(overrides[i] || {}));
 }
@@ -377,7 +506,9 @@ export function createMockList<T>(
  * Google OAuth Profile Factory
  * Creates a mock Google OAuth profile
  */
-export function createMockGoogleProfile(overrides: Partial<any> = {}): any {
+export function createMockGoogleProfile(
+  overrides: Partial<MockGoogleProfile> = {},
+): MockGoogleProfile {
   return {
     id: faker.string.alphanumeric(21),
     email: faker.internet.email(),
@@ -395,7 +526,9 @@ export function createMockGoogleProfile(overrides: Partial<any> = {}): any {
  * Twitch OAuth Profile Factory
  * Creates a mock Twitch OAuth profile
  */
-export function createMockTwitchProfile(overrides: Partial<any> = {}): any {
+export function createMockTwitchProfile(
+  overrides: Partial<MockTwitchProfile> = {},
+): MockTwitchProfile {
   return {
     id: faker.string.numeric(9),
     login: faker.internet.userName().toLowerCase(),
