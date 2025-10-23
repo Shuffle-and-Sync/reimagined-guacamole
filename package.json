@@ -69,6 +69,7 @@
     "test:security": "jest server/tests/security/",
     "security:check": "npm audit --production && npm run test:security && npm run check",
     "security:audit": "npm test server/tests/security/security-audit-comprehensive.test.ts",
+    "security:console-check": "bash scripts/check-console-usage.sh",
     "copilot:analyze": "tsx scripts/backend-copilot-cli.ts",
     "copilot:fix": "tsx scripts/backend-copilot-cli.ts --fix",
     "copilot:report": "tsx scripts/backend-copilot-cli.ts && echo 'Report generated: BACKEND_COPILOT_ANALYSIS.md'",
