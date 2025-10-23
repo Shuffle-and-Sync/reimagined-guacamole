@@ -1,6 +1,7 @@
 // Load environment variables from .env.local for development only
 import { existsSync } from "fs";
 import { resolve } from "path";
+import cors from "cors";
 import { config } from "dotenv";
 // CRITICAL: Initialize Sentry BEFORE importing any other modules
 // This ensures error tracking captures all errors including initialization errors
@@ -15,6 +16,11 @@ import {
   verifyEmailVerificationJWT,
   TOKEN_EXPIRY,
 } from "./auth/tokens";
+import {
+  createCorsConfig,
+  createDevCorsConfig,
+  validateCorsConfig,
+} from "./config/cors.config";
 import { sendEmailVerificationEmail } from "./email-service";
 import {
   validateAndLogEnvironment,
@@ -43,6 +49,7 @@ import {
   friendRequestsRouter,
   matchmakingRouter,
 } from "./features/users/users.routes";
+import { errors as standardizedErrors } from "./lib/error-response";
 import { logger } from "./logger";
 import { authRateLimit } from "./rate-limiting";
 import infrastructureTestsRouter from "./routes/infrastructure-tests";
@@ -105,6 +112,53 @@ app.use(sentryTracingHandler());
 // Basic middleware - body parsers MUST come before Auth.js routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// CORS Configuration - apply before security headers and routes
+// Validate CORS configuration on startup
+try {
+  validateCorsConfig();
+  const corsConfig =
+    process.env.NODE_ENV === "development"
+      ? createDevCorsConfig()
+      : createCorsConfig();
+  app.use(cors(corsConfig));
+  logger.info("CORS middleware configured", {
+    environment: process.env.NODE_ENV,
+  });
+} catch (error) {
+  logger.error("Failed to configure CORS", { error });
+  if (process.env.NODE_ENV === "production") {
+    throw error;
+  }
+}
+
+// Handle CORS errors
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (err.message === "Not allowed by CORS") {
+    logger.warn("CORS error", {
+      origin: req.headers.origin,
+      path: req.path,
+      method: req.method,
+      userAgent: req.headers["user-agent"],
+    });
+
+    const corsError = standardizedErrors.operationNotAllowed("CORS", {
+      origin: req.headers.origin,
+    });
+
+    return res.status(corsError.statusCode).json({
+      error: {
+        code: corsError.code,
+        message: "Origin not allowed",
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        requestId: req.headers["x-request-id"] || "unknown",
+      },
+    });
+  }
+
+  next(err);
+});
 
 // Apply security headers (including CSP) before other routes
 app.use(securityHeaders);
