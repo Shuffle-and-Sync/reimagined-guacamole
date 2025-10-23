@@ -83,13 +83,32 @@ const VALIDATION_RULES = {
         "AUTH_SECRET must be at least 32 characters long. Generate with: openssl rand -base64 32",
       );
     }
-    if (
-      value === "demo-secret-key-for-development-only-not-for-production" &&
-      process.env.NODE_ENV === "production"
-    ) {
-      throw new Error(
-        "AUTH_SECRET must be changed from demo value in production",
-      );
+    // SECURITY: Block demo/test secrets in production
+    if (process.env.NODE_ENV === "production") {
+      const insecurePatterns = [
+        "demo",
+        "test",
+        "example",
+        "development",
+        "changeme",
+        "placeholder",
+      ];
+      const lowerValue = value.toLowerCase();
+      for (const pattern of insecurePatterns) {
+        if (lowerValue.includes(pattern)) {
+          throw new Error(
+            `SECURITY ERROR: AUTH_SECRET contains insecure pattern "${pattern}" in production. ` +
+              "Generate a secure secret with: openssl rand -base64 32",
+          );
+        }
+      }
+      // Check for weak entropy (simple patterns)
+      if (/^(.)\1{10,}/.test(value)) {
+        throw new Error(
+          "SECURITY ERROR: AUTH_SECRET appears to have weak entropy (repeated characters). " +
+            "Generate a secure secret with: openssl rand -base64 32",
+        );
+      }
     }
     return true;
   },

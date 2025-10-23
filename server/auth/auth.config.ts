@@ -23,9 +23,9 @@ if (!process.env.AUTH_SECRET) {
 // Auth.js will auto-detect the host from request headers
 if (process.env.NODE_ENV === "production") {
   if (!process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
-    console.warn(
-      "[AUTH] No AUTH_URL set - relying on trustHost for URL detection",
-    );
+    logger.warn("No AUTH_URL set - relying on trustHost for URL detection", {
+      context: "auth_config",
+    });
   }
 
   // Warn if OAuth providers are not configured in production
@@ -35,12 +35,13 @@ if (process.env.NODE_ENV === "production") {
     process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET;
 
   if (!hasGoogleOAuth && !hasTwitchOAuth) {
-    console.warn(
-      "[AUTH] WARNING: No OAuth providers configured (Google or Twitch)",
-    );
-    console.warn("[AUTH] Users will only be able to sign in with credentials");
-    console.warn(
-      "[AUTH] Set GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET or TWITCH_CLIENT_ID/TWITCH_CLIENT_SECRET",
+    logger.warn(
+      "No OAuth providers configured - users can only sign in with credentials",
+      {
+        context: "auth_config",
+        hasGoogle: hasGoogleOAuth,
+        hasTwitch: hasTwitchOAuth,
+      },
     );
   }
 }
@@ -359,7 +360,11 @@ export const authConfig: AuthConfig = {
             image: user.profileImageUrl,
           };
         } catch (error) {
-          console.error("Authentication error:", error);
+          logger.error(
+            "Authentication error",
+            error instanceof Error ? error : new Error(String(error)),
+            { provider: "credentials" },
+          );
           return null;
         }
       },
@@ -427,7 +432,11 @@ export const authConfig: AuthConfig = {
 
         return true;
       } catch (error) {
-        console.error("Sign-in callback error:", error);
+        logger.error(
+          "Sign-in callback error",
+          error instanceof Error ? error : new Error(String(error)),
+          { provider: account?.provider },
+        );
         return false;
       }
     },
@@ -439,7 +448,7 @@ export const authConfig: AuthConfig = {
 
       // Log for debugging (helps diagnose redirect issues)
       if (process.env.NODE_ENV === "development") {
-        console.log("[AUTH] Redirect callback:", { url, baseUrl });
+        logger.debug("Auth redirect callback", { url, baseUrl });
       }
 
       // Handle error redirects - prevent loops by going to frontend error page
@@ -449,15 +458,11 @@ export const authConfig: AuthConfig = {
         const error = urlObj.searchParams.get("error");
 
         if (error === "Configuration") {
-          console.error(
-            "[AUTH] Configuration error detected - check OAuth credentials",
-          );
-          console.error(
-            "[AUTH] Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set",
-          );
-          console.error(
-            "[AUTH] Also verify redirect URI in Google Console matches backend URL",
-          );
+          logger.error("Auth configuration error detected", {
+            error,
+            message:
+              "Check OAuth credentials and verify redirect URI matches backend URL",
+          });
         }
 
         // Redirect to frontend error page with error details
@@ -485,10 +490,13 @@ export const authConfig: AuthConfig = {
 
   events: {
     signIn({ user, account, _isNewUser }) {
-      console.log(`User ${user.email} signed in via ${account?.provider}`);
+      logger.info("User signed in", {
+        userId: user.id,
+        provider: account?.provider,
+      });
     },
     signOut() {
-      console.log(`User signed out`);
+      logger.info("User signed out");
     },
   },
 

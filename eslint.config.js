@@ -64,6 +64,14 @@ export default [
       "react/no-unescaped-entities": "warn",
       "react/display-name": "warn",
 
+      // Security: Prevent console.log in production code
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error", "info", "debug"],
+        },
+      ],
+
       // Import ordering rules
       "import/order": [
         "error",
