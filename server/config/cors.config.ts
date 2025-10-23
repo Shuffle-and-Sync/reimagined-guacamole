@@ -100,12 +100,15 @@ export function createCorsConfig(): CorsOptions {
 /**
  * Create permissive CORS configuration for development
  * WARNING: Only use in development environments
+ *
+ * Note: CodeQL may flag this as overly permissive, but this is intentional
+ * for development. Production uses createCorsConfig() with strict origin checking.
  */
 export function createDevCorsConfig(): CorsOptions {
   logger.warn("Using permissive CORS configuration for development");
 
   return {
-    origin: true, // Allow all origins
+    origin: true, // Allow all origins (development only)
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
