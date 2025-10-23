@@ -1,4 +1,5 @@
 import { hash, verify } from "@node-rs/argon2";
+import { logger } from "../logger";
 
 // Argon2id configuration for enterprise-grade security
 const ARGON2_CONFIG = {
@@ -29,12 +30,15 @@ export async function verifyPassword(
       return await verify(passwordHash, password);
     }
 
-    console.error(
-      "Invalid password hash format. Only Argon2 hashes are supported.",
-    );
+    logger.error("Invalid password hash format detected", {
+      message: "Only Argon2 hashes are supported",
+    });
     return false;
   } catch (error) {
-    console.error("Password verification error:", error);
+    logger.error(
+      "Password verification error",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return false;
   }
 }

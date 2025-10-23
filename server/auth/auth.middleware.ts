@@ -188,7 +188,11 @@ export async function requireAuth(
 
     return next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
+    logger.error(
+      "Auth middleware error",
+      error instanceof Error ? error : new Error(String(error)),
+      { url: req.url, method: req.method },
+    );
     return res.status(401).json({ message: "Unauthorized" });
   }
 }
@@ -234,7 +238,11 @@ export async function optionalAuth(
 
     next();
   } catch (error) {
-    console.error("Optional auth middleware error:", error);
+    logger.warn(
+      "Optional auth middleware error",
+      error instanceof Error ? error : new Error(String(error)),
+      { url: req.url, method: req.method },
+    );
     // Continue without authentication on error
     next();
   }
