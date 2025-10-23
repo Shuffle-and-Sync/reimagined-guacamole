@@ -6,7 +6,9 @@ import {
   type AuthenticatedRequest,
 } from "../auth";
 import { logger } from "../logger";
+import { PerformanceMonitor } from "../middleware/performance.middleware";
 import { generalRateLimit } from "../rate-limiting";
+import { queryCache } from "../utils/cache.utils";
 
 const router = Router();
 
@@ -27,7 +29,7 @@ const isAdmin = async (userId: string): Promise<boolean> => {
 };
 
 /**
- * Database health check endpoint
+ * Database health check endpoint with enhanced metrics
  * GET /api/database/health
  */
 router.get("/health", async (req, res) => {
@@ -43,11 +45,62 @@ router.get("/health", async (req, res) => {
     }
 
     const health = await checkDatabaseHealth();
+    const dbMonitor = DatabaseMonitor.getInstance();
+    const perfMonitor = PerformanceMonitor.getInstance();
+    const cacheStats = queryCache.getStats();
+
+    // Calculate average query time from database stats
+    const dbStats = dbMonitor.getStats();
+    const queryTimes = Object.values(dbStats).map((stat) => stat.avgTime);
+    const averageQueryTime =
+      queryTimes.length > 0
+        ? queryTimes.reduce((sum, time) => sum + time, 0) / queryTimes.length
+        : 0;
+
+    // Get total query count
+    const totalQueries = Object.values(dbStats).reduce(
+      (sum, stat) => sum + stat.count,
+      0,
+    );
+
+    const enhancedHealth = {
+      status: health.status,
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: health.status === "healthy",
+        queryStats: dbStats,
+        slowQueries: dbMonitor.getSlowQueries(500),
+        connectionPool: {
+          // SQLite uses single connection, but provide structure for monitoring
+          note: "SQLite uses single connection model",
+          totalConnections: 1,
+          idleConnections: 0,
+          activeConnections:
+            perfMonitor.getMetrics().activeConnections > 0 ? 1 : 0,
+          waitingCount: 0,
+          maxConnections: 1,
+        },
+        performance: {
+          averageQueryTime: Math.round(averageQueryTime),
+          totalQueries,
+          cacheHitRate: cacheStats.hitRate,
+          queryResponseTime: health.queryResponseTime,
+        },
+      },
+    };
+
+    // Set status to unhealthy if thresholds exceeded
+    if (
+      enhancedHealth.database.performance.averageQueryTime > 1000 ||
+      enhancedHealth.database.connectionPool.waitingCount > 5
+    ) {
+      enhancedHealth.status = "unhealthy";
+      return res.status(503).json(enhancedHealth);
+    }
 
     return res.json({
       success: true,
-      database: health,
-      timestamp: new Date().toISOString(),
+      ...enhancedHealth,
     });
   } catch (error) {
     logger.error("Database health check failed", error);

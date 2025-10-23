@@ -3,6 +3,8 @@ export interface EventFilters {
   communityId?: string;
   type?: string;
   upcoming?: boolean;
+  cursor?: string;
+  limit?: number;
 }
 
 export interface CalendarEventFilters {

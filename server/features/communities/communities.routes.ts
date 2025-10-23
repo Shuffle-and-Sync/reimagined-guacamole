@@ -5,12 +5,16 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import {
+  cacheStrategies,
+  cacheInvalidation,
+} from "../../middleware/cache.middleware";
 import { communitiesService } from "./communities.service";
 
 const router = Router();
 
 // Get all communities
-router.get("/", async (req, res) => {
+router.get("/", cacheStrategies.community(), async (req, res) => {
   try {
     const communities = await communitiesService.getAllCommunities();
     res.json(communities);
@@ -24,7 +28,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get specific community
-router.get("/:id", async (req, res) => {
+router.get("/:id", cacheStrategies.community(), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -58,6 +62,7 @@ export const userCommunitiesRouter = Router();
 userCommunitiesRouter.post(
   "/:communityId/join",
   isAuthenticated,
+  cacheInvalidation.community(),
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {

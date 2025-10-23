@@ -1,22 +1,19 @@
 // Unified database configuration for Drizzle ORM
 // Supports SQLite Cloud connections
-import { config } from "dotenv";
 import { resolve } from "path";
+import { config } from "dotenv";
+import { sql } from "drizzle-orm";
+import * as schema from "./schema";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 // Load environment variables from .env.local for development
 config({ path: resolve(process.cwd(), ".env.local") });
-
-import { sql } from "drizzle-orm";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "./schema";
 
 // Export schema and transaction types for use in repositories
 export type Schema = typeof schema;
 export type Database = BetterSQLite3Database<Schema>;
 // Transaction type using proper Drizzle ORM transaction type
-export type Transaction = Parameters<
-  Parameters<Database["transaction"]>[0]
->[0];
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 // Handle missing or invalid DATABASE_URL gracefully for Cloud Run health checks
 // Default SQLite Cloud URL
@@ -110,7 +107,7 @@ async function initializeConnection() {
       // Test the connection
       await sqliteCloud.sql`SELECT 1 as test`;
 
-      console.log(`✅ Connected to SQLite Cloud successfully`);
+      console.warn(`✅ Connected to SQLite Cloud successfully`);
       connectionTested = true;
     } catch (error) {
       console.error("❌ Database connection failed:", error);
@@ -179,6 +176,7 @@ function initializeLocalSchemaSync(): void {
       .filter((s) => s.length > 0);
 
     // Get the SQLite instance from Drizzle db
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sqlite = (db as any).session.client;
 
     for (const statement of statements) {
@@ -186,13 +184,18 @@ function initializeLocalSchemaSync(): void {
         sqlite.prepare(statement).run();
       } catch (error) {
         // Ignore errors for tables that already exist
-        if (error instanceof Error && !error.message.includes("already exists")) {
+        if (
+          error instanceof Error &&
+          !error.message.includes("already exists")
+        ) {
           // Silently ignore other errors
         }
       }
     }
 
-    console.warn(`✅ Local database schema initialized (${statements.length} statements executed)`);
+    console.warn(
+      `✅ Local database schema initialized (${statements.length} statements executed)`,
+    );
   } catch (error) {
     console.warn("⚠️  Failed to initialize local schema:", error);
   }
@@ -433,7 +436,10 @@ export const preparedQueries = {
   getUserById: () => {
     const cache = PreparedStatementCache.getInstance();
     return cache.getOrPrepare("getUserById", () =>
-      db.select().from(schema.users).where(sql`id = $1`),
+      db
+        .select()
+        .from(schema.users)
+        .where(sql`id = $1`),
     );
   },
 
@@ -502,7 +508,10 @@ export const preparedQueries = {
   getEventById: () => {
     const cache = PreparedStatementCache.getInstance();
     return cache.getOrPrepare("getEventById", () =>
-      db.select().from(schema.events).where(sql`id = $1`),
+      db
+        .select()
+        .from(schema.events)
+        .where(sql`id = $1`),
     );
   },
 
@@ -796,10 +805,10 @@ export async function initializeDatabase(): Promise<void> {
 
     // Test the connection
     await db.run(sql`SELECT 1`);
-    console.log("✅ Database connection established");
+    console.warn("✅ Database connection established");
 
     // Log connection info
-    console.log("📊 Connection info:", {
+    console.warn("📊 Connection info:", {
       type: connectionInfo.type,
       driver: connectionInfo.driver,
       url: connectionInfo.url,
@@ -813,7 +822,7 @@ export async function initializeDatabase(): Promise<void> {
 export async function closeDatabaseConnections(): Promise<void> {
   try {
     // SQLite Cloud connections are typically managed automatically
-    console.log("✅ Database connections closed gracefully");
+    console.warn("✅ Database connections closed gracefully");
   } catch (error) {
     console.error("❌ Error closing database connections:", error);
     throw error;
