@@ -18,7 +18,7 @@ import authRouter from "./features/auth/auth.routes";
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
 import { universalCardRoutes } from "./features/cards/universal-cards.routes";
 import { gamesCrudRoutes } from "./features/games/games-crud.routes";
-import { healthCheck } from "./health";
+import { healthCheck, healthCheckRateLimit } from "./health";
 import { logger } from "./logger";
 import {
   errorHandlingMiddleware,
@@ -38,6 +38,7 @@ import gameSessionsRouter from "./routes/game-sessions.routes";
 import matchingRouter from "./routes/matching";
 import monitoringRouter from "./routes/monitoring";
 import platformsRouter from "./routes/platforms.routes";
+import sessionsRouter from "./routes/sessions.routes";
 import streamingRouter from "./routes/streaming";
 import userProfileRouter from "./routes/user-profile.routes";
 import { enhancedNotificationService } from "./services/enhanced-notifications.service";
@@ -96,13 +97,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default communities
   await initializeDefaultCommunities();
 
-  // Health check endpoint
-  app.get("/api/health", healthCheck);
+  // Health check endpoint with rate limiting
+  app.get("/api/health", healthCheckRateLimit, healthCheck);
 
   // REMOVED: Platform OAuth routes - now in routes/platforms.routes.ts
 
   // Auth routes - authentication, MFA, tokens, password reset, registration (from features/auth)
   app.use("/api/auth", authRouter);
+
+  // Session management routes - device fingerprints, security assessment
+  app.use("/api/sessions", sessionsRouter);
 
   // Note: Friends and friend request routes are registered in server/index.ts
   // This includes /api/friends and /api/friend-requests endpoints

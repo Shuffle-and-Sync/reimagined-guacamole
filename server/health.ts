@@ -1,6 +1,22 @@
 import { Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import { logger } from "./logger";
 import { storage } from "./storage";
+
+/**
+ * Rate limiter for health check endpoint
+ * Public endpoint but rate limited to prevent abuse
+ */
+export const healthCheckRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // 60 requests per minute
+  message: {
+    error: "Too many health check requests",
+    message: "Please try again in a moment",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 export async function healthCheck(_req: Request, res: Response) {
   const startTime = Date.now();
