@@ -1,4 +1,5 @@
-// Simple client-side logger
+/* eslint-disable no-console */
+// Simple client-side logger - console usage is intentional here
 export const logger = {
   debug: (message: string, ...args: unknown[]) => {
     if (import.meta.env.DEV) {
@@ -18,3 +19,4 @@ export const logger = {
     console.error(`[ERROR] ${message}`, error, ...args);
   },
 };
+/* eslint-enable no-console */

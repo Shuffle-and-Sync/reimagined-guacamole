@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { logger } from "./logger";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -73,7 +74,7 @@ export const queryClient = new QueryClient({
         return failureCount < 2;
       },
       onError: (error) => {
-        console.error("Mutation error:", error);
+        logger.error("Mutation error", error);
       },
     },
   },
@@ -88,7 +89,7 @@ queryClient.setQueryDefaults(["api"], {
 if (import.meta.env.DEV) {
   queryClient.setMutationDefaults(["api"], {
     onSettled: (data, error, variables) => {
-      console.log("Mutation settled:", { data, error, variables });
+      logger.debug("Mutation settled", { data, error, variables });
     },
   });
 }

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+// Production logger - console manipulation is intentional
 import { logger } from "../logger";
 
 /**

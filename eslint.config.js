@@ -66,9 +66,9 @@ export default [
 
       // Security: Prevent console.log in production code
       "no-console": [
-        "warn",
+        "error",
         {
-          allow: ["warn", "error", "info", "debug"],
+          allow: ["warn", "error"],
         },
       ],
 
@@ -117,6 +117,20 @@ export default [
         typescript: true,
         node: true,
       },
+    },
+  },
+
+  // Test files - allow console methods for debugging
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/tests/**/*.ts",
+      "**/test-utils/**/*.ts",
+      "**/setup.ts",
+    ],
+    rules: {
+      "no-console": "off",
     },
   },
 

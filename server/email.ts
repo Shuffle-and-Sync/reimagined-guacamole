@@ -1,4 +1,5 @@
 import sgMail from "@sendgrid/mail";
+import { logger } from "./logger";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -15,7 +16,11 @@ export async function sendContactEmail(
   params: ContactEmailParams,
 ): Promise<boolean> {
   if (!process.env.SENDGRID_API_KEY) {
-    console.log("SendGrid API key not configured, email not sent:", params);
+    logger.warn("SendGrid API key not configured, email not sent", {
+      name: params.name,
+      email: params.email,
+      subject: params.subject,
+    });
     return false;
   }
 

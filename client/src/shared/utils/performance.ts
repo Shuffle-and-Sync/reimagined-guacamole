@@ -1,6 +1,7 @@
 /**
  * Performance Utilities and Monitoring
  */
+import { logger } from "../../lib/logger";
 
 // Performance timing utilities
 export const performance_utils = {
@@ -17,7 +18,7 @@ export const performance_utils = {
       const end = performance.now();
 
       if (import.meta.env.DEV && label) {
-        console.log(`⚡ ${label}: ${(end - start).toFixed(2)}ms`);
+        logger.debug(`⚡ ${label}: ${(end - start).toFixed(2)}ms`);
       }
 
       return result;
@@ -80,7 +81,7 @@ export const performance_utils = {
    */
   analyzeBundleSize: () => {
     if (import.meta.env.DEV) {
-      console.log("🔍 Bundle Analysis Available in Development Mode");
+      logger.info("🔍 Bundle Analysis Available in Development Mode");
       // This would integrate with webpack-bundle-analyzer or similar
     }
   },
@@ -91,7 +92,7 @@ export const performance_utils = {
   monitorMemory: () => {
     if (import.meta.env.DEV && "memory" in performance) {
       const memory = (performance as any).memory;
-      console.log("💾 Memory Usage:", {
+      logger.debug("💾 Memory Usage", {
         used: Math.round(memory.usedJSHeapSize / 1048576) + " MB",
         total: Math.round(memory.totalJSHeapSize / 1048576) + " MB",
         limit: Math.round(memory.jsHeapSizeLimit / 1048576) + " MB",
@@ -104,7 +105,7 @@ export const performance_utils = {
    */
   trackRender: (componentName: string) => {
     if (import.meta.env.DEV) {
-      console.log(
+      logger.debug(
         `🔄 Rendered: ${componentName} at ${new Date().toISOString()}`,
       );
     }
@@ -149,7 +150,8 @@ export const queryOptimizations = {
   /**
    * Selective data updates
    */
-  optimisticUpdate: <T>(queryClient: unknown,
+  optimisticUpdate: <T>(
+    queryClient: unknown,
     queryKey: string[],
     updater: (oldData: T) => T,
   ) => {
@@ -167,7 +169,7 @@ export const bundleOptimizations = {
       const module = await importFn();
       return module;
     } catch (error) {
-      console.error("Dynamic import failed:", error);
+      logger.error("Dynamic import failed", error);
       return null;
     }
   },

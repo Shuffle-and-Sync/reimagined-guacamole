@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { logger } from "../../lib/logger";
 
 /**
  * Comprehensive Error Boundary System
@@ -76,13 +77,9 @@ export class ErrorBoundary extends Component<
       url: window.location.href,
     };
 
-    // In development, log to console
+    // In development, log detailed error information
     if (import.meta.env.DEV) {
-      console.group("🚨 Error Boundary Caught Error");
-      console.error("Error:", error);
-      console.error("Error Info:", errorInfo);
-      console.error("Error Data:", errorData);
-      console.groupEnd();
+      logger.error("🚨 Error Boundary Caught Error", error, errorData);
     }
 
     // In production, send to error tracking service

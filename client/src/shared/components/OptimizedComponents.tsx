@@ -2,6 +2,7 @@ import { memo, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { logger } from "../../lib/logger";
 
 /**
  * Performance-optimized component patterns
@@ -165,7 +166,7 @@ export const PerformanceWrapper = memo(
   }: PerformanceWrapperProps) => {
     // In development, we could add performance monitoring here
     if (enableMonitoring) {
-      console.log(`Rendering: ${name}`);
+      logger.debug(`Rendering: ${name}`);
     }
 
     return <>{children}</>;

@@ -1,16 +1,19 @@
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../logger";
 import { getErrorMessage, isError } from "@shared/type-utils";
+import { logger } from "../logger";
 
 // Common middleware functions
 
-export const errorHandler = (error: unknown,
+export const errorHandler = (
+  error: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
-  const errorForLogging = isError(error) ? error : new Error(getErrorMessage(error));
-  
+  const errorForLogging = isError(error)
+    ? error
+    : new Error(getErrorMessage(error));
+
   logger.error("Unhandled error in request", errorForLogging, {
     method: req.method,
     url: req.url,
