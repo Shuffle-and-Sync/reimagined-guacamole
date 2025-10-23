@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import {
   index,
   sqliteTable,
@@ -122,6 +121,12 @@ export const users = sqliteTable(
       table.primaryCommunity,
       table.status,
     ),
+    // Composite indexes for common query patterns
+    index("idx_users_community_status_active").on(
+      table.primaryCommunity,
+      table.status,
+      table.lastActiveAt,
+    ),
   ],
 );
 
@@ -159,6 +164,12 @@ export const userPlatformAccounts = sqliteTable(
     index("idx_user_platform_active").on(table.userId, table.isActive),
     index("idx_user_platform_handle").on(table.handle),
     index("idx_user_platform_token_expires").on(table.tokenExpiresAt),
+    // Composite index for active platform lookups
+    index("idx_user_platform_user_platform_active").on(
+      table.userId,
+      table.platform,
+      table.isActive,
+    ),
   ],
 );
 
@@ -320,6 +331,18 @@ export const events = sqliteTable(
     index("idx_events_start_time").on(table.startTime),
     index("idx_events_status").on(table.status),
     index("idx_events_type").on(table.type),
+    // Composite index for community + time range queries
+    index("idx_events_community_status_start").on(
+      table.communityId,
+      table.status,
+      table.startTime,
+    ),
+    // Composite index for status + type filtering
+    index("idx_events_status_type_start").on(
+      table.status,
+      table.type,
+      table.startTime,
+    ),
   ],
 );
 
@@ -346,6 +369,9 @@ export const eventAttendees = sqliteTable(
     unique().on(table.eventId, table.userId),
     index("idx_event_attendees_event").on(table.eventId),
     index("idx_event_attendees_user").on(table.userId),
+    // Composite index for status lookups
+    index("idx_event_attendees_event_status").on(table.eventId, table.status),
+    index("idx_event_attendees_user_status").on(table.userId, table.status),
   ],
 );
 
@@ -406,6 +432,18 @@ export const notifications = sqliteTable(
     index("idx_notifications_type").on(table.type),
     index("idx_notifications_read").on(table.isRead),
     index("idx_notifications_created").on(table.createdAt),
+    // Composite index for user + unread queries (most common pattern)
+    index("idx_notifications_user_unread_created").on(
+      table.userId,
+      table.isRead,
+      table.createdAt,
+    ),
+    // Composite index for user + type filtering
+    index("idx_notifications_user_type_created").on(
+      table.userId,
+      table.type,
+      table.createdAt,
+    ),
   ],
 );
 
@@ -575,6 +613,15 @@ export const friendships = sqliteTable(
     index("idx_friendships_user").on(table.userId),
     index("idx_friendships_friend").on(table.friendId),
     index("idx_friendships_status").on(table.status),
+    // Composite index for pending friend requests (common query)
+    index("idx_friendships_addressee_pending").on(
+      table.addresseeId,
+      table.status,
+    ),
+    index("idx_friendships_requester_status").on(
+      table.requesterId,
+      table.status,
+    ),
   ],
 );
 
@@ -668,6 +715,11 @@ export const tournamentParticipants = sqliteTable(
     unique().on(table.tournamentId, table.userId),
     index("idx_tournament_participants_tournament").on(table.tournamentId),
     index("idx_tournament_participants_user").on(table.userId),
+    // Composite index for tournament + status queries
+    index("idx_tournament_participants_tournament_status").on(
+      table.tournamentId,
+      table.status,
+    ),
   ],
 );
 
@@ -707,6 +759,17 @@ export const streamSessions = sqliteTable(
     index("idx_stream_sessions_streamer").on(table.streamerId),
     index("idx_stream_sessions_event").on(table.eventId),
     index("idx_stream_sessions_status").on(table.status),
+    // Composite index for status + community filtering
+    index("idx_stream_sessions_status_community").on(
+      table.status,
+      table.communityId,
+      table.scheduledStart,
+    ),
+    // Composite index for streamer + status
+    index("idx_stream_sessions_streamer_status").on(
+      table.streamerId,
+      table.status,
+    ),
   ],
 );
 
