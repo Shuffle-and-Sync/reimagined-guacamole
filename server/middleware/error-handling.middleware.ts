@@ -9,6 +9,12 @@ import { Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { ZodError } from "zod";
+import { ErrorCode } from "../lib/error-codes";
+import {
+  AppError as StandardizedAppError,
+  buildErrorResponse,
+  errors as standardizedErrors,
+} from "../lib/error-response";
 import { logger } from "../logger";
 
 // Custom error types for better error categorization
@@ -109,7 +115,7 @@ export class ExternalServiceError extends AppError {
   }
 }
 
-// Error response interface
+// Error response interface (legacy - kept for backward compatibility)
 interface ErrorResponse {
   success: false;
   error: {
@@ -122,9 +128,14 @@ interface ErrorResponse {
   };
 }
 
+// Re-export standardized errors for convenience
+export { StandardizedAppError, standardizedErrors, ErrorCode };
+export { errors as standardizedErrorCreators } from "../lib/error-response";
+
 /**
  * Global error handling middleware
  * Should be the last middleware in the chain
+ * Now integrates with standardized error response system
  */
 export function globalErrorHandler(
   error: Error,
@@ -140,54 +151,153 @@ export function globalErrorHandler(
     res.setHeader("X-Request-ID", requestId);
   }
 
-  // Handle different types of errors
-  let statusCode = 500;
-  let errorCode = "INTERNAL_ERROR";
-  let message = "Internal server error";
-  let details: unknown = undefined;
+  // Handle standardized errors
+  if (error instanceof StandardizedAppError) {
+    const errorResponse = buildErrorResponse(error, req, requestId);
 
-  if (error instanceof AppError) {
-    statusCode = error.statusCode;
-    errorCode = error.errorCode;
-    message = error.message;
-    details = error.context;
-  } else if (error instanceof ZodError) {
-    statusCode = 400;
-    errorCode = "VALIDATION_ERROR";
-    message = "Invalid input data";
-    details = {
-      validationErrors: error.errors.map((err) => ({
-        field: err.path.join("."),
-        message: err.message,
-        code: err.code,
-      })),
+    // Log error with appropriate level
+    const errorLog = {
+      requestId,
+      timestamp,
+      errorCode: error.code,
+      message: error.message,
+      stack: error.stack,
+      statusCode: error.statusCode,
+      url: req.url,
+      method: req.method,
+      userAgent: req.get("User-Agent"),
+      ip: req.ip,
+      userId: (req as Request & { user?: { id: string } }).user?.id,
     };
-  } else if (error.name === "JsonWebTokenError") {
-    statusCode = 401;
-    errorCode = "INVALID_TOKEN";
-    message = "Invalid or expired token";
-  } else if (error.name === "TokenExpiredError") {
-    statusCode = 401;
-    errorCode = "TOKEN_EXPIRED";
-    message = "Token has expired";
-  } else if (error.name === "CastError") {
-    statusCode = 400;
-    errorCode = "INVALID_ID";
-    message = "Invalid ID format";
-  } else if (error.message?.includes("duplicate key")) {
-    statusCode = 409;
-    errorCode = "DUPLICATE_ENTRY";
-    message = "Resource already exists";
+
+    if (error.statusCode >= 500) {
+      logger.error("Server error", error, errorLog);
+    } else if (error.statusCode >= 400) {
+      logger.warn("Client error", errorLog);
+    }
+
+    return res.status(error.statusCode).json(errorResponse);
   }
 
-  // Log error with appropriate level
-  const errorLog = {
+  // Handle Zod validation errors
+  if (error instanceof ZodError) {
+    const validationError = standardizedErrors.validation(
+      process.env.NODE_ENV !== "production"
+        ? {
+            issues: error.errors.map((e) => ({
+              field: e.path.join("."),
+              message: e.message,
+              code: e.code,
+            })),
+          }
+        : undefined,
+    );
+
+    const errorResponse = buildErrorResponse(validationError, req, requestId);
+    logger.warn("Validation error", {
+      requestId,
+      timestamp,
+      url: req.url,
+      method: req.method,
+      errors: error.errors,
+    });
+
+    return res.status(validationError.statusCode).json(errorResponse);
+  }
+
+  // Handle legacy AppError for backward compatibility
+  if (error instanceof AppError) {
+    // Map legacy error codes to standardized ones
+    let standardizedError: StandardizedAppError;
+
+    switch (error.errorCode) {
+      case "AUTHENTICATION_ERROR":
+        standardizedError = standardizedErrors.unauthorized(error.context);
+        break;
+      case "AUTHORIZATION_ERROR":
+        standardizedError = standardizedErrors.forbidden(error.context);
+        break;
+      case "NOT_FOUND_ERROR":
+        standardizedError = standardizedErrors.notFound(
+          undefined,
+          error.context,
+        );
+        break;
+      case "VALIDATION_ERROR":
+        standardizedError = standardizedErrors.validation(error.context);
+        break;
+      case "CONFLICT_ERROR":
+        standardizedError = standardizedErrors.conflict(error.context);
+        break;
+      case "RATE_LIMIT_ERROR":
+        standardizedError = standardizedErrors.rateLimitExceeded(error.context);
+        break;
+      case "DATABASE_ERROR":
+        standardizedError = standardizedErrors.databaseError(error.context);
+        break;
+      case "EXTERNAL_SERVICE_ERROR":
+        standardizedError = standardizedErrors.externalServiceError(
+          "external",
+          error.context,
+        );
+        break;
+      default:
+        standardizedError = standardizedErrors.internal(error.context);
+    }
+
+    const errorResponse = buildErrorResponse(standardizedError, req, requestId);
+
+    logger.warn("Legacy error converted to standardized format", {
+      requestId,
+      oldCode: error.errorCode,
+      newCode: standardizedError.code,
+      url: req.url,
+    });
+
+    return res.status(standardizedError.statusCode).json(errorResponse);
+  }
+
+  // Handle JWT errors
+  if (error.name === "JsonWebTokenError") {
+    const tokenError = standardizedErrors.tokenInvalid();
+    const errorResponse = buildErrorResponse(tokenError, req, requestId);
+    logger.warn("JWT error", { requestId, error: error.message });
+    return res.status(tokenError.statusCode).json(errorResponse);
+  }
+
+  if (error.name === "TokenExpiredError") {
+    const tokenError = standardizedErrors.tokenExpired();
+    const errorResponse = buildErrorResponse(tokenError, req, requestId);
+    logger.warn("Token expired", { requestId });
+    return res.status(tokenError.statusCode).json(errorResponse);
+  }
+
+  // Handle duplicate key errors
+  if (
+    error.message?.includes("duplicate key") ||
+    error.message?.includes("UNIQUE constraint")
+  ) {
+    const conflictError = standardizedErrors.alreadyExists();
+    const errorResponse = buildErrorResponse(conflictError, req, requestId);
+    logger.warn("Duplicate entry", { requestId, error: error.message });
+    return res.status(conflictError.statusCode).json(errorResponse);
+  }
+
+  // Handle unexpected errors
+  const internalError = standardizedErrors.internal(
+    process.env.NODE_ENV !== "production"
+      ? {
+          message: error.message,
+          stack: error.stack,
+        }
+      : undefined,
+  );
+
+  const errorResponse = buildErrorResponse(internalError, req, requestId);
+
+  logger.error("Unexpected error", error, {
     requestId,
     timestamp,
-    errorCode,
-    message: error.message,
-    stack: error.stack,
-    statusCode,
     url: req.url,
     method: req.method,
     userAgent: req.get("User-Agent"),
@@ -196,33 +306,9 @@ export function globalErrorHandler(
     body: req.body,
     query: req.query,
     params: req.params,
-  };
+  });
 
-  if (statusCode >= 500) {
-    logger.error("Server error", error, errorLog);
-  } else if (statusCode >= 400) {
-    logger.warn("Client error", errorLog);
-  }
-
-  // Prepare error response
-  const errorResponse: ErrorResponse = {
-    success: false,
-    error: {
-      code: errorCode,
-      message,
-      statusCode,
-      requestId,
-      timestamp,
-    },
-  };
-
-  // Include details only in development or for validation errors
-  if (process.env.NODE_ENV === "development" || statusCode === 400) {
-    errorResponse.error.details = details;
-  }
-
-  // Send error response
-  res.status(statusCode).json(errorResponse);
+  res.status(internalError.statusCode).json(errorResponse);
 }
 
 /**
