@@ -7,9 +7,7 @@ import { resolve } from "path";
 config({ path: resolve(process.cwd(), ".env.local") });
 
 import { sql } from "drizzle-orm";
-import type { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import type { ExtractTablesWithRelations } from "drizzle-orm";
 import * as schema from "./schema";
 
 // Export schema and transaction types for use in repositories
@@ -33,7 +31,7 @@ let useLocalSqlite = false;
 if (!envDatabaseUrl) {
   // No DATABASE_URL set, use default
   databaseUrl = defaultSQLiteCloudUrl;
-  console.log(
+  console.warn(
     "ℹ️  DATABASE_URL not set, using default SQLite Cloud connection",
   );
 } else if (envDatabaseUrl.startsWith("sqlitecloud://")) {
@@ -47,20 +45,20 @@ if (!envDatabaseUrl) {
   // Local SQLite database (in-memory or file-based) - for testing
   databaseUrl = envDatabaseUrl;
   useLocalSqlite = true;
-  console.log(`ℹ️  Using local SQLite database: ${envDatabaseUrl}`);
+  console.warn(`ℹ️  Using local SQLite database: ${envDatabaseUrl}`);
 } else {
   // DATABASE_URL is set but not a SQLite Cloud URL (e.g., Prisma Accelerate)
   // Use default SQLite Cloud URL instead
   databaseUrl = defaultSQLiteCloudUrl;
-  console.log(
+  console.warn(
     "ℹ️  DATABASE_URL is not a SQLite Cloud URL, using default SQLite Cloud connection",
   );
 }
 
 if (!useLocalSqlite) {
-  console.log(`🔌 Connecting to SQLite Cloud`);
+  console.warn(`🔌 Connecting to SQLite Cloud`);
 } else {
-  console.log(`🔌 Connecting to local SQLite database`);
+  console.warn(`🔌 Connecting to local SQLite database`);
 }
 
 // SQLite Cloud connection setup
@@ -69,7 +67,9 @@ let connectionTested = false;
 
 // For local SQLite (test environments), initialize synchronously
 if (useLocalSqlite) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const BetterSqlite3 = require("better-sqlite3");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { drizzle } = require("drizzle-orm/better-sqlite3");
 
   // Create local SQLite connection synchronously
@@ -87,7 +87,7 @@ if (useLocalSqlite) {
     initializeLocalSchemaSync();
   }
 
-  console.log(`✅ Connected to local SQLite database successfully`);
+  console.warn(`✅ Connected to local SQLite database successfully`);
   connectionTested = true;
 }
 
@@ -192,7 +192,7 @@ function initializeLocalSchemaSync(): void {
       }
     }
 
-    console.log(`✅ Local database schema initialized (${statements.length} statements executed)`);
+    console.warn(`✅ Local database schema initialized (${statements.length} statements executed)`);
   } catch (error) {
     console.warn("⚠️  Failed to initialize local schema:", error);
   }
@@ -235,7 +235,7 @@ if (
   process.env.NODE_ENV === "development" &&
   process.env.DB_LOG_QUERIES === "true"
 ) {
-  console.log(`[DB] 🔍 Query logging enabled for SQLite Cloud connection`);
+  console.warn(`[DB] 🔍 Query logging enabled for SQLite Cloud connection`);
 }
 
 // Export the database instance
@@ -399,7 +399,8 @@ export class PreparedStatementCache {
       const prepared = queryBuilder();
       this.statements.set(key, prepared);
     }
-    return this.statements.get(key) as T;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.statements.get(key) as any as T;
   }
 
   public clear(): void {
@@ -426,6 +427,13 @@ export const preparedQueries = {
         })
         .from(schema.users)
         .where(sql`email = $1 AND is_email_verified = true`),
+    );
+  },
+
+  getUserById: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserById", () =>
+      db.select().from(schema.users).where(sql`id = $1`),
     );
   },
 
@@ -489,6 +497,162 @@ export const preparedQueries = {
         .orderBy(schema.events.startTime),
     );
   },
+
+  // Event details with relationships
+  getEventById: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getEventById", () =>
+      db.select().from(schema.events).where(sql`id = $1`),
+    );
+  },
+
+  getEventAttendees: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getEventAttendees", () =>
+      db
+        .select()
+        .from(schema.eventAttendees)
+        .where(sql`event_id = $1`)
+        .orderBy(schema.eventAttendees.joinedAt),
+    );
+  },
+
+  // Notifications
+  getUnreadNotifications: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUnreadNotifications", () =>
+      db
+        .select()
+        .from(schema.notifications)
+        .where(sql`user_id = $1 AND is_read = false`)
+        .orderBy(desc(schema.notifications.createdAt))
+        .limit(sql`$2`),
+    );
+  },
+
+  getUserNotifications: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserNotifications", () =>
+      db
+        .select()
+        .from(schema.notifications)
+        .where(sql`user_id = $1`)
+        .orderBy(desc(schema.notifications.createdAt))
+        .limit(sql`$2`)
+        .offset(sql`$3`),
+    );
+  },
+
+  // Friends and social
+  getPendingFriendRequests: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getPendingFriendRequests", () =>
+      db
+        .select()
+        .from(schema.friendships)
+        .where(sql`addressee_id = $1 AND status = 'pending'`)
+        .orderBy(desc(schema.friendships.createdAt)),
+    );
+  },
+
+  getUserFriends: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserFriends", () =>
+      db
+        .select()
+        .from(schema.friendships)
+        .where(sql`(user_id = $1 OR friend_id = $1) AND status = 'accepted'`),
+    );
+  },
+
+  // Community members
+  getCommunityMembers: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getCommunityMembers", () =>
+      db
+        .select({
+          user: schema.users,
+          isPrimary: schema.userCommunities.isPrimary,
+          joinedAt: schema.userCommunities.joinedAt,
+        })
+        .from(schema.userCommunities)
+        .innerJoin(schema.users, sql`user_communities.user_id = users.id`)
+        .where(sql`user_communities.community_id = $1`)
+        .limit(sql`$2`)
+        .offset(sql`$3`),
+    );
+  },
+
+  // Tournament queries
+  getTournamentParticipants: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getTournamentParticipants", () =>
+      db
+        .select({
+          participant: schema.tournamentParticipants,
+          user: {
+            id: schema.users.id,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            username: schema.users.username,
+            profileImageUrl: schema.users.profileImageUrl,
+          },
+        })
+        .from(schema.tournamentParticipants)
+        .innerJoin(
+          schema.users,
+          sql`tournament_participants.user_id = users.id`,
+        )
+        .where(sql`tournament_participants.tournament_id = $1`)
+        .orderBy(schema.tournamentParticipants.seed),
+    );
+  },
+
+  // Stream sessions
+  getActiveStreamSessions: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getActiveStreamSessions", () =>
+      db
+        .select()
+        .from(schema.streamSessions)
+        .where(sql`status = 'live' OR status = 'scheduled'`)
+        .orderBy(desc(schema.streamSessions.viewerCount)),
+    );
+  },
+
+  getUserStreamSessions: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserStreamSessions", () =>
+      db
+        .select()
+        .from(schema.streamSessions)
+        .where(sql`streamer_id = $1`)
+        .orderBy(desc(schema.streamSessions.scheduledStart))
+        .limit(sql`$2`),
+    );
+  },
+
+  // User platform accounts
+  getUserPlatformAccounts: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserPlatformAccounts", () =>
+      db
+        .select()
+        .from(schema.userPlatformAccounts)
+        .where(sql`user_id = $1 AND is_active = true`),
+    );
+  },
+
+  getUserPlatformAccount: () => {
+    const cache = PreparedStatementCache.getInstance();
+    return cache.getOrPrepare("getUserPlatformAccount", () =>
+      db
+        .select()
+        .from(schema.userPlatformAccounts)
+        .where(sql`user_id = $1 AND platform = $2 AND is_active = true`)
+        .limit(1),
+    );
+  },
 };
 
 // Composite indexes for database performance - medium priority improvement
@@ -526,7 +690,7 @@ export const compositeIndexes = [
 
 // Function to apply composite indexes
 export async function applyCompositeIndexes(): Promise<void> {
-  console.log("🚀 Applying composite indexes for database performance...");
+  console.warn("🚀 Applying composite indexes for database performance...");
 
   for (const indexSql of compositeIndexes) {
     try {
@@ -534,7 +698,7 @@ export async function applyCompositeIndexes(): Promise<void> {
       // db.run() only works with sql`` template literals
       await db.execute(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
-      console.log(`✅ Applied index: ${indexName}`);
+      console.warn(`✅ Applied index: ${indexName}`);
     } catch (error) {
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
       console.warn(
@@ -544,7 +708,7 @@ export async function applyCompositeIndexes(): Promise<void> {
     }
   }
 
-  console.log("✅ Composite indexes application completed!");
+  console.warn("✅ Composite indexes application completed!");
 }
 
 // Enhanced transaction wrapper with better error handling and retry logic
