@@ -18,7 +18,7 @@ import authRouter from "./features/auth/auth.routes";
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
 import { universalCardRoutes } from "./features/cards/universal-cards.routes";
 import { gamesCrudRoutes } from "./features/games/games-crud.routes";
-import { healthCheck } from "./health";
+import { healthCheck, healthCheckRateLimit } from "./health";
 import { logger } from "./logger";
 import {
   errorHandlingMiddleware,
@@ -96,8 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default communities
   await initializeDefaultCommunities();
 
-  // Health check endpoint
-  app.get("/api/health", healthCheck);
+  // Health check endpoint with rate limiting
+  app.get("/api/health", healthCheckRateLimit, healthCheck);
 
   // REMOVED: Platform OAuth routes - now in routes/platforms.routes.ts
 
