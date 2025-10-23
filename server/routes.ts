@@ -38,6 +38,7 @@ import gameSessionsRouter from "./routes/game-sessions.routes";
 import matchingRouter from "./routes/matching";
 import monitoringRouter from "./routes/monitoring";
 import platformsRouter from "./routes/platforms.routes";
+import sessionsRouter from "./routes/sessions.routes";
 import streamingRouter from "./routes/streaming";
 import userProfileRouter from "./routes/user-profile.routes";
 import { enhancedNotificationService } from "./services/enhanced-notifications.service";
@@ -103,6 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes - authentication, MFA, tokens, password reset, registration (from features/auth)
   app.use("/api/auth", authRouter);
+
+  // Session management routes - device fingerprints, security assessment
+  app.use("/api/sessions", sessionsRouter);
 
   // Note: Friends and friend request routes are registered in server/index.ts
   // This includes /api/friends and /api/friend-requests endpoints
