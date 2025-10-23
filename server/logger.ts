@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+// Logger implementation - console usage is intentional here
 interface LogLevel {
   ERROR: 0;
   WARN: 1;
@@ -206,3 +208,4 @@ class Logger {
 }
 
 export const logger = new Logger();
+/* eslint-enable no-console */

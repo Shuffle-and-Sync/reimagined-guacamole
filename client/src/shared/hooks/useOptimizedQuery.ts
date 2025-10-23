@@ -4,6 +4,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+import { logger } from "../../lib/logger";
 
 /**
  * Enhanced useQuery hook with advanced patterns:
@@ -46,7 +47,9 @@ export function useOptimizedQuery<TData, TError = Error>(
       if (import.meta.env.DEV) {
         // Only log occasionally to avoid spam
         if (Math.random() < 0.1) {
-          console.log("Cache warming opportunity for:", queryOptions.queryKey);
+          logger.debug("Cache warming opportunity for", {
+            queryKey: queryOptions.queryKey,
+          });
         }
       }
     }

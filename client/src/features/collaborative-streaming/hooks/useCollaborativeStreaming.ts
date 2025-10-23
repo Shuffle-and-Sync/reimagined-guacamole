@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { getErrorMessage } from "@shared/type-utils";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { getErrorMessage } from "@shared/type-utils";
 import type {
   CollaborativeStreamEvent,
   StreamCollaborator,
@@ -92,7 +92,8 @@ export function useCreateCollaborativeStreamEvent() {
       toast({
         title: "Error Creating Event",
         description:
-          getErrorMessage(error) || "Failed to create collaborative stream event.",
+          getErrorMessage(error) ||
+          "Failed to create collaborative stream event.",
         variant: "destructive",
       });
     },
@@ -135,7 +136,8 @@ export function useUpdateCollaborativeStreamEvent() {
       toast({
         title: "Error Updating Event",
         description:
-          getErrorMessage(error) || "Failed to update collaborative stream event.",
+          getErrorMessage(error) ||
+          "Failed to update collaborative stream event.",
         variant: "destructive",
       });
     },
@@ -171,7 +173,8 @@ export function useDeleteCollaborativeStreamEvent() {
       toast({
         title: "Error Deleting Event",
         description:
-          getErrorMessage(error) || "Failed to delete collaborative stream event.",
+          getErrorMessage(error) ||
+          "Failed to delete collaborative stream event.",
         variant: "destructive",
       });
     },
@@ -210,7 +213,8 @@ export function useAddStreamCollaborator() {
       toast({
         title: "Error Adding Collaborator",
         description:
-          getErrorMessage(error) || "Failed to add collaborator to stream event.",
+          getErrorMessage(error) ||
+          "Failed to add collaborator to stream event.",
         variant: "destructive",
       });
     },
@@ -249,7 +253,8 @@ export function useRemoveStreamCollaborator() {
       toast({
         title: "Error Removing Collaborator",
         description:
-          getErrorMessage(error) || "Failed to remove collaborator from stream event.",
+          getErrorMessage(error) ||
+          "Failed to remove collaborator from stream event.",
         variant: "destructive",
       });
     },
@@ -281,7 +286,8 @@ export function useStartCoordinationSession() {
     onError: (error: unknown) => {
       toast({
         title: "Error Starting Session",
-        description: getErrorMessage(error) || "Failed to start coordination session.",
+        description:
+          getErrorMessage(error) || "Failed to start coordination session.",
         variant: "destructive",
       });
     },
@@ -319,7 +325,8 @@ export function useUpdateCoordinationPhase() {
     onError: (error: unknown) => {
       toast({
         title: "Error Updating Phase",
-        description: getErrorMessage(error) || "Failed to update coordination phase.",
+        description:
+          getErrorMessage(error) || "Failed to update coordination phase.",
         variant: "destructive",
       });
     },
