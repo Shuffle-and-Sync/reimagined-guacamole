@@ -1,12 +1,13 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { addMonths, subMonths, format } from "date-fns";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import type { Event, Community } from "@shared/schema";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
+import { TodayEventCard } from "@/components/calendar/components/TodayEventCard";
+import { UpcomingEventCard } from "@/components/calendar/components/UpcomingEventCard";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
 import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
 import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
-import { PodStatusBadge } from "@/components/calendar/PodStatusBadge";
 import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,9 @@ export default function Calendar() {
   const [newEventAlternateSlots, setNewEventAlternateSlots] = useState(2);
   const [newEventGameFormat, setNewEventGameFormat] = useState("");
   const [newEventPowerLevel, setNewEventPowerLevel] = useState(5);
+
+  // State for editing events
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   // Auto-set community when creating new events
   useEffect(() => {
@@ -245,7 +249,7 @@ export default function Calendar() {
 
   // Update event mutation
   const updateEventMutation = useMutation({
-    mutationFn: async (eventData: unknown) => {
+    mutationFn: async (eventData: Record<string, unknown>) => {
       const { id, ...updateData } = eventData;
       const response = await fetch(`/api/events/${id}`, {
         method: "PUT",
@@ -351,38 +355,60 @@ export default function Calendar() {
     }
   };
 
-  const handleAttendEvent = (
-    eventId: string,
-    isCurrentlyAttending: boolean,
-  ) => {
-    joinEventMutation.mutate({ eventId, isCurrentlyAttending });
-  };
+  // Memoize handlers to maintain referential equality for memoized components
+  const handleAttendEvent = useCallback(
+    (eventId: string, isCurrentlyAttending: boolean) => {
+      joinEventMutation.mutate({ eventId, isCurrentlyAttending });
+    },
+    [joinEventMutation],
+  );
 
-  const handleEditEvent = (event: ExtendedEvent) => {
-    // Pre-populate form with existing event data
-    setNewEventTitle(event.title);
-    setNewEventType(event.type);
-    setNewEventDate(event.date || ""); // Ensure not null
-    setNewEventTime(event.time || ""); // Ensure not null
-    setNewEventLocation(event.location || ""); // Ensure not null
-    setNewEventDescription(event.description || "");
-    setNewEventCommunityId(event.communityId || "");
-    setEditingEventId(event.id);
-    setIsCreateDialogOpen(true);
-  };
+  const handleEditEventById = useCallback(
+    (eventId: string) => {
+      const event = events.find((e) => e.id === eventId);
+      if (!event) return;
 
-  const handleDeleteEvent = (eventId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this event? This action cannot be undone.",
-      )
-    ) {
-      deleteEventMutation.mutate(eventId);
-    }
-  };
+      // Pre-populate form with existing event data
+      setNewEventTitle(event.title);
+      setNewEventType(event.type);
+      setNewEventDate(event.date || ""); // Ensure not null
+      setNewEventTime(event.time || ""); // Ensure not null
+      setNewEventLocation(event.location || ""); // Ensure not null
+      setNewEventDescription(event.description || "");
+      setNewEventCommunityId(event.communityId || "");
+      setEditingEventId(event.id);
+      setIsCreateDialogOpen(true);
+    },
+    [events],
+  );
 
-  // Add state for editing
-  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const handleDeleteEvent = useCallback(
+    (eventId: string) => {
+      if (
+        confirm(
+          "Are you sure you want to delete this event? This action cannot be undone.",
+        )
+      ) {
+        deleteEventMutation.mutate(eventId);
+      }
+    },
+    [deleteEventMutation],
+  );
+
+  const handleGenerateGraphics = useCallback(
+    (eventId: string, eventTitle: string) => {
+      setSelectedEventForGraphics({ id: eventId, title: eventTitle });
+      setIsGraphicsOpen(true);
+    },
+    [],
+  );
+
+  const handleLoginRequired = useCallback(() => {
+    toast({
+      title: "Please log in to join events",
+      variant: "destructive",
+    });
+  }, [toast]);
 
   // Memoize filtered events to avoid recalculation on every render
   const filteredEvents = useMemo(() => {
@@ -704,45 +730,11 @@ export default function Calendar() {
                         (t) => t.id === event.type,
                       );
                       return (
-                        <Card
+                        <TodayEventCard
                           key={event.id}
-                          className="border-l-4 border-l-orange-500"
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <div
-                                  className={`w-8 h-8 ${eventType?.color} rounded-lg flex items-center justify-center`}
-                                >
-                                  <i
-                                    className={`${eventType?.icon} text-white text-sm`}
-                                  ></i>
-                                </div>
-                                <Badge variant="outline">
-                                  {event.community?.name || "All Communities"}
-                                </Badge>
-                              </div>
-                              <span className="text-sm text-muted-foreground">
-                                {event.time}
-                              </span>
-                            </div>
-                            <CardTitle className="text-lg">
-                              {event.title}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {event.description}
-                            </p>
-                            <div className="flex items-center justify-between text-sm">
-                              <span>📍 {event.location}</span>
-                              <span>
-                                👥{" "}
-                                {event.attendeeCount?.toLocaleString() || "0"}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
+                          event={event}
+                          eventType={eventType}
+                        />
                       );
                     })}
                   </div>
@@ -769,151 +761,17 @@ export default function Calendar() {
                       (t) => t.id === event.type,
                     );
                     return (
-                      <Card
+                      <UpcomingEventCard
                         key={event.id}
-                        className="hover:border-primary/50 transition-colors"
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div
-                                className={`w-12 h-12 ${eventType?.color} rounded-lg flex items-center justify-center`}
-                              >
-                                <i
-                                  className={`${eventType?.icon} text-white text-lg`}
-                                ></i>
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-lg">
-                                  {event.title}
-                                </h3>
-                                <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
-                                  <span>
-                                    📅{" "}
-                                    {event.date
-                                      ? new Date(
-                                          event.date,
-                                        ).toLocaleDateString()
-                                      : format(
-                                          new Date(event.startTime),
-                                          "PPP",
-                                        )}
-                                  </span>
-                                  <span>
-                                    🕒{" "}
-                                    {event.time ||
-                                      (event.startTime &&
-                                        format(
-                                          new Date(event.startTime),
-                                          "HH:mm",
-                                        ))}
-                                  </span>
-                                  <span>📍 {event.location}</span>
-                                  <Badge variant="outline">
-                                    {event.community?.name || "All Communities"}
-                                  </Badge>
-                                </div>
-                                {/* Pod status badge for game_pod events */}
-                                {event.type === "game_pod" && (
-                                  <PodStatusBadge
-                                    event={event}
-                                    mainPlayers={event.mainPlayers || 0}
-                                    alternates={event.alternates || 0}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <div className="text-right text-sm">
-                                <div className="font-medium">
-                                  {event.attendeeCount?.toLocaleString() || "0"}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  attending
-                                </div>
-                              </div>
-                              <div className="flex space-x-2">
-                                {user &&
-                                  (user.id === event.creator?.id ||
-                                    user.id === event.hostId) && (
-                                    <>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          setSelectedEventForGraphics({
-                                            id: event.id,
-                                            title: event.title,
-                                          });
-                                          setIsGraphicsOpen(true);
-                                        }}
-                                      >
-                                        <i className="fas fa-image mr-2"></i>
-                                        Generate Graphic
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleEditEvent(event)}
-                                        data-testid={`button-edit-${event.id}`}
-                                      >
-                                        <i className="fas fa-edit mr-2"></i>
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleDeleteEvent(event.id)
-                                        }
-                                        data-testid={`button-delete-${event.id}`}
-                                      >
-                                        <i className="fas fa-trash mr-2"></i>
-                                        Delete
-                                      </Button>
-                                    </>
-                                  )}
-                                {user ? (
-                                  <Button
-                                    variant={
-                                      event.isUserAttending
-                                        ? "secondary"
-                                        : "default"
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                      handleAttendEvent(
-                                        event.id,
-                                        event.isUserAttending || false,
-                                      )
-                                    }
-                                    data-testid={`button-attend-${event.id}`}
-                                  >
-                                    {event.isUserAttending
-                                      ? "Leave Event"
-                                      : "Join Event"}
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      toast({
-                                        title: "Please log in to join events",
-                                        variant: "destructive",
-                                      })
-                                    }
-                                    data-testid={`button-login-required-${event.id}`}
-                                  >
-                                    <i className="fas fa-sign-in-alt mr-2"></i>
-                                    Login to Join
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        event={event}
+                        eventType={eventType}
+                        user={user}
+                        onEdit={handleEditEventById}
+                        onDelete={handleDeleteEvent}
+                        onJoinLeave={handleAttendEvent}
+                        onGenerateGraphics={handleGenerateGraphics}
+                        onLoginRequired={handleLoginRequired}
+                      />
                     );
                   })}
                 </div>
