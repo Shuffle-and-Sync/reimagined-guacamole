@@ -1,19 +1,17 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { addMonths, subMonths, format } from "date-fns";
+import { addMonths, subMonths } from "date-fns";
 import React, { useState, useMemo, useCallback } from "react";
 import type { Event, Community } from "@shared/schema";
 import { CalendarFilters } from "@/components/calendar/CalendarFilters";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 import { CalendarHeader } from "@/components/calendar/CalendarHeader";
-import { TodayEventCard } from "@/components/calendar/components/TodayEventCard";
-import { UpcomingEventCard } from "@/components/calendar/components/UpcomingEventCard";
+import { CalendarPageHeader } from "@/components/calendar/CalendarPageHeader";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
-import { EventFormDialog } from "@/components/calendar/forms/EventFormDialog";
+import { EventsOverviewSection } from "@/components/calendar/EventsOverviewSection";
 import type { EventFormData } from "@/components/calendar/forms/eventFormSchema";
 import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
+import { MyEventsTab } from "@/components/calendar/MyEventsTab";
 import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth";
@@ -392,67 +390,20 @@ export default function Calendar() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold gradient-text">
-                Event Calendar
-              </h1>
-              <p className="text-xl text-muted-foreground mt-2">
-                Stay updated with tournaments, conventions, releases, and
-                community events
-              </p>
-              {selectedCommunity && (
-                <div className="flex items-center space-x-2 mt-4">
-                  <Badge
-                    className="flex items-center space-x-2 px-3 py-1"
-                    style={{
-                      backgroundColor: selectedCommunity.themeColor + "20",
-                      color: selectedCommunity.themeColor,
-                      borderColor: selectedCommunity.themeColor,
-                    }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: selectedCommunity.themeColor }}
-                    ></div>
-                    <span>Filtering by {selectedCommunity.displayName}</span>
-                  </Badge>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col items-end space-y-2">
-              {!selectedCommunity && (
-                <p className="text-sm text-muted-foreground">
-                  Select a specific realm to create events
-                </p>
-              )}
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCSVUploadOpen(true)}
-                  disabled={!selectedCommunity}
-                >
-                  <i className="fas fa-file-csv mr-2"></i>
-                  Bulk Upload
-                </Button>
-                <EventFormDialog
-                  isOpen={isCreateDialogOpen}
-                  onOpenChange={setIsCreateDialogOpen}
-                  onSubmit={handleCreateEvent}
-                  editingEventId={editingEventId}
-                  communities={communities}
-                  eventTypes={EVENT_TYPES}
-                  selectedCommunityId={selectedCommunity?.id}
-                  defaultValues={editingEventData}
-                  isSubmitting={
-                    createEventMutation.isPending ||
-                    updateEventMutation.isPending
-                  }
-                />
-              </div>
-            </div>
-          </div>
+          <CalendarPageHeader
+            selectedCommunity={selectedCommunity}
+            isCreateDialogOpen={isCreateDialogOpen}
+            onCreateDialogOpenChange={setIsCreateDialogOpen}
+            onCSVUploadClick={() => setIsCSVUploadOpen(true)}
+            onEventSubmit={handleCreateEvent}
+            editingEventId={editingEventId}
+            communities={communities}
+            eventTypes={EVENT_TYPES}
+            editingEventData={editingEventData}
+            isSubmitting={
+              createEventMutation.isPending || updateEventMutation.isPending
+            }
+          />
 
           {/* CSV Upload Dialog */}
           {selectedCommunity && (
@@ -494,64 +445,18 @@ export default function Calendar() {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-8">
-              {/* Today's Events */}
-              <div>
-                <h2 className="text-2xl font-bold mb-4 community-heading">
-                  Today&apos;s {communityTheme.terminology.events}
-                </h2>
-                {todaysEvents.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {todaysEvents.map((event) => {
-                      const eventType = EVENT_TYPES.find(
-                        (t) => t.id === event.type,
-                      );
-                      return (
-                        <TodayEventCard
-                          key={event.id}
-                          event={event}
-                          eventType={eventType}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <Card className="text-center py-12">
-                    <CardContent>
-                      <i className="fas fa-calendar-day text-4xl text-muted-foreground mb-4"></i>
-                      <p className="text-muted-foreground">
-                        No events scheduled for today
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Upcoming Events */}
-              <div>
-                <h2 className="text-2xl font-bold mb-4 community-heading">
-                  Upcoming {communityTheme.terminology.events}
-                </h2>
-                <div className="space-y-4">
-                  {upcomingEvents.map((event) => {
-                    const eventType = EVENT_TYPES.find(
-                      (t) => t.id === event.type,
-                    );
-                    return (
-                      <UpcomingEventCard
-                        key={event.id}
-                        event={event}
-                        eventType={eventType}
-                        user={user}
-                        onEdit={handleEditEventById}
-                        onDelete={handleDeleteEvent}
-                        onJoinLeave={handleAttendEvent}
-                        onGenerateGraphics={handleGenerateGraphics}
-                        onLoginRequired={handleLoginRequired}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+              <EventsOverviewSection
+                todaysEvents={todaysEvents}
+                upcomingEvents={upcomingEvents}
+                eventTypes={EVENT_TYPES}
+                user={user}
+                eventsTerminology={communityTheme.terminology.events}
+                onEdit={handleEditEventById}
+                onDelete={handleDeleteEvent}
+                onJoinLeave={handleAttendEvent}
+                onGenerateGraphics={handleGenerateGraphics}
+                onLoginRequired={handleLoginRequired}
+              />
             </TabsContent>
 
             {/* Calendar Tab */}
@@ -605,75 +510,12 @@ export default function Calendar() {
 
             {/* My Events Tab */}
             <TabsContent value="my-events">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold community-heading">
-                  My {communityTheme.terminology.events}
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <i className="fas fa-check-circle text-green-500"></i>
-                        <span>Attending</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {events
-                        .filter((e) => e.isUserAttending)
-                        .map((event) => (
-                          <div
-                            key={event.id}
-                            className="flex items-center justify-between p-3 border rounded-lg mb-2"
-                          >
-                            <div>
-                              <div className="font-medium">{event.title}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {event.date
-                                  ? new Date(event.date).toLocaleDateString()
-                                  : format(
-                                      new Date(event.startTime),
-                                      "PPP",
-                                    )}{" "}
-                                at{" "}
-                                {event.time ||
-                                  (event.startTime &&
-                                    format(new Date(event.startTime), "HH:mm"))}
-                              </div>
-                            </div>
-                            <Badge variant="secondary">Attending</Badge>
-                          </div>
-                        ))}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <i className="fas fa-calendar-plus text-primary"></i>
-                        <span>Created by Me</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-8">
-                        <i className="fas fa-calendar-day text-4xl text-muted-foreground mb-4"></i>
-                        <p className="text-muted-foreground mb-4">
-                          You haven&apos;t created any events yet
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!selectedCommunity}
-                          onClick={() => setIsCreateDialogOpen(true)}
-                        >
-                          <i className="fas fa-plus mr-2"></i>
-                          Create Your First Event
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <MyEventsTab
+                events={events}
+                eventsTerminology={communityTheme.terminology.events}
+                selectedCommunity={!!selectedCommunity}
+                onCreateEventClick={() => setIsCreateDialogOpen(true)}
+              />
             </TabsContent>
           </Tabs>
         </div>
