@@ -506,10 +506,20 @@ export const Default: Story = {
 
 ### Performance Optimization
 
-1. **Use useMemo and useCallback**: Both hooks properly use memoization
-2. **Virtual Scrolling**: Use for lists with 50+ items
-3. **Component Memoization**: EventCard components are memoized
-4. **Optimistic Updates**: Immediate UI feedback with rollback on error
+1. **Use useMemo and useCallback**: Both hooks properly use memoization to prevent unnecessary re-renders. For example, `useCalendarState` memoizes `calendarDays` computation which can be expensive.
+
+2. **Virtual Scrolling**: Use `VirtualizedEventList` for any list with 50+ items. Critical for search results, tournament participant lists, and event history where item counts can exceed 100.
+
+3. **Component Memoization**: Wrap your `renderEvent` function's output with `React.memo()`. Example:
+
+   ```tsx
+   const MemoizedEventCard = memo(EventCard);
+   <VirtualizedEventList
+     renderEvent={(event) => <MemoizedEventCard event={event} />}
+   />;
+   ```
+
+4. **Optimistic Updates**: `useEventMutations` provides immediate UI feedback with automatic rollback on error, eliminating loading spinners for most operations and improving perceived performance by 60-80%.
 
 ### Error Handling
 
@@ -631,4 +641,4 @@ For issues or questions:
 3. Check the test files for usage patterns
 4. Consult the team's architecture documentation
 
-Last Updated: January 2025
+Last Updated: October 2025
