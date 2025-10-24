@@ -9,6 +9,7 @@ import { logger } from "../logger";
 import { PerformanceMonitor } from "../middleware/performance.middleware";
 import { generalRateLimit } from "../rate-limiting";
 import { queryCache } from "../utils/cache.utils";
+import { connectionMonitor } from "../utils/connection-monitor";
 
 const router = Router();
 
@@ -48,6 +49,10 @@ router.get("/health", async (req, res) => {
     const dbMonitor = DatabaseMonitor.getInstance();
     const perfMonitor = PerformanceMonitor.getInstance();
     const cacheStats = queryCache.getStats();
+    const connMonitorMetrics = connectionMonitor.getMetrics();
+    const connStatistics = connectionMonitor.getStatistics();
+    const activeConnections = connectionMonitor.getActiveConnections();
+    const connectionAlerts = connectionMonitor.getAlerts(5);
 
     // Calculate average query time from database stats
     const dbStats = dbMonitor.getStats();
@@ -86,13 +91,20 @@ router.get("/health", async (req, res) => {
           cacheHitRate: cacheStats.hitRate,
           queryResponseTime: health.queryResponseTime,
         },
+        connectionMonitoring: {
+          metrics: connMonitorMetrics,
+          statistics: connStatistics,
+          activeConnections: activeConnections.slice(0, 10), // Limit to 10 most recent
+          recentAlerts: connectionAlerts,
+        },
       },
     };
 
     // Set status to unhealthy if thresholds exceeded
     if (
       enhancedHealth.database.performance.averageQueryTime > 1000 ||
-      enhancedHealth.database.connectionPool.waitingCount > 5
+      enhancedHealth.database.connectionPool.waitingCount > 5 ||
+      connStatistics.leakCount > 3
     ) {
       enhancedHealth.status = "unhealthy";
       return res.status(503).json(enhancedHealth);
@@ -233,6 +245,88 @@ router.get("/pool", async (req, res) => {
     return res.status(500).json({
       success: false,
       error: "Failed to get pool information",
+    });
+  }
+});
+
+/**
+ * Connection monitoring details
+ * GET /api/database/connections
+ */
+router.get("/connections", async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+
+  try {
+    // Admin-only endpoint
+    const userId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(userId))) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
+    }
+
+    const metrics = connectionMonitor.getMetrics();
+    const statistics = connectionMonitor.getStatistics();
+    const activeConnections = connectionMonitor.getActiveConnections();
+    const alerts = connectionMonitor.getAlerts(20);
+
+    return res.json({
+      success: true,
+      data: {
+        metrics,
+        statistics,
+        activeConnections,
+        alerts,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error("Failed to get connection monitoring details", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to get connection monitoring details",
+    });
+  }
+});
+
+/**
+ * Reset connection monitoring metrics
+ * POST /api/database/connections/reset
+ */
+router.post("/connections/reset", async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+
+  try {
+    // Admin-only endpoint with environment check
+    const userId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(userId))) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
+    }
+
+    // Only allow in development/testing environments
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({
+        success: false,
+        error: "Connection monitoring reset disabled in production",
+      });
+    }
+
+    connectionMonitor.reset();
+
+    logger.info("Connection monitoring metrics reset", { userId });
+
+    return res.json({
+      success: true,
+      message: "Connection monitoring metrics reset successfully",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error("Failed to reset connection monitoring metrics", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to reset connection monitoring metrics",
     });
   }
 });
