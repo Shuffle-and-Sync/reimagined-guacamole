@@ -8,6 +8,11 @@ Welcome to the Shuffle & Sync API documentation. This directory contains compreh
 - **[Full API Documentation](API_DOCUMENTATION.md)** - Detailed API reference with request/response examples
 - **[Universal Deck-Building API](UNIVERSAL_DECK_BUILDING_API.md)** - Multi-game deck building endpoints
 
+## API Design & Standards
+
+- **[API Improvement Roadmap](API_IMPROVEMENT_ROADMAP.md)** - Comprehensive API design review and prioritized improvement plan
+- **[Endpoint Modifications Reference](ENDPOINT_MODIFICATIONS.md)** - Detailed modifications needed for REST compliance
+
 ## Related Documentation
 
 - **[OAuth 2.0 Flows](/docs/oauth/README.md)** - Platform OAuth integration guide
