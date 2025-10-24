@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // Safe path resolution that works in both development and bundled environments
 const getProjectRoot = () => {
@@ -25,7 +26,16 @@ export default defineConfig({
           ),
         ]
       : []),
-  ],
+    // Bundle analyzer - generates stats.html after build
+    process.env.ANALYZE === "true"
+      ? visualizer({
+          open: true,
+          gzipSize: true,
+          brotliSize: true,
+          filename: "dist/stats.html",
+        })
+      : undefined,
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(projectRoot, "client", "src"),
