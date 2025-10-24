@@ -94,5 +94,6 @@ export const performanceMonitor = new PerformanceMonitor();
 
 // Make it available globally in development
 if (process.env.NODE_ENV === "development") {
-  (window as Record<string, unknown>).performanceMonitor = performanceMonitor;
+  (window as unknown as Record<string, unknown>).performanceMonitor =
+    performanceMonitor;
 }
