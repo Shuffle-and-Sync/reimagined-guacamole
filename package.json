@@ -90,7 +90,9 @@
     "db:backup:list": "ls -lh backups/ 2>/dev/null || echo 'No backups found'",
     "infrastructure:validate": "cd infrastructure/terraform && terraform validate",
     "infrastructure:plan": "cd infrastructure/terraform && terraform plan",
-    "infrastructure:apply": "cd infrastructure/terraform && terraform apply"
+    "infrastructure:apply": "cd infrastructure/terraform && terraform apply",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@auth/core": "^0.40.0",
@@ -234,7 +236,11 @@
     "tsx": "^4.20.5",
     "typescript": "^5.6.3",
     "vite": "^7.1.11",
-    "vitest": "^4.0.1"
+    "vitest": "^4.0.1",
+    "storybook": "^9.1.15",
+    "@storybook/react-vite": "^9.1.15",
+    "@storybook/addon-docs": "^9.1.15",
+    "@storybook/addon-onboarding": "^9.1.15"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

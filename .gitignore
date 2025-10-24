@@ -91,3 +91,6 @@ backups/
 *.sql.gz
 *.sha256
 backup-*.json
+
+*storybook.log
+storybook-static
