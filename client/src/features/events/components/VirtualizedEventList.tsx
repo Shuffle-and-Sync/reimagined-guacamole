@@ -53,6 +53,7 @@ export const VirtualizedEventList = memo(function VirtualizedEventList({
       >
         {items.map((virtualItem) => {
           const event = events[virtualItem.index];
+          if (!event) return null;
 
           return (
             <div
