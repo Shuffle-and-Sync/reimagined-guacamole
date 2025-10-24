@@ -7,7 +7,8 @@ import { TodayEventCard } from "@/components/calendar/components/TodayEventCard"
 import { UpcomingEventCard } from "@/components/calendar/components/UpcomingEventCard";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
 import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
-import { PodFieldsForm } from "@/components/calendar/PodFieldsForm";
+import { EventFormDialog } from "@/components/calendar/forms/EventFormDialog";
+import type { EventFormData } from "@/components/calendar/forms/eventFormSchema";
 import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
