@@ -16,7 +16,13 @@ export function useEvents(communityId?: string) {
   });
 }
 
-export function useCreateEvent() {
+interface UseCreateEventOptions {
+  onSuccess?: (event: ExtendedEvent) => void;
+  onError?: (error: Error) => void;
+  skipToast?: boolean;
+}
+
+export function useCreateEvent(options?: UseCreateEventOptions) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -30,24 +36,66 @@ export function useCreateEvent() {
       if (!response.ok) throw new Error("Failed to create event");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Event created successfully",
-        description: "Your event has been added to the calendar",
+    onMutate: async (newEvent) => {
+      // Cancel outgoing queries to prevent optimistic update from being overwritten
+      await queryClient.cancelQueries({ queryKey: ["/api/events"] });
+
+      // Snapshot previous values
+      const previousEvents = queryClient.getQueryData<ExtendedEvent[]>([
+        "/api/events",
+      ]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<ExtendedEvent[]>(["/api/events"], (old) => {
+        return old
+          ? [
+              ...old,
+              {
+                ...newEvent,
+                id: "temp-id",
+                createdAt: new Date(),
+              } as ExtendedEvent,
+            ]
+          : [];
       });
+
+      return { previousEvents };
     },
-    onError: () => {
-      toast({
-        title: "Failed to create event",
-        description: "There was an error creating your event",
-        variant: "destructive",
-      });
+    onError: (error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousEvents) {
+        queryClient.setQueryData(["/api/events"], context.previousEvents);
+      }
+      if (!options?.skipToast) {
+        toast({
+          title: "Failed to create event",
+          description: "There was an error creating your event",
+          variant: "destructive",
+        });
+      }
+      options?.onError?.(error as Error);
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch to get server state
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      if (!options?.skipToast) {
+        toast({
+          title: "Event created successfully",
+          description: "Your event has been added to the calendar",
+        });
+      }
+      options?.onSuccess?.(data);
     },
   });
 }
 
-export function useUpdateEvent() {
+interface UseUpdateEventOptions {
+  onSuccess?: (event: ExtendedEvent) => void;
+  onError?: (error: Error) => void;
+  skipToast?: boolean;
+}
+
+export function useUpdateEvent(options?: UseUpdateEventOptions) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -64,24 +112,60 @@ export function useUpdateEvent() {
       if (!response.ok) throw new Error("Failed to update event");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Event updated successfully",
-        description: "Your changes have been saved",
+    onMutate: async ({ id, ...data }) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ["/api/events"] });
+
+      // Snapshot previous value
+      const previousEvents = queryClient.getQueryData<ExtendedEvent[]>([
+        "/api/events",
+      ]);
+
+      // Optimistically update
+      queryClient.setQueryData<ExtendedEvent[]>(["/api/events"], (old) => {
+        return old
+          ? old.map((event) =>
+              event.id === id ? { ...event, ...data } : event,
+            )
+          : old;
       });
+
+      return { previousEvents };
     },
-    onError: () => {
-      toast({
-        title: "Failed to update event",
-        description: "There was an error updating your event",
-        variant: "destructive",
-      });
+    onError: (error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousEvents) {
+        queryClient.setQueryData(["/api/events"], context.previousEvents);
+      }
+      if (!options?.skipToast) {
+        toast({
+          title: "Failed to update event",
+          description: "There was an error updating your event",
+          variant: "destructive",
+        });
+      }
+      options?.onError?.(error as Error);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      if (!options?.skipToast) {
+        toast({
+          title: "Event updated successfully",
+          description: "Your changes have been saved",
+        });
+      }
+      options?.onSuccess?.(data);
     },
   });
 }
 
-export function useDeleteEvent() {
+interface UseDeleteEventOptions {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+  skipToast?: boolean;
+}
+
+export function useDeleteEvent(options?: UseDeleteEventOptions) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -93,19 +177,45 @@ export function useDeleteEvent() {
       if (!response.ok) throw new Error("Failed to delete event");
       return response.json();
     },
+    onMutate: async (eventId) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ["/api/events"] });
+
+      // Snapshot previous value
+      const previousEvents = queryClient.getQueryData<ExtendedEvent[]>([
+        "/api/events",
+      ]);
+
+      // Optimistically remove the event
+      queryClient.setQueryData<ExtendedEvent[]>(["/api/events"], (old) => {
+        return old ? old.filter((event) => event.id !== eventId) : old;
+      });
+
+      return { previousEvents };
+    },
+    onError: (error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousEvents) {
+        queryClient.setQueryData(["/api/events"], context.previousEvents);
+      }
+      if (!options?.skipToast) {
+        toast({
+          title: "Failed to delete event",
+          description: "There was an error deleting the event",
+          variant: "destructive",
+        });
+      }
+      options?.onError?.(error as Error);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Event deleted successfully",
-        description: "The event has been removed from the calendar",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Failed to delete event",
-        description: "There was an error deleting the event",
-        variant: "destructive",
-      });
+      if (!options?.skipToast) {
+        toast({
+          title: "Event deleted successfully",
+          description: "The event has been removed from the calendar",
+        });
+      }
+      options?.onSuccess?.();
     },
   });
 }

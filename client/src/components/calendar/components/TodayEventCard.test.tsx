@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { TodayEventCard } from "./TodayEventCard";
 import type { Event, Community } from "@shared/schema";
+import { TodayEventCard } from "./TodayEventCard";
 
 const mockEvent: Event & {
   community: Community | null;
