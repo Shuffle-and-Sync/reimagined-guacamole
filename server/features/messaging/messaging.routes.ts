@@ -5,6 +5,10 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import {
+  cacheStrategies,
+  cacheInvalidation,
+} from "../../middleware/cache.middleware";
 import { assertRouteParam } from "../../shared/utils";
 import { dbUtils } from "../../utils/database.utils";
 import { messagingService } from "./messaging.service";
@@ -12,33 +16,55 @@ import { messagingService } from "./messaging.service";
 const router = Router();
 
 // Notification Routes
-router.get("/", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
+router.get(
+  "/",
+  isAuthenticated,
+  cacheStrategies.shortLived(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
 
-    // Parse pagination and filter parameters
-    const { page, limit, cursor, sort } = dbUtils.parsePaginationQuery(
-      req.query,
-    );
-    const { unreadOnly } = req.query;
+      // Parse pagination and filter parameters
+      const { page, limit, cursor, sort } = dbUtils.parsePaginationQuery(
+        req.query,
+      );
+      const { unreadOnly } = req.query;
 
-    const notifications = await messagingService.getUserNotifications(userId, {
-      unreadOnly: unreadOnly === "true",
-      pagination: { page, limit, cursor },
-      sort,
-    });
+      // Warn if using offset pagination
+      if (page && !cursor) {
+        logger.warn("Using offset pagination on notifications endpoint", {
+          endpoint: "/api/notifications",
+          page,
+          userId,
+        });
 
-    res.json(notifications);
-  } catch (error) {
-    logger.error("Failed to fetch notifications", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+        res.setHeader(
+          "X-Pagination-Warning",
+          "Offset pagination may have performance issues. Consider using cursor-based pagination.",
+        );
+      }
 
-router.post("/", isAuthenticated, async (req, res) => {
+      const notifications = await messagingService.getUserNotifications(
+        userId,
+        {
+          unreadOnly: unreadOnly === "true",
+          pagination: { page, limit, cursor },
+          sort,
+        },
+      );
+
+      res.json(notifications);
+    } catch (error) {
+      logger.error("Failed to fetch notifications", error, {
+        userId: getAuthUserId(authenticatedReq),
+      });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+router.post("/", isAuthenticated, cacheInvalidation.all(), async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
@@ -53,32 +79,42 @@ router.post("/", isAuthenticated, async (req, res) => {
   }
 });
 
-router.patch("/:id/read", isAuthenticated, async (req, res) => {
-  try {
-    const id = assertRouteParam(req.params.id, "id");
-    await messagingService.markNotificationAsRead(id);
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Failed to mark notification as read", error, {
-      notificationId: req.params.id,
-    });
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+router.patch(
+  "/:id/read",
+  isAuthenticated,
+  cacheInvalidation.all(),
+  async (req, res) => {
+    try {
+      const id = assertRouteParam(req.params.id, "id");
+      await messagingService.markNotificationAsRead(id);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to mark notification as read", error, {
+        notificationId: req.params.id,
+      });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
-router.patch("/read-all", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    await messagingService.markAllNotificationsAsRead(userId);
-    res.json({ success: true });
-  } catch (error) {
-    logger.error("Failed to mark all notifications as read", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+router.patch(
+  "/read-all",
+  isAuthenticated,
+  cacheInvalidation.all(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      await messagingService.markAllNotificationsAsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      logger.error("Failed to mark all notifications as read", error, {
+        userId: getAuthUserId(authenticatedReq),
+      });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 export { router as notificationsRoutes };
 
@@ -95,6 +131,21 @@ messagesRouter.get("/", isAuthenticated, async (req, res) => {
       req.query,
     );
     const { eventId, communityId, conversationId, unreadOnly } = req.query;
+
+    // Warn if using offset pagination on potentially large dataset
+    if (page && !cursor) {
+      logger.warn("Using offset pagination on messages endpoint", {
+        endpoint: "/api/messages",
+        page,
+        userId,
+      });
+
+      // Add deprecation warning header
+      res.setHeader(
+        "X-Pagination-Warning",
+        "Offset pagination is deprecated for messages. Use cursor-based pagination for better performance.",
+      );
+    }
 
     const messages = await messagingService.getUserMessages(userId, {
       eventId: eventId as string,
@@ -114,19 +165,24 @@ messagesRouter.get("/", isAuthenticated, async (req, res) => {
   }
 });
 
-messagesRouter.post("/", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const message = await messagingService.sendMessage(userId, req.body);
-    res.status(201).json(message);
-  } catch (error) {
-    logger.error("Failed to send message", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+messagesRouter.post(
+  "/",
+  isAuthenticated,
+  cacheInvalidation.all(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const message = await messagingService.sendMessage(userId, req.body);
+      res.status(201).json(message);
+    } catch (error) {
+      logger.error("Failed to send message", error, {
+        userId: getAuthUserId(authenticatedReq),
+      });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // Separate router for conversations (mounted at /api/conversations)
 export const conversationsRouter = Router();

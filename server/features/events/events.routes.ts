@@ -5,23 +5,50 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import {
+  cacheStrategies,
+  cacheInvalidation,
+} from "../../middleware/cache.middleware";
 import { eventCreationRateLimit } from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventsService } from "./events.service";
 
 const router = Router();
 
-// Get events with filters
-router.get("/", async (req, res) => {
+// Get events with filters and cursor pagination support
+router.get("/", cacheStrategies.events(), async (req, res) => {
   try {
-    const { communityId, type, upcoming } = req.query;
+    const { communityId, type, upcoming, cursor, limit, page } = req.query;
     const userId = (req as Partial<AuthenticatedRequest>).user?.id;
+
+    // Parse limit with proper bounds
+    const parsedLimit = Math.min(
+      Math.max(1, parseInt(limit as string) || 50),
+      100,
+    );
+
+    // Warn if using offset pagination on potentially large dataset
+    if (page && !cursor) {
+      logger.warn("Using offset pagination on events endpoint", {
+        endpoint: "/api/events",
+        page,
+        filters: { communityId, type, upcoming },
+      });
+
+      // Add deprecation warning header
+      res.setHeader(
+        "X-Pagination-Warning",
+        "Offset pagination may have performance issues on large datasets. Consider using cursor-based pagination.",
+      );
+    }
 
     const events = await eventsService.getEvents({
       userId,
       communityId: communityId as string,
       type: type as string,
       upcoming: upcoming === "true",
+      cursor: cursor as string,
+      limit: parsedLimit,
     });
 
     res.json(events);
@@ -63,6 +90,7 @@ router.post(
   isAuthenticated,
   eventCreationRateLimit,
   validateRequest(validateEventSchema),
+  cacheInvalidation.events(),
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -83,37 +111,46 @@ router.post(
 );
 
 // Update event
-router.put("/:id", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ message: "Event ID is required" });
-    }
-    const userId = getAuthUserId(authenticatedReq);
-
-    const updatedEvent = await eventsService.updateEvent(id, userId, req.body);
-    return res.json(updatedEvent);
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "Event not found") {
-        return res.status(404).json({ message: "Event not found" });
+router.put(
+  "/:id",
+  isAuthenticated,
+  cacheInvalidation.events(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Event ID is required" });
       }
-      if (error.message === "Not authorized to edit this event") {
-        return res
-          .status(403)
-          .json({ message: "Not authorized to edit this event" });
-      }
-    }
+      const userId = getAuthUserId(authenticatedReq);
 
-    logger.error(
-      "Failed to update event",
-      error instanceof Error ? error : new Error(String(error)),
-      { eventId: req.params.id },
-    );
-    return res.status(500).json({ message: "Failed to update event" });
-  }
-});
+      const updatedEvent = await eventsService.updateEvent(
+        id,
+        userId,
+        req.body,
+      );
+      return res.json(updatedEvent);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Event not found") {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        if (error.message === "Not authorized to edit this event") {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to edit this event" });
+        }
+      }
+
+      logger.error(
+        "Failed to update event",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.id },
+      );
+      return res.status(500).json({ message: "Failed to update event" });
+    }
+  },
+);
 
 // Delete event
 router.delete("/:id", isAuthenticated, async (req, res) => {

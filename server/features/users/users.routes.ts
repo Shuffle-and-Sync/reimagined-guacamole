@@ -5,6 +5,10 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import {
+  cacheStrategies,
+  cacheInvalidation,
+} from "../../middleware/cache.middleware";
 import { assertRouteParam } from "../../shared/utils";
 import {
   validateRequest,
@@ -22,6 +26,7 @@ router.patch(
   "/profile",
   isAuthenticated,
   validateRequest(validateUserProfileUpdateSchema),
+  cacheInvalidation.user(),
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -38,47 +43,57 @@ router.patch(
 );
 
 // Get user profile (for viewing other users' profiles)
-router.get("/profile/:userId?", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const currentUserId = getAuthUserId(authenticatedReq);
-    const targetUserId = req.params.userId;
+router.get(
+  "/profile/:userId?",
+  isAuthenticated,
+  cacheStrategies.userProfile(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const currentUserId = getAuthUserId(authenticatedReq);
+      const targetUserId = req.params.userId;
 
-    const userProfile = await usersService.getUserProfile(
-      currentUserId,
-      targetUserId,
-    );
+      const userProfile = await usersService.getUserProfile(
+        currentUserId,
+        targetUserId,
+      );
 
-    if (!userProfile) {
-      return res.status(404).json({ message: "User not found" });
+      if (!userProfile) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.json(userProfile);
+    } catch (error) {
+      logger.error("Failed to fetch user profile", error, {
+        currentUserId: getAuthUserId(authenticatedReq),
+        targetUserId: req.params.userId,
+      });
+      return res.status(500).json({ message: "Failed to fetch profile" });
     }
-
-    return res.json(userProfile);
-  } catch (error) {
-    logger.error("Failed to fetch user profile", error, {
-      currentUserId: getAuthUserId(authenticatedReq),
-      targetUserId: req.params.userId,
-    });
-    return res.status(500).json({ message: "Failed to fetch profile" });
-  }
-});
+  },
+);
 
 // Social Links Routes
-router.get("/social-links/:userId?", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const currentUserId = getAuthUserId(authenticatedReq);
-    const targetUserId = req.params.userId || currentUserId;
+router.get(
+  "/social-links/:userId?",
+  isAuthenticated,
+  cacheStrategies.userProfile(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const currentUserId = getAuthUserId(authenticatedReq);
+      const targetUserId = req.params.userId || currentUserId;
 
-    const socialLinks = await usersService.getUserSocialLinks(targetUserId);
-    res.json(socialLinks);
-  } catch (error) {
-    logger.error("Failed to fetch social links", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
-    res.status(500).json({ message: "Failed to fetch social links" });
-  }
-});
+      const socialLinks = await usersService.getUserSocialLinks(targetUserId);
+      res.json(socialLinks);
+    } catch (error) {
+      logger.error("Failed to fetch social links", error, {
+        userId: getAuthUserId(authenticatedReq),
+      });
+      res.status(500).json({ message: "Failed to fetch social links" });
+    }
+  },
+);
 
 router.put(
   "/social-links",

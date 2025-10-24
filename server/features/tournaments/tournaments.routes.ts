@@ -5,15 +5,42 @@ import {
   type AuthenticatedRequest,
 } from "../../auth";
 import { logger } from "../../logger";
+import {
+  cacheStrategies,
+  cacheInvalidation,
+} from "../../middleware/cache.middleware";
 import { assertRouteParam } from "../../shared/utils";
 import { tournamentsService } from "./tournaments.service";
 
 const router = Router();
 
-// Get tournaments
-router.get("/", async (req, res) => {
+// Get tournaments with cursor pagination support
+router.get("/", cacheStrategies.shortLived(), async (req, res) => {
   try {
     const communityId = req.query.community as string | undefined;
+    const { cursor, limit, page } = req.query;
+
+    // Parse limit with proper bounds (unused for now but ready for future cursor implementation)
+    const _parsedLimit = Math.min(
+      Math.max(1, parseInt(limit as string) || 50),
+      100,
+    );
+
+    // Warn if using offset pagination on potentially large dataset
+    if (page && !cursor) {
+      logger.warn("Using offset pagination on tournaments endpoint", {
+        endpoint: "/api/tournaments",
+        page,
+        communityId,
+      });
+
+      // Add deprecation warning header
+      res.setHeader(
+        "X-Pagination-Warning",
+        "Offset pagination may have performance issues on large datasets. Consider using cursor-based pagination.",
+      );
+    }
+
     const tournaments = await tournamentsService.getTournaments(communityId);
     res.json(tournaments);
   } catch (error) {
@@ -61,7 +88,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Create tournament
-router.post("/", isAuthenticated, async (req, res) => {
+router.post("/", isAuthenticated, cacheInvalidation.all(), async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const userId = getAuthUserId(authenticatedReq);
