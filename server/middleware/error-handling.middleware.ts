@@ -3,6 +3,8 @@
  *
  * This module provides comprehensive error handling following Copilot best practices
  * for maintainable, scalable error management across the application.
+ *
+ * Now supports JSend-compliant response format via ApiResponse utility
  */
 
 import { Server } from "http";
@@ -16,6 +18,8 @@ import {
   errors as standardizedErrors,
 } from "../lib/error-response";
 import { logger } from "../logger";
+import { ApiError } from "../utils/ApiError";
+import { ApiResponse } from "../utils/ApiResponse";
 
 // Custom error types for better error categorization
 export class AppError extends Error {
@@ -132,10 +136,15 @@ interface ErrorResponse {
 export { StandardizedAppError, standardizedErrors, ErrorCode };
 export { errors as standardizedErrorCreators } from "../lib/error-response";
 
+// Re-export new utilities for convenience
+export { ApiError } from "../utils/ApiError";
+export { ApiResponse } from "../utils/ApiResponse";
+export { catchAsync } from "../utils/catchAsync";
+
 /**
  * Global error handling middleware
  * Should be the last middleware in the chain
- * Now integrates with standardized error response system
+ * Now integrates with standardized error response system and JSend format
  */
 export function globalErrorHandler(
   error: Error,
@@ -149,6 +158,38 @@ export function globalErrorHandler(
   // Set request ID header if not already set
   if (!res.getHeader("X-Request-ID")) {
     res.setHeader("X-Request-ID", requestId);
+  }
+
+  // Handle new ApiError class (JSend format)
+  if (error instanceof ApiError) {
+    const errorLog = {
+      requestId,
+      timestamp,
+      message: error.message,
+      statusCode: error.statusCode,
+      stack: error.stack,
+      url: req.url,
+      method: req.method,
+      userAgent: req.get("User-Agent"),
+      ip: req.ip,
+      userId: (req as Request & { user?: { id: string } }).user?.id,
+    };
+
+    // Log with appropriate level
+    if (error.statusCode >= 500) {
+      logger.error("Server error", error, errorLog);
+    } else if (error.statusCode >= 400) {
+      logger.warn("Client error", errorLog);
+    }
+
+    // Send JSend-formatted response
+    const response =
+      error.statusCode >= 500
+        ? ApiResponse.error(error.message, error.errors)
+        : ApiResponse.fail(error.message, error.errors);
+
+    res.status(error.statusCode).json(response);
+    return;
   }
 
   // Handle standardized errors
@@ -179,30 +220,26 @@ export function globalErrorHandler(
     return res.status(error.statusCode).json(errorResponse);
   }
 
-  // Handle Zod validation errors
+  // Handle Zod validation errors with JSend format
   if (error instanceof ZodError) {
-    const validationError = standardizedErrors.validation(
-      process.env.NODE_ENV !== "production"
-        ? {
-            issues: error.errors.map((e) => ({
-              field: e.path.join("."),
-              message: e.message,
-              code: e.code,
-            })),
-          }
-        : undefined,
-    );
+    const validationErrors = error.errors.map((e) => ({
+      field: e.path.join("."),
+      message: e.message,
+      code: e.code,
+    }));
 
-    const errorResponse = buildErrorResponse(validationError, req, requestId);
     logger.warn("Validation error", {
       requestId,
       timestamp,
       url: req.url,
       method: req.method,
-      errors: error.errors,
+      errors: validationErrors,
     });
 
-    return res.status(validationError.statusCode).json(errorResponse);
+    // Send JSend-formatted validation error
+    const response = ApiResponse.fail("Validation failed", validationErrors);
+    res.status(400).json(response);
+    return;
   }
 
   // Handle legacy AppError for backward compatibility
@@ -259,17 +296,19 @@ export function globalErrorHandler(
 
   // Handle JWT errors
   if (error.name === "JsonWebTokenError") {
-    const tokenError = standardizedErrors.tokenInvalid();
-    const errorResponse = buildErrorResponse(tokenError, req, requestId);
+    const response = ApiResponse.fail("Invalid authentication token");
     logger.warn("JWT error", { requestId, error: error.message });
-    return res.status(tokenError.statusCode).json(errorResponse);
+    res.status(401).json(response);
+    return;
   }
 
   if (error.name === "TokenExpiredError") {
-    const tokenError = standardizedErrors.tokenExpired();
-    const errorResponse = buildErrorResponse(tokenError, req, requestId);
+    const response = ApiResponse.fail(
+      "Your session has expired. Please login again",
+    );
     logger.warn("Token expired", { requestId });
-    return res.status(tokenError.statusCode).json(errorResponse);
+    res.status(401).json(response);
+    return;
   }
 
   // Handle duplicate key errors
@@ -277,24 +316,13 @@ export function globalErrorHandler(
     error.message?.includes("duplicate key") ||
     error.message?.includes("UNIQUE constraint")
   ) {
-    const conflictError = standardizedErrors.alreadyExists();
-    const errorResponse = buildErrorResponse(conflictError, req, requestId);
+    const response = ApiResponse.fail("This resource already exists");
     logger.warn("Duplicate entry", { requestId, error: error.message });
-    return res.status(conflictError.statusCode).json(errorResponse);
+    res.status(409).json(response);
+    return;
   }
 
   // Handle unexpected errors
-  const internalError = standardizedErrors.internal(
-    process.env.NODE_ENV !== "production"
-      ? {
-          message: error.message,
-          stack: error.stack,
-        }
-      : undefined,
-  );
-
-  const errorResponse = buildErrorResponse(internalError, req, requestId);
-
   logger.error("Unexpected error", error, {
     requestId,
     timestamp,
@@ -308,7 +336,14 @@ export function globalErrorHandler(
     params: req.params,
   });
 
-  res.status(internalError.statusCode).json(errorResponse);
+  // Send JSend error response (hide details in production)
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "An unexpected error occurred"
+      : error.message;
+  const response = ApiResponse.error(message);
+
+  res.status(500).json(response);
 }
 
 /**
