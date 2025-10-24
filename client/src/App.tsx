@@ -5,6 +5,10 @@ import { RequireAuth } from "@/components/RequireAuth";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommunityProvider } from "@/features/communities";
+import {
+  ErrorBoundary,
+  AsyncErrorHandler,
+} from "@/shared/components/ErrorBoundaries";
 import { queryClient } from "./lib/queryClient";
 
 // Loading component for lazy routes
@@ -89,47 +93,65 @@ function Router() {
         {/* Protected routes - require authentication */}
         <Route path="/home">
           <RequireAuth redirectTo="/">
-            <Home />
+            <ErrorBoundary level="feature">
+              <Home />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/app">
           <RequireAuth redirectTo="/">
-            <TableSync />
+            <ErrorBoundary level="feature">
+              <TableSync />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/app/room/:id">
           <RequireAuth redirectTo="/">
-            <GameRoom />
+            <ErrorBoundary level="feature">
+              <GameRoom />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/social">
           <RequireAuth redirectTo="/">
-            <Social />
+            <ErrorBoundary level="feature">
+              <Social />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/matchmaking">
           <RequireAuth redirectTo="/">
-            <Matchmaking />
+            <ErrorBoundary level="feature">
+              <Matchmaking />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/profile">
           <RequireAuth redirectTo="/">
-            <Profile />
+            <ErrorBoundary level="feature">
+              <Profile />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/profile/:userId">
           <RequireAuth redirectTo="/">
-            <Profile />
+            <ErrorBoundary level="feature">
+              <Profile />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/account/settings">
           <RequireAuth redirectTo="/auth/signin">
-            <AccountSettings />
+            <ErrorBoundary level="feature">
+              <AccountSettings />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
         <Route path="/collaborative-streaming">
           <RequireAuth redirectTo="/">
-            <CollaborativeStreamingDashboard />
+            <ErrorBoundary level="feature">
+              <CollaborativeStreamingDashboard />
+            </ErrorBoundary>
           </RequireAuth>
         </Route>
 
@@ -142,14 +164,18 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CommunityProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </CommunityProvider>
-    </QueryClientProvider>
+    <ErrorBoundary level="page">
+      <AsyncErrorHandler>
+        <QueryClientProvider client={queryClient}>
+          <CommunityProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </CommunityProvider>
+        </QueryClientProvider>
+      </AsyncErrorHandler>
+    </ErrorBoundary>
   );
 }
 
