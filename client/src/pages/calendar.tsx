@@ -1,8 +1,10 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { addMonths, subMonths, format } from "date-fns";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import type { Event, Community } from "@shared/schema";
+import { CalendarFilters } from "@/components/calendar/CalendarFilters";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
+import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { TodayEventCard } from "@/components/calendar/components/TodayEventCard";
 import { UpcomingEventCard } from "@/components/calendar/components/UpcomingEventCard";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
@@ -13,25 +15,7 @@ import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useCalendarWebSocket } from "@/features/events/hooks/useCalendarWebSocket";
@@ -103,33 +87,11 @@ export default function Calendar() {
   } | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Event creation form state
-  const [newEventTitle, setNewEventTitle] = useState("");
-  const [newEventType, setNewEventType] = useState("");
-  const [newEventDate, setNewEventDate] = useState("");
-  const [newEventTime, setNewEventTime] = useState("");
-  const [newEventLocation, setNewEventLocation] = useState("");
-  const [newEventDescription, setNewEventDescription] = useState("");
-  const [newEventCommunityId, setNewEventCommunityId] = useState("");
-
-  // Pod-specific fields
-  const [newEventPlayerSlots, setNewEventPlayerSlots] = useState(4);
-  const [newEventAlternateSlots, setNewEventAlternateSlots] = useState(2);
-  const [newEventGameFormat, setNewEventGameFormat] = useState("");
-  const [newEventPowerLevel, setNewEventPowerLevel] = useState(5);
-
   // State for editing events
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
-
-  // Auto-set community when creating new events
-  useEffect(() => {
-    if (selectedCommunity) {
-      // Use a microtask to avoid cascading renders
-      queueMicrotask(() => {
-        setNewEventCommunityId(selectedCommunity.id);
-      });
-    }
-  }, [selectedCommunity]);
+  const [editingEventData, setEditingEventData] = useState<
+    Partial<EventFormData> | undefined
+  >(undefined);
 
   // Fetch events for the selected community only
   const { data: events = [] } = useQuery<ExtendedEvent[]>({
@@ -185,18 +147,7 @@ export default function Calendar() {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       setIsCreateDialogOpen(false);
       setEditingEventId(null);
-      // Reset form
-      setNewEventTitle("");
-      setNewEventType("");
-      setNewEventDate("");
-      setNewEventTime("");
-      setNewEventLocation("");
-      setNewEventDescription("");
-      setNewEventCommunityId("");
-      setNewEventPlayerSlots(4);
-      setNewEventAlternateSlots(2);
-      setNewEventGameFormat("");
-      setNewEventPowerLevel(5);
+      setEditingEventData(undefined);
     },
     onError: () => {
       toast({ title: "Failed to create event", variant: "destructive" });
@@ -266,18 +217,7 @@ export default function Calendar() {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       setIsCreateDialogOpen(false);
       setEditingEventId(null);
-      // Reset form
-      setNewEventTitle("");
-      setNewEventType("");
-      setNewEventDate("");
-      setNewEventTime("");
-      setNewEventLocation("");
-      setNewEventDescription("");
-      setNewEventCommunityId("");
-      setNewEventPlayerSlots(4);
-      setNewEventAlternateSlots(2);
-      setNewEventGameFormat("");
-      setNewEventPowerLevel(5);
+      setEditingEventData(undefined);
     },
     onError: () => {
       toast({ title: "Failed to update event", variant: "destructive" });
@@ -303,21 +243,7 @@ export default function Calendar() {
     },
   });
 
-  const handleCreateEvent = () => {
-    if (
-      !newEventTitle ||
-      !newEventType ||
-      !newEventDate ||
-      !newEventTime ||
-      !newEventLocation
-    ) {
-      toast({
-        title: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleCreateEvent = (data: EventFormData) => {
     if (!selectedCommunity?.id) {
       toast({
         title: "Please select a community first",
@@ -327,21 +253,21 @@ export default function Calendar() {
     }
 
     const eventData: Record<string, unknown> = {
-      title: newEventTitle,
-      type: newEventType,
-      date: newEventDate,
-      time: newEventTime,
-      location: newEventLocation,
-      description: newEventDescription,
-      communityId: selectedCommunity.id,
+      title: data.title,
+      type: data.type,
+      date: data.date,
+      time: data.time,
+      location: data.location,
+      description: data.description,
+      communityId: data.communityId || selectedCommunity.id,
     };
 
     // Add pod-specific fields if event type is game_pod
-    if (newEventType === "game_pod") {
-      eventData.playerSlots = newEventPlayerSlots;
-      eventData.alternateSlots = newEventAlternateSlots;
-      eventData.gameFormat = newEventGameFormat;
-      eventData.powerLevel = newEventPowerLevel;
+    if (data.type === "game_pod") {
+      eventData.playerSlots = data.playerSlots;
+      eventData.alternateSlots = data.alternateSlots;
+      eventData.gameFormat = data.gameFormat;
+      eventData.powerLevel = data.powerLevel;
     }
 
     if (editingEventId) {
@@ -370,13 +296,19 @@ export default function Calendar() {
       if (!event) return;
 
       // Pre-populate form with existing event data
-      setNewEventTitle(event.title);
-      setNewEventType(event.type);
-      setNewEventDate(event.date || ""); // Ensure not null
-      setNewEventTime(event.time || ""); // Ensure not null
-      setNewEventLocation(event.location || ""); // Ensure not null
-      setNewEventDescription(event.description || "");
-      setNewEventCommunityId(event.communityId || "");
+      setEditingEventData({
+        title: event.title,
+        type: event.type,
+        date: event.date || "",
+        time: event.time || "",
+        location: event.location || "",
+        description: event.description || "",
+        communityId: event.communityId || "",
+        playerSlots: event.mainPlayers,
+        alternateSlots: event.alternates,
+        gameFormat: "", // Not stored separately in schema, would need to be extracted from description or stored separately
+        powerLevel: 5, // Not stored separately in schema
+      });
       setEditingEventId(event.id);
       setIsCreateDialogOpen(true);
     },
@@ -504,177 +436,20 @@ export default function Calendar() {
                   <i className="fas fa-file-csv mr-2"></i>
                   Bulk Upload
                 </Button>
-                <Dialog
-                  open={isCreateDialogOpen}
+                <EventFormDialog
+                  isOpen={isCreateDialogOpen}
                   onOpenChange={setIsCreateDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      className="bg-primary hover:bg-primary/90"
-                      data-testid="button-create-event"
-                      disabled={!selectedCommunity}
-                    >
-                      <i className="fas fa-plus mr-2"></i>
-                      Create Event
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingEventId ? "Edit Event" : "Create New Event"}
-                      </DialogTitle>
-                      <DialogDescription>
-                        Schedule a new gaming event, tournament, or community
-                        gathering
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-6 mt-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="event-title">Event Title</Label>
-                        <Input
-                          id="event-title"
-                          placeholder="Enter event title"
-                          value={newEventTitle}
-                          onChange={(e) => setNewEventTitle(e.target.value)}
-                          data-testid="input-event-title"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="event-type">Event Type</Label>
-                          <Select
-                            value={newEventType}
-                            onValueChange={setNewEventType}
-                          >
-                            <SelectTrigger data-testid="select-event-type">
-                              <SelectValue placeholder="Select event type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {EVENT_TYPES.map((type) => (
-                                <SelectItem key={type.id} value={type.id}>
-                                  <div className="flex items-center space-x-2">
-                                    <i className={`${type.icon} text-sm`}></i>
-                                    <span>{type.name}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="event-community">Community</Label>
-                          <Select
-                            value={newEventCommunityId}
-                            onValueChange={setNewEventCommunityId}
-                          >
-                            <SelectTrigger data-testid="select-event-community">
-                              <SelectValue placeholder="Select community (optional)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">
-                                No specific community
-                              </SelectItem>
-                              {communities.map((community) => (
-                                <SelectItem
-                                  key={community.id}
-                                  value={community.id}
-                                >
-                                  {community.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="event-location">Location</Label>
-                        <Input
-                          id="event-location"
-                          placeholder="Event location or 'Online'"
-                          value={newEventLocation}
-                          onChange={(e) => setNewEventLocation(e.target.value)}
-                          data-testid="input-event-location"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="event-date">Date</Label>
-                          <Input
-                            id="event-date"
-                            type="date"
-                            value={newEventDate}
-                            onChange={(e) => setNewEventDate(e.target.value)}
-                            data-testid="input-event-date"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="event-time">Time</Label>
-                          <Input
-                            id="event-time"
-                            type="time"
-                            value={newEventTime}
-                            onChange={(e) => setNewEventTime(e.target.value)}
-                            data-testid="input-event-time"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="event-description">Description</Label>
-                        <Textarea
-                          id="event-description"
-                          placeholder="Describe the event, rules, format, prizes, etc."
-                          value={newEventDescription}
-                          onChange={(e) =>
-                            setNewEventDescription(e.target.value)
-                          }
-                          data-testid="textarea-event-description"
-                        />
-                      </div>
-
-                      {/* Pod-specific fields for game_pod events */}
-                      {newEventType === "game_pod" && (
-                        <PodFieldsForm
-                          playerSlots={newEventPlayerSlots}
-                          setPlayerSlots={setNewEventPlayerSlots}
-                          alternateSlots={newEventAlternateSlots}
-                          setAlternateSlots={setNewEventAlternateSlots}
-                          gameFormat={newEventGameFormat}
-                          setGameFormat={setNewEventGameFormat}
-                          powerLevel={newEventPowerLevel}
-                          setPowerLevel={setNewEventPowerLevel}
-                        />
-                      )}
-
-                      <div className="flex justify-end space-x-3">
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsCreateDialogOpen(false)}
-                          data-testid="button-cancel-event"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleCreateEvent}
-                          disabled={
-                            !newEventTitle ||
-                            !newEventType ||
-                            !newEventDate ||
-                            !selectedCommunity
-                          }
-                          data-testid="button-submit-event"
-                        >
-                          {editingEventId ? "Update Event" : "Create Event"}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                  onSubmit={handleCreateEvent}
+                  editingEventId={editingEventId}
+                  communities={communities}
+                  eventTypes={EVENT_TYPES}
+                  selectedCommunityId={selectedCommunity?.id}
+                  defaultValues={editingEventData}
+                  isSubmitting={
+                    createEventMutation.isPending ||
+                    updateEventMutation.isPending
+                  }
+                />
               </div>
             </div>
           </div>
@@ -783,85 +558,32 @@ export default function Calendar() {
             <TabsContent value="calendar">
               <div className="space-y-6">
                 {/* Filters */}
-                <div className="flex flex-wrap gap-4 items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Select value={filterType} onValueChange={setFilterType}>
-                      <SelectTrigger
-                        className="w-48"
-                        data-testid="select-filter-type"
-                      >
-                        <SelectValue placeholder="Filter by type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        {EVENT_TYPES.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <div className="text-sm text-muted-foreground bg-muted/30 px-3 py-2 rounded-md border">
-                      <span className="font-medium">
-                        {selectedCommunity?.name || "Unknown Community"}
-                      </span>{" "}
-                      {communityTheme.terminology.events}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={viewMode === "week" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("week")}
-                    >
-                      Week
-                    </Button>
-                    <Button
-                      variant={viewMode === "month" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("month")}
-                    >
-                      Month
-                    </Button>
-                  </div>
-                </div>
+                <CalendarFilters
+                  filterType={filterType}
+                  onFilterTypeChange={setFilterType}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  eventTypes={EVENT_TYPES}
+                  communityName={selectedCommunity?.name}
+                  eventsTerminology={communityTheme.terminology.events}
+                />
 
                 {/* Calendar Grid */}
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader>
                     <CardTitle>
-                      {communityTheme.terminology.events} Calendar -{" "}
-                      {format(currentMonth, "MMMM yyyy")}
+                      {communityTheme.terminology.events} Calendar
                     </CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentMonth(subMonths(currentMonth, 1))
-                        }
-                      >
-                        <i className="fas fa-chevron-left"></i>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentMonth(new Date())}
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentMonth(addMonths(currentMonth, 1))
-                        }
-                      >
-                        <i className="fas fa-chevron-right"></i>
-                      </Button>
-                    </div>
+                    <CalendarHeader
+                      currentDate={currentMonth}
+                      onPreviousMonth={() =>
+                        setCurrentMonth(subMonths(currentMonth, 1))
+                      }
+                      onNextMonth={() =>
+                        setCurrentMonth(addMonths(currentMonth, 1))
+                      }
+                      onToday={() => setCurrentMonth(new Date())}
+                    />
                   </CardHeader>
                   <CardContent>
                     <CalendarGrid
@@ -938,21 +660,15 @@ export default function Calendar() {
                         <p className="text-muted-foreground mb-4">
                           You haven&apos;t created any events yet
                         </p>
-                        <Dialog
-                          open={isCreateDialogOpen}
-                          onOpenChange={setIsCreateDialogOpen}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!selectedCommunity}
+                          onClick={() => setIsCreateDialogOpen(true)}
                         >
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={!selectedCommunity}
-                            >
-                              <i className="fas fa-plus mr-2"></i>
-                              Create Your First Event
-                            </Button>
-                          </DialogTrigger>
-                        </Dialog>
+                          <i className="fas fa-plus mr-2"></i>
+                          Create Your First Event
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
