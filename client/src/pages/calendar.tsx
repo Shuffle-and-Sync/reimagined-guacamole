@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { addMonths, subMonths, format } from "date-fns";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { Event, Community } from "@shared/schema";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 import { CSVUploadDialog } from "@/components/calendar/CSVUploadDialog";
@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
+import { useCalendarWebSocket } from "@/features/events/hooks/useCalendarWebSocket";
 import { useToast } from "@/hooks/use-toast";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { queryClient } from "@/lib/queryClient";
@@ -155,63 +156,12 @@ export default function Calendar() {
     enabled: isAuthenticated, // Only fetch when authenticated
   });
 
-  // Real-time WebSocket updates
-  useEffect(() => {
-    if (!isAuthenticated || !selectedCommunity) return;
-
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${protocol}//${window.location.host}`);
-
-    ws.onopen = () => {
-      // WebSocket connected for real-time event updates
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-
-        // Handle different message types
-        if (
-          [
-            "EVENT_CREATED",
-            "EVENT_UPDATED",
-            "EVENT_DELETED",
-            "POD_STATUS_CHANGED",
-          ].includes(message.type)
-        ) {
-          // Invalidate queries to refetch events
-          queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-
-          // Show toast for real-time updates
-          if (message.type === "EVENT_CREATED") {
-            toast({
-              title: "New Event Created",
-              description: "Calendar updated with new event",
-            });
-          } else if (message.type === "POD_STATUS_CHANGED") {
-            toast({
-              title: "Pod Status Updated",
-              description: "A game pod status has changed",
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-    // queryClient and toast are stable references and don't need to be in deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, selectedCommunity]);
+  // Real-time WebSocket updates using custom hook
+  // connectionStatus can be used to show connection indicator in UI
+  const { connectionStatus: _wsConnectionStatus } = useCalendarWebSocket({
+    isAuthenticated,
+    selectedCommunity,
+  });
 
   // Create event mutation
   const createEventMutation = useMutation({
@@ -434,19 +384,30 @@ export default function Calendar() {
   // Add state for editing
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
-  // Events are already filtered by community in the API query, just filter by type
-  const filteredEvents = events.filter((event) => {
-    if (filterType !== "all" && event.type !== filterType) return false;
-    return true;
-  });
+  // Memoize filtered events to avoid recalculation on every render
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      if (filterType !== "all" && event.type !== filterType) return false;
+      return true;
+    });
+  }, [events, filterType]);
 
-  const todayDate = new Date().toISOString().split("T")[0] ?? "";
-  const todaysEvents = events.filter(
-    (event) => event.date && event.date === todayDate,
-  );
-  const upcomingEvents = events
-    .filter((event) => event.date && event.date > todayDate)
-    .slice(0, 5);
+  // Memoize today's date calculation
+  const todayDate = useMemo(() => {
+    return new Date().toISOString().split("T")[0] ?? "";
+  }, []);
+
+  // Memoize today's events
+  const todaysEvents = useMemo(() => {
+    return events.filter((event) => event.date && event.date === todayDate);
+  }, [events, todayDate]);
+
+  // Memoize upcoming events
+  const upcomingEvents = useMemo(() => {
+    return events
+      .filter((event) => event.date && event.date > todayDate)
+      .slice(0, 5);
+  }, [events, todayDate]);
 
   // Show login prompt for unauthenticated users (after all hooks are called)
   if (!isLoading && !isAuthenticated) {
