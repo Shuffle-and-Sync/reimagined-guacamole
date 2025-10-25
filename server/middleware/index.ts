@@ -6,6 +6,9 @@
  */
 
 // Import all middleware modules
+import compressionMiddleware from "./compression.middleware";
+import { costBasedRateLimiter } from "./cost-based-rate-limiter.middleware";
+import { deprecated } from "./deprecation.middleware";
 import { errorHandlingMiddleware } from "./error-handling.middleware";
 import { performanceMonitoring } from "./performance.middleware";
 import { securityMiddleware } from "./security.middleware";
@@ -14,6 +17,12 @@ import { securityMiddleware } from "./security.middleware";
 export { securityMiddleware } from "./security.middleware";
 export { errorHandlingMiddleware, errors } from "./error-handling.middleware";
 export { performanceMonitoring } from "./performance.middleware";
+export { deprecated } from "./deprecation.middleware";
+export {
+  costBasedRateLimiter,
+  costBasedRateLimitUtils,
+} from "./cost-based-rate-limiter.middleware";
+export { compressionMiddleware } from "./compression.middleware";
 
 // Export individual middleware functions for backwards compatibility
 export const {
@@ -158,6 +167,9 @@ export default {
   security: securityMiddleware,
   errors: errorHandlingMiddleware,
   performance: performanceMonitoring,
+  deprecated,
+  costBasedRateLimiter,
+  compression: compressionMiddleware,
   stacks: {
     production: productionMiddlewareStack,
     development: developmentMiddlewareStack,
