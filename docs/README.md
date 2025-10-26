@@ -169,6 +169,10 @@ Operational procedures for production support:
 - [Twitch Developer Portal Setup](features/twitch/TWITCH_DEVELOPER_PORTAL_SETUP.md) - Portal configuration
 - [Twitch OAuth Enhancement Summary](features/twitch/TWITCH_OAUTH_ENHANCEMENT_SUMMARY.md) - Recent enhancements
 
+#### WebSocket Features
+
+- [WebSocket Message Compression](features/websocket-compression.md) - Per-message deflate compression for bandwidth optimization
+
 ### 🔧 Backend (`/backend`)
 
 Backend-specific documentation:
