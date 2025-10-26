@@ -26,6 +26,10 @@ RUN npm prune --production --legacy-peer-deps
 # Set production environment
 ENV NODE_ENV=production
 
+# Set Node.js memory limits for production
+# 768MB heap size for optimal performance within 1Gi container
+ENV NODE_OPTIONS="--max-old-space-size=768"
+
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
 

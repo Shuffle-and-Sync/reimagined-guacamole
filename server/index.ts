@@ -51,6 +51,7 @@ import {
 } from "./features/users/users.routes";
 import { errors as standardizedErrors } from "./lib/error-response";
 import { logger } from "./logger";
+import { memoryMonitor } from "./monitoring/memory";
 import { authRateLimit } from "./rate-limiting";
 import infrastructureTestsRouter from "./routes/infrastructure-tests";
 import monitoringRouter from "./routes/monitoring";
@@ -888,6 +889,23 @@ server.listen(
     logger.info("Monitoring service started");
   } catch (error) {
     logger.warn("Failed to start monitoring service", error);
+  }
+
+  // Start memory monitoring and integrate with alerting
+  try {
+    // Register memory alert handler to integrate with monitoring service
+    memoryMonitor.onAlert((level, metrics) => {
+      logger.info("Memory alert triggered", { level, metrics });
+      // The alert will be logged by the memory monitor itself
+      // Additional integration can be added here if needed
+    });
+
+    memoryMonitor.start();
+    logger.info("Memory monitoring started", {
+      config: memoryMonitor.getStatus().config,
+    });
+  } catch (error) {
+    logger.warn("Failed to start memory monitoring", error);
   }
 })().catch((error) => {
   logger.error("Fatal error during server initialization", error);

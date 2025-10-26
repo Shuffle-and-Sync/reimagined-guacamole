@@ -5,6 +5,7 @@ import {
   type AuthenticatedRequest,
 } from "../auth";
 import { logger } from "../logger";
+import { memoryMonitor } from "../monitoring/memory";
 import { generalRateLimit } from "../rate-limiting";
 import { monitoringService } from "../services/monitoring-service";
 
@@ -391,6 +392,70 @@ router.post("/alerts/test", async (req, res) => {
       success: false,
       error: "Failed to create test alert",
       details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * Get memory monitoring status
+ * GET /api/monitoring/memory/status
+ */
+router.get("/memory/status", async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+
+  try {
+    // Admin-only endpoint
+    const userId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(userId))) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
+    }
+
+    const status = memoryMonitor.getStatus();
+
+    return res.json({
+      success: true,
+      status,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error("Failed to get memory monitoring status", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to get memory monitoring status",
+    });
+  }
+});
+
+/**
+ * Get current memory metrics
+ * GET /api/monitoring/memory/metrics
+ */
+router.get("/memory/metrics", async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+
+  try {
+    // Admin-only endpoint
+    const userId = getAuthUserId(authenticatedReq);
+    if (!(await isAdmin(userId))) {
+      return res
+        .status(403)
+        .json({ success: false, error: "Admin access required" });
+    }
+
+    const metrics = memoryMonitor.getMetrics();
+
+    return res.json({
+      success: true,
+      metrics,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error("Failed to get memory metrics", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to get memory metrics",
     });
   }
 });
