@@ -164,9 +164,14 @@ export function extractError(mockResponse: {
         statusCode: mockResponse.statusCode || 500,
         requestId: jsend.meta.requestId,
         timestamp: jsend.meta.timestamp,
-        details: jsend.errors as
-          | { validationErrors?: Array<{ field: string; message: string }> }
-          | undefined,
+        // Map JSend errors array to details.validationErrors format
+        details: jsend.errors
+          ? {
+              validationErrors: Array.isArray(jsend.errors)
+                ? (jsend.errors as Array<{ field: string; message: string }>)
+                : undefined,
+            }
+          : undefined,
       },
     };
   }

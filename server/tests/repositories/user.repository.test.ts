@@ -396,7 +396,7 @@ describe("UserRepository - User-Specific Operations", () => {
         .mockReturnValue({ returning: mockReturning });
       const mockSet = jest.fn().mockReturnValue({ where: mockWhereUpdate });
 
-      let _selectCallCount = 0;
+      let selectCallCount = 0;
       (mockDb.select as jest.Mock).mockImplementation(() => {
         selectCallCount++;
         return { from: mockFrom };
