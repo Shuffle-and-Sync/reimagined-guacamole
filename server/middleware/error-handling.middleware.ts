@@ -282,6 +282,33 @@ export function globalErrorHandler(
         standardizedError = standardizedErrors.internal(error.context);
     }
 
+    // Preserve custom message from original error if it's more specific
+    // than the default standardized message
+    const hasCustomMessage =
+      error.message !== "Authentication required" &&
+      error.message !== "Insufficient permissions" &&
+      error.message !== "Validation failed" &&
+      error.message !== "Database operation failed";
+
+    if (hasCustomMessage) {
+      // Override the standardized message with the custom one
+      standardizedError = new StandardizedAppError(
+        standardizedError.code,
+        {
+          ...error.context,
+          originalMessage: error.message,
+        },
+        standardizedError.isOperational,
+      );
+      // Replace the message
+      Object.defineProperty(standardizedError, "message", {
+        value: error.message,
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      });
+    }
+
     const errorResponse = buildErrorResponse(standardizedError, req, requestId);
 
     logger.warn("Legacy error converted to standardized format", {
@@ -289,6 +316,7 @@ export function globalErrorHandler(
       oldCode: error.errorCode,
       newCode: standardizedError.code,
       url: req.url,
+      preservedCustomMessage: hasCustomMessage,
     });
 
     return res.status(standardizedError.statusCode).json(errorResponse);

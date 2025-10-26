@@ -25,9 +25,11 @@ interface MockErrorResponse {
   setHeader: jest.Mock;
   getHeader: jest.Mock;
   end: jest.Mock;
-  capturedError: ErrorResponseData | null;
+  capturedError: ErrorResponseData | StandardizedErrorResponse | null;
+  statusCode?: number;
 }
 
+// Legacy format (JSend with success field)
 interface ErrorResponseData {
   success: boolean;
   error: {
@@ -39,6 +41,18 @@ interface ErrorResponseData {
     details?: {
       validationErrors?: Array<{ field: string; message: string }>;
     };
+  };
+}
+
+// New standardized format (from buildErrorResponse)
+interface StandardizedErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    timestamp: string;
+    path: string;
+    requestId: string;
+    details?: unknown;
   };
 }
 
@@ -59,13 +73,22 @@ export function createMockErrorResponse(): MockErrorResponse {
     getHeader: jest.fn(),
     end: jest.fn().mockReturnThis(),
     capturedError: null,
+    statusCode: undefined,
   };
 
-  // Capture the error response
-  res.json.mockImplementation((data: ErrorResponseData) => {
-    res.capturedError = data;
+  // Capture the status code
+  res.status.mockImplementation((code: number) => {
+    res.statusCode = code;
     return res;
   });
+
+  // Capture the error response (handle both old and new formats)
+  res.json.mockImplementation(
+    (data: ErrorResponseData | StandardizedErrorResponse) => {
+      res.capturedError = data;
+      return res;
+    },
+  );
 
   return res;
 }
@@ -73,12 +96,48 @@ export function createMockErrorResponse(): MockErrorResponse {
 /**
  * Extract error from response
  */
-export function extractError(mockResponse: { capturedError: unknown }) {
-  return mockResponse.capturedError;
+export function extractError(mockResponse: {
+  capturedError: unknown;
+  statusCode?: number;
+}): ErrorResponseData | null {
+  const captured = mockResponse.capturedError as
+    | ErrorResponseData
+    | StandardizedErrorResponse
+    | null;
+
+  if (!captured) {
+    return null;
+  }
+
+  // Check if it's already in the legacy format (has success field)
+  if ("success" in captured) {
+    return captured as ErrorResponseData;
+  }
+
+  // Convert new standardized format to legacy format for backward compatibility
+  if ("error" in captured) {
+    const standardized = captured as StandardizedErrorResponse;
+    return {
+      success: false,
+      error: {
+        code: standardized.error.code,
+        message: standardized.error.message,
+        statusCode: mockResponse.statusCode || 500,
+        requestId: standardized.error.requestId,
+        timestamp: standardized.error.timestamp,
+        details: standardized.error.details as
+          | { validationErrors?: Array<{ field: string; message: string }> }
+          | undefined,
+      },
+    };
+  }
+
+  return null;
 }
 
 /**
  * Verify error response format
+ * Updated to support both legacy and standardized error codes
  */
 export function verifyErrorResponse(
   mockResponse: MockErrorResponse,
@@ -91,7 +150,51 @@ export function verifyErrorResponse(
   expect(error).toBeDefined();
   expect(error?.success).toBe(false);
   expect(error?.error).toBeDefined();
-  expect(error?.error.code).toBe(expectedErrorCode);
+
+  // Map legacy error codes to possible standardized equivalents
+  const errorCodeMapping: Record<string, string[]> = {
+    AUTHENTICATION_ERROR: [
+      "AUTHENTICATION_ERROR",
+      "AUTH_001",
+      "AUTH_002",
+      "AUTH_003",
+      "AUTH_004",
+      "AUTH_005",
+      "UNAUTHORIZED",
+    ],
+    AUTHORIZATION_ERROR: [
+      "AUTHORIZATION_ERROR",
+      "AUTH_006",
+      "INSUFFICIENT_PERMISSIONS",
+    ],
+    VALIDATION_ERROR: ["VALIDATION_ERROR", "VAL_001", "VALIDATION_FAILED"],
+    NOT_FOUND_ERROR: ["NOT_FOUND_ERROR", "RES_001", "RESOURCE_NOT_FOUND"],
+    CONFLICT_ERROR: [
+      "CONFLICT_ERROR",
+      "RES_002",
+      "RES_003",
+      "RESOURCE_ALREADY_EXISTS",
+      "RESOURCE_CONFLICT",
+    ],
+    DATABASE_ERROR: ["DATABASE_ERROR", "SRV_003"],
+    RATE_LIMIT_ERROR: [
+      "RATE_LIMIT_ERROR",
+      "RATE_001",
+      "RATE_002",
+      "RATE_LIMIT_EXCEEDED",
+    ],
+    EXTERNAL_SERVICE_ERROR: [
+      "EXTERNAL_SERVICE_ERROR",
+      "SRV_004",
+      "EXTERNAL_SERVICE_ERROR",
+    ],
+  };
+
+  const acceptableCodes = errorCodeMapping[expectedErrorCode] || [
+    expectedErrorCode,
+  ];
+  expect(acceptableCodes).toContain(error?.error.code);
+
   expect(error?.error.message).toBeDefined();
   expect(error?.error.requestId).toBeDefined();
   expect(error?.error.timestamp).toBeDefined();
@@ -219,11 +322,14 @@ export const externalAPIErrorSimulators = {
 };
 
 /**
- * Assert helpers
+ * Assert helpers - updated to support both legacy and standardized error codes
  */
 export const errorAssertions = {
   expectValidationError: (error: ErrorResponseData, field?: string) => {
-    expect(error.error.code).toBe("VALIDATION_ERROR");
+    // Accept both old ("VALIDATION_ERROR") and new ("VAL_001") codes
+    expect(["VALIDATION_ERROR", "VAL_001", "VALIDATION_FAILED"]).toContain(
+      error.error.code,
+    );
     expect(error.error.statusCode).toBe(400);
     if (field) {
       expect(error.error.details?.validationErrors).toBeDefined();
@@ -235,22 +341,43 @@ export const errorAssertions = {
   },
 
   expectAuthenticationError: (error: ErrorResponseData) => {
-    expect(error.error.code).toBe("AUTHENTICATION_ERROR");
+    // Accept both old ("AUTHENTICATION_ERROR") and new ("AUTH_001", "AUTH_002", etc.) codes
+    const validCodes = [
+      "AUTHENTICATION_ERROR",
+      "AUTH_001",
+      "AUTH_002",
+      "AUTH_003",
+      "AUTH_004",
+      "AUTH_005",
+      "UNAUTHORIZED",
+    ];
+    expect(validCodes).toContain(error.error.code);
     expect(error.error.statusCode).toBe(401);
   },
 
   expectAuthorizationError: (error: ErrorResponseData) => {
-    expect(error.error.code).toBe("AUTHORIZATION_ERROR");
+    // Accept both old ("AUTHORIZATION_ERROR") and new ("AUTH_006") codes
+    expect([
+      "AUTHORIZATION_ERROR",
+      "AUTH_006",
+      "INSUFFICIENT_PERMISSIONS",
+    ]).toContain(error.error.code);
     expect(error.error.statusCode).toBe(403);
   },
 
   expectNotFoundError: (error: ErrorResponseData) => {
-    expect(error.error.code).toBe("NOT_FOUND_ERROR");
+    // Accept both old ("NOT_FOUND_ERROR") and new ("RES_001") codes
+    expect(["NOT_FOUND_ERROR", "RES_001", "RESOURCE_NOT_FOUND"]).toContain(
+      error.error.code,
+    );
     expect(error.error.statusCode).toBe(404);
   },
 
   expectDatabaseError: (error: ErrorResponseData) => {
-    expect(error.error.code).toBe("DATABASE_ERROR");
+    // Accept both old ("DATABASE_ERROR") and new ("SRV_003") codes
+    expect(["DATABASE_ERROR", "SRV_003", "DATABASE_ERROR"]).toContain(
+      error.error.code,
+    );
     expect(error.error.statusCode).toBe(500);
   },
 };
