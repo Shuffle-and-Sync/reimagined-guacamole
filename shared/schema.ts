@@ -2538,7 +2538,7 @@ export const insertTournamentRoundSchema = createInsertSchema(
 export const insertTournamentMatchSchema = createInsertSchema(
   tournamentMatches,
   {
-    matchNumber: z.number().int().positive().optional(),
+    matchNumber: z.number().int().positive(),
     status: z
       .enum(["pending", "in_progress", "completed", "cancelled"])
       .optional(),
