@@ -61,14 +61,15 @@ export default {
       lines: 15,
       statements: 15,
     },
+    // Authentication module - Phase 1 requirement (90%+ coverage)
+    "./server/auth/**/*.ts": {
+      branches: 85,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
     // Critical path thresholds - will be enforced as coverage improves
-    // Uncomment when Phase 1 of testing roadmap is complete
-    // './server/auth/**/*.ts': {
-    //   branches: 90,
-    //   functions: 90,
-    //   lines: 90,
-    //   statements: 90,
-    // },
+    // Uncomment when Phase 2 of testing roadmap is complete
     // './server/repositories/**/*.ts': {
     //   branches: 90,
     //   functions: 90,
