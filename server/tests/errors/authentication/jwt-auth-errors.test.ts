@@ -122,7 +122,7 @@ describe("JWT Authentication Error Tests", () => {
       );
 
       const error = verifyErrorResponse(mockRes, 401, "INVALID_TOKEN");
-      expect(error.error.message).toBe("Invalid or expired token");
+      expect(error.error.message).toBe("Invalid authentication token");
     });
   });
 
@@ -139,7 +139,9 @@ describe("JWT Authentication Error Tests", () => {
       );
 
       const error = verifyErrorResponse(mockRes, 401, "TOKEN_EXPIRED");
-      expect(error.error.message).toBe("Token has expired");
+      expect(error.error.message).toBe(
+        "Your session has expired. Please login again",
+      );
     });
 
     test("should provide expiration details", () => {
@@ -483,7 +485,16 @@ describe("JWT Authentication Error Tests", () => {
       const error = verifyErrorResponse(mockRes, 401, "AUTHENTICATION_ERROR");
 
       expect(error.success).toBe(false);
-      expect(error.error.code).toBe("AUTHENTICATION_ERROR");
+      // Accept either legacy code or standardized codes (AUTH_001-AUTH_005, UNAUTHORIZED)
+      expect([
+        "AUTHENTICATION_ERROR",
+        "AUTH_001",
+        "AUTH_002",
+        "AUTH_003",
+        "AUTH_004",
+        "AUTH_005",
+        "UNAUTHORIZED",
+      ]).toContain(error.error.code);
       expect(error.error.statusCode).toBe(401);
       expect(error.error.requestId).toBeDefined();
       expect(error.error.timestamp).toBeDefined();

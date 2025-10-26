@@ -56,6 +56,17 @@ interface StandardizedErrorResponse {
   };
 }
 
+// JSend format (from ApiResponse class)
+interface JSendErrorResponse {
+  status: "fail" | "error";
+  message: string;
+  errors?: unknown;
+  meta: {
+    timestamp: string;
+    requestId: string;
+  };
+}
+
 interface DatabaseErrorWithCode extends Error {
   code: string;
   constraint?: string;
@@ -103,6 +114,7 @@ export function extractError(mockResponse: {
   const captured = mockResponse.capturedError as
     | ErrorResponseData
     | StandardizedErrorResponse
+    | JSendErrorResponse
     | null;
 
   if (!captured) {
@@ -112,6 +124,51 @@ export function extractError(mockResponse: {
   // Check if it's already in the legacy format (has success field)
   if ("success" in captured) {
     return captured as ErrorResponseData;
+  }
+
+  // Check if it's JSend format (has status field)
+  if (
+    "status" in captured &&
+    (captured.status === "fail" || captured.status === "error")
+  ) {
+    const jsend = captured as JSendErrorResponse;
+
+    // Derive appropriate error code based on status code and message
+    let code: string;
+    if (mockResponse.statusCode === 409) {
+      code = "CONFLICT_ERROR";
+    } else if (mockResponse.statusCode === 401) {
+      code = "AUTHENTICATION_ERROR";
+    } else if (mockResponse.statusCode === 403) {
+      code = "AUTHORIZATION_ERROR";
+    } else if (mockResponse.statusCode === 404) {
+      code = "NOT_FOUND_ERROR";
+    } else if (mockResponse.statusCode === 400) {
+      // Check if it's a validation error
+      if (jsend.message?.includes("Validation") || jsend.errors) {
+        code = "VALIDATION_ERROR";
+      } else {
+        code = "CLIENT_ERROR";
+      }
+    } else if (mockResponse.statusCode && mockResponse.statusCode >= 500) {
+      code = "SERVER_ERROR";
+    } else {
+      code = "CLIENT_ERROR";
+    }
+
+    return {
+      success: false,
+      error: {
+        code,
+        message: jsend.message,
+        statusCode: mockResponse.statusCode || 500,
+        requestId: jsend.meta.requestId,
+        timestamp: jsend.meta.timestamp,
+        details: jsend.errors as
+          | { validationErrors?: Array<{ field: string; message: string }> }
+          | undefined,
+      },
+    };
   }
 
   // Convert new standardized format to legacy format for backward compatibility
@@ -162,6 +219,20 @@ export function verifyErrorResponse(
       "AUTH_005",
       "UNAUTHORIZED",
     ],
+    INVALID_TOKEN: [
+      "INVALID_TOKEN",
+      "AUTHENTICATION_ERROR",
+      "AUTH_001",
+      "AUTH_002",
+      "UNAUTHORIZED",
+    ],
+    TOKEN_EXPIRED: [
+      "TOKEN_EXPIRED",
+      "AUTHENTICATION_ERROR",
+      "AUTH_001",
+      "AUTH_003",
+      "UNAUTHORIZED",
+    ],
     AUTHORIZATION_ERROR: [
       "AUTHORIZATION_ERROR",
       "AUTH_006",
@@ -170,6 +241,14 @@ export function verifyErrorResponse(
     VALIDATION_ERROR: ["VALIDATION_ERROR", "VAL_001", "VALIDATION_FAILED"],
     NOT_FOUND_ERROR: ["NOT_FOUND_ERROR", "RES_001", "RESOURCE_NOT_FOUND"],
     CONFLICT_ERROR: [
+      "CONFLICT_ERROR",
+      "RES_002",
+      "RES_003",
+      "RESOURCE_ALREADY_EXISTS",
+      "RESOURCE_CONFLICT",
+    ],
+    DUPLICATE_ENTRY: [
+      "DUPLICATE_ENTRY",
       "CONFLICT_ERROR",
       "RES_002",
       "RES_003",

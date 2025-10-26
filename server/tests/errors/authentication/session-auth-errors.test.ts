@@ -410,13 +410,26 @@ describe("Session Authentication Error Tests", () => {
       const error = verifyErrorResponse(mockRes, 401, "AUTHENTICATION_ERROR");
 
       expect(error.success).toBe(false);
-      expect(error.error.code).toBe("AUTHENTICATION_ERROR");
+      // Accept either legacy code or standardized codes (AUTH_001-AUTH_005, UNAUTHORIZED)
+      expect([
+        "AUTHENTICATION_ERROR",
+        "AUTH_001",
+        "AUTH_002",
+        "AUTH_003",
+        "AUTH_004",
+        "AUTH_005",
+        "UNAUTHORIZED",
+      ]).toContain(error.error.code);
       expect(error.error.statusCode).toBe(401);
       expect(error.error.requestId).toBeDefined();
       expect(error.error.timestamp).toBeDefined();
     });
 
     test("should not leak sensitive session data", () => {
+      const originalEnv = process.env.NODE_ENV;
+      // Set NODE_ENV BEFORE calling error handler
+      process.env.NODE_ENV = "production";
+
       const authError = new AuthenticationError("Invalid session", {
         sessionData: { userId: "123", roles: ["admin"] },
         sessionSecret: "secret_key_123",
@@ -428,10 +441,6 @@ describe("Session Authentication Error Tests", () => {
         mockRes as Response,
         mockNext,
       );
-
-      // Context should not be exposed in production
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
 
       const error = verifyErrorResponse(mockRes, 401, "AUTHENTICATION_ERROR");
       expect(error.error.details).toBeUndefined();

@@ -76,7 +76,7 @@ describe("Database Constraint Violation Error Tests", () => {
       );
 
       const response = verifyErrorResponse(mockRes, 409, "DUPLICATE_ENTRY");
-      expect(response.error.message).toBe("Resource already exists");
+      expect(response.error.message).toBe("This resource already exists");
     });
 
     test("should handle unique username constraint", () => {

@@ -59,8 +59,8 @@ describe("Real-time Messaging", () => {
     const message = createMockMessage();
 
     expect(message.content).toBeTruthy();
-    expect(message.fromUserId).toBeTruthy();
-    expect(message.toUserId).toBeTruthy();
+    expect(message.senderId).toBeTruthy();
+    expect(message.receiverId).toBeTruthy();
     expect(message.createdAt).toBeInstanceOf(Date);
   });
 

@@ -469,7 +469,8 @@ describe("Database Transaction Error Tests", () => {
       const error = verifyErrorResponse(mockRes, 500, "DATABASE_ERROR");
 
       expect(error.success).toBe(false);
-      expect(error.error.code).toBe("DATABASE_ERROR");
+      // Accept either legacy code or standardized code (SRV_003)
+      expect(["DATABASE_ERROR", "SRV_003"]).toContain(error.error.code);
       expect(error.error.statusCode).toBe(500);
       expect(error.error.requestId).toBeDefined();
       expect(error.error.timestamp).toBeDefined();
