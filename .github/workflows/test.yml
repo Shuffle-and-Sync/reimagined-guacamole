@@ -326,6 +326,9 @@ jobs:
       - name: Verify build artifacts
         run: npm run build:verify
 
+      - name: Check bundle sizes
+        run: npm run build:check-size
+
   # Test results summary
   test-summary:
     name: Test Summary
