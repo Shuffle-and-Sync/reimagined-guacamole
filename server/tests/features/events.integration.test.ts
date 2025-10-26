@@ -502,7 +502,7 @@ describe("Event Management Integration", () => {
     test("validates required fields are present", () => {
       const requiredFields = [
         "title",
-        "eventType",
+        "type",
         "startTime",
         "endTime",
         "location",

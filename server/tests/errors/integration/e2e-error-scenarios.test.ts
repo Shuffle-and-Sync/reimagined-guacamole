@@ -18,6 +18,7 @@ import {
 import {
   createMockErrorResponse,
   verifyErrorResponse,
+  extractError,
   errorFactories,
   createZodError,
   errorAssertions,
@@ -57,7 +58,7 @@ describe("End-to-End Error Scenario Tests", () => {
 
       const error = verifyErrorResponse(mockRes, 400, "VALIDATION_ERROR");
       errorAssertions.expectValidationError(error, "email");
-      expect(error.error.message).toBe("Invalid input data");
+      expect(error.error.message).toBe("Validation failed");
     });
 
     test("should handle registration with duplicate email", () => {
@@ -75,7 +76,7 @@ describe("End-to-End Error Scenario Tests", () => {
       );
 
       const error = verifyErrorResponse(mockRes, 409, "DUPLICATE_ENTRY");
-      expect(error.error.message).toBe("Resource already exists");
+      expect(error.error.message).toBe("This resource already exists");
     });
 
     test("should handle registration with weak password", () => {
@@ -277,13 +278,14 @@ describe("End-to-End Error Scenario Tests", () => {
           mockNext,
         );
 
-        const errorResponse = res.capturedError;
-        expect(errorResponse.success).toBe(false);
-        expect(errorResponse.error.code).toBeDefined();
-        expect(errorResponse.error.message).toBeDefined();
-        expect(errorResponse.error.statusCode).toBeDefined();
-        expect(errorResponse.error.requestId).toBeDefined();
-        expect(errorResponse.error.timestamp).toBeDefined();
+        const errorResponse = extractError(res);
+        expect(errorResponse).toBeDefined();
+        expect(errorResponse!.success).toBe(false);
+        expect(errorResponse!.error.code).toBeDefined();
+        expect(errorResponse!.error.message).toBeDefined();
+        expect(errorResponse!.error.statusCode).toBeDefined();
+        expect(errorResponse!.error.requestId).toBeDefined();
+        expect(errorResponse!.error.timestamp).toBeDefined();
       });
     });
 

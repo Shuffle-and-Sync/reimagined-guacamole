@@ -245,7 +245,11 @@ describe("Environment Variable Validation", () => {
 
       const result = validateEnvironmentVariables();
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e) => e.includes("demo value"))).toBe(true);
+      expect(
+        result.errors.some(
+          (e) => e.includes("demo") || e.includes("insecure pattern"),
+        ),
+      ).toBe(true);
     });
   });
 

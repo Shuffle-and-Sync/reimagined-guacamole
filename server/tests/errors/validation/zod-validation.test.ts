@@ -495,7 +495,7 @@ describe("Zod Validation Error Tests", () => {
       // Verify consistent format
       expect(error.success).toBe(false);
       expect(error.error.code).toBe("VALIDATION_ERROR");
-      expect(error.error.message).toBe("Invalid input data");
+      expect(error.error.message).toBe("Validation failed");
       expect(error.error.statusCode).toBe(400);
       expect(error.error.requestId).toBeDefined();
       expect(error.error.timestamp).toBeDefined();

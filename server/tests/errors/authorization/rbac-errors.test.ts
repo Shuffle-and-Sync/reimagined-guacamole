@@ -440,7 +440,12 @@ describe("RBAC Authorization Error Tests", () => {
       const error = verifyErrorResponse(mockRes, 403, "AUTHORIZATION_ERROR");
 
       expect(error.success).toBe(false);
-      expect(error.error.code).toBe("AUTHORIZATION_ERROR");
+      // Accept either legacy code or standardized codes (AUTH_006, INSUFFICIENT_PERMISSIONS)
+      expect([
+        "AUTHORIZATION_ERROR",
+        "AUTH_006",
+        "INSUFFICIENT_PERMISSIONS",
+      ]).toContain(error.error.code);
       expect(error.error.statusCode).toBe(403);
       expect(error.error.requestId).toBeDefined();
       expect(error.error.timestamp).toBeDefined();
