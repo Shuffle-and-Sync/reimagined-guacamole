@@ -157,12 +157,27 @@ export function setupGracefulShutdown(
  * Log memory configuration (actual flags must be set at process start)
  */
 export function logMemoryConfiguration(): void {
-  if (process.env.NODE_ENV === "production") {
-    logger.info("Memory configuration recommendations", {
-      recommendation:
-        'Set NODE_OPTIONS="--max-old-space-size=512" in Cloud Run environment variables',
-      currentFlags: process.execArgv,
-      heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + "MB",
-    });
+  const heapStats = process.memoryUsage();
+  const heapUsedMB = Math.round(heapStats.heapUsed / 1024 / 1024);
+  const heapTotalMB = Math.round(heapStats.heapTotal / 1024 / 1024);
+
+  logger.info("Memory configuration active", {
+    environment: process.env.NODE_ENV,
+    nodeOptions: process.env.NODE_OPTIONS || "not set",
+    execArgv: process.execArgv,
+    heapUsed: `${heapUsedMB}MB`,
+    heapTotal: `${heapTotalMB}MB`,
+    heapUsagePercent: `${((heapStats.heapUsed / heapStats.heapTotal) * 100).toFixed(1)}%`,
+  });
+
+  // Check if memory limits are properly configured
+  const hasMaxOldSpace = process.execArgv.some((arg) =>
+    arg.includes("--max-old-space-size"),
+  );
+
+  if (process.env.NODE_ENV === "production" && !hasMaxOldSpace) {
+    logger.warn(
+      "Production memory limits not detected. Set NODE_OPTIONS='--max-old-space-size=768' in environment variables",
+    );
   }
 }

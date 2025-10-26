@@ -15,6 +15,7 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
   - [Administrator Setup Guide](docs/deployment/ADMIN_SETUP.md)
+  - [Memory Configuration Guide](docs/deployment/MEMORY_CONFIGURATION.md)
 
 ---
 
@@ -764,13 +765,32 @@ npm install --legacy-peer-deps
 
 **Symptom**: Container crashes with out-of-memory errors
 
-**Solution**: Increase memory allocation:
+**Solution**: The application has explicit memory limits configured to prevent OOM crashes. See [Memory Configuration Guide](docs/deployment/MEMORY_CONFIGURATION.md) for details.
 
-```bash
-gcloud run services update shuffle-and-sync-backend \
-  --region $REGION \
-  --memory 2Gi
-```
+Quick fixes:
+
+1. **Check current configuration:**
+
+   ```bash
+   gcloud run services describe shuffle-and-sync-backend \
+     --region $REGION \
+     --format="value(spec.template.spec.containers[0].resources.limits.memory)"
+   ```
+
+2. **Increase memory allocation if needed:**
+
+   ```bash
+   gcloud run services update shuffle-and-sync-backend \
+     --region $REGION \
+     --memory 2Gi
+   ```
+
+3. **Review memory monitoring:**
+   - Check `/api/monitoring/memory/status` endpoint
+   - Review logs for memory warnings
+   - See [Memory Configuration Guide](docs/deployment/MEMORY_CONFIGURATION.md#troubleshooting)
+
+**Note**: Default production configuration is 1Gi container with 768MB Node.js heap, which is sufficient for most workloads.
 
 #### Configuration Error on Login
 
