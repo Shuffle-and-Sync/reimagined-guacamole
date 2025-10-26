@@ -108,9 +108,11 @@ This report documents the lazy loading implementation for route-based code split
 
 Based on typical 3G network conditions (~750 Kbps):
 
-#### Before Lazy Loading (Estimated)
+#### Before Lazy Loading (Hypothetical Baseline)
 
-- Initial bundle: ~1.4MB
+Note: These are estimated metrics for comparison purposes, as lazy loading was already implemented in the codebase.
+
+- Initial bundle: ~1.4MB (estimated without code splitting)
 - Download time: ~15 seconds
 - Time to Interactive (TTI): ~17 seconds
 - First Contentful Paint (FCP): ~3.5 seconds
@@ -265,7 +267,7 @@ The application now loads faster, uses less bandwidth, and provides a better use
 
 ## References
 
-- Issue #1: [Implement Lazy Loading for Heavy Routes]
+- GitHub Issue #1: Implement Lazy Loading for Heavy Routes (see repository issues)
 - Documentation: `docs/performance/LAZY_LOADING.md`
 - Test Suite: `client/src/App.test.tsx`
 - Monitoring Script: `scripts/check-bundle-size.sh`
