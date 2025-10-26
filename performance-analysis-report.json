@@ -1,0 +1,343 @@
+{
+  "timestamp": "2025-10-26T15:16:40.898Z",
+  "frontend": {
+    "bundles": [
+      {
+        "file": "react-vendor-CHreacJJ.js",
+        "size": 169080,
+        "gzipSize": 50724
+      },
+      {
+        "file": "ui-vendor-Duyw_Fgh.js",
+        "size": 123016,
+        "gzipSize": 36905
+      },
+      {
+        "file": "utils-vendor-VaWD9zKc.js",
+        "size": 96955,
+        "gzipSize": 29087
+      },
+      {
+        "file": "home-B9ECZh0U.js",
+        "size": 84007,
+        "gzipSize": 25202
+      },
+      {
+        "file": "calendar-C-SrXZvH.js",
+        "size": 71163,
+        "gzipSize": 21349
+      },
+      {
+        "file": "index-Vi1Nqtzb.js",
+        "size": 61031,
+        "gzipSize": 18309
+      },
+      {
+        "file": "state-vendor-FEo3YQAo.js",
+        "size": 43748,
+        "gzipSize": 13124
+      },
+      {
+        "file": "tournaments-DUsJOSjf.js",
+        "size": 35048,
+        "gzipSize": 10514
+      },
+      {
+        "file": "index-D5iC_bET.js",
+        "size": 33440,
+        "gzipSize": 10032
+      },
+      {
+        "file": "tournament-detail-9SpdOEzE.js",
+        "size": 28389,
+        "gzipSize": 8517
+      },
+      {
+        "file": "OptimizedComponents-CczQ3F1R.js",
+        "size": 27322,
+        "gzipSize": 8197
+      },
+      {
+        "file": "tablesync-landing-CE2uWHLW.js",
+        "size": 26326,
+        "gzipSize": 7898
+      },
+      {
+        "file": "game-room-Tp069jl7.js",
+        "size": 25686,
+        "gzipSize": 7706
+      },
+      {
+        "file": "textarea-Qkskk8W2.js",
+        "size": 21481,
+        "gzipSize": 6444
+      },
+      {
+        "file": "visual-vendor-BlhvbpQs.js",
+        "size": 20596,
+        "gzipSize": 6179
+      },
+      {
+        "file": "tablesync-Bl7gMYyl.js",
+        "size": 19469,
+        "gzipSize": 5841
+      },
+      {
+        "file": "matchmaking-GhqzZ0Bj.js",
+        "size": 19100,
+        "gzipSize": 5730
+      },
+      {
+        "file": "landing-BIqeTNuq.js",
+        "size": 17590,
+        "gzipSize": 5277
+      },
+      {
+        "file": "index-Bg3z1g1U.js",
+        "size": 15598,
+        "gzipSize": 4679
+      },
+      {
+        "file": "community-forum-BkLYImGc.js",
+        "size": 14460,
+        "gzipSize": 4338
+      },
+      {
+        "file": "register-C8Y1oUkY.js",
+        "size": 12520,
+        "gzipSize": 3756
+      },
+      {
+        "file": "account-settings-CBbH6u9T.js",
+        "size": 10818,
+        "gzipSize": 3245
+      },
+      {
+        "file": "slider-BECjyELq.js",
+        "size": 8226,
+        "gzipSize": 2468
+      },
+      {
+        "file": "change-email-Dqz8-8gQ.js",
+        "size": 7585,
+        "gzipSize": 2276
+      },
+      {
+        "file": "DemoModal-DrV2cUlC.js",
+        "size": 7488,
+        "gzipSize": 2246
+      },
+      {
+        "file": "conduct-CeRhNclp.js",
+        "size": 6915,
+        "gzipSize": 2075
+      },
+      {
+        "file": "contact-CnQXnO-l.js",
+        "size": 6515,
+        "gzipSize": 1955
+      },
+      {
+        "file": "mfa-verify-vGP82JT3.js",
+        "size": 6465,
+        "gzipSize": 1940
+      },
+      {
+        "file": "verify-email-CTS_by37.js",
+        "size": 6139,
+        "gzipSize": 1842
+      },
+      {
+        "file": "privacy-WMSJS9ey.js",
+        "size": 6069,
+        "gzipSize": 1821
+      },
+      {
+        "file": "forgot-password-WnDv_1h_.js",
+        "size": 5410,
+        "gzipSize": 1623
+      },
+      {
+        "file": "signin-DzaqqR0P.js",
+        "size": 5272,
+        "gzipSize": 1582
+      },
+      {
+        "file": "terms-IYjwa7fb.js",
+        "size": 4705,
+        "gzipSize": 1412
+      },
+      {
+        "file": "Footer-B-Q649ew.js",
+        "size": 4622,
+        "gzipSize": 1387
+      },
+      {
+        "file": "error-CmS3ml_I.js",
+        "size": 4495,
+        "gzipSize": 1349
+      },
+      {
+        "file": "select-iNdrmFuY.js",
+        "size": 3158,
+        "gzipSize": 947
+      },
+      {
+        "file": "getting-started-Bkt3U6iw.js",
+        "size": 3115,
+        "gzipSize": 935
+      },
+      {
+        "file": "help-center--d1m9XRH.js",
+        "size": 3108,
+        "gzipSize": 932
+      },
+      {
+        "file": "faq-D9LEbnm6.js",
+        "size": 3107,
+        "gzipSize": 932
+      },
+      {
+        "file": "api-docs-CPCNDt4A.js",
+        "size": 3079,
+        "gzipSize": 924
+      },
+      {
+        "file": "not-found-BnT6G63h.js",
+        "size": 2652,
+        "gzipSize": 796
+      },
+      {
+        "file": "iconBase-3hwNNi5s.js",
+        "size": 2496,
+        "gzipSize": 749
+      },
+      {
+        "file": "progress-BzkX1XGD.js",
+        "size": 1976,
+        "gzipSize": 593
+      },
+      {
+        "file": "form-1iGf-94g.js",
+        "size": 1763,
+        "gzipSize": 529
+      },
+      {
+        "file": "zod-B8CtiMPq.js",
+        "size": 1608,
+        "gzipSize": 482
+      },
+      {
+        "file": "tabs-BJOEvFDB.js",
+        "size": 1150,
+        "gzipSize": 345
+      },
+      {
+        "file": "label-CW2c3qUW.js",
+        "size": 1118,
+        "gzipSize": 335
+      },
+      {
+        "file": "alert-DBEO8FIT.js",
+        "size": 982,
+        "gzipSize": 295
+      },
+      {
+        "file": "separator-DHidxkAu.js",
+        "size": 745,
+        "gzipSize": 224
+      },
+      {
+        "file": "index-D-LdoSmb.js",
+        "size": 406,
+        "gzipSize": 122
+      },
+      {
+        "file": "useDocumentTitle-DuR1H0Qa.js",
+        "size": 231,
+        "gzipSize": 69
+      }
+    ],
+    "totalSize": 1087443,
+    "totalGzipSize": 326238,
+    "largestBundles": [
+      {
+        "file": "react-vendor-CHreacJJ.js",
+        "size": 169080,
+        "gzipSize": 50724
+      },
+      {
+        "file": "ui-vendor-Duyw_Fgh.js",
+        "size": 123016,
+        "gzipSize": 36905
+      },
+      {
+        "file": "utils-vendor-VaWD9zKc.js",
+        "size": 96955,
+        "gzipSize": 29087
+      },
+      {
+        "file": "home-B9ECZh0U.js",
+        "size": 84007,
+        "gzipSize": 25202
+      },
+      {
+        "file": "calendar-C-SrXZvH.js",
+        "size": 71163,
+        "gzipSize": 21349
+      }
+    ],
+    "chunkingStrategy": "manual chunks configured"
+  },
+  "dependencies": {
+    "total": 145,
+    "unused": [],
+    "devDependencies": 59,
+    "productionDependencies": 86
+  },
+  "backend": {
+    "apiEndpointCount": 51,
+    "databaseQueries": {
+      "totalQueries": 45,
+      "filesWithQueries": 4,
+      "potentialNPlusOne": []
+    },
+    "cache": {
+      "cacheServiceExists": true,
+      "cacheTTLs": {
+        "defaultTTL": 300,
+        "sessionTTL": 1800,
+        "userTTL": 600,
+        "apiTTL": 60
+      },
+      "cacheUsage": [
+        "User caching",
+        "Community caching",
+        "Stream session caching",
+        "API response caching",
+        "Analytics caching"
+      ]
+    },
+    "webSocket": {
+      "webSocketFiles": [
+        "server/routes.ts",
+        "server/utils/websocket-connection-manager.ts",
+        "server/utils/websocket-env-validation.ts",
+        "server/utils/websocket-message-validator.ts",
+        "server/utils/websocket-server-enhanced.ts",
+        "server/utils/websocket-rate-limiter.ts",
+        "server/middleware/security.middleware.ts",
+        "server/middleware/api-key.middleware.ts",
+        "server/services/platform-oauth.service.ts",
+        "server/services/notification-delivery.service.ts"
+      ],
+      "maxPayloadSize": "16 * 1024, // 16KB max message size",
+      "rateLimitingEnabled": true
+    }
+  },
+  "recommendations": [
+    "⚠️  Frontend bundle size (1062KB) exceeds 1MB. Consider code splitting or lazy loading.",
+    "✅ Manual chunk splitting configured - good for optimization!",
+    "✅ Cache service implemented with TTLs: defaultTTL, sessionTTL, userTTL, apiTTL"
+  ]
+}
