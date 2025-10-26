@@ -49,6 +49,8 @@ import {
   matchResults,
   forumPosts,
   forumReplies,
+  forumPostLikes,
+  forumReplyLikes,
   streamSessions,
   streamSessionCoHosts,
   streamSessionPlatforms,
@@ -5300,30 +5302,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(forumReplies.postId, postId))
       .orderBy(forumReplies.createdAt);
 
-    // Add like status if user is provided
-    const enrichedReplies = await Promise.all(
-      replies.map(async (r: unknown) => {
-        let isLiked = false;
-        if (userId) {
-          const [like] = await db
-            .select()
-            .from(forumReplyLikes)
-            .where(
-              and(
-                eq(forumReplyLikes.replyId, r.reply.id),
-                eq(forumReplyLikes.userId, userId),
-              ),
-            );
-          isLiked = !!like;
-        }
+    // Batch load like status for all replies if user is provided
+    let likedReplyIds: Set<string> = new Set();
+    if (userId && replies.length > 0) {
+      const replyIds = replies.map((r: unknown) => r.reply.id);
+      const likes = await db
+        .select({ replyId: forumReplyLikes.replyId })
+        .from(forumReplyLikes)
+        .where(
+          and(
+            inArray(forumReplyLikes.replyId, replyIds),
+            eq(forumReplyLikes.userId, userId),
+          ),
+        );
+      likedReplyIds = new Set(likes.map((like) => like.replyId));
+    }
 
-        return {
-          ...r.reply,
-          author: r.author,
-          isLiked,
-        };
-      }),
-    );
+    // Map replies with like status
+    const enrichedReplies = replies.map((r: unknown) => ({
+      ...r.reply,
+      author: r.author,
+      isLiked: likedReplyIds.has(r.reply.id),
+    }));
+
     if (!enrichedReplies) {
       throw new Error("Database operation failed");
     }
@@ -5647,33 +5648,54 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(communities, eq(streamSessions.communityId, communities.id))
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-      // Get co-hosts and platforms for each session
-      const enrichedResults = await Promise.all(
-        results.map(async (result: unknown) => {
-          const [coHosts, platforms] = await Promise.all([
-            db
-              .select()
-              .from(streamSessionCoHosts)
-              .where(
-                eq(streamSessionCoHosts.streamSessionId, result.session.id),
-              ),
-            db
-              .select()
-              .from(streamSessionPlatforms)
-              .where(
-                eq(streamSessionPlatforms.streamSessionId, result.session.id),
-              ),
-          ]);
+      // Batch load co-hosts and platforms for all sessions
+      if (results.length === 0) {
+        return [];
+      }
 
-          return {
-            ...result.session,
-            host: result.host || null,
-            community: result.community,
-            coHosts,
-            platforms,
-          };
-        }),
-      );
+      const sessionIds = results.map((r: unknown) => r.session.id);
+
+      const [allCoHosts, allPlatforms] = await Promise.all([
+        db
+          .select()
+          .from(streamSessionCoHosts)
+          .where(inArray(streamSessionCoHosts.streamSessionId, sessionIds)),
+        db
+          .select()
+          .from(streamSessionPlatforms)
+          .where(inArray(streamSessionPlatforms.streamSessionId, sessionIds)),
+      ]);
+
+      // Create lookup maps for O(1) access
+      const coHostsBySession = new Map<
+        string,
+        (typeof streamSessionCoHosts.$inferSelect)[]
+      >();
+      const platformsBySession = new Map<
+        string,
+        (typeof streamSessionPlatforms.$inferSelect)[]
+      >();
+
+      allCoHosts.forEach((coHost) => {
+        const list = coHostsBySession.get(coHost.streamSessionId) || [];
+        list.push(coHost);
+        coHostsBySession.set(coHost.streamSessionId, list);
+      });
+
+      allPlatforms.forEach((platform) => {
+        const list = platformsBySession.get(platform.streamSessionId) || [];
+        list.push(platform);
+        platformsBySession.set(platform.streamSessionId, list);
+      });
+
+      // Map results with co-hosts and platforms
+      const enrichedResults = results.map((result: unknown) => ({
+        ...result.session,
+        host: result.host || null,
+        community: result.community,
+        coHosts: coHostsBySession.get(result.session.id) || [],
+        platforms: platformsBySession.get(result.session.id) || [],
+      }));
 
       return enrichedResults;
     } catch (error) {
@@ -7104,20 +7126,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async batchRecalculateReputationScores(userIds?: string[]): Promise<void> {
+    const BATCH_SIZE = 10; // Process 10 users concurrently to balance load
+
+    let targetUserIds: string[];
     if (userIds && userIds.length > 0) {
-      // Recalculate for specific users
-      for (const userId of userIds) {
-        await this.calculateReputationScore(userId);
-      }
+      targetUserIds = userIds;
     } else {
-      // Recalculate for all users with reputation records
+      // Get all users with reputation records
       const allReputations = await db
         .select({ userId: userReputation.userId })
         .from(userReputation);
+      targetUserIds = allReputations.map((rep) => rep.userId);
+    }
 
-      for (const rep of allReputations) {
-        await this.calculateReputationScore(rep.userId);
-      }
+    // Process in batches to avoid overwhelming the database
+    for (let i = 0; i < targetUserIds.length; i += BATCH_SIZE) {
+      const batch = targetUserIds.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map((userId) => this.calculateReputationScore(userId)),
+      );
     }
   }
 
@@ -7812,19 +7839,20 @@ export class DatabaseStorage implements IStorage {
     itemIds: string[],
     moderatorId: string,
   ): Promise<ModerationQueue[]> {
-    const assignedItems: ModerationQueue[] = [];
-
-    for (const itemId of itemIds) {
-      try {
-        const assigned = await this.assignModerationQueueItem(
-          itemId,
-          moderatorId,
-        );
-        assignedItems.push(assigned);
-      } catch (error) {
-        console.error("Bulk assignment failed for item:", itemId, error);
-      }
+    if (itemIds.length === 0) {
+      return [];
     }
+
+    // Perform batch update using IN clause for better performance
+    const assignedItems = await db
+      .update(moderationQueue)
+      .set({
+        assignedModerator: moderatorId,
+        status: "assigned",
+        assignedAt: new Date(),
+      })
+      .where(inArray(moderationQueue.id, itemIds))
+      .returning();
 
     if (!assignedItems) {
       throw new Error("Database operation failed");
