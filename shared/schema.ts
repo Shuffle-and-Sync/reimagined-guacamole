@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   index,
   sqliteTable,
@@ -6,7 +7,6 @@ import {
   real,
   unique,
 } from "drizzle-orm/sqlite-core";
-import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -77,7 +77,7 @@ export const users = sqliteTable(
     lastName: text("last_name"),
     profileImageUrl: text("profile_image_url"),
     primaryCommunity: text("primary_community"),
-    username: text("username"),
+    username: text("username").unique(),
     bio: text("bio"),
     location: text("location"),
     website: text("website"),
@@ -198,6 +198,7 @@ export const games = sqliteTable(
     index("idx_games_name").on(table.name),
     index("idx_games_code").on(table.code),
     index("idx_games_active").on(table.isActive),
+    index("idx_games_created_at").on(table.createdAt),
   ],
 );
 
@@ -1497,9 +1498,19 @@ export const tournamentMatches = sqliteTable(
   (table) => [
     index("idx_tournament_matches_tournament").on(table.tournamentId),
     index("idx_tournament_matches_round").on(table.roundId),
+    index("idx_tournament_matches_player1").on(table.player1Id),
+    index("idx_tournament_matches_player2").on(table.player2Id),
+    index("idx_tournament_matches_status").on(table.status),
+    index("idx_tournament_matches_created_at").on(table.createdAt),
+    // Composite index for player history queries
     index("idx_tournament_matches_players").on(
       table.player1Id,
       table.player2Id,
+    ),
+    // Composite index for tournament game lists with date sorting
+    index("idx_tournament_matches_tournament_created").on(
+      table.tournamentId,
+      table.createdAt,
     ),
   ],
 );
@@ -1536,6 +1547,14 @@ export const matchResults = sqliteTable(
   (table) => [
     index("idx_match_results_match").on(table.matchId),
     index("idx_match_results_reporter").on(table.reportedBy),
+    index("idx_match_results_winner").on(table.winnerId),
+    index("idx_match_results_loser").on(table.loserId),
+    index("idx_match_results_created_at").on(table.createdAt),
+    // Composite index for winner/loser stats queries
+    index("idx_match_results_winner_created").on(
+      table.winnerId,
+      table.createdAt,
+    ),
   ],
 );
 
