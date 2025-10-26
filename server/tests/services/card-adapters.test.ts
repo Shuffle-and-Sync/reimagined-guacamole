@@ -5,12 +5,12 @@
  */
 
 import { db } from "../../../shared/database-unified";
+import { cardRecognitionService } from "../../services/card-recognition";
 import { CustomGameAdapter } from "../../services/card-recognition/adapters/custom.adapter";
 import { scryfallAdapter } from "../../services/card-recognition/adapters/scryfall.adapter";
-import { cardRecognitionService } from "../../services/card-recognition.service";
 import { createMockCard } from "../__factories__";
 
-// Mock the old card recognition service
+// Mock the card recognition service (needs to match the import path used in the adapters)
 jest.mock("../../services/card-recognition", () => ({
   cardRecognitionService: {
     searchCards: jest.fn(),

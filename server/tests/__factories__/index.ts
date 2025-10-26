@@ -175,6 +175,7 @@ export function createMockTournament(
     ]),
     maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
     currentParticipants: 0,
+    participants: [], // Initialize empty participants array
     prizePool: null,
     status: "upcoming",
     organizerId: generateId("user"),
