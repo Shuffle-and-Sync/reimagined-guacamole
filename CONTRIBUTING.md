@@ -239,8 +239,30 @@ All contributions **must** include:
 
 - ✅ **Generated unit tests**: Use `npm run test:generate`
 - ✅ **Passing tests**: All tests must pass (`npm run test`)
-- ✅ **Code coverage**: Minimum 70% coverage
+- ✅ **Code coverage**:
+  - **New/modified code: ≥80% coverage** (enforced by CI)
+  - Overall project: ≥70% coverage
 - ✅ **Type safety**: Pass TypeScript checks (`npm run check`)
+
+### Coverage Enforcement
+
+**Important**: PRs are automatically blocked if new code doesn't meet 80% test coverage.
+
+```bash
+# Check coverage before creating PR
+npm run test:coverage
+
+# View detailed coverage report
+open coverage/lcov-report/index.html  # macOS
+xdg-open coverage/lcov-report/index.html  # Linux
+start coverage/lcov-report/index.html  # Windows
+```
+
+Coverage is calculated on:
+
+- New lines added in your PR
+- Modified lines in existing files
+- Overall project coverage (must stay above 70%)
 
 ### Test Categories
 
@@ -248,6 +270,7 @@ All contributions **must** include:
 2. **Integration tests**: Feature workflow testing
 3. **API tests**: Endpoint functionality and error handling
 4. **UI tests**: Component behavior and user interactions
+5. **Security tests**: Authentication, authorization, input validation
 
 ### Running Tests
 

@@ -7,6 +7,7 @@
 ### Related Issues
 
 <!-- Link to related issues using "Closes #123" or "Relates to #123" -->
+
 - Closes #
 - Relates to #
 
@@ -29,8 +30,11 @@
 
 - [ ] All existing tests pass (`npm run test`)
 - [ ] New tests added for new functionality (`npm run test:generate`)
-- [ ] Code coverage meets minimum threshold (70%)
+- [ ] **Code coverage on new/modified code ≥ 80%** (enforced by CI)
+- [ ] Overall code coverage meets minimum threshold (70%)
 - [ ] TypeScript compilation passes (`npm run check`)
+
+> ⚠️ **Coverage Enforcement**: PRs that don't meet 80% coverage on new code will be automatically blocked by the CI pipeline. Run `npm run test:coverage` locally to check.
 
 ### Manual Testing
 

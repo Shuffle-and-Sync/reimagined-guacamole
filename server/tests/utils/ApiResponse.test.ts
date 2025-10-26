@@ -139,7 +139,8 @@ describe("ApiResponse", () => {
       const response = ApiResponse.success({ test: 1 });
       const requestId = response.meta?.requestId;
 
-      expect(requestId).toMatch(/^req_\d+_[a-zA-Z0-9]+$/);
+      // Updated regex to include hyphens and underscores which nanoid generates
+      expect(requestId).toMatch(/^req_\d+_[a-zA-Z0-9_-]+$/);
     });
   });
 
