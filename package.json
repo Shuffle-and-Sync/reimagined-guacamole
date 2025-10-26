@@ -14,6 +14,7 @@
     "build:analyze": "ANALYZE=true node build.js",
     "build:verify": "bash scripts/verify-build.sh",
     "build:verify-runtime": "tsx scripts/verify-runtime-init.js",
+    "build:check-size": "bash scripts/check-bundle-size.sh",
     "validate:markdown": "bash scripts/validate-markdown.sh",
     "validate:schema": "tsx scripts/validate-schema-fixes.ts",
     "docs:check": "bash scripts/check-misplaced-docs.sh",
