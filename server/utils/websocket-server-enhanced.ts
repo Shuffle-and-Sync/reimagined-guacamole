@@ -1,5 +1,6 @@
 import { IncomingMessage, Server as HttpServer } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer, WebSocket, type ServerOptions } from "ws";
+import { WS_SERVER_CONFIG, WS_FEATURES } from "../config/websocket.config";
 import { logger } from "../logger";
 import { collaborativeStreaming } from "../services/collaborative-streaming.service";
 import { storage } from "../storage";
@@ -21,14 +22,25 @@ export class EnhancedWebSocketServer {
   private wss: WebSocketServer;
   private httpServer: HttpServer;
   private isShuttingDown = false;
+  private compressionEnabled: boolean;
 
   constructor(httpServer: HttpServer) {
     this.httpServer = httpServer;
-    this.wss = new WebSocketServer({
+    this.compressionEnabled = WS_FEATURES.COMPRESSION_ENABLED;
+
+    // Configure WebSocket server with optional compression
+    const wsConfig: ServerOptions = {
       server: httpServer,
-      path: "/ws",
-      maxPayload: 16 * 1024, // 16KB max message size
-    });
+      path: WS_SERVER_CONFIG.PATH,
+      maxPayload: WS_SERVER_CONFIG.MAX_PAYLOAD,
+    };
+
+    // Add compression configuration if enabled
+    if (this.compressionEnabled) {
+      wsConfig.perMessageDeflate = WS_SERVER_CONFIG.PER_MESSAGE_DEFLATE;
+    }
+
+    this.wss = new WebSocketServer(wsConfig);
 
     this.setupWebSocketServer();
     this.setupGracefulShutdown();
@@ -52,8 +64,12 @@ export class EnhancedWebSocketServer {
     });
 
     logger.info("Enhanced WebSocket server initialized", {
-      path: "/ws",
-      maxPayload: "16KB",
+      path: WS_SERVER_CONFIG.PATH,
+      maxPayload: `${WS_SERVER_CONFIG.MAX_PAYLOAD / 1024}KB`,
+      compressionEnabled: this.compressionEnabled,
+      compressionThreshold: this.compressionEnabled
+        ? `${WS_SERVER_CONFIG.PER_MESSAGE_DEFLATE.threshold / 1024}KB`
+        : "N/A",
     });
   }
 
@@ -757,6 +773,15 @@ export class EnhancedWebSocketServer {
   getStats() {
     return {
       connections: this.wss.clients.size,
+      compression: {
+        enabled: this.compressionEnabled,
+        threshold: this.compressionEnabled
+          ? WS_SERVER_CONFIG.PER_MESSAGE_DEFLATE.threshold
+          : null,
+        level: this.compressionEnabled
+          ? WS_SERVER_CONFIG.PER_MESSAGE_DEFLATE.zlibDeflateOptions.level
+          : null,
+      },
       connectionManager: connectionManager.getStats(),
       rateLimiter: {
         default: defaultRateLimiter.getStats(),
