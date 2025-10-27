@@ -26,6 +26,13 @@ export class PatchApplier {
   }
 
   /**
+   * Get current options
+   */
+  getOptions(): PatchApplierOptions {
+    return { ...this.options };
+  }
+
+  /**
    * Apply patches to state
    */
   apply<T>(state: T, patches: JsonPatch[]): PatchResult<T> {

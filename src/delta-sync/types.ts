@@ -60,9 +60,9 @@ export interface PatchMessage {
   id: string;
   baseVersion: VectorClockType;
   targetVersion: VectorClockType;
-  patches: JsonPatch[];
+  patches: JsonPatch[] | string; // JsonPatch[] or base64 gzipped string if compressed
   checksum: string;
-  compressed: boolean; // if true, patches are gzipped
+  compressed: boolean; // if true, patches field contains base64 gzipped string
 }
 
 /**

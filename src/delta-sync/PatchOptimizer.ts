@@ -21,6 +21,13 @@ export class PatchOptimizer {
   }
 
   /**
+   * Get current options
+   */
+  getOptions(): PatchOptimizerOptions {
+    return { ...this.options };
+  }
+
+  /**
    * Optimize a sequence of patches
    */
   optimize(patches: JsonPatch[]): JsonPatch[] {

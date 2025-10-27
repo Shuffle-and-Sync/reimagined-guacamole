@@ -19,6 +19,13 @@ export class ConflictResolver {
   }
 
   /**
+   * Get current options
+   */
+  getOptions(): ConflictResolverOptions {
+    return { ...this.options };
+  }
+
+  /**
    * Detect conflicts between two patch sets
    */
   detectConflicts(

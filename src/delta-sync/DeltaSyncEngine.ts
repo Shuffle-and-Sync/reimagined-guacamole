@@ -96,17 +96,13 @@ export class DeltaSyncEngine<T = any> {
     const { data, compressed } = this.compressor.compress(optimizedPatches);
 
     // Calculate checksum
-    const checksum = this.calculateChecksum(
-      compressed ? data : JSON.stringify(optimizedPatches),
-    );
+    const checksum = this.calculateChecksum(data);
 
     return {
       id: this.generateMessageId(),
       baseVersion,
       targetVersion,
-      patches: compressed
-        ? (JSON.parse(data) as JsonPatch[])
-        : optimizedPatches,
+      patches: compressed ? data : optimizedPatches,
       checksum,
       compressed,
     };
@@ -116,12 +112,25 @@ export class DeltaSyncEngine<T = any> {
    * Verify patch message integrity
    */
   verifyPatchMessage(message: PatchMessage): boolean {
-    const data = message.compressed
-      ? JSON.stringify(message.patches)
-      : JSON.stringify(message.patches);
+    // Get the actual data to verify
+    const data =
+      typeof message.patches === "string"
+        ? message.patches
+        : JSON.stringify(message.patches);
 
     const checksum = this.calculateChecksum(data);
     return checksum === message.checksum;
+  }
+
+  /**
+   * Extract patches from a message (handles compression)
+   */
+  extractPatches(message: PatchMessage): JsonPatch[] {
+    if (typeof message.patches === "string") {
+      // Decompress if it's a string (compressed)
+      return this.compressor.decompress(message.patches, message.compressed);
+    }
+    return message.patches;
   }
 
   /**
@@ -209,11 +218,11 @@ export class DeltaSyncEngine<T = any> {
     compressorOptions: CompressionOptions;
   } {
     return {
-      generatorOptions: (this.patchGenerator as any).options,
-      applierOptions: (this.patchApplier as any).options,
-      optimizerOptions: (this.optimizer as any).options,
-      resolverOptions: (this.resolver as any).options,
-      compressorOptions: (this.compressor as any).options,
+      generatorOptions: this.patchGenerator.getOptions(),
+      applierOptions: this.patchApplier.getOptions(),
+      optimizerOptions: this.optimizer.getOptions(),
+      resolverOptions: this.resolver.getOptions(),
+      compressorOptions: this.compressor.getOptions(),
     };
   }
 }

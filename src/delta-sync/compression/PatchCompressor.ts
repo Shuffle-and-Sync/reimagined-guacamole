@@ -20,6 +20,13 @@ export class PatchCompressor {
   }
 
   /**
+   * Get current options
+   */
+  getOptions(): CompressionOptions {
+    return { ...this.options };
+  }
+
+  /**
    * Compress patches if they exceed the threshold
    */
   compress(patches: JsonPatch[]): { data: string; compressed: boolean } {

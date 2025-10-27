@@ -21,6 +21,13 @@ export class PatchGenerator {
   }
 
   /**
+   * Get current options
+   */
+  getOptions(): PatchGeneratorOptions {
+    return { ...this.options };
+  }
+
+  /**
    * Generate patches to transform oldState into newState
    */
   generate<T>(oldState: T, newState: T): JsonPatch[] {
