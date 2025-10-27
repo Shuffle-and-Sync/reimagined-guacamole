@@ -88,7 +88,10 @@ export class OTEngine {
     if (!this.transformMatrix.has(type1)) {
       this.transformMatrix.set(type1, new Map());
     }
-    this.transformMatrix.get(type1)!.set(type2, transformFn);
+    const matrix = this.transformMatrix.get(type1);
+    if (matrix) {
+      matrix.set(type2, transformFn);
+    }
   }
 
   /**
@@ -211,13 +214,14 @@ export class OTEngine {
 
     const allClients = new Set([...Object.keys(v1), ...Object.keys(v2)]);
 
-    for (const clientId of allClients) {
+    // Use Array.from for better TypeScript compatibility
+    Array.from(allClients).forEach((clientId) => {
       const t1 = v1[clientId] || 0;
       const t2 = v2[clientId] || 0;
 
       if (t1 > t2) v1Greater = true;
       if (t2 > t1) v2Greater = true;
-    }
+    });
 
     if (v1Greater && !v2Greater) return 1; // v1 > v2
     if (v2Greater && !v1Greater) return -1; // v2 > v1
@@ -271,6 +275,7 @@ export class OTEngine {
         "ADD_COUNTER",
       ].includes(op.type)
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return validateCardOperation(op as any);
     }
 

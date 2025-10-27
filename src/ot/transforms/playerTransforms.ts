@@ -16,7 +16,7 @@ import { TransformResult, UpdateLifeOperation } from "../types";
  */
 export function transformLifeVsLife(
   op1: UpdateLifeOperation,
-  op2: UpdateLifeOperation,
+  _op2: UpdateLifeOperation,
 ): TransformResult {
   // Life updates are commutative and cumulative
   // Both operations can proceed as-is
@@ -29,8 +29,9 @@ export function transformLifeVsLife(
  * Life updates don't affect most other operations
  */
 export function transformOperationVsLife(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   op: any,
-  life: UpdateLifeOperation,
+  _life: UpdateLifeOperation,
 ): TransformResult {
   // Life updates are independent of other operations
   return { transformed: op };

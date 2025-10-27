@@ -8,7 +8,6 @@
 import { affectsSameCard } from "../operations/CardOperations";
 import {
   TransformResult,
-  CardOperation,
   MoveCardOperation,
   TapCardOperation,
   PlayCardOperation,
@@ -203,9 +202,9 @@ export function transformCounterVsCounter(
  */
 export function transformCounterVsMove(
   counter: AddCounterOperation,
-  move: MoveCardOperation,
+  _move: MoveCardOperation,
 ): TransformResult {
-  if (!affectsSameCard(counter, move)) {
+  if (!affectsSameCard(counter, _move)) {
     return { transformed: counter };
   }
 
@@ -222,9 +221,9 @@ export function transformCounterVsMove(
  */
 export function transformMoveVsCounter(
   move: MoveCardOperation,
-  counter: AddCounterOperation,
+  _counter: AddCounterOperation,
 ): TransformResult {
-  if (!affectsSameCard(move, counter)) {
+  if (!affectsSameCard(move, _counter)) {
     return { transformed: move };
   }
 
