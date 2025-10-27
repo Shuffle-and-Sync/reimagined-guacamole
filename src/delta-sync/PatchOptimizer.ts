@@ -1,26 +1,34 @@
 /**
- * PatchOptimizer - Optimize and combine JSON Patches
+ * PatchOptimizer - Optimize JSON Patch sequences
  *
- * Reduces patch set size by combining sequential operations,
- * removing redundant patches, and optimizing move operations.
+ * Combines, deduplicates, and optimizes patch sequences to minimize
+ * bandwidth and improve application performance.
  */
 
-import type { JsonPatch, PatchOptimizationOptions } from "./types";
+import { JsonPatch, PatchOptimizerOptions } from "./types";
 
 export class PatchOptimizer {
-  private options: Required<PatchOptimizationOptions>;
+  private options: PatchOptimizerOptions;
 
-  constructor(options: PatchOptimizationOptions = {}) {
+  constructor(options: PatchOptimizerOptions = {}) {
     this.options = {
-      combineSequential: options.combineSequential ?? true,
-      removeRedundant: options.removeRedundant ?? true,
-      optimizeMoves: options.optimizeMoves ?? true,
-      deduplicate: options.deduplicate ?? true,
+      combineSequential: true,
+      removeRedundant: true,
+      optimizeMoves: true,
+      deduplicate: true,
+      ...options,
     };
   }
 
   /**
-   * Optimize a set of patches
+   * Get current options
+   */
+  getOptions(): PatchOptimizerOptions {
+    return { ...this.options };
+  }
+
+  /**
+   * Optimize a sequence of patches
    */
   optimize(patches: JsonPatch[]): JsonPatch[] {
     let optimized = [...patches];
@@ -45,60 +53,52 @@ export class PatchOptimizer {
   }
 
   /**
-   * Remove redundant patches (e.g., add followed by remove on same path)
+   * Remove redundant patches (e.g., add followed by remove)
    */
   private removeRedundantPatches(patches: JsonPatch[]): JsonPatch[] {
     const result: JsonPatch[] = [];
-    const pathOps = new Map<string, number[]>(); // path -> indices
+    const pathHistory = new Map<string, number>(); // path -> last index
 
-    // Build index of operations per path
-    patches.forEach((patch, index) => {
-      if (!pathOps.has(patch.path)) {
-        pathOps.set(patch.path, []);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      pathOps.get(patch.path)!.push(index);
-    });
-
-    const toSkip = new Set<number>();
-
-    // Check for redundant patterns
-    for (const [, indices] of pathOps) {
-      for (let i = 0; i < indices.length - 1; i++) {
-        const idx1 = indices[i];
-        const idx2 = indices[i + 1];
-        const patch1 = patches[idx1];
-        const patch2 = patches[idx2];
-
-        // Add followed by remove = no-op
-        if (patch1.op === "add" && patch2.op === "remove") {
-          toSkip.add(idx1);
-          toSkip.add(idx2);
-        }
-
-        // Replace followed by remove = remove original
-        if (patch1.op === "replace" && patch2.op === "remove") {
-          toSkip.add(idx1);
-        }
-
-        // Replace followed by replace = keep only last
-        if (patch1.op === "replace" && patch2.op === "replace") {
-          toSkip.add(idx1);
-        }
-
-        // Add followed by replace = add with new value
-        if (patch1.op === "add" && patch2.op === "replace") {
-          toSkip.add(idx2);
-          patches[idx1] = { ...patch1, value: patch2.value };
-        }
-      }
-    }
-
-    // Build result without skipped patches
     for (let i = 0; i < patches.length; i++) {
-      if (!toSkip.has(i)) {
-        result.push(patches[i]);
+      const patch = patches[i];
+      const lastIndex = pathHistory.get(patch.path);
+
+      // Check for redundant patterns
+      if (lastIndex !== undefined) {
+        const lastPatch = result[lastIndex];
+
+        // Add followed by remove -> cancel both
+        if (lastPatch.op === "add" && patch.op === "remove") {
+          result.splice(lastIndex, 1);
+          // Update all indices in pathHistory
+          for (const [path, idx] of pathHistory.entries()) {
+            if (idx > lastIndex) {
+              pathHistory.set(path, idx - 1);
+            }
+          }
+          pathHistory.delete(patch.path);
+          continue;
+        }
+
+        // Replace followed by replace -> keep only last
+        if (lastPatch.op === "replace" && patch.op === "replace") {
+          result[lastIndex] = patch;
+          continue;
+        }
+
+        // Add followed by replace -> convert to single add
+        if (lastPatch.op === "add" && patch.op === "replace") {
+          result[lastIndex] = {
+            op: "add",
+            path: patch.path,
+            value: patch.value,
+          };
+          continue;
+        }
       }
+
+      result.push(patch);
+      pathHistory.set(patch.path, result.length - 1);
     }
 
     return result;
@@ -109,29 +109,26 @@ export class PatchOptimizer {
    */
   private combineSequentialPatches(patches: JsonPatch[]): JsonPatch[] {
     const result: JsonPatch[] = [];
-    let i = 0;
 
-    while (i < patches.length) {
-      const current = patches[i];
-
-      // Look ahead for combinable patches
-      if (i < patches.length - 1) {
-        const next = patches[i + 1];
-
-        // Combine sequential replaces on same path
-        if (
-          current.op === "replace" &&
-          next.op === "replace" &&
-          current.path === next.path
-        ) {
-          // Skip current, keep next (which has final value)
-          i++;
-          continue;
-        }
+    for (const patch of patches) {
+      if (result.length === 0) {
+        result.push(patch);
+        continue;
       }
 
-      result.push(current);
-      i++;
+      const lastPatch = result[result.length - 1];
+
+      // Combine sequential replaces to the same path
+      if (
+        lastPatch.op === "replace" &&
+        patch.op === "replace" &&
+        lastPatch.path === patch.path
+      ) {
+        lastPatch.value = patch.value;
+        continue;
+      }
+
+      result.push(patch);
     }
 
     return result;
@@ -142,54 +139,101 @@ export class PatchOptimizer {
    */
   private optimizeMoveOperations(patches: JsonPatch[]): JsonPatch[] {
     const result: JsonPatch[] = [];
+    const moveChains = new Map<string, string>(); // from -> to
 
-    for (let i = 0; i < patches.length; i++) {
-      const patch = patches[i];
+    for (const patch of patches) {
+      if (patch.op === "move" && patch.from) {
+        // Check if this is part of a move chain
+        const chainStart = this.findChainStart(moveChains, patch.from);
+        const chainEnd = patch.path;
 
-      if (patch.op === "move") {
-        // Check if moving to same location
-        if (patch.from === patch.path) {
-          // No-op, skip
+        // If moving back to original location, cancel the moves
+        if (chainStart === chainEnd) {
+          // Remove all patches in the chain
+          const indicesToRemove: number[] = [];
+          for (let i = 0; i < result.length; i++) {
+            const p = result[i];
+            if (
+              p.op === "move" &&
+              this.isInChain(moveChains, p.path, chainStart)
+            ) {
+              indicesToRemove.push(i);
+            }
+          }
+          // Remove in reverse order
+          for (let i = indicesToRemove.length - 1; i >= 0; i--) {
+            result.splice(indicesToRemove[i], 1);
+          }
+          moveChains.delete(patch.from);
           continue;
         }
 
-        // Check for move chains (A->B, B->C becomes A->C)
-        let finalPath = patch.path;
-        let optimized = false;
-
-        for (let j = i + 1; j < patches.length; j++) {
-          const nextPatch = patches[j];
-          if (nextPatch.op === "move" && nextPatch.from === finalPath) {
-            finalPath = nextPatch.path;
-            optimized = true;
-            // Mark next patch for removal
-            patches[j] = { ...nextPatch, op: "test" as any }; // Mark for removal
+        // Update the chain
+        if (chainStart !== patch.from) {
+          // Update existing chain
+          moveChains.set(chainStart, chainEnd);
+          // Find and update the original move
+          for (let i = 0; i < result.length; i++) {
+            if (result[i].op === "move" && result[i].from === chainStart) {
+              result[i] = { op: "move", path: chainEnd, from: chainStart };
+              break;
+            }
           }
+          continue;
         }
 
-        if (optimized) {
-          result.push({ ...patch, path: finalPath });
-        } else {
-          result.push(patch);
-        }
-      } else if (patch.op !== "test") {
-        // Keep non-test patches (test is used as marker above)
-        result.push(patch);
+        moveChains.set(patch.from, chainEnd);
       }
+
+      result.push(patch);
     }
 
     return result;
   }
 
   /**
-   * Remove duplicate patches
+   * Find the start of a move chain
+   */
+  private findChainStart(chains: Map<string, string>, from: string): string {
+    for (const [start, end] of chains.entries()) {
+      if (end === from) {
+        return this.findChainStart(chains, start);
+      }
+    }
+    return from;
+  }
+
+  /**
+   * Check if a path is in a move chain
+   */
+  private isInChain(
+    chains: Map<string, string>,
+    path: string,
+    target: string,
+  ): boolean {
+    if (path === target) {
+      return true;
+    }
+
+    for (const [from, to] of chains.entries()) {
+      if (to === path) {
+        return this.isInChain(chains, from, target);
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Deduplicate identical patches
    */
   private deduplicatePatches(patches: JsonPatch[]): JsonPatch[] {
     const seen = new Set<string>();
     const result: JsonPatch[] = [];
 
     for (const patch of patches) {
-      const key = this.patchKey(patch);
+      const key = this.patchToKey(patch);
+
       if (!seen.has(key)) {
         seen.add(key);
         result.push(patch);
@@ -200,45 +244,14 @@ export class PatchOptimizer {
   }
 
   /**
-   * Generate unique key for a patch
+   * Convert a patch to a unique string key for deduplication
    */
-  private patchKey(patch: JsonPatch): string {
-    const parts = [patch.op, patch.path];
-
-    if (patch.value !== undefined) {
-      parts.push(JSON.stringify(patch.value));
-    }
-
-    if (patch.from !== undefined) {
-      parts.push(patch.from);
-    }
-
-    return parts.join("|");
-  }
-
-  /**
-   * Calculate optimization savings
-   */
-  calculateSavings(
-    original: JsonPatch[],
-    optimized: JsonPatch[],
-  ): {
-    originalCount: number;
-    optimizedCount: number;
-    savedCount: number;
-    savingsPercent: number;
-  } {
-    const originalCount = original.length;
-    const optimizedCount = optimized.length;
-    const savedCount = originalCount - optimizedCount;
-    const savingsPercent =
-      originalCount > 0 ? (savedCount / originalCount) * 100 : 0;
-
-    return {
-      originalCount,
-      optimizedCount,
-      savedCount,
-      savingsPercent,
-    };
+  private patchToKey(patch: JsonPatch): string {
+    return JSON.stringify({
+      op: patch.op,
+      path: patch.path,
+      value: patch.value,
+      from: patch.from,
+    });
   }
 }

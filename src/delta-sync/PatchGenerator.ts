@@ -1,78 +1,69 @@
 /**
- * PatchGenerator - Generate JSON Patches (RFC 6902) from state diffs
+ * PatchGenerator - Generate JSON Patches (RFC 6902) from state differences
  *
- * Creates minimal patch sets by comparing old and new states,
- * efficiently handling objects, arrays, and primitive values.
+ * Implements efficient diff algorithm to generate minimal patch sets
+ * for synchronizing state between distributed clients.
  */
 
-import type { JsonPatch, PatchGenerationOptions, PatchStats } from "./types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { JsonPatch, PatchGeneratorOptions } from "./types";
 
 export class PatchGenerator {
-  private options: Required<PatchGenerationOptions>;
+  private options: PatchGeneratorOptions;
 
-  constructor(options: PatchGenerationOptions = {}) {
+  constructor(options: PatchGeneratorOptions = {}) {
     this.options = {
-      optimize: options.optimize ?? true,
-      includeTests: options.includeTests ?? false,
-      maxDepth: options.maxDepth ?? 100,
-      excludePaths: options.excludePaths ?? [],
+      optimize: true,
+      maxDepth: 100,
+      ...options,
     };
+  }
+
+  /**
+   * Get current options
+   */
+  getOptions(): PatchGeneratorOptions {
+    return { ...this.options };
   }
 
   /**
    * Generate patches to transform oldState into newState
    */
   generate<T>(oldState: T, newState: T): JsonPatch[] {
-    const patches = this.diff(oldState, newState, "", 0);
-    return patches;
+    return this.diff(oldState, newState, "");
   }
 
   /**
-   * Generate patches with statistics
+   * Compare two values and generate patches for differences
    */
-  generateWithStats<T>(
-    oldState: T,
-    newState: T,
-  ): { patches: JsonPatch[]; stats: PatchStats } {
-    const patches = this.generate(oldState, newState);
-    const stats = this.calculateStats(patches);
-    return { patches, stats };
-  }
-
-  /**
-   * Recursively diff two values and generate patches
-   */
-  private diff(
-    oldVal: any,
-    newVal: any,
-    path: string,
-    depth: number,
-  ): JsonPatch[] {
-    // Check depth limit
-    if (depth > this.options.maxDepth) {
-      return [{ op: "replace", path, value: newVal }];
-    }
-
-    // Check if path is excluded
-    if (this.isExcludedPath(path)) {
+  private diff(oldVal: any, newVal: any, path: string, depth = 0): JsonPatch[] {
+    // Prevent infinite recursion
+    if (depth > (this.options.maxDepth || 100)) {
       return [];
     }
 
     // If values are identical, no patch needed
-    if (this.areEqual(oldVal, newVal)) {
+    if (this.isEqual(oldVal, newVal)) {
       return [];
     }
 
-    // Handle null/undefined
+    // Handle null/undefined cases
     if (oldVal === null || oldVal === undefined) {
       if (newVal === null || newVal === undefined) {
+        // Both are null/undefined, already handled by isEqual
         return [];
       }
       return [{ op: "add", path, value: newVal }];
     }
 
-    if (newVal === null || newVal === undefined) {
+    if (newVal === undefined) {
       return [{ op: "remove", path }];
+    }
+
+    // null is a valid value, should be replaced
+    if (newVal === null) {
+      return [{ op: "replace", path, value: null }];
     }
 
     // Handle arrays
@@ -85,12 +76,12 @@ export class PatchGenerator {
       return this.diffObjects(oldVal, newVal, path, depth);
     }
 
-    // Primitive values differ - replace
+    // For primitives or type changes, use replace
     return [{ op: "replace", path, value: newVal }];
   }
 
   /**
-   * Diff two arrays
+   * Generate patches for array differences
    */
   private diffArrays(
     oldArr: any[],
@@ -100,22 +91,22 @@ export class PatchGenerator {
   ): JsonPatch[] {
     const patches: JsonPatch[] = [];
 
-    // Handle removals from the end (work backwards to maintain indices)
+    // Handle removed items from the end (in reverse order to maintain indices)
     if (oldArr.length > newArr.length) {
       for (let i = oldArr.length - 1; i >= newArr.length; i--) {
-        patches.unshift({ op: "remove", path: `${path}/${i}` });
+        patches.push({ op: "remove", path: this.joinPath(path, i.toString()) });
       }
     }
 
-    // Handle updates and additions
+    // Handle existing items and additions
     for (let i = 0; i < newArr.length; i++) {
-      const itemPath = `${path}/${i}`;
+      const itemPath = this.joinPath(path, i.toString());
 
       if (i >= oldArr.length) {
-        // Addition
+        // New item added
         patches.push({ op: "add", path: itemPath, value: newArr[i] });
       } else {
-        // Potential update
+        // Compare existing items
         const itemPatches = this.diff(
           oldArr[i],
           newArr[i],
@@ -130,7 +121,7 @@ export class PatchGenerator {
   }
 
   /**
-   * Diff two objects
+   * Generate patches for object differences
    */
   private diffObjects(
     oldObj: Record<string, any>,
@@ -142,21 +133,22 @@ export class PatchGenerator {
     const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
 
     for (const key of allKeys) {
-      const propPath = path
-        ? `${path}/${this.escapePathSegment(key)}`
-        : `/${this.escapePathSegment(key)}`;
-      const oldVal = oldObj[key];
-      const newVal = newObj[key];
+      const propPath = this.joinPath(path, key);
 
-      if (!(key in newObj)) {
+      if (!(key in oldObj)) {
+        // Property added
+        patches.push({ op: "add", path: propPath, value: newObj[key] });
+      } else if (!(key in newObj)) {
         // Property removed
         patches.push({ op: "remove", path: propPath });
-      } else if (!(key in oldObj)) {
-        // Property added
-        patches.push({ op: "add", path: propPath, value: newVal });
       } else {
         // Property potentially changed
-        const propPatches = this.diff(oldVal, newVal, propPath, depth + 1);
+        const propPatches = this.diff(
+          oldObj[key],
+          newObj[key],
+          propPath,
+          depth + 1,
+        );
         patches.push(...propPatches);
       }
     }
@@ -165,108 +157,61 @@ export class PatchGenerator {
   }
 
   /**
-   * Check if two values are equal
+   * Join path segments according to RFC 6902
    */
-  private areEqual(val1: any, val2: any): boolean {
+  private joinPath(basePath: string, segment: string): string {
+    // Escape special characters in the segment
+    const escapedSegment = segment.replace(/~/g, "~0").replace(/\//g, "~1");
+
+    if (basePath === "") {
+      return `/${escapedSegment}`;
+    }
+    return `${basePath}/${escapedSegment}`;
+  }
+
+  /**
+   * Check if two values are deeply equal
+   */
+  private isEqual(val1: any, val2: any): boolean {
     if (val1 === val2) {
       return true;
     }
 
-    // Handle NaN
-    if (Number.isNaN(val1) && Number.isNaN(val2)) {
-      return true;
+    if (val1 === null || val2 === null) {
+      return false;
     }
 
-    // Handle Date objects
-    if (val1 instanceof Date && val2 instanceof Date) {
-      return val1.getTime() === val2.getTime();
+    if (typeof val1 !== typeof val2) {
+      return false;
     }
 
-    // Handle RegExp objects
-    if (val1 instanceof RegExp && val2 instanceof RegExp) {
-      return val1.toString() === val2.toString();
+    if (Array.isArray(val1) && Array.isArray(val2)) {
+      if (val1.length !== val2.length) {
+        return false;
+      }
+      return val1.every((item, idx) => this.isEqual(item, val2[idx]));
+    }
+
+    if (this.isObject(val1) && this.isObject(val2)) {
+      const keys1 = Object.keys(val1);
+      const keys2 = Object.keys(val2);
+
+      if (keys1.length !== keys2.length) {
+        return false;
+      }
+
+      return keys1.every(
+        (key) => key in val2 && this.isEqual(val1[key], val2[key]),
+      );
     }
 
     return false;
   }
 
   /**
-   * Check if value is an object (not null, array, or primitive)
+   * Check if value is a plain object
    */
-  private isObject(value: any): boolean {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      !Array.isArray(value) &&
-      !(value instanceof Date) &&
-      !(value instanceof RegExp)
-    );
-  }
-
-  /**
-   * Check if path should be excluded
-   */
-  private isExcludedPath(path: string): boolean {
-    return this.options.excludePaths.some((excludePath) => {
-      if (excludePath.endsWith("*")) {
-        const prefix = excludePath.slice(0, -1);
-        return path.startsWith(prefix);
-      }
-      return path === excludePath;
-    });
-  }
-
-  /**
-   * Escape special characters in path segments (RFC 6901)
-   */
-  private escapePathSegment(segment: string): string {
-    return segment
-      .toString()
-      .replace(/~/g, "~0") // ~ must be escaped first
-      .replace(/\//g, "~1"); // then /
-  }
-
-  /**
-   * Calculate statistics for a set of patches
-   */
-  private calculateStats(patches: JsonPatch[]): PatchStats {
-    const stats: PatchStats = {
-      totalPatches: patches.length,
-      adds: 0,
-      removes: 0,
-      replaces: 0,
-      moves: 0,
-      copies: 0,
-      tests: 0,
-      uncompressedSize: 0,
-    };
-
-    for (const patch of patches) {
-      switch (patch.op) {
-        case "add":
-          stats.adds++;
-          break;
-        case "remove":
-          stats.removes++;
-          break;
-        case "replace":
-          stats.replaces++;
-          break;
-        case "move":
-          stats.moves++;
-          break;
-        case "copy":
-          stats.copies++;
-          break;
-        case "test":
-          stats.tests++;
-          break;
-      }
-
-      // Estimate size
-      stats.uncompressedSize += JSON.stringify(patch).length;
-    }
-
-    return stats;
+  private isObject(val: any): val is Record<string, any> {
+    return val !== null && typeof val === "object" && !Array.isArray(val);
   }
 }

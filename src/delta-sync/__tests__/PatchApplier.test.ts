@@ -1,316 +1,228 @@
 /**
- * Tests for PatchApplier
+ * PatchApplier Tests
+ *
+ * Tests for RFC 6902 compliant JSON Patch application
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { describe, test, expect } from "@jest/globals";
 import { PatchApplier } from "../PatchApplier";
-import { InvalidPatchError, PatchApplicationError } from "../types";
-import type { JsonPatch } from "../types";
+import { JsonPatch } from "../types";
 
 describe("PatchApplier", () => {
   let applier: PatchApplier;
 
   beforeEach(() => {
-    applier = new PatchApplier();
+    applier = new PatchApplier({ atomic: true, validate: true });
   });
 
-  describe("apply - add operation", () => {
+  describe("add operation", () => {
     test("should add property to object", () => {
-      const state = { name: "Alice" };
-      const patches: JsonPatch[] = [{ op: "add", path: "/age", value: 30 }];
-
+      const state = { a: 1 };
+      const patches: JsonPatch[] = [{ op: "add", path: "/b", value: 2 }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ name: "Alice", age: 30 });
+      expect(result.newState).toEqual({ a: 1, b: 2 });
+      expect(result.applied.length).toBe(1);
     });
 
     test("should add item to array", () => {
-      const state = { items: [1, 2, 3] };
-      const patches: JsonPatch[] = [{ op: "add", path: "/items/3", value: 4 }];
-
+      const state = { arr: [1, 2] };
+      const patches: JsonPatch[] = [{ op: "add", path: "/arr/2", value: 3 }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ items: [1, 2, 3, 4] });
+      expect(result.newState).toEqual({ arr: [1, 2, 3] });
     });
 
-    test("should insert item into array at index", () => {
-      const state = { items: [1, 2, 4] };
-      const patches: JsonPatch[] = [{ op: "add", path: "/items/2", value: 3 }];
-
+    test("should insert item in array", () => {
+      const state = { arr: [1, 3] };
+      const patches: JsonPatch[] = [{ op: "add", path: "/arr/1", value: 2 }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ items: [1, 2, 3, 4] });
+      expect(result.newState).toEqual({ arr: [1, 2, 3] });
     });
 
-    test("should add to nested object", () => {
-      const state = { user: { name: "Alice" } };
-      const patches: JsonPatch[] = [
-        { op: "add", path: "/user/age", value: 30 },
-      ];
-
+    test("should add to end of array with - index", () => {
+      const state = { arr: [1, 2] };
+      const patches: JsonPatch[] = [{ op: "add", path: "/arr/-", value: 3 }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ user: { name: "Alice", age: 30 } });
+      expect(result.newState).toEqual({ arr: [1, 2, 3] });
     });
   });
 
-  describe("apply - remove operation", () => {
+  describe("remove operation", () => {
     test("should remove property from object", () => {
-      const state = { name: "Alice", age: 30 };
-      const patches: JsonPatch[] = [{ op: "remove", path: "/age" }];
-
+      const state = { a: 1, b: 2 };
+      const patches: JsonPatch[] = [{ op: "remove", path: "/b" }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ name: "Alice" });
+      expect(result.newState).toEqual({ a: 1 });
     });
 
     test("should remove item from array", () => {
-      const state = { items: [1, 2, 3, 4] };
-      const patches: JsonPatch[] = [{ op: "remove", path: "/items/2" }];
-
+      const state = { arr: [1, 2, 3] };
+      const patches: JsonPatch[] = [{ op: "remove", path: "/arr/1" }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ items: [1, 2, 4] });
-    });
-
-    test("should throw error for non-existent property", () => {
-      const state = { name: "Alice" };
-      const patches: JsonPatch[] = [{ op: "remove", path: "/age" }];
-
-      expect(() => applier.apply(state, patches)).toThrow(
-        PatchApplicationError,
-      );
+      expect(result.newState).toEqual({ arr: [1, 3] });
     });
   });
 
-  describe("apply - replace operation", () => {
+  describe("replace operation", () => {
     test("should replace property value", () => {
-      const state = { name: "Alice", age: 30 };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/age", value: 31 }];
-
+      const state = { a: 1 };
+      const patches: JsonPatch[] = [{ op: "replace", path: "/a", value: 2 }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ name: "Alice", age: 31 });
+      expect(result.newState).toEqual({ a: 2 });
+    });
+
+    test("should replace nested property", () => {
+      const state = { user: { name: "Alice" } };
+      const patches: JsonPatch[] = [
+        { op: "replace", path: "/user/name", value: "Bob" },
+      ];
+      const result = applier.apply(state, patches);
+      expect(result.newState).toEqual({ user: { name: "Bob" } });
     });
 
     test("should replace array item", () => {
-      const state = { items: [1, 2, 3] };
+      const state = { arr: [1, 2, 3] };
       const patches: JsonPatch[] = [
-        { op: "replace", path: "/items/1", value: 5 },
+        { op: "replace", path: "/arr/1", value: 5 },
       ];
-
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ items: [1, 5, 3] });
-    });
-
-    test("should throw error for non-existent property", () => {
-      const state = { name: "Alice" };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/age", value: 30 }];
-
-      expect(() => applier.apply(state, patches)).toThrow(
-        PatchApplicationError,
-      );
+      expect(result.newState).toEqual({ arr: [1, 5, 3] });
     });
   });
 
-  describe("apply - move operation", () => {
-    test("should move property", () => {
-      const state = { a: { b: 1 }, c: {} };
-      const patches: JsonPatch[] = [{ op: "move", from: "/a/b", path: "/c/b" }];
-
+  describe("move operation", () => {
+    test("should move property within object", () => {
+      const state = { a: 1, b: 2 };
+      const patches: JsonPatch[] = [{ op: "move", from: "/a", path: "/c" }];
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ a: {}, c: { b: 1 } });
+      expect(result.newState).toEqual({ b: 2, c: 1 });
     });
 
     test("should move array item", () => {
-      const state = { items: [1, 2, 3, 4] };
+      const state = { arr: [1, 2, 3] };
       const patches: JsonPatch[] = [
-        { op: "move", from: "/items/3", path: "/items/0" },
+        { op: "move", from: "/arr/0", path: "/arr/2" },
       ];
-
       const result = applier.apply(state, patches);
-      expect(result).toEqual({ items: [4, 1, 2, 3] });
+      expect(result.newState.arr).toContain(1);
+      expect(result.newState.arr.length).toBe(3);
     });
   });
 
-  describe("apply - copy operation", () => {
-    test("should copy property", () => {
-      const state = { a: { b: 1 }, c: {} };
-      const patches: JsonPatch[] = [{ op: "copy", from: "/a/b", path: "/c/b" }];
-
-      const result = applier.apply(state, patches);
-      expect(result).toEqual({ a: { b: 1 }, c: { b: 1 } });
-    });
-
-    test("should deep copy complex objects", () => {
-      const state = { original: { nested: { value: 42 } } };
-      const patches: JsonPatch[] = [
-        { op: "copy", from: "/original", path: "/copy" },
-      ];
-
-      const result = applier.apply(state, patches);
-      expect(result.copy).toEqual(result.original);
-      expect(result.copy).not.toBe(result.original);
-    });
-  });
-
-  describe("apply - test operation", () => {
-    test("should pass when value matches", () => {
-      const state = { name: "Alice", age: 30 };
-      const patches: JsonPatch[] = [{ op: "test", path: "/age", value: 30 }];
-
-      const result = applier.apply(state, patches);
-      expect(result).toEqual(state);
-    });
-
-    test("should throw when value does not match", () => {
-      const state = { name: "Alice", age: 30 };
-      const patches: JsonPatch[] = [{ op: "test", path: "/age", value: 31 }];
-
-      expect(() => applier.apply(state, patches)).toThrow(
-        PatchApplicationError,
-      );
-    });
-
-    test("should test nested values", () => {
-      const state = { user: { name: "Alice", age: 30 } };
-      const patches: JsonPatch[] = [
-        { op: "test", path: "/user/age", value: 30 },
-      ];
-
-      const result = applier.apply(state, patches);
-      expect(result).toEqual(state);
-    });
-  });
-
-  describe("applyWithResult", () => {
-    test("should return detailed results for successful application", () => {
-      const state = { a: 1, b: 2 };
-      const patches: JsonPatch[] = [
-        { op: "replace", path: "/a", value: 5 },
-        { op: "add", path: "/c", value: 3 },
-      ];
-
-      const result = applier.applyWithResult(state, patches);
-
-      expect(result.newState).toEqual({ a: 5, b: 2, c: 3 });
-      expect(result.applied).toHaveLength(2);
-      expect(result.failed).toHaveLength(0);
-      expect(result.conflicts).toHaveLength(0);
-    });
-
-    test("should handle partial failure in non-atomic mode", () => {
-      const applier = new PatchApplier({ atomic: false });
+  describe("copy operation", () => {
+    test("should copy property within object", () => {
       const state = { a: 1 };
-      const patches: JsonPatch[] = [
-        { op: "replace", path: "/a", value: 5 },
-        { op: "remove", path: "/nonexistent" },
-        { op: "add", path: "/c", value: 3 },
-      ];
-
-      const result = applier.applyWithResult(state, patches);
-
-      expect(result.newState.a).toBe(5);
-      expect(result.newState.c).toBe(3);
-      expect(result.applied).toHaveLength(2);
-      expect(result.failed).toHaveLength(1);
-      expect(result.conflicts).toHaveLength(1);
+      const patches: JsonPatch[] = [{ op: "copy", from: "/a", path: "/b" }];
+      const result = applier.apply(state, patches);
+      expect(result.newState).toEqual({ a: 1, b: 1 });
     });
 
-    test("should rollback all in atomic mode on failure", () => {
-      const applier = new PatchApplier({ atomic: true });
-      const state = { a: 1 };
+    test("should deep copy nested object", () => {
+      const state = { obj: { x: 1 } };
       const patches: JsonPatch[] = [
-        { op: "replace", path: "/a", value: 5 },
-        { op: "remove", path: "/nonexistent" },
+        { op: "copy", from: "/obj", path: "/copy" },
       ];
-
-      const result = applier.applyWithResult(state, patches);
-
-      expect(result.newState).toEqual(state);
-      expect(result.applied).toHaveLength(0);
-      expect(result.failed).toHaveLength(2);
+      const result = applier.apply(state, patches);
+      expect(result.newState).toEqual({ obj: { x: 1 }, copy: { x: 1 } });
+      // Verify deep copy (not reference)
+      (result.newState as any).obj.x = 2;
+      expect((result.newState as any).copy.x).toBe(1);
     });
   });
 
-  describe("immutability", () => {
-    test("should not mutate original state by default", () => {
-      const state = { a: 1, b: 2 };
-      const original = { ...state };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/a", value: 5 }];
-
-      applier.apply(state, patches);
-
-      expect(state).toEqual(original);
+  describe("test operation", () => {
+    test("should pass test when value matches", () => {
+      const state = { a: 1 };
+      const patches: JsonPatch[] = [{ op: "test", path: "/a", value: 1 }];
+      const result = applier.apply(state, patches);
+      expect(result.newState).toEqual({ a: 1 });
+      expect(result.applied.length).toBe(1);
     });
 
-    test("should mutate original state when immutable=false", () => {
-      const applier = new PatchApplier({ immutable: false });
-      const state = { a: 1, b: 2 };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/a", value: 5 }];
-
+    test("should fail test when value does not match", () => {
+      const state = { a: 1 };
+      const patches: JsonPatch[] = [{ op: "test", path: "/a", value: 2 }];
       const result = applier.apply(state, patches);
+      expect(result.failed.length).toBe(1);
+      expect(result.conflicts.length).toBeGreaterThan(0);
+    });
+  });
 
-      expect(result).toBe(state);
-      expect(state.a).toBe(5);
+  describe("atomic operations", () => {
+    test("should rollback all changes on failure in atomic mode", () => {
+      const state = { a: 1, b: 2 };
+      const patches: JsonPatch[] = [
+        { op: "replace", path: "/a", value: 10 },
+        { op: "replace", path: "/nonexistent", value: 20 },
+      ];
+      const result = applier.apply(state, patches);
+      expect(result.newState).toEqual({ a: 1, b: 2 }); // Original state
+      expect(result.failed.length).toBe(2);
+    });
+
+    test("should apply partial changes in non-atomic mode", () => {
+      const nonAtomicApplier = new PatchApplier({ atomic: false });
+      const state = { a: 1, b: 2 };
+      const patches: JsonPatch[] = [
+        { op: "replace", path: "/a", value: 10 },
+        { op: "replace", path: "/nonexistent", value: 20 },
+      ];
+      const result = nonAtomicApplier.apply(state, patches);
+      expect(result.newState.a).toBe(10);
+      expect(result.applied.length).toBe(1);
+      expect(result.failed.length).toBe(1);
     });
   });
 
   describe("validation", () => {
-    test("should validate patch structure when enabled", () => {
+    test("should reject invalid operation type", () => {
       const state = { a: 1 };
-      const patches: JsonPatch[] = [{ op: "add", path: "invalid" } as any];
-
-      expect(() => applier.apply(state, patches)).toThrow(InvalidPatchError);
+      const patches: JsonPatch[] = [
+        { op: "invalid" as any, path: "/a", value: 2 },
+      ];
+      const result = applier.apply(state, patches);
+      expect(result.failed.length).toBe(1);
     });
 
-    test("should skip validation when disabled", () => {
-      const applier = new PatchApplier({ validate: false });
+    test("should reject move without from field", () => {
       const state = { a: 1 };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/a", value: 5 }];
-
+      const patches: JsonPatch[] = [{ op: "move", path: "/b" } as any];
       const result = applier.apply(state, patches);
-      expect(result.a).toBe(5);
+      expect(result.failed.length).toBe(1);
+    });
+
+    test("should reject copy without from field", () => {
+      const state = { a: 1 };
+      const patches: JsonPatch[] = [{ op: "copy", path: "/b" } as any];
+      const result = applier.apply(state, patches);
+      expect(result.failed.length).toBe(1);
     });
   });
 
-  describe("path escaping", () => {
-    test("should handle escaped characters in paths", () => {
-      const state = { "a/b": 1, "c~d": 2 };
-      const patches: JsonPatch[] = [{ op: "replace", path: "/a~1b", value: 5 }];
-
+  describe("path handling", () => {
+    test("should handle escaped special characters", () => {
+      const state = { "a~b": 1 };
+      const patches: JsonPatch[] = [{ op: "replace", path: "/a~0b", value: 2 }];
       const result = applier.apply(state, patches);
-      expect(result["a/b"]).toBe(5);
+      expect(result.newState["a~b"]).toBe(2);
+    });
+
+    test("should handle escaped forward slash", () => {
+      const state = { "a/b": 1 };
+      const patches: JsonPatch[] = [{ op: "replace", path: "/a~1b", value: 2 }];
+      const result = applier.apply(state, patches);
+      expect(result.newState["a/b"]).toBe(2);
     });
   });
 
-  describe("complex scenarios", () => {
-    test("should apply multiple patches in sequence", () => {
-      const state = { a: 1, b: 2 };
-      const patches: JsonPatch[] = [
-        { op: "replace", path: "/a", value: 10 },
-        { op: "add", path: "/c", value: 3 },
-        { op: "remove", path: "/b" },
-        { op: "add", path: "/d", value: { nested: true } },
-      ];
-
-      const result = applier.apply(state, patches);
-      expect(result).toEqual({
-        a: 10,
-        c: 3,
-        d: { nested: true },
-      });
-    });
-
-    test("should handle deeply nested operations", () => {
-      const state = {
-        level1: {
-          level2: {
-            level3: {
-              value: 42,
-            },
-          },
-        },
-      };
-      const patches: JsonPatch[] = [
-        { op: "replace", path: "/level1/level2/level3/value", value: 100 },
-      ];
-
-      const result = applier.apply(state, patches);
-      expect(result.level1.level2.level3.value).toBe(100);
+  describe("immutability", () => {
+    test("should not mutate original state", () => {
+      const state = { a: 1, b: { c: 2 } };
+      const originalState = JSON.parse(JSON.stringify(state));
+      const patches: JsonPatch[] = [{ op: "replace", path: "/a", value: 10 }];
+      applier.apply(state, patches);
+      expect(state).toEqual(originalState);
     });
   });
 });

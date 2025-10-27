@@ -1,138 +1,123 @@
 /**
- * PatchCompressor - Compress and decompress patch data
+ * PatchCompressor - Compress patches for network transmission
  *
- * Provides compression for patch messages to reduce bandwidth usage.
- * Uses gzip compression for patches above a configurable threshold.
+ * Implements gzip compression for patches larger than a threshold
+ * to minimize bandwidth usage.
  */
 
-import { promisify } from "util";
-import { gzip, gunzip } from "zlib";
-import type { JsonPatch, CompressionConfig } from "../types";
-
-const gzipAsync = promisify(gzip);
-const gunzipAsync = promisify(gunzip);
+import { gzipSync, gunzipSync } from "zlib";
+import { JsonPatch, CompressionOptions } from "../types";
 
 export class PatchCompressor {
-  private config: Required<CompressionConfig>;
+  private options: CompressionOptions;
 
-  constructor(config: CompressionConfig = {}) {
-    this.config = {
-      minSize: config.minSize ?? 1024, // 1KB
-      algorithm: config.algorithm ?? "gzip",
-      level: config.level ?? 6,
+  constructor(options: CompressionOptions = {}) {
+    this.options = {
+      threshold: 1024, // 1KB
+      level: 6, // Default compression level
+      ...options,
     };
   }
 
   /**
-   * Compress patches if they exceed the minimum size threshold
+   * Get current options
    */
-  async compress(patches: JsonPatch[]): Promise<{
-    data: string;
-    compressed: boolean;
-    originalSize: number;
-    compressedSize: number;
-  }> {
+  getOptions(): CompressionOptions {
+    return { ...this.options };
+  }
+
+  /**
+   * Compress patches if they exceed the threshold
+   */
+  compress(patches: JsonPatch[]): { data: string; compressed: boolean } {
     const json = JSON.stringify(patches);
-    const originalSize = Buffer.byteLength(json, "utf8");
+    const byteSize = Buffer.byteLength(json, "utf8");
 
     // Don't compress if below threshold
-    if (originalSize < this.config.minSize) {
+    if (byteSize < (this.options.threshold || 1024)) {
       return {
         data: json,
         compressed: false,
-        originalSize,
-        compressedSize: originalSize,
       };
     }
 
     try {
-      const buffer = Buffer.from(json, "utf8");
-      const compressed = await this.compressBuffer(buffer);
-      const compressedSize = compressed.length;
+      const compressed = gzipSync(json, {
+        level: this.options.level || 6,
+      });
 
-      // Only use compression if it actually reduces size
-      if (compressedSize < originalSize) {
-        return {
-          data: compressed.toString("base64"),
-          compressed: true,
-          originalSize,
-          compressedSize,
-        };
-      } else {
-        return {
-          data: json,
-          compressed: false,
-          originalSize,
-          compressedSize: originalSize,
-        };
-      }
+      return {
+        data: compressed.toString("base64"),
+        compressed: true,
+      };
     } catch {
-      // Fallback to uncompressed on error
+      // Fall back to uncompressed on error
       return {
         data: json,
         compressed: false,
-        originalSize,
-        compressedSize: originalSize,
       };
     }
   }
 
   /**
-   * Decompress patches
+   * Decompress patches if they were compressed
    */
-  async decompress(data: string, compressed: boolean): Promise<JsonPatch[]> {
+  decompress(data: string, compressed: boolean): JsonPatch[] {
     if (!compressed) {
       return JSON.parse(data);
     }
 
     try {
       const buffer = Buffer.from(data, "base64");
-      const decompressed = await this.decompressBuffer(buffer);
-      const json = decompressed.toString("utf8");
-      return JSON.parse(json);
+      const decompressed = gunzipSync(buffer);
+      return JSON.parse(decompressed.toString("utf8"));
     } catch (error) {
-      throw new Error(`Failed to decompress patches: ${error}`);
+      throw new Error(
+        `Failed to decompress patches: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
-  }
-
-  /**
-   * Compress a buffer using the configured algorithm
-   */
-  private async compressBuffer(buffer: Buffer): Promise<Buffer> {
-    switch (this.config.algorithm) {
-      case "gzip":
-        return gzipAsync(buffer, { level: this.config.level });
-      case "deflate":
-        // Note: deflate not implemented in this example, fallback to gzip
-        return gzipAsync(buffer, { level: this.config.level });
-      case "brotli":
-        // Note: brotli not implemented in this example, fallback to gzip
-        return gzipAsync(buffer, { level: this.config.level });
-      default:
-        throw new Error(
-          `Unsupported compression algorithm: ${this.config.algorithm}`,
-        );
-    }
-  }
-
-  /**
-   * Decompress a buffer
-   */
-  private async decompressBuffer(buffer: Buffer): Promise<Buffer> {
-    // For now, always use gzip (matches our compress method)
-    return gunzipAsync(buffer);
   }
 
   /**
    * Calculate compression ratio
    */
-  calculateCompressionRatio(
-    originalSize: number,
-    compressedSize: number,
-  ): number {
-    if (originalSize === 0) {
-      return 0;
+  calculateRatio(original: JsonPatch[], compressed: string): number {
+    const originalSize = Buffer.byteLength(JSON.stringify(original), "utf8");
+    const compressedSize = Buffer.byteLength(compressed, "utf8");
+    return compressedSize / originalSize;
+  }
+
+  /**
+   * Get size information for patches
+   */
+  getSizeInfo(patches: JsonPatch[]): {
+    originalSize: number;
+    compressedSize: number;
+    ratio: number;
+    shouldCompress: boolean;
+  } {
+    const json = JSON.stringify(patches);
+    const originalSize = Buffer.byteLength(json, "utf8");
+
+    if (originalSize < (this.options.threshold || 1024)) {
+      return {
+        originalSize,
+        compressedSize: originalSize,
+        ratio: 1,
+        shouldCompress: false,
+      };
     }
-    return ((originalSize - compressedSize) / originalSize) * 100;
+
+    const compressed = gzipSync(json, {
+      level: this.options.level || 6,
+    });
+    const compressedSize = compressed.length;
+
+    return {
+      originalSize,
+      compressedSize,
+      ratio: compressedSize / originalSize,
+      shouldCompress: true,
+    };
   }
 }

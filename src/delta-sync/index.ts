@@ -1,8 +1,7 @@
 /**
- * Delta Sync Module - JSON Patch (RFC 6902) based state synchronization
+ * Delta Sync with JSON Patch (RFC 6902)
  *
- * Provides efficient delta synchronization for distributed state management
- * using JSON Patch operations with compression, optimization, and conflict resolution.
+ * Public API for efficient delta synchronization using JSON Patch standard.
  */
 
 // Main engine
@@ -14,12 +13,6 @@ export { PatchGenerator } from "./PatchGenerator";
 export { PatchApplier } from "./PatchApplier";
 export { PatchOptimizer } from "./PatchOptimizer";
 export { ConflictResolver } from "./ConflictResolver";
-export type {
-  ConflictResolutionStrategy,
-  ConflictResolutionResult,
-} from "./ConflictResolver";
-
-// Compression
 export { PatchCompressor } from "./compression/PatchCompressor";
 
 // Types
@@ -32,19 +25,12 @@ export type {
   PatchMessage,
   SyncMessage,
   SyncMessageType,
-  PatchGenerationOptions,
-  PatchApplicationOptions,
-  PatchOptimizationOptions,
-  CompressionConfig,
-  PatchStats,
+  PatchGeneratorOptions,
+  PatchApplierOptions,
+  PatchOptimizerOptions,
+  ConflictResolverOptions,
+  CompressionOptions,
+  JsonPath,
+  PatchMetadata,
+  PatchValidationError,
 } from "./types";
-
-export {
-  PatchError,
-  InvalidPatchError,
-  PatchApplicationError,
-  TestFailedError,
-} from "./types";
-
-// Utilities
-export { cloneDeep } from "./utils";

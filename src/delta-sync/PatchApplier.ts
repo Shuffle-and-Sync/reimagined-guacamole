@@ -1,306 +1,236 @@
 /**
- * PatchApplier - Apply JSON Patches to state
+ * PatchApplier - Apply JSON Patches (RFC 6902) to state
  *
- * Applies RFC 6902 compliant patches with validation, atomic operations,
- * and proper error handling.
+ * Implements atomic patch application with validation and rollback support.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
-  InvalidPatchError,
-  PatchApplicationError,
-  TestFailedError,
-} from "./types";
-import { cloneDeep } from "./utils";
-import type {
   JsonPatch,
+  PatchApplierOptions,
   PatchResult,
-  PatchApplicationOptions,
-  PatchConflict,
+  PatchValidationError,
 } from "./types";
 
 export class PatchApplier {
-  private options: Required<PatchApplicationOptions>;
+  private options: PatchApplierOptions;
 
-  constructor(options: PatchApplicationOptions = {}) {
+  constructor(options: PatchApplierOptions = {}) {
     this.options = {
-      validate: options.validate ?? true,
-      atomic: options.atomic ?? true,
-      immutable: options.immutable ?? true,
-      conflictResolver: options.conflictResolver ?? (() => "skip"),
+      validate: true,
+      atomic: true,
+      enableRollback: false,
+      ...options,
     };
+  }
+
+  /**
+   * Get current options
+   */
+  getOptions(): PatchApplierOptions {
+    return { ...this.options };
   }
 
   /**
    * Apply patches to state
    */
-  apply<T>(state: T, patches: JsonPatch[]): T {
-    const result = this.applyWithResult(state, patches);
-
-    if (result.failed.length > 0) {
-      throw new PatchApplicationError(
-        result.failed[0],
-        `Failed to apply ${result.failed.length} patch(es)`,
-      );
-    }
-
-    return result.newState;
-  }
-
-  /**
-   * Apply patches and return detailed result
-   */
-  applyWithResult<T>(state: T, patches: JsonPatch[]): PatchResult<T> {
-    // Validate patches if enabled
-    if (this.options.validate) {
-      for (const patch of patches) {
-        this.validatePatch(patch);
-      }
-    }
-
-    // Create working copy if immutable
-    let workingState = this.options.immutable ? cloneDeep(state) : state;
-
+  apply<T>(state: T, patches: JsonPatch[]): PatchResult<T> {
     const applied: JsonPatch[] = [];
     const failed: JsonPatch[] = [];
-    const conflicts: PatchConflict[] = [];
+    const conflicts: any[] = [];
 
-    for (const patch of patches) {
-      try {
-        workingState = this.applySinglePatch(workingState, patch);
-        applied.push(patch);
-      } catch (error) {
-        failed.push(patch);
-
-        const conflict: PatchConflict = {
-          patch,
-          reason: error instanceof Error ? error.message : String(error),
+    // Validate patches if enabled
+    if (this.options.validate) {
+      const validationErrors = this.validatePatches(state, patches);
+      if (validationErrors.length > 0) {
+        return {
+          newState: state,
+          applied: [],
+          failed: patches,
+          conflicts: validationErrors.map((err) => ({
+            patch: err.patch,
+            reason: err.reason,
+          })),
         };
-
-        if (error instanceof TestFailedError) {
-          conflict.currentValue = error.actualValue;
-          conflict.expectedValue = patch.value;
-        }
-
-        conflicts.push(conflict);
-
-        // If atomic mode, revert on first failure
-        if (this.options.atomic) {
-          return {
-            newState: state,
-            applied: [],
-            failed: patches,
-            conflicts,
-          };
-        }
       }
     }
 
-    return {
-      newState: workingState,
-      applied,
-      failed,
-      conflicts,
-    };
+    // Clone state for atomic operations
+    let currentState = this.deepClone(state);
+
+    try {
+      for (const patch of patches) {
+        try {
+          currentState = this.applyPatch(currentState, patch);
+          applied.push(patch);
+        } catch (error) {
+          failed.push(patch);
+          conflicts.push({
+            patch,
+            reason: error instanceof Error ? error.message : "Unknown error",
+          });
+
+          if (this.options.atomic) {
+            // Rollback on atomic failure
+            return {
+              newState: state,
+              applied: [],
+              failed: patches,
+              conflicts,
+            };
+          }
+        }
+      }
+
+      return {
+        newState: currentState,
+        applied,
+        failed,
+        conflicts,
+      };
+    } catch (error) {
+      return {
+        newState: state,
+        applied: [],
+        failed: patches,
+        conflicts: [
+          {
+            patch: patches[0],
+            reason: error instanceof Error ? error.message : "Unknown error",
+          },
+        ],
+      };
+    }
   }
 
   /**
-   * Apply a single patch operation
+   * Apply a single patch to state
    */
-  private applySinglePatch<T>(state: T, patch: JsonPatch): T {
+  private applyPatch<T>(state: T, patch: JsonPatch): T {
+    const { path } = patch;
+
     switch (patch.op) {
       case "add":
-        return this.applyAdd(state, patch);
+        return this.applyAdd(state, path, patch.value);
       case "remove":
-        return this.applyRemove(state, patch);
+        return this.applyRemove(state, path);
       case "replace":
-        return this.applyReplace(state, patch);
+        return this.applyReplace(state, path, patch.value);
       case "move":
-        return this.applyMove(state, patch);
+        if (!patch.from) {
+          throw new Error("Move operation requires 'from' field");
+        }
+        return this.applyMove(state, patch.from, path);
       case "copy":
-        return this.applyCopy(state, patch);
+        if (!patch.from) {
+          throw new Error("Copy operation requires 'from' field");
+        }
+        return this.applyCopy(state, patch.from, path);
       case "test":
-        return this.applyTest(state, patch);
+        this.applyTest(state, path, patch.value);
+        return state;
       default:
-        throw new InvalidPatchError(
-          patch,
-          `Unknown operation: ${(patch as any).op}`,
-        );
+        throw new Error(`Unknown operation: ${patch.op}`);
     }
   }
 
   /**
-   * Apply "add" operation
+   * Apply 'add' operation
    */
-  private applyAdd<T>(state: T, patch: JsonPatch): T {
-    if (patch.value === undefined) {
-      throw new InvalidPatchError(patch, "Add operation requires 'value'");
-    }
+  private applyAdd<T>(state: T, path: string, value: any): T {
+    const { parent, key } = this.resolvePath(state, path, true);
 
-    const { parent, key, isArray } = this.resolvePath(state, patch.path);
-
-    if (isArray && Array.isArray(parent)) {
-      const index = parseInt(key, 10);
-      if (key === "-") {
-        // Append to array
-        parent.push(patch.value);
-      } else if (index >= 0 && index <= parent.length) {
-        // Insert at index
-        parent.splice(index, 0, patch.value);
-      } else {
-        throw new PatchApplicationError(patch, `Invalid array index: ${key}`);
-      }
-    } else if (typeof parent === "object" && parent !== null) {
-      // Add/replace property
-      (parent as any)[key] = patch.value;
+    if (Array.isArray(parent)) {
+      const index = key === "-" ? parent.length : parseInt(key, 10);
+      parent.splice(index, 0, value);
     } else {
-      throw new PatchApplicationError(
-        patch,
-        `Cannot add to non-object/array at path: ${patch.path}`,
-      );
+      parent[key] = value;
     }
 
     return state;
   }
 
   /**
-   * Apply "remove" operation
+   * Apply 'remove' operation
    */
-  private applyRemove<T>(state: T, patch: JsonPatch): T {
-    const { parent, key, isArray } = this.resolvePath(state, patch.path);
+  private applyRemove<T>(state: T, path: string): T {
+    const { parent, key } = this.resolvePath(state, path, false);
 
-    if (isArray && Array.isArray(parent)) {
-      const index = parseInt(key, 10);
-      if (index >= 0 && index < parent.length) {
-        parent.splice(index, 1);
-      } else {
-        throw new PatchApplicationError(patch, `Invalid array index: ${key}`);
-      }
-    } else if (typeof parent === "object" && parent !== null) {
-      if (!(key in parent)) {
-        throw new PatchApplicationError(
-          patch,
-          `Property does not exist: ${key}`,
-        );
-      }
-      delete (parent as any)[key];
+    // RFC 6902: remove requires target location to exist
+    if (!(key in parent)) {
+      throw new Error(`Cannot remove non-existent path: ${path}`);
+    }
+
+    if (Array.isArray(parent)) {
+      parent.splice(parseInt(key, 10), 1);
     } else {
-      throw new PatchApplicationError(
-        patch,
-        `Cannot remove from non-object/array at path: ${patch.path}`,
-      );
+      delete parent[key];
     }
 
     return state;
   }
 
   /**
-   * Apply "replace" operation
+   * Apply 'replace' operation
    */
-  private applyReplace<T>(state: T, patch: JsonPatch): T {
-    if (patch.value === undefined) {
-      throw new InvalidPatchError(patch, "Replace operation requires 'value'");
+  private applyReplace<T>(state: T, path: string, value: any): T {
+    const { parent, key } = this.resolvePath(state, path, false);
+
+    // RFC 6902: replace requires target location to exist
+    if (!(key in parent)) {
+      throw new Error(`Cannot replace non-existent path: ${path}`);
     }
 
-    const { parent, key } = this.resolvePath(state, patch.path);
-
-    if (typeof parent === "object" && parent !== null) {
-      if (!(key in parent)) {
-        throw new PatchApplicationError(
-          patch,
-          `Property does not exist: ${key}`,
-        );
-      }
-      (parent as any)[key] = patch.value;
-    } else {
-      throw new PatchApplicationError(
-        patch,
-        `Cannot replace in non-object/array at path: ${patch.path}`,
-      );
-    }
-
+    parent[key] = value;
     return state;
   }
 
   /**
-   * Apply "move" operation
+   * Apply 'move' operation
    */
-  private applyMove<T>(state: T, patch: JsonPatch): T {
-    if (!patch.from) {
-      throw new InvalidPatchError(patch, "Move operation requires 'from'");
-    }
-
-    // Get value from source
-    const value = this.getValue(state, patch.from);
+  private applyMove<T>(state: T, fromPath: string, toPath: string): T {
+    const { parent: fromParent, key: fromKey } = this.resolvePath(
+      state,
+      fromPath,
+      false,
+    );
+    const value = fromParent[fromKey];
 
     // Remove from source
-    state = this.applyRemove(state, { op: "remove", path: patch.from });
+    if (Array.isArray(fromParent)) {
+      fromParent.splice(parseInt(fromKey, 10), 1);
+    } else {
+      delete fromParent[fromKey];
+    }
 
     // Add to destination
-    state = this.applyAdd(state, { op: "add", path: patch.path, value });
-
-    return state;
+    return this.applyAdd(state, toPath, value);
   }
 
   /**
-   * Apply "copy" operation
+   * Apply 'copy' operation
    */
-  private applyCopy<T>(state: T, patch: JsonPatch): T {
-    if (!patch.from) {
-      throw new InvalidPatchError(patch, "Copy operation requires 'from'");
-    }
-
-    // Get value from source (deep clone)
-    const value = cloneDeep(this.getValue(state, patch.from));
-
-    // Add to destination
-    state = this.applyAdd(state, { op: "add", path: patch.path, value });
-
-    return state;
+  private applyCopy<T>(state: T, fromPath: string, toPath: string): T {
+    const { parent: fromParent, key: fromKey } = this.resolvePath(
+      state,
+      fromPath,
+      false,
+    );
+    const value = this.deepClone(fromParent[fromKey]);
+    return this.applyAdd(state, toPath, value);
   }
 
   /**
-   * Apply "test" operation
+   * Apply 'test' operation
    */
-  private applyTest<T>(state: T, patch: JsonPatch): T {
-    const actualValue = this.getValue(state, patch.path);
+  private applyTest<T>(state: T, path: string, expectedValue: any): void {
+    const { parent, key } = this.resolvePath(state, path, false);
+    const actualValue = parent[key];
 
-    if (!this.deepEqual(actualValue, patch.value)) {
-      throw new TestFailedError(patch, actualValue);
-    }
-
-    return state;
-  }
-
-  /**
-   * Validate patch structure
-   */
-  private validatePatch(patch: JsonPatch): void {
-    if (!patch.op) {
-      throw new InvalidPatchError(patch, "Missing 'op' field");
-    }
-
-    if (!patch.path) {
-      throw new InvalidPatchError(patch, "Missing 'path' field");
-    }
-
-    if (!patch.path.startsWith("/") && patch.path !== "") {
-      throw new InvalidPatchError(patch, "Path must start with '/'");
-    }
-
-    if (
-      ["add", "replace", "test"].includes(patch.op) &&
-      patch.value === undefined
-    ) {
-      throw new InvalidPatchError(
-        patch,
-        `${patch.op} operation requires 'value'`,
-      );
-    }
-
-    if (["move", "copy"].includes(patch.op) && !patch.from) {
-      throw new InvalidPatchError(
-        patch,
-        `${patch.op} operation requires 'from'`,
+    if (!this.deepEqual(actualValue, expectedValue)) {
+      throw new Error(
+        `Test failed at ${path}: expected ${JSON.stringify(expectedValue)}, got ${JSON.stringify(actualValue)}`,
       );
     }
   }
@@ -311,13 +241,10 @@ export class PatchApplier {
   private resolvePath(
     state: any,
     path: string,
-  ): {
-    parent: any;
-    key: string;
-    isArray: boolean;
-  } {
-    if (path === "" || path === "/") {
-      throw new Error("Cannot resolve root path");
+    createPath: boolean,
+  ): { parent: any; key: string } {
+    if (path === "") {
+      throw new Error("Cannot operate on root path");
     }
 
     const segments = this.parsePath(path);
@@ -326,38 +253,23 @@ export class PatchApplier {
     // Navigate to parent
     for (let i = 0; i < segments.length - 1; i++) {
       const segment = segments[i];
-      current = current[segment];
 
-      if (current === undefined || current === null) {
-        throw new Error(`Path not found: ${path}`);
+      if (!(segment in current)) {
+        if (createPath) {
+          // Determine if next segment is array index
+          const nextSegment = segments[i + 1];
+          const isArrayIndex = /^\d+$/.test(nextSegment) || nextSegment === "-";
+          current[segment] = isArrayIndex ? [] : {};
+        } else {
+          throw new Error(`Path not found: ${path}`);
+        }
       }
+
+      current = current[segment];
     }
 
     const key = segments[segments.length - 1];
-    const isArray = Array.isArray(current);
-
-    return { parent: current, key, isArray };
-  }
-
-  /**
-   * Get value at path
-   */
-  private getValue(state: any, path: string): any {
-    if (path === "" || path === "/") {
-      return state;
-    }
-
-    const segments = this.parsePath(path);
-    let current = state;
-
-    for (const segment of segments) {
-      if (current === undefined || current === null) {
-        throw new Error(`Path not found: ${path}`);
-      }
-      current = current[segment];
-    }
-
-    return current;
+    return { parent: current, key };
   }
 
   /**
@@ -368,19 +280,80 @@ export class PatchApplier {
       return [];
     }
 
+    if (!path.startsWith("/")) {
+      throw new Error(`Invalid path: ${path}`);
+    }
+
     return path
+      .slice(1)
       .split("/")
-      .slice(1) // Remove leading empty string
-      .map(this.unescapePathSegment);
+      .map((segment) => segment.replace(/~1/g, "/").replace(/~0/g, "~"));
   }
 
   /**
-   * Unescape path segment (RFC 6901)
+   * Validate patches before applying
    */
-  private unescapePathSegment(segment: string): string {
-    return segment
-      .replace(/~1/g, "/") // Unescape / first
-      .replace(/~0/g, "~"); // Then unescape ~
+  private validatePatches<T>(
+    state: T,
+    patches: JsonPatch[],
+  ): PatchValidationError[] {
+    const errors: PatchValidationError[] = [];
+
+    for (const patch of patches) {
+      // Validate operation type
+      const validOps = ["add", "remove", "replace", "move", "copy", "test"];
+      if (!validOps.includes(patch.op)) {
+        errors.push({
+          patch,
+          reason: `Invalid operation: ${patch.op}`,
+          path: patch.path,
+        });
+        continue;
+      }
+
+      // Validate path
+      if (typeof patch.path !== "string") {
+        errors.push({
+          patch,
+          reason: "Path must be a string",
+          path: patch.path,
+        });
+        continue;
+      }
+
+      // Validate move/copy operations have 'from' field
+      if ((patch.op === "move" || patch.op === "copy") && !patch.from) {
+        errors.push({
+          patch,
+          reason: `${patch.op} operation requires 'from' field`,
+          path: patch.path,
+        });
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * Deep clone an object
+   */
+  private deepClone<T>(obj: T): T {
+    if (obj === null || typeof obj !== "object") {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.deepClone(item)) as any;
+    }
+
+    const cloned: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        cloned[key] = this.deepClone(obj[key]);
+      }
+    }
+
+    return cloned;
   }
 
   /**
@@ -391,12 +364,7 @@ export class PatchApplier {
       return true;
     }
 
-    if (
-      val1 === null ||
-      val2 === null ||
-      val1 === undefined ||
-      val2 === undefined
-    ) {
+    if (val1 === null || val2 === null) {
       return false;
     }
 
@@ -408,10 +376,10 @@ export class PatchApplier {
       if (val1.length !== val2.length) {
         return false;
       }
-      return val1.every((item, i) => this.deepEqual(item, val2[i]));
+      return val1.every((item, idx) => this.deepEqual(item, val2[idx]));
     }
 
-    if (typeof val1 === "object") {
+    if (typeof val1 === "object" && typeof val2 === "object") {
       const keys1 = Object.keys(val1);
       const keys2 = Object.keys(val2);
 
@@ -419,7 +387,9 @@ export class PatchApplier {
         return false;
       }
 
-      return keys1.every((key) => this.deepEqual(val1[key], val2[key]));
+      return keys1.every(
+        (key) => key in val2 && this.deepEqual(val1[key], val2[key]),
+      );
     }
 
     return false;

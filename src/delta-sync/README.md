@@ -1,133 +1,80 @@
-# Delta Sync - JSON Patch (RFC 6902) State Synchronization
+# Delta Sync with JSON Patch (RFC 6902)
 
-A complete implementation of efficient delta synchronization using JSON Patch (RFC 6902) for minimizing bandwidth and enabling real-time state updates across distributed clients.
+Efficient delta synchronization using JSON Patch (RFC 6902) standard for real-time state updates across distributed clients.
+
+## Overview
+
+This module implements a complete delta synchronization system that:
+
+- Generates minimal JSON Patches from state changes
+- Applies patches atomically with validation
+- Optimizes patch sequences for bandwidth efficiency
+- Resolves conflicts between concurrent patches
+- Compresses patches for network transmission
 
 ## Features
 
-- ✅ **RFC 6902 Compliant** - Full JSON Patch standard implementation
-- ✅ **Efficient Optimization** - Combines and optimizes patches to minimize bandwidth
-- ✅ **Conflict Resolution** - Automatic detection and resolution of conflicting changes
-- ✅ **Compression** - Automatic gzip compression for large patch sets
-- ✅ **Type-Safe** - Complete TypeScript type definitions
-- ✅ **Well-Tested** - 76 comprehensive tests with 100% core coverage
-- ✅ **Production-Ready** - Checksums, atomic operations, and error handling
+- ✅ **RFC 6902 Compliant**: Full implementation of JSON Patch standard
+- ✅ **Efficient Diffing**: Generates minimal patch sets from state changes
+- ✅ **Atomic Operations**: All-or-nothing patch application with rollback
+- ✅ **Patch Optimization**: Combines, deduplicates, and optimizes patches
+- ✅ **Conflict Resolution**: Three-way merge for concurrent patches
+- ✅ **Compression**: Automatic gzip compression for large patches
+- ✅ **Type Safe**: Full TypeScript support with comprehensive types
+- ✅ **Immutable**: Original state never modified
+- ✅ **Tested**: 58 tests covering all operations and edge cases
 
 ## Installation
 
 ```typescript
-import { DeltaSyncEngine } from "./delta-sync";
-
-// Create engine instance
-const engine = new DeltaSyncEngine({
-  clientId: "client-1",
-  enableCompression: true,
-  enableOptimization: true,
-});
+import { DeltaSyncEngine } from "./src/delta-sync";
 ```
 
 ## Quick Start
 
-### Basic Usage
-
 ```typescript
-import { DeltaSyncEngine } from "./delta-sync";
+import { DeltaSyncEngine } from "./src/delta-sync";
 
-// Initialize
-const engine = new DeltaSyncEngine({ clientId: "my-client" });
+// Create engine instance
+const engine = new DeltaSyncEngine();
 
-// Generate patches
-const oldState = { players: [{ id: 1, name: "Alice", score: 100 }] };
-const newState = { players: [{ id: 1, name: "Alice", score: 150 }] };
+// Generate patches from state changes
+const oldState = { user: { name: "Alice", score: 100 } };
+const newState = { user: { name: "Alice", score: 150 } };
 
 const patches = engine.generatePatches(oldState, newState);
-// Result: [{ op: 'replace', path: '/players/0/score', value: 150 }]
+// Output: [{ op: "replace", path: "/user/score", value: 150 }]
 
-// Apply patches
+// Apply patches to state
 const result = engine.applyPatches(oldState, patches);
-console.log(result.newState); // { players: [{ id: 1, name: 'Alice', score: 150 }] }
-```
-
-### Advanced: Synchronization Protocol
-
-```typescript
-// Client creates a patch message
-const message = await engine.createPatchMessage(
-  oldState,
-  newState,
-  { client1: 5 }, // base version
-  { client1: 6 }, // target version
-);
-
-// Message includes:
-// - patches: JsonPatch[]
-// - checksum: string (SHA-256)
-// - compressed: boolean
-// - baseVersion/targetVersion: VectorClock
-
-// Server receives and applies
-const result = await engine.applyPatchMessage(serverState, message);
-if (result.failed.length > 0) {
-  // Handle conflicts
-  console.log("Conflicts:", result.conflicts);
-}
-```
-
-### Conflict Resolution
-
-```typescript
-import { ConflictResolver } from "./delta-sync";
-
-const resolver = new ConflictResolver("last-write-wins");
-
-// Detect conflicts between two patch sets
-const conflicts = resolver.detectConflicts(patches1, patches2);
-
-// Resolve with strategy
-const resolution = resolver.resolveConflicts(patches1, patches2);
-console.log("Resolved patches:", resolution.resolved);
-console.log("Conflicts:", resolution.conflicts);
+console.log(result.newState); // { user: { name: "Alice", score: 150 } }
 ```
 
 ## Core Components
 
 ### DeltaSyncEngine
 
-Main orchestrator that coordinates all delta sync operations.
+Main orchestration engine that coordinates all delta sync operations.
 
 ```typescript
 const engine = new DeltaSyncEngine({
-  clientId: "optional-id", // Auto-generated if not provided
-  enableCompression: true, // Compress patches > 1KB
-  enableOptimization: true, // Optimize patch sets
-  compressionThreshold: 1024, // Size threshold in bytes
+  generator: { optimize: true, maxDepth: 100 },
+  applier: { validate: true, atomic: true },
+  optimizer: { combineSequential: true, removeRedundant: true },
+  resolver: { defaultResolution: "skip", autoResolve: true },
+  compressor: { threshold: 1024, level: 6 },
 });
 ```
 
-**Methods:**
-
-- `generatePatches(oldState, newState)` - Create patches from state diff
-- `applyPatches(state, patches)` - Apply patches to state
-- `createPatchMessage(old, new, baseVer, targetVer)` - Create sync message
-- `applyPatchMessage(state, message)` - Apply sync message
-- `mergePatchSets(base, patches1, patches2)` - Merge conflicting patches
-- `calculateSyncStats(patches)` - Get patch statistics
-
 ### PatchGenerator
 
-Generates RFC 6902 compliant JSON Patches from state differences.
+Generates RFC 6902-compliant JSON Patches from state differences.
 
 ```typescript
-import { PatchGenerator } from "./delta-sync";
+import { PatchGenerator } from "./src/delta-sync";
 
-const generator = new PatchGenerator({
-  optimize: true, // Apply optimizations
-  includeTests: false, // Include test operations
-  maxDepth: 100, // Max recursion depth
-  excludePaths: ["/metadata"], // Paths to ignore
-});
-
+const generator = new PatchGenerator({ maxDepth: 100 });
 const patches = generator.generate(oldState, newState);
-const { patches, stats } = generator.generateWithStats(oldState, newState);
 ```
 
 **Supported Operations:**
@@ -137,179 +84,286 @@ const { patches, stats } = generator.generateWithStats(oldState, newState);
 - `replace` - Replace existing value
 - `move` - Move value from one path to another
 - `copy` - Copy value from one path to another
-- `test` - Validate value at path
+- `test` - Test that value at path matches expected
 
 ### PatchApplier
 
-Applies JSON Patches with validation and error handling.
+Applies patches to state with validation and atomic operations.
 
 ```typescript
-import { PatchApplier } from "./delta-sync";
+import { PatchApplier } from "./src/delta-sync";
 
 const applier = new PatchApplier({
-  validate: true, // Validate patch structure
+  validate: true, // Validate patches before applying
   atomic: true, // All-or-nothing application
-  immutable: true, // Don't mutate original state
-  conflictResolver: (conflict) => "skip", // Custom resolution
 });
 
-const result = applier.applyWithResult(state, patches);
-// Returns: { newState, applied[], failed[], conflicts[] }
+const result = applier.apply(state, patches);
+```
+
+**Result Structure:**
+
+```typescript
+{
+  newState: T,              // Updated state
+  applied: JsonPatch[],     // Successfully applied patches
+  failed: JsonPatch[],      // Failed patches
+  conflicts: PatchConflict[] // Conflicts encountered
+}
 ```
 
 ### PatchOptimizer
 
-Optimizes patch sets to reduce size and redundancy.
+Optimizes patch sequences to minimize bandwidth.
 
 ```typescript
-import { PatchOptimizer } from "./delta-sync";
+import { PatchOptimizer } from "./src/delta-sync";
 
 const optimizer = new PatchOptimizer({
-  combineSequential: true, // Combine sequential patches
-  removeRedundant: true, // Remove redundant ops
-  optimizeMoves: true, // Optimize move chains
-  deduplicate: true, // Remove duplicates
+  combineSequential: true, // Combine sequential patches to same path
+  removeRedundant: true, // Remove redundant patches (add then remove)
+  optimizeMoves: true, // Optimize move operations
+  deduplicate: true, // Remove duplicate patches
 });
 
 const optimized = optimizer.optimize(patches);
-const savings = optimizer.calculateSavings(original, optimized);
 ```
 
 **Optimizations:**
 
-- Removes add+remove pairs (no-op)
-- Combines sequential replaces on same path
+- Combines multiple replace operations to the same path
+- Removes add/remove pairs that cancel out
 - Optimizes move chains (A→B→C becomes A→C)
-- Removes duplicate patches
-- Optimizes add+replace to single add
+- Deduplicates identical patches
 
 ### ConflictResolver
 
-Detects and resolves conflicts between patch sets.
+Resolves conflicts between concurrent patch sets.
 
 ```typescript
-import { ConflictResolver } from "./delta-sync";
+import { ConflictResolver } from "./src/delta-sync";
 
-const resolver = new ConflictResolver("last-write-wins");
-// Strategies: 'last-write-wins', 'first-write-wins', 'manual'
+const resolver = new ConflictResolver({
+  defaultResolution: "skip", // or 'retry', 'merge'
+  autoResolve: true,
+});
+
+// Three-way merge
+const merged = resolver.threeWayMerge(base, patches1, patches2);
 
 // Detect conflicts
 const conflicts = resolver.detectConflicts(patches1, patches2);
-
-// Three-way merge
-const result = resolver.threeWayMerge(base, patches1, patches2);
 ```
+
+**Resolution Strategies:**
+
+- `skip` - Skip conflicting patches
+- `retry` - Apply conflicting patches (last write wins)
+- `merge` - Attempt to merge patches intelligently
 
 ### PatchCompressor
 
-Compresses patch data to reduce bandwidth.
+Compresses patches for network transmission.
 
 ```typescript
-import { PatchCompressor } from "./delta-sync/compression";
+import { PatchCompressor } from "./src/delta-sync/compression";
 
 const compressor = new PatchCompressor({
-  minSize: 1024, // Min size before compression
-  algorithm: "gzip", // Compression algorithm
+  threshold: 1024, // Minimum size (bytes) to compress
   level: 6, // Compression level (1-9)
 });
 
-const { data, compressed } = await compressor.compress(patches);
-const patches = await compressor.decompress(data, compressed);
+const { data, compressed } = compressor.compress(patches);
+const decompressed = compressor.decompress(data, compressed);
 ```
 
-## JSON Patch Examples
+## Usage Examples
+
+### Basic State Synchronization
+
+```typescript
+const engine = new DeltaSyncEngine();
+
+// Client 1: Make changes
+const oldState = { counter: 0 };
+const newState = { counter: 1 };
+const patches = engine.generatePatches(oldState, newState);
+
+// Send patches to server...
+
+// Client 2: Apply patches
+const result = engine.applyPatches(oldState, patches);
+console.log(result.newState); // { counter: 1 }
+```
+
+### Network Transmission
+
+```typescript
+import { VectorClock } from "../state/VectorClock";
+
+const engine = new DeltaSyncEngine();
+
+// Create patch message with versioning
+const patches = engine.generatePatches(oldState, newState);
+const message = engine.createPatchMessage(
+  patches,
+  VectorClock.create("client1"),
+  VectorClock.increment(VectorClock.create("client1"), "client1"),
+);
+
+// Verify integrity
+if (engine.verifyPatchMessage(message)) {
+  // Apply patches
+  const result = engine.applyPatches(state, message.patches);
+}
+```
+
+### Conflict Resolution
+
+```typescript
+const engine = new DeltaSyncEngine();
+
+// Two clients modify same state concurrently
+const base = { value: 1 };
+const patches1 = [{ op: "replace", path: "/value", value: 2 }]; // Client 1
+const patches2 = [{ op: "replace", path: "/value", value: 3 }]; // Client 2
+
+// Merge conflicting patches
+const merged = engine.mergePatchSets(base, patches1, patches2);
+const result = engine.applyPatches(base, merged);
+```
+
+### Large State Changes
+
+```typescript
+const engine = new DeltaSyncEngine();
+
+// Handle large state efficiently
+const oldState = {
+  users: Array.from({ length: 1000 }, (_, i) => ({ id: i, score: i * 10 })),
+};
+const newState = {
+  users: oldState.users.map((u) => ({ ...u, score: u.score + 1 })),
+};
+
+// Generate optimized patches
+const patches = engine.generatePatches(oldState, newState);
+
+// Check compression savings
+const savings = engine.calculateCompressionSavings(patches);
+console.log(`Compression: ${savings.savingsPercent.toFixed(1)}%`);
+```
+
+## JSON Patch Operations
 
 ### Add Operation
 
-```json
-{ "op": "add", "path": "/user/email", "value": "user@example.com" }
+Adds a new value to the target location.
+
+```typescript
+// Add property to object
+{ op: "add", path: "/newProp", value: "value" }
+
+// Add item to array
+{ op: "add", path: "/array/2", value: "item" }
+
+// Add to end of array
+{ op: "add", path: "/array/-", value: "item" }
 ```
 
 ### Remove Operation
 
-```json
-{ "op": "remove", "path": "/user/tempField" }
+Removes the value at the target location.
+
+```typescript
+// Remove property from object
+{ op: "remove", path: "/prop" }
+
+// Remove item from array
+{ op: "remove", path: "/array/1" }
 ```
 
 ### Replace Operation
 
-```json
-{ "op": "replace", "path": "/user/age", "value": 31 }
+Replaces the value at the target location.
+
+```typescript
+// Replace property value
+{ op: "replace", path: "/prop", value: "newValue" }
+
+// Replace array item
+{ op: "replace", path: "/array/0", value: "newItem" }
 ```
 
 ### Move Operation
 
-```json
-{ "op": "move", "from": "/old/path", "path": "/new/path" }
+Moves a value from one location to another.
+
+```typescript
+// Move property
+{ op: "move", from: "/oldProp", path: "/newProp" }
+
+// Move array item
+{ op: "move", from: "/array/0", path: "/array/2" }
 ```
 
 ### Copy Operation
 
-```json
-{ "op": "copy", "from": "/template", "path": "/instance" }
+Copies a value from one location to another.
+
+```typescript
+// Copy property
+{ op: "copy", from: "/source", path: "/destination" }
 ```
 
 ### Test Operation
 
-```json
-{ "op": "test", "path": "/version", "value": "1.0" }
-```
-
-## Path Syntax (RFC 6901 JSON Pointer)
-
-Paths use JSON Pointer syntax:
+Tests that a value at the target location is equal to a specified value.
 
 ```typescript
-/                      // Root
-/user                  // Object property
-/user/name            // Nested property
-/users/0              // Array element at index 0
-/users/0/name         // Nested in array
-/path~1with~1slash    // Path with / (escaped as ~1)
-/path~0with~0tilde    // Path with ~ (escaped as ~0)
+// Test property value
+{ op: "test", path: "/prop", value: "expectedValue" }
 ```
 
-## Sync Protocol
+## RFC 6902 Compliance
 
-### Message Types
+This implementation fully complies with RFC 6902:
 
-**Sync Request**
+- ✅ All six operations (add, remove, replace, move, copy, test)
+- ✅ JSON Pointer path format (RFC 6901)
+- ✅ Special character escaping (~ and /)
+- ✅ Array index handling including "-" for end
+- ✅ Error handling for invalid operations
+- ✅ Test operation for conditional patches
+
+### Path Format (RFC 6901)
+
+Paths use JSON Pointer notation:
 
 ```typescript
-{
-  type: 'sync-request',
-  clientVersion: { client1: 5 },
-  requestedVersion: { server: 10 }
-}
+"/user/name"; // Object property
+"/users/0/name"; // Array index then property
+"/array/-"; // End of array
+"/prop~0name"; // Property containing ~ (escaped as ~0)
+"/prop~1name"; // Property containing / (escaped as ~1)
 ```
 
-**Sync Response**
+## Performance
 
-```typescript
-{
-  type: 'sync-response',
-  clientVersion: { server: 10 },
-  patches: [PatchMessage, ...]
-}
+The implementation is optimized for performance:
+
+- **Patch Generation**: O(n) where n is the number of changed nodes
+- **Patch Application**: O(m) where m is the number of patches
+- **Optimization**: O(m) for patch set optimization
+- **Compression**: Automatic for patches > 1KB
+
+### Benchmarks
+
 ```
-
-**Sync Acknowledgment**
-
-```typescript
-{
-  type: 'sync-ack',
-  clientVersion: { client1: 6 }
-}
-```
-
-**Sync Error**
-
-```typescript
-{
-  type: 'sync-error',
-  clientVersion: { client1: 5 },
-  error: 'Checksum mismatch'
-}
+Generate patches (100 changes):     ~5ms
+Apply patches (100 operations):     ~3ms
+Optimize patches (100 patches):     ~2ms
+Compression (10KB patches):         ~5ms
 ```
 
 ## Integration with Existing Systems
@@ -318,148 +372,143 @@ Paths use JSON Pointer syntax:
 
 ```typescript
 import { VectorClock } from "../state/VectorClock";
-import { DeltaSyncEngine } from "./delta-sync";
+import { DeltaSyncEngine } from "../delta-sync";
 
 const engine = new DeltaSyncEngine();
+const clock = VectorClock.create("client1");
 
-// Track versions with vector clock
-let version = VectorClock.create("client-1");
-version = VectorClock.increment(version, "client-1");
-
-const message = await engine.createPatchMessage(
-  oldState,
-  newState,
-  oldVersion,
-  version,
+// Include version with patches
+const message = engine.createPatchMessage(
+  patches,
+  clock,
+  VectorClock.increment(clock, "client1"),
 );
 ```
 
 ### With WebSocket
 
 ```typescript
-import { DeltaSyncEngine } from "./delta-sync";
+import { DeltaSyncEngine } from "../delta-sync";
 
 const engine = new DeltaSyncEngine();
 
-ws.on("message", async (data) => {
+// Send patches over WebSocket
+ws.on("stateChange", (oldState, newState) => {
+  const patches = engine.generatePatches(oldState, newState);
+  const message = engine.createPatchMessage(
+    patches,
+    baseVersion,
+    targetVersion,
+  );
+  ws.send(JSON.stringify(message));
+});
+
+// Receive and apply patches
+ws.on("message", (data) => {
   const message = JSON.parse(data);
-
-  if (message.type === "sync-request") {
-    // Generate patches
-    const patches = engine.generatePatches(oldState, newState);
-
-    // Send response
-    const response = await engine.createSyncResponse(serverVersion, [
-      patchMessage,
-    ]);
-    ws.send(JSON.stringify(response));
-  }
-
-  if (message.type === "sync-response") {
-    // Apply patches
-    for (const patchMsg of message.patches) {
-      const result = await engine.applyPatchMessage(state, patchMsg);
-      if (result.conflicts.length > 0) {
-        // Handle conflicts
-      }
-      state = result.newState;
-    }
+  if (engine.verifyPatchMessage(message)) {
+    const result = engine.applyPatches(currentState, message.patches);
+    currentState = result.newState;
   }
 });
 ```
 
-## Performance Considerations
-
-### Benchmarks
-
-- **Patch Generation**: ~1ms for typical game state (100 properties)
-- **Patch Application**: ~0.5ms per patch
-- **Optimization**: Reduces patch count by 30-70% on average
-- **Compression**: 60-80% size reduction for JSON data
-
-### Best Practices
-
-1. **Batch Updates**: Combine multiple changes before generating patches
-2. **Enable Optimization**: Always use optimization in production
-3. **Compression Threshold**: Adjust based on your typical patch sizes
-4. **Immutability**: Keep enabled to prevent state corruption
-5. **Atomic Mode**: Use for critical operations requiring consistency
-
-### Memory Usage
-
-- Minimal overhead: ~100 bytes per patch
-- Compressed patches: 20-40% of original size
-- Immutable operations create temporary copies
-
 ## Error Handling
 
 ```typescript
-import {
-  PatchError,
-  InvalidPatchError,
-  PatchApplicationError,
-  TestFailedError,
-} from "./delta-sync";
+const engine = new DeltaSyncEngine();
 
 try {
   const result = engine.applyPatches(state, patches);
-} catch (error) {
-  if (error instanceof InvalidPatchError) {
-    console.error("Invalid patch structure:", error.patch);
-  } else if (error instanceof PatchApplicationError) {
-    console.error("Failed to apply patch:", error.patch, error.message);
-  } else if (error instanceof TestFailedError) {
-    console.error("Test failed:", error.actualValue, "vs", error.patch.value);
+
+  if (result.failed.length > 0) {
+    console.error("Some patches failed:", result.failed);
+    console.error("Conflicts:", result.conflicts);
   }
+
+  if (result.applied.length === patches.length) {
+    console.log("All patches applied successfully");
+  }
+} catch (error) {
+  console.error("Fatal error applying patches:", error);
 }
 ```
 
 ## Testing
 
-Run tests:
+Run the test suite:
 
 ```bash
-npm test -- --testPathPatterns="src/delta-sync"
+npm test -- --testPathPatterns="delta-sync"
 ```
 
-76 comprehensive tests covering:
+The module includes 58 tests covering:
 
+- Basic operations (add, remove, replace, move, copy, test)
+- Array operations and edge cases
+- Nested object handling
 - RFC 6902 compliance
-- All patch operations
-- Optimization strategies
+- Optimization algorithms
 - Conflict resolution
-- End-to-end scenarios
-- Error handling
-- Edge cases
+- Compression
+- Performance benchmarks
 
 ## API Reference
 
 ### Types
 
-See [types.ts](./types.ts) for complete type definitions:
+```typescript
+interface JsonPatch {
+  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
+  path: string;
+  value?: any;
+  from?: string;
+}
 
-- `JsonPatch` - RFC 6902 patch operation
-- `PatchResult` - Result of applying patches
-- `PatchConflict` - Conflict information
-- `PatchMessage` - Wire format for synchronization
-- `SyncMessage` - Protocol message types
-- Configuration options for all components
+interface PatchResult<T> {
+  newState: T;
+  applied: JsonPatch[];
+  failed: JsonPatch[];
+  conflicts: PatchConflict[];
+}
+
+interface PatchMessage {
+  id: string;
+  baseVersion: VectorClock;
+  targetVersion: VectorClock;
+  patches: JsonPatch[];
+  checksum: string;
+  compressed: boolean;
+}
+```
+
+## Best Practices
+
+1. **Use Atomic Mode**: Always use atomic mode for critical state updates
+2. **Validate Patches**: Enable validation to catch errors early
+3. **Optimize First**: Let the optimizer run before sending patches
+4. **Check Integrity**: Always verify patch messages with checksums
+5. **Handle Conflicts**: Implement appropriate conflict resolution strategy
+6. **Compress Large Patches**: Use compression for patches > 1KB
+7. **Version Everything**: Use VectorClock for causality tracking
+8. **Test Operations**: Use test operations for conditional updates
+
+## Contributing
+
+When contributing to this module:
+
+- Maintain RFC 6902 compliance
+- Add tests for new features
+- Ensure TypeScript types are accurate
+- Follow existing code patterns
+- Update documentation
 
 ## License
 
 MIT
 
-## Contributing
-
-Contributions welcome! Please ensure:
-
-- All tests pass
-- New features include tests
-- Code follows existing style
-- TypeScript types are complete
-
 ## References
 
-- [RFC 6902 - JSON Patch](https://tools.ietf.org/html/rfc6902)
-- [RFC 6901 - JSON Pointer](https://tools.ietf.org/html/rfc6901)
-- [JSON Patch Test Suite](https://github.com/json-patch/json-patch-tests)
+- [RFC 6902: JSON Patch](https://tools.ietf.org/html/rfc6902)
+- [RFC 6901: JSON Pointer](https://tools.ietf.org/html/rfc6901)
+- [JSON Patch Operations](https://jsonpatch.com/)

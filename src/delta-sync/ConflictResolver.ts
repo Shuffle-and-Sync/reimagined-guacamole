@@ -1,28 +1,28 @@
 /**
- * ConflictResolver - Handle patch conflicts and merging
+ * ConflictResolver - Resolve conflicts between patches
  *
- * Detects conflicting patches and provides resolution strategies
- * for three-way merges and conflict resolution.
+ * Implements strategies for detecting and resolving conflicts
+ * when multiple patches operate on the same paths.
  */
 
-import type { JsonPatch, PatchConflict, ConflictResolution } from "./types";
-
-export type ConflictResolutionStrategy =
-  | "last-write-wins"
-  | "first-write-wins"
-  | "manual";
-
-export interface ConflictResolutionResult {
-  resolved: JsonPatch[];
-  conflicts: PatchConflict[];
-  strategy: ConflictResolutionStrategy;
-}
+import { JsonPatch, PatchConflict, ConflictResolverOptions } from "./types";
 
 export class ConflictResolver {
-  private strategy: ConflictResolutionStrategy;
+  private options: ConflictResolverOptions;
 
-  constructor(strategy: ConflictResolutionStrategy = "last-write-wins") {
-    this.strategy = strategy;
+  constructor(options: ConflictResolverOptions = {}) {
+    this.options = {
+      defaultResolution: "skip",
+      autoResolve: true,
+      ...options,
+    };
+  }
+
+  /**
+   * Get current options
+   */
+  getOptions(): ConflictResolverOptions {
+    return { ...this.options };
   }
 
   /**
@@ -33,20 +33,31 @@ export class ConflictResolver {
     patches2: JsonPatch[],
   ): PatchConflict[] {
     const conflicts: PatchConflict[] = [];
-    const paths1 = this.extractPaths(patches1);
-    const paths2 = this.extractPaths(patches2);
+    const paths1 = new Set(patches1.map((p) => p.path));
 
-    // Find overlapping paths
-    for (const path of paths1) {
-      if (paths2.has(path)) {
-        const patch1 = this.findPatchForPath(patches1, path);
-        const patch2 = this.findPatchForPath(patches2, path);
-
-        if (patch1 && patch2 && this.isConflicting(patch1, patch2)) {
+    for (const patch2 of patches2) {
+      if (paths1.has(patch2.path)) {
+        // Find conflicting patch from patches1
+        const conflictingPatch = patches1.find((p) => p.path === patch2.path);
+        if (conflictingPatch) {
           conflicts.push({
-            patch: patch1,
-            reason: `Conflicting operations on path ${path}`,
-            resolution: this.suggestResolution(patch1, patch2),
+            patch: patch2,
+            reason: `Conflicting operation on path ${patch2.path}`,
+            resolution: this.options.defaultResolution,
+          });
+        }
+      }
+
+      // Check for parent-child path conflicts
+      for (const patch1 of patches1) {
+        if (
+          this.isParentPath(patch1.path, patch2.path) ||
+          this.isParentPath(patch2.path, patch1.path)
+        ) {
+          conflicts.push({
+            patch: patch2,
+            reason: `Parent-child conflict between ${patch1.path} and ${patch2.path}`,
+            resolution: this.options.defaultResolution,
           });
         }
       }
@@ -56,236 +67,194 @@ export class ConflictResolver {
   }
 
   /**
-   * Resolve conflicts between two patch sets
+   * Resolve conflicts using configured strategy
    */
   resolveConflicts(
+    base: unknown,
     patches1: JsonPatch[],
     patches2: JsonPatch[],
-  ): ConflictResolutionResult {
+  ): JsonPatch[] {
     const conflicts = this.detectConflicts(patches1, patches2);
 
     if (conflicts.length === 0) {
-      // No conflicts, merge all patches
-      return {
-        resolved: [...patches1, ...patches2],
-        conflicts: [],
-        strategy: this.strategy,
-      };
+      // No conflicts, merge both patch sets
+      return [...patches1, ...patches2];
     }
 
-    // Apply resolution strategy
-    const resolved = this.applyResolutionStrategy(
-      patches1,
-      patches2,
-      conflicts,
-    );
+    if (!this.options.autoResolve) {
+      // Return conflicts without resolution
+      throw new Error(
+        `Conflicts detected: ${conflicts.map((c) => c.reason).join(", ")}`,
+      );
+    }
 
-    return {
-      resolved,
-      conflicts,
-      strategy: this.strategy,
-    };
+    // Auto-resolve conflicts
+    const resolved: JsonPatch[] = [...patches1];
+    const conflictPaths = new Set(conflicts.map((c) => c.patch.path));
+
+    for (const patch2 of patches2) {
+      if (!conflictPaths.has(patch2.path)) {
+        resolved.push(patch2);
+        continue;
+      }
+
+      // Find conflict for this patch
+      const conflict = conflicts.find((c) => c.patch.path === patch2.path);
+      if (!conflict) {
+        resolved.push(patch2);
+        continue;
+      }
+
+      // Apply resolution strategy
+      const resolution = this.options.customResolver
+        ? this.options.customResolver(conflict)
+        : conflict.resolution || this.options.defaultResolution;
+
+      switch (resolution) {
+        case "skip":
+          // Skip the conflicting patch
+          break;
+        case "retry":
+          // Add the patch anyway (last write wins)
+          resolved.push(patch2);
+          break;
+        case "merge": {
+          // Attempt to merge the patches
+          const conflictingPatch = patches1.find((p) => p.path === patch2.path);
+          if (conflictingPatch) {
+            const merged = this.mergePatch(conflictingPatch, patch2);
+            if (merged) {
+              // Replace the existing patch with merged one
+              const idx = resolved.findIndex((p) => p.path === patch2.path);
+              if (idx !== -1) {
+                resolved[idx] = merged;
+              }
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    return resolved;
   }
 
   /**
-   * Merge two patch sets with three-way merge logic
+   * Three-way merge of patch sets
    */
   threeWayMerge(
-    base: JsonPatch[],
+    base: unknown,
     patches1: JsonPatch[],
     patches2: JsonPatch[],
-  ): ConflictResolutionResult {
-    // Identify patches that changed from base
-    const changes1 = this.diffPatches(base, patches1);
-    const changes2 = this.diffPatches(base, patches2);
-
-    // Detect conflicts in changes
-    const conflicts = this.detectConflicts(changes1, changes2);
-
-    if (conflicts.length === 0) {
-      // No conflicts, combine all changes
-      return {
-        resolved: [...changes1, ...changes2],
-        conflicts: [],
-        strategy: this.strategy,
-      };
-    }
-
-    // Apply resolution strategy
-    const resolved = this.applyResolutionStrategy(
-      changes1,
-      changes2,
-      conflicts,
-    );
-
-    return {
-      resolved,
-      conflicts,
-      strategy: this.strategy,
-    };
-  }
-
-  /**
-   * Apply resolution strategy to conflicting patches
-   */
-  private applyResolutionStrategy(
-    patches1: JsonPatch[],
-    patches2: JsonPatch[],
-    conflicts: PatchConflict[],
   ): JsonPatch[] {
-    const conflictPaths = new Set(conflicts.map((c) => c.patch.path));
-    const result: JsonPatch[] = [];
+    // Identify non-conflicting patches
+    const nonConflicting1: JsonPatch[] = [];
+    const nonConflicting2: JsonPatch[] = [];
+    const conflicting1: JsonPatch[] = [];
+    const conflicting2: JsonPatch[] = [];
 
-    // Add non-conflicting patches from patches1
-    for (const patch of patches1) {
-      if (!conflictPaths.has(patch.path)) {
-        result.push(patch);
-      } else if (this.strategy === "first-write-wins") {
-        result.push(patch);
+    const paths1 = new Set(patches1.map((p) => p.path));
+    const paths2 = new Set(patches2.map((p) => p.path));
+
+    for (const patch1 of patches1) {
+      if (paths2.has(patch1.path)) {
+        conflicting1.push(patch1);
+      } else {
+        nonConflicting1.push(patch1);
       }
     }
 
-    // Add patches from patches2
-    for (const patch of patches2) {
-      if (!conflictPaths.has(patch.path)) {
-        result.push(patch);
-      } else if (this.strategy === "last-write-wins") {
-        result.push(patch);
+    for (const patch2 of patches2) {
+      if (paths1.has(patch2.path)) {
+        conflicting2.push(patch2);
+      } else {
+        nonConflicting2.push(patch2);
       }
     }
 
-    return result;
-  }
+    // Merge non-conflicting patches
+    const merged = [...nonConflicting1, ...nonConflicting2];
 
-  /**
-   * Check if two patches are conflicting
-   */
-  private isConflicting(patch1: JsonPatch, patch2: JsonPatch): boolean {
-    // Same operation on same path is not necessarily a conflict
-    if (patch1.op === patch2.op && patch1.path === patch2.path) {
-      // If values are the same, not a conflict
-      if (this.areValuesEqual(patch1.value, patch2.value)) {
-        return false;
-      }
-      return true;
-    }
+    // Resolve conflicting patches
+    for (let i = 0; i < conflicting1.length; i++) {
+      const patch1 = conflicting1[i];
+      const patch2 = conflicting2.find((p) => p.path === patch1.path);
 
-    // Different operations on same path are generally conflicts
-    return true;
-  }
-
-  /**
-   * Suggest resolution for a conflict
-   */
-  private suggestResolution(
-    patch1: JsonPatch,
-    patch2: JsonPatch,
-  ): ConflictResolution {
-    // If one is a test operation, skip it
-    if (patch1.op === "test" || patch2.op === "test") {
-      return "skip";
-    }
-
-    // If operations are compatible, try to merge
-    if (this.areCompatible(patch1, patch2)) {
-      return "merge";
-    }
-
-    // Default to retry
-    return "retry";
-  }
-
-  /**
-   * Check if two patches are compatible for merging
-   */
-  private areCompatible(patch1: JsonPatch, patch2: JsonPatch): boolean {
-    // Add and replace are compatible
-    if (
-      (patch1.op === "add" && patch2.op === "replace") ||
-      (patch1.op === "replace" && patch2.op === "add")
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Extract all paths affected by patches
-   */
-  private extractPaths(patches: JsonPatch[]): Set<string> {
-    const paths = new Set<string>();
-
-    for (const patch of patches) {
-      paths.add(patch.path);
-
-      // Also track parent paths for nested conflicts
-      const parentPath = this.getParentPath(patch.path);
-      if (parentPath) {
-        paths.add(parentPath);
+      if (patch2) {
+        const resolved = this.mergePatch(patch1, patch2);
+        if (resolved) {
+          merged.push(resolved);
+        }
       }
     }
 
-    return paths;
+    return merged;
   }
 
   /**
-   * Find patch affecting a specific path
+   * Attempt to merge two conflicting patches
    */
-  private findPatchForPath(
-    patches: JsonPatch[],
-    path: string,
-  ): JsonPatch | undefined {
-    return patches.find((p) => p.path === path);
-  }
-
-  /**
-   * Get parent path from a JSON Pointer path
-   */
-  private getParentPath(path: string): string | null {
-    if (!path || path === "/" || path === "") {
+  private mergePatch(patch1: JsonPatch, patch2: JsonPatch): JsonPatch | null {
+    // If operations are different, can't merge
+    if (patch1.op !== patch2.op) {
       return null;
     }
 
-    const lastSlash = path.lastIndexOf("/");
-    if (lastSlash <= 0) {
-      return "/";
+    // If paths are different, can't merge
+    if (patch1.path !== patch2.path) {
+      return null;
     }
 
-    return path.substring(0, lastSlash);
+    switch (patch1.op) {
+      case "replace": {
+        // For replace, use the second patch (last write wins)
+        return patch2;
+      }
+      case "add": {
+        // For add, use the second patch
+        return patch2;
+      }
+      case "remove": {
+        // For remove, keep the remove operation
+        return patch1;
+      }
+      default:
+        return null;
+    }
   }
 
   /**
-   * Compare two values for equality
+   * Check if path1 is a parent of path2
    */
-  private areValuesEqual(val1: any, val2: any): boolean {
-    if (val1 === val2) {
-      return true;
-    }
-
-    if (typeof val1 !== typeof val2) {
+  private isParentPath(path1: string, path2: string): boolean {
+    if (path1 === path2) {
       return false;
     }
 
-    if (typeof val1 === "object" && val1 !== null && val2 !== null) {
-      return JSON.stringify(val1) === JSON.stringify(val2);
+    // path1 is parent if path2 starts with path1 followed by /
+    return path2.startsWith(path1 + "/");
+  }
+
+  /**
+   * Find common patches between two patch sets
+   */
+  findCommonPatches(patches1: JsonPatch[], patches2: JsonPatch[]): JsonPatch[] {
+    const common: JsonPatch[] = [];
+
+    for (const patch1 of patches1) {
+      const match = patches2.find(
+        (patch2) =>
+          patch1.op === patch2.op &&
+          patch1.path === patch2.path &&
+          JSON.stringify(patch1.value) === JSON.stringify(patch2.value) &&
+          patch1.from === patch2.from,
+      );
+
+      if (match) {
+        common.push(patch1);
+      }
     }
 
-    return false;
-  }
-
-  /**
-   * Diff two patch sets to find changes
-   */
-  private diffPatches(base: JsonPatch[], changes: JsonPatch[]): JsonPatch[] {
-    const baseKeys = new Set(base.map((p) => this.patchKey(p)));
-    return changes.filter((p) => !baseKeys.has(this.patchKey(p)));
-  }
-
-  /**
-   * Generate unique key for a patch
-   */
-  private patchKey(patch: JsonPatch): string {
-    return `${patch.op}:${patch.path}`;
+    return common;
   }
 }
