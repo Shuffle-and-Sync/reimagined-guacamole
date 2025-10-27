@@ -176,7 +176,10 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
       });
     });
 
-    return this.createValidationResult(errors.length === 0, errors);
+    return this.createValidationResult(
+      errors.length === 0,
+      errors.length > 0 ? errors : undefined,
+    );
   }
 
   // ============================================================================

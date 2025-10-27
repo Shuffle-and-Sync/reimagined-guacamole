@@ -77,6 +77,7 @@ describe("PokemonGameAdapter", () => {
       const result = adapter.validateState(state);
 
       expect(result.valid).toBe(true);
+      expect(result.errors).toEqual(undefined);
     });
 
     it("should detect invalid player count", () => {
