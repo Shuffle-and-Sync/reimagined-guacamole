@@ -79,7 +79,10 @@ function FeatureCard({ feature }: FeatureCardProps) {
           <div
             className={`w-16 h-16 bg-gradient-to-br from-${feature.color} to-${feature.color}/70 rounded-xl flex items-center justify-center`}
           >
-            <i className={`${feature.icon} text-white text-2xl`}></i>
+            <i
+              className={`${feature.icon} text-white text-2xl`}
+              aria-hidden="true"
+            ></i>
           </div>
           <div>
             <h3 className="text-2xl font-bold text-foreground mb-1">
@@ -94,7 +97,10 @@ function FeatureCard({ feature }: FeatureCardProps) {
         <div className="space-y-3">
           {feature.benefits.map((benefit, index) => (
             <div key={index} className="flex items-center space-x-3">
-              <i className={`fas fa-check-circle text-${feature.color}`}></i>
+              <i
+                className={`fas fa-check-circle text-${feature.color}`}
+                aria-hidden="true"
+              ></i>
               <span className="text-sm">{benefit}</span>
             </div>
           ))}

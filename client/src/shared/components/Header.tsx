@@ -74,10 +74,18 @@ export function Header() {
 
           {/* Community Switcher */}
           <div className="flex items-center space-x-2">
-            <i className="fas fa-dice-d20 text-gray-500 text-sm"></i>
+            <i
+              className="fas fa-dice-d20 text-gray-500 text-sm"
+              aria-hidden="true"
+            ></i>
+            <label htmlFor="community-select" className="sr-only">
+              Select gaming community
+            </label>
             <select
+              id="community-select"
               className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
               data-testid="select-community"
+              aria-label="Select gaming community"
               onChange={handleCommunityChange}
               value={selectedCommunity?.id || ""}
             >
@@ -92,8 +100,13 @@ export function Header() {
               <div
                 className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
                 style={{ backgroundColor: selectedCommunity.themeColor }}
-                title={`Active: ${selectedCommunity.displayName}`}
-              ></div>
+                role="status"
+                aria-label={`Active community: ${selectedCommunity.displayName}`}
+              >
+                <span className="sr-only">
+                  Active: {selectedCommunity.displayName}
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -151,7 +164,13 @@ export function Header() {
         {/* Right: User Menu */}
         <div className="flex items-center space-x-4">
           {isLoading ? (
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div
+              className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
+              role="status"
+              aria-label="Loading user information"
+            >
+              <span className="sr-only">Loading...</span>
+            </div>
           ) : isAuthenticated && user ? (
             <>
               <NotificationCenter />
@@ -161,6 +180,7 @@ export function Header() {
                     variant="ghost"
                     className="h-10 w-10 rounded-full p-0"
                     data-testid="button-user-menu"
+                    aria-label="Open user menu"
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user.profileImageUrl || undefined} />
@@ -178,18 +198,21 @@ export function Header() {
                     onClick={handleProfile}
                     data-testid="menu-item-profile"
                   >
-                    <i className="fas fa-user mr-2"></i>
+                    <i className="fas fa-user mr-2" aria-hidden="true"></i>
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleSettings}
                     data-testid="menu-item-settings"
                   >
-                    <i className="fas fa-cog mr-2"></i>
+                    <i className="fas fa-cog mr-2" aria-hidden="true"></i>
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
-                    <i className="fas fa-sign-out-alt mr-2"></i>
+                    <i
+                      className="fas fa-sign-out-alt mr-2"
+                      aria-hidden="true"
+                    ></i>
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>

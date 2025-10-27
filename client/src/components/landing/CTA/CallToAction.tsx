@@ -30,7 +30,7 @@ export function CallToAction({ onGetStarted, onWatchDemo }: CTAProps) {
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105 shadow-lg animate-glow"
               data-testid="button-create-account"
             >
-              <i className="fas fa-user-plus mr-2"></i>
+              <i className="fas fa-user-plus mr-2" aria-hidden="true"></i>
               Create Free Account
             </Button>
             <Button
@@ -39,7 +39,7 @@ export function CallToAction({ onGetStarted, onWatchDemo }: CTAProps) {
               className="border border-border bg-card hover:bg-muted text-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105"
               data-testid="button-explore-features"
             >
-              <i className="fas fa-compass mr-2"></i>
+              <i className="fas fa-compass mr-2" aria-hidden="true"></i>
               Explore Features
             </Button>
           </div>
@@ -48,7 +48,10 @@ export function CallToAction({ onGetStarted, onWatchDemo }: CTAProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-zap text-white text-2xl"></i>
+                <i
+                  className="fas fa-zap text-white text-2xl"
+                  aria-hidden="true"
+                ></i>
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Instant Setup
@@ -60,7 +63,10 @@ export function CallToAction({ onGetStarted, onWatchDemo }: CTAProps) {
 
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-shield-alt text-white text-2xl"></i>
+                <i
+                  className="fas fa-shield-alt text-white text-2xl"
+                  aria-hidden="true"
+                ></i>
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Secure & Reliable
@@ -72,7 +78,10 @@ export function CallToAction({ onGetStarted, onWatchDemo }: CTAProps) {
 
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-heart text-background text-2xl"></i>
+                <i
+                  className="fas fa-heart text-background text-2xl"
+                  aria-hidden="true"
+                ></i>
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Community First

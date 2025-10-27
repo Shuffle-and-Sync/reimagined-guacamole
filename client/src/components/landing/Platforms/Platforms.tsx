@@ -48,7 +48,10 @@ export function Platforms({ onConnectPlatforms }: PlatformsProps) {
               <div
                 className={`w-12 h-12 ${platform.bg} rounded-full flex items-center justify-center mx-auto mb-3`}
               >
-                <i className={`${platform.icon} text-white text-xl`}></i>
+                <i
+                  className={`${platform.icon} text-white text-xl`}
+                  aria-hidden="true"
+                ></i>
               </div>
               <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                 {platform.name}
@@ -64,7 +67,7 @@ export function Platforms({ onConnectPlatforms }: PlatformsProps) {
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
           data-testid="button-connect-platforms"
         >
-          <i className="fas fa-link mr-2"></i>
+          <i className="fas fa-link mr-2" aria-hidden="true"></i>
           Connect Your Platforms
         </Button>
       </div>
