@@ -7,8 +7,11 @@ import {
   AuditLogger,
   AuthorizationMiddleware,
   PermissionEvaluator,
- baseRules, mtgRules, pokemonRules } from "../../../src/auth";
-import { AuthContext, GameRequest } from "../../../src/auth/types";
+  baseRules,
+  mtgRules,
+  pokemonRules,
+} from "../../../src/auth";
+import { AuthContext } from "../../../src/auth/types";
 
 describe("Authorization System Integration", () => {
   let manager: AuthorizationManager;
