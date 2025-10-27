@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import React, { useState, useCallback } from "react";
 import type { Tournament } from "@shared/schema";
+import { SkipLink } from "@/components/SkipLink";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -308,9 +309,10 @@ export default function Tournaments() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <SkipLink />
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-4">
             Tournament Hub

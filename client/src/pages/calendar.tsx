@@ -12,6 +12,7 @@ import type { EventFormData } from "@/components/calendar/forms/eventFormSchema"
 import { GraphicsGeneratorDialog } from "@/components/calendar/GraphicsGeneratorDialog";
 import { MyEventsTab } from "@/components/calendar/MyEventsTab";
 import CalendarLoginPrompt from "@/components/CalendarLoginPrompt";
+import { SkipLink } from "@/components/SkipLink";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth";
@@ -385,9 +386,10 @@ export default function Calendar() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SkipLink />
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <CalendarPageHeader
