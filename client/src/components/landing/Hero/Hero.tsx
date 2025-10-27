@@ -18,7 +18,7 @@ export function Hero({
   return (
     <section className="relative py-20 lg:py-32 cartoon-hero-bg overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" aria-hidden="true">
         {/* Cosmic Sparkles */}
         <div className="absolute top-20 left-10 w-1 h-1 bg-white rounded-full animate-sparkle opacity-90"></div>
         <div
@@ -166,7 +166,7 @@ export function Hero({
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105 shadow-lg"
               data-testid="button-get-started"
             >
-              <i className="fas fa-rocket mr-2"></i>
+              <i className="fas fa-rocket mr-2" aria-hidden="true"></i>
               Get Started Free
             </Button>
             <Button
@@ -175,7 +175,7 @@ export function Hero({
               className="border border-border bg-card hover:bg-muted text-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105"
               data-testid="button-watch-demo"
             >
-              <i className="fas fa-play mr-2"></i>
+              <i className="fas fa-play mr-2" aria-hidden="true"></i>
               Watch Demo
             </Button>
           </div>

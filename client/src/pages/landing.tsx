@@ -9,6 +9,7 @@ import {
   Platforms,
   CallToAction,
 } from "@/components/landing";
+import { SkipLink } from "@/components/SkipLink";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Header, Footer } from "@/shared/components";
 
@@ -31,28 +32,31 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SkipLink />
       <Header />
 
-      <Hero
-        onGetStarted={handleGetStarted}
-        onWatchDemo={handleWatchDemo}
-        communitiesCount={communities.length}
-      />
+      <main id="main-content">
+        <Hero
+          onGetStarted={handleGetStarted}
+          onWatchDemo={handleWatchDemo}
+          communitiesCount={communities.length}
+        />
 
-      <Communities
-        communities={communities}
-        isLoading={isLoading}
-        onCommunitySelect={handleGetStarted}
-      />
+        <Communities
+          communities={communities}
+          isLoading={isLoading}
+          onCommunitySelect={handleGetStarted}
+        />
 
-      <Features />
+        <Features />
 
-      <Platforms onConnectPlatforms={handleGetStarted} />
+        <Platforms onConnectPlatforms={handleGetStarted} />
 
-      <CallToAction
-        onGetStarted={handleGetStarted}
-        onWatchDemo={handleWatchDemo}
-      />
+        <CallToAction
+          onGetStarted={handleGetStarted}
+          onWatchDemo={handleWatchDemo}
+        />
+      </main>
 
       <Footer />
 
