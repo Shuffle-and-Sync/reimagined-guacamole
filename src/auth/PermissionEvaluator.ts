@@ -158,8 +158,10 @@ export class PermissionEvaluator {
   ): Permission[] {
     return context.permissions.filter(
       (permission) =>
-        this.matchesPattern(permission.resource, resource) &&
-        this.matchesPattern(permission.action, action),
+        (this.matchesPattern(permission.resource, resource) ||
+          permission.resource === "*") &&
+        (this.matchesPattern(permission.action, action) ||
+          permission.action === "*"),
     );
   }
 }
