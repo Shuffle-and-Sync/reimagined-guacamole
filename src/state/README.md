@@ -161,7 +161,8 @@ const snapshot = snapshotManager.getSnapshotAtVersion({ client1: 5 });
 import { StateValidator, createMTGStateValidator } from "./state";
 import { z } from "zod";
 
-// Use pre-built MTG validator
+// Use pre-built MTG validator (defined in StateValidator.ts)
+// This validator includes MTG-specific schema and invariants
 const validator = createMTGStateValidator();
 
 // Or create custom validator
@@ -335,10 +336,20 @@ import {
   createMTGStateValidator,
 } from "./state";
 
+// Define MTG game state type
+interface MTGGameState {
+  players: Array<{ id: string; name: string; life: number; poison: number }>;
+  board: {
+    zones: Record<string, { cards: string[] }>;
+  };
+  turn: number;
+  phase: string;
+}
+
 // Setup
-const stateManager = new StateManager("client1");
+const stateManager = new StateManager<MTGGameState>("client1");
 const versionController = new VersionController(stateManager);
-const snapshotManager = new SnapshotManager({ interval: 10 });
+const snapshotManager = new SnapshotManager<MTGGameState>({ interval: 10 });
 const validator = createMTGStateValidator();
 
 // Create initial game state
