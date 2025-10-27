@@ -2476,6 +2476,89 @@ export const insertStreamSessionSchema = createInsertSchema(streamSessions, {
   updatedAt: true,
 });
 
+export const insertStreamSessionCoHostSchema = createInsertSchema(
+  streamSessionCoHosts,
+  {
+    role: z.enum(["co_host", "moderator", "guest"]).optional(),
+  },
+).omit({
+  id: true,
+});
+
+export const insertStreamSessionPlatformSchema = createInsertSchema(
+  streamSessionPlatforms,
+  {
+    platform: z.enum(["twitch", "youtube", "facebook", "kick"]),
+    status: z.enum(["idle", "live", "offline", "error"]).optional(),
+    viewerCount: z.number().int().nonnegative().optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCollaborationRequestSchema = createInsertSchema(
+  collaborationRequests,
+  {
+    message: z.string().max(1000).optional(),
+    status: z
+      .enum(["pending", "accepted", "declined", "expired", "cancelled"])
+      .optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserPlatformAccountSchema = createInsertSchema(
+  userPlatformAccounts,
+  {
+    platform: z.enum(["twitch", "youtube", "facebook", "kick"]),
+    handle: z.string().min(1).max(100),
+    platformUserId: z.string().min(1),
+    isActive: z.boolean().optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTournamentRoundSchema = createInsertSchema(
+  tournamentRounds,
+  {
+    roundNumber: z.number().int().positive(),
+    status: z.enum(["pending", "in_progress", "completed"]).optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTournamentMatchSchema = createInsertSchema(
+  tournamentMatches,
+  {
+    matchNumber: z.number().int().positive(),
+    status: z
+      .enum(["pending", "in_progress", "completed", "cancelled"])
+      .optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMatchResultSchema = createInsertSchema(matchResults, {
+  player1Score: z.number().int().nonnegative().optional(),
+  player2Score: z.number().int().nonnegative().optional(),
+  durationMinutes: z.number().int().positive().optional(),
+  notes: z.string().max(1000).optional(),
+  isVerified: z.boolean().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type InsertCard = z.infer<typeof insertCardSchema>;
@@ -2516,11 +2599,11 @@ export type InsertMatchmakingPreferences =
 export type TournamentFormat = typeof tournamentFormats.$inferSelect;
 export type InsertTournamentFormat = typeof tournamentFormats.$inferInsert;
 export type TournamentRound = typeof tournamentRounds.$inferSelect;
-export type InsertTournamentRound = typeof tournamentRounds.$inferInsert;
+export type InsertTournamentRound = z.infer<typeof insertTournamentRoundSchema>;
 export type TournamentMatch = typeof tournamentMatches.$inferSelect;
-export type InsertTournamentMatch = typeof tournamentMatches.$inferInsert;
+export type InsertTournamentMatch = z.infer<typeof insertTournamentMatchSchema>;
 export type MatchResult = typeof matchResults.$inferSelect;
-export type InsertMatchResult = typeof matchResults.$inferInsert;
+export type InsertMatchResult = z.infer<typeof insertMatchResultSchema>;
 
 // Forum types
 export type ForumPost = typeof forumPosts.$inferSelect;
@@ -2534,11 +2617,13 @@ export type InsertForumReplyLike = typeof forumReplyLikes.$inferInsert;
 
 // Stream extension types
 export type StreamSessionCoHost = typeof streamSessionCoHosts.$inferSelect;
-export type InsertStreamSessionCoHost =
-  typeof streamSessionCoHosts.$inferInsert;
+export type InsertStreamSessionCoHost = z.infer<
+  typeof insertStreamSessionCoHostSchema
+>;
 export type StreamSessionPlatform = typeof streamSessionPlatforms.$inferSelect;
-export type InsertStreamSessionPlatform =
-  typeof streamSessionPlatforms.$inferInsert;
+export type InsertStreamSessionPlatform = z.infer<
+  typeof insertStreamSessionPlatformSchema
+>;
 
 // Analytics types
 export type StreamAnalytics = typeof streamAnalytics.$inferSelect;
@@ -2585,8 +2670,9 @@ export type InsertRevokedJwtToken = typeof revokedJwtTokens.$inferInsert;
 export type UserCommunity = typeof userCommunities.$inferSelect;
 export type InsertUserCommunity = typeof userCommunities.$inferInsert;
 export type UserPlatformAccount = typeof userPlatformAccounts.$inferSelect;
-export type InsertUserPlatformAccount =
-  typeof userPlatformAccounts.$inferInsert;
+export type InsertUserPlatformAccount = z.infer<
+  typeof insertUserPlatformAccountSchema
+>;
 export type SafeUserPlatformAccount = Omit<
   UserPlatformAccount,
   "accessToken" | "refreshToken"
@@ -2612,8 +2698,9 @@ export type InsertTournamentParticipant = z.infer<
 export type InsertTournament = z.infer<typeof insertTournamentSchema>;
 export type UpdateTournament = Partial<InsertTournament>;
 export type CollaborationRequest = typeof collaborationRequests.$inferSelect;
-export type InsertCollaborationRequest =
-  typeof collaborationRequests.$inferInsert;
+export type InsertCollaborationRequest = z.infer<
+  typeof insertCollaborationRequestSchema
+>;
 export type InsertGameSession = typeof gameSessions.$inferInsert;
 export type InsertStreamSession = z.infer<typeof insertStreamSessionSchema>;
 export type InsertUserReputation = typeof userReputation.$inferInsert;

@@ -9,14 +9,14 @@ import type {
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
-import { facebookAPI } from "./facebook-api";
+import { facebookAPI } from "./facebook-api.service";
 import {
   resolvePlatformIdentifiers,
   getValidPlatformToken,
-} from "./platform-oauth";
-import { streamingCoordinator } from "./streaming-coordinator";
-import { twitchAPI } from "./twitch-api";
-import { youtubeAPI } from "./youtube-api";
+} from "./platform-oauth.service";
+import { streamingCoordinator } from "./streaming-coordinator.service";
+import { twitchAPI } from "./twitch-api.service";
+import { youtubeAPI } from "./youtube-api.service";
 
 /**
  * Collaborative Streaming Service

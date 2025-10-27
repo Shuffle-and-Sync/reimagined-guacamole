@@ -19,26 +19,14 @@
 import { randomBytes, createHash } from "crypto";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { FacebookAPIService } from "./facebook-api";
-import { YouTubeAPIService } from "./youtube-api";
-
-/**
- * OAuth state stored temporarily during authorization flow
- * Used to prevent CSRF attacks and store PKCE verifiers
- */
-interface OAuthState {
-  userId: string; // User initiating the OAuth flow
-  platform: string; // Platform being authorized (twitch/youtube/facebook)
-  timestamp: number; // Creation time for expiry checking
-  codeVerifier?: string; // PKCE code verifier (required for token exchange)
-}
-
-/**
- * In-memory OAuth state storage
- * TODO: Replace with Redis in production for scalability
- * States expire after 10 minutes and are cleaned up automatically
- */
-const oauthStates = new Map<string, OAuthState>();
+import { FacebookAPIService } from "./facebook-api.service";
+import {
+  type OAuthState,
+  setOAuthState,
+  getOAuthState,
+  deleteOAuthState,
+} from "./oauth-state.service";
+import { YouTubeAPIService } from "./youtube-api.service";
 
 /**
  * OAuth scopes requested for each streaming platform
@@ -95,7 +83,6 @@ const PLATFORM_SCOPES = {
  * 1. Generates cryptographically secure state parameter
  * 2. Stores state with user ID and platform for validation
  * 3. Generates platform-specific authorization URL
- * 4. Cleans up expired states (>10 minutes old)
  *
  * @param platform - Platform identifier (twitch, youtube, facebook)
  * @param userId - ID of user initiating OAuth flow
@@ -109,22 +96,14 @@ export async function generatePlatformOAuthURL(
   const state = generateSecureState();
   const timestamp = Date.now();
 
-  // Store state for validation
-  oauthStates.set(state, { userId, platform, timestamp });
-
-  // Clean up old states (older than 10 minutes)
-  const entries = Array.from(oauthStates.entries());
-  for (const [key, value] of entries) {
-    if (timestamp - value.timestamp > 10 * 60 * 1000) {
-      oauthStates.delete(key);
-    }
-  }
+  // Store state in Redis (or in-memory fallback) for validation
+  await setOAuthState(state, { userId, platform, timestamp });
 
   switch (platform) {
     case "twitch":
-      return generateTwitchOAuthURL(state);
+      return await generateTwitchOAuthURL(state);
     case "youtube":
-      return generateYouTubeOAuthURL(state);
+      return await generateYouTubeOAuthURL(state);
     case "facebook":
       return generateFacebookOAuthURL(state);
     default:
@@ -141,8 +120,8 @@ export async function handlePlatformOAuthCallback(
   state: string,
   userId: string,
 ): Promise<unknown> {
-  // Validate state
-  const storedState = oauthStates.get(state);
+  // Validate state from Redis (or in-memory fallback)
+  const storedState = await getOAuthState(state);
   if (
     !storedState ||
     storedState.userId !== userId ||
@@ -167,8 +146,8 @@ export async function handlePlatformOAuthCallback(
       throw new Error(`Unsupported platform: ${platform}`);
   }
 
-  // Remove used state only after successful callback
-  oauthStates.delete(state);
+  // Remove used state after successful callback
+  await deleteOAuthState(state);
   return result;
 }
 
@@ -226,14 +205,15 @@ export async function refreshPlatformToken(
  * Generate Twitch OAuth URL with PKCE for enhanced security
  * PKCE (Proof Key for Code Exchange) prevents authorization code interception attacks
  */
-function generateTwitchOAuthURL(state: string): string {
+async function generateTwitchOAuthURL(state: string): Promise<string> {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  // Store code verifier with state for later verification
-  const storedState = oauthStates.get(state);
+  // Update state with code verifier for later verification
+  const storedState = await getOAuthState(state);
   if (storedState) {
     storedState.codeVerifier = codeVerifier;
+    await setOAuthState(state, storedState);
   }
 
   if (!process.env.TWITCH_CLIENT_ID) {
@@ -258,14 +238,15 @@ function generateTwitchOAuthURL(state: string): string {
 /**
  * Generate YouTube OAuth URL with PKCE
  */
-function generateYouTubeOAuthURL(state: string): string {
+async function generateYouTubeOAuthURL(state: string): Promise<string> {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  // Store code verifier with state
-  const storedState = oauthStates.get(state);
+  // Update state with code verifier
+  const storedState = await getOAuthState(state);
   if (storedState) {
     storedState.codeVerifier = codeVerifier;
+    await setOAuthState(state, storedState);
   }
 
   if (!process.env.YOUTUBE_CLIENT_ID) {
@@ -417,7 +398,7 @@ async function handleYouTubeCallback(
 
   try {
     // Import YouTube API service safely
-    const { YouTubeAPIService } = await import("./youtube-api");
+    const { YouTubeAPIService } = await import("./youtube-api.service");
     const youtubeService = new YouTubeAPIService();
 
     // Exchange code for tokens with PKCE code verifier
@@ -602,11 +583,14 @@ async function refreshYouTubeToken(
       ? new Date(Date.now() + tokenData.expires_in * 1000)
       : undefined;
 
-    // Update stored tokens
+    // Update stored tokens - store both access token and refresh token
+    // Google OAuth refresh responses may include a new refresh_token
     const account = await storage.getUserPlatformAccount(userId, "youtube");
     if (account) {
       await storage.updateUserPlatformAccount(account.id, {
         accessToken: tokenData.access_token,
+        // Keep existing refresh token if new one not provided
+        refreshToken: (tokenData as any).refresh_token || refreshToken,
         tokenExpiresAt: expiresAt,
       });
     }
@@ -622,19 +606,42 @@ async function refreshYouTubeToken(
 }
 
 /**
- * Refresh Facebook token
- * Note: Facebook tokens typically need to be exchanged for long-lived tokens
+ * Refresh Facebook token by exchanging for long-lived token
+ * Facebook uses a different token refresh mechanism than other platforms
  */
 async function refreshFacebookToken(
-  refreshToken: string,
+  currentToken: string,
   userId: string,
 ): Promise<string | null> {
   try {
-    // Facebook doesn't use refresh tokens the same way as YouTube/Twitch
-    // Long-lived tokens need to be exchanged via a different flow
-    // For now, return null to indicate refresh is not available
-    logger.warn(`Facebook token refresh not implemented for user ${userId}`);
-    return null;
+    const facebookService = new FacebookAPIService();
+
+    // Exchange current token for long-lived token (60 days)
+    const tokenData =
+      await facebookService.exchangeForLongLivedToken(currentToken);
+
+    if (!tokenData) {
+      logger.warn(`Failed to exchange Facebook token for user ${userId}`);
+      return null;
+    }
+
+    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+
+    // Update stored tokens
+    const account = await storage.getUserPlatformAccount(userId, "facebook");
+    if (account) {
+      await storage.updateUserPlatformAccount(account.id, {
+        accessToken: tokenData.access_token,
+        tokenExpiresAt: expiresAt,
+      });
+
+      logger.info("Facebook token exchanged for long-lived token", {
+        userId,
+        expiresIn: tokenData.expires_in,
+      });
+    }
+
+    return tokenData.access_token;
   } catch (error) {
     logger.error(
       `Failed to refresh Facebook token for user ${userId}:`,

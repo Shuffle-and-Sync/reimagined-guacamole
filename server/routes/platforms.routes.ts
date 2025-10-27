@@ -139,7 +139,9 @@ router.post(
     const platform = assertRouteParam(req.params.platform, "platform");
 
     // Import refresh function
-    const { refreshPlatformToken } = await import("../services/platform-oauth");
+    const { refreshPlatformToken } = await import(
+      "../services/platform-oauth.service"
+    );
 
     const newToken = await refreshPlatformToken(userId, platform);
 

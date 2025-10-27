@@ -1049,6 +1049,52 @@ export class FacebookAPIService {
   }
 
   /**
+   * Exchange short-lived token for long-lived token (60 days)
+   * Facebook's long-lived tokens last approximately 60 days
+   */
+  async exchangeForLongLivedToken(
+    shortLivedToken: string,
+  ): Promise<{ access_token: string; expires_in: number } | null> {
+    if (!this.isConfigured()) {
+      logger.warn("Facebook API not configured");
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/${this.apiVersion}/oauth/access_token?` +
+          `grant_type=fb_exchange_token&` +
+          `client_id=${this.appId}&` +
+          `client_secret=${this.appSecret}&` +
+          `fb_exchange_token=${shortLivedToken}`,
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Facebook token exchange failed: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(`Facebook token exchange error: ${data.error.message}`);
+      }
+
+      return {
+        access_token: data.access_token,
+        expires_in: data.expires_in || 5184000, // Default to 60 days in seconds
+      };
+    } catch (error) {
+      logger.error(
+        "Error exchanging Facebook token for long-lived token",
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      return null;
+    }
+  }
+
+  /**
    * Get long-lived page access token
    */
   async getPageAccessToken(
