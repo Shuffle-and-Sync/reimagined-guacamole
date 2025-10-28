@@ -5,14 +5,16 @@
 ### Swiss Tournament System
 
 ```typescript
-// ❌ BROKEN: Random pairing
+// ❌ BROKEN: Random pairing (doubly problematic)
 generateSwissPairings(participants, _previousResults) {
+  // Issue 1: Math.random() sort is biased (not proper shuffle)
+  // Issue 2: Random assignment violates Swiss system rules
   const shuffled = [...participants].sort(() => Math.random() - 0.5);
   // Violates Swiss system rules:
   // - No score-based pairing
   // - No tiebreakers
   // - No repeat prevention
-  // - Random assignment
+  // - Random assignment (not Swiss)
 }
 ```
 
@@ -481,5 +483,5 @@ export const websocketMessageSchema = z.discriminatedUnion("type", [
 
 ---
 
-**Comparison Generated:** October 28, 2025  
+**Comparison Generated:** January 2025  
 **By:** GitHub Copilot Workspace Agent
