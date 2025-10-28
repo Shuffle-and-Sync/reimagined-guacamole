@@ -27,6 +27,7 @@ export { TournamentRepository } from "./TournamentRepository";
 export { StreamingRepository } from "./StreamingRepository";
 export { AnalyticsRepository } from "./AnalyticsRepository";
 export { AdminRepository } from "./AdminRepository";
+export { SecurityRepository } from "./SecurityRepository";
 
 // Re-export types from base repository
 export type {
@@ -83,3 +84,5 @@ export type {
   ModeratorWorkload,
   ModerationQueueStats,
 } from "./AdminRepository";
+
+export type { MfaLockoutStatus } from "./SecurityRepository";
