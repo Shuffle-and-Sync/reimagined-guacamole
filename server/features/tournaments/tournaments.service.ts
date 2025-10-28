@@ -88,7 +88,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to fetch tournament with participants",
-        error,
+        error instanceof Error ? error : new Error(String(error)),
         { tournamentId },
       );
       throw error;
@@ -98,7 +98,7 @@ export const tournamentsService = {
   async createTournament(tournamentData: unknown) {
     try {
       logger.info("Creating tournament", { tournamentData });
-      return await storage.createTournament(tournamentData);
+      return await storage.createTournament(tournamentData as any);
     } catch (error) {
       logger.error(
         "Service error: Failed to create tournament",
@@ -408,7 +408,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: this.getRoundName(roundNum, rounds),
-        status: roundNum === 1 ? "active" : "pending",
+        status: roundNum === 1 ? "in_progress" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -441,7 +441,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Winner Bracket Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending",
+        status: roundNum === 1 ? "in_progress" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -491,7 +491,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending",
+        status: roundNum === 1 ? "in_progress" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -501,7 +501,11 @@ export const tournamentsService = {
     const round1 = allRounds.find((r) => r.roundNumber === 1);
     if (!round1) throw new Error("Failed to create first round");
 
-    const firstRoundPairings = this.generateSwissPairings(participants, []);
+    const firstRoundPairings = await this.generateSwissPairings(
+      participants,
+      tournamentId,
+      1,
+    );
     await this.createMatches(tournamentId, round1.id, firstRoundPairings);
   },
 
@@ -523,7 +527,7 @@ export const tournamentsService = {
         tournamentId,
         roundNumber: roundNum,
         name: `Round ${roundNum}`,
-        status: roundNum === 1 ? "active" : "pending",
+        status: roundNum === 1 ? "in_progress" : "pending",
       };
       await storage.createTournamentRound(roundData);
     }
@@ -558,7 +562,7 @@ export const tournamentsService = {
       }
 
       const rounds = await storage.getTournamentRounds(tournamentId);
-      const currentRound = rounds.find((r) => r.status === "active");
+      const currentRound = rounds.find((r) => r.status === "in_progress");
 
       if (!currentRound) {
         throw new Error("No active round to advance");
@@ -590,7 +594,7 @@ export const tournamentsService = {
 
       if (nextRound) {
         await storage.updateTournamentRound(nextRound.id, {
-          status: "active",
+          status: "in_progress",
           startTime: new Date(),
         });
 
@@ -859,7 +863,7 @@ export const tournamentsService = {
       // Note: gameSessionId doesn't exist in tournamentMatches schema
       // Link is tracked via eventId relationship instead
       await storage.updateTournamentMatch(matchId, {
-        status: "active",
+        status: "in_progress",
         startTime: new Date(),
       });
 
@@ -873,7 +877,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to create match game session",
-        error,
+        error instanceof Error ? error : new Error(String(error)),
         { tournamentId, matchId, userId },
       );
       throw error;
@@ -959,33 +963,196 @@ export const tournamentsService = {
   },
 
   /**
-   * Generate Swiss pairings (simplified - can be enhanced with more sophisticated algorithms)
+   * Generate Swiss pairings using proper Swiss system algorithm
+   * Implements score-based pairing with constraints:
+   * - Players with similar scores are paired
+   * - Players cannot be paired twice
+   * - Handles byes for odd number of players
    */
-  generateSwissPairings(
+  async generateSwissPairings(
     participants: (TournamentParticipant & { user: User })[],
-    _previousResults: unknown[],
-  ): PairingResult[] {
-    // Simple Swiss pairing - pair participants with similar records
-    // In a real implementation, this would consider previous matchups, colors, etc.
+    tournamentId: string,
+    roundNumber: number,
+  ): Promise<PairingResult[]> {
+    // Get match history to track previous pairings and scores
+    const previousMatches = await storage.getTournamentMatches(tournamentId);
 
-    const shuffled = [...participants].sort(() => Math.random() - 0.5);
+    // Calculate standings (match points and tiebreakers)
+    const standings = this.calculateSwissStandings(
+      participants,
+      previousMatches,
+    );
+
+    // Sort by match points (descending), then by tiebreakers
+    standings.sort((a, b) => {
+      if (b.matchPoints !== a.matchPoints) {
+        return b.matchPoints - a.matchPoints;
+      }
+      if (b.tiebreaker1 !== a.tiebreaker1) {
+        return b.tiebreaker1 - a.tiebreaker1;
+      }
+      return b.tiebreaker2 - a.tiebreaker2;
+    });
+
+    // Track who played whom
+    const pairingHistory = new Map<string, Set<string>>();
+    for (const match of previousMatches) {
+      if (match.player1Id && match.player2Id) {
+        if (!pairingHistory.has(match.player1Id)) {
+          pairingHistory.set(match.player1Id, new Set());
+        }
+        if (!pairingHistory.has(match.player2Id)) {
+          pairingHistory.set(match.player2Id, new Set());
+        }
+        pairingHistory.get(match.player1Id)!.add(match.player2Id);
+        pairingHistory.get(match.player2Id)!.add(match.player1Id);
+      }
+    }
+
+    // Generate pairings using Swiss pairing algorithm
     const pairings: PairingResult[] = [];
+    const paired = new Set<string>();
     let bracketPosition = 1;
 
-    for (let i = 0; i < shuffled.length; i += 2) {
-      const player1 = shuffled[i];
-      const player2 = shuffled[i + 1] || null;
+    // Group players by score brackets
+    const scoreGroups = new Map<number, typeof standings>();
+    for (const standing of standings) {
+      if (!scoreGroups.has(standing.matchPoints)) {
+        scoreGroups.set(standing.matchPoints, []);
+      }
+      scoreGroups.get(standing.matchPoints)!.push(standing);
+    }
 
-      if (!player1) continue; // Skip if player1 is undefined
+    // Pair within score groups, expanding search if needed
+    for (const standing of standings) {
+      if (paired.has(standing.userId)) continue;
 
-      pairings.push({
-        player1: player1.userId,
-        player2: player2?.userId || null,
-        bracketPosition: bracketPosition++,
-      });
+      // Find best opponent
+      let opponent: typeof standing | null = null;
+      let searchExpansion = 0;
+
+      while (!opponent && searchExpansion < standings.length) {
+        // Search in same score group first, then expand
+        for (const candidate of standings) {
+          if (
+            paired.has(candidate.userId) ||
+            candidate.userId === standing.userId
+          ) {
+            continue;
+          }
+
+          // Check score proximity (within searchExpansion points)
+          const scoreDiff = Math.abs(
+            standing.matchPoints - candidate.matchPoints,
+          );
+          if (scoreDiff > searchExpansion * 3) continue;
+
+          // Check if they played before
+          const playedBefore =
+            pairingHistory.get(standing.userId)?.has(candidate.userId) || false;
+
+          if (!playedBefore) {
+            opponent = candidate;
+            break;
+          }
+        }
+        searchExpansion++;
+      }
+
+      if (opponent) {
+        pairings.push({
+          player1: standing.userId,
+          player2: opponent.userId,
+          bracketPosition: bracketPosition++,
+        });
+        paired.add(standing.userId);
+        paired.add(opponent.userId);
+      } else {
+        // No valid opponent found - give bye
+        pairings.push({
+          player1: standing.userId,
+          player2: null, // Bye
+          bracketPosition: bracketPosition++,
+        });
+        paired.add(standing.userId);
+      }
     }
 
     return pairings;
+  },
+
+  /**
+   * Calculate Swiss tournament standings with tiebreakers
+   */
+  calculateSwissStandings(
+    participants: (TournamentParticipant & { user: User })[],
+    matches: unknown[],
+  ): Array<{
+    userId: string;
+    matchPoints: number;
+    tiebreaker1: number; // Opponent Match Win Percentage
+    tiebreaker2: number; // Game Win Percentage
+  }> {
+    const standings = participants.map((p) => {
+      const userId = p.userId;
+
+      // Count wins, losses, and byes
+      let wins = 0;
+      let losses = 0;
+      let byes = 0;
+      const opponents: string[] = [];
+
+      for (const match of matches as any[]) {
+        if (match.player1Id === userId || match.player2Id === userId) {
+          const opponentId =
+            match.player1Id === userId ? match.player2Id : match.player1Id;
+
+          if (!opponentId) {
+            // Bye match
+            byes++;
+            wins++; // Byes count as wins
+          } else {
+            opponents.push(opponentId);
+            if (match.winnerId === userId) {
+              wins++;
+            } else if (match.status === "completed") {
+              losses++;
+            }
+          }
+        }
+      }
+
+      // Match points (3 per win, 1 per draw, 0 per loss)
+      const matchPoints = wins * 3;
+
+      // Calculate tiebreakers
+      // OMW% - Opponent Match Win Percentage
+      let opponentWinTotal = 0;
+      for (const oppId of opponents) {
+        const oppWins = (matches as any[]).filter(
+          (m) => m.winnerId === oppId,
+        ).length;
+        const oppMatches = (matches as any[]).filter(
+          (m) => m.player1Id === oppId || m.player2Id === oppId,
+        ).length;
+        opponentWinTotal += oppMatches > 0 ? oppWins / oppMatches : 0;
+      }
+      const tiebreaker1 =
+        opponents.length > 0 ? opponentWinTotal / opponents.length : 0;
+
+      // GW% - Game Win Percentage
+      const totalMatches = wins + losses;
+      const tiebreaker2 = totalMatches > 0 ? wins / totalMatches : 0;
+
+      return {
+        userId,
+        matchPoints,
+        tiebreaker1,
+        tiebreaker2,
+      };
+    });
+
+    return standings;
   },
 
   /**
@@ -1052,7 +1219,7 @@ export const tournamentsService = {
         matchNumber: pairing.bracketPosition, // Use matchNumber instead of bracketPosition
         player1Id: pairing.player1,
         player2Id: pairing.player2,
-        status: pairing.player2 ? "pending" : "bye",
+        status: (pairing.player2 ? "pending" : "bye") as any, // Schema comment indicates 'bye' is valid
       };
 
       await storage.createTournamentMatch(matchData);
@@ -1063,9 +1230,38 @@ export const tournamentsService = {
    * Generate next Swiss round based on current standings
    */
   async generateNextSwissRound(tournamentId: string, roundId: string) {
-    // TODO: Implement sophisticated Swiss pairing algorithm
-    // For now, this is a placeholder
     logger.info("Generating next Swiss round", { tournamentId, roundId });
+
+    // Get tournament and participants
+    const tournament = await storage.getTournament(tournamentId);
+    if (!tournament) throw new Error("Tournament not found");
+
+    const participants = tournament.participants || [];
+    if (participants.length < 2) {
+      throw new Error("Not enough participants for next round");
+    }
+
+    // Get the round to determine round number
+    const rounds = await storage.getTournamentRounds(tournamentId);
+    const currentRound = rounds.find((r) => r.id === roundId);
+    if (!currentRound) throw new Error("Round not found");
+
+    // Generate pairings based on current standings
+    const pairings = await this.generateSwissPairings(
+      participants,
+      tournamentId,
+      currentRound.roundNumber,
+    );
+
+    // Create matches for this round
+    await this.createMatches(tournamentId, roundId, pairings);
+
+    logger.info("Swiss round pairings generated", {
+      tournamentId,
+      roundId,
+      roundNumber: currentRound.roundNumber,
+      pairingsCount: pairings.length,
+    });
   },
 
   /**
@@ -1074,10 +1270,69 @@ export const tournamentsService = {
   async generateNextEliminationRound(
     tournamentId: string,
     roundId: string,
-    _previousMatches: unknown[],
+    previousMatches: unknown[],
   ) {
-    // TODO: Implement elimination advancement logic
-    // For now, this is a placeholder
     logger.info("Generating next elimination round", { tournamentId, roundId });
+
+    const tournament = await storage.getTournament(tournamentId);
+    if (!tournament) throw new Error("Tournament not found");
+
+    const rounds = await storage.getTournamentRounds(tournamentId);
+    const currentRound = rounds.find((r) => r.id === roundId);
+    if (!currentRound) throw new Error("Round not found");
+
+    // Get winners from previous round
+    const typedMatches = previousMatches as Array<{
+      winnerId?: string;
+      player1Id?: string;
+      player2Id?: string;
+      status: string;
+    }>;
+
+    const winners = typedMatches
+      .filter((m) => m.status === "completed" && m.winnerId)
+      .map((m) => m.winnerId!)
+      .filter((id) => id !== null);
+
+    if (winners.length === 0) {
+      throw new Error("No winners found from previous round");
+    }
+
+    // If single winner remains, tournament is complete
+    if (winners.length === 1) {
+      logger.info("Tournament complete - single winner remains", {
+        tournamentId,
+        winnerId: winners[0],
+      });
+      return;
+    }
+
+    // Generate pairings for next round
+    const pairings: PairingResult[] = [];
+    let bracketPosition = 1;
+
+    for (let i = 0; i < winners.length; i += 2) {
+      const player1 = winners[i];
+      const player2 = winners[i + 1] || null;
+
+      if (!player1) continue;
+
+      pairings.push({
+        player1,
+        player2,
+        bracketPosition: bracketPosition++,
+      });
+    }
+
+    // Create matches for next round
+    await this.createMatches(tournamentId, roundId, pairings);
+
+    logger.info("Elimination round pairings generated", {
+      tournamentId,
+      roundId,
+      roundNumber: currentRound.roundNumber,
+      winnersCount: winners.length,
+      pairingsCount: pairings.length,
+    });
   },
 };
