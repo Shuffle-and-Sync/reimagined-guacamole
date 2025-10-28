@@ -45,6 +45,7 @@ jest.mock("../../storage", () => ({
     createTournamentRound: jest.fn(),
     createTournamentMatch: jest.fn(),
     getTournamentRounds: jest.fn(),
+    getTournamentMatches: jest.fn(),
   },
 }));
 
@@ -237,6 +238,7 @@ describe("Tournament System - Unit Tests", () => {
       storage.createTournamentRound.mockResolvedValue(createMockRound());
       storage.createTournamentMatch.mockResolvedValue(createMockMatch());
       storage.getTournamentRounds.mockResolvedValue([createMockRound()]);
+      storage.getTournamentMatches.mockResolvedValue([]); // No previous matches for first round
       storage.getTournament.mockResolvedValueOnce({
         ...tournament,
         status: "active",
@@ -256,18 +258,17 @@ describe("Tournament System - Unit Tests", () => {
     });
 
     test("should prevent starting tournament with insufficient participants", async () => {
+      const organizerId = "organizer-123";
       const tournament = createMockTournament({
         status: "upcoming",
+        organizerId, // Use consistent organizer ID
         participants: [createMockParticipant()], // Only 1 participant
       });
 
       storage.getTournament.mockResolvedValue(tournament);
 
       await expect(
-        tournamentsService.startTournament(
-          tournament.id,
-          tournament.organizerId,
-        ),
+        tournamentsService.startTournament(tournament.id, organizerId),
       ).rejects.toThrow("Tournament needs at least 2 participants to start");
     });
 

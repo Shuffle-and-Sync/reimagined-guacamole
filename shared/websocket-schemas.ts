@@ -69,6 +69,86 @@ export const micToggleSchema = z.object({
   micOn: z.boolean(),
 });
 
+// Tournament-related message schemas
+export const joinTournamentRoomSchema = z.object({
+  type: z.literal("join_tournament_room"),
+  tournamentId: z.string().min(1),
+});
+
+export const leaveTournamentRoomSchema = z.object({
+  type: z.literal("leave_tournament_room"),
+  tournamentId: z.string().min(1),
+});
+
+export const watchMatchSchema = z.object({
+  type: z.literal("watch_match"),
+  tournamentId: z.string().min(1),
+  matchId: z.string().min(1),
+});
+
+// Tournament event broadcasts (outgoing)
+export const tournamentMatchStartedSchema = z.object({
+  type: z.literal("tournament:match_started"),
+  tournamentId: z.string(),
+  matchId: z.string(),
+  roundId: z.string(),
+  player1Id: z.string(),
+  player2Id: z.string().nullable(),
+});
+
+export const tournamentMatchCompletedSchema = z.object({
+  type: z.literal("tournament:match_completed"),
+  tournamentId: z.string(),
+  matchId: z.string(),
+  winnerId: z.string(),
+  player1Score: z.number().optional(),
+  player2Score: z.number().optional(),
+});
+
+export const tournamentRoundAdvancedSchema = z.object({
+  type: z.literal("tournament:round_advanced"),
+  tournamentId: z.string(),
+  roundNumber: z.number(),
+  roundStatus: z.enum(["pending", "in_progress", "completed"]),
+});
+
+export const tournamentParticipantJoinedSchema = z.object({
+  type: z.literal("tournament:participant_joined"),
+  tournamentId: z.string(),
+  userId: z.string(),
+  participantCount: z.number(),
+});
+
+export const tournamentParticipantLeftSchema = z.object({
+  type: z.literal("tournament:participant_left"),
+  tournamentId: z.string(),
+  userId: z.string(),
+  participantCount: z.number(),
+});
+
+export const tournamentBracketUpdatedSchema = z.object({
+  type: z.literal("tournament:bracket_updated"),
+  tournamentId: z.string(),
+  roundNumber: z.number(),
+  matches: z.array(
+    z.object({
+      id: z.string(),
+      matchNumber: z.number(),
+      player1Id: z.string().nullable(),
+      player2Id: z.string().nullable(),
+      winnerId: z.string().nullable(),
+      status: z.enum(["pending", "in_progress", "completed", "bye"]),
+    }),
+  ),
+});
+
+export const tournamentStatusChangedSchema = z.object({
+  type: z.literal("tournament:status_changed"),
+  tournamentId: z.string(),
+  status: z.enum(["upcoming", "active", "completed", "cancelled"]),
+  timestamp: z.date(),
+});
+
 // Union of all incoming WebSocket message schemas
 export const websocketMessageSchema = z.discriminatedUnion("type", [
   joinCollabStreamSchema,
@@ -80,6 +160,10 @@ export const websocketMessageSchema = z.discriminatedUnion("type", [
   webrtcIceCandidateSchema,
   cameraToggleSchema,
   micToggleSchema,
+  // Tournament room management
+  joinTournamentRoomSchema,
+  leaveTournamentRoomSchema,
+  watchMatchSchema,
   // Legacy game room schemas for backward compatibility
   z.object({
     type: z.literal("join_room"),
