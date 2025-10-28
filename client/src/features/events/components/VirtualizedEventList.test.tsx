@@ -15,7 +15,7 @@ describe("VirtualizedEventList", () => {
     }) as ExtendedEvent;
 
   const mockEvents: ExtendedEvent[] = Array.from({ length: 100 }, (_, i) =>
-    createMockEvent(i)
+    createMockEvent(i),
   );
 
   it("should render the virtualized list container", () => {
@@ -24,7 +24,7 @@ describe("VirtualizedEventList", () => {
     );
 
     const { container } = render(
-      <VirtualizedEventList events={mockEvents} renderEvent={renderEvent} />
+      <VirtualizedEventList events={mockEvents} renderEvent={renderEvent} />,
     );
 
     // Check that the container exists
@@ -41,7 +41,7 @@ describe("VirtualizedEventList", () => {
         events={mockEvents}
         renderEvent={renderEvent}
         estimatedItemHeight={150}
-      />
+      />,
     );
 
     expect(container.firstChild).toBeTruthy();
@@ -53,7 +53,7 @@ describe("VirtualizedEventList", () => {
     );
 
     const { container } = render(
-      <VirtualizedEventList events={[]} renderEvent={renderEvent} />
+      <VirtualizedEventList events={[]} renderEvent={renderEvent} />,
     );
 
     expect(container.firstChild).toBeTruthy();
@@ -69,7 +69,7 @@ describe("VirtualizedEventList", () => {
         events={mockEvents}
         renderEvent={renderEvent}
         className="custom-class"
-      />
+      />,
     );
 
     const element = container.firstChild as HTMLElement;

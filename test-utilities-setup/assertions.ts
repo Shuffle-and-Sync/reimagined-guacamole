@@ -7,7 +7,10 @@
 /**
  * Assert that an object matches a subset
  */
-export function assertObjectContains(actual: unknown, expected: Partial<unknown>) {
+export function assertObjectContains(
+  actual: unknown,
+  expected: Partial<unknown>,
+) {
   for (const key in expected) {
     expect(actual).toHaveProperty(key, expected[key]);
   }
@@ -29,7 +32,8 @@ export function assertArrayContainsObject(
 /**
  * Assert that a database query was called with specific parameters
  */
-export function assertQueryCalled(mockDb: unknown,
+export function assertQueryCalled(
+  mockDb: unknown,
   method: string,
   tableName: string,
 ) {

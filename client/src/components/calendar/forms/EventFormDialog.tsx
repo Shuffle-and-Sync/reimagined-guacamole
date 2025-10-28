@@ -120,7 +120,10 @@ export function EventFormDialog({
             Schedule a new gaming event, tournament, or community gathering
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 mt-6">
+        <form
+          onSubmit={handleSubmit(handleFormSubmit)}
+          className="space-y-6 mt-6"
+        >
           {/* Event Title */}
           <div className="space-y-2">
             <Label htmlFor="event-title">Event Title</Label>
@@ -158,7 +161,9 @@ export function EventFormDialog({
                 </SelectContent>
               </Select>
               {errors.type && (
-                <p className="text-sm text-destructive">{errors.type.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.type.message}
+                </p>
               )}
             </div>
 
@@ -194,7 +199,9 @@ export function EventFormDialog({
               data-testid="input-event-location"
             />
             {errors.location && (
-              <p className="text-sm text-destructive">{errors.location.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.location.message}
+              </p>
             )}
           </div>
 
@@ -209,7 +216,9 @@ export function EventFormDialog({
                 data-testid="input-event-date"
               />
               {errors.date && (
-                <p className="text-sm text-destructive">{errors.date.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.date.message}
+                </p>
               )}
             </div>
 
@@ -223,7 +232,9 @@ export function EventFormDialog({
                 data-testid="input-event-time"
               />
               {errors.time && (
-                <p className="text-sm text-destructive">{errors.time.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.time.message}
+                </p>
               )}
             </div>
           </div>

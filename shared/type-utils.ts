@@ -104,9 +104,7 @@ export interface ApiError {
  */
 export function isApiError(error: unknown): error is ApiError {
   return (
-    isObject(error) &&
-    "message" in error &&
-    typeof error.message === "string"
+    isObject(error) && "message" in error && typeof error.message === "string"
   );
 }
 
@@ -143,13 +141,13 @@ export interface UserSettings {
  */
 export function isUserSettings(value: unknown): value is UserSettings {
   if (!isObject(value)) return false;
-  
+
   // All properties are optional, so we just check they're the right type if present
   if ("notifications" in value && !isObject(value.notifications)) return false;
   if ("privacy" in value && !isObject(value.privacy)) return false;
   if ("theme" in value && typeof value.theme !== "string") return false;
   if ("streaming" in value && !isObject(value.streaming)) return false;
-  
+
   return true;
 }
 
@@ -182,7 +180,10 @@ export function isWebSocketMessageType(
     "connected",
     "disconnected",
   ];
-  return typeof value === "string" && validTypes.includes(value as WebSocketMessageType);
+  return (
+    typeof value === "string" &&
+    validTypes.includes(value as WebSocketMessageType)
+  );
 }
 
 /**

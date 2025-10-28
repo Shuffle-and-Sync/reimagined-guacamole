@@ -1,0 +1,131 @@
+# Git
+.git
+.github
+.gitignore
+.git-blame-ignore-revs
+
+# Dependencies (will be installed in container)
+node_modules
+package-lock.json
+
+# Build outputs (will be generated in container)
+dist
+.next
+.turbo
+
+# Environment files
+.env*
+!.env.example
+!.env.production.template
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__
+tests
+coverage
+*.coverage
+test-utilities-setup
+test-templates
+
+# Documentation
+docs
+*.md
+!README.md
+CONTRIBUTING.md
+LICENSE
+CODE_OF_CONDUCT.md
+SECURITY.md
+ACCESSIBILITY_*.md
+ARCHITECTURAL_*.md
+BACKEND_*.md
+CALENDAR_*.md
+CODE_QUALITY_*.md
+COMPREHENSIVE_*.md
+DEPLOYMENT.md
+DOCUMENTATION_*.md
+ESLINT_*.md
+FINAL_*.md
+FIX_SUMMARY.md
+IMPLEMENTATION_*.md
+INTEGRATION_GUIDE.md
+LAZY_LOADING_SUMMARY.md
+OPTIMIZATION_*.md
+OT_IMPLEMENTATION_SUMMARY.md
+PERFORMANCE_*.md
+REACT_*.md
+TABLESYNC_*.md
+TECHNICAL_*.md
+TESTING_*.md
+TEST_*.md
+TOURNAMENT_*.md
+TYPESCRIPT_*.md
+UX_*.md
+WORKFLOW_*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.log
+
+# Storybook
+.storybook
+stories
+
+# CI/CD
+.github
+cloudbuild*.yaml
+ci-testing-pipeline.yml
+docker-compose*.yml
+
+# Scripts (keep only essential ones)
+scripts/*.sh
+scripts/*.ts
+!scripts/pre-build.sh
+!scripts/verify-build.sh
+!scripts/init-admin.ts
+!scripts/validate-env.ts
+
+# Analysis and reports
+*-analysis.json
+*-analysis.csv
+*-report.json
+*-summary.txt
+*-summary.csv
+*-metrics.json
+eslint-*.json
+eslint-*.txt
+coverage-*.json
+coverage-*.csv
+performance-*.json
+database-*.csv
+
+# Monitoring
+monitoring
+
+# Infrastructure
+infrastructure
+
+# Misc
+tmp
+temp
+*.tmp
+.DS_Store
+.nojekyll
+.replit
+replit.md
+
+# OpenAPI specs (not needed in production)
+openapi-*.yaml
+
+# Quick scripts
+format-everything.sh
+quick-wins.sh
+
+# Generated files
+prettier-config-recommended.json
+components.json

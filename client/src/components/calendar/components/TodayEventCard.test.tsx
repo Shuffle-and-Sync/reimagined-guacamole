@@ -47,7 +47,9 @@ describe("TodayEventCard", () => {
     render(<TodayEventCard event={mockEvent} eventType={mockEventType} />);
 
     expect(screen.getByText("Test Tournament")).toBeInTheDocument();
-    expect(screen.getByText("A test tournament description")).toBeInTheDocument();
+    expect(
+      screen.getByText("A test tournament description"),
+    ).toBeInTheDocument();
     expect(screen.getByText("📍 Online")).toBeInTheDocument();
     expect(screen.getByText("👥 15")).toBeInTheDocument();
     expect(screen.getByText("10:00 AM")).toBeInTheDocument();
@@ -75,7 +77,10 @@ describe("TodayEventCard", () => {
     };
 
     render(
-      <TodayEventCard event={eventWithManyAttendees} eventType={mockEventType} />,
+      <TodayEventCard
+        event={eventWithManyAttendees}
+        eventType={mockEventType}
+      />,
     );
 
     expect(screen.getByText("👥 1,234")).toBeInTheDocument();

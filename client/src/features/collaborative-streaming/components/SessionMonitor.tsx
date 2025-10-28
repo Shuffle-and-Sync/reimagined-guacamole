@@ -124,14 +124,13 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
       "message",
     ];
     const interval = setInterval(() => {
-      const randomType = eventTypes[
-        Math.floor(Math.random() * eventTypes.length)
-      ];
+      const randomType =
+        eventTypes[Math.floor(Math.random() * eventTypes.length)];
       // Validate the type before creating the event
       if (!isWebSocketMessageType(randomType)) {
         return;
       }
-      
+
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
         type: randomType,

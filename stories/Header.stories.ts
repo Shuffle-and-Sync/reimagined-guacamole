@@ -1,4 +1,3 @@
-
 import { fn } from "storybook/test";
 import { Header } from "./Header";
 import type { Meta, StoryObj } from "@storybook/react-vite";

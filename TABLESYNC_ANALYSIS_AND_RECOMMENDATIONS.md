@@ -194,6 +194,7 @@ async joinGameRoom(connectionId: string, sessionId: string): Promise<boolean> {
    - Lost in-flight messages not retried
 
 2. **Incomplete Connection Recovery**
+
    ```typescript
    ws.onclose = (event) => {
      logger.info("WebSocket connection closed");
