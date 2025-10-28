@@ -26,6 +26,7 @@ export { CommunityRepository } from "./CommunityRepository";
 export { TournamentRepository } from "./TournamentRepository";
 export { StreamingRepository } from "./StreamingRepository";
 export { AnalyticsRepository } from "./AnalyticsRepository";
+export { AdminRepository } from "./AdminRepository";
 
 // Re-export types from base repository
 export type {
@@ -74,3 +75,11 @@ export type {
   PlatformMetricsSummary,
   FunnelStepData,
 } from "./AnalyticsRepository";
+
+export type {
+  UserRoleWithUser,
+  ContentReportWithUsers,
+  ModerationActionWithUsers,
+  ModeratorWorkload,
+  ModerationQueueStats,
+} from "./AdminRepository";
