@@ -5,9 +5,11 @@ This directory contains custom instruction files that provide GitHub Copilot wit
 ## Files Created
 
 ### 1. Repository-Wide Instructions
+
 **File**: `.github/copilot-instructions.md`
 
 This is the main instruction file that applies to all code in the repository. It includes:
+
 - Complete project overview and architecture
 - Technology stack details
 - Build, test, and validation commands
@@ -20,9 +22,11 @@ This is the main instruction file that applies to all code in the repository. It
 These files provide additional context for specific parts of your codebase:
 
 #### **`.github/instructions/client.instructions.md`**
+
 Applies to: `client/**/*` (Frontend/React code)
 
 Contains:
+
 - React/Vite development guidelines
 - Shadcn/ui component usage
 - React Query patterns
@@ -31,9 +35,11 @@ Contains:
 - State management (React Query + Zustand)
 
 #### **`.github/instructions/server.instructions.md`**
+
 Applies to: `server/**/*` (Backend/Express code)
 
 Contains:
+
 - Express.js route development
 - Repository pattern implementation
 - Drizzle ORM query patterns
@@ -43,9 +49,11 @@ Contains:
 - Testing strategies
 
 #### **`.github/instructions/shared.instructions.md`**
+
 Applies to: `shared/**/*` (Database schema and shared code)
 
 Contains:
+
 - Database schema definition guidelines
 - Drizzle ORM best practices
 - Schema migration procedures
@@ -64,6 +72,7 @@ cp -r /path/to/outputs/.github .
 ```
 
 Or manually create the directory structure:
+
 ```
 your-repo/
 └── .github/
@@ -91,22 +100,25 @@ git push
 ## How It Works
 
 ### Repository-Wide Instructions
+
 GitHub Copilot will automatically use `.github/copilot-instructions.md` for context when:
+
 - Generating code suggestions
 - Answering questions via Copilot Chat
 - Creating new files or features
 - Fixing issues
 
 ### Path-Specific Instructions
+
 When you're working on a file in a specific directory, Copilot will additionally use the corresponding path-specific instructions:
 
-- Working on `client/src/components/UserProfile.tsx`? 
+- Working on `client/src/components/UserProfile.tsx`?
   → Uses `copilot-instructions.md` + `client.instructions.md`
 
-- Working on `server/features/users/service.ts`? 
+- Working on `server/features/users/service.ts`?
   → Uses `copilot-instructions.md` + `server.instructions.md`
 
-- Working on `shared/schema.ts`? 
+- Working on `shared/schema.ts`?
   → Uses `copilot-instructions.md` + `shared.instructions.md`
 
 ## What This Gives You
@@ -120,15 +132,16 @@ With these custom instructions, GitHub Copilot will:
 ✅ **Handle authentication** - Understands Auth.js v5 setup  
 ✅ **Apply your conventions** - Follows your naming, file organization, and coding standards  
 ✅ **Avoid common pitfalls** - Knows about build requirements and common issues  
-✅ **Provide better suggestions** - Context-aware code completion  
+✅ **Provide better suggestions** - Context-aware code completion
 
 ## Example Use Cases
 
 ### 1. Creating a New Feature
 
-Ask Copilot: *"Create a new tournaments feature with routes, service, and repository"*
+Ask Copilot: _"Create a new tournaments feature with routes, service, and repository"_
 
 With custom instructions, Copilot will:
+
 - Create feature-based directory structure
 - Use Drizzle ORM for database operations
 - Follow your repository pattern
@@ -138,15 +151,16 @@ With custom instructions, Copilot will:
 
 ### 2. Fixing Build Issues
 
-Ask Copilot: *"Why is my build failing with ERESOLVE errors?"*
+Ask Copilot: _"Why is my build failing with ERESOLVE errors?"_
 
-Copilot will know to suggest: *"Use --legacy-peer-deps flag because of @sqlitecloud/drivers peer dependencies"*
+Copilot will know to suggest: _"Use --legacy-peer-deps flag because of @sqlitecloud/drivers peer dependencies"_
 
 ### 3. Adding a New Database Table
 
-Ask Copilot: *"Add a new 'posts' table with user relationship"*
+Ask Copilot: _"Add a new 'posts' table with user relationship"_
 
 Copilot will:
+
 - Add table to `shared/schema.ts`
 - Use CUID2 for primary key
 - Include proper foreign key constraints
@@ -156,9 +170,10 @@ Copilot will:
 
 ### 4. Creating React Components
 
-Ask Copilot: *"Create a user profile card component"*
+Ask Copilot: _"Create a user profile card component"_
 
 Copilot will:
+
 - Use Shadcn/ui components
 - Apply Tailwind CSS classes
 - Use React Query for data fetching
@@ -189,7 +204,7 @@ As your project evolves, update the instruction files:
 To verify Copilot is using your instructions:
 
 1. Open GitHub Copilot Chat
-2. Ask: *"What build system does this project use?"*
+2. Ask: _"What build system does this project use?"_
 3. Copilot should mention: Vite, esbuild, npm scripts, etc.
 
 Or:
@@ -206,6 +221,7 @@ Or:
 ## Support
 
 For issues or questions about these instruction files:
+
 1. Review the main project documentation in `docs/`
 2. Check the troubleshooting guide: `docs/troubleshooting/README.md`
 3. Consult the development guide: `docs/development/DEVELOPMENT_GUIDE.md`

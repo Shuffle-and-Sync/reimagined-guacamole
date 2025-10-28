@@ -339,7 +339,11 @@ export class VersionController<T = any> {
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
       // Prevent prototype pollution
-      if (part === "__proto__" || part === "constructor" || part === "prototype") {
+      if (
+        part === "__proto__" ||
+        part === "constructor" ||
+        part === "prototype"
+      ) {
         // You could throw an error or return early if preferred
         continue;
       }
@@ -351,7 +355,11 @@ export class VersionController<T = any> {
 
     // Prevent prototype pollution at the final property as well
     const lastPart = parts[parts.length - 1];
-    if (lastPart === "__proto__" || lastPart === "constructor" || lastPart === "prototype") {
+    if (
+      lastPart === "__proto__" ||
+      lastPart === "constructor" ||
+      lastPart === "prototype"
+    ) {
       return;
     }
     current[lastPart] = value;

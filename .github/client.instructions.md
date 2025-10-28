@@ -46,16 +46,16 @@ export function UserProfile({ userId }: UserProfileProps) {
   // 1. Hooks first (React hooks, then custom hooks)
   const { user, isLoading } = useUser(userId);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // 2. Event handlers
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   // 3. Early returns for loading/error states
   if (isLoading) return <Skeleton />;
   if (!user) return <NotFound />;
-  
+
   // 4. Main component render
   return (
     <div className="space-y-4">
@@ -85,6 +85,7 @@ export function PrimaryButton(props: ButtonProps) {
 ```
 
 To add new Shadcn/ui components:
+
 ```bash
 npx shadcn@latest add [component-name]
 ```
@@ -107,6 +108,7 @@ import { cn } from "@/lib/utils";
 ```
 
 **Color System**: Use semantic color classes:
+
 - `text-foreground` / `bg-background` - Default text/background
 - `text-primary` / `bg-primary` - Primary brand color
 - `text-muted` / `bg-muted` - Muted/secondary content
@@ -115,13 +117,13 @@ import { cn } from "@/lib/utils";
 ### Data Fetching with React Query
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ✅ CORRECT - Define query keys as constants
 const userKeys = {
-  all: ['users'] as const,
+  all: ["users"] as const,
   detail: (id: string) => [...userKeys.all, id] as const,
-  communities: (id: string) => [...userKeys.detail(id), 'communities'] as const,
+  communities: (id: string) => [...userKeys.detail(id), "communities"] as const,
 };
 
 // Queries
@@ -136,7 +138,7 @@ function useUser(userId: string) {
 // Mutations
 function useUpdateUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: UpdateUserData) => userService.update(data),
     onSuccess: (updatedUser) => {
@@ -171,7 +173,7 @@ export function UserForm() {
       email: '',
     },
   });
-  
+
   const onSubmit = async (data: FormData) => {
     try {
       await userService.create(data);
@@ -180,7 +182,7 @@ export function UserForm() {
       toast.error('Failed to create user');
     }
   };
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -215,17 +217,17 @@ export function UserForm() {
 export const userService = {
   async getById(id: string) {
     const response = await fetch(`/api/users/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch user');
+    if (!response.ok) throw new Error("Failed to fetch user");
     return response.json();
   },
-  
+
   async create(data: CreateUserData) {
-    const response = await fetch('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create user');
+    if (!response.ok) throw new Error("Failed to create user");
     return response.json();
   },
 };
@@ -246,7 +248,7 @@ function App() {
       <Route path="/communities" component={CommunitiesPage} />
       <Route path="/communities/:id" component={CommunityDetailPage} />
       <Route path="/tournaments" component={TournamentsPage} />
-      
+
       {/* Protected routes */}
       <Route path="/admin">
         {(params) => (
@@ -255,7 +257,7 @@ function App() {
           </ProtectedRoute>
         )}
       </Route>
-      
+
       {/* 404 Not Found */}
       <Route component={NotFoundPage} />
     </Switch>
@@ -268,6 +270,7 @@ function App() {
 ### Server State (React Query)
 
 Use React Query for all server data:
+
 - User data
 - Communities
 - Tournaments
@@ -277,6 +280,7 @@ Use React Query for all server data:
 ### Client State (Zustand)
 
 Use Zustand for UI state only:
+
 - Theme preferences
 - Sidebar open/closed
 - Modal state
@@ -285,7 +289,7 @@ Use Zustand for UI state only:
 
 ```typescript
 // lib/stores/ui-store.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface UIState {
   isSidebarOpen: boolean;
@@ -294,7 +298,8 @@ interface UIState {
 
 export const useUIStore = create<UIState>((set) => ({
   isSidebarOpen: true,
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
 }));
 ```
 
@@ -328,7 +333,7 @@ function UserList({ users }: UserListProps) {
     () => users.sort((a, b) => a.name.localeCompare(b.name)),
     [users]
   );
-  
+
   // Memoize callbacks
   const handleUserClick = useCallback(
     (userId: string) => {
@@ -336,7 +341,7 @@ function UserList({ users }: UserListProps) {
     },
     [navigate]
   );
-  
+
   return (
     <div>
       {sortedUsers.map((user) => (
@@ -359,7 +364,7 @@ export const UserCard = memo(({ user, onClick }: UserCardProps) => {
 ```typescript
 export function UserProfile({ userId }: UserProfileProps) {
   const { data: user, isLoading, error } = useUser(userId);
-  
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -369,7 +374,7 @@ export function UserProfile({ userId }: UserProfileProps) {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <Alert variant="destructive">
@@ -378,11 +383,11 @@ export function UserProfile({ userId }: UserProfileProps) {
       </Alert>
     );
   }
-  
+
   if (!user) {
     return <NotFound resource="User" />;
   }
-  
+
   return <div>{/* User content */}</div>;
 }
 ```
@@ -404,15 +409,15 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
-  
+
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
-  
+
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
   }
-  
+
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
@@ -424,7 +429,7 @@ export class ErrorBoundary extends Component<Props, State> {
         </div>
       );
     }
-    
+
     return this.props.children;
   }
 }
@@ -442,19 +447,19 @@ import { UserProfile } from './UserProfile';
 describe('UserProfile', () => {
   it('renders user information', async () => {
     render(<UserProfile userId="123" />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
   });
-  
+
   it('handles edit button click', async () => {
     const user = userEvent.setup();
     render(<UserProfile userId="123" />);
-    
+
     const editButton = screen.getByRole('button', { name: /edit/i });
     await user.click(editButton);
-    
+
     expect(screen.getByRole('form')).toBeInTheDocument();
   });
 });
@@ -473,9 +478,10 @@ describe('UserProfile', () => {
 **Problem**: UI doesn't update after creating/updating data.
 
 **Solution**: Invalidate or update React Query cache:
+
 ```typescript
 const queryClient = useQueryClient();
-queryClient.invalidateQueries({ queryKey: ['users'] });
+queryClient.invalidateQueries({ queryKey: ["users"] });
 ```
 
 ### Issue: Infinite Re-renders

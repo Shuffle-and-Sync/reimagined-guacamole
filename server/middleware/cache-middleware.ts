@@ -26,7 +26,11 @@ export function cacheMiddleware(
     skipCacheIf = () => false,
   } = options;
 
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       // Skip caching for non-GET requests
       if (req.method !== "GET") {
@@ -107,7 +111,11 @@ function defaultKeyGenerator(req: Request): string {
 export function invalidateCacheMiddleware(
   patterns: string[],
 ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       // Store original json method
       const originalJson = res.json.bind(res);

@@ -303,7 +303,10 @@ export async function verifyPasswordResetJWT(token: string): Promise<{
 /**
  * Validate token security (additional validation beyond basic checks)
  */
-export function validateTokenSecurity(tokenId: string, payload: unknown): boolean {
+export function validateTokenSecurity(
+  tokenId: string,
+  payload: unknown,
+): boolean {
   if (!tokenId || !isSecureToken(tokenId)) {
     logger.warn("Invalid token ID format detected", { tokenId });
     return false;

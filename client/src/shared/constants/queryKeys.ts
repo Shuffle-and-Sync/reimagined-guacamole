@@ -71,7 +71,10 @@ export const queryUtils = {
   /**
    * Invalidate all queries for a specific feature
    */
-  invalidateFeature: (queryClient: unknown, feature: keyof typeof queryKeys) => {
+  invalidateFeature: (
+    queryClient: unknown,
+    feature: keyof typeof queryKeys,
+  ) => {
     return queryClient.invalidateQueries({
       queryKey: queryKeys[feature].all,
     });
@@ -89,7 +92,8 @@ export const queryUtils = {
   /**
    * Prefetch related data for better UX
    */
-  prefetchRelatedData: async (queryClient: unknown,
+  prefetchRelatedData: async (
+    queryClient: unknown,
     type: "user" | "community" | "event",
     id: string,
   ) => {

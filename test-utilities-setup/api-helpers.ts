@@ -9,7 +9,10 @@ import { mockRequest, mockResponse } from "./mocks";
 /**
  * Create authenticated request
  */
-export function createAuthenticatedRequest(user: unknown, overrides: unknown = {}) {
+export function createAuthenticatedRequest(
+  user: unknown,
+  overrides: unknown = {},
+) {
   return mockRequest({
     user,
     session: {
@@ -41,7 +44,8 @@ export function assertSuccessResponse(res: unknown, expectedStatus = 200) {
 /**
  * Assert error response
  */
-export function assertErrorResponse(res: unknown,
+export function assertErrorResponse(
+  res: unknown,
   expectedStatus: number,
   expectedError?: string,
 ) {

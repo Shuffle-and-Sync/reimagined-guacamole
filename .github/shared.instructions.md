@@ -20,9 +20,9 @@ The `shared/` directory contains code shared between the frontend (client) and b
 
 ```typescript
 // ✅ CORRECT - Use Drizzle ORM
-import { db } from '@shared/database-unified';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const user = await db.select().from(users).where(eq(users.id, userId));
 
@@ -45,23 +45,45 @@ The schema is organized into logical sections:
 
 ```typescript
 // 1. Core user and authentication tables
-export const users = sqliteTable('users', { /* ... */ });
-export const sessions = sqliteTable('sessions', { /* ... */ });
-export const accounts = sqliteTable('accounts', { /* ... */ });
+export const users = sqliteTable("users", {
+  /* ... */
+});
+export const sessions = sqliteTable("sessions", {
+  /* ... */
+});
+export const accounts = sqliteTable("accounts", {
+  /* ... */
+});
 
 // 2. Community tables
-export const communities = sqliteTable('communities', { /* ... */ });
-export const userCommunities = sqliteTable('userCommunities', { /* ... */ });
+export const communities = sqliteTable("communities", {
+  /* ... */
+});
+export const userCommunities = sqliteTable("userCommunities", {
+  /* ... */
+});
 
 // 3. Feature tables
-export const events = sqliteTable('events', { /* ... */ });
-export const tournaments = sqliteTable('tournaments', { /* ... */ });
-export const matches = sqliteTable('matches', { /* ... */ });
+export const events = sqliteTable("events", {
+  /* ... */
+});
+export const tournaments = sqliteTable("tournaments", {
+  /* ... */
+});
+export const matches = sqliteTable("matches", {
+  /* ... */
+});
 
 // 4. TableSync/Gaming tables
-export const games = sqliteTable('games', { /* ... */ });
-export const cards = sqliteTable('cards', { /* ... */ });
-export const gameCardAttributes = sqliteTable('gameCardAttributes', { /* ... */ });
+export const games = sqliteTable("games", {
+  /* ... */
+});
+export const cards = sqliteTable("cards", {
+  /* ... */
+});
+export const gameCardAttributes = sqliteTable("gameCardAttributes", {
+  /* ... */
+});
 ```
 
 ### Adding New Tables
@@ -69,39 +91,39 @@ export const gameCardAttributes = sqliteTable('gameCardAttributes', { /* ... */ 
 When adding a new table to the schema:
 
 ```typescript
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
-import { createId } from '@paralleldrive/cuid2';
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { createId } from "@paralleldrive/cuid2";
 
-export const newTable = sqliteTable('newTable', {
+export const newTable = sqliteTable("newTable", {
   // 1. Primary key (ALWAYS use CUID2)
-  id: text('id')
+  id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  
+
   // 2. Foreign keys with references
-  userId: text('user_id')
+  userId: text("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  
+    .references(() => users.id, { onDelete: "cascade" }),
+
   // 3. Required fields
-  name: text('name').notNull(),
-  description: text('description'),
-  
+  name: text("name").notNull(),
+  description: text("description"),
+
   // 4. Numeric fields (use 'real' for decimals, 'integer' for whole numbers)
-  price: real('price'),
-  quantity: integer('quantity').notNull().default(0),
-  
+  price: real("price"),
+  quantity: integer("quantity").notNull().default(0),
+
   // 5. Boolean fields (SQLite uses 0/1)
-  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-  
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+
   // 6. JSON fields (for flexible data)
-  metadata: text('metadata', { mode: 'json' }).$type<Record<string, any>>(),
-  
+  metadata: text("metadata", { mode: "json" }).$type<Record<string, any>>(),
+
   // 7. Timestamps (ALWAYS include these)
-  createdAt: text('created_at')
+  createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
-  updatedAt: text('updated_at')
+  updatedAt: text("updated_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
 });
@@ -112,9 +134,9 @@ export type Table = typeof newTable.$inferSelect;
 
 // 9. Define indexes for frequently queried columns
 export const newTableIndexes = {
-  userIdIdx: index('newTable_userId_idx').on(newTable.userId),
-  nameIdx: index('newTable_name_idx').on(newTable.name),
-  activeIdx: index('newTable_isActive_idx').on(newTable.isActive),
+  userIdIdx: index("newTable_userId_idx").on(newTable.userId),
+  nameIdx: index("newTable_name_idx").on(newTable.name),
+  activeIdx: index("newTable_isActive_idx").on(newTable.isActive),
 };
 ```
 
@@ -125,10 +147,10 @@ export const newTableIndexes = {
 **ALWAYS use CUID2** for primary keys:
 
 ```typescript
-import { createId } from '@paralleldrive/cuid2';
+import { createId } from "@paralleldrive/cuid2";
 
-export const table = sqliteTable('table', {
-  id: text('id')
+export const table = sqliteTable("table", {
+  id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
   // ...
@@ -136,6 +158,7 @@ export const table = sqliteTable('table', {
 ```
 
 **Why CUID2?**
+
 - Collision-resistant
 - Sortable (encodes timestamp)
 - URL-safe
@@ -146,21 +169,25 @@ export const table = sqliteTable('table', {
 **ALWAYS define foreign key constraints**:
 
 ```typescript
-export const posts = sqliteTable('posts', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  
+export const posts = sqliteTable("posts", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
   // Foreign key with ON DELETE CASCADE
-  userId: text('user_id')
+  userId: text("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  
+    .references(() => users.id, { onDelete: "cascade" }),
+
   // Optional foreign key
-  communityId: text('community_id')
-    .references(() => communities.id, { onDelete: 'set null' }),
+  communityId: text("community_id").references(() => communities.id, {
+    onDelete: "set null",
+  }),
 });
 ```
 
 **Cascade Options**:
+
 - `cascade` - Delete related records when parent is deleted
 - `set null` - Set to NULL when parent is deleted
 - `restrict` - Prevent deletion if related records exist
@@ -170,12 +197,12 @@ export const posts = sqliteTable('posts', {
 **ALWAYS include createdAt and updatedAt**:
 
 ```typescript
-export const table = sqliteTable('table', {
+export const table = sqliteTable("table", {
   // ...
-  createdAt: text('created_at')
+  createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
-  updatedAt: text('updated_at')
+  updatedAt: text("updated_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
 });
@@ -186,21 +213,21 @@ export const table = sqliteTable('table', {
 Use JSON columns for flexible, schema-less data:
 
 ```typescript
-export const games = sqliteTable('games', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  
+export const games = sqliteTable("games", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
   // Typed JSON column
-  gameMechanics: text('game_mechanics', { mode: 'json' })
-    .$type<{
-      cardTypes: string[];
-      resourceTypes: string[];
-      zones: string[];
-      phases: string[];
-    }>(),
-  
+  gameMechanics: text("game_mechanics", { mode: "json" }).$type<{
+    cardTypes: string[];
+    resourceTypes: string[];
+    zones: string[];
+    phases: string[];
+  }>(),
+
   // Generic JSON column
-  metadata: text('metadata', { mode: 'json' })
-    .$type<Record<string, any>>(),
+  metadata: text("metadata", { mode: "json" }).$type<Record<string, any>>(),
 });
 ```
 
@@ -209,16 +236,19 @@ export const games = sqliteTable('games', {
 **Add indexes for frequently queried columns**:
 
 ```typescript
-import { index } from 'drizzle-orm/sqlite-core';
+import { index } from "drizzle-orm/sqlite-core";
 
 export const userIndexes = {
-  emailIdx: index('users_email_idx').on(users.email),
-  roleIdx: index('users_role_idx').on(users.role),
-  communityIdx: index('users_primaryCommunityId_idx').on(users.primaryCommunityId),
+  emailIdx: index("users_email_idx").on(users.email),
+  roleIdx: index("users_role_idx").on(users.role),
+  communityIdx: index("users_primaryCommunityId_idx").on(
+    users.primaryCommunityId,
+  ),
 };
 ```
 
 **Index Guidelines**:
+
 - Foreign keys (almost always)
 - Columns used in WHERE clauses
 - Columns used for sorting
@@ -227,18 +257,22 @@ export const userIndexes = {
 #### 6. Unique Constraints
 
 ```typescript
-import { unique } from 'drizzle-orm/sqlite-core';
+import { unique } from "drizzle-orm/sqlite-core";
 
-export const table = sqliteTable('table', {
-  email: text('email').notNull(),
-  // ...
-}, (table) => ({
-  // Unique constraint
-  emailUnique: unique().on(table.email),
-  
-  // Composite unique constraint
-  userCommunityUnique: unique().on(table.userId, table.communityId),
-}));
+export const table = sqliteTable(
+  "table",
+  {
+    email: text("email").notNull(),
+    // ...
+  },
+  (table) => ({
+    // Unique constraint
+    emailUnique: unique().on(table.email),
+
+    // Composite unique constraint
+    userCommunityUnique: unique().on(table.userId, table.communityId),
+  }),
+);
 ```
 
 ### Schema Migration
@@ -263,13 +297,13 @@ npm run check
 ### Connection Management
 
 ```typescript
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
-import * as schema from './schema';
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
+import * as schema from "./schema";
 
 // Create database client
 const client = createClient({
-  url: process.env.DATABASE_URL || 'file:./dev.db',
+  url: process.env.DATABASE_URL || "file:./dev.db",
 });
 
 // Create Drizzle ORM instance
@@ -283,7 +317,7 @@ export const db = drizzle(client, { schema });
 export async function checkDatabaseHealth() {
   try {
     await db.select().from(users).limit(1);
-    return { healthy: true, message: 'Database connection successful' };
+    return { healthy: true, message: "Database connection successful" };
   } catch (error) {
     return { healthy: false, message: error.message };
   }
@@ -302,20 +336,20 @@ export async function closeDatabaseConnection() {
 Drizzle ORM auto-generates TypeScript types from schema:
 
 ```typescript
-import { users, type User, type NewUser } from '@shared/schema';
+import { users, type User, type NewUser } from "@shared/schema";
 
 // User - Full select type (includes all columns)
 const user: User = {
-  id: 'cuid2string',
-  name: 'John Doe',
-  email: 'john@example.com',
+  id: "cuid2string",
+  name: "John Doe",
+  email: "john@example.com",
   // ... all columns
 };
 
 // NewUser - Insert type (excludes auto-generated columns)
 const newUser: NewUser = {
-  name: 'Jane Doe',
-  email: 'jane@example.com',
+  name: "Jane Doe",
+  email: "jane@example.com",
   // id, createdAt, updatedAt are auto-generated
 };
 ```
@@ -352,12 +386,12 @@ export interface PaginatedResponse<T> {
 
 // Enum-like types
 export const UserRole = {
-  USER: 'user',
-  MODERATOR: 'moderator',
-  ADMIN: 'admin',
+  USER: "user",
+  MODERATOR: "moderator",
+  ADMIN: "admin",
 } as const;
 
-export type UserRole = typeof UserRole[keyof typeof UserRole];
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 ```
 
 ## Drizzle ORM Query Patterns
@@ -365,33 +399,37 @@ export type UserRole = typeof UserRole[keyof typeof UserRole];
 ### Basic Queries
 
 ```typescript
-import { db } from '@shared/database-unified';
-import { users, communities } from '@shared/schema';
-import { eq, and, or, like, desc, asc } from 'drizzle-orm';
+import { db } from "@shared/database-unified";
+import { users, communities } from "@shared/schema";
+import { eq, and, or, like, desc, asc } from "drizzle-orm";
 
 // SELECT
 const allUsers = await db.select().from(users);
-const user = await db.select().from(users).where(eq(users.id, 'user-id'));
+const user = await db.select().from(users).where(eq(users.id, "user-id"));
 
 // INSERT
 await db.insert(users).values({
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: "John Doe",
+  email: "john@example.com",
 });
 
 // INSERT with RETURNING
-const [newUser] = await db.insert(users).values({
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-}).returning();
+const [newUser] = await db
+  .insert(users)
+  .values({
+    name: "Jane Doe",
+    email: "jane@example.com",
+  })
+  .returning();
 
 // UPDATE
-await db.update(users)
-  .set({ name: 'Updated Name' })
-  .where(eq(users.id, 'user-id'));
+await db
+  .update(users)
+  .set({ name: "Updated Name" })
+  .where(eq(users.id, "user-id"));
 
 // DELETE
-await db.delete(users).where(eq(users.id, 'user-id'));
+await db.delete(users).where(eq(users.id, "user-id"));
 ```
 
 ### Advanced Queries
@@ -404,11 +442,8 @@ const filteredUsers = await db
   .where(
     and(
       eq(users.verified, true),
-      or(
-        like(users.name, '%John%'),
-        like(users.email, '%@example.com')
-      )
-    )
+      or(like(users.name, "%John%"), like(users.email, "%@example.com")),
+    ),
   );
 
 // ORDER BY
@@ -435,7 +470,7 @@ const [{ count }] = await db
 ### Joins
 
 ```typescript
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
 // INNER JOIN
 const usersWithCommunities = await db
@@ -471,17 +506,15 @@ await db.transaction(async (tx) => {
   // Insert user
   const [newUser] = await tx
     .insert(users)
-    .values({ name: 'John', email: 'john@example.com' })
+    .values({ name: "John", email: "john@example.com" })
     .returning();
-  
+
   // Create community membership
-  await tx
-    .insert(userCommunities)
-    .values({
-      userId: newUser.id,
-      communityId: 'community-id',
-    });
-  
+  await tx.insert(userCommunities).values({
+    userId: newUser.id,
+    communityId: "community-id",
+  });
+
   // If any operation fails, entire transaction is rolled back
 });
 ```
@@ -493,6 +526,7 @@ await db.transaction(async (tx) => {
 **Problem**: Updated schema.ts but queries still use old types.
 
 **Solution**:
+
 1. Run `npm run db:push` to apply changes
 2. Restart TypeScript server in your editor
 3. Run `npm run check` to verify types
@@ -502,10 +536,10 @@ await db.transaction(async (tx) => {
 **Problem**: TypeScript errors when accessing JSON column data.
 
 **Solution**: Properly type the JSON column:
+
 ```typescript
-export const table = sqliteTable('table', {
-  data: text('data', { mode: 'json' })
-    .$type<{ key: string; value: number }>(),
+export const table = sqliteTable("table", {
+  data: text("data", { mode: "json" }).$type<{ key: string; value: number }>(),
 });
 ```
 
@@ -514,6 +548,7 @@ export const table = sqliteTable('table', {
 **Problem**: Cannot insert/update due to foreign key violation.
 
 **Solution**:
+
 1. Ensure referenced record exists
 2. Check foreign key column name matches
 3. Verify `onDelete` cascade behavior
@@ -523,6 +558,7 @@ export const table = sqliteTable('table', {
 **Problem**: Schema changes conflict with existing data.
 
 **Solution**:
+
 1. Back up database first
 2. Make non-breaking changes when possible
 3. Use migrations for complex changes

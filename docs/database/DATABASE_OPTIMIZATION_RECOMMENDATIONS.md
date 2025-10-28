@@ -11,14 +11,16 @@
 This document provides comprehensive recommendations for optimizing the database layer and Drizzle ORM usage in the Shuffle & Sync application. The analysis identified several areas for improvement across schema design, query optimization, ORM usage patterns, and connection management.
 
 **Key Findings:**
+
 - ✅ Strong foundation with Drizzle ORM and proper repository pattern
 - ✅ Good use of indexes on frequently queried columns
-- ⚠️  Missing composite indexes for multi-column queries
-- ⚠️  Potential N+1 query issues in some service methods
-- ⚠️  Limited use of prepared statements and query caching
-- ⚠️  No systematic connection pool monitoring
+- ⚠️ Missing composite indexes for multi-column queries
+- ⚠️ Potential N+1 query issues in some service methods
+- ⚠️ Limited use of prepared statements and query caching
+- ⚠️ No systematic connection pool monitoring
 
 **Expected Impact:**
+
 - 30-50% reduction in query response times with composite indexes
 - 40-60% reduction in database round trips with query batching
 - 20-30% improvement in connection pool utilization
@@ -33,6 +35,7 @@ This document provides comprehensive recommendations for optimizing the database
 **Issue:** Many queries filter on multiple columns but only single-column indexes exist.
 
 **Current State:**
+
 ```typescript
 // Example from schema.ts
 index("idx_users_email").on(table.email),
@@ -45,8 +48,8 @@ index("idx_users_primary_community").on(table.primaryCommunity),
 ```typescript
 // Users table - community + status filtering
 index("idx_users_community_status_active").on(
-  table.primaryCommunity, 
-  table.status, 
+  table.primaryCommunity,
+  table.status,
   table.lastActiveAt
 ),
 
@@ -136,10 +139,11 @@ index("idx_events_community_covering").on(
 **Current State:** Schema is generally well-normalized with proper foreign keys.
 
 **Observations:**
+
 - ✅ Good separation of concerns (users, events, communities, etc.)
 - ✅ Proper use of junction tables (userCommunities, eventAttendees)
 - ✅ Foreign key constraints with cascade deletes where appropriate
-- ⚠️  Some denormalization opportunities for read performance
+- ⚠️ Some denormalization opportunities for read performance
 
 **Recommendation:** Consider strategic denormalization for high-traffic read patterns:
 
@@ -166,12 +170,13 @@ export const users = sqliteTable("users", {
 ```
 
 **Note:** Denormalized fields must be kept in sync using:
+
 1. Database triggers (if supported)
 2. Application-level transaction logic
 3. Background sync jobs
 
 **Priority:** MEDIUM  
-**Estimated Impact:** Eliminate COUNT(*) queries, 50%+ faster for dashboard/list views  
+**Estimated Impact:** Eliminate COUNT(\*) queries, 50%+ faster for dashboard/list views  
 **Implementation Complexity:** MEDIUM (requires sync logic)
 
 ---
@@ -183,16 +188,17 @@ export const users = sqliteTable("users", {
 **Issue:** Services load related data in loops, causing multiple database round trips.
 
 **Example Found in Events Service:**
+
 ```typescript
 // BAD: N+1 query pattern
 async getEventsWithCreators(eventIds: string[]) {
   const events = await storage.getEvents({ ids: eventIds });
-  
+
   // This runs N queries!
   for (const event of events) {
     event.creator = await userService.getUser(event.creatorId);
   }
-  
+
   return events;
 }
 ```
@@ -220,14 +226,14 @@ async getEventsWithCreators(eventIds: string[]) {
 // ALTERNATIVE: Batch loading utility (already exists in codebase)
 async getEventsWithCreators(eventIds: string[]) {
   const events = await storage.getEvents({ ids: eventIds });
-  
+
   const creatorsMap = await BatchQueryOptimizer.batchQuery(
     events,
     (event) => event.creatorId,
     (userIds) => userService.getUsersByIds(userIds),
     (user) => user.id
   );
-  
+
   return events.map(event => ({
     ...event,
     creator: creatorsMap.get(event.creatorId)
@@ -250,8 +256,9 @@ async getEventsWithCreators(eventIds: string[]) {
 3. **Document pattern:** Add to coding standards
 
 **Target Areas:**
+
 - User → Communities relationship
-- Event → Attendees relationship  
+- Event → Attendees relationship
 - Tournament → Participants relationship
 - Stream Session → Collaborators relationship
 - User → Platform Accounts relationship
@@ -281,15 +288,16 @@ async find(options: QueryOptions) {
 const result = await repository.findWithCursor({
   cursor: lastItemCursor,
   limit: 50,
-  sortField: 'createdAt',
-  sortDirection: 'desc',
-  filters: { status: 'active' }
+  sortField: "createdAt",
+  sortDirection: "desc",
+  filters: { status: "active" },
 });
 
 // Returns: { data, nextCursor, hasMore }
 ```
 
 **Action Items:**
+
 1. Update API documentation to recommend cursor-based pagination
 2. Migrate high-traffic list endpoints to use cursors
 3. Add cursor support to frontend list components
@@ -303,6 +311,7 @@ const result = await repository.findWithCursor({
 **Issue:** Some queries return all results without limits.
 
 **Example:**
+
 ```typescript
 // Potential issue if getUserCommunities returns many results
 const communities = await db
@@ -337,9 +346,15 @@ const communities = await db
 ```typescript
 // Already exists in database-unified.ts!
 export const preparedQueries = {
-  getUserByEmail: () => { /* ... */ },
-  getUserCommunities: () => { /* ... */ },
-  getUpcomingEvents: () => { /* ... */ },
+  getUserByEmail: () => {
+    /* ... */
+  },
+  getUserCommunities: () => {
+    /* ... */
+  },
+  getUpcomingEvents: () => {
+    /* ... */
+  },
 };
 ```
 
@@ -351,46 +366,78 @@ export const preparedQueries = {
 // Add more prepared queries
 export const preparedQueries = {
   // Authentication
-  getUserByEmail: () => { /* existing */ },
-  getUserById: () => prepareQuery('getUserById', 
-    db.select().from(users).where(eq(users.id, sql.placeholder('id')))
-  ),
-  
+  getUserByEmail: () => {
+    /* existing */
+  },
+  getUserById: () =>
+    prepareQuery(
+      "getUserById",
+      db
+        .select()
+        .from(users)
+        .where(eq(users.id, sql.placeholder("id"))),
+    ),
+
   // Events
-  getEventById: () => prepareQuery('getEventById',
-    db.select().from(events).where(eq(events.id, sql.placeholder('id')))
-  ),
-  getEventAttendees: () => prepareQuery('getEventAttendees',
-    db.select().from(eventAttendees)
-      .where(eq(eventAttendees.eventId, sql.placeholder('eventId')))
-  ),
-  
+  getEventById: () =>
+    prepareQuery(
+      "getEventById",
+      db
+        .select()
+        .from(events)
+        .where(eq(events.id, sql.placeholder("id"))),
+    ),
+  getEventAttendees: () =>
+    prepareQuery(
+      "getEventAttendees",
+      db
+        .select()
+        .from(eventAttendees)
+        .where(eq(eventAttendees.eventId, sql.placeholder("eventId"))),
+    ),
+
   // Communities
-  getCommunityMembers: () => prepareQuery('getCommunityMembers',
-    db.select().from(userCommunities)
-      .where(eq(userCommunities.communityId, sql.placeholder('communityId')))
-      .limit(sql.placeholder('limit'))
-  ),
-  
+  getCommunityMembers: () =>
+    prepareQuery(
+      "getCommunityMembers",
+      db
+        .select()
+        .from(userCommunities)
+        .where(eq(userCommunities.communityId, sql.placeholder("communityId")))
+        .limit(sql.placeholder("limit")),
+    ),
+
   // Notifications
-  getUnreadNotifications: () => prepareQuery('getUnreadNotifications',
-    db.select().from(notifications)
-      .where(and(
-        eq(notifications.userId, sql.placeholder('userId')),
-        eq(notifications.isRead, false)
-      ))
-      .orderBy(desc(notifications.createdAt))
-      .limit(sql.placeholder('limit'))
-  ),
-  
+  getUnreadNotifications: () =>
+    prepareQuery(
+      "getUnreadNotifications",
+      db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, sql.placeholder("userId")),
+            eq(notifications.isRead, false),
+          ),
+        )
+        .orderBy(desc(notifications.createdAt))
+        .limit(sql.placeholder("limit")),
+    ),
+
   // Friends
-  getPendingFriendRequests: () => prepareQuery('getPendingFriendRequests',
-    db.select().from(friendships)
-      .where(and(
-        eq(friendships.addresseeId, sql.placeholder('userId')),
-        eq(friendships.status, 'pending')
-      ))
-  ),
+  getPendingFriendRequests: () =>
+    prepareQuery(
+      "getPendingFriendRequests",
+      db
+        .select()
+        .from(friendships)
+        .where(
+          and(
+            eq(friendships.addresseeId, sql.placeholder("userId")),
+            eq(friendships.status, "pending"),
+          ),
+        ),
+    ),
 };
 ```
 
@@ -403,10 +450,11 @@ export const preparedQueries = {
 **Current State:** `withTransaction()` exists with retry logic in `database-unified.ts`
 
 **Observations:**
+
 - ✅ Good retry logic with exponential backoff
 - ✅ Proper error classification
-- ⚠️  Limited transaction timeout configuration
-- ⚠️  No deadlock detection
+- ⚠️ Limited transaction timeout configuration
+- ⚠️ No deadlock detection
 
 **Recommendation:** Enhance transaction handling:
 
@@ -428,9 +476,9 @@ export async function withTransaction<T>(
     timeout = 30000, // 30 seconds default
     onRetry
   } = options;
-  
+
   let lastError: Error | null = null;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Add timeout wrapper
@@ -440,41 +488,41 @@ export async function withTransaction<T>(
             return await operation(tx);
           });
         }),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Transaction timeout')), timeout)
         )
       ]) as T;
     } catch (error) {
       lastError = error as Error;
-      
+
       // Check for deadlock specifically
-      const isDeadlock = error instanceof Error && 
+      const isDeadlock = error instanceof Error &&
         error.message.toLowerCase().includes('deadlock');
-      
+
       if (isDeadlock) {
         logger.warn(`Deadlock detected in ${operationName}, attempt ${attempt}`, {
           error: lastError.message
         });
       }
-      
+
       // Invoke retry callback
       if (onRetry && attempt < maxRetries) {
         onRetry(attempt, lastError);
       }
-      
+
       // Check if retryable
       const isRetryable = /* existing logic */ ;
-      
+
       if (!isRetryable || attempt === maxRetries) {
         break;
       }
-      
+
       // Exponential backoff
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
+
   // Throw with context
   throw new DatabaseTransactionError(
     `Transaction ${operationName} failed after ${maxRetries} attempts: ${lastError?.message}`,
@@ -496,7 +544,7 @@ export async function withTransaction<T>(
 
 ```typescript
 // New utility: query-cache.ts
-import { LRUCache } from 'lru-cache';
+import { LRUCache } from "lru-cache";
 
 interface CacheOptions {
   ttl?: number; // milliseconds
@@ -505,37 +553,37 @@ interface CacheOptions {
 
 export class QueryCache {
   private cache: LRUCache<string, any>;
-  
+
   constructor(options: CacheOptions = {}) {
     this.cache = new LRUCache({
       max: options.max || 500,
       ttl: options.ttl || 60000, // 1 minute default
     });
   }
-  
+
   async withCache<T>(
     key: string,
     queryFn: () => Promise<T>,
-    ttl?: number
+    ttl?: number,
   ): Promise<T> {
     // Check cache
     const cached = this.cache.get(key);
     if (cached !== undefined) {
       return cached as T;
     }
-    
+
     // Execute query
     const result = await queryFn();
-    
+
     // Store in cache
     this.cache.set(key, result, { ttl });
-    
+
     return result;
   }
-  
+
   invalidate(pattern: string | RegExp): void {
     for (const key of this.cache.keys()) {
-      if (typeof pattern === 'string' && key.startsWith(pattern)) {
+      if (typeof pattern === "string" && key.startsWith(pattern)) {
         this.cache.delete(key);
       } else if (pattern instanceof RegExp && pattern.test(key)) {
         this.cache.delete(key);
@@ -547,26 +595,26 @@ export class QueryCache {
 // Usage in repository
 export class UserRepository extends BaseRepository {
   private cache = new QueryCache({ ttl: 300000 }); // 5 minutes
-  
+
   async findByEmail(email: string): Promise<User | null> {
-    return this.cache.withCache(
-      `user:email:${email}`,
-      () => super.findByEmail(email)
+    return this.cache.withCache(`user:email:${email}`, () =>
+      super.findByEmail(email),
     );
   }
-  
+
   async update(id: string, data: UserUpdateData): Promise<User | null> {
     const result = await super.update(id, data);
-    
+
     // Invalidate cache
     this.cache.invalidate(`user:`);
-    
+
     return result;
   }
 }
 ```
 
 **Cache Candidates:**
+
 - User profiles (TTL: 5 minutes)
 - Community definitions (TTL: 10 minutes)
 - Game configurations (TTL: 1 hour)
@@ -590,7 +638,7 @@ export class UserRepository extends BaseRepository {
 ```typescript
 export class DatabasePerformanceMonitor {
   // ... existing methods
-  
+
   private poolMetrics = {
     totalConnections: 0,
     activeConnections: 0,
@@ -601,56 +649,60 @@ export class DatabasePerformanceMonitor {
     peakConnections: 0,
     lastUpdated: new Date(),
   };
-  
+
   public recordConnectionAcquired(waitTime: number): void {
     this.poolMetrics.activeConnections++;
-    this.poolMetrics.avgWaitTime = 
-      (this.poolMetrics.avgWaitTime * 0.9) + (waitTime * 0.1); // Moving average
-    
+    this.poolMetrics.avgWaitTime =
+      this.poolMetrics.avgWaitTime * 0.9 + waitTime * 0.1; // Moving average
+
     if (this.poolMetrics.activeConnections > this.poolMetrics.peakConnections) {
       this.poolMetrics.peakConnections = this.poolMetrics.activeConnections;
     }
   }
-  
+
   public recordConnectionReleased(): void {
     this.poolMetrics.activeConnections--;
     this.poolMetrics.idleConnections++;
   }
-  
+
   public recordConnectionError(): void {
     this.poolMetrics.connectionErrors++;
   }
-  
+
   public getPoolMetrics() {
     return {
       ...this.poolMetrics,
-      utilizationPercent: (this.poolMetrics.activeConnections / 
-        this.poolMetrics.totalConnections) * 100,
+      utilizationPercent:
+        (this.poolMetrics.activeConnections /
+          this.poolMetrics.totalConnections) *
+        100,
       healthStatus: this.calculatePoolHealth(),
     };
   }
-  
-  private calculatePoolHealth(): 'healthy' | 'warning' | 'critical' {
-    const utilization = (this.poolMetrics.activeConnections / 
-      this.poolMetrics.totalConnections) * 100;
-    
+
+  private calculatePoolHealth(): "healthy" | "warning" | "critical" {
+    const utilization =
+      (this.poolMetrics.activeConnections / this.poolMetrics.totalConnections) *
+      100;
+
     if (utilization > 90 || this.poolMetrics.waitingRequests > 10) {
-      return 'critical';
+      return "critical";
     } else if (utilization > 70 || this.poolMetrics.avgWaitTime > 100) {
-      return 'warning';
+      return "warning";
     }
-    return 'healthy';
+    return "healthy";
   }
 }
 ```
 
 **Add Health Check Endpoint:**
+
 ```typescript
 // In server/index.ts or health check route
-app.get('/api/health/database', async (req, res) => {
+app.get("/api/health/database", async (req, res) => {
   const health = await checkDatabaseHealth();
   const poolMetrics = DatabasePerformanceMonitor.getInstance().getPoolMetrics();
-  
+
   res.json({
     ...health,
     pool: poolMetrics,
@@ -682,7 +734,7 @@ export class ConnectionLeakDetector {
   private static instance: ConnectionLeakDetector;
   private activeConnections = new Map<string, ConnectionTracker>();
   private leakThresholdMs = 30000; // 30 seconds
-  
+
   public static getInstance(): ConnectionLeakDetector {
     if (!ConnectionLeakDetector.instance) {
       ConnectionLeakDetector.instance = new ConnectionLeakDetector();
@@ -693,17 +745,17 @@ export class ConnectionLeakDetector {
     }
     return ConnectionLeakDetector.instance;
   }
-  
+
   public trackConnection(id: string, query?: string): void {
     this.activeConnections.set(id, {
       id,
       acquiredAt: new Date(),
-      stackTrace: new Error().stack || '',
+      stackTrace: new Error().stack || "",
       query,
       released: false,
     });
   }
-  
+
   public releaseConnection(id: string): void {
     const conn = this.activeConnections.get(id);
     if (conn) {
@@ -711,33 +763,33 @@ export class ConnectionLeakDetector {
       this.activeConnections.delete(id);
     }
   }
-  
+
   private detectLeaks(): void {
     const now = Date.now();
     const leaks: ConnectionTracker[] = [];
-    
+
     for (const [id, conn] of this.activeConnections.entries()) {
       const age = now - conn.acquiredAt.getTime();
-      
+
       if (age > this.leakThresholdMs && !conn.released) {
         leaks.push(conn);
       }
     }
-    
+
     if (leaks.length > 0) {
       logger.error(`Detected ${leaks.length} potential connection leaks`, {
-        leaks: leaks.map(l => ({
+        leaks: leaks.map((l) => ({
           id: l.id,
           age: Date.now() - l.acquiredAt.getTime(),
           query: l.query,
-          stack: l.stackTrace.split('\n').slice(0, 5).join('\n'),
+          stack: l.stackTrace.split("\n").slice(0, 5).join("\n"),
         })),
       });
-      
+
       // Alert monitoring system
       DatabasePerformanceMonitor.getInstance().recordConnectionAlert(
         `${leaks.length} potential connection leaks detected`,
-        'error'
+        "error",
       );
     }
   }
@@ -755,20 +807,23 @@ export class ConnectionLeakDetector {
 ### 5.1 Migration File Review
 
 **Current State:**
+
 - Single large migration file: `migrations/0000_pretty_bloodaxe.sql`
 - Contains all table definitions
 - No rollback scripts
 
 **Observations:**
+
 - ✅ Comprehensive schema definition
 - ✅ Proper indexes defined
-- ⚠️  No explicit rollback/down migrations
-- ⚠️  Large monolithic migration (hard to manage)
+- ⚠️ No explicit rollback/down migrations
+- ⚠️ Large monolithic migration (hard to manage)
 
 **Recommendation:** Adopt incremental migration strategy:
 
 1. **Keep existing migration as baseline**
 2. **Create new migrations for changes:**
+
    ```
    migrations/
    ├── 0000_pretty_bloodaxe.sql (existing baseline)
@@ -778,6 +833,7 @@ export class ConnectionLeakDetector {
    ```
 
 3. **Include rollback scripts:**
+
    ```
    migrations/
    ├── 0001_add_composite_indexes.up.sql
@@ -790,8 +846,9 @@ export class ConnectionLeakDetector {
    export const migrations = sqliteTable("schema_migrations", {
      id: text("id").primaryKey(),
      name: text("name").notNull(),
-     appliedAt: integer("applied_at", { mode: "timestamp" })
-       .$defaultFn(() => new Date()),
+     appliedAt: integer("applied_at", { mode: "timestamp" }).$defaultFn(
+       () => new Date(),
+     ),
      checksum: text("checksum").notNull(),
    });
    ```
@@ -808,12 +865,12 @@ export class ConnectionLeakDetector {
 
 ```sql
 -- Add to future migrations
-ALTER TABLE users 
-ADD CONSTRAINT check_user_status 
+ALTER TABLE users
+ADD CONSTRAINT check_user_status
 CHECK (status IN ('online', 'offline', 'away', 'busy', 'gaming'));
 
-ALTER TABLE events 
-ADD CONSTRAINT check_event_times 
+ALTER TABLE events
+ADD CONSTRAINT check_event_times
 CHECK (end_time IS NULL OR end_time > start_time);
 
 ALTER TABLE tournaments
@@ -839,22 +896,22 @@ CHECK (priority IN ('low', 'normal', 'high', 'urgent'));
 
 ```typescript
 // New route: /api/admin/database/metrics
-app.get('/api/admin/database/metrics', adminAuth, async (req, res) => {
+app.get("/api/admin/database/metrics", adminAuth, async (req, res) => {
   const monitor = DatabasePerformanceMonitor.getInstance();
   const dbMonitor = DatabaseMonitor.getInstance();
-  
+
   res.json({
     // Query statistics
     queries: dbMonitor.getStats(),
     slowQueries: dbMonitor.getSlowQueries(500),
-    
+
     // Connection pool
     pool: monitor.getPoolMetrics(),
     connectionAlerts: monitor.getMetrics().connectionAlerts,
-    
+
     // Database health
     health: await checkDatabaseHealth(),
-    
+
     // System info
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -884,19 +941,19 @@ export function withQueryTiming<T>(
 
     if (duration > 1000) {
       // Structured logging for alerts/monitoring
-      logger.warn('Slow query detected', {
+      logger.warn("Slow query detected", {
         operation,
         duration,
         durationMs: duration,
         threshold: 1000,
         timestamp: new Date().toISOString(),
-        tags: ['performance', 'slow-query'],
+        tags: ["performance", "slow-query"],
       });
-      
+
       // Record in performance monitor
       DatabasePerformanceMonitor.getInstance().recordConnectionAlert(
         `Slow query: ${operation} (${duration}ms)`,
-        'warning'
+        "warning",
       );
     }
   });
@@ -912,18 +969,21 @@ export function withQueryTiming<T>(
 ## 7. Implementation Roadmap
 
 ### Phase 1: High Priority (Week 1-2)
+
 1. ✅ Add composite indexes for common query patterns
 2. ✅ Implement query batching for N+1 issues
 3. ✅ Expand prepared statement usage
 4. ✅ Add connection pool monitoring
 
 ### Phase 2: Medium Priority (Week 3-4)
+
 5. ✅ Implement cursor-based pagination adoption
 6. ✅ Add query result caching for hot paths
 7. ✅ Enhance transaction error handling
 8. ✅ Add connection leak detection
 
 ### Phase 3: Low Priority (Week 5-6)
+
 9. ✅ Strategic denormalization for dashboard queries
 10. ✅ Migration strategy improvements
 11. ✅ Performance monitoring dashboard
@@ -939,35 +999,35 @@ export function withQueryTiming<T>(
 
 ```typescript
 // tests/benchmarks/query-performance.bench.ts
-import { describe, it, expect } from 'vitest';
-import { performance } from 'perf_hooks';
+import { describe, it, expect } from "vitest";
+import { performance } from "perf_hooks";
 
-describe('Query Performance Benchmarks', () => {
-  it('should find user by email in < 10ms', async () => {
+describe("Query Performance Benchmarks", () => {
+  it("should find user by email in < 10ms", async () => {
     const start = performance.now();
-    await userRepository.findByEmail('test@example.com');
+    await userRepository.findByEmail("test@example.com");
     const duration = performance.now() - start;
-    
+
     expect(duration).toBeLessThan(10);
   });
-  
-  it('should list events with attendees in < 100ms', async () => {
+
+  it("should list events with attendees in < 100ms", async () => {
     const start = performance.now();
     await eventsService.getEventsWithAttendees({ limit: 50 });
     const duration = performance.now() - start;
-    
+
     expect(duration).toBeLessThan(100);
   });
-  
-  it('should handle 1000 concurrent user lookups', async () => {
+
+  it("should handle 1000 concurrent user lookups", async () => {
     const start = performance.now();
     await Promise.all(
-      Array.from({ length: 1000 }, (_, i) => 
-        userRepository.findById(`user-${i}`)
-      )
+      Array.from({ length: 1000 }, (_, i) =>
+        userRepository.findById(`user-${i}`),
+      ),
     );
     const duration = performance.now() - start;
-    
+
     expect(duration).toBeLessThan(5000); // 5 seconds
   });
 });
@@ -979,20 +1039,24 @@ describe('Query Performance Benchmarks', () => {
 
 ```typescript
 // tests/load/database-load.test.ts
-describe('Database Load Tests', () => {
-  it('should handle 100 concurrent transactions', async () => {
-    const operations = Array.from({ length: 100 }, () => 
+describe("Database Load Tests", () => {
+  it("should handle 100 concurrent transactions", async () => {
+    const operations = Array.from({ length: 100 }, () =>
       withTransaction(async (tx) => {
         // Perform multiple operations
-        await tx.insert(users).values({ /* ... */ });
-        await tx.insert(events).values({ /* ... */ });
-      }, 'load-test')
+        await tx.insert(users).values({
+          /* ... */
+        });
+        await tx.insert(events).values({
+          /* ... */
+        });
+      }, "load-test"),
     );
-    
+
     await expect(Promise.all(operations)).resolves.toBeDefined();
   });
-  
-  it('should maintain response times under load', async () => {
+
+  it("should maintain response times under load", async () => {
     // Simulate realistic traffic pattern
     const results = await runLoadTest({
       duration: 60000, // 1 minute
@@ -1003,7 +1067,7 @@ describe('Database Load Tests', () => {
         { weight: 20, fn: () => communitiesService.getMembers(randomId()) },
       ],
     });
-    
+
     expect(results.p95).toBeLessThan(100); // 95th percentile < 100ms
     expect(results.errors).toBe(0);
   });
@@ -1017,6 +1081,7 @@ describe('Database Load Tests', () => {
 ### Key Performance Indicators (KPIs)
 
 **Before Optimization:**
+
 - Average query response time: ~50ms
 - 95th percentile response time: ~200ms
 - N+1 queries detected: 15+ locations
@@ -1024,6 +1089,7 @@ describe('Database Load Tests', () => {
 - Slow query rate: 5% of queries
 
 **After Optimization Targets:**
+
 - Average query response time: <25ms (50% improvement)
 - 95th percentile response time: <100ms (50% improvement)
 - N+1 queries detected: 0 (eliminated)
@@ -1031,6 +1097,7 @@ describe('Database Load Tests', () => {
 - Slow query rate: <1% of queries
 
 **Monitoring:**
+
 - Track metrics via `/api/admin/database/metrics` endpoint
 - Set up alerts for:
   - Query duration > 1 second
@@ -1045,16 +1112,15 @@ describe('Database Load Tests', () => {
 The Shuffle & Sync application has a solid database foundation with Drizzle ORM and proper repository patterns. The recommendations in this document focus on incremental improvements that will deliver significant performance gains:
 
 **Quick Wins:**
+
 1. Add composite indexes (HIGH impact, LOW effort)
 2. Fix N+1 queries with existing BatchQueryOptimizer (HIGH impact, MEDIUM effort)
 3. Expand prepared statement usage (MEDIUM impact, LOW effort)
 
-**Longer-term Improvements:**
-4. Implement query caching layer
-5. Add comprehensive monitoring
-6. Strategic denormalization
+**Longer-term Improvements:** 4. Implement query caching layer 5. Add comprehensive monitoring 6. Strategic denormalization
 
 **Next Steps:**
+
 1. Review and prioritize recommendations with team
 2. Create implementation tickets
 3. Set up performance benchmarks

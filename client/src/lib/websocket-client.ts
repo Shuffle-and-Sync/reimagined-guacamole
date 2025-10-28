@@ -25,12 +25,12 @@ export interface StatusUpdate {
 }
 
 export interface WebRTCOffer {
-  type: 'offer';
+  type: "offer";
   sdp: string;
 }
 
 export interface WebRTCAnswer {
-  type: 'answer';
+  type: "answer";
   sdp: string;
 }
 
@@ -111,7 +111,11 @@ export type WebSocketMessage =
       data: GameActionData;
     }
   // Collaborative streaming messages
-  | { type: "join_collab_stream"; eventId: string; collaborator?: CollaboratorInfo }
+  | {
+      type: "join_collab_stream";
+      eventId: string;
+      collaborator?: CollaboratorInfo;
+    }
   | {
       type: "phase_change";
       eventId: string;
@@ -626,11 +630,15 @@ export class CollaborativeStreamingWebSocket {
     });
   }
 
-  onCollaboratorJoined(callback: (data: CollaboratorJoinedData) => void): () => void {
+  onCollaboratorJoined(
+    callback: (data: CollaboratorJoinedData) => void,
+  ): () => void {
     return this.client.addEventListener("collaborator_joined", callback);
   }
 
-  onCollaboratorLeft(callback: (data: CollaboratorLeftData) => void): () => void {
+  onCollaboratorLeft(
+    callback: (data: CollaboratorLeftData) => void,
+  ): () => void {
     return this.client.addEventListener("collaborator_left", callback);
   }
 
@@ -638,14 +646,18 @@ export class CollaborativeStreamingWebSocket {
     return this.client.addEventListener("phase_updated", callback);
   }
 
-  onCoordinationEvent(callback: (data: CoordinationEventBroadcast) => void): () => void {
+  onCoordinationEvent(
+    callback: (data: CoordinationEventBroadcast) => void,
+  ): () => void {
     return this.client.addEventListener(
       "coordination_event_broadcast",
       callback,
     );
   }
 
-  onCollaboratorStatusChanged(callback: (data: CollaboratorStatusChanged) => void): () => void {
+  onCollaboratorStatusChanged(
+    callback: (data: CollaboratorStatusChanged) => void,
+  ): () => void {
     return this.client.addEventListener(
       "collaborator_status_changed",
       callback,

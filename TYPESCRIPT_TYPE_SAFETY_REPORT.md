@@ -10,13 +10,13 @@ Completed comprehensive TypeScript type safety audit and improvements for the Sh
 
 ### Before vs After
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| **Total TypeScript Errors** | 1,305 | 1,296 | -9 (-0.7%) |
-| **Explicit `any` Types (non-test)** | 14 | 0 | -14 ✅ **ELIMINATED** |
-| **Functions Missing Return Types** | ~10+ | 0 | ✅ **FIXED** |
-| **`unknown` Error Handling Issues** | 335 | ~315 | -20 (-6%) |
-| **Type Assertions to `any`** | 36 | 36 | No change (test files) |
+| Metric                              | Before | After | Change                 |
+| ----------------------------------- | ------ | ----- | ---------------------- |
+| **Total TypeScript Errors**         | 1,305  | 1,296 | -9 (-0.7%)             |
+| **Explicit `any` Types (non-test)** | 14     | 0     | -14 ✅ **ELIMINATED**  |
+| **Functions Missing Return Types**  | ~10+   | 0     | ✅ **FIXED**           |
+| **`unknown` Error Handling Issues** | 335    | ~315  | -20 (-6%)              |
+| **Type Assertions to `any`**        | 36     | 36    | No change (test files) |
 
 ### Type Safety Score
 
@@ -35,6 +35,7 @@ Completed comprehensive TypeScript type safety audit and improvements for the Sh
 **Purpose**: Centralized, reusable type safety utilities for the entire application.
 
 **Features**:
+
 - ✅ Type Guards: `isError`, `hasMessage`, `isObject`, `hasProperty`
 - ✅ Error Utilities: `getErrorMessage`, `toApiError`, `isApiError`
 - ✅ Safe Parsing: `parseJSON`, `safeCast`, `assertType`
@@ -50,6 +51,7 @@ Completed comprehensive TypeScript type safety audit and improvements for the Sh
 **File**: `shared/database-unified.ts`
 
 **Changes**:
+
 - ✅ Replaced `Transaction = any` with proper Drizzle ORM type extraction
 - ✅ Updated `PreparedStatementCache.getOrPrepare<T>()` with proper generic typing
 - ✅ Eliminated all `any` types from prepared statement handling
@@ -61,15 +63,19 @@ Completed comprehensive TypeScript type safety audit and improvements for the Sh
 ### 3. Fixed Service Layer Type Definitions
 
 #### `server/services/notification-templates.service.ts`
+
 - Changed template generator parameter from `any` to `unknown`
 
 #### `server/services/analytics-service.ts`
+
 - Added explicit return type to `analyzeUserBehavior` method
 
 #### `server/services/collaborative-streaming.service.ts`
+
 - Added explicit return type to `calculateTimezoneCoverage` method
 
 #### `server/storage.ts`
+
 - Changed metadata type from `any` to `Record<string, unknown>`
 
 **Impact**: Better type checking for service methods.
@@ -79,18 +85,23 @@ Completed comprehensive TypeScript type safety audit and improvements for the Sh
 ### 4. Fixed Middleware Type Definitions
 
 #### `server/admin/admin.middleware.ts`
+
 Added explicit return types to:
+
 - `requirePermission(permission: string)`
 - `requireAllPermissions(permissions: string[])`
 - `requireAnyPermission(permissions: string[])`
 - `auditAdminAction(action: string)`
 
 #### `server/middleware/cache-middleware.ts`
+
 Added explicit return types to:
+
 - `cacheMiddleware(options: CacheOptions)`
 - `invalidateCacheMiddleware(patterns: string[])`
 
 #### `server/shared/middleware.ts`
+
 - Added proper error type handling with `isError` and `getErrorMessage`
 - Fixed logger call to use proper Error type
 - Fixed error detail extraction for development mode
@@ -102,14 +113,18 @@ Added explicit return types to:
 ### 5. Fixed Utility Function Types
 
 #### `server/utils/database.utils.ts`
+
 Added explicit return types to:
+
 - `calculatePagination(page: number, limit: number)`
 - `buildPaginationMeta(total: number, page: number, limit: number)`
 
 #### `server/routes.ts`
+
 - Added return type to `initializeDefaultCommunities()`
 
 #### `server/routes/webhooks.ts`
+
 - Added `LogMetadata` interface for logger parameters
 - Replaced `any` with `LogMetadata` in logger functions
 
@@ -122,6 +137,7 @@ Added explicit return types to:
 **File**: `server/utils/websocket-message-validator.ts`
 
 **Changes**:
+
 - ✅ Created proper WebRTC SDP schema
 - ✅ Created proper WebRTC ICE candidate schema
 - ✅ Replaced all `z.any()` with `z.unknown()` or proper types
@@ -134,6 +150,7 @@ Added explicit return types to:
 ### 7. Fixed Error Handling Across Client Components
 
 **Files Fixed**:
+
 1. `client/src/components/SettingsModal.tsx` (3 handlers)
 2. `client/src/components/tournament/TournamentBracket.tsx` (4 handlers)
 3. `client/src/components/tournament/TournamentEditor.tsx` (1 handler)
@@ -145,6 +162,7 @@ Added explicit return types to:
 9. `client/src/pages/tournaments.tsx` (multiple handlers)
 
 **Pattern Used**:
+
 ```typescript
 // BEFORE (unsafe)
 catch (error: unknown) {
@@ -172,7 +190,9 @@ catch (error: unknown) {
 ### Category Breakdown (1,296 remaining errors)
 
 #### 1. Test Infrastructure Issues (~800 errors, ~62%)
+
 **Examples**:
+
 - `Property '_container' does not exist on type 'RenderResult'`
 - Type mismatches in test setup/mocking
 - Missing test utility type definitions
@@ -180,7 +200,9 @@ catch (error: unknown) {
 **Recommendation**: Low priority - test infrastructure issues don't affect runtime type safety.
 
 #### 2. Schema Type Mismatches (~300 errors, ~23%)
+
 **Examples**:
+
 - `Object literal may only specify known properties, and 'slug' does not exist in type Community`
 - Type mismatches between schema types and test data
 - Optional property handling in tests
@@ -188,7 +210,9 @@ catch (error: unknown) {
 **Recommendation**: Medium priority - indicates potential schema evolution needs.
 
 #### 3. Third-Party Library Type Issues (~150 errors, ~12%)
+
 **Examples**:
+
 - `Type 'Dispatch<SetStateAction<boolean>>' is not assignable to type '(checked: CheckedState) => void'`
 - Type conflicts between library versions
 - Missing type definitions
@@ -196,7 +220,9 @@ catch (error: unknown) {
 **Recommendation**: Low priority - typically require library updates.
 
 #### 4. Complex Type Inference (~46 errors, ~4%)
+
 **Examples**:
+
 - Database query result type inference
 - Complex generic constraints
 - Conditional type resolution
@@ -228,6 +254,7 @@ catch (error: unknown) {
 ### Immediate Actions (High Priority)
 
 1. **Define API Contract Types**
+
    ```typescript
    // shared/api-types.ts
    export interface ApiResponse<T> {
@@ -235,7 +262,7 @@ catch (error: unknown) {
      data?: T;
      error?: ApiError;
    }
-   
+
    export interface GetUserSettingsResponse extends ApiResponse<UserSettings> {}
    export interface UpdateUserSettingsRequest {
      notificationTypes: string;
@@ -262,6 +289,7 @@ catch (error: unknown) {
    - Update test data generators
 
 2. **Add Discriminated Unions**
+
    ```typescript
    type NotificationType =
      | { type: "stream_started"; streamId: string; title: string }
@@ -274,7 +302,7 @@ catch (error: unknown) {
    interface Repository<T> {
      findById(id: string): Promise<T | null>;
      findAll(filter?: Partial<T>): Promise<T[]>;
-     create(data: Omit<T, 'id'>): Promise<T>;
+     create(data: Omit<T, "id">): Promise<T>;
      update(id: string, data: Partial<T>): Promise<T>;
      delete(id: string): Promise<void>;
    }
@@ -364,11 +392,11 @@ if (config) {
 // With proper constraints
 function fetchData<T>(
   url: string,
-  validator: (data: unknown) => data is T
+  validator: (data: unknown) => data is T,
 ): Promise<T> {
   return fetch(url)
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       if (!validator(data)) {
         throw new Error("Invalid data format");
       }
@@ -382,11 +410,13 @@ function fetchData<T>(
 ## Files Modified
 
 ### Shared Layer (3 files)
+
 1. `shared/type-utils.ts` - **NEW FILE** - Type safety utilities
 2. `shared/database-unified.ts` - Fixed Transaction and PreparedStatementCache types
 3. `shared/websocket-schemas.ts` - No changes (schemas already well-typed)
 
 ### Server Layer (12 files)
+
 1. `server/admin/admin.middleware.ts` - Added return types
 2. `server/middleware/cache-middleware.ts` - Added return types
 3. `server/routes.ts` - Added return type
@@ -401,6 +431,7 @@ function fetchData<T>(
 12. `server/validation.ts` - (errors remain, need investigation)
 
 ### Client Layer (9 files)
+
 1. `client/src/components/SettingsModal.tsx` - Fixed error handlers
 2. `client/src/components/tournament/TournamentBracket.tsx` - Fixed error handlers
 3. `client/src/components/tournament/TournamentEditor.tsx` - Fixed error handlers

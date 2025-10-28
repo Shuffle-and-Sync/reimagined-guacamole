@@ -1,0 +1,71 @@
+# Multi-stage build for backend
+# Optimized version with Alpine base, non-root user, and better layer caching
+
+# Stage 1: Build
+FROM node:18-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ curl
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY esbuild.config.js ./
+COPY build.js ./
+
+# Install all dependencies (including devDependencies)
+# Use --legacy-peer-deps to handle @sqlitecloud/drivers React Native peer deps
+RUN npm ci --legacy-peer-deps --prefer-offline
+
+# Copy source code
+COPY shared/ ./shared/
+COPY server/ ./server/
+COPY client/ ./client/
+COPY vite.config.ts ./
+COPY scripts/pre-build.sh ./scripts/
+COPY scripts/verify-build.sh ./scripts/
+
+# Build the application
+RUN npm run build
+
+# Prune dev dependencies
+RUN npm prune --production --legacy-peer-deps
+
+# Stage 2: Production
+FROM node:18-alpine AS production
+
+# Install runtime dependencies only
+RUN apk add --no-cache curl tini
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /app
+
+# Copy built artifacts and production dependencies
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=768"
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]

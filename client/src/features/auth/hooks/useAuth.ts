@@ -7,10 +7,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   // Use Auth.js v5 session endpoint
-  const {
-    data: session,
-    isLoading,
-  } = useQuery<AuthSession | null>({
+  const { data: session, isLoading } = useQuery<AuthSession | null>({
     queryKey: queryKeys.auth.user(),
     queryFn: async () => {
       const response = await fetch("/api/auth/session", {
