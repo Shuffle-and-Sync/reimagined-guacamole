@@ -11,8 +11,8 @@ import {
   type Database,
   type Transaction,
 } from "@shared/database-unified";
-import { logger } from "../logger";
-import { DatabaseError } from "../middleware/error-handling.middleware";
+import { logger } from "../../logger";
+import { DatabaseError } from "../../middleware/error-handling.middleware";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 
 // Generic types for repository operations

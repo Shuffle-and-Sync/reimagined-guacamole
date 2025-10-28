@@ -23,8 +23,8 @@ import {
 } from "@jest/globals";
 import type { Database } from "@shared/database-unified";
 import { users } from "@shared/schema";
-import { DatabaseError } from "../../middleware/error-handling.middleware";
-import { BaseRepository } from "../../repositories/base.repository";
+import { DatabaseError } from "../../../middleware/error-handling.middleware";
+import { BaseRepository } from "../../../repositories/base/BaseRepository";
 
 // Mock database and results
 const createMockDb = () => {
@@ -144,7 +144,9 @@ describe("BaseRepository - CRUD Operations", () => {
         .mockReturnValue({ returning: mockReturning });
       (mockDb.insert as jest.Mock).mockReturnValue({ values: mockValues });
 
-      const result = await repository.createMany(testUsers as any);
+      const result = await repository.createMany(
+        testUsers as (typeof users.$inferInsert)[],
+      );
 
       expect(result).toEqual(testUsers);
       expect(result).toHaveLength(2);

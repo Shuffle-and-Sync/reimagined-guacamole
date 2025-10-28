@@ -92,6 +92,7 @@ describe("UserRepository - User-Specific Operations", () => {
     mockDb = createMockDb();
     // Override the db instance in the repository
     repository = new UserRepository();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (repository as any).db = mockDb;
     jest.clearAllMocks();
   });
@@ -396,9 +397,7 @@ describe("UserRepository - User-Specific Operations", () => {
         .mockReturnValue({ returning: mockReturning });
       const mockSet = jest.fn().mockReturnValue({ where: mockWhereUpdate });
 
-      let selectCallCount = 0;
       (mockDb.select as jest.Mock).mockImplementation(() => {
-        selectCallCount++;
         return { from: mockFrom };
       });
 
