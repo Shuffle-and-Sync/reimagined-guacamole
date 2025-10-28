@@ -25,6 +25,7 @@ export { MessagingRepository } from "./MessagingRepository";
 export { CommunityRepository } from "./CommunityRepository";
 export { TournamentRepository } from "./TournamentRepository";
 export { StreamingRepository } from "./StreamingRepository";
+export { AnalyticsRepository } from "./AnalyticsRepository";
 
 // Re-export types from base repository
 export type {
@@ -67,3 +68,9 @@ export type {
   StreamSessionFilters,
   CollaborationRequestFilters,
 } from "./StreamingRepository";
+
+export type {
+  AnalyticsDateRange,
+  PlatformMetricsSummary,
+  FunnelStepData,
+} from "./AnalyticsRepository";
