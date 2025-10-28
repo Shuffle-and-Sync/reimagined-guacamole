@@ -24,6 +24,7 @@ export { NotificationRepository } from "./NotificationRepository";
 export { MessagingRepository } from "./MessagingRepository";
 export { CommunityRepository } from "./CommunityRepository";
 export { TournamentRepository } from "./TournamentRepository";
+export { StreamingRepository } from "./StreamingRepository";
 
 // Re-export types from base repository
 export type {
@@ -59,3 +60,10 @@ export type {
   TournamentWithParticipants,
   TournamentMatchWithPlayers,
 } from "./TournamentRepository";
+
+export type {
+  StreamSessionWithCoHosts,
+  CollaborationRequestWithUsers,
+  StreamSessionFilters,
+  CollaborationRequestFilters,
+} from "./StreamingRepository";
