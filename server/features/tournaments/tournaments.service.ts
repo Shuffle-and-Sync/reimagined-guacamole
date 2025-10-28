@@ -8,6 +8,7 @@ import {
 } from "@shared/schema";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
+import { tournamentRoomManager } from "../../utils/tournament-room-manager";
 // Note: Tournament, TournamentFormat, TournamentRound, TournamentMatch types reserved for enhanced tournament features
 
 // Tournament format types
@@ -114,7 +115,20 @@ export const tournamentsService = {
   async joinTournament(tournamentId: string, userId: string) {
     try {
       logger.info("User joining tournament", { tournamentId, userId });
-      return await storage.joinTournament(tournamentId, userId);
+      const result = await storage.joinTournament(tournamentId, userId);
+
+      // Broadcast participant joined event
+      const tournament = await storage.getTournament(tournamentId);
+      if (tournament) {
+        tournamentRoomManager.broadcastToTournament(tournamentId, {
+          type: "tournament:participant_joined",
+          tournamentId,
+          userId,
+          participantCount: tournament.participants?.length || 0,
+        });
+      }
+
+      return result;
     } catch (error) {
       logger.error(
         "Service error: Failed to join tournament",
@@ -612,6 +626,33 @@ export const tournamentsService = {
             currentMatches,
           );
         }
+
+        // Broadcast round advanced event
+        tournamentRoomManager.broadcastToTournament(tournamentId, {
+          type: "tournament:round_advanced",
+          tournamentId,
+          roundNumber: nextRound.roundNumber,
+          roundStatus: "in_progress",
+        });
+
+        // Broadcast bracket update with new matches
+        const newMatches = await storage.getTournamentMatches(
+          tournamentId,
+          nextRound.id,
+        );
+        tournamentRoomManager.broadcastToTournament(tournamentId, {
+          type: "tournament:bracket_updated",
+          tournamentId,
+          roundNumber: nextRound.roundNumber,
+          matches: newMatches.map((m) => ({
+            id: m.id,
+            matchNumber: m.matchNumber,
+            player1Id: m.player1Id,
+            player2Id: m.player2Id,
+            winnerId: m.winnerId,
+            status: m.status as "pending" | "in_progress" | "completed" | "bye",
+          })),
+        });
       } else {
         // Tournament is complete - update tournament status and determine winners (internal system update)
         await storage.updateTournament(tournamentId, { endDate: new Date() });
@@ -619,6 +660,14 @@ export const tournamentsService = {
         await storage.updateTournament(tournamentId, {
           status: "completed",
         } as Partial<UpdateTournament>);
+
+        // Broadcast tournament completed event
+        tournamentRoomManager.broadcastToTournament(tournamentId, {
+          type: "tournament:status_changed",
+          tournamentId,
+          status: "completed",
+          timestamp: new Date(),
+        });
 
         logger.info("Tournament completed", { tournamentId });
       }
@@ -702,6 +751,26 @@ export const tournamentsService = {
         reportedBy: reporterId,
         isVerified: isOrganizer, // Auto-verify if organizer reports
         verifiedBy: isOrganizer ? reporterId : undefined,
+      });
+
+      // Broadcast match completed event
+      tournamentRoomManager.broadcastToTournament(tournamentId, {
+        type: "tournament:match_completed",
+        tournamentId,
+        matchId,
+        winnerId,
+        player1Score,
+        player2Score,
+      });
+
+      // Also broadcast to match watchers
+      tournamentRoomManager.broadcastToMatch(tournamentId, matchId, {
+        type: "tournament:match_completed",
+        tournamentId,
+        matchId,
+        winnerId,
+        player1Score,
+        player2Score,
       });
 
       logger.info("Match result reported successfully", {
