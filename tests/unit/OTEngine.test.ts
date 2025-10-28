@@ -34,7 +34,7 @@ describe("OTEngine - Comprehensive Unit Tests", () => {
       const op1 = createMoveCardOperation(
         "client1",
         "card1",
-        "deck",
+        "library",
         "hand",
         version1,
       );
@@ -42,7 +42,7 @@ describe("OTEngine - Comprehensive Unit Tests", () => {
       const op2 = createMoveCardOperation(
         "client2",
         "card1",
-        "deck",
+        "library",
         "graveyard",
         version2,
       );
@@ -91,7 +91,7 @@ describe("OTEngine - Comprehensive Unit Tests", () => {
       const op1 = createMoveCardOperation(
         "client1",
         "card1",
-        "deck",
+        "library",
         "hand",
         version1,
       );
@@ -175,8 +175,7 @@ describe("OTEngine - Comprehensive Unit Tests", () => {
       const play = createPlayCardOperation(
         "client1",
         "card1",
-        "player1",
-        "hand",
+        { x: 0, y: 0 },
         version1,
       );
 

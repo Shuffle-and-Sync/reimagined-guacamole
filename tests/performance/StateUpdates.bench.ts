@@ -125,7 +125,7 @@ describe("Performance Tests", () => {
           const op = createMoveCardOperation(
             "client1",
             `card${i}`,
-            "deck",
+            "library",
             "hand",
             version1,
           );
