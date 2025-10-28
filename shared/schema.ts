@@ -678,6 +678,9 @@ export const tournaments = sqliteTable(
     communityId: text("community_id").references(() => communities.id),
     startDate: integer("start_date", { mode: "timestamp" }).notNull(),
     endDate: integer("end_date", { mode: "timestamp" }),
+    // Tournament structure and seeding
+    bracketStructure: text("bracket_structure"), // JSON for complex bracket data
+    seedingAlgorithm: text("seeding_algorithm").default("random"), // 'random', 'elo', 'manual', 'hybrid'
     createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
@@ -1487,11 +1490,30 @@ export const tournamentMatches = sqliteTable(
     player1Id: text("player1_id").references(() => users.id),
     player2Id: text("player2_id").references(() => users.id),
     winnerId: text("winner_id").references(() => users.id),
-    status: text("status").default("pending"), // 'pending', 'in_progress', 'completed', 'bye'
+    status: text("status").default("pending"), // 'pending', 'in_progress', 'completed', 'bye', 'disputed'
     tableNumber: integer("table_number"),
     startTime: integer("start_time", { mode: "timestamp" }),
     endTime: integer("end_time", { mode: "timestamp" }),
+    // Conflict resolution fields
+    version: integer("version").default(1),
+    resultSubmittedAt: integer("result_submitted_at", { mode: "timestamp" }),
+    resultSubmittedBy: text("result_submitted_by").references(() => users.id),
+    conflictDetectedAt: integer("conflict_detected_at", { mode: "timestamp" }),
+    conflictResolvedAt: integer("conflict_resolved_at", { mode: "timestamp" }),
+    conflictResolution: text("conflict_resolution"), // JSON
+    // Bracket metadata for double elimination
+    bracketType: text("bracket_type"), // 'winners', 'losers', 'grand_finals', 'bracket_reset'
+    bracketPosition: integer("bracket_position"),
+    isGrandFinals: integer("is_grand_finals", { mode: "boolean" }).default(
+      false,
+    ),
+    isBracketReset: integer("is_bracket_reset", { mode: "boolean" }).default(
+      false,
+    ),
     createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
   },
@@ -1555,6 +1577,147 @@ export const matchResults = sqliteTable(
       table.winnerId,
       table.createdAt,
     ),
+  ],
+);
+
+// ======================
+// ADVANCED TOURNAMENT FEATURES
+// ======================
+
+// Match result conflicts and dispute resolution
+export const matchResultConflicts = sqliteTable(
+  "match_result_conflicts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    matchId: text("match_id")
+      .notNull()
+      .references(() => tournamentMatches.id, { onDelete: "cascade" }),
+    submission1Id: text("submission1_id").notNull(),
+    submission2Id: text("submission2_id").notNull(),
+    submission1By: text("submission1_by")
+      .notNull()
+      .references(() => users.id),
+    submission2By: text("submission2_by")
+      .notNull()
+      .references(() => users.id),
+    submission1Data: text("submission1_data").notNull(), // JSON
+    submission2Data: text("submission2_data").notNull(), // JSON
+    status: text("status").default("pending"), // 'pending', 'resolved', 'escalated'
+    resolution: text("resolution"), // JSON with resolution details
+    resolvedBy: text("resolved_by").references(() => users.id),
+    resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+    notes: text("notes"),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_match_conflicts_match").on(table.matchId),
+    index("idx_match_conflicts_status").on(table.status),
+    index("idx_match_conflicts_created").on(table.createdAt),
+  ],
+);
+
+// Tournament seeding metadata
+export const tournamentSeeds = sqliteTable(
+  "tournament_seeds",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    tournamentId: text("tournament_id")
+      .notNull()
+      .references(() => tournaments.id, { onDelete: "cascade" }),
+    participantId: text("participant_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seed: integer("seed").notNull(),
+    seedScore: real("seed_score"),
+    bracketPosition: integer("bracket_position"),
+    eloRating: integer("elo_rating"),
+    recentWinRate: real("recent_win_rate"),
+    tournamentHistory: integer("tournament_history"),
+    manualSeed: integer("manual_seed"),
+    seedingAlgorithm: text("seeding_algorithm"),
+    seedingMetadata: text("seeding_metadata"), // JSON
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_tournament_seeds_tournament").on(table.tournamentId),
+    index("idx_tournament_seeds_participant").on(table.participantId),
+    index("idx_tournament_seeds_seed").on(table.seed),
+    unique().on(table.tournamentId, table.participantId),
+  ],
+);
+
+// Player ELO ratings
+export const playerRatings = sqliteTable(
+  "player_ratings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gameType: text("game_type").notNull(),
+    format: text("format"),
+    rating: integer("rating").default(1500),
+    peak: integer("peak").default(1500),
+    wins: integer("wins").default(0),
+    losses: integer("losses").default(0),
+    draws: integer("draws").default(0),
+    winStreak: integer("win_streak").default(0),
+    longestWinStreak: integer("longest_win_streak").default(0),
+    gamesPlayed: integer("games_played").default(0),
+    lastGameAt: integer("last_game_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_player_ratings_user").on(table.userId),
+    index("idx_player_ratings_game").on(table.gameType),
+    index("idx_player_ratings_rating").on(table.rating),
+    unique().on(table.userId, table.gameType, table.format),
+  ],
+);
+
+// Circuit breaker state tracking for platform APIs
+export const platformApiCircuitBreakers = sqliteTable(
+  "platform_api_circuit_breakers",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    platform: text("platform").notNull(), // 'twitch', 'youtube', 'facebook'
+    endpoint: text("endpoint").notNull(),
+    state: text("state").notNull(), // 'closed', 'open', 'half_open'
+    failureCount: integer("failure_count").default(0),
+    successCount: integer("success_count").default(0),
+    lastFailureAt: integer("last_failure_at", { mode: "timestamp" }),
+    lastSuccessAt: integer("last_success_at", { mode: "timestamp" }),
+    stateChangedAt: integer("state_changed_at", { mode: "timestamp" }),
+    nextRetryAt: integer("next_retry_at", { mode: "timestamp" }),
+    metadata: text("metadata").default("{}"), // JSON for additional state
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_circuit_breakers_platform").on(table.platform),
+    index("idx_circuit_breakers_state").on(table.state),
+    unique().on(table.platform, table.endpoint),
   ],
 );
 
