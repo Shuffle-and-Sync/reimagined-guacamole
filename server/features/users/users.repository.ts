@@ -24,7 +24,7 @@ import {
   BaseRepository,
   QueryOptions,
   PaginatedResult,
-} from "../../repositories/base.repository";
+} from "../../repositories/base";
 
 export interface UserWithCommunities extends User {
   communities: Array<{
