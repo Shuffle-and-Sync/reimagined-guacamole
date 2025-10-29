@@ -406,7 +406,7 @@ export class EnhancedWebSocketServer {
       return;
     }
 
-    connectionManager.joinGameRoom(connectionId, sessionId);
+    await connectionManager.joinGameRoom(connectionId, sessionId);
 
     // Get current room members
     const roomConnections = connectionManager.getGameRoomConnections(sessionId);
@@ -530,7 +530,7 @@ export class EnhancedWebSocketServer {
         return;
       }
 
-      connectionManager.joinCollaborativeRoom(connectionId, eventId);
+      await connectionManager.joinCollaborativeRoom(connectionId, eventId);
 
       // Get active collaborators
       const roomConnections =
