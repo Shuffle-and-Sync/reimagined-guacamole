@@ -27,6 +27,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:init": "tsx scripts/init-sqlite-cloud-db.ts",
+    "db:seed-games": "tsx scripts/seed-games.ts",
     "db:health": "tsx -e \"import { checkDatabaseHealth } from './shared/database-unified'; checkDatabaseHealth().then(console.log).catch(console.error)\"",
     "test": "jest",
     "test:watch": "jest --watch",
