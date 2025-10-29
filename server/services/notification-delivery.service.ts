@@ -1,6 +1,11 @@
+import sgMail from "@sendgrid/mail";
 import type { Notification, UserSettings, User } from "@shared/schema";
 import { logger } from "../logger";
 import { storage } from "../storage";
+import {
+  emailTemplatesService,
+  type EmailTemplateData,
+} from "./email-templates";
 
 /**
  * Notification delivery channels and preferences
@@ -40,14 +45,46 @@ export interface DeliveryResult {
   deliveryId?: string;
 }
 
+interface EmailQueueItem {
+  to: string;
+  userId: string;
+  notificationId: string;
+  notificationType: string;
+  data: EmailTemplateData;
+  retryCount: number;
+  createdAt: Date;
+}
+
 /**
  * Enhanced notification delivery service with multi-channel support
  */
 export class NotificationDeliveryService {
   private webSocketConnections = new Map<string, any>(); // WebSocket connections per user
-  private emailQueue: unknown[] = []; // Email delivery queue
+  private emailQueue: EmailQueueItem[] = []; // Email delivery queue
   private smsQueue: unknown[] = []; // SMS delivery queue
   private webhookQueue: unknown[] = []; // Webhook delivery queue
+  private sendGridConfigured = false;
+  private readonly MAX_RETRY_ATTEMPTS = 3;
+  private readonly BATCH_SIZE = 100;
+
+  constructor() {
+    // Initialize SendGrid if API key is available
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+        this.sendGridConfigured = true;
+        logger.info("SendGrid configured successfully");
+      } catch (error) {
+        logger.error("Failed to configure SendGrid", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    } else {
+      logger.warn(
+        "SENDGRID_API_KEY not set - email notifications will be queued but not sent",
+      );
+    }
+  }
 
   /**
    * Send notification through all enabled channels based on user preferences
@@ -222,35 +259,254 @@ export class NotificationDeliveryService {
     notification: Notification,
   ): Promise<DeliveryResult> {
     try {
-      // TODO: Implement with SendGrid or similar email service
-      // For now, add to queue for processing
+      if (!user.email) {
+        logger.warn("User has no email address", { userId: user.id });
+        return {
+          channel: "email",
+          success: false,
+          error: "User has no email address",
+        };
+      }
+
+      // Build email template data
+      const templateData = this.buildEmailTemplateData(user, notification);
+
+      // Add to queue for batch processing
       this.emailQueue.push({
         to: user.email,
-        subject: notification.title,
-        content: notification.message,
-        template: this.getEmailTemplate(notification.type),
-        data: notification.data,
+        userId: user.id,
+        notificationId: notification.id,
+        notificationType: notification.type,
+        data: templateData,
+        retryCount: 0,
         createdAt: new Date(),
       });
 
-      // Simulate email sending (replace with actual implementation)
       logger.info("Email notification queued", {
         userId: user.id,
         email: user.email,
         notificationId: notification.id,
+        queueSize: this.emailQueue.length,
       });
+
+      // Process immediately if not configured (for testing) or if SendGrid is available
+      if (this.sendGridConfigured) {
+        // Process queue in background (don't await to avoid blocking)
+        this.processEmailQueue().catch((error) => {
+          logger.error("Background email processing failed", { error });
+        });
+      }
 
       return {
         channel: "email",
         success: true,
-        deliveryId: `email_${Date.now()}`,
+        deliveryId: `email_${Date.now()}_${user.id}`,
       };
     } catch (error) {
+      logger.error("Failed to queue email notification", {
+        error: error instanceof Error ? error.message : String(error),
+        userId: user.id,
+        notificationId: notification.id,
+      });
       return {
         channel: "email",
         success: false,
         error: error instanceof Error ? error.message : "Email delivery failed",
       };
+    }
+  }
+
+  /**
+   * Build email template data from notification
+   */
+  private buildEmailTemplateData(
+    user: User,
+    notification: Notification,
+  ): EmailTemplateData {
+    const baseUrl = process.env.AUTH_URL || "https://shuffleandsync.com";
+    const unsubscribeUrl = `${baseUrl}/settings/notifications`;
+
+    // Parse notification data if it's a string
+    let notificationData: any = {};
+    if (notification.data) {
+      if (typeof notification.data === "string") {
+        try {
+          notificationData = JSON.parse(notification.data);
+        } catch {
+          notificationData = {};
+        }
+      } else {
+        notificationData = notification.data;
+      }
+    }
+
+    // Build template data based on notification type
+    const templateData: EmailTemplateData = {
+      userName: user.firstName || user.username || "there",
+      baseUrl,
+      unsubscribeUrl,
+      ...notificationData,
+    };
+
+    return templateData;
+  }
+
+  /**
+   * Send email via SendGrid with retry logic
+   */
+  private async sendEmailWithRetry(
+    item: EmailQueueItem,
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!this.sendGridConfigured) {
+      return { success: false, error: "SendGrid not configured" };
+    }
+
+    try {
+      // Generate email template
+      const emailTemplate = emailTemplatesService.getTemplate(
+        item.notificationType,
+        item.data,
+      );
+
+      const senderEmail =
+        process.env.SENDGRID_SENDER || "noreply@shuffleandsync.com";
+
+      // Send via SendGrid
+      const msg = {
+        to: item.to,
+        from: {
+          email: senderEmail,
+          name: "Shuffle & Sync",
+        },
+        subject: emailTemplate.subject,
+        text: emailTemplate.text,
+        html: emailTemplate.html,
+        trackingSettings: {
+          clickTracking: { enable: true },
+          openTracking: { enable: true },
+        },
+        customArgs: {
+          notification_id: item.notificationId,
+          user_id: item.userId,
+          notification_type: item.notificationType,
+        },
+      };
+
+      await sgMail.send(msg);
+
+      logger.info("Email sent successfully via SendGrid", {
+        to: item.to,
+        userId: item.userId,
+        notificationId: item.notificationId,
+        notificationType: item.notificationType,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.body?.errors?.[0]?.message ||
+        error?.message ||
+        "Unknown error";
+
+      logger.error("SendGrid email delivery failed", {
+        error: errorMessage,
+        to: item.to,
+        userId: item.userId,
+        notificationId: item.notificationId,
+        retryCount: item.retryCount,
+        statusCode: error?.code || error?.response?.statusCode,
+      });
+
+      // Determine if we should retry
+      const shouldRetry =
+        item.retryCount < this.MAX_RETRY_ATTEMPTS &&
+        this.isRetryableError(error);
+
+      if (shouldRetry) {
+        // Exponential backoff: 2s, 4s, 8s
+        const delayMs = Math.pow(2, item.retryCount + 1) * 1000;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+        item.retryCount++;
+        return this.sendEmailWithRetry(item);
+      }
+
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Check if an error is retryable
+   */
+  private isRetryableError(error: any): boolean {
+    const statusCode = error?.code || error?.response?.statusCode;
+
+    // Retry on temporary errors (5xx, rate limits, timeouts)
+    const retryableStatusCodes = [408, 429, 500, 502, 503, 504];
+    return retryableStatusCodes.includes(statusCode);
+  }
+
+  /**
+   * Send batch of emails via SendGrid
+   */
+  private async sendBatchEmails(
+    items: EmailQueueItem[],
+  ): Promise<Array<{ success: boolean; error?: string }>> {
+    if (!this.sendGridConfigured || items.length === 0) {
+      return items.map(() => ({
+        success: false,
+        error: "SendGrid not configured",
+      }));
+    }
+
+    try {
+      // Prepare batch messages
+      const messages = items.map((item) => {
+        const emailTemplate = emailTemplatesService.getTemplate(
+          item.notificationType,
+          item.data,
+        );
+
+        const senderEmail =
+          process.env.SENDGRID_SENDER || "noreply@shuffleandsync.com";
+
+        return {
+          to: item.to,
+          from: {
+            email: senderEmail,
+            name: "Shuffle & Sync",
+          },
+          subject: emailTemplate.subject,
+          text: emailTemplate.text,
+          html: emailTemplate.html,
+          trackingSettings: {
+            clickTracking: { enable: true },
+            openTracking: { enable: true },
+          },
+          customArgs: {
+            notification_id: item.notificationId,
+            user_id: item.userId,
+            notification_type: item.notificationType,
+          },
+        };
+      });
+
+      // Send batch
+      await sgMail.send(messages);
+
+      logger.info("Batch emails sent successfully", {
+        count: items.length,
+      });
+
+      return items.map(() => ({ success: true }));
+    } catch (error: any) {
+      logger.error("Batch email sending failed", {
+        error: error?.message || String(error),
+        count: items.length,
+      });
+
+      // Fall back to individual sending
+      return Promise.all(items.map((item) => this.sendEmailWithRetry(item)));
     }
   }
 
@@ -558,9 +814,41 @@ export class NotificationDeliveryService {
       `Processing ${this.emailQueue.length} queued email notifications`,
     );
 
-    // TODO: Implement actual email sending
-    // For now, just clear the queue
-    this.emailQueue = [];
+    // Process in batches
+    while (this.emailQueue.length > 0) {
+      const batch = this.emailQueue.splice(0, this.BATCH_SIZE);
+
+      try {
+        // Use batch sending for efficiency
+        if (batch.length > 1) {
+          await this.sendBatchEmails(batch);
+        } else {
+          // Single email
+          await this.sendEmailWithRetry(batch[0] as EmailQueueItem);
+        }
+      } catch (error) {
+        logger.error("Email queue batch processing failed", {
+          error: error instanceof Error ? error.message : String(error),
+          batchSize: batch.length,
+        });
+
+        // Re-queue failed items with increased retry count
+        batch.forEach((item) => {
+          const emailItem = item as EmailQueueItem;
+          if (emailItem.retryCount < this.MAX_RETRY_ATTEMPTS) {
+            emailItem.retryCount++;
+            this.emailQueue.push(emailItem);
+          } else {
+            logger.error("Email delivery permanently failed", {
+              to: emailItem.to,
+              notificationId: emailItem.notificationId,
+            });
+          }
+        });
+      }
+    }
+
+    logger.info("Email queue processing completed");
   }
 
   private async processSMSQueue(): Promise<void> {
