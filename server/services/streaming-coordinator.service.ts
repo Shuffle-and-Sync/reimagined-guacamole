@@ -108,43 +108,84 @@ export class StreamingCoordinator {
   }
 
   /**
-   * Get user's connected platforms
+   * Get user's connected platforms with real OAuth status
    */
   async getUserPlatforms(userId: string): Promise<StreamingPlatform[]> {
-    // TODO: Implement platform connection storage
-    // For now, return sample data based on auth providers
     const user = await storage.getUser(userId);
     if (!user) return [];
 
+    // Get all platform accounts from storage
+    const accounts = await storage.getUserPlatformAccounts(userId);
+    const now = new Date();
+
     const platforms: StreamingPlatform[] = [];
 
-    // Check Twitch connection (placeholder - would check OAuth tokens in real implementation)
-    platforms.push({
-      id: "twitch",
-      name: "Twitch",
-      isConnected: true, // TODO: Check actual connection status
-      username: user.username || "user_" + userId.slice(0, 8),
-      profileUrl: `https://twitch.tv/${user.username || "user_" + userId.slice(0, 8)}`,
-      lastStreamCheck: new Date(),
-    });
+    // Helper to check if token is expired
+    const isTokenExpired = (expiresAt: Date | null | undefined): boolean => {
+      if (!expiresAt) return false;
+      return expiresAt.getTime() <= now.getTime();
+    };
 
-    // YouTube placeholder
-    platforms.push({
-      id: "youtube",
-      name: "YouTube",
-      isConnected: false, // TODO: Implement YouTube OAuth
-      lastStreamCheck: new Date(),
-    });
+    // Check each platform for connected status
+    for (const platformId of ["twitch", "youtube", "facebook"] as const) {
+      const account = accounts.find((acc) => acc.platform === platformId);
+      const platformNames: Record<string, string> = {
+        twitch: "Twitch",
+        youtube: "YouTube",
+        facebook: "Facebook Gaming",
+      };
 
-    // Facebook placeholder
-    platforms.push({
-      id: "facebook",
-      name: "Facebook Gaming",
-      isConnected: false, // TODO: Implement Facebook OAuth
-      lastStreamCheck: new Date(),
-    });
+      if (account && account.isActive) {
+        // Platform is connected and active
+        const isExpired = isTokenExpired(account.tokenExpiresAt);
+        platforms.push({
+          id: platformId,
+          name: platformNames[platformId] || platformId,
+          isConnected: !isExpired, // Connected if token not expired
+          username: account.handle,
+          profileUrl: this.getPlatformProfileUrl(
+            platformId,
+            account.handle,
+            account.platformUserId,
+            account.channelId,
+          ),
+          lastStreamCheck: account.lastVerified || new Date(),
+        });
+      } else {
+        // Platform not connected
+        platforms.push({
+          id: platformId,
+          name: platformNames[platformId] || platformId,
+          isConnected: false,
+          lastStreamCheck: new Date(),
+        });
+      }
+    }
 
     return platforms;
+  }
+
+  /**
+   * Get platform profile URL based on platform type
+   */
+  private getPlatformProfileUrl(
+    platform: string,
+    handle: string,
+    userId?: string | null,
+    channelId?: string | null,
+  ): string | undefined {
+    switch (platform) {
+      case "twitch":
+        return `https://twitch.tv/${handle}`;
+      case "youtube":
+        return channelId
+          ? `https://youtube.com/channel/${channelId}`
+          : undefined;
+      case "facebook":
+        return userId ? `https://facebook.com/${userId}` : undefined;
+      default:
+        return undefined;
+    }
   }
 
   /**
@@ -218,28 +259,85 @@ export class StreamingCoordinator {
     viewerCount?: number;
   }> {
     const user = await storage.getUser(userId);
-    if (!user || !user.username) {
+    if (!user) {
       return { isStreaming: false };
     }
 
     try {
-      // Check Twitch
-      const twitchStream = await twitchAPI.getStream(user.username);
-      if (twitchStream && twitchStream.type === "live") {
-        return {
-          isStreaming: true,
-          platform: "Twitch",
-          streamTitle: twitchStream.title,
-          viewerCount: twitchStream.viewer_count,
-        };
+      // Get user's platform accounts
+      const accounts = await storage.getUserPlatformAccounts(userId);
+
+      // Check Twitch if connected
+      const twitchAccount = accounts.find((acc) => acc.platform === "twitch");
+      if (twitchAccount?.isActive && twitchAccount.handle) {
+        const twitchStream = await twitchAPI.getStream(twitchAccount.handle);
+        if (twitchStream && twitchStream.type === "live") {
+          return {
+            isStreaming: true,
+            platform: "Twitch",
+            streamTitle: twitchStream.title,
+            viewerCount: twitchStream.viewer_count,
+          };
+        }
       }
 
-      // TODO: Check YouTube API
-      // TODO: Check Facebook Gaming API
+      // Check YouTube if connected
+      const youtubeAccount = accounts.find((acc) => acc.platform === "youtube");
+      if (youtubeAccount?.isActive && youtubeAccount.channelId) {
+        const { YouTubeAPIService } = await import("./youtube-api.service");
+        const youtubeService = new YouTubeAPIService();
+        const youtubeStream = await youtubeService.getLiveStream(
+          youtubeAccount.channelId,
+        );
+        if (youtubeStream && youtubeStream.status === "live") {
+          return {
+            isStreaming: true,
+            platform: "YouTube",
+            streamTitle: youtubeStream.title,
+            viewerCount: youtubeStream.concurrentViewers,
+          };
+        }
+      }
+
+      // Check Facebook if connected
+      const facebookAccount = accounts.find(
+        (acc) => acc.platform === "facebook",
+      );
+      if (facebookAccount?.isActive && facebookAccount.pageId) {
+        const { FacebookAPIService } = await import("./facebook-api.service");
+        const facebookService = new FacebookAPIService();
+        // Get valid access token with refresh if needed
+        const accessToken = await storage.getUserPlatformToken(
+          userId,
+          "facebook",
+        );
+        if (accessToken) {
+          const liveVideosResult = await facebookService.getLiveVideos(
+            facebookAccount.pageId,
+            accessToken,
+          );
+          if (liveVideosResult.success && liveVideosResult.data) {
+            const liveVideo = liveVideosResult.data.find(
+              (video) => video.status === "LIVE",
+            );
+            if (liveVideo) {
+              return {
+                isStreaming: true,
+                platform: "Facebook Gaming",
+                streamTitle: liveVideo.title,
+                viewerCount: liveVideo.live_views,
+              };
+            }
+          }
+        }
+      }
 
       return { isStreaming: false };
     } catch (error) {
-      console.error("Error checking user streaming status:", error);
+      logger.error(
+        "Error checking user streaming status:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return { isStreaming: false };
     }
   }
@@ -363,7 +461,7 @@ export class StreamingCoordinator {
   }
 
   /**
-   * Setup EventSub webhooks for real-time updates
+   * Setup EventSub webhooks for real-time updates across all platforms
    */
   async setupPlatformWebhooks(
     userId: string,
@@ -371,40 +469,107 @@ export class StreamingCoordinator {
     secret: string,
   ): Promise<boolean> {
     try {
-      const user = await storage.getUser(userId);
-      if (!user || !user.username) {
-        throw new Error("User not found or no username");
+      const accounts = await storage.getUserPlatformAccounts(userId);
+      let setupSuccessful = false;
+
+      // Setup Twitch webhooks if connected
+      const twitchAccount = accounts.find((acc) => acc.platform === "twitch");
+      if (twitchAccount?.isActive && twitchAccount.handle) {
+        try {
+          await twitchAPI.subscribeToEvent(
+            "stream.online",
+            "1",
+            { broadcaster_user_login: twitchAccount.handle },
+            `${callbackUrl}/twitch`,
+            secret,
+          );
+
+          await twitchAPI.subscribeToEvent(
+            "stream.offline",
+            "1",
+            { broadcaster_user_login: twitchAccount.handle },
+            `${callbackUrl}/twitch`,
+            secret,
+          );
+          setupSuccessful = true;
+          logger.info("Twitch webhooks setup successfully", { userId });
+        } catch (error) {
+          logger.error(
+            "Error setting up Twitch webhooks:",
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
       }
 
-      // Subscribe to Twitch stream online/offline events
-      await twitchAPI.subscribeToEvent(
-        "stream.online",
-        "1",
-        { broadcaster_user_login: user.username },
-        `${callbackUrl}/twitch`,
-        secret,
+      // Setup YouTube webhooks if connected
+      const youtubeAccount = accounts.find((acc) => acc.platform === "youtube");
+      if (youtubeAccount?.isActive && youtubeAccount.channelId) {
+        try {
+          const { YouTubeAPIService } = await import("./youtube-api.service");
+          const youtubeService = new YouTubeAPIService();
+          const subscribed =
+            await youtubeService.subscribeToChannelNotifications(
+              youtubeAccount.channelId,
+              `${callbackUrl}/youtube`,
+            );
+          if (subscribed) {
+            setupSuccessful = true;
+            logger.info("YouTube webhooks setup successfully", { userId });
+          }
+        } catch (error) {
+          logger.error(
+            "Error setting up YouTube webhooks:",
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
+
+      // Setup Facebook webhooks if connected
+      const facebookAccount = accounts.find(
+        (acc) => acc.platform === "facebook",
       );
+      if (facebookAccount?.isActive && facebookAccount.pageId) {
+        try {
+          const accessToken = await storage.getUserPlatformToken(
+            userId,
+            "facebook",
+          );
+          if (accessToken) {
+            const { FacebookAPIService } = await import(
+              "./facebook-api.service"
+            );
+            const facebookService = new FacebookAPIService();
+            const subscribed = await facebookService.subscribeToWebhooks(
+              facebookAccount.pageId,
+              accessToken,
+              `${callbackUrl}/facebook`,
+              secret,
+            );
+            if (subscribed) {
+              setupSuccessful = true;
+              logger.info("Facebook webhooks setup successfully", { userId });
+            }
+          }
+        } catch (error) {
+          logger.error(
+            "Error setting up Facebook webhooks:",
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
 
-      await twitchAPI.subscribeToEvent(
-        "stream.offline",
-        "1",
-        { broadcaster_user_login: user.username },
-        `${callbackUrl}/twitch`,
-        secret,
-      );
-
-      // TODO: Setup YouTube webhooks
-      // TODO: Setup Facebook webhooks
-
-      return true;
+      return setupSuccessful;
     } catch (error) {
-      console.error("Error setting up platform webhooks:", error);
+      logger.error(
+        "Error setting up platform webhooks:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       return false;
     }
   }
 
   /**
-   * Handle platform webhook events
+   * Handle platform webhook events from all platforms
    */
   async handlePlatformEvent(platform: string, event: unknown): Promise<void> {
     switch (platform) {
@@ -412,13 +577,13 @@ export class StreamingCoordinator {
         await this.handleTwitchEvent(event);
         break;
       case "youtube":
-        // TODO: Handle YouTube events
+        await this.handleYouTubeEvent(event);
         break;
       case "facebook":
-        // TODO: Handle Facebook events
+        await this.handleFacebookEvent(event);
         break;
       default:
-        console.warn(`Unknown platform event: ${platform}`);
+        logger.warn(`Unknown platform event: ${platform}`);
     }
   }
 
@@ -426,24 +591,71 @@ export class StreamingCoordinator {
    * Handle Twitch-specific events
    */
   private async handleTwitchEvent(event: unknown): Promise<void> {
-    const eventType = event.event_type;
-    const eventData = event.event_data;
+    const eventType = (event as any).event_type;
+    const eventData = (event as any).event_data;
 
     switch (eventType) {
       case "stream.online":
-        logger.info(`Stream started`, {
-          broadcaster: eventData.broadcaster_user_login,
+        logger.info(`Twitch stream started`, {
+          broadcaster: eventData?.broadcaster_user_login,
         });
         // Find and update relevant stream sessions
         break;
       case "stream.offline":
-        logger.info(`Stream ended`, {
-          broadcaster: eventData.broadcaster_user_login,
+        logger.info(`Twitch stream ended`, {
+          broadcaster: eventData?.broadcaster_user_login,
         });
         // Find and update relevant stream sessions
         break;
       default:
         logger.warn(`Unhandled Twitch event`, { eventType });
+    }
+  }
+
+  /**
+   * Handle YouTube-specific events
+   */
+  private async handleYouTubeEvent(event: unknown): Promise<void> {
+    try {
+      const eventData = event as any;
+      logger.info(`YouTube event received`, {
+        channelId: eventData?.channelId,
+        videoId: eventData?.videoId,
+        title: eventData?.title,
+      });
+      // Find and update relevant stream sessions based on channel ID
+      // The actual implementation would depend on the YouTube webhook payload structure
+    } catch (error) {
+      logger.error(
+        "Error handling YouTube event:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    }
+  }
+
+  /**
+   * Handle Facebook-specific events
+   */
+  private async handleFacebookEvent(event: unknown): Promise<void> {
+    try {
+      const eventData = event as any;
+      const entry = eventData?.entry?.[0];
+      const changes = entry?.changes?.[0];
+
+      if (changes?.field === "live_videos") {
+        const value = changes.value;
+        logger.info(`Facebook live video event`, {
+          pageId: entry?.id,
+          videoId: value?.id,
+          status: value?.status,
+        });
+        // Find and update relevant stream sessions based on page ID
+      }
+    } catch (error) {
+      logger.error(
+        "Error handling Facebook event:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
   }
 
