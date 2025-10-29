@@ -313,6 +313,14 @@ export const events = sqliteTable(
     maxAttendees: integer("max_attendees"),
     playerSlots: integer("player_slots"), // For game pods - number of main player slots
     alternateSlots: integer("alternate_slots"), // For game pods - number of alternate/waitlist slots
+    isPublic: integer("is_public", { mode: "boolean" }).default(true), // Event visibility
+    gameFormat: text("game_format"), // e.g., 'commander', 'standard', 'modern'
+    powerLevel: integer("power_level"), // 1-10 scale for game pods
+    isRecurring: integer("is_recurring", { mode: "boolean" }).default(false), // Recurring event flag
+    recurrencePattern: text("recurrence_pattern"), // 'daily', 'weekly', 'monthly'
+    recurrenceInterval: integer("recurrence_interval"), // Every X days/weeks/months
+    recurrenceEndDate: integer("recurrence_end_date", { mode: "timestamp" }), // End date for recurring events
+    parentEventId: text("parent_event_id"), // Reference to parent event for recurring instances (self-reference)
     creatorId: text("creator_id")
       .notNull()
       .references(() => users.id),
@@ -332,6 +340,11 @@ export const events = sqliteTable(
     index("idx_events_start_time").on(table.startTime),
     index("idx_events_status").on(table.status),
     index("idx_events_type").on(table.type),
+    // Indexes for new fields
+    index("idx_events_is_public").on(table.isPublic),
+    index("idx_events_game_format").on(table.gameFormat),
+    index("idx_events_is_recurring").on(table.isRecurring),
+    index("idx_events_parent").on(table.parentEventId),
     // Composite index for community + time range queries
     index("idx_events_community_status_start").on(
       table.communityId,
@@ -2503,6 +2516,15 @@ export const insertEventSchema = createInsertSchema(events, {
     "game_pod",
   ]),
   status: z.enum(["active", "cancelled", "completed", "draft"]).optional(),
+  // Validation for new fields
+  isPublic: z.boolean().optional(),
+  gameFormat: z.string().optional(),
+  powerLevel: z.number().min(1).max(10).optional(),
+  isRecurring: z.boolean().optional(),
+  recurrencePattern: z.enum(["daily", "weekly", "monthly"]).optional(),
+  recurrenceInterval: z.number().min(1).optional(),
+  recurrenceEndDate: z.date().optional(),
+  parentEventId: z.string().optional(),
 }).omit({
   id: true,
   createdAt: true,

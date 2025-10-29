@@ -1911,8 +1911,6 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        // date: events.date, // TODO: Not in schema - using startTime
-        // time: events.time, // TODO: Not in schema - using startTime
         startTime: events.startTime,
         endTime: events.endTime,
         location: events.location,
@@ -1922,17 +1920,17 @@ export class DatabaseStorage implements IStorage {
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
         isVirtual: events.isVirtual,
-        // isPublic: events.isPublic, // TODO: Not in schema
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        isPublic: events.isPublic,
         status: events.status,
-        // playerSlots: events.playerSlots, // TODO: Not in schema
-        // alternateSlots: events.alternateSlots, // TODO: Not in schema
-        // gameFormat: events.gameFormat, // TODO: Not in schema
-        // powerLevel: events.powerLevel, // TODO: Not in schema
-        // isRecurring: events.isRecurring, // TODO: Not in schema
-        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
-        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
-        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
-        // parentEventId: events.parentEventId, // TODO: Not in schema
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
@@ -2048,8 +2046,6 @@ export class DatabaseStorage implements IStorage {
         title: events.title,
         description: events.description,
         type: events.type,
-        // date: events.date, // TODO: Not in schema
-        // time: events.time, // TODO: Not in schema
         startTime: events.startTime,
         endTime: events.endTime,
         location: events.location,
@@ -2059,17 +2055,17 @@ export class DatabaseStorage implements IStorage {
         coHostId: events.coHostId,
         maxAttendees: events.maxAttendees,
         isVirtual: events.isVirtual,
-        // isPublic: events.isPublic, // TODO: Not in schema
+        playerSlots: events.playerSlots,
+        alternateSlots: events.alternateSlots,
+        isPublic: events.isPublic,
         status: events.status,
-        // playerSlots: events.playerSlots, // TODO: Not in schema
-        // alternateSlots: events.alternateSlots, // TODO: Not in schema
-        // gameFormat: events.gameFormat, // TODO: Not in schema
-        // powerLevel: events.powerLevel, // TODO: Not in schema
-        // isRecurring: events.isRecurring, // TODO: Not in schema
-        // recurrencePattern: events.recurrencePattern, // TODO: Not in schema
-        // recurrenceInterval: events.recurrenceInterval, // TODO: Not in schema
-        // recurrenceEndDate: events.recurrenceEndDate, // TODO: Not in schema
-        // parentEventId: events.parentEventId, // TODO: Not in schema
+        gameFormat: events.gameFormat,
+        powerLevel: events.powerLevel,
+        isRecurring: events.isRecurring,
+        recurrencePattern: events.recurrencePattern,
+        recurrenceInterval: events.recurrenceInterval,
+        recurrenceEndDate: events.recurrenceEndDate,
+        parentEventId: events.parentEventId,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         creator: users,
