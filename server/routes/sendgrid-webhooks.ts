@@ -6,11 +6,21 @@
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { Router, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import { db } from "@shared/database-unified";
 import { notifications } from "@shared/schema";
 import { logger } from "../logger";
 
 const router = Router();
+
+// Rate limiter for SendGrid Webhook events
+const sendgridWebhookLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20,             // limit each IP to 20 requests per minute
+  message: { error: "Too many requests, please try again later." },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+});
 
 /**
  * Verify SendGrid webhook signature
@@ -50,7 +60,7 @@ function verifySendGridSignature(
  * Handles email events: delivered, opened, clicked, bounced, spam reports, unsubscribes
  * Documentation: https://docs.sendgrid.com/for-developers/tracking-events/event
  */
-router.post("/sendgrid/events", async (req: Request, res: Response) => {
+router.post("/sendgrid/events", sendgridWebhookLimiter, async (req: Request, res: Response) => {
   try {
     // Verify webhook signature if public key is configured
     if (process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
