@@ -182,7 +182,7 @@ export class WebSocketConnectionManager {
     }
 
     // Create a new lock for this operation
-    let releaseLock: () => void;
+    let releaseLock: (() => void) | undefined;
     const lock = new Promise<void>((resolve) => {
       releaseLock = resolve;
     });
@@ -212,8 +212,8 @@ export class WebSocketConnectionManager {
       });
       return true;
     } finally {
-      // Always release the lock
-      releaseLock!();
+      // Always release the lock (guaranteed to be defined by Promise constructor)
+      releaseLock?.();
       this.roomLocks.delete(lockKey);
     }
   }
@@ -234,7 +234,7 @@ export class WebSocketConnectionManager {
     }
 
     // Create a new lock for this operation
-    let releaseLock: () => void;
+    let releaseLock: (() => void) | undefined;
     const lock = new Promise<void>((resolve) => {
       releaseLock = resolve;
     });
@@ -264,8 +264,8 @@ export class WebSocketConnectionManager {
       });
       return true;
     } finally {
-      // Always release the lock
-      releaseLock!();
+      // Always release the lock (guaranteed to be defined by Promise constructor)
+      releaseLock?.();
       this.roomLocks.delete(lockKey);
     }
   }
