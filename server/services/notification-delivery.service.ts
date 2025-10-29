@@ -6,6 +6,10 @@ import {
   emailTemplatesService,
   type EmailTemplateData,
 } from "./email-templates";
+import {
+  pushNotificationService,
+  type PushNotificationPayload,
+} from "./push-notification.service";
 
 /**
  * Notification delivery channels and preferences
@@ -518,24 +522,113 @@ export class NotificationDeliveryService {
     notification: Notification,
   ): Promise<DeliveryResult> {
     try {
-      // TODO: Implement with web push service or mobile push service
-      logger.info("Push notification would be delivered", {
+      if (!pushNotificationService.isConfigured()) {
+        logger.warn("Push notifications not configured", {
+          userId,
+          notificationId: notification.id,
+        });
+        return {
+          channel: "push",
+          success: false,
+          error: "Push notifications not configured",
+        };
+      }
+
+      // Build push notification payload
+      const payload = this.buildPushNotificationPayload(notification);
+
+      // Send to all user's active subscriptions
+      const result = await pushNotificationService.sendToUser(userId, payload);
+
+      if (result.sentCount === 0 && result.failedCount === 0) {
+        // No subscriptions found
+        logger.info("No push subscriptions found for user", {
+          userId,
+          notificationId: notification.id,
+        });
+        return {
+          channel: "push",
+          success: true,
+          deliveryId: `push_none_${Date.now()}`,
+        };
+      }
+
+      logger.info("Push notification delivered", {
         userId,
         notificationId: notification.id,
+        sentCount: result.sentCount,
+        failedCount: result.failedCount,
       });
 
       return {
         channel: "push",
-        success: true,
-        deliveryId: `push_${Date.now()}`,
+        success: result.sentCount > 0,
+        deliveryId: `push_${Date.now()}_${userId}`,
       };
     } catch (error) {
+      logger.error("Failed to deliver push notification", {
+        error: error instanceof Error ? error.message : String(error),
+        userId,
+        notificationId: notification.id,
+      });
       return {
         channel: "push",
         success: false,
         error: error instanceof Error ? error.message : "Push delivery failed",
       };
     }
+  }
+
+  /**
+   * Build push notification payload from notification
+   */
+  private buildPushNotificationPayload(
+    notification: Notification,
+  ): PushNotificationPayload {
+    const baseUrl = process.env.AUTH_URL || "https://shuffleandsync.com";
+
+    // Parse notification data if it's a string
+    let notificationData: any = {};
+    if (notification.data) {
+      if (typeof notification.data === "string") {
+        try {
+          notificationData = JSON.parse(notification.data);
+        } catch {
+          notificationData = {};
+        }
+      } else {
+        notificationData = notification.data;
+      }
+    }
+
+    // Build payload with icon and badge
+    const payload: PushNotificationPayload = {
+      title: notification.title,
+      body: notification.message || "",
+      icon: `${baseUrl}/icons/notification-icon-192x192.png`,
+      badge: `${baseUrl}/icons/notification-badge-96x96.png`,
+      tag: notification.type,
+      requireInteraction: notification.priority === "urgent",
+      silent: notification.priority === "low",
+      data: {
+        notificationId: notification.id,
+        type: notification.type,
+        url: notification.actionUrl || "/notifications",
+        ...notificationData,
+      },
+    };
+
+    // Add action button if actionUrl and actionText are provided
+    if (notification.actionUrl && notification.actionText) {
+      payload.actions = [
+        {
+          action: "view",
+          title: notification.actionText,
+        },
+      ];
+    }
+
+    return payload;
   }
 
   /**

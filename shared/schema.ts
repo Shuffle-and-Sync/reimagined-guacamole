@@ -435,11 +435,16 @@ export const notifications = sqliteTable(
     title: text("title").notNull(),
     message: text("message"),
     data: text("data"), // JSON string
-    isRead: integer("is_read", { mode: "boolean" }).default(false),
+    actionUrl: text("action_url"),
+    actionText: text("action_text"),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    read: integer("read", { mode: "boolean" }).default(false),
     readAt: integer("read_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
+    // Keep old isRead field for compatibility (can be removed in migration)
+    isRead: integer("is_read", { mode: "boolean" }).default(false),
   },
   (table) => [
     index("idx_notifications_user").on(table.userId),
@@ -458,6 +463,37 @@ export const notifications = sqliteTable(
       table.type,
       table.createdAt,
     ),
+  ],
+);
+
+// Push notification subscriptions for web push
+export const pushSubscriptions = sqliteTable(
+  "push_subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    deviceInfo: text("device_info"), // JSON string with device details
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    lastUsed: integer("last_used", { mode: "timestamp" }),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+  },
+  (table) => [
+    index("idx_push_subscriptions_user").on(table.userId),
+    index("idx_push_subscriptions_endpoint").on(table.endpoint),
+    index("idx_push_subscriptions_active").on(table.isActive),
+    // Composite index for user + active subscriptions
+    index("idx_push_subscriptions_user_active").on(table.userId, table.isActive),
   ],
 );
 
