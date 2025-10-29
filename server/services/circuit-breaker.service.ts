@@ -274,6 +274,13 @@ export const circuitBreakerService = {
 
   /**
    * Record failed API call
+   *
+   * Increments failure counter and opens circuit if failure threshold is met.
+   * When circuit opens, sets next retry time based on resetTimeout configuration.
+   *
+   * @param {string} breakerId - Circuit breaker ID
+   * @returns {Promise<void>}
+   * @private
    */
   async recordFailure(breakerId: string) {
     const breaker = await db
@@ -331,6 +338,13 @@ export const circuitBreakerService = {
 
   /**
    * Transition breaker to half-open state
+   *
+   * Moves circuit from open to half-open state, allowing limited requests
+   * to test if the service has recovered. Resets success counter for testing.
+   *
+   * @param {string} breakerId - Circuit breaker ID
+   * @returns {Promise<void>}
+   * @private
    */
   async transitionToHalfOpen(breakerId: string) {
     await db
@@ -348,6 +362,17 @@ export const circuitBreakerService = {
 
   /**
    * Manually reset a circuit breaker
+   *
+   * Forces a circuit breaker to closed state and resets all counters.
+   * Use this for manual intervention when you know the service has recovered
+   * or for testing purposes.
+   *
+   * @param {string} platform - Platform name (twitch, youtube, facebook)
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<void>}
+   * @example
+   * // Manually reset after confirming service is back online
+   * await circuitBreakerService.reset('twitch', '/streams');
    */
   async reset(platform: string, endpoint: string) {
     await db
@@ -371,6 +396,16 @@ export const circuitBreakerService = {
 
   /**
    * Get all circuit breakers status
+   *
+   * Retrieves all circuit breaker records from the database with their
+   * current state, counters, and timestamps.
+   *
+   * @returns {Promise<Array<Object>>} Array of all circuit breaker records
+   * @example
+   * const breakers = await circuitBreakerService.getAllBreakers();
+   * breakers.forEach(b => {
+   *   console.log(`${b.platform}/${b.endpoint}: ${b.state}`);
+   * });
    */
   async getAllBreakers() {
     return await db.select().from(platformApiCircuitBreakers);
@@ -378,6 +413,18 @@ export const circuitBreakerService = {
 
   /**
    * Get circuit breakers by state
+   *
+   * Filters and retrieves circuit breakers that are currently in the
+   * specified state (closed, open, or half_open).
+   *
+   * @param {CircuitBreakerState} state - Circuit state to filter by (closed, open, half_open)
+   * @returns {Promise<Array<Object>>} Array of circuit breakers in the specified state
+   * @example
+   * // Get all open circuit breakers
+   * const openBreakers = await circuitBreakerService.getBreakersByState('open');
+   * if (openBreakers.length > 0) {
+   *   console.log(`Warning: ${openBreakers.length} services are unavailable`);
+   * }
    */
   async getBreakersByState(state: CircuitBreakerState) {
     return await db
