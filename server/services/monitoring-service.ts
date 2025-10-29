@@ -1,3 +1,18 @@
+/**
+ * System Monitoring Service
+ *
+ * Provides comprehensive system monitoring capabilities including:
+ * - System metrics collection (CPU, memory, disk usage)
+ * - Service health checks (database, Redis, application, filesystem)
+ * - Alert generation and management
+ * - Automated cleanup and retention management
+ *
+ * This service is critical for production monitoring, alerting, and incident response.
+ * It runs continuously in the background collecting metrics and evaluating alert conditions.
+ *
+ * @module MonitoringService
+ */
+
 import { EventEmitter } from "events";
 import fs from "fs/promises";
 import os from "os";
@@ -6,6 +21,23 @@ import { db } from "@shared/database-unified";
 import { logger } from "../logger";
 import { redisClient } from "./redis-client.service";
 
+/**
+ * System metrics snapshot
+ *
+ * @interface SystemMetrics
+ * @property {Date} timestamp - When metrics were collected
+ * @property {Object} cpu - CPU usage information
+ * @property {number} cpu.usage - CPU usage percentage (0-100)
+ * @property {number[]} cpu.loadAverage - System load average [1min, 5min, 15min]
+ * @property {number} cpu.cores - Number of CPU cores
+ * @property {Object} memory - Memory usage information
+ * @property {number} memory.used - Used memory in bytes
+ * @property {number} memory.free - Free memory in bytes
+ * @property {number} memory.total - Total memory in bytes
+ * @property {number} memory.usage - Memory usage percentage (0-100)
+ * @property {Object} disk - Disk usage information
+ * @property {Object} process - Node.js process metrics
+ */
 export interface SystemMetrics {
   timestamp: Date;
   cpu: {
@@ -33,6 +65,17 @@ export interface SystemMetrics {
   };
 }
 
+/**
+ * Health check result for a service
+ *
+ * @interface ServiceHealth
+ * @property {string} service - Name of the service being monitored
+ * @property {"healthy" | "degraded" | "unhealthy"} status - Current health status
+ * @property {number} [latency] - Response time in milliseconds
+ * @property {Date} lastChecked - When the health check was performed
+ * @property {string} [error] - Error message if unhealthy
+ * @property {Record<string, unknown>} [details] - Additional service-specific details
+ */
 export interface ServiceHealth {
   service: string;
   status: "healthy" | "degraded" | "unhealthy";
@@ -42,6 +85,19 @@ export interface ServiceHealth {
   details?: Record<string, unknown>;
 }
 
+/**
+ * Alert information
+ *
+ * @interface Alert
+ * @property {string} id - Unique alert identifier
+ * @property {"critical" | "warning" | "info"} severity - Alert severity level
+ * @property {string} service - Service that generated the alert
+ * @property {string} message - Human-readable alert message
+ * @property {Date} timestamp - When the alert was created
+ * @property {boolean} resolved - Whether the alert has been resolved
+ * @property {Date} [resolvedAt] - When the alert was resolved
+ * @property {Record<string, unknown>} [metadata] - Additional alert context
+ */
 export interface Alert {
   id: string;
   severity: "critical" | "warning" | "info";
@@ -53,6 +109,14 @@ export interface Alert {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Monitoring service configuration
+ *
+ * Defines intervals, thresholds, retention policies, and alerting settings
+ * for the monitoring service. All values can be configured via environment variables.
+ *
+ * @interface MonitoringConfig
+ */
 export interface MonitoringConfig {
   enabled: boolean;
   intervals: {
@@ -81,6 +145,21 @@ export interface MonitoringConfig {
   };
 }
 
+/**
+ * System Monitoring Service
+ *
+ * Extends EventEmitter to provide real-time monitoring events:
+ * - 'metrics': Emitted when new metrics are collected
+ * - 'healthUpdate': Emitted when service health status changes
+ * - 'alert': Emitted when a new alert is created
+ * - 'alertResolved': Emitted when an alert is resolved
+ *
+ * The service runs continuously collecting metrics, performing health checks,
+ * and evaluating alert conditions based on configurable thresholds.
+ *
+ * @class MonitoringService
+ * @extends EventEmitter
+ */
 class MonitoringService extends EventEmitter {
   private config: MonitoringConfig;
   private metrics: SystemMetrics[] = [];
@@ -90,6 +169,12 @@ class MonitoringService extends EventEmitter {
   private isRunning = false;
   private lastCpuUsage?: NodeJS.CpuUsage;
 
+  /**
+   * Initialize the monitoring service
+   *
+   * Loads configuration from environment variables with sensible defaults.
+   * Initializes CPU usage tracking for accurate measurements.
+   */
   constructor() {
     super();
     this.config = {
@@ -151,6 +236,15 @@ class MonitoringService extends EventEmitter {
 
   /**
    * Start monitoring services
+   *
+   * Initiates all monitoring intervals (metrics collection, health checks, alert evaluation)
+   * and performs initial checks. This method is idempotent - calling it multiple times
+   * or when already running has no effect.
+   *
+   * @returns {void}
+   * @example
+   * monitoringService.start();
+   * // Service will now continuously monitor system metrics and health
    */
   start(): void {
     if (this.isRunning || !this.config.enabled) {
@@ -226,6 +320,11 @@ class MonitoringService extends EventEmitter {
 
   /**
    * Stop monitoring services
+   *
+   * Stops all monitoring intervals and cleans up resources. Safe to call
+   * even if service is not running.
+   *
+   * @returns {void}
    */
   stop(): void {
     if (!this.isRunning) {
@@ -247,6 +346,16 @@ class MonitoringService extends EventEmitter {
 
   /**
    * Collect system metrics
+   *
+   * Gathers comprehensive system metrics including CPU usage, memory usage,
+   * disk usage, and process information. Emits 'metrics' event with the collected data.
+   *
+   * @returns {Promise<SystemMetrics>} Collected system metrics
+   * @throws {Error} If metrics collection fails
+   * @example
+   * const metrics = await monitoringService.collectSystemMetrics();
+   * console.log(`CPU usage: ${metrics.cpu.usage}%`);
+   * console.log(`Memory usage: ${metrics.memory.usage}%`);
    */
   async collectSystemMetrics(): Promise<SystemMetrics> {
     try {
@@ -331,6 +440,16 @@ class MonitoringService extends EventEmitter {
 
   /**
    * Perform health checks on all services
+   *
+   * Runs health checks on database, Redis, application, and filesystem.
+   * Updates the health status map and emits 'healthUpdate' event.
+   *
+   * @returns {Promise<Map<string, ServiceHealth>>} Map of service health statuses
+   * @example
+   * const health = await monitoringService.performHealthChecks();
+   * health.forEach((status, service) => {
+   *   console.log(`${service}: ${status.status}`);
+   * });
    */
   async performHealthChecks(): Promise<Map<string, ServiceHealth>> {
     const checks = [
@@ -365,6 +484,12 @@ class MonitoringService extends EventEmitter {
 
   /**
    * Check database connectivity and performance
+   *
+   * Performs a simple query to verify database connectivity and measures response time.
+   * Returns 'healthy' if latency < 1000ms, 'degraded' if slower, 'unhealthy' on failure.
+   *
+   * @private
+   * @returns {Promise<ServiceHealth>} Database health status
    */
   private async checkDatabaseHealth(): Promise<ServiceHealth> {
     const startTime = Date.now();

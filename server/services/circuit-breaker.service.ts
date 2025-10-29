@@ -1,8 +1,25 @@
 /**
  * Circuit Breaker Service for Platform APIs
  *
- * Implements resilient API calls to Twitch, YouTube, and Facebook
- * with circuit breaker pattern for graceful degradation.
+ * Implements the Circuit Breaker pattern to protect against cascading failures
+ * when calling external platform APIs (Twitch, YouTube, Facebook Gaming).
+ *
+ * The circuit breaker operates in three states:
+ * - CLOSED: Normal operation, requests pass through
+ * - OPEN: Failures exceeded threshold, requests fail fast
+ * - HALF_OPEN: Testing if service recovered, limited requests allowed
+ *
+ * Benefits:
+ * - Prevents cascading failures from external API outages
+ * - Provides graceful degradation with fallback options
+ * - Automatic recovery detection and retry logic
+ * - Reduces load on failing services
+ * - Improves overall system resilience
+ *
+ * This is critical for maintaining system stability when external dependencies
+ * experience issues or outages.
+ *
+ * @module CircuitBreakerService
  */
 
 import { eq, and } from "drizzle-orm";
@@ -11,8 +28,23 @@ import { platformApiCircuitBreakers } from "@shared/schema";
 import { CircuitBreakerOpenError } from "../errors/tournament-errors";
 import { logger } from "../logger";
 
+/**
+ * Circuit breaker state
+ *
+ * @typedef {"closed" | "open" | "half_open"} CircuitBreakerState
+ */
 type CircuitBreakerState = "closed" | "open" | "half_open";
 
+/**
+ * Circuit breaker configuration
+ *
+ * @interface CircuitBreakerConfig
+ * @property {number} failureThreshold - Number of consecutive failures before opening circuit
+ * @property {number} successThreshold - Number of successes in half-open state before closing
+ * @property {number} timeout - Timeout for API calls in milliseconds
+ * @property {number} resetTimeout - Time to wait before transitioning from open to half-open (ms)
+ * @property {number} volumeThreshold - Minimum number of requests before calculating failure rate
+ */
 interface CircuitBreakerConfig {
   failureThreshold: number; // Number of failures before opening
   successThreshold: number; // Number of successes in half-open before closing
@@ -21,6 +53,12 @@ interface CircuitBreakerConfig {
   volumeThreshold: number; // Minimum requests before calculating threshold
 }
 
+/**
+ * Default circuit breaker configuration
+ *
+ * @constant
+ * @type {CircuitBreakerConfig}
+ */
 const defaultConfig: CircuitBreakerConfig = {
   failureThreshold: 5,
   successThreshold: 2,
@@ -29,6 +67,16 @@ const defaultConfig: CircuitBreakerConfig = {
   volumeThreshold: 10,
 };
 
+/**
+ * Platform API call specification
+ *
+ * @interface PlatformApiCall
+ * @template T - Return type of the API call
+ * @property {"twitch" | "youtube" | "facebook"} platform - Target platform
+ * @property {string} endpoint - API endpoint path
+ * @property {Function} operation - Async function to execute the API call
+ * @property {Function} [fallback] - Optional fallback function if circuit is open
+ */
 interface PlatformApiCall<T> {
   platform: "twitch" | "youtube" | "facebook";
   endpoint: string;
@@ -36,9 +84,36 @@ interface PlatformApiCall<T> {
   fallback?: () => Promise<T>;
 }
 
+/**
+ * Circuit Breaker Service
+ *
+ * Provides circuit breaker protection for external platform API calls.
+ */
 export const circuitBreakerService = {
   /**
    * Execute API call with circuit breaker protection
+   *
+   * Wraps an external API call with circuit breaker logic. Tracks failures
+   * and successes, automatically opening the circuit after threshold failures
+   * and attempting recovery via half-open state.
+   *
+   * @template T
+   * @param {PlatformApiCall<T>} call - API call specification with operation and optional fallback
+   * @returns {Promise<T>} Result of the API call or fallback
+   * @throws {CircuitBreakerOpenError} If circuit is open and no fallback provided
+   * @throws {Error} If API call fails and no fallback provided
+   * @example
+   * const streamData = await circuitBreakerService.execute({
+   *   platform: 'twitch',
+   *   endpoint: '/streams',
+   *   operation: async () => {
+   *     return await twitchApi.getStream(channelId);
+   *   },
+   *   fallback: async () => {
+   *     // Return cached data or default response
+   *     return getCachedStreamData(channelId);
+   *   }
+   * });
    */
   async execute<T>(call: PlatformApiCall<T>): Promise<T> {
     const breaker = await this.getOrCreateBreaker(call.platform, call.endpoint);
@@ -95,6 +170,15 @@ export const circuitBreakerService = {
 
   /**
    * Get or create circuit breaker for platform/endpoint
+   *
+   * Retrieves existing circuit breaker state from database or creates a new one
+   * if it doesn't exist. Each platform/endpoint combination has its own circuit
+   * breaker to isolate failures.
+   *
+   * @param {string} platform - Platform name (twitch, youtube, facebook)
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<Object>} Circuit breaker record
+   * @private
    */
   async getOrCreateBreaker(platform: string, endpoint: string) {
     const existing = await db
@@ -134,6 +218,13 @@ export const circuitBreakerService = {
 
   /**
    * Record successful API call
+   *
+   * Increments success counter and transitions circuit to closed state if
+   * success threshold is met while in half-open state.
+   *
+   * @param {string} breakerId - Circuit breaker ID
+   * @returns {Promise<void>}
+   * @private
    */
   async recordSuccess(breakerId: string) {
     const breaker = await db
@@ -183,6 +274,13 @@ export const circuitBreakerService = {
 
   /**
    * Record failed API call
+   *
+   * Increments failure counter and opens circuit if failure threshold is met.
+   * When circuit opens, sets next retry time based on resetTimeout configuration.
+   *
+   * @param {string} breakerId - Circuit breaker ID
+   * @returns {Promise<void>}
+   * @private
    */
   async recordFailure(breakerId: string) {
     const breaker = await db
@@ -240,6 +338,13 @@ export const circuitBreakerService = {
 
   /**
    * Transition breaker to half-open state
+   *
+   * Moves circuit from open to half-open state, allowing limited requests
+   * to test if the service has recovered. Resets success counter for testing.
+   *
+   * @param {string} breakerId - Circuit breaker ID
+   * @returns {Promise<void>}
+   * @private
    */
   async transitionToHalfOpen(breakerId: string) {
     await db
@@ -257,6 +362,17 @@ export const circuitBreakerService = {
 
   /**
    * Manually reset a circuit breaker
+   *
+   * Forces a circuit breaker to closed state and resets all counters.
+   * Use this for manual intervention when you know the service has recovered
+   * or for testing purposes.
+   *
+   * @param {string} platform - Platform name (twitch, youtube, facebook)
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<void>}
+   * @example
+   * // Manually reset after confirming service is back online
+   * await circuitBreakerService.reset('twitch', '/streams');
    */
   async reset(platform: string, endpoint: string) {
     await db
@@ -280,6 +396,16 @@ export const circuitBreakerService = {
 
   /**
    * Get all circuit breakers status
+   *
+   * Retrieves all circuit breaker records from the database with their
+   * current state, counters, and timestamps.
+   *
+   * @returns {Promise<Array<Object>>} Array of all circuit breaker records
+   * @example
+   * const breakers = await circuitBreakerService.getAllBreakers();
+   * breakers.forEach(b => {
+   *   console.log(`${b.platform}/${b.endpoint}: ${b.state}`);
+   * });
    */
   async getAllBreakers() {
     return await db.select().from(platformApiCircuitBreakers);
@@ -287,6 +413,18 @@ export const circuitBreakerService = {
 
   /**
    * Get circuit breakers by state
+   *
+   * Filters and retrieves circuit breakers that are currently in the
+   * specified state (closed, open, or half_open).
+   *
+   * @param {CircuitBreakerState} state - Circuit state to filter by (closed, open, half_open)
+   * @returns {Promise<Array<Object>>} Array of circuit breakers in the specified state
+   * @example
+   * // Get all open circuit breakers
+   * const openBreakers = await circuitBreakerService.getBreakersByState('open');
+   * if (openBreakers.length > 0) {
+   *   console.log(`Warning: ${openBreakers.length} services are unavailable`);
+   * }
    */
   async getBreakersByState(state: CircuitBreakerState) {
     return await db

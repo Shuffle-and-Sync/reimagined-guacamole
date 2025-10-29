@@ -1,17 +1,40 @@
+/**
+ * Webhook Security Utilities
+ *
+ * Provides comprehensive webhook security including:
+ * - Signature verification for multiple platforms (Stripe, GitHub, Twitch)
+ * - Payload validation with Zod schemas
+ * - Timestamp verification to prevent replay attacks
+ * - Idempotency tracking to prevent duplicate processing
+ *
+ * This module is critical for secure external API integrations. All webhooks
+ * should use signature verification and idempotency checks to prevent
+ * unauthorized access and duplicate processing.
+ *
+ * @module WebhookSecurity
+ */
+
 import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { logger } from "../logger";
 
 /**
- * Webhook Security Utilities
- * Provides signature verification, payload validation, and idempotency checks
- * for webhook endpoints
- */
-
-/**
  * Verify Stripe webhook signature
- * Uses HMAC-SHA256 for signature verification
+ *
+ * Validates webhook authenticity using HMAC-SHA256 signature verification.
+ * Uses constant-time comparison to prevent timing attacks.
+ *
+ * @param {string | Buffer} payload - Raw webhook payload (must match exactly what was signed)
+ * @param {string} signature - Signature from Stripe-Signature header
+ * @param {string} secret - Webhook signing secret from Stripe dashboard
+ * @returns {boolean} True if signature is valid, false otherwise
+ * @example
+ * const isValid = verifyStripeSignature(
+ *   req.body,
+ *   req.headers['stripe-signature'],
+ *   process.env.STRIPE_WEBHOOK_SECRET
+ * );
  */
 export function verifyStripeSignature(
   payload: string | Buffer,
@@ -38,7 +61,20 @@ export function verifyStripeSignature(
 
 /**
  * Verify GitHub webhook signature
- * Uses sha256= prefix format
+ *
+ * Validates GitHub webhook authenticity using HMAC-SHA256 with sha256= prefix.
+ * Uses constant-time comparison to prevent timing attacks.
+ *
+ * @param {string | Buffer} payload - Raw webhook payload
+ * @param {string} signature - Signature from X-Hub-Signature-256 header (includes 'sha256=' prefix)
+ * @param {string} secret - Webhook secret configured in GitHub repository settings
+ * @returns {boolean} True if signature is valid, false otherwise
+ * @example
+ * const isValid = verifyGithubSignature(
+ *   req.body,
+ *   req.headers['x-hub-signature-256'],
+ *   process.env.GITHUB_WEBHOOK_SECRET
+ * );
  */
 export function verifyGithubSignature(
   payload: string | Buffer,
@@ -64,7 +100,24 @@ export function verifyGithubSignature(
 
 /**
  * Verify Twitch EventSub webhook signature
- * Uses HMAC-SHA256 with message ID and timestamp
+ *
+ * Validates Twitch EventSub webhook authenticity using HMAC-SHA256.
+ * Twitch includes message ID and timestamp in the signed message to prevent replay attacks.
+ *
+ * @param {string} messageId - Message ID from Twitch-Eventsub-Message-Id header
+ * @param {string} messageTimestamp - Timestamp from Twitch-Eventsub-Message-Timestamp header
+ * @param {string | Buffer} payload - Raw webhook payload
+ * @param {string} signature - Signature from Twitch-Eventsub-Message-Signature header
+ * @param {string} secret - Webhook secret configured in Twitch EventSub subscription
+ * @returns {boolean} True if signature is valid, false otherwise
+ * @example
+ * const isValid = verifyTwitchSignature(
+ *   req.headers['twitch-eventsub-message-id'],
+ *   req.headers['twitch-eventsub-message-timestamp'],
+ *   req.body,
+ *   req.headers['twitch-eventsub-message-signature'],
+ *   process.env.TWITCH_WEBHOOK_SECRET
+ * );
  */
 export function verifyTwitchSignature(
   messageId: string,
@@ -93,6 +146,16 @@ export function verifyTwitchSignature(
 
 /**
  * Webhook configuration for creating secure handlers
+ *
+ * Defines the configuration needed to create a secure webhook endpoint
+ * with signature verification, timestamp validation, and payload validation.
+ *
+ * @interface WebhookConfig
+ * @property {string} signatureHeader - HTTP header name containing the signature
+ * @property {Function} signatureVerifier - Function to verify the signature
+ * @property {string} secret - Webhook signing secret
+ * @property {z.ZodSchema} payloadSchema - Zod schema for payload validation
+ * @property {number} [maxAge] - Maximum webhook age in milliseconds (for replay attack prevention)
  */
 export interface WebhookConfig {
   signatureHeader: string;
@@ -107,8 +170,33 @@ export interface WebhookConfig {
 }
 
 /**
- * Create a secure webhook handler middleware with signature verification,
- * timestamp validation, and payload validation
+ * Create a secure webhook handler middleware
+ *
+ * Creates Express middleware that performs comprehensive webhook security checks:
+ * 1. Verifies webhook signature using configured verifier
+ * 2. Validates webhook timestamp to prevent replay attacks (if maxAge provided)
+ * 3. Validates payload structure against provided Zod schema
+ * 4. Replaces req.body with validated payload
+ *
+ * @param {WebhookConfig} config - Webhook security configuration
+ * @returns {Function} Express middleware function
+ * @throws {z.ZodError} If payload validation fails
+ * @example
+ * // Stripe webhook
+ * app.post('/webhooks/stripe',
+ *   express.raw({ type: 'application/json' }),
+ *   createWebhookHandler({
+ *     signatureHeader: 'stripe-signature',
+ *     signatureVerifier: verifyStripeSignature,
+ *     secret: process.env.STRIPE_WEBHOOK_SECRET,
+ *     payloadSchema: stripeWebhookSchema,
+ *     maxAge: 5 * 60 * 1000 // 5 minutes
+ *   }),
+ *   async (req, res) => {
+ *     // Handle validated webhook
+ *     res.json({ received: true });
+ *   }
+ * );
  */
 export function createWebhookHandler(config: WebhookConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -178,13 +266,31 @@ export function createWebhookHandler(config: WebhookConfig) {
 
 /**
  * In-memory idempotency tracking
- * In production, use Redis or database for distributed systems
+ *
+ * Stores processed webhook IDs to prevent duplicate processing.
+ * In production, use Redis or database for distributed systems.
+ * Automatically expires old entries based on configured expiry time.
  */
 const processedWebhooks = new Map<string, number>();
 
 /**
  * Check webhook idempotency
- * Returns true if webhook can be processed, false if already processed
+ *
+ * Tracks processed webhooks to prevent duplicate processing. Automatically
+ * cleans up expired entries. Returns true if webhook has not been processed,
+ * false if it was already processed within the expiry window.
+ *
+ * @param {string} webhookId - Unique webhook identifier (e.g., Stripe event ID)
+ * @param {number} [expiryMs=86400000] - How long to track webhooks in milliseconds (default: 24 hours)
+ * @returns {Promise<boolean>} True if webhook can be processed, false if already processed
+ * @example
+ * // Check if webhook was already processed
+ * const canProcess = await checkWebhookIdempotency(event.id);
+ * if (!canProcess) {
+ *   console.log('Webhook already processed, skipping');
+ *   return res.json({ received: true });
+ * }
+ * // Process webhook...
  */
 export async function checkWebhookIdempotency(
   webhookId: string,
@@ -210,7 +316,12 @@ export async function checkWebhookIdempotency(
 }
 
 /**
- * Clear idempotency cache (for testing)
+ * Clear idempotency cache
+ *
+ * Removes all entries from the idempotency tracking cache.
+ * Primarily used for testing purposes.
+ *
+ * @returns {void}
  */
 export function clearIdempotencyCache(): void {
   processedWebhooks.clear();

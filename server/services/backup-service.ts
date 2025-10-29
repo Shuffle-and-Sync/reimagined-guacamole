@@ -1,3 +1,19 @@
+/**
+ * Database Backup Service
+ *
+ * Provides comprehensive database backup and restore functionality with support for:
+ * - Full database backups
+ * - Incremental backups
+ * - Critical data-only backups
+ * - Backup verification and integrity checking
+ * - Automated retention policy management
+ * - Backup compression and encryption
+ *
+ * This service is critical for data recovery and disaster management.
+ *
+ * @module BackupService
+ */
+
 import { spawn } from "child_process";
 import crypto from "crypto";
 import fs from "fs/promises";
@@ -6,6 +22,21 @@ import { sql } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { logger } from "../logger";
 
+/**
+ * Metadata information for a database backup
+ *
+ * @interface BackupMetadata
+ * @property {string} id - Unique identifier for the backup
+ * @property {Date} timestamp - When the backup was initiated
+ * @property {"full" | "incremental" | "critical_data"} type - Type of backup performed
+ * @property {number} size - Size of the backup file in bytes
+ * @property {"in_progress" | "completed" | "failed"} status - Current status of the backup
+ * @property {string} filePath - Absolute path to the backup file
+ * @property {string} [checksum] - SHA-256 checksum for integrity verification
+ * @property {string[]} tables - List of tables included in the backup
+ * @property {number} [duration] - Backup duration in milliseconds
+ * @property {string} [error] - Error message if backup failed
+ */
 export interface BackupMetadata {
   id: string;
   timestamp: Date;
@@ -19,6 +50,24 @@ export interface BackupMetadata {
   error?: string;
 }
 
+/**
+ * Configuration settings for the backup service
+ *
+ * @interface BackupConfig
+ * @property {boolean} enabled - Whether automated backups are enabled
+ * @property {Object} schedule - Cron patterns for different backup types
+ * @property {string} schedule.full - Cron pattern for full backups (default: weekly)
+ * @property {string} schedule.incremental - Cron pattern for incremental backups (default: daily)
+ * @property {string} schedule.criticalData - Cron pattern for critical data backups (default: every 6 hours)
+ * @property {Object} retention - Retention periods in days for each backup type
+ * @property {number} retention.full - Days to retain full backups
+ * @property {number} retention.incremental - Days to retain incremental backups
+ * @property {number} retention.criticalData - Days to retain critical data backups
+ * @property {boolean} compression - Whether to compress backups
+ * @property {boolean} encryption - Whether to encrypt backups
+ * @property {number} maxBackupSize - Maximum backup file size in MB
+ * @property {string[]} notificationChannels - Channels to notify on backup events
+ */
 export interface BackupConfig {
   enabled: boolean;
   schedule: {
@@ -37,12 +86,27 @@ export interface BackupConfig {
   notificationChannels: string[];
 }
 
+/**
+ * Database Backup Service
+ *
+ * Manages automated database backups with support for multiple backup types,
+ * retention policies, and restore operations. Handles backup verification,
+ * compression, and cleanup operations.
+ *
+ * @class BackupService
+ */
 class BackupService {
   private config: BackupConfig;
   private backupDir: string;
   private isRunning = false;
   private backupHistory: BackupMetadata[] = [];
 
+  /**
+   * Initialize the backup service
+   *
+   * Loads configuration from environment variables and initializes the backup directory.
+   * Defaults are provided for all configuration values if not specified.
+   */
   constructor() {
     this.backupDir = process.env.BACKUP_DIR || "/tmp/backups";
     this.config = {
@@ -68,6 +132,16 @@ class BackupService {
     this.initializeBackupDirectory();
   }
 
+  /**
+   * Initialize backup directory
+   *
+   * Creates the backup directory if it doesn't exist. This is called automatically
+   * during service initialization.
+   *
+   * @private
+   * @returns {Promise<void>}
+   * @throws {Error} If directory creation fails
+   */
   private async initializeBackupDirectory(): Promise<void> {
     try {
       await fs.mkdir(this.backupDir, { recursive: true });
@@ -84,6 +158,16 @@ class BackupService {
 
   /**
    * Create a full database backup
+   *
+   * Backs up all database tables using pg_dump. Includes optional compression
+   * and generates a checksum for integrity verification. The backup is stored
+   * in the configured backup directory with metadata tracked in memory.
+   *
+   * @returns {Promise<BackupMetadata>} Metadata for the completed backup
+   * @throws {Error} If backup operation fails
+   * @example
+   * const backup = await backupService.createFullBackup();
+   * console.log(`Backup completed: ${backup.id}, size: ${backup.size} bytes`);
    */
   async createFullBackup(): Promise<BackupMetadata> {
     const backupId = `full_${Date.now()}`;
@@ -143,6 +227,16 @@ class BackupService {
 
   /**
    * Create a backup of critical data only
+   *
+   * Backs up only essential tables (users, communities, events, tournaments, etc.)
+   * for faster backup and restore operations. Useful for frequent backups of
+   * business-critical data.
+   *
+   * @returns {Promise<BackupMetadata>} Metadata for the completed backup
+   * @throws {Error} If backup operation fails
+   * @example
+   * const backup = await backupService.createCriticalDataBackup();
+   * console.log(`Critical backup completed in ${backup.duration}ms`);
    */
   async createCriticalDataBackup(): Promise<BackupMetadata> {
     const backupId = `critical_${Date.now()}`;
@@ -211,6 +305,26 @@ class BackupService {
 
   /**
    * Restore database from backup
+   *
+   * Restores database tables from a backup file using psql. Supports selective
+   * table restoration and optional dropping of existing tables before restore.
+   *
+   * @param {string} backupPath - Absolute path to the backup file
+   * @param {Object} [options] - Restore options
+   * @param {string[]} [options.tables] - Specific tables to restore (default: all)
+   * @param {boolean} [options.dropExisting] - Drop existing tables before restore (default: false)
+   * @param {boolean} [options.dryRun] - Validate without performing restore (default: false)
+   * @returns {Promise<{success: boolean, tablesRestored: string[], duration: number, error?: string}>} Restore result
+   * @throws {Error} If backup file is inaccessible
+   * @example
+   * // Restore specific tables
+   * const result = await backupService.restoreFromBackup('/path/to/backup.sql', {
+   *   tables: ['users', 'communities'],
+   *   dropExisting: true
+   * });
+   * if (result.success) {
+   *   console.log(`Restored ${result.tablesRestored.length} tables in ${result.duration}ms`);
+   * }
    */
   async restoreFromBackup(
     backupPath: string,
@@ -278,6 +392,20 @@ class BackupService {
 
   /**
    * Verify backup integrity
+   *
+   * Validates that a backup file exists, is readable, has valid SQL structure,
+   * and meets size requirements. Calculates and returns a SHA-256 checksum
+   * for integrity verification.
+   *
+   * @param {string} backupPath - Absolute path to the backup file to verify
+   * @returns {Promise<{valid: boolean, checksum: string, size: number, error?: string}>} Verification result
+   * @example
+   * const verification = await backupService.verifyBackup('/path/to/backup.sql');
+   * if (verification.valid) {
+   *   console.log(`Backup is valid. Checksum: ${verification.checksum}`);
+   * } else {
+   *   console.error(`Backup verification failed: ${verification.error}`);
+   * }
    */
   async verifyBackup(backupPath: string): Promise<{
     valid: boolean;
@@ -341,6 +469,18 @@ class BackupService {
 
   /**
    * Clean up old backups based on retention policy
+   *
+   * Automatically removes backup files older than the configured retention period
+   * for each backup type (full, incremental, critical data). Runs as part of
+   * daily maintenance operations.
+   *
+   * @returns {Promise<{deletedCount: number, freedSpace: number, errors: string[]}>} Cleanup results
+   * @example
+   * const result = await backupService.cleanupOldBackups();
+   * console.log(`Deleted ${result.deletedCount} backups, freed ${result.freedSpace} bytes`);
+   * if (result.errors.length > 0) {
+   *   console.error('Errors during cleanup:', result.errors);
+   * }
    */
   async cleanupOldBackups(): Promise<{
     deletedCount: number;
@@ -410,6 +550,15 @@ class BackupService {
 
   /**
    * Get backup status and history
+   *
+   * Returns the current state of the backup service including configuration,
+   * recent backup history, and disk usage information.
+   *
+   * @returns {{isRunning: boolean, config: BackupConfig, recentBackups: BackupMetadata[], diskUsage: Object}} Current backup status
+   * @example
+   * const status = backupService.getBackupStatus();
+   * console.log(`Service running: ${status.isRunning}`);
+   * console.log(`Recent backups: ${status.recentBackups.length}`);
    */
   getBackupStatus(): {
     isRunning: boolean;
@@ -435,6 +584,15 @@ class BackupService {
 
   // Private helper methods
 
+  /**
+   * Get all table names from the database
+   *
+   * Queries the SQLite master table to retrieve all user-created tables,
+   * excluding system tables.
+   *
+   * @private
+   * @returns {Promise<string[]>} Array of table names
+   */
   private async getAllTableNames(): Promise<string[]> {
     try {
       // SQLite query to get all tables
@@ -452,6 +610,20 @@ class BackupService {
     }
   }
 
+  /**
+   * Execute pg_dump to create backup
+   *
+   * Spawns pg_dump process to create a database backup. Handles compression,
+   * table selection, and error reporting.
+   *
+   * @private
+   * @param {string} filePath - Destination path for backup file
+   * @param {Object} options - Dump options
+   * @param {string[]} options.tables - Tables to include in backup
+   * @param {boolean} options.compression - Whether to compress the output
+   * @returns {Promise<void>}
+   * @throws {Error} If pg_dump fails or DATABASE_URL is not configured
+   */
   private async executePgDump(
     filePath: string,
     options: {
@@ -508,6 +680,20 @@ class BackupService {
     });
   }
 
+  /**
+   * Execute psql restore operation
+   *
+   * Spawns psql process to restore database from a backup file. Handles
+   * selective table restoration and cleanup operations.
+   *
+   * @private
+   * @param {string} backupPath - Path to backup file
+   * @param {Object} options - Restore options
+   * @param {string[]} [options.tables] - Specific tables to restore
+   * @param {boolean} options.dropExisting - Whether to drop existing tables
+   * @returns {Promise<{tablesRestored: string[]}>} List of restored tables
+   * @throws {Error} If psql fails or DATABASE_URL is not configured
+   */
   private async executePsqlRestore(
     backupPath: string,
     options: {
@@ -554,11 +740,31 @@ class BackupService {
     });
   }
 
+  /**
+   * Calculate SHA-256 checksum of a file
+   *
+   * Generates a cryptographic hash of the entire file contents for integrity
+   * verification and tamper detection.
+   *
+   * @private
+   * @param {string} filePath - Path to file
+   * @returns {Promise<string>} SHA-256 checksum in hexadecimal format
+   */
   private async calculateChecksum(filePath: string): Promise<string> {
     const fileBuffer = await fs.readFile(filePath);
     return crypto.createHash("sha256").update(fileBuffer).digest("hex");
   }
 
+  /**
+   * Validate SQL file structure
+   *
+   * Performs basic validation to ensure backup file contains valid SQL
+   * by checking for common SQL keywords and structure.
+   *
+   * @private
+   * @param {string} filePath - Path to SQL file
+   * @returns {Promise<boolean>} True if file appears to be valid SQL
+   */
   private async validateSqlStructure(filePath: string): Promise<boolean> {
     try {
       const content = await fs.readFile(filePath, "utf-8");
@@ -575,6 +781,16 @@ class BackupService {
     }
   }
 
+  /**
+   * Send notification when backup completes successfully
+   *
+   * Sends notifications to configured channels (email, Slack, etc.) when
+   * a backup operation completes successfully.
+   *
+   * @private
+   * @param {BackupMetadata} metadata - Backup metadata
+   * @returns {Promise<void>}
+   */
   private async notifyBackupCompletion(
     metadata: BackupMetadata,
   ): Promise<void> {
@@ -586,6 +802,17 @@ class BackupService {
     });
   }
 
+  /**
+   * Send notification when backup fails
+   *
+   * Sends notifications to configured channels (email, Slack, etc.) when
+   * a backup operation fails, including error details.
+   *
+   * @private
+   * @param {BackupMetadata} metadata - Backup metadata
+   * @param {unknown} error - Error that caused the failure
+   * @returns {Promise<void>}
+   */
   private async notifyBackupFailure(
     metadata: BackupMetadata,
     error: unknown,
@@ -599,5 +826,11 @@ class BackupService {
   }
 }
 
+/**
+ * Singleton instance of the backup service
+ *
+ * @constant
+ * @type {BackupService}
+ */
 export const backupService = new BackupService();
 export { BackupService };
