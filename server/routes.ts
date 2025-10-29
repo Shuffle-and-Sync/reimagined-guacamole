@@ -51,7 +51,17 @@ import { waitlistService } from "./services/waitlist.service";
 import { assertRouteParam } from "./shared/utils";
 import { storage } from "./storage";
 // FIXED: Use ONLY error classes from middleware, removed conflicting imports from ./types
+import {
+  parseFilterParams,
+  parseIntParam,
+  parseBooleanParam,
+  sendSuccess,
+  sendNotFound,
+  sendInternalError,
+  getOptionalUserIdFromRequest,
+} from "./utils/api.utils";
 import EnhancedWebSocketServer from "./utils/websocket-server-enhanced";
+// Import API utilities for cleaner route handlers
 // Auth.js session validation will be done via session endpoint
 import {
   validateRequest,
@@ -552,37 +562,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Event routes
   app.get("/api/events", async (req, res) => {
     try {
-      const { communityId, type, upcoming } = req.query;
-      const userId = (req as any).user?.id;
+      const filters = parseFilterParams(req, ["communityId", "type"]);
+      const upcoming = parseBooleanParam(req, "upcoming", false);
+      const userId = getOptionalUserIdFromRequest(req);
 
       const events = await storage.getEvents({
         userId,
-        communityId: communityId as string,
-        type: type as string,
-        upcoming: upcoming === "true",
+        ...filters,
+        upcoming,
       });
 
-      return res.json(events);
+      return sendSuccess(res, events);
     } catch (error) {
       logger.error("Failed to fetch events", error, { filters: req.query });
-      return res.status(500).json({ message: "Failed to fetch events" });
+      return sendInternalError(res, "Failed to fetch events");
     }
   });
 
   app.get("/api/events/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = (req as any).user?.id;
+      const userId = getOptionalUserIdFromRequest(req);
 
       const event = await storage.getEvent(id, userId);
       if (!event) {
-        return res.status(404).json({ message: "Event not found" });
+        return sendNotFound(res, "Event not found");
       }
 
-      return res.json(event);
+      return sendSuccess(res, event);
     } catch (error) {
       logger.error("Failed to fetch event", error, { eventId: req.params.id });
-      return res.status(500).json({ message: "Failed to fetch event" });
+      return sendInternalError(res, "Failed to fetch event");
     }
   });
 
@@ -922,17 +932,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authenticatedReq = req as AuthenticatedRequest;
       try {
         const userId = getAuthUserId(authenticatedReq);
-        const { unreadOnly, limit } = req.query;
+        const unreadOnly = parseBooleanParam(req, "unreadOnly", false);
+        const limit = parseIntParam(req, "limit");
+
         const notifications = await storage.getUserNotifications(userId, {
-          unreadOnly: unreadOnly === "true",
-          limit: limit ? parseInt(limit as string) : undefined,
+          unreadOnly,
+          limit,
         });
-        return res.json(notifications);
+        return sendSuccess(res, notifications);
       } catch (error) {
         logger.error("Failed to fetch notifications", error, {
           userId: getAuthUserId(authenticatedReq),
         });
-        return res.status(500).json({ message: "Internal server error" });
+        return sendInternalError(res);
       }
     },
   );
@@ -995,18 +1007,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
       const userId = getAuthUserId(authenticatedReq);
-      const { eventId, communityId, limit } = req.query;
+      const filters = parseFilterParams(req, ["eventId", "communityId"]);
+      const limit = parseIntParam(req, "limit");
+
       const messages = await storage.getUserMessages(userId, {
-        eventId: eventId as string,
-        communityId: communityId as string,
-        limit: limit ? parseInt(limit as string) : undefined,
+        ...filters,
+        limit,
       });
-      return res.json(messages);
+      return sendSuccess(res, messages);
     } catch (error) {
       logger.error("Failed to fetch messages", error, {
         userId: getAuthUserId(authenticatedReq),
       });
-      return res.status(500).json({ message: "Internal server error" });
+      return sendInternalError(res);
     }
   });
 

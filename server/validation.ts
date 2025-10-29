@@ -2,6 +2,20 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { getAuthUserId } from "./auth";
 import { logger } from "./logger";
+// Import reusable validation schemas from utilities
+import {
+  emailSchema,
+  usernameSchema,
+  bioSchema,
+  urlSchema,
+  dateStringSchema,
+  timeStringSchema,
+  idSchema,
+  positiveIntSchema,
+  nonNegativeIntSchema,
+  createEnumSchema,
+  optionalNameSchema,
+} from "./utils/validation.utils";
 
 // Safe helper to get user ID without throwing error
 function safeGetUserId(req: Request): string | undefined {
@@ -12,66 +26,69 @@ function safeGetUserId(req: Request): string | undefined {
   }
 }
 
-// Input validation schemas
+// Input validation schemas - now using reusable utilities
 export const validateEmailSchema = z.object({
-  email: z.string().email("Invalid email format").min(1, "Email is required"),
+  email: emailSchema,
 });
 
 export const validateUserProfileUpdateSchema = z.object({
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  username: z
-    .string()
-    .min(2)
-    .max(30)
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Username must contain only letters, numbers, underscores, and hyphens",
-    )
-    .optional(),
-  bio: z.string().max(500).optional(),
+  firstName: optionalNameSchema.max(50),
+  lastName: optionalNameSchema.max(50),
+  username: usernameSchema.optional(),
+  bio: bioSchema,
   location: z.string().max(100).optional(),
-  website: z.string().url().optional().or(z.literal("")),
-  status: z.enum(["online", "offline", "away", "busy", "gaming"]).optional(),
+  website: urlSchema.optional(),
+  status: createEnumSchema([
+    "online",
+    "offline",
+    "away",
+    "busy",
+    "gaming",
+  ] as const).optional(),
   statusMessage: z.string().max(100).optional(),
   timezone: z.string().max(50).optional(),
   isPrivate: z.boolean().optional(),
-  showOnlineStatus: z.enum(["everyone", "friends_only"]).optional(),
-  allowDirectMessages: z.enum(["everyone", "friends_only"]).optional(),
+  showOnlineStatus: createEnumSchema([
+    "everyone",
+    "friends_only",
+  ] as const).optional(),
+  allowDirectMessages: createEnumSchema([
+    "everyone",
+    "friends_only",
+  ] as const).optional(),
   primaryCommunity: z.string().max(50).optional(),
 });
 
 export const validateEventSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   description: z.string().max(1000).optional(),
-  type: z.enum([
+  type: createEnumSchema([
     "tournament",
     "convention",
     "release",
     "community",
     "game_pod",
-  ]),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
-  time: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+  ] as const),
+  date: dateStringSchema,
+  time: timeStringSchema,
   location: z.string().min(1, "Location is required").max(200),
-  communityId: z.string().min(1, "Community ID is required").max(50),
-  maxAttendees: z.number().int().min(1).max(10000).optional(),
+  communityId: idSchema,
+  maxAttendees: positiveIntSchema.max(10000).optional(),
   isPublic: z.boolean().optional(),
   // Game pod specific fields
-  playerSlots: z.number().int().min(2).max(8).optional(),
-  alternateSlots: z.number().int().min(0).max(8).optional(),
+  playerSlots: positiveIntSchema.min(2).max(8).optional(),
+  alternateSlots: nonNegativeIntSchema.max(8).optional(),
   gameFormat: z.string().max(50).optional(),
-  powerLevel: z.number().int().min(1).max(10).optional(),
+  powerLevel: positiveIntSchema.max(10).optional(),
   // Recurring event fields
   isRecurring: z.boolean().optional(),
-  recurrencePattern: z.enum(["daily", "weekly", "monthly"]).optional(),
-  recurrenceInterval: z.number().int().min(1).max(365).optional(),
-  recurrenceEndDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format")
-    .optional(),
+  recurrencePattern: createEnumSchema([
+    "daily",
+    "weekly",
+    "monthly",
+  ] as const).optional(),
+  recurrenceInterval: positiveIntSchema.max(365).optional(),
+  recurrenceEndDate: dateStringSchema.optional(),
 });
 
 export const validatePasswordResetSchema = z.object({
