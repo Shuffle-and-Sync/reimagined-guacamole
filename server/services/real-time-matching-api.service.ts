@@ -6,7 +6,7 @@
  */
 
 import { logger } from "../logger";
-import { aiAlgorithmEngine } from "./ai-algorithm-engine";
+import { aiAlgorithmEngine } from "./ai";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
 import type { ConnectedPlatform } from "./ai-streaming-matcher";
 
