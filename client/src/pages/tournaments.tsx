@@ -221,7 +221,9 @@ export default function Tournaments() {
       maxParticipants: tournament.maxParticipants || 8,
       startDate: String(startDate),
       prizePool:
-        tournament.prizePool != null ? String(tournament.prizePool) : "",
+        tournament.prizePool !== null && tournament.prizePool !== undefined
+          ? String(tournament.prizePool)
+          : "",
       rules: (tournament as any).rules || "",
     });
     setIsEditModalOpen(true);

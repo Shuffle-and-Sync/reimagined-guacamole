@@ -407,7 +407,7 @@ export class SessionSecurityService {
               (
                 activity,
               ): activity is typeof activity & { createdAt: Date | string } =>
-                activity.createdAt != null,
+                activity.createdAt !== null && activity.createdAt !== undefined,
             )
             .map((activity) => new Date(activity.createdAt).getHours())
             .filter((activityHour) => Math.abs(activityHour - hour) <= 2);
@@ -493,7 +493,7 @@ export class SessionSecurityService {
           recentActivity
             .filter(
               (activity): activity is typeof activity & { ipAddress: string } =>
-                activity.ipAddress != null,
+                activity.ipAddress !== null && activity.ipAddress !== undefined,
             )
             .map((activity) =>
               activity.ipAddress.split(".").slice(0, 3).join("."),
