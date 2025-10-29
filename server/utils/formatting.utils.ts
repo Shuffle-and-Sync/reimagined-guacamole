@@ -414,7 +414,13 @@ export function formatList(items: string[], conjunction = "and"): string {
  */
 export function stripHtml(html: string): string {
   if (!html) return "";
-  return html.replace(/<[^>]*>/g, "");
+  let previous: string;
+  let result = html;
+  do {
+    previous = result;
+    result = result.replace(/<[^>]*>/g, "");
+  } while (result !== previous);
+  return result;
 }
 
 /**
