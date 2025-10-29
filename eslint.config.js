@@ -72,6 +72,15 @@ export default [
         },
       ],
 
+      // Security: Enforce strict equality to prevent type coercion bugs
+      eqeqeq: [
+        "error",
+        "always",
+        {
+          null: "ignore", // Allow == null for checking both null and undefined
+        },
+      ],
+
       // Import ordering rules
       "import/order": [
         "error",
