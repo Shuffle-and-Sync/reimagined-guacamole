@@ -3,8 +3,8 @@
  */
 
 import { Router } from "express";
-import { pushNotificationService } from "../services/push-notification.service";
 import { logger } from "../logger";
+import { pushNotificationService } from "../services/push-notification.service";
 
 const router = Router();
 
@@ -152,7 +152,7 @@ router.get("/vapid-public-key", (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     publicKey,
   });
 });
