@@ -2,11 +2,12 @@
  * Universal Card Service
  *
  * Main service that routes card requests to appropriate adapters based on game ID
- * NOTE: games table not yet implemented in schema - custom games disabled
+ * Supports database-backed game lookups for official and custom games
  */
 
-// TODO: Re-enable when games table is added to schema
-// import { games } from '../../../shared/schema';
+import { eq } from "drizzle-orm";
+import { db } from "../../../shared/database-unified";
+import { games } from "../../../shared/schema";
 import { logger } from "../../logger";
 import {
   ICardAdapter,
@@ -18,11 +19,25 @@ import { pokemonTCGAdapter } from "./adapters/pokemon.adapter";
 import { scryfallAdapter } from "./adapters/scryfall.adapter";
 import { yugiohAdapter } from "./adapters/yugioh.adapter";
 
+// Map game codes from database to adapter instances
+const ADAPTER_MAP: Record<string, ICardAdapter> = {
+  MTG: scryfallAdapter,
+  POKEMON: pokemonTCGAdapter,
+  YUGIOH: yugiohAdapter,
+  // Add more official adapters here as they become available
+  // LORCANA: lorcanaAdapter, // Coming soon
+};
+
 export class UniversalCardService {
   private adapters = new Map<string, ICardAdapter>();
+  private gameCache = new Map<
+    string,
+    { code: string; name: string; isActive: boolean }
+  >();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
-    // Register official game adapters
+    // Register official game adapters by their legacy IDs for backward compatibility
     this.adapters.set("mtg-official", scryfallAdapter);
     this.adapters.set("pokemon-tcg", pokemonTCGAdapter);
     this.adapters.set("yugioh-tcg", yugiohAdapter);
@@ -32,10 +47,90 @@ export class UniversalCardService {
   }
 
   /**
+   * Validate that a game exists in the database and is active
+   */
+  private async validateGame(
+    gameId: string,
+  ): Promise<{ code: string; name: string }> {
+    try {
+      // Check cache first
+      const cached = this.gameCache.get(gameId);
+      if (cached && cached.isActive) {
+        return { code: cached.code, name: cached.name };
+      }
+
+      // Query database for game
+      const gameResult = await db
+        .select()
+        .from(games)
+        .where(eq(games.id, gameId))
+        .limit(1);
+
+      if (gameResult.length === 0) {
+        // Game not found by ID - try by code (for backward compatibility)
+        const gameByCode = await db
+          .select()
+          .from(games)
+          .where(eq(games.code, gameId.toUpperCase()))
+          .limit(1);
+
+        if (gameByCode.length === 0) {
+          throw new Error(`Game not found: ${gameId}`);
+        }
+
+        const game = gameByCode[0];
+        if (!game.isActive) {
+          throw new Error(`Game is not active: ${gameId}`);
+        }
+
+        // Cache the result
+        this.gameCache.set(gameId, {
+          code: game.code,
+          name: game.name,
+          isActive: game.isActive,
+        });
+
+        return { code: game.code, name: game.name };
+      }
+
+      const game = gameResult[0];
+      if (!game.isActive) {
+        throw new Error(`Game is not active: ${gameId}`);
+      }
+
+      // Cache the result
+      this.gameCache.set(gameId, {
+        code: game.code,
+        name: game.name,
+        isActive: game.isActive,
+      });
+
+      return { code: game.code, name: game.name };
+    } catch (error) {
+      // If database query fails, fall back to hardcoded game IDs
+      logger.warn(
+        "Game validation failed, falling back to hardcoded IDs",
+        error,
+      );
+
+      // Support legacy game IDs
+      if (gameId === "mtg-official") {
+        return { code: "MTG", name: "Magic: The Gathering" };
+      } else if (gameId === "pokemon-tcg") {
+        return { code: "POKEMON", name: "Pokemon Trading Card Game" };
+      } else if (gameId === "yugioh-tcg") {
+        return { code: "YUGIOH", name: "Yu-Gi-Oh! Trading Card Game" };
+      }
+
+      throw error;
+    }
+  }
+
+  /**
    * Get or create adapter for a specific game
    */
   private async getAdapter(gameId: string): Promise<ICardAdapter> {
-    // Check if adapter already exists
+    // Check if adapter already exists for this game ID
     if (this.adapters.has(gameId)) {
       const adapter = this.adapters.get(gameId);
       if (adapter) {
@@ -43,44 +138,25 @@ export class UniversalCardService {
       }
     }
 
-    // TODO: Re-enable when games table is added to schema
-    // For now, only support official games
-    /* Original implementation - disabled until games table exists
-    // Load game configuration
-    const [game] = await db
-      .select()
-      .from(games)
-      .where(eq(games.id, gameId))
-      .limit(1);
+    // Validate game exists and get its code
+    const gameInfo = await this.validateGame(gameId);
 
-    if (!game) {
-      throw new Error(`Game not found: ${gameId}`);
-    }
-    */
+    // Get adapter based on game code
+    const adapter = ADAPTER_MAP[gameInfo.code];
 
-    // Determine which adapter to use
-    let adapter: ICardAdapter;
-
-    // Check for official game adapters
-    if (gameId === "mtg-official") {
-      adapter = scryfallAdapter;
-    } else if (gameId === "pokemon-tcg") {
-      adapter = pokemonTCGAdapter;
-    } else if (gameId === "yugioh-tcg") {
-      adapter = yugiohAdapter;
-    } else {
-      // Custom games not supported until games table is implemented
+    if (!adapter) {
       throw new Error(
-        `Custom games not yet supported - games table missing from schema. Supported games: mtg-official, pokemon-tcg, yugioh-tcg`,
+        `No adapter available for game: ${gameInfo.name} (${gameInfo.code}). ` +
+          `Supported games: ${Object.keys(ADAPTER_MAP).join(", ")}`,
       );
-      // Default to custom game adapter for all user-defined games
-      // adapter = new CustomGameAdapter(gameId);
     }
 
-    // Cache the adapter
+    // Cache the adapter for this game ID
     this.adapters.set(gameId, adapter);
-    logger.info("Created adapter for game", {
+    logger.info("Mapped game to adapter", {
       gameId,
+      gameCode: gameInfo.code,
+      gameName: gameInfo.name,
       adapterType: adapter.constructor.name,
     });
 
@@ -200,6 +276,7 @@ export class UniversalCardService {
     const yugiohAdapter = this.adapters.get("yugioh-tcg");
 
     this.adapters.clear();
+    this.gameCache.clear();
 
     if (mtgAdapter) {
       this.adapters.set("mtg-official", mtgAdapter);
@@ -212,6 +289,42 @@ export class UniversalCardService {
     }
 
     logger.info("Adapter cache cleared");
+  }
+
+  /**
+   * Get list of supported games
+   */
+  async getSupportedGames(): Promise<
+    Array<{ id: string; name: string; code: string }>
+  > {
+    try {
+      const allGames = await db
+        .select()
+        .from(games)
+        .where(eq(games.isActive, true));
+
+      return allGames.map((game) => ({
+        id: game.id,
+        name: game.name,
+        code: game.code,
+      }));
+    } catch (error) {
+      logger.error("Failed to get supported games from database", error);
+      // Return hardcoded list as fallback
+      return [
+        { id: "mtg-official", name: "Magic: The Gathering", code: "MTG" },
+        {
+          id: "pokemon-tcg",
+          name: "Pokemon Trading Card Game",
+          code: "POKEMON",
+        },
+        {
+          id: "yugioh-tcg",
+          name: "Yu-Gi-Oh! Trading Card Game",
+          code: "YUGIOH",
+        },
+      ];
+    }
   }
 }
 

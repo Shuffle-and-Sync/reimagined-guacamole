@@ -12,6 +12,25 @@ import { universalCardService } from "../../services/card-recognition/index";
 
 const router = Router();
 
+/**
+ * GET /api/games - List all supported games
+ */
+router.get("/", async (req, res) => {
+  try {
+    const supportedGames = await universalCardService.getSupportedGames();
+    return res.json({
+      games: supportedGames,
+      count: supportedGames.length,
+    });
+  } catch (error) {
+    logger.error(
+      "Error fetching supported games",
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return res.status(500).json({ message: "Failed to fetch supported games" });
+  }
+});
+
 // Validation schemas
 const searchCardsSchema = z.object({
   q: z.string().min(1).max(200),
