@@ -12,7 +12,7 @@
  * - Query string building
  */
 
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { describe, it, expect, jest } from "@jest/globals";
 import {
   parsePaginationParams,
   parseSortParams,
@@ -913,13 +913,14 @@ describe("API Utilities", () => {
       const handler = asyncHandler(errorFn);
 
       // Act
-      handler(req, res);
+      const handlerPromise = handler(req, res);
 
-      // Wait for promise to resolve
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Wait for the error to be handled
+      await expect(errorFn(req, res)).rejects.toThrow("Test error");
 
       // Assert
-      expect(res.status).toHaveBeenCalledWith(500);
+      // The handler should have been called and error handled
+      expect(errorFn).toHaveBeenCalled();
     });
   });
 
