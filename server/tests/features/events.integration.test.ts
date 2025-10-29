@@ -615,4 +615,163 @@ describe("Event Management Integration", () => {
       expect(upcoming.length).toBeGreaterThanOrEqual(2);
     });
   });
+
+  describe("Event Schema - New Fields", () => {
+    test("creates event with isPublic field", () => {
+      const publicEvent = createMockEvent({
+        title: "Public Tournament",
+        type: "tournament",
+        isPublic: true,
+      });
+
+      expect(publicEvent.isPublic).toBe(true);
+    });
+
+    test("creates private event", () => {
+      const privateEvent = createMockEvent({
+        title: "Private Game Pod",
+        type: "game_pod",
+        isPublic: false,
+      });
+
+      expect(privateEvent.isPublic).toBe(false);
+    });
+
+    test("creates event with game format", () => {
+      const event = createMockEvent({
+        title: "Commander Pod",
+        type: "game_pod",
+        gameFormat: "commander",
+        powerLevel: 7,
+      });
+
+      expect(event.gameFormat).toBe("commander");
+      expect(event.powerLevel).toBe(7);
+    });
+
+    test("creates event with power level within range", () => {
+      const event = createMockEvent({
+        title: "Casual Commander",
+        type: "game_pod",
+        gameFormat: "commander",
+        powerLevel: 5,
+      });
+
+      expect(event.powerLevel).toBe(5);
+      expect(event.powerLevel).toBeGreaterThanOrEqual(1);
+      expect(event.powerLevel).toBeLessThanOrEqual(10);
+    });
+
+    test("creates recurring event with daily pattern", () => {
+      const event = createMockEvent({
+        title: "Daily Magic",
+        type: "game_pod",
+        isRecurring: true,
+        recurrencePattern: "daily",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-12-31"),
+      });
+
+      expect(event.isRecurring).toBe(true);
+      expect(event.recurrencePattern).toBe("daily");
+      expect(event.recurrenceInterval).toBe(1);
+      expect(event.recurrenceEndDate).toBeInstanceOf(Date);
+    });
+
+    test("creates recurring event with weekly pattern", () => {
+      const event = createMockEvent({
+        title: "Weekly Game Night",
+        type: "game_pod",
+        isRecurring: true,
+        recurrencePattern: "weekly",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-06-30"),
+      });
+
+      expect(event.isRecurring).toBe(true);
+      expect(event.recurrencePattern).toBe("weekly");
+    });
+
+    test("creates recurring event with monthly pattern", () => {
+      const event = createMockEvent({
+        title: "Monthly Tournament",
+        type: "tournament",
+        isRecurring: true,
+        recurrencePattern: "monthly",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-12-31"),
+      });
+
+      expect(event.isRecurring).toBe(true);
+      expect(event.recurrencePattern).toBe("monthly");
+    });
+
+    test("creates child event linked to parent", () => {
+      const parentEvent = createMockEvent({
+        title: "Recurring Game Night",
+        isRecurring: true,
+      });
+
+      const childEvent = createMockEvent({
+        title: "Recurring Game Night - Week 2",
+        parentEventId: parentEvent.id,
+      });
+
+      expect(childEvent.parentEventId).toBe(parentEvent.id);
+    });
+
+    test("event defaults to public visibility", () => {
+      const event = createMockEvent({
+        title: "Default Event",
+        type: "community",
+      });
+
+      expect(event.isPublic).toBe(true);
+    });
+
+    test("event defaults to non-recurring", () => {
+      const event = createMockEvent({
+        title: "One-Time Event",
+        type: "stream",
+      });
+
+      expect(event.isRecurring).toBe(false);
+    });
+
+    test("creates event with all new fields combined", () => {
+      const event = createMockEvent({
+        title: "Complete Event",
+        type: "game_pod",
+        isPublic: false,
+        gameFormat: "modern",
+        powerLevel: 8,
+        isRecurring: true,
+        recurrencePattern: "weekly",
+        recurrenceInterval: 2,
+        recurrenceEndDate: new Date("2025-12-31"),
+      });
+
+      expect(event.isPublic).toBe(false);
+      expect(event.gameFormat).toBe("modern");
+      expect(event.powerLevel).toBe(8);
+      expect(event.isRecurring).toBe(true);
+      expect(event.recurrencePattern).toBe("weekly");
+      expect(event.recurrenceInterval).toBe(2);
+      expect(event.recurrenceEndDate).toBeInstanceOf(Date);
+    });
+
+    test("handles null values for optional fields", () => {
+      const event = createMockEvent({
+        title: "Simple Event",
+        type: "community",
+      });
+
+      expect(event.gameFormat).toBeNull();
+      expect(event.powerLevel).toBeNull();
+      expect(event.recurrencePattern).toBeNull();
+      expect(event.recurrenceInterval).toBeNull();
+      expect(event.recurrenceEndDate).toBeNull();
+      expect(event.parentEventId).toBeNull();
+    });
+  });
 });
