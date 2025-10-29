@@ -1,6 +1,30 @@
+/**
+ * Enhanced Notification Service
+ *
+ * Provides sophisticated notification delivery for event-related updates including:
+ * - Event reminders at configurable intervals before start time
+ * - Event update notifications when details change
+ * - Event cancellation notifications to all attendees
+ * - Waitlist promotion notifications
+ *
+ * All notifications are persisted to storage and can trigger multiple delivery
+ * channels (in-app, email, push notifications).
+ *
+ * @module EnhancedNotificationService
+ */
+
 import { logger } from "../logger";
 import { storage } from "../storage";
 
+/**
+ * Notification trigger event information
+ *
+ * @interface NotificationTrigger
+ * @property {"event_reminder" | "event_updated" | "event_cancelled" | "event_starting_soon" | "waitlist_promoted"} type - Type of notification trigger
+ * @property {string} eventId - ID of the event triggering the notification
+ * @property {string} userId - ID of the user to notify
+ * @property {unknown} [data] - Additional context data for the notification
+ */
 export interface NotificationTrigger {
   type:
     | "event_reminder"
@@ -13,9 +37,30 @@ export interface NotificationTrigger {
   data?: unknown;
 }
 
+/**
+ * Enhanced Notification Service
+ *
+ * Manages event-based notifications with intelligent delivery timing and
+ * priority handling. Automatically notifies relevant users of event changes.
+ *
+ * @class EnhancedNotificationService
+ */
 export class EnhancedNotificationService {
   /**
    * Send event reminder notification
+   *
+   * Sends reminder notifications to all attending users for an upcoming event.
+   * Priority is set to 'high' if event starts within 1 hour, 'normal' otherwise.
+   *
+   * @param {string} eventId - ID of the event to send reminders for
+   * @param {number} hoursBeforeEvent - How many hours before event start (e.g., 24, 1)
+   * @returns {Promise<void>}
+   * @example
+   * // Send 24-hour reminder
+   * await notificationService.sendEventReminder('event_123', 24);
+   *
+   * // Send 1-hour reminder (high priority)
+   * await notificationService.sendEventReminder('event_123', 1);
    */
   async sendEventReminder(eventId: string, hoursBeforeEvent: number) {
     try {
@@ -53,6 +98,15 @@ export class EnhancedNotificationService {
 
   /**
    * Send event updated notification
+   *
+   * Notifies all event attendees (except the creator) when event details change.
+   * Includes a list of what changed in the notification message.
+   *
+   * @param {string} eventId - ID of the updated event
+   * @param {string[]} changes - Array of changed fields (e.g., ['time', 'location'])
+   * @returns {Promise<void>}
+   * @example
+   * await notificationService.sendEventUpdatedNotification('event_123', ['startTime', 'location']);
    */
   async sendEventUpdatedNotification(eventId: string, changes: string[]) {
     try {
@@ -92,6 +146,14 @@ export class EnhancedNotificationService {
 
   /**
    * Send event cancelled notification
+   *
+   * Sends high-priority cancellation notifications to all event attendees.
+   * Includes reason if provided.
+   *
+   * @param {string} eventId - ID of the cancelled event
+   * @returns {Promise<void>}
+   * @example
+   * await notificationService.sendEventCancelledNotification('event_123');
    */
   async sendEventCancelledNotification(eventId: string) {
     try {

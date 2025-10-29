@@ -3,10 +3,10 @@
  * Handles browser push notifications for real-time user engagement
  */
 
+import { eq, and } from "drizzle-orm";
 import webPush from "web-push";
 import { db } from "@shared/database-unified";
 import { pushSubscriptions } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
 import { logger } from "../logger";
 
 export interface PushSubscription {
@@ -218,7 +218,9 @@ export class PushNotificationService {
     payload: PushNotificationPayload,
   ): Promise<{ success: boolean; sentCount: number; failedCount: number }> {
     if (!this.configured) {
-      logger.warn("Push notifications not configured - cannot send", { userId });
+      logger.warn("Push notifications not configured - cannot send", {
+        userId,
+      });
       return { success: false, sentCount: 0, failedCount: 0 };
     }
 
@@ -325,7 +327,9 @@ export class PushNotificationService {
   /**
    * Mark subscription as inactive
    */
-  private async markSubscriptionInactive(subscriptionId: string): Promise<void> {
+  private async markSubscriptionInactive(
+    subscriptionId: string,
+  ): Promise<void> {
     try {
       await db
         .update(pushSubscriptions)
@@ -350,14 +354,12 @@ export class PushNotificationService {
       const ninetyDaysAgo = new Date();
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-      const result = await db
-        .delete(pushSubscriptions)
-        .where(
-          and(
-            eq(pushSubscriptions.isActive, false),
-            // Note: This comparison might need adjustment based on your DB
-          ),
-        );
+      const result = await db.delete(pushSubscriptions).where(
+        and(
+          eq(pushSubscriptions.isActive, false),
+          // Note: This comparison might need adjustment based on your DB
+        ),
+      );
 
       logger.info("Push subscriptions cleaned up", {
         deletedCount: result.changes || 0,
