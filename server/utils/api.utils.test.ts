@@ -909,18 +909,22 @@ describe("API Utilities", () => {
       // Arrange
       const req = createMockRequest() as Request;
       const res = createMockResponse() as Response;
-      const errorFn = jest.fn().mockRejectedValue(new Error("Test error"));
+      const testError = new Error("Test error");
+      const errorFn = jest.fn().mockRejectedValue(testError);
+
+      // Wrap with asyncHandler
       const handler = asyncHandler(errorFn);
 
       // Act
-      const handlerPromise = handler(req, res);
+      handler(req, res);
 
-      // Wait for the error to be handled
-      await expect(errorFn(req, res)).rejects.toThrow("Test error");
+      // Wait for promise to be handled
+      await new Promise((resolve) => process.nextTick(resolve));
 
       // Assert
-      // The handler should have been called and error handled
-      expect(errorFn).toHaveBeenCalled();
+      expect(errorFn).toHaveBeenCalledWith(req, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalled();
     });
   });
 
