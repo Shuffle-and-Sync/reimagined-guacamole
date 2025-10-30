@@ -274,8 +274,8 @@ export class AdaptiveRateLimiter {
    */
   private recordRequest(
     key: string,
-    userType: UserType,
-    priority: MessagePriority,
+    _userType: UserType,
+    _priority: MessagePriority,
   ): void {
     const now = Date.now();
     let entry = this.entries.get(key);

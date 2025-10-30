@@ -2,13 +2,9 @@
  * Tests for Adaptive Rate Limiter
  */
 
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { describe, it, expect, beforeEach } from "@jest/globals";
 import { PerformanceMonitor } from "../../middleware/performance.middleware";
-import {
-  AdaptiveRateLimiter,
-  MessagePriority,
-  UserType,
-} from "../../utils/adaptive-rate-limiter";
+import { AdaptiveRateLimiter } from "../../utils/adaptive-rate-limiter";
 
 describe("AdaptiveRateLimiter", () => {
   let rateLimiter: AdaptiveRateLimiter;
