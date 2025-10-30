@@ -10,9 +10,9 @@ import type { StateDiff } from "../../../../../shared/game-adapter-types";
  * Calculate efficient diff between two states
  * Uses path-based diffing to minimize payload size
  */
-export function calculateOptimizedDiff(
-  oldState: any,
-  newState: any,
+export function calculateOptimizedDiff<T = unknown>(
+  oldState: T,
+  newState: T,
   path: string = "",
 ): StateDiff[] {
   const diffs: StateDiff[] = [];
@@ -119,9 +119,9 @@ export function calculateOptimizedDiff(
 /**
  * Calculate diff for arrays using indices
  */
-function calculateArrayDiff(
-  oldArray: any[],
-  newArray: any[],
+function calculateArrayDiff<T = unknown>(
+  oldArray: T[],
+  newArray: T[],
   path: string,
   timestamp: Date,
 ): StateDiff[] {
@@ -166,8 +166,11 @@ function calculateArrayDiff(
 /**
  * Apply diffs to a state
  */
-export function applyOptimizedDiff(state: any, diffs: StateDiff[]): any {
-  let result = JSON.parse(JSON.stringify(state));
+export function applyOptimizedDiff<T = unknown>(
+  state: T,
+  diffs: StateDiff[],
+): T {
+  let result = JSON.parse(JSON.stringify(state)) as T;
 
   for (const diff of diffs) {
     result = applyDiff(result, diff);
@@ -179,7 +182,7 @@ export function applyOptimizedDiff(state: any, diffs: StateDiff[]): any {
 /**
  * Apply a single diff to state
  */
-function applyDiff(state: any, diff: StateDiff): any {
+function applyDiff<T = unknown>(state: T, diff: StateDiff): T {
   const pathParts = parsePath(diff.path);
 
   if (pathParts.length === 0) {

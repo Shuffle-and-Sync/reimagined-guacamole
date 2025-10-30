@@ -191,9 +191,10 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
     const availableActions = this.getAvailableActions(state, playerId);
 
     return availableActions.map((action, index) => {
-      // Type assertion to access action properties
-      const actionObj = action as any;
-      const actionType = actionObj.type || "unknown";
+      // Extract action properties with safe type access
+      // Actions should have at minimum a 'type' property
+      const actionObj = action as Record<string, unknown>;
+      const actionType = (actionObj.type as string) || "unknown";
 
       return {
         id: `action-${index}-${actionType}`,
@@ -218,7 +219,10 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
   /**
    * Format action description
    */
-  protected formatActionDescription(actionType: string, action: any): string {
+  protected formatActionDescription(
+    actionType: string,
+    action: Record<string, unknown>,
+  ): string {
     if (action.cardId) {
       return `${this.formatActionLabel(actionType)} card`;
     }

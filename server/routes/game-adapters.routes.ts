@@ -29,7 +29,6 @@ const { NotFoundError, BadRequestError } = errors;
 
 const router = Router();
 
-
 // Rate limiter for session creation (e.g., max 10 requests per user per 15 minutes)
 const createSessionRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -38,7 +37,10 @@ const createSessionRateLimiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
-// Game state storage (in-memory for now - should be persisted)
+// Game state storage
+// WARNING: In-memory storage - all game sessions will be lost on server restart
+// TODO: Implement database persistence for production use (e.g., Redis, PostgreSQL)
+// This is suitable for development/testing only
 const gameStates = new Map<
   string,
   { gameId: string; state: unknown; lastUpdate: Date }
@@ -133,7 +135,7 @@ router.post(
     const adapter = createGameAdapter(gameId);
     const state = adapter.createInitialState(config || { playerCount: 2 });
 
-    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
     gameStates.set(sessionId, {
       gameId,

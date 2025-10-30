@@ -672,7 +672,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
 
       card.position = "face-down-defense";
       player.zones.monster_zones.push(card);
-      player.normalSummonUsed = true;
+      // Note: Setting a monster does NOT use the normal summon in Yu-Gi-Oh rules
     }
   }
 

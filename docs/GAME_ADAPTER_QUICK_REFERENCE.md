@@ -75,11 +75,12 @@ const newState = adapter.advancePhase(state);
 const adapter = createGameAdapter("mtg");
 
 // Game ID: 'mtg'
-// Starting Life: 40 (Commander format by default)
-//   Note: Can be customized via config.startingResources
+// Starting Life: Depends on format (customizable via config.startingResources)
 //   - Standard/Modern: 20 life
 //   - Commander: 40 life
+//   - Brawl: 25 life
 //   - Two-Headed Giant: 30 life per team
+//   Default in createInitialState: 40 life (Commander) for 4 players, 20 life for 2 players
 // Phases: beginning, precombat_main, combat, postcombat_main, ending
 
 // Action Types:
