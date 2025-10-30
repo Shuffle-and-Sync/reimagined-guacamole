@@ -73,8 +73,9 @@ WHERE gs.status IN ('waiting', 'active', 'paused');
 --   SELECT * FROM active_game_sessions WHERE community_id = 'xyz';
 --     -> Uses idx_game_sessions_community_status index
 --
---   SELECT * FROM active_game_sessions WHERE host_id = 'abc' AND session_state = 'open';
+--   SELECT * FROM active_game_sessions WHERE host_id = 'abc' AND status = 'waiting';
 --     -> Uses idx_game_sessions_host_status index
+--     Note: Use 'status' column (not 'session_state') to leverage the index
 --
 --   SELECT * FROM active_game_sessions WHERE community_id = 'xyz' ORDER BY created_at DESC;
 --     -> Uses idx_game_sessions_community_status_created index

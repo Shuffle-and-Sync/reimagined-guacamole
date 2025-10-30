@@ -1,3 +1,7 @@
+-- Auto-generated migration by Drizzle Kit
+-- Note: SQLite uses INTEGER for boolean fields (0 = false, 1 = true)
+-- Fields with "integer DEFAULT true" are boolean fields defaulting to 1 (true)
+
 CREATE TABLE `game_actions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`session_id` text NOT NULL,
