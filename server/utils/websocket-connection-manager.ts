@@ -1,5 +1,11 @@
 import { WebSocket } from "ws";
+import {
+  WebSocketMessageBatcher,
+  getMessagePriority,
+  type BatchedMessage,
+} from "../../shared/websocket-message-batcher";
 import { logger } from "../logger";
+import type { WebSocketMessage } from "../../client/src/lib/websocket-client";
 
 export interface ExtendedWebSocket extends WebSocket {
   userId?: string;
@@ -26,6 +32,9 @@ export class WebSocketConnectionManager {
   private collaborativeStreamRooms = new Map<string, Set<ExtendedWebSocket>>();
   private staleConnectionTimeout: number;
   private authExpiryTimeout: number;
+
+  // Message batching per connection
+  private batchers = new Map<string, WebSocketMessageBatcher>();
 
   // Connection limits and tracking
   private readonly MAX_CONNECTIONS_PER_USER = 3;
@@ -91,7 +100,10 @@ export class WebSocketConnectionManager {
               oldestWs.close(1000, "Connection limit exceeded");
             }
           } catch (error) {
-            logger.warn("Error closing oldest connection", error);
+            logger.warn(
+              "Error closing oldest connection",
+              error instanceof Error ? error : new Error(String(error)),
+            );
           }
         }
 
@@ -114,6 +126,33 @@ export class WebSocketConnectionManager {
     // Atomic operations: add to both maps together
     this.connections.set(connectionId, ws);
     userConns.add(connectionId);
+
+    // Create message batcher for this connection
+    const batcher = new WebSocketMessageBatcher(
+      (message: WebSocketMessage | BatchedMessage) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.send(JSON.stringify(message));
+          } catch (error) {
+            logger.error(
+              "Failed to send batched message",
+              error instanceof Error ? error : new Error(String(error)),
+              {
+                connectionId,
+                userId,
+              },
+            );
+          }
+        }
+      },
+      {
+        maxBatchDelay: 50, // 50ms as per requirements
+        maxBatchSize: 10, // 10 messages as per requirements
+        enableCompression: true,
+        compressionThreshold: 5,
+      },
+    );
+    this.batchers.set(connectionId, batcher);
 
     // Set up connection event handlers
     this.setupConnectionHandlers(ws);
@@ -319,6 +358,13 @@ export class WebSocketConnectionManager {
       return;
     }
 
+    // Clean up message batcher
+    const batcher = this.batchers.get(connectionId);
+    if (batcher) {
+      batcher.destroy();
+      this.batchers.delete(connectionId);
+    }
+
     // Remove from user connections tracking
     if (ws.userId) {
       const userConns = this.userConnections.get(ws.userId);
@@ -421,6 +467,54 @@ export class WebSocketConnectionManager {
   }
 
   /**
+   * Get batching metrics for all connections
+   */
+  getBatchingMetrics(): {
+    totalBatches: number;
+    totalMessages: number;
+    averageBatchSize: number;
+    compressionSavings: number;
+    flushReasons: {
+      time: number;
+      size: number;
+      priority: number;
+    };
+  } {
+    let totalBatches = 0;
+    let totalMessages = 0;
+    let totalCompressionSavings = 0;
+    const flushReasons = { time: 0, size: 0, priority: 0 };
+
+    for (const batcher of this.batchers.values()) {
+      const metrics = batcher.getMetrics();
+      totalBatches += metrics.totalBatches;
+      totalMessages += metrics.totalMessages;
+      totalCompressionSavings += metrics.compressionSavings;
+      flushReasons.time += metrics.flushReasons.time;
+      flushReasons.size += metrics.flushReasons.size;
+      flushReasons.priority += metrics.flushReasons.priority;
+    }
+
+    return {
+      totalBatches,
+      totalMessages,
+      averageBatchSize: totalBatches > 0 ? totalMessages / totalBatches : 0,
+      compressionSavings: totalCompressionSavings,
+      flushReasons,
+    };
+  }
+
+  /**
+   * Flush all pending batches immediately
+   * Useful for testing or during shutdown
+   */
+  flushAllBatches(): void {
+    for (const batcher of this.batchers.values()) {
+      batcher.flush("manual");
+    }
+  }
+
+  /**
    * Get connection limits
    */
   getConnectionLimits(): { maxPerUser: number; maxTotal: number } {
@@ -456,7 +550,10 @@ export class WebSocketConnectionManager {
             ws.close(1000, "Connection cleanup");
           }
         } catch (error) {
-          logger.warn("Error closing stale WebSocket connection", error);
+          logger.warn(
+            "Error closing stale WebSocket connection",
+            error instanceof Error ? error : new Error(String(error)),
+          );
         }
         this.removeConnection(connectionId);
       }
@@ -506,28 +603,36 @@ export class WebSocketConnectionManager {
     message: unknown,
     excludeConnectionId?: string,
   ): void {
-    const messageStr = JSON.stringify(message);
+    // Determine message priority
+    const wsMessage = message as WebSocketMessage;
+    const priority = getMessagePriority(wsMessage);
 
     for (const ws of connections) {
       if (ws.connectionId === excludeConnectionId) {
         continue;
       }
 
-      if (ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.send(messageStr);
-          if (ws.connectionId) {
+      if (ws.readyState === WebSocket.OPEN && ws.connectionId) {
+        const batcher = this.batchers.get(ws.connectionId);
+        if (batcher) {
+          // Use batcher to send message with appropriate priority
+          batcher.addMessage(wsMessage, priority);
+          this.updateActivity(ws.connectionId);
+        } else {
+          // Fallback to direct send if batcher not available
+          try {
+            ws.send(JSON.stringify(message));
             this.updateActivity(ws.connectionId);
+          } catch (error) {
+            logger.error(
+              "Failed to send WebSocket message",
+              error instanceof Error ? error : new Error(String(error)),
+              {
+                connectionId: ws.connectionId,
+                userId: ws.userId,
+              },
+            );
           }
-        } catch (error) {
-          logger.error(
-            "Failed to send WebSocket message",
-            error instanceof Error ? error : new Error(String(error)),
-            {
-              connectionId: ws.connectionId,
-              userId: ws.userId,
-            },
-          );
         }
       }
     }
@@ -549,7 +654,10 @@ export class WebSocketConnectionManager {
           try {
             ws.ping();
           } catch (error) {
-            logger.warn("Failed to ping WebSocket connection", error);
+            logger.warn(
+              "Failed to ping WebSocket connection",
+              error instanceof Error ? error : new Error(String(error)),
+            );
           }
         }
       }
