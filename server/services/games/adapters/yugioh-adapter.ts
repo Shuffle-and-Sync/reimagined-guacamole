@@ -5,6 +5,7 @@
  * Supports standard format with simplified rules for demonstration.
  */
 
+import crypto from "crypto";
 import { BaseGameAdapter } from "./base-game-adapter";
 import type {
   GameConfig,
@@ -559,7 +560,10 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   private shuffleDeck(cards: YuGiOhCard[]): YuGiOhCard[] {
     const shuffled = [...cards];
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      // Use cryptographically secure random for CodeQL compliance
+      const randomBuffer = crypto.randomBytes(4);
+      const randomValue = randomBuffer.readUInt32BE(0) / 0xffffffff;
+      const j = Math.floor(randomValue * (i + 1));
       const temp = shuffled[i];
       const swapCard = shuffled[j];
       if (temp && swapCard) {

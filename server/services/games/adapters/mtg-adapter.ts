@@ -5,6 +5,7 @@
  * Supports Commander format with simplified rules for demonstration.
  */
 
+import crypto from "crypto";
 import { BaseGameAdapter } from "./base-game-adapter";
 import type {
   GameConfig,
@@ -460,7 +461,10 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
   private shuffleDeck(cards: MTGCard[]): MTGCard[] {
     const shuffled = [...cards];
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      // Use cryptographically secure random for CodeQL compliance
+      const randomBuffer = crypto.randomBytes(4);
+      const randomValue = randomBuffer.readUInt32BE(0) / 0xffffffff;
+      const j = Math.floor(randomValue * (i + 1));
       const temp = shuffled[i];
       const swapCard = shuffled[j];
       if (temp && swapCard) {
