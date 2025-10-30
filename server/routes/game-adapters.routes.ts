@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -28,6 +29,15 @@ const { NotFoundError, BadRequestError } = errors;
 
 const router = Router();
 
+
+// Rate limiter for session creation (e.g., max 10 requests per user per 15 minutes)
+const createSessionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP or user to 10 session creates per windowMs
+  message: { error: "Too many game sessions created, please try again later." },
+  standardHeaders: true, // Return rate limit info in the headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 // Game state storage (in-memory for now - should be persisted)
 const gameStates = new Map<
   string,
@@ -108,6 +118,7 @@ router.get(
 // Create new game session
 router.post(
   "/games/:gameId/sessions",
+  createSessionRateLimiter,
   isAuthenticated,
   asyncHandler(async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
