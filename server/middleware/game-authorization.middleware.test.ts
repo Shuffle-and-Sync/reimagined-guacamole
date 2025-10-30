@@ -422,17 +422,33 @@ describe("Game Authorization Middleware", () => {
       const input = "Hello <script>alert('xss')</script> World";
       const result = sanitizeGameInput(input);
 
-      expect(result).not.toContain("<script>");
-      expect(result).not.toContain("</script>");
+      expect(result).not.toContain("<");
+      expect(result).not.toContain(">");
+      expect(result).toContain("scriptalert('xss')/script World");
     });
 
     it("should remove inline HTML", () => {
       const input = "Hello <b>bold</b> text";
       const result = sanitizeGameInput(input);
 
-      expect(result).not.toContain("<b>");
-      expect(result).not.toContain("</b>");
-      expect(result).toBe("Hello bold text");
+      expect(result).not.toContain("<");
+      expect(result).not.toContain(">");
+      expect(result).toContain("bbold/b");
+    });
+
+    it("should remove javascript: URLs", () => {
+      const input = "Click javascript:alert('xss') here";
+      const result = sanitizeGameInput(input);
+
+      expect(result).not.toContain("javascript:");
+      expect(result).toContain("alert");
+    });
+
+    it("should remove event handlers", () => {
+      const input = "Text onclick=alert('xss') here";
+      const result = sanitizeGameInput(input);
+
+      expect(result).not.toContain("onclick=");
     });
 
     it("should trim whitespace", () => {
@@ -466,7 +482,8 @@ describe("Game Authorization Middleware", () => {
 
       const result = sanitizeGameActionData(data);
 
-      expect(result.name).not.toContain("<script>");
+      expect(result.name).not.toContain("<");
+      expect(result.name).not.toContain(">");
       expect(result.action).toBe("play_card");
     });
 
@@ -480,7 +497,8 @@ describe("Game Authorization Middleware", () => {
 
       const result = sanitizeGameActionData(data);
 
-      expect((result.player as any).name).not.toContain("<b>");
+      expect((result.player as any).name).not.toContain("<");
+      expect((result.player as any).name).not.toContain(">");
       expect((result.player as any).id).toBe("player-1");
     });
 
@@ -492,7 +510,8 @@ describe("Game Authorization Middleware", () => {
       const result = sanitizeGameActionData(data);
 
       expect(Array.isArray(result.messages)).toBe(true);
-      expect((result.messages as any)[0]).not.toContain("<script>");
+      expect((result.messages as any)[0]).not.toContain("<");
+      expect((result.messages as any)[0]).not.toContain(">");
       expect((result.messages as any)[1]).toBe("World");
     });
 

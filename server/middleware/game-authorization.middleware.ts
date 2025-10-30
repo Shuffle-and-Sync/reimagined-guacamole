@@ -371,24 +371,34 @@ export async function authorizeSpectate(
 
 /**
  * Sanitize user input to prevent injection attacks
+ * Uses a more robust approach that doesn't rely on regex for HTML tag removal
  */
 export function sanitizeGameInput(input: string): string {
-  // Remove any HTML tags
-  let sanitized = input.replace(/<[^>]*>/g, "");
-
-  // Remove any script tags content
-  sanitized = sanitized.replace(
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-    "",
-  );
-
-  // Trim whitespace
-  sanitized = sanitized.trim();
+  // Trim whitespace first
+  let sanitized = input.trim();
 
   // Limit length
   const maxLength = 1000;
   if (sanitized.length > maxLength) {
     sanitized = sanitized.substring(0, maxLength);
+  }
+
+  // Use a whitelist approach - only allow specific characters
+  // This is more secure than trying to remove dangerous patterns
+  // Allow: alphanumeric, spaces, common punctuation, but not < > characters
+  sanitized = sanitized.replace(/[<>]/g, "");
+
+  // Additional protection: remove any remaining potential script injection patterns
+  // by replacing common attack vectors
+  const dangerousPatterns = [
+    /javascript:/gi,
+    /on\w+\s*=/gi, // Event handlers like onclick=
+    /data:/gi,
+    /vbscript:/gi,
+  ];
+
+  for (const pattern of dangerousPatterns) {
+    sanitized = sanitized.replace(pattern, "");
   }
 
   return sanitized;

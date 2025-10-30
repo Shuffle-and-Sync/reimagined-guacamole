@@ -17,6 +17,7 @@ import {
   authorizeSessionJoin,
   authorizeSpectate,
 } from "../middleware/game-authorization.middleware";
+import { rateLimiter } from "../middleware/rateLimiter";
 import { storage } from "../storage";
 import { validateRequest, validateGameSessionSchema } from "../validation";
 
@@ -75,6 +76,7 @@ router.get(
 router.post(
   "/:id/join",
   isAuthenticated,
+  rateLimiter.standard,
   asyncHandler(async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
@@ -139,6 +141,7 @@ router.post(
 router.post(
   "/:id/spectate",
   isAuthenticated,
+  rateLimiter.standard,
   asyncHandler(async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
