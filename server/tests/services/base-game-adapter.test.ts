@@ -132,6 +132,22 @@ describe("BaseGameAdapter", () => {
 
       expect(state).toEqual({ value: 42 });
     });
+
+    it("should throw error for invalid JSON in deserializeState", () => {
+      const invalidJson = '{"value":42';
+
+      expect(() => adapter.deserializeState(invalidJson)).toThrow(
+        "Invalid state format: not valid JSON",
+      );
+    });
+
+    it("should throw error for non-object in deserializeState", () => {
+      const primitiveJson = '"just a string"';
+
+      expect(() => adapter.deserializeState(primitiveJson)).toThrow(
+        "Invalid state format: expected object",
+      );
+    });
   });
 
   describe("Actions", () => {

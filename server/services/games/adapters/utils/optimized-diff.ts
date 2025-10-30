@@ -272,15 +272,43 @@ export function compressDiffs(diffs: StateDiff[]): string {
 
 /**
  * Decompress diffs from network
+ * Validates the structure to prevent injection attacks
  */
 export function decompressDiffs(compressed: string): StateDiff[] {
-  const parsed = JSON.parse(compressed);
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(compressed);
+  } catch (error) {
+    throw new Error("Invalid compressed diff format: not valid JSON");
+  }
+
+  // Validate that parsed data is an array
+  if (!Array.isArray(parsed)) {
+    throw new Error("Invalid compressed diff format: expected array");
+  }
+
   const timestamp = new Date();
 
-  return parsed.map((item: any) => ({
-    type: item.t,
-    path: item.p,
-    newValue: item.v,
-    timestamp,
-  }));
+  return parsed.map((item: unknown) => {
+    // Validate each item has required properties
+    if (typeof item !== "object" || item === null) {
+      throw new Error("Invalid compressed diff item: expected object");
+    }
+
+    const obj = item as Record<string, unknown>;
+
+    if (typeof obj.t !== "string" || typeof obj.p !== "string") {
+      throw new Error(
+        "Invalid compressed diff item: missing required properties",
+      );
+    }
+
+    return {
+      type: obj.t,
+      path: obj.p,
+      newValue: obj.v,
+      timestamp,
+    };
+  });
 }

@@ -93,7 +93,19 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
    * Can be overridden for custom deserialization
    */
   deserializeState(data: string): TState {
-    return JSON.parse(data) as TState;
+    try {
+      const parsed = JSON.parse(data);
+      // Basic validation that we got an object back
+      if (typeof parsed !== "object" || parsed === null) {
+        throw new Error("Invalid state format: expected object");
+      }
+      return parsed as TState;
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error("Invalid state format: not valid JSON");
+      }
+      throw error;
+    }
   }
 
   /**
