@@ -53,19 +53,20 @@ const unsubscribe = webSocketClient.onConnectionStateChange(
     switch (state) {
       case "connected":
         console.log("✅ WebSocket connected");
-        showNotification("Connected", "success");
+        // showNotification is a placeholder - use your app's notification system
+        // Example: toast.success('Connected');
         break;
       case "disconnected":
         console.log("❌ WebSocket disconnected");
-        showNotification("Disconnected", "warning");
+        // Example: toast.warning('Disconnected');
         break;
       case "reconnecting":
         console.log(`🔄 Reconnecting... (attempt ${attempt})`);
-        showNotification(`Reconnecting (attempt ${attempt})`, "info");
+        // Example: toast.info(`Reconnecting (attempt ${attempt})`);
         break;
       case "failed":
         console.log("💥 Reconnection failed");
-        showNotification("Connection failed", "error");
+        // Example: toast.error('Connection failed');
         break;
     }
   },
@@ -239,12 +240,32 @@ webSocketClient.send(message);
 
 ### Recommended Enhancements
 
-Add connection status indicators to your UI:
+Add connection status indicators to your UI. Here's an example component you can create:
 
 ```typescript
-// Add this to your app's root component
-import { ConnectionStatus } from '@/components/ConnectionStatus';
+// Create this component: client/src/components/ConnectionStatus.tsx
+import { useWebSocketStatus } from '@/hooks/useWebSocketStatus';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
+export function ConnectionStatus() {
+  const { status, reconnectAttempt } = useWebSocketStatus();
+
+  if (status === 'connected') {
+    return null; // Don't show anything when connected
+  }
+
+  return (
+    <Alert variant={status === 'failed' ? 'destructive' : 'default'}>
+      <AlertDescription>
+        {status === 'disconnected' && 'Connection lost. Attempting to reconnect...'}
+        {status === 'reconnecting' && `Reconnecting (attempt ${reconnectAttempt})...`}
+        {status === 'failed' && 'Connection failed. Please refresh the page.'}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+// Then use it in your app's root component
 function App() {
   return (
     <>
