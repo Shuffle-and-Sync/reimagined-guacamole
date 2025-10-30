@@ -13,6 +13,11 @@ import {
   errors,
   errorHandlingMiddleware,
 } from "../middleware/error-handling.middleware";
+import {
+  authorizeSessionJoin,
+  authorizeSpectate,
+} from "../middleware/game-authorization.middleware";
+import { rateLimiter } from "../middleware/rateLimiter";
 import { storage } from "../storage";
 import { validateRequest, validateGameSessionSchema } from "../validation";
 
@@ -71,11 +76,20 @@ router.get(
 router.post(
   "/:id/join",
   isAuthenticated,
+  rateLimiter.standard,
   asyncHandler(async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+
+    // Authorize session join
+    const authResult = await authorizeSessionJoin(id, userId);
+    if (!authResult.authorized) {
+      return res.status(403).json({
+        error: authResult.reason || "Not authorized to join this session",
+      });
+    }
 
     await storage.joinGameSession(id, userId);
 
@@ -127,11 +141,20 @@ router.post(
 router.post(
   "/:id/spectate",
   isAuthenticated,
+  rateLimiter.standard,
   asyncHandler(async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+
+    // Authorize spectating
+    const authResult = await authorizeSpectate(id, userId);
+    if (!authResult.authorized) {
+      return res.status(403).json({
+        error: authResult.reason || "Not authorized to spectate this session",
+      });
+    }
 
     await storage.spectateGameSession(id, userId);
 
