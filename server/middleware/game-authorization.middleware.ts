@@ -291,9 +291,22 @@ export async function authorizeGameAction(
 
     // Check turn-based actions
     if (requiresTurnValidation(action.type)) {
-      const boardState = session.boardState
-        ? JSON.parse(session.boardState)
-        : null;
+      let boardState = null;
+      if (session.boardState) {
+        try {
+          boardState = JSON.parse(session.boardState);
+        } catch (parseError) {
+          logger.warn(
+            "Failed to parse session.boardState during authorization",
+            parseError instanceof Error ? parseError : new Error(String(parseError)),
+            { sessionId, userId }
+          );
+          return {
+            authorized: false,
+            reason: "Session board state is corrupted or invalid",
+          };
+        }
+      }
 
       if (
         boardState?.currentTurn?.playerId &&
