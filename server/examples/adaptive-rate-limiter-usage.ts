@@ -20,10 +20,6 @@ import {
 } from "../utils/adaptive-rate-limiter";
 
 // ============================================================================
-// Example 3: WebSocket Rate Limiting
-// ============================================================================
-
-// ============================================================================
 // Example 1: Basic Express Middleware Integration
 // ============================================================================
 
@@ -122,6 +118,10 @@ router.post(
     res.json({ message: "Analytics queued" });
   },
 );
+
+// ============================================================================
+// Example 3: WebSocket Rate Limiting
+// ============================================================================
 
 export function setupWebSocketRateLimiting(wss: any) {
   wss.on("connection", (ws: WebSocket, req: Request) => {
