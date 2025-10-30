@@ -119,7 +119,7 @@ describe("WebSocket Message Batching Integration", () => {
       expect(sentData.messages).toHaveLength(10);
     });
 
-    test("should send critical messages immediately without batching", async () => {
+    test("should send high priority messages with shorter delay", async () => {
       const mockWs = {
         readyState: WebSocket.OPEN,
         on: jest.fn(),
@@ -129,22 +129,29 @@ describe("WebSocket Message Batching Integration", () => {
       const connectionId = manager.registerConnection(mockWs, "user-123");
       await manager.joinGameRoom(connectionId, "session-456");
 
-      // Send a critical message (game_state_sync)
+      // Send a high priority message (game_action) - should have shorter delay
       manager.broadcastToGameRoom("session-456", {
-        type: "game_state_sync",
+        type: "game_action",
         sessionId: "session-456",
-        syncType: "full",
-        timestamp: Date.now(),
+        action: "draw",
+        user: { id: "user-123", name: "User" },
+        data: {},
       });
 
-      // Critical message should be sent immediately
+      // High priority message should not be sent yet (still batched, just with shorter delay)
+      expect(mockWs.send).not.toHaveBeenCalled();
+
+      // Advance time by 25ms (high priority delay)
+      jest.advanceTimersByTime(25);
+
+      // Now message should be sent
       expect(mockWs.send).toHaveBeenCalledTimes(1);
 
       const sentData = JSON.parse(
         (mockWs.send as jest.Mock).mock.calls[0][0] as string,
       );
-      // Critical messages are not batched
-      expect(sentData.type).toBe("game_state_sync");
+      // Single high-priority message sent directly (not as batch)
+      expect(sentData.type).toBe("game_action");
     });
 
     test("should handle mixed priority messages correctly", async () => {
@@ -157,7 +164,18 @@ describe("WebSocket Message Batching Integration", () => {
       const connectionId = manager.registerConnection(mockWs, "user-123");
       await manager.joinGameRoom(connectionId, "session-456");
 
-      // Send normal message
+      // Send high priority message first - has shorter delay
+      manager.broadcastToGameRoom("session-456", {
+        type: "game_action",
+        sessionId: "session-456",
+        action: "play_card",
+        user: { id: "user-123", name: "User" },
+        data: {},
+      });
+
+      expect(mockWs.send).not.toHaveBeenCalled();
+
+      // Send normal message after
       manager.broadcastToGameRoom("session-456", {
         type: "message",
         sessionId: "session-456",
@@ -165,39 +183,21 @@ describe("WebSocket Message Batching Integration", () => {
         content: "Normal message",
       });
 
+      // Both messages batched but with shorter delay from high priority
       expect(mockWs.send).not.toHaveBeenCalled();
 
-      // Send critical message - bypasses batching
-      manager.broadcastToGameRoom("session-456", {
-        type: "game_state_sync",
-        sessionId: "session-456",
-        syncType: "full",
-        timestamp: Date.now(),
-      });
+      // Advance time by 25ms (high priority delay)
+      jest.advanceTimersByTime(25);
 
-      // Critical message should be sent immediately
+      // Both should be flushed together
       expect(mockWs.send).toHaveBeenCalledTimes(1);
 
-      // Send another normal message
-      manager.broadcastToGameRoom("session-456", {
-        type: "message",
-        sessionId: "session-456",
-        user: { id: "user-123", name: "User" },
-        content: "Another message",
-      });
-
-      // Advance time to flush batched normal messages
-      jest.advanceTimersByTime(50);
-
-      // Should have 2 sends total: 1 critical immediate + 1 batched normal messages
-      expect(mockWs.send).toHaveBeenCalledTimes(2);
-
-      // Verify the second call is a batch with both normal messages
-      const secondCall = JSON.parse(
-        (mockWs.send as jest.Mock).mock.calls[1][0] as string,
+      // Verify it's a batch with both messages
+      const firstCall = JSON.parse(
+        (mockWs.send as jest.Mock).mock.calls[0][0] as string,
       );
-      expect(secondCall.type).toBe("batch");
-      expect(secondCall.messages).toHaveLength(2);
+      expect(firstCall.type).toBe("batch");
+      expect(firstCall.messages).toHaveLength(2);
     });
 
     test("should send single message without batching overhead", async () => {
@@ -289,7 +289,7 @@ describe("WebSocket Message Batching Integration", () => {
       expect(metrics.flushReasons.size).toBe(1);
     });
 
-    test("should track priority-based bypasses", async () => {
+    test("should track high-priority message flushes", async () => {
       const mockWs = {
         readyState: WebSocket.OPEN,
         on: jest.fn(),
@@ -299,18 +299,24 @@ describe("WebSocket Message Batching Integration", () => {
       const connectionId = manager.registerConnection(mockWs, "user-123");
       await manager.joinGameRoom(connectionId, "session-456");
 
-      // Send critical messages
+      // Send high priority messages that will flush with shorter delay
       for (let i = 0; i < 5; i++) {
         manager.broadcastToGameRoom("session-456", {
-          type: "game_state_sync",
+          type: "game_action",
           sessionId: "session-456",
-          syncType: "full",
-          timestamp: Date.now(),
+          action: `action${i}`,
+          user: { id: "user-123", name: "User" },
+          data: {},
         });
       }
 
+      // Advance time by 25ms to flush high-priority messages
+      jest.advanceTimersByTime(25);
+
       const metrics = manager.getBatchingMetrics();
-      expect(metrics.flushReasons.priority).toBe(5);
+      expect(metrics.totalBatches).toBe(1);
+      expect(metrics.totalMessages).toBe(5);
+      expect(metrics.flushReasons.time).toBe(1);
     });
   });
 

@@ -163,8 +163,8 @@ export class WebSocketMessageBatcher {
     const batchSize = this.batch.length;
 
     // If only one message, send directly (no batching overhead)
-    if (batchSize === 1 && this.batch[0]) {
-      const message = this.batch[0];
+    if (batchSize === 1) {
+      const message = this.batch[0]!; // Safe: we verified batchSize === 1
       this.sendCallback(message);
       logger.debug("Single message sent directly", { type: message.type });
     } else {
@@ -350,11 +350,6 @@ export class WebSocketMessageBatcher {
  */
 export function getMessagePriority(message: WebSocketMessage): MessagePriority {
   const messageType = message.type;
-
-  // Game state sync is critical (if it exists as a custom type)
-  if (messageType === ("game_state_sync" as any)) {
-    return MessagePriority.CRITICAL;
-  }
 
   // WebRTC signaling is high priority
   if (

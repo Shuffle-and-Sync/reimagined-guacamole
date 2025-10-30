@@ -401,18 +401,7 @@ describe("WebSocketMessageBatcher", () => {
   });
 
   describe("Priority Helper Function", () => {
-    test("should identify critical messages", () => {
-      const message: WebSocketMessage = {
-        type: "game_state_sync",
-        sessionId: "test",
-        syncType: "full",
-        timestamp: Date.now(),
-      };
-
-      expect(getMessagePriority(message)).toBe(MessagePriority.CRITICAL);
-    });
-
-    test("should identify high priority messages", () => {
+    test("should identify high priority messages - WebRTC", () => {
       const webrtcMessage: WebSocketMessage = {
         type: "webrtc_offer",
         sessionId: "test",
@@ -421,7 +410,9 @@ describe("WebSocketMessageBatcher", () => {
       };
 
       expect(getMessagePriority(webrtcMessage)).toBe(MessagePriority.HIGH);
+    });
 
+    test("should identify high priority messages - Game Action", () => {
       const gameActionMessage: WebSocketMessage = {
         type: "game_action",
         sessionId: "test",

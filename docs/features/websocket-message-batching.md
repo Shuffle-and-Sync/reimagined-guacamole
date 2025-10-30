@@ -38,19 +38,13 @@ The WebSocket message batching system reduces network overhead by combining mult
 
 ### Priority Levels
 
-| Priority | Description                    | Behavior                 | Delay                   |
-| -------- | ------------------------------ | ------------------------ | ----------------------- |
-| CRITICAL | Critical game state sync       | Bypass batching entirely | 0ms                     |
-| HIGH     | WebRTC signals, game actions   | Short batch delay        | 25ms (50% of default)   |
-| NORMAL   | Chat messages, general updates | Default batching         | 50ms                    |
-| LOW      | Status updates, non-critical   | Aggressive batching      | 100ms (200% of default) |
+| Priority | Description                    | Behavior            | Delay                   |
+| -------- | ------------------------------ | ------------------- | ----------------------- |
+| HIGH     | WebRTC signals, game actions   | Short batch delay   | 25ms (50% of default)   |
+| NORMAL   | Chat messages, general updates | Default batching    | 50ms                    |
+| LOW      | Status updates, non-critical   | Aggressive batching | 100ms (200% of default) |
 
 ## Message Type Classification
-
-### Critical Messages (Bypass Batching)
-
-- `game_state_sync` - Full game state synchronization
-- Connection control messages
 
 ### High Priority Messages (Short Delay)
 
@@ -85,12 +79,13 @@ connectionManager.broadcastToGameRoom(sessionId, {
   content: "Hello!",
 });
 
-// Critical messages bypass batching
+// High priority messages use shorter delay
 connectionManager.broadcastToGameRoom(sessionId, {
-  type: "game_state_sync",
+  type: "game_action",
   sessionId: "session-123",
-  syncType: "full",
-  timestamp: Date.now(),
+  action: "draw_card",
+  user: { id: "user-1", name: "Player 1" },
+  data: {},
 });
 ```
 
@@ -284,7 +279,7 @@ Expected improvements:
 
 1. Reduce `maxBatchDelay` for affected message types
 2. Classify time-sensitive messages as HIGH priority
-3. Consider making certain messages CRITICAL
+3. Consider reducing batch sizes for low-latency requirements
 
 ### Memory Issues
 
