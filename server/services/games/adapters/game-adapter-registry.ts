@@ -7,6 +7,7 @@
 
 import { MTGGameAdapter } from "./mtg-adapter";
 import { PokemonGameAdapter } from "./pokemon-adapter";
+import { YuGiOhGameAdapter } from "./yugioh-adapter";
 import type { IGameAdapter } from "../../../../shared/game-adapter-types";
 
 /**
@@ -26,6 +27,7 @@ export class GameAdapterRegistry {
   private registerDefaultAdapters(): void {
     this.register("mtg", () => new MTGGameAdapter());
     this.register("pokemon", () => new PokemonGameAdapter());
+    this.register("yugioh", () => new YuGiOhGameAdapter());
   }
 
   /**

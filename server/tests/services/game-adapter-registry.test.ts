@@ -84,6 +84,10 @@ describe("GameAdapterRegistry", () => {
       expect(registry.has("pokemon")).toBe(true);
     });
 
+    it("should register Yu-Gi-Oh adapter by default", () => {
+      expect(registry.has("yugioh")).toBe(true);
+    });
+
     it("should get MTG adapter", () => {
       const adapter = registry.get("mtg");
 
@@ -98,6 +102,14 @@ describe("GameAdapterRegistry", () => {
       expect(adapter).toBeDefined();
       expect(adapter?.gameId).toBe("pokemon");
       expect(adapter?.gameName).toBe("Pokemon Trading Card Game");
+    });
+
+    it("should get Yu-Gi-Oh adapter", () => {
+      const adapter = registry.get("yugioh");
+
+      expect(adapter).toBeDefined();
+      expect(adapter?.gameId).toBe("yugioh");
+      expect(adapter?.gameName).toBe("Yu-Gi-Oh Trading Card Game");
     });
   });
 
@@ -160,13 +172,14 @@ describe("GameAdapterRegistry", () => {
 
       expect(games).toContain("mtg");
       expect(games).toContain("pokemon");
-      expect(games.length).toBeGreaterThanOrEqual(2);
+      expect(games).toContain("yugioh");
+      expect(games.length).toBeGreaterThanOrEqual(3);
     });
 
     it("should return game metadata", () => {
       const metadata = registry.getGameMetadata();
 
-      expect(metadata.length).toBeGreaterThanOrEqual(2);
+      expect(metadata.length).toBeGreaterThanOrEqual(3);
 
       const mtg = metadata.find((m) => m.gameId === "mtg");
       expect(mtg).toBeDefined();
@@ -175,11 +188,16 @@ describe("GameAdapterRegistry", () => {
       const pokemon = metadata.find((m) => m.gameId === "pokemon");
       expect(pokemon).toBeDefined();
       expect(pokemon?.gameName).toBe("Pokemon Trading Card Game");
+
+      const yugioh = metadata.find((m) => m.gameId === "yugioh");
+      expect(yugioh).toBeDefined();
+      expect(yugioh?.gameName).toBe("Yu-Gi-Oh Trading Card Game");
     });
 
     it("should check if game is supported", () => {
       expect(registry.has("mtg")).toBe(true);
       expect(registry.has("pokemon")).toBe(true);
+      expect(registry.has("yugioh")).toBe(true);
       expect(registry.has("nonexistent")).toBe(false);
     });
 
@@ -199,6 +217,7 @@ describe("GameAdapterRegistry", () => {
       expect(registry.getRegisteredGames().length).toBe(0);
       expect(registry.has("mtg")).toBe(false);
       expect(registry.has("pokemon")).toBe(false);
+      expect(registry.has("yugioh")).toBe(false);
     });
   });
 });
@@ -217,6 +236,13 @@ describe("Factory Functions", () => {
 
       expect(adapter).toBeDefined();
       expect(adapter.gameId).toBe("pokemon");
+    });
+
+    it("should create Yu-Gi-Oh adapter", () => {
+      const adapter = createGameAdapter("yugioh");
+
+      expect(adapter).toBeDefined();
+      expect(adapter.gameId).toBe("yugioh");
     });
 
     it("should be case-insensitive", () => {
@@ -251,9 +277,10 @@ describe("Factory Functions", () => {
     it("should return available games metadata", () => {
       const games = getAvailableGames();
 
-      expect(games.length).toBeGreaterThanOrEqual(2);
+      expect(games.length).toBeGreaterThanOrEqual(3);
       expect(games.some((g) => g.gameId === "mtg")).toBe(true);
       expect(games.some((g) => g.gameId === "pokemon")).toBe(true);
+      expect(games.some((g) => g.gameId === "yugioh")).toBe(true);
     });
 
     it("should include game name and version", () => {
@@ -270,11 +297,12 @@ describe("Factory Functions", () => {
     it("should return true for supported games", () => {
       expect(isGameSupported("mtg")).toBe(true);
       expect(isGameSupported("pokemon")).toBe(true);
+      expect(isGameSupported("yugioh")).toBe(true);
     });
 
     it("should return false for unsupported games", () => {
       expect(isGameSupported("nonexistent")).toBe(false);
-      expect(isGameSupported("yugioh")).toBe(false);
+      expect(isGameSupported("hearthstone")).toBe(false);
     });
 
     it("should be case-insensitive", () => {
@@ -294,5 +322,6 @@ describe("Singleton Instance", () => {
   it("should have default adapters registered", () => {
     expect(gameAdapterRegistry.has("mtg")).toBe(true);
     expect(gameAdapterRegistry.has("pokemon")).toBe(true);
+    expect(gameAdapterRegistry.has("yugioh")).toBe(true);
   });
 });

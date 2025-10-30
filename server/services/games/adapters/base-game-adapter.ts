@@ -5,6 +5,10 @@
  * Game-specific adapters should extend this class and implement the abstract methods.
  */
 
+import {
+  calculateOptimizedDiff,
+  applyOptimizedDiff,
+} from "./utils/optimized-diff";
 import type {
   IGameAdapter,
   ValidationResult,
@@ -12,6 +16,8 @@ import type {
   Phase,
   StateDiff,
   GameConfig,
+  RenderedState,
+  PlayerAction,
 } from "../../../../shared/game-adapter-types";
 
 /**
@@ -87,49 +93,35 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
    * Can be overridden for custom deserialization
    */
   deserializeState(data: string): TState {
-    return JSON.parse(data) as TState;
+    try {
+      const parsed = JSON.parse(data);
+      // Basic validation that we got an object back
+      if (typeof parsed !== "object" || parsed === null) {
+        throw new Error("Invalid state format: expected object");
+      }
+      return parsed as TState;
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error("Invalid state format: not valid JSON");
+      }
+      throw error;
+    }
   }
 
   /**
    * Get difference between two states
-   * Basic implementation - can be overridden for more efficient diffing
+   * Uses optimized path-based diffing for efficient network sync
    */
   getStateDiff(oldState: TState, newState: TState): StateDiff[] {
-    const diffs: StateDiff[] = [];
-    const timestamp = new Date();
-
-    // Simple deep comparison - in production, use a proper diff library
-    const oldJson = JSON.stringify(oldState);
-    const newJson = JSON.stringify(newState);
-
-    if (oldJson !== newJson) {
-      diffs.push({
-        type: "full_replace",
-        path: "/",
-        oldValue: oldState,
-        newValue: newState,
-        timestamp,
-      });
-    }
-
-    return diffs;
+    return calculateOptimizedDiff(oldState, newState);
   }
 
   /**
    * Apply state differences to a state
-   * Basic implementation - can be overridden for more efficient patching
+   * Uses optimized patch application
    */
   applyStateDiff(state: TState, diffs: StateDiff[]): TState {
-    let newState = state;
-
-    for (const diff of diffs) {
-      if (diff.type === "full_replace" && diff.path === "/") {
-        newState = diff.newValue as TState;
-      }
-      // Additional diff types can be implemented by subclasses
-    }
-
-    return newState;
+    return applyOptimizedDiff(state, diffs) as TState;
   }
 
   // ============================================================================
@@ -174,5 +166,93 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
       description,
       allowedActions,
     };
+  }
+
+  // ============================================================================
+  // UI Helper Methods - Default implementations that can be overridden
+  // ============================================================================
+
+  /**
+   * Render state for UI display
+   * Basic implementation - game-specific adapters should override for better UX
+   */
+  renderState(state: TState, viewingPlayerId?: string): RenderedState {
+    // This is a basic implementation that should be overridden by subclasses
+    // It provides minimal functionality for generic state rendering
+    return {
+      players: [],
+      currentPhase: {
+        id: "unknown",
+        name: "Unknown Phase",
+      },
+      turnNumber: 0,
+      gameStatus: "active",
+      metadata: {
+        gameId: this.gameId,
+        gameName: this.gameName,
+        viewingPlayerId,
+      },
+    };
+  }
+
+  /**
+   * Get player actions formatted for UI
+   * Default implementation converts available actions to UI-friendly format
+   */
+  getPlayerActions(state: TState, playerId: string): PlayerAction[] {
+    const availableActions = this.getAvailableActions(state, playerId);
+
+    return availableActions.map((action, index) => {
+      // Extract action properties with safe type access
+      // Actions should have at minimum a 'type' property
+      const actionObj = action as Record<string, unknown>;
+      const actionType = (actionObj.type as string) || "unknown";
+
+      return {
+        id: `action-${index}-${actionType}`,
+        type: actionType,
+        label: this.formatActionLabel(actionType),
+        description: this.formatActionDescription(actionType, actionObj),
+        icon: this.getActionIcon(actionType),
+      };
+    });
+  }
+
+  /**
+   * Format action type to human-readable label
+   */
+  protected formatActionLabel(actionType: string): string {
+    return actionType
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  /**
+   * Format action description
+   */
+  protected formatActionDescription(
+    actionType: string,
+    action: Record<string, unknown>,
+  ): string {
+    if (action.cardId) {
+      return `${this.formatActionLabel(actionType)} card`;
+    }
+    return this.formatActionLabel(actionType);
+  }
+
+  /**
+   * Get icon name for action type
+   */
+  protected getActionIcon(actionType: string): string {
+    const iconMap: Record<string, string> = {
+      draw_card: "📥",
+      play_card: "🎴",
+      attack: "⚔️",
+      defend: "🛡️",
+      pass: "👉",
+      end_turn: "🔄",
+    };
+    return iconMap[actionType] || "🎮";
   }
 }

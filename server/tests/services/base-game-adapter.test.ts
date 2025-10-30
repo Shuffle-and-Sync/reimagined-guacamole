@@ -132,6 +132,22 @@ describe("BaseGameAdapter", () => {
 
       expect(state).toEqual({ value: 42 });
     });
+
+    it("should throw error for invalid JSON in deserializeState", () => {
+      const invalidJson = '{"value":42';
+
+      expect(() => adapter.deserializeState(invalidJson)).toThrow(
+        "Invalid state format: not valid JSON",
+      );
+    });
+
+    it("should throw error for non-object in deserializeState", () => {
+      const primitiveJson = '"just a string"';
+
+      expect(() => adapter.deserializeState(primitiveJson)).toThrow(
+        "Invalid state format: expected object",
+      );
+    });
   });
 
   describe("Actions", () => {
@@ -217,10 +233,10 @@ describe("BaseGameAdapter", () => {
       const diffs = adapter.getStateDiff(oldState, newState);
 
       expect(diffs).toHaveLength(1);
-      expect(diffs[0].type).toBe("full_replace");
-      expect(diffs[0].path).toBe("/");
-      expect(diffs[0].oldValue).toEqual(oldState);
-      expect(diffs[0].newValue).toEqual(newState);
+      expect(diffs[0].type).toBe("replace");
+      expect(diffs[0].path).toBe("value");
+      expect(diffs[0].oldValue).toBe(50);
+      expect(diffs[0].newValue).toBe(60);
     });
 
     it("should return empty diff for identical states", () => {
@@ -234,10 +250,10 @@ describe("BaseGameAdapter", () => {
     it("should apply state diffs", () => {
       const state = { value: 50 };
       const diff: StateDiff = {
-        type: "full_replace",
-        path: "/",
-        oldValue: state,
-        newValue: { value: 60 },
+        type: "replace",
+        path: "value",
+        oldValue: 50,
+        newValue: 60,
         timestamp: new Date(),
       };
 

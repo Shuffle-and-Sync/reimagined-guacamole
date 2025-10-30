@@ -5,12 +5,15 @@
  * Supports Commander format with simplified rules for demonstration.
  */
 
+import crypto from "crypto";
 import { BaseGameAdapter } from "./base-game-adapter";
 import type {
   GameConfig,
   ValidationResult,
   WinResult,
   Phase,
+  RenderedState,
+  PlayerAction,
 } from "../../../../shared/game-adapter-types";
 
 // ============================================================================
@@ -458,7 +461,10 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
   private shuffleDeck(cards: MTGCard[]): MTGCard[] {
     const shuffled = [...cards];
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      // Use cryptographically secure random for CodeQL compliance
+      const randomBuffer = crypto.randomBytes(4);
+      const randomValue = randomBuffer.readUInt32BE(0) / 0xffffffff;
+      const j = Math.floor(randomValue * (i + 1));
       const temp = shuffled[i];
       const swapCard = shuffled[j];
       if (temp && swapCard) {
@@ -532,5 +538,148 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
       });
       // Spell will resolve from stack later
     }
+  }
+
+  // ============================================================================
+  // UI Helper Methods
+  // ============================================================================
+
+  renderState(state: MTGGameState, viewingPlayerId?: string): RenderedState {
+    const phases = this.getGamePhases();
+    const currentPhaseInfo =
+      phases.find((p) => p.id === state.currentPhase) || phases[0];
+
+    return {
+      players: state.players.map((player, index) => ({
+        id: player.id,
+        name: player.name,
+        isActive: index === state.activePlayerIndex,
+        resources: {
+          life: player.life,
+          manaPool:
+            Object.entries(player.manaPool)
+              .filter(([_, value]) => value > 0)
+              .map(([color, amount]) => `${color}:${amount}`)
+              .join(", ") || "None",
+        },
+        zones: {
+          library: {
+            count: player.zones.library.length,
+            visible: false,
+          },
+          hand: {
+            count: player.zones.hand.length,
+            visible: player.id === viewingPlayerId,
+          },
+          battlefield: {
+            count: player.zones.battlefield.length,
+            visible: true,
+          },
+          graveyard: {
+            count: player.zones.graveyard.length,
+            visible: true,
+          },
+          exile: {
+            count: player.zones.exile.length,
+            visible: true,
+          },
+          command: {
+            count: player.zones.command.length,
+            visible: true,
+          },
+        },
+        status: player.life <= 0 ? "eliminated" : undefined,
+      })),
+      currentPhase: {
+        id: currentPhaseInfo!.id,
+        name: currentPhaseInfo!.name,
+        description: currentPhaseInfo!.description,
+      },
+      turnNumber: state.turnNumber,
+      gameStatus: state.isGameOver ? "finished" : "active",
+      winner: state.winner,
+      metadata: {
+        gameId: this.gameId,
+        gameName: this.gameName,
+        priorityPlayer: state.players[state.priorityPlayerIndex]?.name,
+        stackSize: state.stack.length,
+      },
+    };
+  }
+
+  getPlayerActions(state: MTGGameState, playerId: string): PlayerAction[] {
+    const availableActions = this.getAvailableActions(state, playerId);
+    const player = state.players.find((p) => p.id === playerId);
+
+    if (!player) {
+      return [];
+    }
+
+    return availableActions.map((action) => {
+      const baseAction: PlayerAction = {
+        id: `${action.type}-${action.timestamp.getTime()}`,
+        type: action.type,
+        label: this.formatMTGActionLabel(action.type),
+        description: this.formatMTGActionDescription(action, player),
+        icon: this.getMTGActionIcon(action.type),
+      };
+
+      if (action.cardId) {
+        const card = player.zones.hand.find((c) => c.id === action.cardId);
+        if (card) {
+          baseAction.description = `${baseAction.label}: ${card.name} (${card.manaCost})`;
+        }
+      }
+
+      return baseAction;
+    });
+  }
+
+  private formatMTGActionLabel(actionType: MTGActionType): string {
+    const labels: Record<MTGActionType, string> = {
+      play_land: "Play Land",
+      cast_spell: "Cast Spell",
+      activate_ability: "Activate Ability",
+      attack: "Declare Attack",
+      block: "Declare Block",
+      pass_priority: "Pass Priority",
+      draw_card: "Draw Card",
+      discard_card: "Discard Card",
+      advance_phase: "Advance Phase",
+    };
+    return labels[actionType] || actionType;
+  }
+
+  private formatMTGActionDescription(
+    action: MTGAction,
+    player: MTGPlayer,
+  ): string {
+    switch (action.type) {
+      case "play_land":
+        return "Play a land card from your hand";
+      case "cast_spell":
+        return "Cast a spell from your hand";
+      case "pass_priority":
+        return "Pass priority to the next player";
+      case "draw_card":
+        return `Draw a card (${player.zones.library.length} remaining)`;
+      default:
+        return this.formatMTGActionLabel(action.type);
+    }
+  }
+
+  private getMTGActionIcon(actionType: MTGActionType): string {
+    const icons: Partial<Record<MTGActionType, string>> = {
+      play_land: "🏞️",
+      cast_spell: "✨",
+      activate_ability: "⚡",
+      attack: "⚔️",
+      block: "🛡️",
+      pass_priority: "👉",
+      draw_card: "📥",
+      discard_card: "🗑️",
+      advance_phase: "⏭️",
+    };
+    return icons[actionType] || "🎴";
   }
 }

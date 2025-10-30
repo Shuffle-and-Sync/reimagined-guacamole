@@ -29,6 +29,18 @@ export type {
   PokemonActionType,
 } from "./pokemon-adapter";
 
+export { YuGiOhGameAdapter } from "./yugioh-adapter";
+export type {
+  YuGiOhGameState,
+  YuGiOhAction,
+  YuGiOhPlayer,
+  YuGiOhCard,
+  YuGiOhZone,
+  YuGiOhCardType,
+  YuGiOhAttribute,
+  YuGiOhActionType,
+} from "./yugioh-adapter";
+
 // Registry and factory
 export {
   GameAdapterRegistry,
