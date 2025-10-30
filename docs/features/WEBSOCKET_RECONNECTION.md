@@ -240,14 +240,16 @@ webSocketClient.send(message);
 
 ### Recommended Enhancements
 
-Add connection status indicators to your UI. Here's an example component you can create:
+Add connection status indicators to your UI. Here's an example component you can create using the `useWebSocketStatus` hook defined earlier in this document:
 
 ```typescript
 // Create this component: client/src/components/ConnectionStatus.tsx
+// Note: This uses the useWebSocketStatus hook shown in the "React Hook Example" section above
 import { useWebSocketStatus } from '@/hooks/useWebSocketStatus';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ConnectionStatus() {
+  // status values: 'connected' | 'disconnected' | 'reconnecting' | 'failed'
   const { status, reconnectAttempt } = useWebSocketStatus();
 
   if (status === 'connected') {
