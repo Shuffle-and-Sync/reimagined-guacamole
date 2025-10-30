@@ -119,7 +119,7 @@ export async function setupDistributedConnections(httpServer: HttpServer) {
       setupGameEventForwarding(gameId);
 
       // Also register with local WebSocket manager
-      wsServer.connectionManager.joinGameRoom(ws.connectionId, gameId);
+      await wsServer.connectionManager.joinGameRoom(ws.connectionId, gameId);
 
       logger.info("User joined game", { userId, gameId });
 
