@@ -217,10 +217,10 @@ describe("BaseGameAdapter", () => {
       const diffs = adapter.getStateDiff(oldState, newState);
 
       expect(diffs).toHaveLength(1);
-      expect(diffs[0].type).toBe("full_replace");
-      expect(diffs[0].path).toBe("/");
-      expect(diffs[0].oldValue).toEqual(oldState);
-      expect(diffs[0].newValue).toEqual(newState);
+      expect(diffs[0].type).toBe("replace");
+      expect(diffs[0].path).toBe("value");
+      expect(diffs[0].oldValue).toBe(50);
+      expect(diffs[0].newValue).toBe(60);
     });
 
     it("should return empty diff for identical states", () => {
@@ -234,10 +234,10 @@ describe("BaseGameAdapter", () => {
     it("should apply state diffs", () => {
       const state = { value: 50 };
       const diff: StateDiff = {
-        type: "full_replace",
-        path: "/",
-        oldValue: state,
-        newValue: { value: 60 },
+        type: "replace",
+        path: "value",
+        oldValue: 50,
+        newValue: 60,
         timestamp: new Date(),
       };
 

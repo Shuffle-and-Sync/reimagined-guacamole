@@ -34,6 +34,7 @@ import backupRouter from "./routes/backup";
 import cacheHealthRouter from "./routes/cache-health";
 import databaseHealthRouter from "./routes/database-health";
 import forumRouter from "./routes/forum.routes";
+import gameAdaptersRouter from "./routes/game-adapters.routes";
 import gameSessionsRouter from "./routes/game-sessions.routes";
 import matchingRouter from "./routes/matching";
 import monitoringRouter from "./routes/monitoring";
@@ -345,6 +346,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Game sessions (join, leave, spectate)
   app.use("/api/game-sessions", gameSessionsRouter);
+
+  // Game adapters (multi-TCG support)
+  app.use("/api/game-adapters", gameAdaptersRouter);
 
   // ========================================
   // INFRASTRUCTURE & MONITORING ROUTES

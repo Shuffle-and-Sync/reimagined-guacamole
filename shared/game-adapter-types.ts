@@ -51,6 +51,44 @@ export interface StateDiff {
 }
 
 /**
+ * Rendered state for UI display
+ */
+export interface RenderedState {
+  players: Array<{
+    id: string;
+    name: string;
+    isActive: boolean;
+    resources: Record<string, number | string>;
+    zones: Record<string, { count: number; visible?: boolean }>;
+    status?: string;
+  }>;
+  currentPhase: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  turnNumber: number;
+  gameStatus: "waiting" | "active" | "finished";
+  winner?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Player action for UI
+ */
+export interface PlayerAction {
+  id: string;
+  type: string;
+  label: string;
+  description?: string;
+  requiresTarget?: boolean;
+  targetType?: "card" | "player" | "zone";
+  icon?: string;
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
+/**
  * Deck list structure
  */
 export interface DeckList {
@@ -128,6 +166,10 @@ export interface IGameAdapter<TState = unknown, TAction = unknown> {
   // Sync
   getStateDiff(oldState: TState, newState: TState): StateDiff[];
   applyStateDiff(state: TState, diff: StateDiff[]): TState;
+
+  // UI Helpers
+  renderState(state: TState, viewingPlayerId?: string): RenderedState;
+  getPlayerActions(state: TState, playerId: string): PlayerAction[];
 }
 
 // ============================================================================
