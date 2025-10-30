@@ -661,3 +661,355 @@ const restoredState = GameStateDeltaCompressor.applyDelta(originalState, delta);
 
 expect(restoredState).toEqual(modifiedState);
 ```
+
+## Multi-Game Support (Phase 3)
+
+### Game Adapter Pattern
+
+The system supports multiple Trading Card Games through the Adapter Pattern. Each game implements a common `GameAdapter` interface while maintaining game-specific rules and mechanics.
+
+**Supported Games:**
+
+- ✅ Magic: The Gathering (MTG)
+- ✅ Pokémon TCG
+- 🔄 Yu-Gi-Oh! (can be added)
+- 🔄 Other TCGs (extensible)
+
+### Architecture
+
+```typescript
+// Game Adapter Interface
+interface GameAdapter<TState> {
+  // Identification
+  gameType: string;
+  gameName: string;
+  version?: string;
+
+  // State Management
+  createInitialState(config: GameConfig): TState;
+  validateState(state: TState): ValidationResult;
+
+  // Action Handling
+  validateAction(action: GameStateAction, state: TState): boolean;
+  applyAction(action: GameStateAction, state: TState): TState;
+  getLegalActions(state: TState, playerId: string): GameStateAction[];
+
+  // Game Rules
+  isGameOver(state: TState): boolean;
+  getWinner(state: TState): string | null;
+
+  // UI Helpers
+  renderState(state: TState): GameStateView;
+  getPlayerActions(state: TState, playerId: string): PlayerAction[];
+}
+```
+
+### Using Game Adapters
+
+```typescript
+import {
+  GameAdapterRegistry,
+  MTGAdapter,
+  PokemonAdapter,
+} from "@shared/game-adapters";
+
+// Register adapters (done automatically on import)
+GameAdapterRegistry.register(new MTGAdapter());
+GameAdapterRegistry.register(new PokemonAdapter());
+
+// Get an adapter
+const mtgAdapter = GameAdapterRegistry.get("mtg");
+
+// Create game state
+const config = {
+  maxPlayers: 2,
+  players: [
+    { id: "p1", name: "Alice" },
+    { id: "p2", name: "Bob" },
+  ],
+};
+
+const gameState = mtgAdapter.createInitialState(config);
+
+// Validate state
+const validation = mtgAdapter.validateState(gameState);
+if (!validation.valid) {
+  console.error("Invalid state:", validation.errors);
+}
+
+// Get legal actions for a player
+const legalActions = mtgAdapter.getLegalActions(gameState, "p1");
+
+// Apply an action
+const action = legalActions[0];
+if (mtgAdapter.validateAction(action, gameState)) {
+  const newState = mtgAdapter.applyAction(action, gameState);
+}
+
+// Check game status
+if (mtgAdapter.isGameOver(gameState)) {
+  const winner = mtgAdapter.getWinner(gameState);
+  console.log(`Winner: ${winner}`);
+}
+```
+
+### MTG Adapter
+
+Magic: The Gathering specific implementation:
+
+```typescript
+const mtgAdapter = new MTGAdapter();
+
+// MTG uses standard TCGGameState
+const state = mtgAdapter.createInitialState({
+  maxPlayers: 4, // Supports 2-10 players
+  players: [
+    { id: "p1", name: "Alice" },
+    { id: "p2", name: "Bob" },
+    { id: "p3", name: "Charlie" },
+    { id: "p4", name: "Diana" },
+  ],
+});
+
+// MTG-specific features:
+// - 20 starting life
+// - Poison counters
+// - All game zones (hand, battlefield, graveyard, library, exile, command zone)
+// - Turn phases (untap, upkeep, draw, main1, combat, main2, end, cleanup)
+// - Stack for spells and abilities
+```
+
+**MTG Win Conditions:**
+
+- Life total reaches 0
+- 10+ poison counters
+- Unable to draw from empty library
+- Concede
+
+### Pokémon Adapter
+
+Pokémon TCG specific implementation:
+
+```typescript
+const pokemonAdapter = new PokemonAdapter();
+
+const state = pokemonAdapter.createInitialState({
+  maxPlayers: 2, // Pokémon is always 2 players
+  players: [
+    { id: "p1", name: "Ash" },
+    { id: "p2", name: "Gary" },
+  ],
+});
+
+// Pokémon-specific features:
+// - 6 prize cards
+// - Active Pokémon position
+// - Bench (max 5 Pokémon)
+// - Deck and discard pile
+// - Different turn phases (setup, draw, main, attack, end)
+```
+
+**Pokémon Win Conditions:**
+
+- Collect all 6 prize cards
+- Opponent has no Pokémon in play
+- Opponent cannot draw from empty deck
+
+### Creating a New Game Adapter
+
+To add support for a new card game:
+
+```typescript
+import { BaseGameAdapter, GameConfig } from "@shared/game-adapters";
+
+// 1. Define your game's state type
+interface YuGiOhGameState extends GameStateBase {
+  gameType: "yugioh";
+  players: Array<{
+    id: string;
+    name: string;
+    lifePoints: number;
+    // ... YuGiOh-specific fields
+  }>;
+  // ... more YuGiOh fields
+}
+
+// 2. Implement the adapter
+export class YuGiOhAdapter extends BaseGameAdapter<YuGiOhGameState> {
+  readonly gameType = "yugioh";
+  readonly gameName = "Yu-Gi-Oh!";
+  readonly version = "1.0.0";
+
+  createInitialState(config: GameConfig): YuGiOhGameState {
+    return {
+      version: 0,
+      timestamp: Date.now(),
+      lastModifiedBy: "system",
+      gameType: "yugioh",
+      sessionId: `yugioh-${Date.now()}`,
+      players: config.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        lifePoints: 8000, // YuGiOh starts at 8000 LP
+        // ... initialize other fields
+      })),
+      // ... initialize other game state
+    };
+  }
+
+  validateState(state: YuGiOhGameState): ValidationResult {
+    // Implement YuGiOh-specific validation
+    const errors: string[] = [];
+    // ... validation logic
+    return { valid: errors.length === 0, errors };
+  }
+
+  // Implement other required methods...
+  validateAction(action, state) {
+    /* ... */
+  }
+  applyAction(action, state) {
+    /* ... */
+  }
+  getLegalActions(state, playerId) {
+    /* ... */
+  }
+  isGameOver(state) {
+    /* ... */
+  }
+  getWinner(state) {
+    /* ... */
+  }
+  renderState(state) {
+    /* ... */
+  }
+  getPlayerActions(state, playerId) {
+    /* ... */
+  }
+}
+
+// 3. Register the adapter
+GameAdapterRegistry.register(new YuGiOhAdapter());
+```
+
+### Game Adapter Registry
+
+Centralized registry for managing all game adapters:
+
+```typescript
+import { GameAdapterRegistry } from "@shared/game-adapters";
+
+// Check supported games
+const games = GameAdapterRegistry.getSupportedGames();
+// => [
+//   { type: "mtg", name: "Magic: The Gathering", version: "1.0.0" },
+//   { type: "pokemon", name: "Pokémon Trading Card Game", version: "1.0.0" }
+// ]
+
+// Check if a game is supported
+if (GameAdapterRegistry.isSupported("mtg")) {
+  const adapter = GameAdapterRegistry.get("mtg");
+  // Use the adapter
+}
+
+// Get all game types
+const types = GameAdapterRegistry.getGameTypes();
+// => ["mtg", "pokemon"]
+
+// Unregister a game (if needed)
+GameAdapterRegistry.unregister("mtg");
+
+// Clear all (for testing)
+GameAdapterRegistry.clear();
+```
+
+### Rendering Game State
+
+Adapters separate public and private information:
+
+```typescript
+const adapter = GameAdapterRegistry.get("mtg");
+const view = adapter.renderState(gameState);
+
+// Public state (visible to all players)
+console.log(view.publicState);
+// => {
+//   currentTurn: { playerId: "p1", phase: "main1", turnNumber: 3 },
+//   battlefield: { permanents: [...] },
+//   players: [
+//     { id: "p1", name: "Alice", lifeTotal: 18, handSize: 7, ... },
+//     { id: "p2", name: "Bob", lifeTotal: 20, handSize: 5, ... }
+//   ]
+// }
+
+// Private states (per player)
+const player1State = view.playerStates.get("p1");
+// => { hand: [...actual cards...], libraryTop: "card-id" }
+```
+
+### UI Integration
+
+Get player actions for rendering UI controls:
+
+```typescript
+const adapter = GameAdapterRegistry.get("mtg");
+const playerActions = adapter.getPlayerActions(gameState, "p1");
+
+// => [
+//   { id: "action-1", type: "draw", label: "Draw Card", icon: "📥", enabled: true },
+//   { id: "action-2", type: "play", label: "Play Card", icon: "🃏", enabled: true },
+//   { id: "action-3", type: "pass", label: "Pass Priority", icon: "⏭️", enabled: true },
+//   { id: "action-4", type: "concede", label: "Concede", icon: "🏳️", enabled: true }
+// ]
+
+// Render UI buttons
+playerActions.forEach((action) => {
+  renderButton({
+    label: action.label,
+    icon: action.icon,
+    onClick: () => performAction(action),
+    disabled: !action.enabled,
+  });
+});
+```
+
+### Benefits of Adapter Pattern
+
+✅ **Separation of Concerns**: Game-specific logic is isolated
+✅ **Extensibility**: Easy to add new games without modifying existing code
+✅ **Type Safety**: Each game has its own typed state
+✅ **Reusability**: Common functionality shared via BaseGameAdapter
+✅ **Testability**: Each adapter can be tested independently
+✅ **Maintainability**: Changes to one game don't affect others
+
+### Testing
+
+```typescript
+import { MTGAdapter } from "@shared/game-adapters";
+
+describe("MTGAdapter", () => {
+  test("should create valid initial state", () => {
+    const adapter = new MTGAdapter();
+    const state = adapter.createInitialState({
+      maxPlayers: 2,
+      players: [
+        { id: "p1", name: "Alice" },
+        { id: "p2", name: "Bob" },
+      ],
+    });
+
+    expect(state.players).toHaveLength(2);
+    expect(state.players[0].lifeTotal).toBe(20);
+  });
+
+  test("should validate state correctly", () => {
+    const adapter = new MTGAdapter();
+    const state = adapter.createInitialState({
+      /* ... */
+    });
+
+    const result = adapter.validateState(state);
+    expect(result.valid).toBe(true);
+  });
+});
+```
