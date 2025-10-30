@@ -422,6 +422,9 @@ describe("WebSocketConnectionManager", () => {
       const message = { type: "test", data: "hello" };
       manager.broadcastToGameRoom("session-456", message);
 
+      // Flush batches to send queued messages
+      manager.flushAllBatches();
+
       expect(mockWs1.send).toHaveBeenCalledWith(JSON.stringify(message));
       expect(mockWs2.send).toHaveBeenCalledWith(JSON.stringify(message));
     });
@@ -446,6 +449,9 @@ describe("WebSocketConnectionManager", () => {
 
       const message = { type: "test", data: "hello" };
       manager.broadcastToGameRoom("session-456", message, conn1);
+
+      // Flush batches to send queued messages
+      manager.flushAllBatches();
 
       expect(mockWs1.send).not.toHaveBeenCalled();
       expect(mockWs2.send).toHaveBeenCalledWith(JSON.stringify(message));

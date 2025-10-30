@@ -164,7 +164,7 @@ export class WebSocketMessageBatcher {
 
     // If only one message, send directly (no batching overhead)
     if (batchSize === 1) {
-      const message = this.batch[0];
+      const message = this.batch[0]!; // Safe: we verified batchSize === 1
       this.sendCallback(message);
       logger.debug("Single message sent directly", { type: message.type });
     } else {
@@ -349,32 +349,29 @@ export class WebSocketMessageBatcher {
  * Can be customized based on application needs
  */
 export function getMessagePriority(message: WebSocketMessage): MessagePriority {
-  // Game state sync is critical
-  if (message.type === "game_state_sync") {
-    return MessagePriority.CRITICAL;
-  }
+  const messageType = message.type;
 
   // WebRTC signaling is high priority
   if (
-    message.type === "webrtc_offer" ||
-    message.type === "webrtc_answer" ||
-    message.type === "webrtc_ice_candidate"
+    messageType === "webrtc_offer" ||
+    messageType === "webrtc_answer" ||
+    messageType === "webrtc_ice_candidate"
   ) {
     return MessagePriority.HIGH;
   }
 
   // Phase changes and important game events are high priority
-  if (message.type === "phase_change" || message.type === "game_action") {
+  if (messageType === "phase_change" || messageType === "game_action") {
     return MessagePriority.HIGH;
   }
 
   // Chat messages are normal priority
-  if (message.type === "message") {
+  if (messageType === "message") {
     return MessagePriority.NORMAL;
   }
 
   // Status updates are low priority
-  if (message.type === "collaborator_status_update") {
+  if (messageType === "collaborator_status_update") {
     return MessagePriority.LOW;
   }
 

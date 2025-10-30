@@ -858,6 +858,7 @@ export class EnhancedWebSocketServer {
           : null,
       },
       connectionManager: connectionManager.getStats(),
+      batching: connectionManager.getBatchingMetrics(),
       rateLimiter: {
         default: defaultRateLimiter.getStats(),
         highFrequency: highFrequencyRateLimiter.getStats(),
