@@ -13,6 +13,10 @@ import {
   errors,
   errorHandlingMiddleware,
 } from "../middleware/error-handling.middleware";
+import {
+  authorizeSessionJoin,
+  authorizeSpectate,
+} from "../middleware/game-authorization.middleware";
 import { storage } from "../storage";
 import { validateRequest, validateGameSessionSchema } from "../validation";
 
@@ -77,6 +81,14 @@ router.post(
     const user = authenticatedReq.user;
     const { id } = req.params;
 
+    // Authorize session join
+    const authResult = await authorizeSessionJoin(id, userId);
+    if (!authResult.authorized) {
+      return res.status(403).json({
+        error: authResult.reason || "Not authorized to join this session",
+      });
+    }
+
     await storage.joinGameSession(id, userId);
 
     // Create notification for host when someone joins
@@ -132,6 +144,14 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+
+    // Authorize spectating
+    const authResult = await authorizeSpectate(id, userId);
+    if (!authResult.authorized) {
+      return res.status(403).json({
+        error: authResult.reason || "Not authorized to spectate this session",
+      });
+    }
 
     await storage.spectateGameSession(id, userId);
 

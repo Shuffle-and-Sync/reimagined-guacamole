@@ -2,6 +2,12 @@ import { IncomingMessage, Server as HttpServer } from "http";
 import { WebSocketServer, WebSocket, type ServerOptions } from "ws";
 import { WS_SERVER_CONFIG, WS_FEATURES } from "../config/websocket.config";
 import { logger } from "../logger";
+import {
+  authorizeSessionJoin,
+  authorizeGameAction,
+  validateGameActionPayload,
+  sanitizeGameActionData,
+} from "../middleware/game-authorization.middleware";
 import { collaborativeStreaming } from "../services/collaborative-streaming.service";
 import { storage } from "../storage";
 import {
@@ -406,6 +412,24 @@ export class EnhancedWebSocketServer {
       return;
     }
 
+    // Authorize session join
+    const authResult = await authorizeSessionJoin(sessionId, user.id);
+    if (!authResult.authorized) {
+      logger.warn("Unauthorized session join attempt", {
+        sessionId,
+        userId: user.id,
+        reason: authResult.reason,
+      });
+      this.sendMessage(
+        ws,
+        messageValidator.createErrorMessage(
+          authResult.reason || "Not authorized to join this session",
+          "UNAUTHORIZED",
+        ),
+      );
+      return;
+    }
+
     await connectionManager.joinGameRoom(connectionId, sessionId);
 
     // Get current room members
@@ -483,12 +507,63 @@ export class EnhancedWebSocketServer {
       return;
     }
 
+    // Validate action payload
+    const actionPayload = {
+      type: action,
+      sessionId,
+      userId: user.id,
+      ...(data || {}),
+    };
+
+    const validationResult = validateGameActionPayload(actionPayload);
+    if (!validationResult.valid) {
+      logger.warn("Invalid game action payload", {
+        sessionId,
+        userId: user.id,
+        action,
+        error: validationResult.error,
+      });
+      this.sendMessage(
+        ws,
+        messageValidator.createErrorMessage(
+          validationResult.error || "Invalid action payload",
+          "VALIDATION_ERROR",
+        ),
+      );
+      return;
+    }
+
+    // Authorize game action
+    const authResult = await authorizeGameAction(sessionId, user.id, {
+      type: action,
+      ...data,
+    });
+    if (!authResult.authorized) {
+      logger.warn("Unauthorized game action attempt", {
+        sessionId,
+        userId: user.id,
+        action,
+        reason: authResult.reason,
+      });
+      this.sendMessage(
+        ws,
+        messageValidator.createErrorMessage(
+          authResult.reason || "Not authorized to perform this action",
+          "UNAUTHORIZED",
+        ),
+      );
+      return;
+    }
+
+    // Sanitize action data
+    const sanitizedData = data ? sanitizeGameActionData(data) : {};
+
     const actionMessage = {
       type: "game_action" as const,
       action,
       player: user.name,
-      result: data.result,
-      data,
+      result: sanitizedData.result,
+      data: sanitizedData,
     };
 
     connectionManager.broadcastToGameRoom(sessionId, actionMessage);
