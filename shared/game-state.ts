@@ -40,3 +40,19 @@ export {
   createGameAction,
   createInitialTCGState,
 } from "./game-state-manager";
+
+// Export delta system
+export type {
+  DeltaOperation,
+  GameStateDelta,
+  GameStateSyncMessage,
+} from "./game-state-delta";
+
+export {
+  GameStateDeltaCompressor,
+  createFullStateSyncMessage,
+  createDeltaSyncMessage,
+  shouldUseDelta,
+  DeltaOperationSchema,
+  GameStateDeltaSchema,
+} from "./game-state-delta";
