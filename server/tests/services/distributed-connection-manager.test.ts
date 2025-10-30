@@ -7,8 +7,6 @@ import { createClient } from "redis";
 import { WebSocket } from "ws";
 import {
   DistributedConnectionManager,
-  ServerInfo,
-  ConnectionMetadata,
   CrossServerMessage,
 } from "../../services/distributed-connection-manager";
 import {
@@ -425,7 +423,6 @@ describe("DistributedConnectionManager", () => {
         rooms: JSON.stringify([]),
       });
 
-      const sendSpy = jest.spyOn(mockWs, "send");
       await manager.sendToConnection(connectionId, message);
 
       // Note: This may not work as expected due to local manager internals
@@ -597,6 +594,7 @@ describe("DistributedConnectionManager", () => {
         });
 
       // Manually trigger cleanup
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (manager as any).detectFailedServers();
 
       // Should have attempted to handle the failed server
@@ -625,6 +623,7 @@ describe("DistributedConnectionManager", () => {
           rooms: JSON.stringify([]),
         });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (manager as any).handleServerFailure(failedServerId);
 
       expect(mockClient.sRem).toHaveBeenCalledWith("rooms:room1", "conn1");
@@ -653,6 +652,7 @@ describe("DistributedConnectionManager", () => {
         rooms: JSON.stringify([]),
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (manager as any).cleanupStaleConnections();
 
       expect(mockClient.del).toHaveBeenCalledWith("connections:stale");
