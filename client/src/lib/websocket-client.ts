@@ -168,6 +168,37 @@ export type WebSocketMessage =
 
 export type WebSocketEventListener<T = WebSocketEventData> = (data: T) => void;
 
+// Connection state types
+export type ConnectionState =
+  | "connected"
+  | "disconnected"
+  | "reconnecting"
+  | "failed";
+
+export type ConnectionStateCallback = (
+  state: ConnectionState,
+  attempt?: number,
+) => void;
+
+// Reconnection state interface
+export interface ReconnectionState {
+  gameRoomId?: string;
+  collaborativeRoomId?: string;
+  pendingMessages: Array<{
+    message: WebSocketMessage;
+    timestamp: number;
+    id: string;
+  }>;
+  lastMessageId?: string;
+}
+
+// Queued message interface
+export interface QueuedMessage {
+  message: WebSocketMessage;
+  timestamp: number;
+  id: string;
+}
+
 class WebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
@@ -176,9 +207,28 @@ class WebSocketClient {
   private eventListeners: Map<string, Set<WebSocketEventListener>> = new Map();
   private connectionPromise: Promise<void> | null = null;
 
+  // Reconnection state management
+  private reconnectionState: ReconnectionState = {
+    pendingMessages: [],
+  };
+
+  // Connection state callbacks
+  private connectionStateCallbacks: Set<ConnectionStateCallback> = new Set();
+  private currentConnectionState: ConnectionState = "disconnected";
+
+  // Message ID tracking for deduplication
+  private messageIdCounter = 0;
+  private processedMessageIds: Set<string> = new Set();
+  private readonly MAX_PROCESSED_IDS = 1000; // Prevent memory leak
+
   async connect(): Promise<void> {
     if (this.connectionPromise) {
       return this.connectionPromise;
+    }
+
+    // Set state to reconnecting if we have prior attempts
+    if (this.reconnectAttempts > 0) {
+      this.setConnectionState("reconnecting", this.reconnectAttempts);
     }
 
     this.connectionPromise = new Promise((resolve, reject) => {
@@ -192,6 +242,11 @@ class WebSocketClient {
           logger.info("WebSocket connected successfully");
           this.reconnectAttempts = 0;
           this.reconnectDelay = 1000;
+          this.setConnectionState("connected");
+
+          // Recover state after reconnection
+          this.recoverConnectionState();
+
           resolve();
         };
 
@@ -212,12 +267,25 @@ class WebSocketClient {
           });
           this.connectionPromise = null;
 
+          // Update connection state
+          if (event.code === 1000) {
+            // Manual disconnect
+            this.setConnectionState("disconnected");
+          } else {
+            this.setConnectionState("disconnected");
+          }
+
           // Attempt to reconnect if not a manual close
           if (
             event.code !== 1000 &&
             this.reconnectAttempts < this.maxReconnectAttempts
           ) {
             this.scheduleReconnect();
+          } else if (
+            event.code !== 1000 &&
+            this.reconnectAttempts >= this.maxReconnectAttempts
+          ) {
+            this.setConnectionState("failed");
           }
         };
 
@@ -243,6 +311,124 @@ class WebSocketClient {
     });
 
     return this.connectionPromise;
+  }
+
+  /**
+   * Set connection state and notify all registered callbacks
+   */
+  private setConnectionState(state: ConnectionState, attempt?: number): void {
+    if (this.currentConnectionState !== state) {
+      this.currentConnectionState = state;
+      logger.info("Connection state changed", { state, attempt });
+
+      this.connectionStateCallbacks.forEach((callback) => {
+        try {
+          callback(state, attempt);
+        } catch (error) {
+          logger.error("Error in connection state callback", error);
+        }
+      });
+    }
+  }
+
+  /**
+   * Register a callback to be notified of connection state changes
+   */
+  onConnectionStateChange(callback: ConnectionStateCallback): () => void {
+    this.connectionStateCallbacks.add(callback);
+
+    // Immediately notify of current state
+    callback(this.currentConnectionState, this.reconnectAttempts);
+
+    // Return unsubscribe function
+    return () => {
+      this.connectionStateCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * Get current connection state
+   */
+  getConnectionState(): ConnectionState {
+    return this.currentConnectionState;
+  }
+
+  /**
+   * Recover connection state after successful reconnection
+   */
+  private recoverConnectionState(): void {
+    logger.info("Recovering connection state", {
+      gameRoomId: this.reconnectionState.gameRoomId,
+      collaborativeRoomId: this.reconnectionState.collaborativeRoomId,
+      pendingMessages: this.reconnectionState.pendingMessages.length,
+    });
+
+    // Rejoin game room if we were in one
+    if (this.reconnectionState.gameRoomId) {
+      logger.info("Rejoining game room", {
+        sessionId: this.reconnectionState.gameRoomId,
+      });
+      // The room join will be triggered by the application
+      // We just preserve the state here
+    }
+
+    // Rejoin collaborative room if we were in one
+    if (this.reconnectionState.collaborativeRoomId) {
+      logger.info("Rejoining collaborative room", {
+        eventId: this.reconnectionState.collaborativeRoomId,
+      });
+      // The room join will be triggered by the application
+      // We just preserve the state here
+    }
+
+    // Replay pending messages in order
+    if (this.reconnectionState.pendingMessages.length > 0) {
+      logger.info("Replaying pending messages", {
+        count: this.reconnectionState.pendingMessages.length,
+      });
+
+      const messagesToReplay = [...this.reconnectionState.pendingMessages];
+      this.reconnectionState.pendingMessages = [];
+
+      messagesToReplay
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .forEach(({ message, id }) => {
+          logger.debug("Replaying message", { type: message.type, id });
+          this.send(message, id);
+        });
+    }
+  }
+
+  /**
+   * Store room IDs for reconnection recovery
+   */
+  setGameRoomId(sessionId: string | null): void {
+    if (sessionId) {
+      this.reconnectionState.gameRoomId = sessionId;
+      logger.debug("Game room ID stored for reconnection", { sessionId });
+    } else {
+      delete this.reconnectionState.gameRoomId;
+      logger.debug("Game room ID cleared");
+    }
+  }
+
+  setCollaborativeRoomId(eventId: string | null): void {
+    if (eventId) {
+      this.reconnectionState.collaborativeRoomId = eventId;
+      logger.debug("Collaborative room ID stored for reconnection", {
+        eventId,
+      });
+    } else {
+      delete this.reconnectionState.collaborativeRoomId;
+      logger.debug("Collaborative room ID cleared");
+    }
+  }
+
+  /**
+   * Get stored room IDs
+   */
+  getReconnectionState(): Readonly<ReconnectionState> {
+    return { ...this.reconnectionState };
   }
 
   private buildWebSocketUrl(): string {
@@ -475,13 +661,29 @@ class WebSocketClient {
     }
   }
 
-  send(message: WebSocketMessage): void {
+  send(message: WebSocketMessage, messageId?: string): void {
+    // Generate message ID if not provided
+    const id = messageId || this.generateMessageId();
+
+    // Check for duplicate message
+    if (this.processedMessageIds.has(id)) {
+      logger.debug("Skipping duplicate message", { type: message.type, id });
+      return;
+    }
+
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      logger.warn("Cannot send WebSocket message - connection not open", {
-        message: message.type,
-        readyState: this.ws?.readyState,
-        connectionState: this.getConnectionState(),
-      });
+      logger.warn(
+        "Cannot send WebSocket message - connection not open, queuing",
+        {
+          message: message.type,
+          readyState: this.ws?.readyState,
+          connectionState: this.currentConnectionState,
+          messageId: id,
+        },
+      );
+
+      // Queue message for later delivery
+      this.queueMessage(message, id);
       return;
     }
 
@@ -495,13 +697,93 @@ class WebSocketClient {
       const sanitizedMessage = this.sanitizeMessage(message);
 
       this.ws.send(JSON.stringify(sanitizedMessage));
-      logger.debug("WebSocket message sent", { type: message.type });
+
+      // Track message ID to prevent duplicates
+      this.trackMessageId(id);
+
+      // Update last message ID
+      this.reconnectionState.lastMessageId = id;
+
+      logger.debug("WebSocket message sent", { type: message.type, id });
     } catch (error) {
       logger.error("Failed to send WebSocket message", error, {
         messageType: message.type,
+        messageId: id,
         error: error instanceof Error ? error.message : "Unknown error",
       });
+
+      // Queue message on send failure
+      this.queueMessage(message, id);
     }
+  }
+
+  /**
+   * Queue a message for later delivery when connection is restored
+   */
+  private queueMessage(message: WebSocketMessage, id: string): void {
+    const queuedMessage: QueuedMessage = {
+      message,
+      timestamp: Date.now(),
+      id,
+    };
+
+    this.reconnectionState.pendingMessages.push(queuedMessage);
+
+    // Limit queue size to prevent memory issues
+    const MAX_QUEUE_SIZE = 100;
+    if (this.reconnectionState.pendingMessages.length > MAX_QUEUE_SIZE) {
+      const removed = this.reconnectionState.pendingMessages.shift();
+      logger.warn("Message queue full, removing oldest message", {
+        removedType: removed?.message.type,
+        removedId: removed?.id,
+      });
+    }
+
+    logger.debug("Message queued", {
+      type: message.type,
+      id,
+      queueSize: this.reconnectionState.pendingMessages.length,
+    });
+  }
+
+  /**
+   * Generate a unique message ID
+   */
+  private generateMessageId(): string {
+    return `msg_${Date.now()}_${this.messageIdCounter++}`;
+  }
+
+  /**
+   * Track a message ID to prevent duplicate processing
+   */
+  private trackMessageId(id: string): void {
+    this.processedMessageIds.add(id);
+
+    // Prevent memory leak by limiting stored IDs
+    if (this.processedMessageIds.size > this.MAX_PROCESSED_IDS) {
+      // Remove oldest 20% of IDs
+      const toRemove = Array.from(this.processedMessageIds).slice(
+        0,
+        Math.floor(this.MAX_PROCESSED_IDS * 0.2),
+      );
+      toRemove.forEach((id) => this.processedMessageIds.delete(id));
+    }
+  }
+
+  /**
+   * Clear pending messages (useful for testing or manual cleanup)
+   */
+  clearPendingMessages(): void {
+    const count = this.reconnectionState.pendingMessages.length;
+    this.reconnectionState.pendingMessages = [];
+    logger.info("Cleared pending messages", { count });
+  }
+
+  /**
+   * Get count of pending messages
+   */
+  getPendingMessageCount(): number {
+    return this.reconnectionState.pendingMessages.length;
   }
 
   private sanitizeMessage(message: WebSocketMessage): WebSocketMessage {
@@ -516,7 +798,7 @@ class WebSocketClient {
     return sanitized;
   }
 
-  private getConnectionState(): string {
+  private getReadyStateString(): string {
     if (!this.ws) return "no-websocket";
 
     switch (this.ws.readyState) {
@@ -565,6 +847,13 @@ class WebSocketClient {
     }
     this.eventListeners.clear();
     this.connectionPromise = null;
+    this.setConnectionState("disconnected");
+
+    // Clear reconnection state on manual disconnect
+    this.reconnectionState = {
+      pendingMessages: [],
+    };
+    this.processedMessageIds.clear();
   }
 
   get isConnected(): boolean {
@@ -588,11 +877,20 @@ export class CollaborativeStreamingWebSocket {
     collaborator?: CollaboratorInfo,
   ): Promise<void> {
     await this.client.connect();
+
+    // Store room ID for reconnection
+    this.client.setCollaborativeRoomId(eventId);
+
     this.client.send({
       type: "join_collab_stream",
       eventId,
       collaborator,
     });
+  }
+
+  leaveCollaborativeStream(_eventId: string): void {
+    // Clear room ID
+    this.client.setCollaborativeRoomId(null);
   }
 
   changePhase(eventId: string, newPhase: string, hostUserId?: string): void {
