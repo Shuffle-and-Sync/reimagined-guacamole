@@ -14,6 +14,7 @@ export function calculateOptimizedDiff<T = unknown>(
   oldState: T,
   newState: T,
   path: string = "",
+  visited: WeakSet<object> = new WeakSet(),
 ): StateDiff[] {
   const diffs: StateDiff[] = [];
   const timestamp = new Date();
@@ -57,9 +58,19 @@ export function calculateOptimizedDiff<T = unknown>(
     return diffs;
   }
 
+  // Detect circular references to prevent infinite recursion
+  if (visited.has(oldState as object) || visited.has(newState as object)) {
+    // Skip circular references - they should not exist in game state
+    return diffs;
+  }
+
+  // Mark objects as visited
+  visited.add(oldState as object);
+  visited.add(newState as object);
+
   // Handle arrays
   if (Array.isArray(oldState) && Array.isArray(newState)) {
-    return calculateArrayDiff(oldState, newState, path, timestamp);
+    return calculateArrayDiff(oldState, newState, path, timestamp, visited);
   }
 
   // Handle objects
@@ -108,6 +119,7 @@ export function calculateOptimizedDiff<T = unknown>(
         oldState[key],
         newState[key],
         newPath,
+        visited,
       );
       diffs.push(...nestedDiffs);
     }
@@ -124,6 +136,7 @@ function calculateArrayDiff<T = unknown>(
   newArray: T[],
   path: string,
   timestamp: Date,
+  visited: WeakSet<object>,
 ): StateDiff[] {
   const diffs: StateDiff[] = [];
 
@@ -155,6 +168,7 @@ function calculateArrayDiff<T = unknown>(
         oldArray[i],
         newArray[i],
         itemPath,
+        visited,
       );
       diffs.push(...itemDiffs);
     }
