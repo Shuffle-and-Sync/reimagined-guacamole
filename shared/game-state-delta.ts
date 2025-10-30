@@ -7,6 +7,7 @@
  * Based on recommendations in Section 2.2 of TABLESYNC_ANALYSIS_AND_RECOMMENDATIONS.md
  */
 
+import { gzipSync, gunzipSync } from "zlib";
 import { z } from "zod";
 import type { TCGGameState } from "./game-state-schema";
 
@@ -39,6 +40,8 @@ export interface GameStateDelta {
   timestamp: number;
   /** Optional checksum for validation */
   checksum?: string;
+  /** Whether the operations are compressed */
+  compressed?: boolean;
 }
 
 /**
@@ -55,6 +58,10 @@ export interface GameStateSyncMessage {
   delta?: GameStateDelta;
   /** Message timestamp */
   timestamp: number;
+  /** Whether the payload is compressed */
+  compressed?: boolean;
+  /** Compressed payload (base64 encoded) if compression is used */
+  compressedPayload?: string;
 }
 
 // ============================================================================
@@ -99,6 +106,7 @@ export const GameStateDeltaSchema = z.object({
   operations: z.array(DeltaOperationSchema),
   timestamp: z.number().int().positive(),
   checksum: z.string().optional(),
+  compressed: z.boolean().optional(),
 });
 
 // ============================================================================
@@ -549,4 +557,266 @@ export function shouldUseDelta(
   const deltaSize = JSON.stringify(delta).length;
 
   return deltaSize / fullSize <= threshold;
+}
+
+// ============================================================================
+// Compression Utilities
+// ============================================================================
+
+/**
+ * Configuration for compression thresholds
+ */
+export const COMPRESSION_CONFIG = {
+  /** Minimum size in bytes before compression is applied */
+  MIN_SIZE_FOR_COMPRESSION: 1024, // 1KB
+  /** Compression level (0-9, higher = better compression but slower) */
+  COMPRESSION_LEVEL: 6,
+} as const;
+
+/**
+ * Compress a JSON object using gzip
+ * @param data The data to compress
+ * @returns Base64-encoded compressed data
+ */
+export function compressData(data: unknown): string {
+  const jsonString = JSON.stringify(data);
+  const buffer = Buffer.from(jsonString, "utf-8");
+  const compressed = gzipSync(buffer, {
+    level: COMPRESSION_CONFIG.COMPRESSION_LEVEL,
+  });
+  return compressed.toString("base64");
+}
+
+/**
+ * Decompress a base64-encoded gzip string
+ * @param compressedData Base64-encoded compressed data
+ * @returns Decompressed object
+ */
+export function decompressData<T = unknown>(compressedData: string): T {
+  const buffer = Buffer.from(compressedData, "base64");
+  const decompressed = gunzipSync(buffer);
+  const jsonString = decompressed.toString("utf-8");
+  return JSON.parse(jsonString) as T;
+}
+
+/**
+ * Determine if data should be compressed based on size
+ * @param data The data to check
+ * @returns True if data should be compressed
+ */
+export function shouldCompress(data: unknown): boolean {
+  const size = JSON.stringify(data).length;
+  return size >= COMPRESSION_CONFIG.MIN_SIZE_FOR_COMPRESSION;
+}
+
+/**
+ * Calculate compression ratio as percentage
+ * @param original Original data
+ * @param compressed Compressed data (base64 string)
+ * @returns Compression ratio (0-100, higher is better)
+ */
+export function calculateCompressionRatio(
+  original: unknown,
+  compressed: string,
+): number {
+  const originalSize = JSON.stringify(original).length;
+  const compressedSize = compressed.length;
+
+  if (originalSize === 0) return 0;
+
+  return ((originalSize - compressedSize) / originalSize) * 100;
+}
+
+/**
+ * Compress a delta if it's large enough to benefit from compression
+ * @param delta The delta to potentially compress
+ * @returns Delta with compression applied if beneficial
+ */
+export function compressDeltaIfNeeded(delta: GameStateDelta): GameStateDelta {
+  if (!shouldCompress(delta)) {
+    return delta;
+  }
+
+  try {
+    const compressed = compressData(delta.operations);
+    const ratio = calculateCompressionRatio(delta.operations, compressed);
+
+    // Only use compression if it saves at least 10% space
+    if (ratio >= 10) {
+      return {
+        ...delta,
+        compressed: true,
+        operations: [
+          { op: "replace", path: "/_compressed", value: compressed },
+        ] as DeltaOperation[],
+      };
+    }
+  } catch (error) {
+    // If compression fails, return original delta
+    console.error("Failed to compress delta:", error);
+  }
+
+  return delta;
+}
+
+/**
+ * Decompress a delta if it was compressed
+ * @param delta The delta to decompress
+ * @returns Delta with operations decompressed
+ */
+export function decompressDeltaIfNeeded(delta: GameStateDelta): GameStateDelta {
+  if (!delta.compressed) {
+    return delta;
+  }
+
+  try {
+    // Check if operations contain compressed data
+    if (
+      delta.operations.length === 1 &&
+      delta.operations[0].op === "replace" &&
+      delta.operations[0].path === "/_compressed"
+    ) {
+      const compressedData = delta.operations[0].value as string;
+      const decompressedOps = decompressData<DeltaOperation[]>(compressedData);
+
+      return {
+        ...delta,
+        compressed: false,
+        operations: decompressedOps,
+      };
+    }
+  } catch (error) {
+    // If decompression fails, throw error as this is a critical failure
+    throw new Error(
+      `Failed to decompress delta: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  return delta;
+}
+
+/**
+ * Compress a full game state if it's large
+ * @param state The game state to compress
+ * @returns Compressed state data as base64 string
+ */
+export function compressGameState(state: TCGGameState): string {
+  return compressData(state);
+}
+
+/**
+ * Decompress a game state
+ * @param compressedState Base64-encoded compressed state
+ * @returns Decompressed game state
+ */
+export function decompressGameState(compressedState: string): TCGGameState {
+  return decompressData<TCGGameState>(compressedState);
+}
+
+/**
+ * Create a sync message with compression applied if beneficial
+ * @param sessionId Session identifier
+ * @param state Full game state or null for delta-only
+ * @param delta Delta or null for full state
+ * @returns Sync message with compression applied as needed
+ */
+export function createCompressedSyncMessage(
+  sessionId: string,
+  state: TCGGameState | null,
+  delta: GameStateDelta | null,
+): GameStateSyncMessage {
+  const timestamp = Date.now();
+
+  // Full state sync with optional compression
+  if (state && !delta) {
+    if (shouldCompress(state)) {
+      try {
+        const compressed = compressGameState(state);
+        return {
+          type: "game_state_sync",
+          sessionId,
+          syncType: "full",
+          compressed: true,
+          compressedPayload: compressed,
+          timestamp,
+        };
+      } catch (error) {
+        console.error("Failed to compress state, sending uncompressed:", error);
+      }
+    }
+
+    return {
+      type: "game_state_sync",
+      sessionId,
+      syncType: "full",
+      fullState: state,
+      timestamp,
+    };
+  }
+
+  // Delta sync with optional compression
+  if (delta && !state) {
+    const compressedDelta = compressDeltaIfNeeded(delta);
+
+    if (compressedDelta.compressed) {
+      return {
+        type: "game_state_sync",
+        sessionId,
+        syncType: "delta",
+        delta: compressedDelta,
+        compressed: true,
+        timestamp,
+      };
+    }
+
+    return {
+      type: "game_state_sync",
+      sessionId,
+      syncType: "delta",
+      delta,
+      timestamp,
+    };
+  }
+
+  throw new Error("Must provide either state or delta, but not both");
+}
+
+/**
+ * Decompress a sync message if it was compressed
+ * @param message The sync message to decompress
+ * @returns Message with decompressed payload
+ */
+export function decompressSyncMessage(
+  message: GameStateSyncMessage,
+): GameStateSyncMessage {
+  if (!message.compressed) {
+    return message;
+  }
+
+  try {
+    if (message.syncType === "full" && message.compressedPayload) {
+      const state = decompressGameState(message.compressedPayload);
+      return {
+        ...message,
+        compressed: false,
+        fullState: state,
+        compressedPayload: undefined,
+      };
+    }
+
+    if (message.syncType === "delta" && message.delta) {
+      const delta = decompressDeltaIfNeeded(message.delta);
+      return {
+        ...message,
+        compressed: false,
+        delta,
+      };
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to decompress sync message: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  return message;
 }
