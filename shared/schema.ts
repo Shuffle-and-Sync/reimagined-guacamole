@@ -493,7 +493,10 @@ export const pushSubscriptions = sqliteTable(
     index("idx_push_subscriptions_endpoint").on(table.endpoint),
     index("idx_push_subscriptions_active").on(table.isActive),
     // Composite index for user + active subscriptions
-    index("idx_push_subscriptions_user_active").on(table.userId, table.isActive),
+    index("idx_push_subscriptions_user_active").on(
+      table.userId,
+      table.isActive,
+    ),
   ],
 );
 
@@ -532,6 +535,112 @@ export const gameSessions = sqliteTable(
     index("idx_game_sessions_event").on(table.eventId),
     index("idx_game_sessions_host").on(table.hostId),
     index("idx_game_sessions_status").on(table.status),
+    index("idx_game_sessions_community").on(table.communityId),
+    index("idx_game_sessions_created_at").on(table.createdAt),
+    // Composite indexes for common query patterns
+    index("idx_game_sessions_status_created").on(table.status, table.createdAt),
+    index("idx_game_sessions_community_status").on(
+      table.communityId,
+      table.status,
+    ),
+    index("idx_game_sessions_host_status").on(table.hostId, table.status),
+    index("idx_game_sessions_community_status_created").on(
+      table.communityId,
+      table.status,
+      table.createdAt,
+    ),
+  ],
+);
+
+// ======================
+// GAME STATE TRACKING TABLES
+// ======================
+
+export const gameStateHistory = sqliteTable(
+  "game_state_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => gameSessions.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    state: text("state").notNull(), // JSON string of game state
+    stateHash: text("state_hash"), // Hash for integrity verification
+    changedBy: text("changed_by").references(() => users.id),
+    changeType: text("change_type"), // 'action', 'undo', 'redo', 'sync', 'snapshot'
+    changeDescription: text("change_description"),
+    metadata: text("metadata"), // JSON string for additional context
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_game_state_history_session").on(table.sessionId),
+    index("idx_game_state_history_version").on(table.version),
+    index("idx_game_state_history_created").on(table.createdAt),
+    // Composite index for version lookups
+    index("idx_game_state_history_session_version").on(
+      table.sessionId,
+      table.version,
+    ),
+    index("idx_game_state_history_session_created").on(
+      table.sessionId,
+      table.createdAt,
+    ),
+    // Unique constraint to prevent duplicate versions
+    unique("unique_session_version").on(table.sessionId, table.version),
+  ],
+);
+
+export const gameActions = sqliteTable(
+  "game_actions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => gameSessions.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    actionType: text("action_type").notNull(), // 'move', 'play_card', 'draw', 'attack', 'end_turn', etc.
+    actionData: text("action_data").notNull(), // JSON string with action details
+    targetId: text("target_id"), // Optional target user/entity
+    resultData: text("result_data"), // JSON string with action results
+    stateVersion: integer("state_version"), // Links to game_state_history version
+    isValid: integer("is_valid", { mode: "boolean" }).default(true),
+    validationError: text("validation_error"),
+    timestamp: integer("timestamp", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_game_actions_session").on(table.sessionId),
+    index("idx_game_actions_user").on(table.userId),
+    index("idx_game_actions_type").on(table.actionType),
+    index("idx_game_actions_timestamp").on(table.timestamp),
+    index("idx_game_actions_created").on(table.createdAt),
+    // Composite indexes for common query patterns
+    index("idx_game_actions_session_timestamp").on(
+      table.sessionId,
+      table.timestamp,
+    ),
+    index("idx_game_actions_session_user_timestamp").on(
+      table.sessionId,
+      table.userId,
+      table.timestamp,
+    ),
+    index("idx_game_actions_session_type_timestamp").on(
+      table.sessionId,
+      table.actionType,
+      table.timestamp,
+    ),
   ],
 );
 
@@ -2468,6 +2577,59 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   messages: many(messages),
 }));
 
+export const gameSessionsRelations = relations(
+  gameSessions,
+  ({ one, many }) => ({
+    event: one(events, {
+      fields: [gameSessions.eventId],
+      references: [events.id],
+    }),
+    community: one(communities, {
+      fields: [gameSessions.communityId],
+      references: [communities.id],
+    }),
+    host: one(users, {
+      fields: [gameSessions.hostId],
+      references: [users.id],
+    }),
+    coHost: one(users, {
+      fields: [gameSessions.coHostId],
+      references: [users.id],
+    }),
+    stateHistory: many(gameStateHistory),
+    actions: many(gameActions),
+  }),
+);
+
+export const gameStateHistoryRelations = relations(
+  gameStateHistory,
+  ({ one }) => ({
+    session: one(gameSessions, {
+      fields: [gameStateHistory.sessionId],
+      references: [gameSessions.id],
+    }),
+    changedByUser: one(users, {
+      fields: [gameStateHistory.changedBy],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const gameActionsRelations = relations(gameActions, ({ one }) => ({
+  session: one(gameSessions, {
+    fields: [gameActions.sessionId],
+    references: [gameSessions.id],
+  }),
+  user: one(users, {
+    fields: [gameActions.userId],
+    references: [users.id],
+  }),
+  target: one(users, {
+    fields: [gameActions.targetId],
+    references: [users.id],
+  }),
+}));
+
 // ======================
 // TYPES & SCHEMAS
 // ======================
@@ -2484,6 +2646,8 @@ export type Event = typeof events.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type GameSession = typeof gameSessions.$inferSelect;
+export type GameStateHistory = typeof gameStateHistory.$inferSelect;
+export type GameAction = typeof gameActions.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type StreamSession = typeof streamSessions.$inferSelect;
 
@@ -2576,6 +2740,30 @@ export const insertEventAttendeeSchema = createInsertSchema(
 export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertGameStateHistorySchema = createInsertSchema(
+  gameStateHistory,
+  {
+    version: z.number().int().nonnegative(),
+    state: z.string().min(1),
+    changeType: z
+      .enum(["action", "undo", "redo", "sync", "snapshot"])
+      .optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGameActionSchema = createInsertSchema(gameActions, {
+  actionType: z.string().min(1).max(50),
+  actionData: z.string().min(1),
+  isValid: z.boolean().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  timestamp: true,
 });
 
 export const insertCollaborativeStreamEventSchema = createInsertSchema(
@@ -2923,6 +3111,10 @@ export type InsertCollaborationRequest = z.infer<
   typeof insertCollaborationRequestSchema
 >;
 export type InsertGameSession = typeof gameSessions.$inferInsert;
+export type InsertGameStateHistory = z.infer<
+  typeof insertGameStateHistorySchema
+>;
+export type InsertGameAction = z.infer<typeof insertGameActionSchema>;
 export type InsertStreamSession = z.infer<typeof insertStreamSessionSchema>;
 export type InsertUserReputation = typeof userReputation.$inferInsert;
 export type InsertBanEvasionTracking = typeof banEvasionTracking.$inferInsert;
