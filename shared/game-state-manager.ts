@@ -661,7 +661,7 @@ export function createGameAction(
   previousVersion: number,
 ): GameStateAction {
   return {
-    id: `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `action-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     type,
     playerId,
     timestamp: Date.now(),
