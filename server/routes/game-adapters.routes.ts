@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import crypto from "crypto";
 import rateLimit from "express-rate-limit";
 import {
   isAuthenticated,
@@ -135,7 +136,8 @@ router.post(
     const adapter = createGameAdapter(gameId);
     const state = adapter.createInitialState(config || { playerCount: 2 });
 
-    const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    const randomPart = crypto.randomBytes(8).toString("hex");
+    const sessionId = `session-${Date.now()}-${randomPart}`;
 
     gameStates.set(sessionId, {
       gameId,
