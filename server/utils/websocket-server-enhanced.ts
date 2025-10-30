@@ -509,10 +509,10 @@ export class EnhancedWebSocketServer {
 
     // Validate action payload
     const actionPayload = {
+      ...(data || {}),
       type: action,
       sessionId,
       userId: user.id,
-      ...(data || {}),
     };
 
     const validationResult = validateGameActionPayload(actionPayload);
