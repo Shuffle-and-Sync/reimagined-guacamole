@@ -430,13 +430,13 @@ clientWs.on("message", (data) => {
 
 Based on test results with real game states:
 
-| Scenario                 | Delta Size        | Compression Ratio | Bandwidth Saved |
-| ------------------------ | ----------------- | ----------------- | --------------- |
-| Life total change        | 150 bytes         | ~95%              | 95%             |
-| Draw 3 cards             | 800 bytes         | ~85%              | 85%             |
-| Play permanent           | 1.2 KB            | ~75%              | 75%             |
-| Battlefield wipe         | 8 KB              | ~40%              | 40%             |
-| Large state (100+ cards) | 5 KB (compressed) | ~80%              | 80%             |
+| Scenario                 | Delta Size        | Full State Size | Compression Ratio | Bandwidth Saved   |
+| ------------------------ | ----------------- | --------------- | ----------------- | ----------------- |
+| Life total change        | 150 bytes         | 3 KB            | ~95%              | 95% vs full state |
+| Draw 3 cards             | 800 bytes         | 5 KB            | ~85%              | 84% vs full state |
+| Play permanent           | 1.2 KB            | 6 KB            | ~75%              | 80% vs full state |
+| Battlefield wipe         | 8 KB              | 15 KB           | ~40%              | 47% vs full state |
+| Large state (100+ cards) | 5 KB (compressed) | 25 KB           | ~80%              | 80% compression   |
 
 **Average bandwidth reduction: 70-90% for typical gameplay**
 
@@ -472,10 +472,12 @@ See the TypeScript definitions in `shared/game-state-delta.ts` for complete API 
 
 ## Testing
 
-Comprehensive test suite with 93+ tests covering:
+Comprehensive test suite with 121 tests covering:
 
-- Delta creation and application
-- Compression and decompression
+- Delta creation and application (29 tests)
+- Compression and decompression (35 tests)
+- Game state manager (29 tests)
+- Schema validation (28 tests)
 - Version validation
 - Error handling
 - Performance benchmarks
