@@ -12,7 +12,6 @@ import {
   requiresTurnValidation,
   sanitizeGameInput,
   sanitizeGameActionData,
-  gameActionSchemas,
 } from "./game-authorization.middleware";
 
 // Mock the storage module
