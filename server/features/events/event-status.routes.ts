@@ -1,4 +1,5 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -10,11 +11,18 @@ import { eventStatusService, type EventStatus } from "./event-status.service";
 
 const router = Router();
 
+
+// Apply rate limiting specifically to event status routes
+const eventRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { message: "Too many requests, please try again later." },
+});
 /**
  * Get status history for an event
  * GET /api/events/:id/status/history
  */
-router.get("/:id/status/history", isAuthenticated, async (req, res) => {
+router.get("/:id/status/history", eventRateLimiter, isAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -42,7 +50,7 @@ router.get("/:id/status/history", isAuthenticated, async (req, res) => {
  * Update event status
  * PUT /api/events/:id/status
  */
-router.put("/:id/status", isAuthenticated, async (req, res) => {
+router.put("/:id/status", eventRateLimiter, isAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, reason } = req.body;
