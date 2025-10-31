@@ -153,13 +153,18 @@ router.post("/:id/status/validate", isAuthenticated, async (req, res) => {
 /**
  * Manually trigger expired events processing (admin only)
  * POST /api/events/status/process-expired
+ *
+ * WARNING: This endpoint should be restricted to admin users in production.
+ * The current implementation allows any authenticated user to trigger processing
+ * for testing/development purposes. Add proper admin role checking before deploying.
  */
 router.post("/status/process-expired", isAuthenticated, async (req, res) => {
   try {
     const userId = getAuthUserId(req as AuthenticatedRequest);
 
-    // Note: In production, you'd want to check if user is admin
-    // For now, we'll allow authenticated users to trigger this
+    // TODO: Add admin role check in production
+    // Example: if (!isAdmin(userId)) { return res.status(403).json({ message: "Admin access required" }); }
+    logger.warn("Manual expired events processing triggered", { userId });
 
     const result = await eventStatusService.processExpiredEvents();
 

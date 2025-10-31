@@ -328,6 +328,10 @@ export class EventStatusService {
       }
 
       // Notify all attendees
+      // Note: For events with many attendees (100+), consider batching notifications
+      // to avoid overwhelming the database. Current implementation uses Promise.all
+      // which works well for typical event sizes but may need optimization for
+      // large events. Consider using a batch size of 50 with sequential batches.
       const notificationPromises = attendees.map((attendee) =>
         storage.createNotification({
           userId: attendee.userId,
