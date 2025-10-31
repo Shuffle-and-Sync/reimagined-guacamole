@@ -404,7 +404,7 @@ router.post(
 // ===========================
 
 // Export single event as ICS
-router.get("/:id/export/ics", async (req, res) => {
+router.get("/:id/export/ics", eventReadRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
     const event = await eventsService.getEvent(id);
@@ -440,7 +440,7 @@ router.get("/:id/export/ics", async (req, res) => {
 });
 
 // Export multiple events as ICS (for calendar view exports)
-router.post("/export/ics", async (req, res) => {
+router.post("/export/ics", eventReadRateLimit, async (req, res) => {
   try {
     const { eventIds } = req.body;
 
