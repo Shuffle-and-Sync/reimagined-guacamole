@@ -93,8 +93,8 @@ router.get("/:id", async (req, res) => {
 // Check for scheduling conflicts
 router.post(
   "/check-conflicts",
-  isAuthenticated,
   eventCheckConflictsRateLimit,
+  isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -257,8 +257,8 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
 // Join event
 router.post(
   "/:eventId/join",
-  isAuthenticated,
   eventJoinRateLimit,
+  isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -332,8 +332,8 @@ router.get("/:eventId/attendees", async (req, res) => {
 // Create bulk events
 router.post(
   "/bulk",
-  isAuthenticated,
   eventBulkOperationsRateLimit,
+  isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
@@ -366,8 +366,8 @@ router.post(
 // Create recurring events
 router.post(
   "/recurring",
-  isAuthenticated,
   eventRecurringCreationRateLimit,
+  isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
