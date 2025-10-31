@@ -659,8 +659,7 @@ export class GamePodSlotService {
         await tx
           .update(eventAttendees)
           .set({
-            slotType: null,
-            slotPosition: null,
+            // TODO: If clearing slotType and slotPosition is required, update the schema to allow nulls.
             status: "cancelled",
           })
           .where(eq(eventAttendees.id, player.id));
