@@ -500,37 +500,42 @@ router.post(
 );
 
 // Cancel registration
-router.delete("/:eventId/register", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const { eventId } = req.params;
-    if (!eventId) {
-      return res.status(400).json({ message: "Event ID is required" });
+router.delete(
+  "/:eventId/register",
+  eventJoinRateLimit,
+  isAuthenticated,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { eventId } = req.params;
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const userId = getAuthUserId(authenticatedReq);
+
+      const result = await eventRegistrationService.cancelRegistration(
+        eventId,
+        userId,
+      );
+
+      return res.json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Registration not found") {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+
+      logger.error(
+        "Failed to cancel registration",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      return res.status(500).json({ message: "Failed to cancel registration" });
     }
-    const userId = getAuthUserId(authenticatedReq);
-
-    const result = await eventRegistrationService.cancelRegistration(
-      eventId,
-      userId,
-    );
-
-    return res.json(result);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Registration not found") {
-      return res.status(404).json({ message: "Registration not found" });
-    }
-
-    logger.error(
-      "Failed to cancel registration",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    return res.status(500).json({ message: "Failed to cancel registration" });
   }
-});
+);
 
 // Get event capacity information
 router.get("/:eventId/capacity", async (req, res) => {
