@@ -13,6 +13,7 @@ jest.mock("../../storage", () => ({
   storage: {
     getUserCreatedEvents: jest.fn(),
     getUserEventAttendance: jest.fn(),
+    getUsersEventAttendance: jest.fn(),
   },
 }));
 
@@ -48,6 +49,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T15:00:00Z"),
@@ -83,6 +85,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T13:00:00Z"),
@@ -116,6 +119,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T13:00:00Z"),
@@ -149,6 +153,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T16:00:00Z"),
@@ -184,6 +189,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T14:00:00Z"),
@@ -216,6 +222,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T15:00:00Z"),
@@ -248,6 +255,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T14:00:00Z"),
@@ -280,7 +288,9 @@ describe("Conflict Detection Service", () => {
       };
 
       (storage.getUserCreatedEvents as jest.Mock).mockResolvedValue([]);
-      (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([
+      (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([
         {
           id: "attendance-1",
           eventId: "event-8",
@@ -322,7 +332,9 @@ describe("Conflict Detection Service", () => {
       };
 
       (storage.getUserCreatedEvents as jest.Mock).mockResolvedValue([]);
-      (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([
+      (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([
         {
           id: "attendance-2",
           eventId: "event-9",
@@ -385,6 +397,7 @@ describe("Conflict Detection Service", () => {
         existingEvents,
       );
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await conflictDetectionService.checkEventConflicts({
         startTime: new Date("2025-01-15T15:00:00Z"),
@@ -401,6 +414,7 @@ describe("Conflict Detection Service", () => {
     test("should return true when user is available", async () => {
       (storage.getUserCreatedEvents as jest.Mock).mockResolvedValue([]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const isAvailable = await conflictDetectionService.checkUserAvailability(
         "user-1",
@@ -433,6 +447,7 @@ describe("Conflict Detection Service", () => {
         existingEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const isAvailable = await conflictDetectionService.checkUserAvailability(
         "user-1",

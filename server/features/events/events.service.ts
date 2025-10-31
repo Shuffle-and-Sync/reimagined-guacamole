@@ -118,9 +118,16 @@ export class EventsService {
       }
 
       // Convert date/time to startTime and endTime for conflict checking
-      const startTime = new Date(
-        `${eventData.date}T${eventData.time || DEFAULT_EVENT_TIME}`,
-      );
+      // Parse the date and time in the event's timezone to avoid ambiguity
+      const dateTimeString = `${eventData.date}T${eventData.time || DEFAULT_EVENT_TIME}`;
+      // Create date in UTC by appending timezone info if not ISO format
+      const startTime =
+        eventData.time?.includes("Z") ||
+        eventData.time?.includes("+") ||
+        eventData.time?.includes("-")
+          ? new Date(dateTimeString)
+          : new Date(`${dateTimeString}Z`); // Assume UTC if no timezone info
+
       // If no explicit end time, assume event lasts 2 hours
       const endTime = eventData.endTime
         ? new Date(eventData.endTime)

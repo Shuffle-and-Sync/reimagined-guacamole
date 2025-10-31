@@ -14,6 +14,7 @@ jest.mock("../../storage", () => ({
   storage: {
     getUserCreatedEvents: jest.fn(),
     getUserEventAttendance: jest.fn(),
+    getUsersEventAttendance: jest.fn(),
     createEvent: jest.fn(),
     getEvent: jest.fn(),
     deleteEvent: jest.fn(),
@@ -186,6 +187,7 @@ describe("Event Conflict Detection Integration", () => {
         mockEvent,
       ]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await eventsService.checkConflicts(
         "2025-01-15T15:00:00Z",
@@ -206,6 +208,7 @@ describe("Event Conflict Detection Integration", () => {
     test("should handle no conflicts scenario", async () => {
       (storage.getUserCreatedEvents as jest.Mock).mockResolvedValue([]);
       (storage.getUserEventAttendance as jest.Mock).mockResolvedValue([]);
+      (storage.getUsersEventAttendance as jest.Mock).mockResolvedValue([]);
 
       const result = await eventsService.checkConflicts(
         "2025-01-15T15:00:00Z",

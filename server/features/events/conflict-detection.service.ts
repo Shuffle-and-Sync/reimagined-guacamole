@@ -77,6 +77,7 @@ export class ConflictDetectionService {
       } = params;
 
       const conflictingEvents: ConflictingEvent[] = [];
+      const addedEventIds = new Set<string>(); // Track already-added events to prevent duplicates
 
       // Check creator conflicts - creator can't have overlapping events
       const creatorEvents = await storage.getUserCreatedEvents(creatorId);
@@ -95,20 +96,24 @@ export class ConflictDetectionService {
             event.endTime,
           )
         ) {
-          conflictingEvents.push({
-            eventId: event.id,
-            title: event.title,
-            startTime: event.startTime,
-            endTime: event.endTime,
-            conflictType: "creator",
-          });
+          if (!addedEventIds.has(event.id)) {
+            conflictingEvents.push({
+              eventId: event.id,
+              title: event.title,
+              startTime: event.startTime,
+              endTime: event.endTime,
+              conflictType: "creator",
+            });
+            addedEventIds.add(event.id);
+          }
         }
       }
 
       // Check attendee conflicts - attendees can't attend overlapping events
       if (attendeeIds.length > 0) {
         // Batch fetch all attendances for all attendees
-        const allAttendances = await storage.getUsersEventAttendance(attendeeIds);
+        const allAttendances =
+          await storage.getUsersEventAttendance(attendeeIds);
 
         for (const attendance of allAttendances) {
           const event = attendance.event;
@@ -128,13 +133,16 @@ export class ConflictDetectionService {
                 event.endTime,
               )
             ) {
-              conflictingEvents.push({
-                eventId: event.id,
-                title: event.title,
-                startTime: event.startTime,
-                endTime: event.endTime,
-                conflictType: "attendee",
-              });
+              if (!addedEventIds.has(event.id)) {
+                conflictingEvents.push({
+                  eventId: event.id,
+                  title: event.title,
+                  startTime: event.startTime,
+                  endTime: event.endTime,
+                  conflictType: "attendee",
+                });
+                addedEventIds.add(event.id);
+              }
             }
           }
         }
