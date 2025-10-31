@@ -109,7 +109,8 @@ export class ICSService {
   generateFilename(event?: ShuffleEvent): string {
     if (event) {
       const sanitizedTitle = event.title
-        .replace(/[^a-z0-9]/gi, "-")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
         .toLowerCase();
       const date = format(new Date(event.startTime), "yyyy-MM-dd");
       return `${sanitizedTitle}-${date}.ics`;

@@ -14,6 +14,32 @@ interface ExportCalendarParams {
   endDate: string;
 }
 
+/**
+ * Extract filename from Content-Disposition header
+ */
+function extractFilename(response: Response, defaultName: string): string {
+  return (
+    response.headers
+      .get("content-disposition")
+      ?.split("filename=")[1]
+      ?.replace(/"/g, "") || defaultName
+  );
+}
+
+/**
+ * Download a blob as a file
+ */
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
 export function useICSExport() {
   const exportSingleEvent = useMutation({
     mutationFn: async ({ eventId }: ExportSingleEventParams) => {
@@ -24,21 +50,8 @@ export function useICSExport() {
       }
 
       const blob = await response.blob();
-      const filename =
-        response.headers
-          .get("content-disposition")
-          ?.split("filename=")[1]
-          ?.replace(/"/g, "") || `event-${eventId}.ics`;
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const filename = extractFilename(response, `event-${eventId}.ics`);
+      downloadBlob(blob, filename);
     },
     onSuccess: () => {
       toast({
@@ -71,20 +84,8 @@ export function useICSExport() {
       }
 
       const blob = await response.blob();
-      const filename =
-        response.headers
-          .get("content-disposition")
-          ?.split("filename=")[1]
-          ?.replace(/"/g, "") || "events.ics";
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const filename = extractFilename(response, "events.ics");
+      downloadBlob(blob, filename);
     },
     onSuccess: () => {
       toast({
@@ -113,20 +114,8 @@ export function useICSExport() {
       }
 
       const blob = await response.blob();
-      const filename =
-        response.headers
-          .get("content-disposition")
-          ?.split("filename=")[1]
-          ?.replace(/"/g, "") || "calendar.ics";
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const filename = extractFilename(response, "calendar.ics");
+      downloadBlob(blob, filename);
     },
     onSuccess: () => {
       toast({

@@ -448,6 +448,8 @@ router.post("/export/ics", async (req, res) => {
       return res.status(400).json({ message: "eventIds array is required" });
     }
 
+    // TODO: Optimize N+1 query pattern by implementing eventsService.getEventsByIds()
+    // for better performance when exporting many events
     const events = await Promise.all(
       eventIds.map((id: string) => eventsService.getEvent(id)),
     );
@@ -769,46 +771,74 @@ calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
 });
 
 // Export user's calendar (all their events within a date range)
-calendarEventsRouter.get("/export/ics", isAuthenticated, eventReadRateLimit, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const { startDate, endDate } = req.query;
+calendarEventsRouter.get(
+  "/export/ics",
+  isAuthenticated,
+  eventReadRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { startDate, endDate } = req.query;
 
-    const events = await eventsService.getCalendarEvents({
-      startDate: startDate as string,
-      endDate: endDate as string,
-    });
+      // Validate required query parameters
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          message: "startDate and endDate query parameters are required",
+        });
+      }
 
-    if (events.length === 0) {
-      return res.status(404).json({ message: "No events found in date range" });
-    }
+      // Validate date format (basic ISO date format check)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (
+        !dateRegex.test(startDate as string) ||
+        !dateRegex.test(endDate as string)
+      ) {
+        return res.status(400).json({
+          message: "startDate and endDate must be in ISO format (YYYY-MM-DD)",
+        });
+      }
 
-    const result = await icsService.generateMultipleEventsICS(events);
-
-    if (result.error) {
-      logger.error("Failed to generate calendar export", result.error, {
-        userId,
+      const events = await eventsService.getCalendarEvents({
+        startDate: startDate as string,
+        endDate: endDate as string,
       });
-      return res
-        .status(500)
-        .json({ message: "Failed to generate calendar file" });
+
+      if (events.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No events found in date range" });
+      }
+
+      const result = await icsService.generateMultipleEventsICS(events);
+
+      if (result.error) {
+        logger.error("Failed to generate calendar export", result.error, {
+          userId,
+        });
+        return res
+          .status(500)
+          .json({ message: "Failed to generate calendar file" });
+      }
+
+      const filename = `shuffle-sync-calendar-${format(new Date(), "yyyy-MM-dd")}.ics`;
+
+      res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`,
+      );
+      res.send(result.value);
+    } catch (error) {
+      logger.error(
+        "Failed to export calendar",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId: getAuthUserId(authenticatedReq) },
+      );
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    const filename = `shuffle-sync-calendar-${format(new Date(), "yyyy-MM-dd")}.ics`;
-
-    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.send(result.value);
-  } catch (error) {
-    logger.error(
-      "Failed to export calendar",
-      error instanceof Error ? error : new Error(String(error)),
-      { userId: getAuthUserId(authenticatedReq) },
-    );
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+  },
+);
 
 // ==========================================
 // EVENT REGISTRATION ENDPOINTS
