@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented lazy loading for React components to reduce initial bundle size and improve page load performance.
+Successfully implemented comprehensive lazy loading for React components to reduce initial bundle size and improve page load performance across both Calendar and Tournament features.
 
 ## Performance Results
 
@@ -10,8 +10,22 @@ Successfully implemented lazy loading for React components to reduce initial bun
 
 | Metric       | Before   | After    | Improvement          |
 | ------------ | -------- | -------- | -------------------- |
-| Bundle Size  | 76.56 KB | 43.59 KB | **-32.97 KB (-43%)** |
-| Gzipped Size | 21.23 KB | 10.25 KB | **-10.98 KB (-52%)** |
+| Bundle Size  | 76.56 KB | 41.60 KB | **-34.96 KB (-46%)** |
+| Gzipped Size | 21.23 KB | 9.65 KB  | **-11.58 KB (-55%)** |
+
+### Tournament Bundle Optimization
+
+| Metric       | Before   | After    | Improvement        |
+| ------------ | -------- | -------- | ------------------ |
+| Bundle Size  | 39.32 KB | 31.42 KB | **-7.9 KB (-20%)** |
+| Gzipped Size | 7.66 KB  | 7.06 KB  | **-0.6 KB (-8%)**  |
+
+### Total Impact
+
+- **Combined reduction**: ~43 KB of code moved to on-demand chunks
+- **Calendar improvement**: 46% smaller initial bundle
+- **Tournament improvement**: 20% smaller initial bundle
+- **Code reduction**: 500+ lines of duplicate code eliminated
 
 ### New Lazy-Loaded Chunks Created
 
@@ -20,18 +34,29 @@ The following components were extracted into separate chunks that load on-demand
 1. **CSVUploadDialog** - 25.87 KB (9.62 KB gzipped)
    - Loaded only when user clicks "Bulk Upload" button
    - Large CSV parsing and validation logic
+   - Calendar feature
 
 2. **EventFormDialog** - 7.53 KB (2.39 KB gzipped)
    - Loaded only when user creates/edits an event
    - Complex form with validation logic
+   - Calendar feature
 
-3. **GraphicsGeneratorDialog** - 3.29 KB (1.47 KB gzipped)
+3. **TournamentForm** - 4.27 KB (1.33 KB gzipped)
+   - Loaded only when user accesses tournament forms
+   - Both modal and tab-based form implementations
+   - Tournament feature
+
+4. **GraphicsGeneratorDialog** - 3.29 KB (1.47 KB gzipped)
    - Loaded only when user clicks "Generate Graphics"
    - Image generation and manipulation logic
+   - Calendar feature
 
-4. **VirtualEventList** - 2.04 KB (1.02 KB gzipped)
+5. **VirtualEventList** - 2.04 KB (1.02 KB gzipped)
    - Loaded only when there are >50 events (rare case)
    - Virtual scrolling optimization for large lists
+   - Calendar feature
+
+**Total lazy-loaded code**: 42.97 KB (removed from initial bundles)
 
 ## Technical Implementation
 
@@ -53,25 +78,44 @@ Located in `client/src/components/skeletons/`:
   - Displays user-friendly error message
   - Provides "Reload Page" button
   - Logs errors to console for debugging
+  - TODOs for production error tracking integration
 
-#### 3. Lazy-Loaded Components
+#### 3. Reusable Form Components
+
+- **TournamentForm** (`client/src/components/tournaments/TournamentForm.tsx`)
+  - Reusable tournament form component
+  - Used in both dialogs and tabs
+  - Shared type definitions
+
+- **TournamentDialogs** (`client/src/components/tournaments/TournamentDialogs.tsx`)
+  - Wrapper for lazy-loaded tournament dialogs
+  - Handles both create and edit forms
+  - Integrates with LazyLoadErrorBoundary
+
+#### 4. Lazy-Loaded Components
 
 Modified components to use React.lazy() and Suspense:
+
+**Calendar Components:**
 
 - `CalendarDialogs.tsx` - Lazy loads CSV upload and graphics dialogs
 - `CalendarView.tsx` - Lazy loads CalendarGrid component
 - `CalendarPageHeader.tsx` - Lazy loads EventFormDialog
 - `EventsOverviewSection.tsx` - Conditionally lazy loads VirtualEventList
 
+**Tournament Components:**
+
+- `tournaments.tsx` - Lazy loads TournamentForm and TournamentDialogs
+
 ### Code Patterns Used
 
 #### Basic Lazy Loading Pattern
 
 ```typescript
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense } from "react";
 
 const MyComponent = lazy(() =>
-  import('./MyComponent').then(m => ({ default: m.MyComponent }))
+  import("./MyComponent").then((m) => ({ default: m.MyComponent })),
 );
 
 function Parent() {
@@ -89,7 +133,7 @@ function Parent() {
 
 ```typescript
 // VirtualEventList only loads for large lists (>50 items)
-const VirtualEventList = lazy(() => import('./VirtualEventList'));
+const VirtualEventList = lazy(() => import("./VirtualEventList"));
 
 function EventList({ events }) {
   const useLargeList = events.length > 50;
@@ -104,17 +148,41 @@ function EventList({ events }) {
 }
 ```
 
+#### Dialog Lazy Loading
+
+```typescript
+// Lazy load dialogs that appear on user interaction
+const TournamentDialogs = lazy(() => import("./TournamentDialogs"));
+
+function TournamentPage() {
+  return (
+    <LazyLoadErrorBoundary>
+      <Suspense fallback={<FormSkeleton fields={6} />}>
+        <TournamentDialogs
+          isCreateOpen={isCreateOpen}
+          createFormData={formData}
+          onCreateFormChange={setFormData}
+          // ... props
+        />
+      </Suspense>
+    </LazyLoadErrorBoundary>
+  );
+}
+```
+
 ## Benefits
 
 ### 1. Initial Load Performance
 
-- **43% reduction** in calendar page initial bundle size
+- **46% reduction** in calendar page initial bundle size
+- **20% reduction** in tournament page initial bundle size
 - Faster Time to Interactive (TTI)
 - Improved First Contentful Paint (FCP)
 
 ### 2. On-Demand Loading
 
 - Large dialogs only loaded when user interacts with them
+- Forms only loaded when needed
 - Reduces unnecessary code downloads for users who don't use all features
 - Bandwidth savings for mobile users
 
@@ -130,7 +198,15 @@ function EventList({ events }) {
 - Users can retry loading with reload button
 - Application doesn't crash if a chunk fails to load
 
-### 5. Scalability
+### 5. Code Quality
+
+- **500+ lines of duplicate code removed** from tournaments page
+- Single source of truth for forms
+- Better separation of concerns
+- Improved maintainability
+- Type safety with shared definitions
+
+### 6. Scalability
 
 - Pattern is easily replicable for other large components
 - Can continue optimizing as new features are added
@@ -152,8 +228,9 @@ client/src/components/
   └── LazyLoadErrorBoundary.tsx
 
 client/src/components/tournaments/
-  ├── TournamentForm.tsx (prepared for future use)
-  └── TournamentDialogs.tsx (prepared for future use)
+  ├── types.ts
+  ├── TournamentForm.tsx
+  └── TournamentDialogs.tsx
 ```
 
 ### Modified Files
@@ -164,15 +241,18 @@ client/src/components/calendar/
   ├── CalendarView.tsx
   ├── CalendarPageHeader.tsx
   └── EventsOverviewSection.tsx
+
+client/src/pages/
+  └── tournaments.tsx (1166 → 662 lines, -43%)
 ```
 
 ## Future Optimization Opportunities
 
-### 1. Tournament Forms
+### 1. Profile/Settings Forms
 
-- TournamentForm and TournamentDialogs components are ready
-- Can be integrated into tournaments page for similar benefits
-- Estimated ~10-15 KB reduction potential
+- Account settings forms could be lazy loaded
+- Profile edit forms could be extracted
+- Estimated ~5-10 KB reduction potential
 
 ### 2. Additional Calendar Components
 
@@ -198,47 +278,64 @@ client/src/components/calendar/
 - ✅ Build completes successfully
 - ✅ All chunks generated correctly
 - ✅ No TypeScript errors in modified components
+- ✅ Build time: ~5 seconds
 
 ### Runtime Verification
 
 - ✅ Calendar page loads correctly
+- ✅ Tournament page loads correctly
 - ✅ Dialogs open with proper loading states
+- ✅ Forms display with skeleton loaders
 - ✅ Error boundaries work as expected
-- ✅ Backend calendar tests pass
 
-### User Experience
+### Code Quality
 
-- ✅ Smooth transitions with skeleton loaders
-- ✅ No content layout shift during lazy load
-- ✅ Error messages are clear and actionable
+- ✅ Linting passing (0 errors)
+- ✅ Type checking successful
+- ✅ All test IDs preserved for compatibility
+- ✅ 500+ lines of duplicate code removed
 
 ## Metrics Tracking
 
 To monitor the impact of these changes in production:
 
-1. **Lighthouse Scores**
-   - Track Performance score
-   - Monitor First Contentful Paint (FCP)
-   - Monitor Time to Interactive (TTI)
+### 1. Lighthouse Scores
 
-2. **Bundle Analysis**
-   - Run `npm run build:analyze` to visualize chunks
-   - Monitor chunk sizes over time
-   - Set up CI alerts for bundle size increases
+- Track Performance score
+- Monitor First Contentful Paint (FCP)
+- Monitor Time to Interactive (TTI)
+- Monitor Largest Contentful Paint (LCP)
 
-3. **Real User Monitoring**
-   - Track page load times
-   - Monitor lazy load success rates
-   - Track error boundary activations
+### 2. Bundle Analysis
+
+- Run `npm run build:analyze` to visualize chunks
+- Monitor chunk sizes over time
+- Set up CI alerts for bundle size increases
+- Track lazy load success rates
+
+### 3. Real User Monitoring
+
+- Track page load times
+- Monitor lazy load success rates
+- Track error boundary activations
+- Monitor user interactions with lazy-loaded components
 
 ## Conclusion
 
-The code splitting implementation successfully reduced the calendar bundle by **43%** (32.97 KB), significantly improving initial page load performance. The implementation uses industry best practices including:
+The code splitting implementation successfully achieved:
+
+- **Calendar bundle**: 46% reduction (34.96 KB saved)
+- **Tournament bundle**: 20% reduction (7.9 KB saved)
+- **Total optimization**: ~43 KB moved to on-demand chunks
+- **Code quality**: 500+ lines of duplicate code eliminated
+
+The implementation uses industry best practices including:
 
 - React.lazy() and Suspense for code splitting
 - Custom skeleton components for loading states
 - Error boundaries for resilience
 - Conditional lazy loading for optimization
+- Shared type definitions to prevent duplication
 
 The pattern is reusable and can be applied to other parts of the application for continued performance improvements.
 
@@ -247,3 +344,4 @@ The pattern is reusable and can be applied to other parts of the application for
 - [React.lazy() Documentation](https://react.dev/reference/react/lazy)
 - [Code Splitting Guide](https://react.dev/learn/code-splitting)
 - [Vite Code Splitting](https://vitejs.dev/guide/features.html#code-splitting)
+- [Suspense Documentation](https://react.dev/reference/react/Suspense)
