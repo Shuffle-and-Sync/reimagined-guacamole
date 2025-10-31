@@ -4,7 +4,12 @@ import type { Event, EventAttendee } from "@shared/schema";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
-import { validateTimezone, getUserTimezone } from "../../utils/timezone";
+import { validateTimezone } from "../../utils/timezone";
+import { conflictDetectionService } from "./conflict-detection.service";
+import {
+  DEFAULT_EVENT_DURATION_MS,
+  DEFAULT_EVENT_TIME,
+} from "./events.constants";
 // Note: User type reserved for future user-related event features
 import type {
   EventFilters,
@@ -53,11 +58,14 @@ export class EventsService {
       );
 
       // Attach attendees to each event
-      const eventsWithAttendees = events.map((event: unknown) => ({
-        ...event,
-        attendees: attendeesMap.get(event.id) || [],
-        attendeeCount: attendeesMap.get(event.id)?.length || 0,
-      }));
+      const eventsWithAttendees = events.map((event) => {
+        const typedEvent = event as Event;
+        return {
+          ...event,
+          attendees: attendeesMap.get(typedEvent.id) || [],
+          attendeeCount: attendeesMap.get(typedEvent.id)?.length || 0,
+        };
+      });
 
       return {
         data: eventsWithAttendees,
@@ -65,7 +73,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch events with attendees in EventsService",
-        error,
+        error instanceof Error ? error : new Error(String(error)),
         { filters },
       );
       throw error;
@@ -107,6 +115,39 @@ export class EventsService {
         throw new Error(
           `Invalid display timezone: ${eventData.displayTimezone}`,
         );
+      }
+
+      // Convert date/time to startTime and endTime for conflict checking
+      // Parse the date and time in the event's timezone to avoid ambiguity
+      const dateTimeString = `${eventData.date}T${eventData.time || DEFAULT_EVENT_TIME}`;
+      // Create date in UTC by appending timezone info if not ISO format
+      const startTime =
+        eventData.time?.includes("Z") ||
+        eventData.time?.includes("+") ||
+        eventData.time?.includes("-")
+          ? new Date(dateTimeString)
+          : new Date(`${dateTimeString}Z`); // Assume UTC if no timezone info
+
+      // If no explicit end time, assume event lasts 2 hours
+      const endTime = eventData.endTime
+        ? new Date(eventData.endTime)
+        : new Date(startTime.getTime() + DEFAULT_EVENT_DURATION_MS);
+
+      // Check for scheduling conflicts
+      const conflictCheck = await conflictDetectionService.checkEventConflicts({
+        startTime,
+        endTime,
+        creatorId: userId,
+      });
+
+      if (conflictCheck.hasConflict) {
+        const error = new Error("Scheduling conflict detected") as Error & {
+          statusCode: number;
+          conflicts: typeof conflictCheck.conflictingEvents;
+        };
+        error.statusCode = 409;
+        error.conflicts = conflictCheck.conflictingEvents;
+        throw error;
       }
 
       const parsedEventData = insertEventSchema.parse({
@@ -522,6 +563,48 @@ export class EventsService {
         error instanceof Error ? error : new Error(String(error)),
         {
           filters,
+        },
+      );
+      throw error;
+    }
+  }
+
+  async checkConflicts(
+    startTime: string,
+    endTime: string | undefined,
+    creatorId: string,
+    attendeeIds?: string[],
+  ) {
+    try {
+      const start = new Date(startTime);
+      const end = endTime ? new Date(endTime) : null;
+
+      const conflictCheck = await conflictDetectionService.checkEventConflicts({
+        startTime: start,
+        endTime: end,
+        creatorId,
+        attendeeIds,
+      });
+
+      return {
+        hasConflict: conflictCheck.hasConflict,
+        conflicts: conflictCheck.conflictingEvents.map((conflict) => ({
+          eventId: conflict.eventId,
+          title: conflict.title,
+          startTime: conflict.startTime.toISOString(),
+          endTime: conflict.endTime ? conflict.endTime.toISOString() : null,
+          conflictType: conflict.conflictType,
+        })),
+        message: conflictCheck.message,
+      };
+    } catch (error) {
+      logger.error(
+        "Failed to check conflicts in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          startTime,
+          endTime,
+          creatorId,
         },
       );
       throw error;
