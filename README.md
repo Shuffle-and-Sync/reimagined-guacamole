@@ -31,6 +31,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **🎯 TableSync**: Remote gameplay coordination with real-time board state sync
 - **🏆 Tournament Management**: Full tournament lifecycle with AI-powered matchmaking
 - **📅 Calendar Integration**: Event scheduling with timezone handling
+- **🔄 Calendar Sync**: Bidirectional sync with Google Calendar and Outlook Calendar
 - **💬 Real-time Messaging**: WebSocket-based communication system
 - **🔐 Secure Authentication**: Google OAuth 2.0 with session management
 - **🤖 Automated Agents**: Testing agent, backend analysis, and documentation maintenance
@@ -501,6 +502,10 @@ See [Issue & PR History Agent Documentation](docs/maintenance/ISSUE_PR_HISTORY_A
 **Streaming Platforms**: Twitch, YouTube, Facebook Gaming  
 **Security**: PKCE OAuth 2.0, encrypted token storage, automatic refresh  
 **Features**: Real-time webhooks, channel management, engagement metrics
+
+**Calendar Platforms**: Google Calendar, Outlook Calendar  
+**Sync**: Bidirectional event synchronization (import/export)  
+**Features**: Automatic token refresh, configurable sync direction, manual sync triggers
 
 📋 **Setup Guides**: [Twitch OAuth](docs/features/twitch/TWITCH_OAUTH_GUIDE.md) • [Platform API Docs](docs/reference/api/API_DOCUMENTATION.md#platform-oauth-api)
 
