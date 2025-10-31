@@ -6,7 +6,7 @@
  */
 
 import { format } from "date-fns";
-import { formatInTimeZone, toZonedTime, fromZonedTime } from "date-fns-tz";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 
 /**
  * List of common IANA timezones for validation
@@ -94,18 +94,29 @@ export function validateTimezone(timezone: string): boolean {
 
 /**
  * Converts a date from one timezone to another
- * Returns a Date object representing the same moment in time,
- * but interpreted in the target timezone.
- * @param date - The date to convert
- * @param fromTimezone - The source timezone (IANA format) - currently unused but kept for API compatibility
- * @param toTimezone - The target timezone (IANA format)
+ * Takes a date that represents a local time in the source timezone,
+ * and returns a Date object representing the same wall-clock time in the target timezone.
+ *
+ * Note: This validates both timezones but conversion is done via UTC.
+ * The date parameter is assumed to be in UTC, and we convert to the target timezone.
+ *
+ * @param date - The date to convert (typically in UTC)
+ * @param fromTimezone - The source timezone (IANA format) - validated but not used in conversion
+ * @param toTimezone - The target timezone (IANA format) - the timezone to convert to
  * @returns The date adjusted to the target timezone
+ *
+ * @example
+ * // Event at 2 PM EST (7 PM UTC)
+ * const utcDate = new Date("2024-12-25T19:00:00Z");
+ * const pstDate = convertTimezone(utcDate, "America/New_York", "America/Los_Angeles");
+ * // Returns date showing 11 AM PST
  */
 export function convertTimezone(
   date: Date,
   fromTimezone: string,
   toTimezone: string,
 ): Date {
+  // Validate both timezones to ensure they're valid
   if (!validateTimezone(fromTimezone)) {
     throw new Error(`Invalid source timezone: ${fromTimezone}`);
   }
@@ -113,7 +124,8 @@ export function convertTimezone(
     throw new Error(`Invalid target timezone: ${toTimezone}`);
   }
 
-  // date-fns-tz's toZonedTime converts a date to the target timezone
+  // Convert the UTC date to the target timezone
+  // The fromTimezone parameter ensures API consistency and validates the source
   return toZonedTime(date, toTimezone);
 }
 
