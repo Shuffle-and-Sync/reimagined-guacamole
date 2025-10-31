@@ -1,6 +1,17 @@
+import { lazy, Suspense } from "react";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
+import { ModalSkeleton } from "@/components/skeletons";
 import { queryClient } from "@/lib/queryClient";
-import { CSVUploadDialog } from "./CSVUploadDialog";
-import { GraphicsGeneratorDialog } from "./GraphicsGeneratorDialog";
+
+// Lazy load dialog components
+const CSVUploadDialog = lazy(() =>
+  import("./CSVUploadDialog").then((m) => ({ default: m.CSVUploadDialog })),
+);
+const GraphicsGeneratorDialog = lazy(() =>
+  import("./GraphicsGeneratorDialog").then((m) => ({
+    default: m.GraphicsGeneratorDialog,
+  })),
+);
 
 interface CalendarDialogsProps {
   selectedCommunityId?: string;
@@ -30,24 +41,32 @@ export function CalendarDialogs({
     <>
       {/* CSV Upload Dialog */}
       {selectedCommunityId && (
-        <CSVUploadDialog
-          isOpen={isCSVUploadOpen}
-          onClose={onCSVUploadClose}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-          }}
-          communityId={selectedCommunityId}
-        />
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<ModalSkeleton />}>
+            <CSVUploadDialog
+              isOpen={isCSVUploadOpen}
+              onClose={onCSVUploadClose}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+              }}
+              communityId={selectedCommunityId}
+            />
+          </Suspense>
+        </LazyLoadErrorBoundary>
       )}
 
       {/* Graphics Generator Dialog */}
       {selectedEventForGraphics && (
-        <GraphicsGeneratorDialog
-          isOpen={isGraphicsOpen}
-          onClose={onGraphicsClose}
-          eventId={selectedEventForGraphics.id}
-          eventTitle={selectedEventForGraphics.title}
-        />
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<ModalSkeleton />}>
+            <GraphicsGeneratorDialog
+              isOpen={isGraphicsOpen}
+              onClose={onGraphicsClose}
+              eventId={selectedEventForGraphics.id}
+              eventTitle={selectedEventForGraphics.title}
+            />
+          </Suspense>
+        </LazyLoadErrorBoundary>
       )}
     </>
   );

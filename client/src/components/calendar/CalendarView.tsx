@@ -1,10 +1,17 @@
 import { addMonths, subMonths } from "date-fns";
+import { lazy, Suspense } from "react";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
+import { CalendarSkeleton } from "@/components/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ExtendedEvent } from "@/hooks/useCalendarEvents";
 import { CalendarFilters } from "./CalendarFilters";
-import { CalendarGrid } from "./CalendarGrid";
 import { CalendarHeader } from "./CalendarHeader";
 import type { EventType } from "./types";
+
+// Lazy load the calendar grid component
+const CalendarGrid = lazy(() =>
+  import("./CalendarGrid").then((m) => ({ default: m.CalendarGrid })),
+);
 
 interface CalendarViewProps {
   currentMonth: Date;
@@ -60,18 +67,22 @@ export function CalendarView({
           />
         </CardHeader>
         <CardContent>
-          <CalendarGrid
-            currentDate={currentMonth}
-            events={filteredEvents}
-            onDateClick={(_date) => {
-              // Could set selected date or open date view here
-              // Functionality not yet implemented
-            }}
-            onEventClick={(_event) => {
-              // Could open event details dialog here
-              // Functionality not yet implemented
-            }}
-          />
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<CalendarSkeleton />}>
+              <CalendarGrid
+                currentDate={currentMonth}
+                events={filteredEvents}
+                onDateClick={(_date) => {
+                  // Could set selected date or open date view here
+                  // Functionality not yet implemented
+                }}
+                onEventClick={(_event) => {
+                  // Could open event details dialog here
+                  // Functionality not yet implemented
+                }}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </CardContent>
       </Card>
     </div>
