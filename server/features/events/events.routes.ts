@@ -25,6 +25,7 @@ import eventStatusRoutes from "./event-status.routes";
 import { eventsService } from "./events.service";
 import { gamePodSlotService } from "./game-pod-slot.service";
 import { icsService } from "./ics.service";
+import type { CalendarEventFilters } from "./events.types";
 
 // Import and export reminder settings router
 
@@ -262,6 +263,221 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
     return res.status(500).json({ message: "Failed to delete event" });
   }
 });
+
+// ===========================
+// ENHANCED EVENT MANAGEMENT ROUTES
+// ===========================
+
+// PATCH route for updating event (alternative to PUT)
+router.patch(
+  "/:id",
+  isAuthenticated,
+  eventCreationRateLimit,
+  cacheInvalidation.events(),
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const userId = getAuthUserId(authenticatedReq);
+
+      const updatedEvent = await eventsService.updateEvent(
+        id,
+        userId,
+        req.body,
+      );
+      return res.json(updatedEvent);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Event not found") {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        if (error.message === "Not authorized to edit this event") {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to edit this event" });
+        }
+      }
+
+      logger.error(
+        "Failed to update event",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.id },
+      );
+      return res.status(500).json({ message: "Failed to update event" });
+    }
+  },
+);
+
+// Reschedule an event
+router.post(
+  "/:id/reschedule",
+  isAuthenticated,
+  eventCreationRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { id } = req.params;
+      const { startTime, endTime } = req.body;
+
+      if (!startTime) {
+        return res.status(400).json({ message: "startTime is required" });
+      }
+
+      const result = await eventsService.rescheduleEvent(
+        id,
+        userId,
+        new Date(startTime),
+        endTime ? new Date(endTime) : undefined,
+      );
+
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Event not found") {
+          return res.status(404).json({ message: error.message });
+        }
+        if (error.message === "Unauthorized to reschedule this event") {
+          return res.status(403).json({ message: error.message });
+        }
+      }
+      logger.error(
+        "Failed to reschedule event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+          eventId: req.params.id,
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// Detect conflicts for a potential event (enhanced version)
+router.post(
+  "/conflicts/detect",
+  isAuthenticated,
+  eventCheckConflictsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { eventId, startTime, endTime, communityId } = req.body;
+
+      if (!startTime || !endTime) {
+        return res.status(400).json({
+          message: "startTime and endTime are required",
+        });
+      }
+
+      const conflicts = await eventsService.detectConflicts({
+        eventId,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        userId,
+        communityId,
+      });
+
+      res.json({
+        hasConflicts: conflicts.length > 0,
+        conflicts,
+      });
+    } catch (error) {
+      logger.error(
+        "Failed to detect conflicts",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// Batch update events
+router.post(
+  "/batch/update",
+  isAuthenticated,
+  eventBulkOperationsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { updates } = req.body;
+
+      if (!Array.isArray(updates)) {
+        return res.status(400).json({ message: "updates array is required" });
+      }
+
+      const results = await eventsService.batchUpdateEvents(userId, updates);
+
+      res.json({
+        total: results.length,
+        successful: results.filter((r) => r.success).length,
+        failed: results.filter((r) => !r.success).length,
+        results,
+      });
+    } catch (error) {
+      logger.error(
+        "Batch update failed",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// Delete recurring event series
+router.delete(
+  "/recurring/:parentEventId",
+  isAuthenticated,
+  eventBulkOperationsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { parentEventId } = req.params;
+      const { deleteAll, deleteFrom } = req.query;
+
+      const result = await eventsService.deleteRecurringSeries(
+        parentEventId,
+        userId,
+        {
+          deleteAll: deleteAll === "true",
+          deleteFrom: deleteFrom ? new Date(deleteFrom as string) : undefined,
+        },
+      );
+
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Series not found") {
+          return res.status(404).json({ message: error.message });
+        }
+        if (error.message === "Unauthorized to delete this series") {
+          return res.status(403).json({ message: error.message });
+        }
+      }
+      logger.error(
+        "Failed to delete recurring series",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+          parentEventId: req.params.parentEventId,
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // Join event
 router.post(
@@ -770,6 +986,44 @@ calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
   }
 });
 
+// Get events in specific timezone
+calendarEventsRouter.get("/timezone/:timezone", async (req, res) => {
+  try {
+    const { timezone } = req.params;
+    const { communityId, startDate, endDate, type } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        message: "startDate and endDate are required",
+      });
+    }
+
+    const filters: CalendarEventFilters = {
+      communityId: communityId as string,
+      startDate: startDate as string,
+      endDate: endDate as string,
+      type: type as string,
+    };
+
+    const events = await eventsService.getCalendarEventsInTimezone(
+      filters,
+      timezone,
+    );
+
+    return res.json(events);
+  } catch (error) {
+    logger.error(
+      "Failed to fetch events in timezone",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        timezone: req.params.timezone,
+        filters: req.query,
+      },
+    );
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Export user's calendar (all their events within a date range)
 calendarEventsRouter.get(
   "/export/ics",
@@ -994,7 +1248,7 @@ router.post(
       // Check if user has permission (event creator or admin)
       // For now, we'll allow any authenticated user, but in production
       // you should add proper permission checks here
-      const currentUserId = getAuthUserId(authenticatedReq);
+      const _currentUserId = getAuthUserId(authenticatedReq);
 
       const promoted =
         await eventRegistrationService.promoteFromWaitlist(eventId);

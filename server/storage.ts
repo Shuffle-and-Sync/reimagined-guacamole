@@ -13,6 +13,7 @@ import {
   isNotNull,
   inArray,
   lt,
+  gt,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import {
@@ -2199,6 +2200,80 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEvent(id: string): Promise<void> {
     await db.delete(events).where(eq(events.id, id));
+  }
+
+  /**
+   * Get user's events in a specific time range
+   * Used for conflict detection and availability checking
+   * Returns events that overlap with the given time range
+   */
+  async getUserEventsInRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          or(eq(events.creatorId, userId), eq(events.hostId, userId)),
+          // Find events that overlap: startTime < endDate AND (endTime > startDate OR endTime is NULL)
+          lt(events.startTime, endDate),
+          or(gt(events.endTime, startDate), sql`${events.endTime} IS NULL`),
+        ),
+      )
+      .all();
+  }
+
+  /**
+   * Get all events in a recurring series
+   * Uses parentEventId to group recurring event instances
+   */
+  async getRecurringEventSeries(parentEventId: string): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(
+        or(
+          eq(events.parentEventId, parentEventId),
+          eq(events.id, parentEventId),
+        ),
+      )
+      .orderBy(asc(events.startTime))
+      .all();
+  }
+
+  /**
+   * Batch insert events (for recurring event creation)
+   */
+  async batchInsertEvents(eventData: InsertEvent[]): Promise<Event[]> {
+    const insertedEvents: Event[] = [];
+
+    for (const data of eventData) {
+      const [inserted] = await db.insert(events).values(data).returning();
+      if (inserted) {
+        insertedEvents.push(inserted);
+      }
+    }
+
+    return insertedEvents;
+  }
+
+  /**
+   * Get events by multiple IDs
+   * Optimized for batch operations
+   */
+  async getEventsByIds(eventIds: string[]): Promise<Event[]> {
+    if (eventIds.length === 0) {
+      return [];
+    }
+
+    return await db
+      .select()
+      .from(events)
+      .where(inArray(events.id, eventIds))
+      .all();
   }
 
   // Event attendee operations
