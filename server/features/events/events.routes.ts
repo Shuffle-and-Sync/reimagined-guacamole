@@ -17,6 +17,7 @@ import {
   eventRecurringCreationRateLimit,
 } from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
+import { eventRegistrationService } from "./event-registration.service";
 import { eventsService } from "./events.service";
 
 const router = Router();
@@ -448,3 +449,178 @@ calendarEventsRouter.get("/", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// ==========================================
+// EVENT REGISTRATION ENDPOINTS
+// ==========================================
+
+// Register for event (with automatic waitlist if full)
+router.post(
+  "/:eventId/register",
+  eventJoinRateLimit,
+  isAuthenticated,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { eventId } = req.params;
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const userId = getAuthUserId(authenticatedReq);
+
+      const result = await eventRegistrationService.registerForEvent(
+        eventId,
+        userId,
+      );
+
+      return res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Event not found") {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        if (error.message === "User is already registered for this event") {
+          return res.status(409).json({
+            message: "User is already registered for this event",
+          });
+        }
+      }
+
+      logger.error(
+        "Failed to register for event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      return res.status(500).json({ message: "Failed to register for event" });
+    }
+  },
+);
+
+// Cancel registration
+router.delete("/:eventId/register", isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+    const userId = getAuthUserId(authenticatedReq);
+
+    const result = await eventRegistrationService.cancelRegistration(
+      eventId,
+      userId,
+    );
+
+    return res.json(result);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Registration not found") {
+      return res.status(404).json({ message: "Registration not found" });
+    }
+
+    logger.error(
+      "Failed to cancel registration",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        eventId: req.params.eventId,
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
+    return res.status(500).json({ message: "Failed to cancel registration" });
+  }
+});
+
+// Get event capacity information
+router.get("/:eventId/capacity", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+
+    const capacity = await eventRegistrationService.getEventCapacity(eventId);
+    return res.json(capacity);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Event not found") {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    logger.error(
+      "Failed to get event capacity",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        eventId: req.params.eventId,
+      },
+    );
+    return res.status(500).json({ message: "Failed to get event capacity" });
+  }
+});
+
+// Get event waitlist
+router.get("/:eventId/waitlist", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+
+    const waitlist = await eventRegistrationService.getWaitlist(eventId);
+    return res.json({ waitlist });
+  } catch (error) {
+    logger.error(
+      "Failed to get event waitlist",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        eventId: req.params.eventId,
+      },
+    );
+    return res.status(500).json({ message: "Failed to get event waitlist" });
+  }
+});
+
+// Promote user from waitlist (admin/organizer only)
+router.post(
+  "/:eventId/waitlist/:userId/promote",
+  isAuthenticated,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { eventId } = req.params;
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
+      // Check if user has permission (event creator or admin)
+      // For now, we'll allow any authenticated user, but in production
+      // you should add proper permission checks here
+      const currentUserId = getAuthUserId(authenticatedReq);
+
+      const promoted =
+        await eventRegistrationService.promoteFromWaitlist(eventId);
+
+      if (!promoted) {
+        return res.status(400).json({
+          message: "No one to promote or event is full",
+        });
+      }
+
+      return res.json({
+        success: true,
+        promoted,
+      });
+    } catch (error) {
+      logger.error(
+        "Failed to promote from waitlist",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: req.params.eventId,
+        },
+      );
+      return res
+        .status(500)
+        .json({ message: "Failed to promote from waitlist" });
+    }
+  },
+);

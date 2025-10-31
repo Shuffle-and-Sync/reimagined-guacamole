@@ -374,9 +374,13 @@ export const eventAttendees = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status").default("attending"), // 'attending', 'maybe', 'not_attending'
+    status: text("status").default("confirmed"), // 'confirmed', 'waitlist', 'cancelled', 'declined', 'attending', 'maybe', 'not_attending' (legacy)
     role: text("role").default("participant"), // 'participant', 'organizer', 'moderator'
     playerType: text("player_type").default("main"), // 'main', 'alternate' (for game pods with waitlist)
+    waitlistPosition: integer("waitlist_position"), // Position in waitlist, null if not waitlisted
+    registeredAt: integer("registered_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ), // When user registered for the event
     joinedAt: integer("joined_at", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
@@ -388,6 +392,11 @@ export const eventAttendees = sqliteTable(
     // Composite index for status lookups
     index("idx_event_attendees_event_status").on(table.eventId, table.status),
     index("idx_event_attendees_user_status").on(table.userId, table.status),
+    // Index for waitlist ordering
+    index("idx_event_attendees_waitlist").on(
+      table.eventId,
+      table.waitlistPosition,
+    ),
   ],
 );
 
