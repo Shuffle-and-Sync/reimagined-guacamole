@@ -414,20 +414,24 @@ router.get("/:eventId/slots/availability", async (req, res) => {
 });
 
 // Get slot assignments for an event
-router.get("/:eventId/slots/assignments", async (req, res) => {
-  try {
-    const { eventId } = req.params;
-    const assignments = await gamePodSlotService.getSlotAssignments(eventId);
-    res.json(assignments);
-  } catch (error) {
-    logger.error(
-      "Failed to get slot assignments",
-      error instanceof Error ? error : new Error(String(error)),
-      { eventId: req.params.eventId },
-    );
-    res.status(500).json({ message: "Failed to get slot assignments" });
+router.get(
+  "/:eventId/slots/assignments",
+  eventReadRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const assignments = await gamePodSlotService.getSlotAssignments(eventId);
+      res.json(assignments);
+    } catch (error) {
+      logger.error(
+        "Failed to get slot assignments",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      res.status(500).json({ message: "Failed to get slot assignments" });
+    }
   }
-});
+);
 
 // Assign user to player slot
 router.post(
