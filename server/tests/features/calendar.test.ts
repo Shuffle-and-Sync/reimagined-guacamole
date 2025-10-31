@@ -13,6 +13,15 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
+import {
+  validateTimezone,
+  convertTimezone,
+  convertToUserTimezone,
+  formatEventTime,
+  getTimezoneOffset,
+  observesDST,
+  convertEventToUserTimezone,
+} from "../../utils/timezone";
 import { createMockEvent } from "../__factories__";
 
 describe("Calendar Integration", () => {
@@ -23,52 +32,280 @@ describe("Calendar Integration", () => {
   afterEach(() => {
     jest.clearAllTimers();
   });
-  test("should handle timezone conversions", () => {
-    const startDateTime = new Date("2024-12-25T14:00:00Z");
-    const event = createMockEvent({
-      startTime: startDateTime,
-      timezone: "America/New_York",
+
+  describe("Timezone Validation", () => {
+    test("should validate common IANA timezones", () => {
+      expect(validateTimezone("America/New_York")).toBe(true);
+      expect(validateTimezone("Europe/London")).toBe(true);
+      expect(validateTimezone("Asia/Tokyo")).toBe(true);
+      expect(validateTimezone("UTC")).toBe(true);
+      expect(validateTimezone("GMT")).toBe(true);
     });
 
-    // Basic timezone handling test
-    expect(event.startTime).toBeInstanceOf(Date);
+    test("should reject invalid timezones", () => {
+      expect(validateTimezone("Invalid/Timezone")).toBe(false);
+      expect(validateTimezone("")).toBe(false);
+      expect(validateTimezone("EST")).toBe(false); // Abbreviations not supported
+    });
+
+    test("should handle edge cases", () => {
+      expect(validateTimezone(null as unknown as string)).toBe(false);
+      expect(validateTimezone(undefined as unknown as string)).toBe(false);
+      expect(validateTimezone(123 as unknown as string)).toBe(false);
+    });
   });
 
-  test("should validate event date ranges", () => {
-    const event = createMockEvent();
+  describe("Timezone Conversion", () => {
+    test("should convert event time from one timezone to another", () => {
+      // Create a date: Dec 25, 2024 at 2:00 PM EST (which is 7 PM UTC)
+      const date = new Date("2024-12-25T19:00:00Z");
 
-    expect(event.startTime.getTime()).toBeLessThan(event.endTime.getTime());
-    expect(event.startTime.getTime()).toBeGreaterThan(Date.now() - 86400000); // Allow some past events for testing
+      // Convert to PST (3 hours behind EST)
+      const converted = convertTimezone(
+        date,
+        "America/New_York",
+        "America/Los_Angeles",
+      );
+
+      // The time should be 11:00 AM PST (2 PM EST - 3 hours)
+      // Use isAlreadyConverted=true since we already converted it
+      const pstTime = formatEventTime(
+        converted,
+        "America/Los_Angeles",
+        "HH:mm",
+        true,
+      );
+      expect(pstTime).toBe("11:00");
+    });
+
+    test("should handle UTC conversions", () => {
+      const utcDate = new Date("2024-12-25T14:00:00Z");
+      const tokyoDate = convertToUserTimezone(utcDate, "Asia/Tokyo");
+
+      // Tokyo is UTC+9, so 14:00 UTC = 23:00 JST
+      // Use isAlreadyConverted=true since we already converted it
+      const tokyoTime = formatEventTime(tokyoDate, "Asia/Tokyo", "HH:mm", true);
+      expect(tokyoTime).toBe("23:00");
+    });
+
+    test("should throw error for invalid timezones", () => {
+      const date = new Date();
+      expect(() => convertTimezone(date, "Invalid/Zone", "UTC")).toThrow();
+      expect(() => convertToUserTimezone(date, "Invalid/Zone")).toThrow();
+    });
   });
 
-  test("should prevent scheduling conflicts", () => {
-    const event1 = createMockEvent({
-      startTime: new Date("2024-12-25T14:00:00Z"),
-      endTime: new Date("2024-12-25T16:00:00Z"),
+  describe("Timezone Offset", () => {
+    test("should get correct timezone offset", () => {
+      const date = new Date("2024-01-15T12:00:00Z");
+
+      // EST is UTC-5 in winter (standard time)
+      const estOffset = getTimezoneOffset("America/New_York", date);
+      expect(estOffset).toBe(-300); // -5 hours = -300 minutes
+
+      // UTC should be 0
+      const utcOffset = getTimezoneOffset("UTC", date);
+      expect(utcOffset).toBe(0);
     });
 
-    const event2 = createMockEvent({
-      startTime: new Date("2024-12-25T15:00:00Z"),
-      endTime: new Date("2024-12-25T17:00:00Z"),
+    test("should handle DST transitions", () => {
+      // Summer date (DST in effect for New York)
+      const summerDate = new Date("2024-07-15T12:00:00Z");
+      const summerOffset = getTimezoneOffset("America/New_York", summerDate);
+      expect(summerOffset).toBe(-240); // EDT is UTC-4 = -240 minutes
+
+      // Winter date (standard time)
+      const winterDate = new Date("2024-01-15T12:00:00Z");
+      const winterOffset = getTimezoneOffset("America/New_York", winterDate);
+      expect(winterOffset).toBe(-300); // EST is UTC-5 = -300 minutes
+
+      // Offsets should be different
+      expect(summerOffset).not.toBe(winterOffset);
     });
-
-    // Check for overlap
-    const hasOverlap =
-      event1.startTime < event2.endTime && event2.startTime < event1.endTime;
-
-    expect(hasOverlap).toBe(true);
   });
 
-  test("should handle event capacity limits", () => {
-    const event = createMockEvent({
-      maxParticipants: 50,
-      currentParticipants: 45,
+  describe("DST Detection", () => {
+    test("should detect DST observance", () => {
+      // US/Europe observe DST
+      expect(observesDST("America/New_York")).toBe(true);
+      expect(observesDST("Europe/London")).toBe(true);
+
+      // Arizona doesn't observe DST
+      expect(observesDST("America/Phoenix")).toBe(false);
+
+      // Japan doesn't observe DST
+      expect(observesDST("Asia/Tokyo")).toBe(false);
+    });
+  });
+
+  describe("Event Timezone Handling", () => {
+    test("should store and retrieve timezone with events", () => {
+      const event = createMockEvent({
+        startTime: new Date("2024-12-25T14:00:00Z"),
+        timezone: "America/New_York",
+      });
+
+      expect(event.timezone).toBe("America/New_York");
+      expect(event.startTime).toBeInstanceOf(Date);
     });
 
-    const spotsRemaining = event.maxParticipants - event.currentParticipants;
-    const canJoin = spotsRemaining > 0;
+    test("should convert event to user's timezone", () => {
+      const event = createMockEvent({
+        startTime: new Date("2024-12-25T19:00:00Z"), // 7 PM UTC
+        endTime: new Date("2024-12-25T22:00:00Z"), // 10 PM UTC
+        timezone: "UTC",
+      });
 
-    expect(spotsRemaining).toBe(5);
-    expect(canJoin).toBe(true);
+      // Convert to Tokyo time (UTC+9)
+      const convertedEvent = convertEventToUserTimezone(event, "Asia/Tokyo");
+
+      expect(convertedEvent.displayStartTime).toBeInstanceOf(Date);
+      expect(convertedEvent.displayEndTime).toBeInstanceOf(Date);
+
+      // Verify the time is correctly adjusted
+      // 7 PM UTC = 4 AM JST next day (19:00 + 9 = 28:00 = 04:00 next day)
+      const tokyoStartTime = formatEventTime(
+        convertedEvent.displayStartTime,
+        "Asia/Tokyo",
+        "HH:mm",
+        true, // Date is already converted
+      );
+      expect(tokyoStartTime).toBe("04:00");
+    });
+
+    test("should handle events without end time", () => {
+      const event = createMockEvent({
+        startTime: new Date("2024-12-25T14:00:00Z"),
+        endTime: null,
+        timezone: "UTC",
+      });
+
+      const convertedEvent = convertEventToUserTimezone(
+        event,
+        "America/New_York",
+      );
+
+      expect(convertedEvent.displayStartTime).toBeInstanceOf(Date);
+      expect(convertedEvent.displayEndTime).toBeNull();
+    });
+  });
+
+  describe("Event Time Formatting", () => {
+    test("should format event time in specific timezone", () => {
+      const date = new Date("2024-12-25T14:00:00Z");
+
+      const nycTime = formatEventTime(date, "America/New_York", "PPpp");
+      expect(nycTime).toContain("Dec");
+      expect(nycTime).toContain("25");
+
+      const tokyoTime = formatEventTime(date, "Asia/Tokyo", "PPpp");
+      expect(tokyoTime).toContain("Dec");
+    });
+
+    test("should use custom format strings", () => {
+      const date = new Date("2024-12-25T14:00:00Z");
+
+      const timeOnly = formatEventTime(date, "America/New_York", "HH:mm");
+      expect(timeOnly).toMatch(/^\d{2}:\d{2}$/);
+
+      const dateOnly = formatEventTime(date, "America/New_York", "yyyy-MM-dd");
+      expect(dateOnly).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+  });
+
+  describe("Event Validation", () => {
+    test("should validate event date ranges", () => {
+      const event = createMockEvent();
+
+      expect(event.startTime.getTime()).toBeLessThan(event.endTime!.getTime());
+      expect(event.startTime.getTime()).toBeGreaterThan(Date.now() - 86400000);
+    });
+
+    test("should prevent scheduling conflicts", () => {
+      const event1 = createMockEvent({
+        startTime: new Date("2024-12-25T14:00:00Z"),
+        endTime: new Date("2024-12-25T16:00:00Z"),
+      });
+
+      const event2 = createMockEvent({
+        startTime: new Date("2024-12-25T15:00:00Z"),
+        endTime: new Date("2024-12-25T17:00:00Z"),
+      });
+
+      // Check for overlap
+      const hasOverlap =
+        event1.startTime < event2.endTime! &&
+        event2.startTime < event1.endTime!;
+
+      expect(hasOverlap).toBe(true);
+    });
+
+    test("should handle event capacity limits", () => {
+      const event = createMockEvent({
+        maxAttendees: 50,
+      });
+
+      // Mock current participants
+      const currentParticipants = 45;
+      const spotsRemaining = event.maxAttendees! - currentParticipants;
+      const canJoin = spotsRemaining > 0;
+
+      expect(spotsRemaining).toBe(5);
+      expect(canJoin).toBe(true);
+    });
+  });
+
+  describe("Cross-Timezone Event Scheduling", () => {
+    test("should handle international tournament scheduling", () => {
+      // Tournament in New York at 2 PM EST (which is 7 PM UTC)
+      const event = createMockEvent({
+        startTime: new Date("2024-12-25T19:00:00Z"), // 2 PM EST = 7 PM UTC
+        timezone: "America/New_York",
+        type: "tournament",
+      });
+
+      // User in Tokyo views the event
+      const tokyoEvent = convertEventToUserTimezone(event, "Asia/Tokyo");
+      const tokyoTime = formatEventTime(
+        tokyoEvent.displayStartTime,
+        "Asia/Tokyo",
+        "HH:mm",
+        true,
+      );
+
+      // 7 PM UTC = 4 AM JST next day (19:00 + 9 = 28:00 = 04:00 next day)
+      expect(tokyoTime).toBe("04:00");
+    });
+
+    test("should handle multi-region collaborative streams", () => {
+      // Stream starting in London at 8 PM GMT (which is 8 PM UTC in winter)
+      const event = createMockEvent({
+        startTime: new Date("2024-12-25T20:00:00Z"), // 8 PM GMT/UTC
+        timezone: "Europe/London",
+        type: "stream",
+      });
+
+      // Verify times for participants in different timezones
+      const nycEvent = convertEventToUserTimezone(event, "America/New_York");
+      const tokyoEvent = convertEventToUserTimezone(event, "Asia/Tokyo");
+
+      const nycTime = formatEventTime(
+        nycEvent.displayStartTime,
+        "America/New_York",
+        "HH:mm",
+        true,
+      );
+      const tokyoTime = formatEventTime(
+        tokyoEvent.displayStartTime,
+        "Asia/Tokyo",
+        "HH:mm",
+        true,
+      );
+
+      // 8 PM UTC/GMT = 3 PM EST (20:00 - 5 = 15:00)
+      // 8 PM UTC/GMT = 5 AM JST next day (20:00 + 9 = 29:00 = 05:00 next day)
+      expect(nycTime).toBe("15:00");
+      expect(tokyoTime).toBe("05:00");
+    });
   });
 });

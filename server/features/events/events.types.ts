@@ -20,6 +20,8 @@ export interface CreateEventRequest {
   type: string;
   date: string;
   time: string;
+  timezone?: string; // IANA timezone (e.g., "America/New_York")
+  displayTimezone?: string; // Optional override timezone for display
   location: string;
   communityId?: string;
   maxAttendees?: number;
@@ -40,6 +42,8 @@ export interface UpdateEventRequest {
   type?: string;
   date?: string;
   time?: string;
+  timezone?: string; // IANA timezone
+  displayTimezone?: string; // Optional override timezone for display
   location?: string;
   communityId?: string;
   maxAttendees?: number;

@@ -224,6 +224,8 @@ export function createMockEvent(overrides: Partial<Event> = {}): Event {
     status: "active",
     startTime,
     endTime,
+    timezone: "UTC", // Default timezone
+    displayTimezone: null,
     location: faker.helpers.arrayElement(["Online", "In-Person"]),
     isVirtual: true,
     maxAttendees: faker.helpers.arrayElement([8, 16, 32, 64]),
