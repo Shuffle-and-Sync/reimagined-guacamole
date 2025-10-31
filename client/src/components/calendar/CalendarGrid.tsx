@@ -21,10 +21,36 @@ interface CalendarGridProps {
 }
 
 /**
+ * Color classes for different event types
+ * Module-level constant to avoid recreation on every render
+ */
+const EVENT_TYPE_COLORS: Record<string, string> = {
+  tournament:
+    "bg-purple-500/20 hover:bg-purple-500/30 text-purple-700 dark:text-purple-300",
+  stream:
+    "bg-blue-500/20 hover:bg-blue-500/30 text-blue-700 dark:text-blue-300",
+  game_pod:
+    "bg-green-500/20 hover:bg-green-500/30 text-green-700 dark:text-green-300",
+  convention:
+    "bg-orange-500/20 hover:bg-orange-500/30 text-orange-700 dark:text-orange-300",
+  release:
+    "bg-pink-500/20 hover:bg-pink-500/30 text-pink-700 dark:text-pink-300",
+  community:
+    "bg-teal-500/20 hover:bg-teal-500/30 text-teal-700 dark:text-teal-300",
+  personal:
+    "bg-gray-500/20 hover:bg-gray-500/30 text-gray-700 dark:text-gray-300",
+};
+
+const DEFAULT_EVENT_COLOR =
+  "bg-gray-500/20 hover:bg-gray-500/30 text-gray-700 dark:text-gray-300";
+
+/**
  * Get event status based on start and end times
  */
-function getEventStatus(event: Event): "upcoming" | "ongoing" | "past" {
-  if (!event.startTime) return "upcoming";
+function getEventStatus(
+  event: Event,
+): "upcoming" | "ongoing" | "past" | "draft" {
+  if (!event.startTime) return "draft"; // Events without startTime are drafts/unpublished
 
   const now = new Date();
   const startTime = new Date(event.startTime);

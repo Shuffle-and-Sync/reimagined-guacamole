@@ -104,12 +104,12 @@ export function CalendarView({
           />
         </CardHeader>
         <CardContent>
-          {!hasDateRange ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Please select a date range to view events</p>
-            </div>
-          ) : isLoading ? (
+          {isLoading ? (
             <CalendarSkeleton />
+          ) : !hasDateRange ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Loading calendar view...</p>
+            </div>
           ) : (
             <LazyLoadErrorBoundary>
               <Suspense fallback={<CalendarSkeleton />}>
