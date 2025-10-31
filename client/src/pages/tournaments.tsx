@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import React, { useState, useCallback } from "react";
 import type { Tournament } from "@shared/schema";
 import { SkipLink } from "@/components/SkipLink";
+import { VirtualTournamentList } from "@/components/tournaments/VirtualTournamentList";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/shared/components";
+
+// Threshold for virtual scrolling - use virtualization for lists with >50 items
+const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 export default function Tournaments() {
   useDocumentTitle("Tournaments");
@@ -754,6 +758,27 @@ export default function Tournaments() {
                   </Button>
                 </CardContent>
               </Card>
+            ) : tournaments.length > VIRTUAL_SCROLL_THRESHOLD ? (
+              // Use virtual scrolling for >50 tournaments for better performance
+              <VirtualTournamentList
+                tournaments={tournaments}
+                isOrganizer={isOrganizer}
+                onEdit={openEditModal}
+                onJoin={(tournamentId) =>
+                  joinTournamentMutation.mutate(tournamentId)
+                }
+                onExport={(tournament) => {
+                  // Navigate to tournament details page
+                  const link = document.createElement("a");
+                  link.href = `/tournaments/${tournament.id}`;
+                  link.click();
+                }}
+                formatGameName={formatGameName}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                containerHeight={800}
+                columnCount={3}
+                cardHeight={320}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tournaments.map((tournament: unknown) => (
