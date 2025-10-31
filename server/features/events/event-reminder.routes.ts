@@ -5,12 +5,21 @@
  */
 
 import express, { type Request, type Response } from "express";
+import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { requireAuth } from "../../auth";
 import { logger } from "../../logger";
 import { eventReminderService } from "./event-reminder.service";
 
 const router = express.Router();
+
+// Rate limiter for authenticated user-specific requests
+const reminderRateLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 10, // Limit each user to 10 requests per windowMs
+  keyGenerator: (req) => req.user?.id || req.ip,
+  message: { error: "Too many requests. Please try again later." },
+});
 
 /**
  * Validation schema for reminder settings update
@@ -26,7 +35,7 @@ const updateReminderSettingsSchema = z.object({
  * GET /api/users/reminder-settings
  * Get current user's reminder settings
  */
-router.get("/", requireAuth, async (req: Request, res: Response) => {
+router.get("/", requireAuth, reminderRateLimiter, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
 
@@ -58,7 +67,7 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
  * PUT /api/users/reminder-settings
  * Update current user's reminder settings
  */
-router.put("/", requireAuth, async (req: Request, res: Response) => {
+router.put("/", requireAuth, reminderRateLimiter, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
 
