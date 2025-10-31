@@ -2,6 +2,7 @@ import type { Event, Community } from "@shared/schema";
 import type { AuthUser } from "@/features/auth/types";
 import { TodayEvents } from "./TodayEvents";
 import { UpcomingEvents } from "./UpcomingEvents";
+import { VirtualEventList } from "./VirtualEventList";
 
 type ExtendedEvent = Event & {
   creator: unknown;
@@ -34,11 +35,14 @@ interface EventsOverviewSectionProps {
   onLoginRequired: () => void;
 }
 
+// Threshold for virtual scrolling - use virtualization for lists with >50 items
+const VIRTUAL_SCROLL_THRESHOLD = 50;
+
 /**
  * EventsOverviewSection - Composes today's and upcoming events sections
  *
- * Now uses extracted TodayEvents and UpcomingEvents components
- * for better maintainability and single responsibility
+ * Automatically uses VirtualEventList for >50 upcoming events for better performance.
+ * For smaller lists, uses the standard UpcomingEvents component.
  */
 export function EventsOverviewSection({
   todaysEvents,
@@ -52,6 +56,8 @@ export function EventsOverviewSection({
   onGenerateGraphics,
   onLoginRequired,
 }: EventsOverviewSectionProps) {
+  const useVirtualScrolling = upcomingEvents.length > VIRTUAL_SCROLL_THRESHOLD;
+
   return (
     <>
       <TodayEvents
@@ -60,17 +66,37 @@ export function EventsOverviewSection({
         eventsTerminology={eventsTerminology}
       />
 
-      <UpcomingEvents
-        events={upcomingEvents}
-        eventTypes={eventTypes}
-        user={user}
-        eventsTerminology={eventsTerminology}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onJoinLeave={onJoinLeave}
-        onGenerateGraphics={onGenerateGraphics}
-        onLoginRequired={onLoginRequired}
-      />
+      {useVirtualScrolling ? (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 community-heading">
+            Upcoming {eventsTerminology}
+          </h2>
+          <VirtualEventList
+            events={upcomingEvents}
+            eventTypes={eventTypes}
+            user={user}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onJoinLeave={onJoinLeave}
+            onGenerateGraphics={onGenerateGraphics}
+            onLoginRequired={onLoginRequired}
+            containerHeight={800}
+            estimatedItemHeight={120}
+          />
+        </div>
+      ) : (
+        <UpcomingEvents
+          events={upcomingEvents}
+          eventTypes={eventTypes}
+          user={user}
+          eventsTerminology={eventsTerminology}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onJoinLeave={onJoinLeave}
+          onGenerateGraphics={onGenerateGraphics}
+          onLoginRequired={onLoginRequired}
+        />
+      )}
     </>
   );
 }
