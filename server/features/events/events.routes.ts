@@ -398,20 +398,24 @@ router.post(
 // ===========================
 
 // Get slot availability for an event
-router.get("/:eventId/slots/availability", async (req, res) => {
-  try {
-    const { eventId } = req.params;
-    const availability = await gamePodSlotService.getAvailableSlots(eventId);
-    res.json(availability);
-  } catch (error) {
-    logger.error(
-      "Failed to get slot availability",
-      error instanceof Error ? error : new Error(String(error)),
-      { eventId: req.params.eventId },
-    );
-    res.status(500).json({ message: "Failed to get slot availability" });
-  }
-});
+router.get(
+  "/:eventId/slots/availability",
+  eventReadRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const availability = await gamePodSlotService.getAvailableSlots(eventId);
+      res.json(availability);
+    } catch (error) {
+      logger.error(
+        "Failed to get slot availability",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      res.status(500).json({ message: "Failed to get slot availability" });
+    }
+  },
+);
 
 // Get slot assignments for an event
 router.get(
