@@ -6,6 +6,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { conflictDetectionService } from "../../features/events/conflict-detection.service";
+import { DEFAULT_EVENT_DURATION_MS } from "../../features/events/events.constants";
 import { eventsService } from "../../features/events/events.service";
 import { storage } from "../../storage";
 
@@ -61,7 +62,8 @@ describe("Event Conflict Detection Integration", () => {
 
       // Default to 2 hours if no end time
       const effectiveEnd =
-        existingEnd || new Date(existingStart.getTime() + 2 * 60 * 60 * 1000);
+        existingEnd ||
+        new Date(existingStart.getTime() + DEFAULT_EVENT_DURATION_MS);
 
       const newStart = new Date("2025-01-15T15:00:00Z");
       const newEnd = new Date("2025-01-15T17:00:00Z");

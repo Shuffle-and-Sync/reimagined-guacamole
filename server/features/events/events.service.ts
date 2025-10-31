@@ -4,8 +4,12 @@ import type { Event, EventAttendee } from "@shared/schema";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
-import { validateTimezone, getUserTimezone } from "../../utils/timezone";
+import { validateTimezone } from "../../utils/timezone";
 import { conflictDetectionService } from "./conflict-detection.service";
+import {
+  DEFAULT_EVENT_DURATION_MS,
+  DEFAULT_EVENT_TIME,
+} from "./events.constants";
 // Note: User type reserved for future user-related event features
 import type {
   EventFilters,
@@ -54,11 +58,14 @@ export class EventsService {
       );
 
       // Attach attendees to each event
-      const eventsWithAttendees = events.map((event) => ({
-        ...event,
-        attendees: attendeesMap.get((event as Event).id) || [],
-        attendeeCount: attendeesMap.get((event as Event).id)?.length || 0,
-      }));
+      const eventsWithAttendees = events.map((event) => {
+        const typedEvent = event as Event;
+        return {
+          ...event,
+          attendees: attendeesMap.get(typedEvent.id) || [],
+          attendeeCount: attendeesMap.get(typedEvent.id)?.length || 0,
+        };
+      });
 
       return {
         data: eventsWithAttendees,
@@ -112,12 +119,12 @@ export class EventsService {
 
       // Convert date/time to startTime and endTime for conflict checking
       const startTime = new Date(
-        `${eventData.date}T${eventData.time || "12:00"}`,
+        `${eventData.date}T${eventData.time || DEFAULT_EVENT_TIME}`,
       );
       // If no explicit end time, assume event lasts 2 hours
       const endTime = eventData.endTime
         ? new Date(eventData.endTime)
-        : new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+        : new Date(startTime.getTime() + DEFAULT_EVENT_DURATION_MS);
 
       // Check for scheduling conflicts
       const conflictCheck = await conflictDetectionService.checkEventConflicts({

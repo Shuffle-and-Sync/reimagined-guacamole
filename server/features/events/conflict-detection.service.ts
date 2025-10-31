@@ -1,6 +1,6 @@
-import type { Event } from "@shared/schema";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
+import { DEFAULT_EVENT_DURATION_MS } from "./events.constants";
 
 /**
  * Represents the type of conflict detected
@@ -53,9 +53,9 @@ export class ConflictDetectionService {
   ): boolean {
     // If either event has no end time, assume a default duration of 2 hours
     const effectiveEnd1 =
-      end1 || new Date(start1.getTime() + 2 * 60 * 60 * 1000);
+      end1 || new Date(start1.getTime() + DEFAULT_EVENT_DURATION_MS);
     const effectiveEnd2 =
-      end2 || new Date(start2.getTime() + 2 * 60 * 60 * 1000);
+      end2 || new Date(start2.getTime() + DEFAULT_EVENT_DURATION_MS);
 
     // Two ranges overlap if: start1 < end2 AND start2 < end1
     return start1 < effectiveEnd2 && start2 < effectiveEnd1;
