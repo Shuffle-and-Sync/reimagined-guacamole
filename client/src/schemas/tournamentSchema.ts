@@ -115,10 +115,6 @@ export const tournamentFormDefaults: Partial<TournamentFormData> = {
  * Schema for editing existing tournaments
  * Some fields may be locked based on tournament status
  */
-export const tournamentEditSchema = tournamentSchema.partial({
-  format: true,
-  maxParticipants: true,
-  startDate: true,
-});
+export const tournamentEditSchema = tournamentSchema;
 
 export type TournamentEditFormData = z.infer<typeof tournamentEditSchema>;

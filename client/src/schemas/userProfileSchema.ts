@@ -29,7 +29,7 @@ export const userProfileSchema = z.object({
     .optional()
     .or(z.literal("")),
   profileImageUrl: imageUrl,
-  email: email.optional(),
+  email: email,
   phone: phoneNumber,
   location: z
     .string()

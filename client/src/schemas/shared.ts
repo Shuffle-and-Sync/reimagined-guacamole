@@ -10,7 +10,11 @@ export const requiredString = (fieldName: string) =>
 
 export const optionalString = z.string().optional();
 
-export const email = z.string().email("Invalid email address");
+export const email = z
+  .string()
+  .email("Invalid email address")
+  .optional()
+  .or(z.literal(""));
 
 export const phoneNumber = z
   .string()
