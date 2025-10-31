@@ -13,8 +13,8 @@
 
 import { eq, and, isNull, or, sql, count, asc } from "drizzle-orm";
 import { db, withTransaction } from "@shared/database-unified";
-import { events, eventAttendees } from "@shared/schema";
-import type { EventAttendee } from "@shared/schema";
+import { events, eventAttendees, gameSessions } from "@shared/schema";
+import type { EventAttendee, Event } from "@shared/schema";
 import { logger } from "../../logger";
 import { DatabaseError } from "../../middleware/error-handling.middleware";
 
@@ -157,7 +157,7 @@ export class GamePodSlotService {
     userId: string,
     position?: number,
   ): Promise<SlotAssignmentResult> {
-    return withTransaction(async (tx) => {
+    const result = await withTransaction(async (tx) => {
       try {
         // Get event configuration within transaction
         const eventResult = await tx
@@ -320,6 +320,13 @@ export class GamePodSlotService {
         throw error;
       }
     });
+
+    // After successful assignment, check if all slots are filled and create game session
+    if (result.success) {
+      await this.checkAndCreateGameSession(eventId);
+    }
+
+    return result;
   }
 
   /**
@@ -440,7 +447,7 @@ export class GamePodSlotService {
     eventId: string,
     slotPosition: number,
   ): Promise<SlotAssignmentResult> {
-    return withTransaction(async (tx) => {
+    const result = await withTransaction(async (tx) => {
       try {
         // Verify the slot position is empty
         const existingPlayer = await tx
@@ -519,6 +526,17 @@ export class GamePodSlotService {
         throw error;
       }
     });
+
+    // After successful promotion, update game session or create if all slots filled
+    if (result.success) {
+      const sessionResult = await this.checkAndCreateGameSession(eventId);
+      if (!sessionResult.sessionCreated) {
+        // Session already exists, just update it
+        await this.updateGameSession(eventId);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -529,7 +547,7 @@ export class GamePodSlotService {
     userId1: string,
     userId2: string,
   ): Promise<{ success: boolean; message: string }> {
-    return withTransaction(async (tx) => {
+    const result = await withTransaction(async (tx) => {
       try {
         // Get both attendees
         const attendees = await tx
@@ -596,6 +614,13 @@ export class GamePodSlotService {
         throw error;
       }
     });
+
+    // After successful swap, update game session
+    if (result.success) {
+      await this.updateGameSession(eventId);
+    }
+
+    return result;
   }
 
   /**
@@ -605,7 +630,7 @@ export class GamePodSlotService {
     eventId: string,
     userId: string,
   ): Promise<{ success: boolean; promotedAlternate?: EventAttendee }> {
-    return withTransaction(async (tx) => {
+    const result = await withTransaction(async (tx) => {
       try {
         // Get the attendee
         const attendee = await tx
@@ -679,6 +704,13 @@ export class GamePodSlotService {
         throw error;
       }
     });
+
+    // After removal and potential promotion, update game session
+    if (result.success) {
+      await this.updateGameSession(eventId);
+    }
+
+    return result;
   }
 
   /**
@@ -712,6 +744,154 @@ export class GamePodSlotService {
         { eventId },
       );
       throw error;
+    }
+  }
+
+  /**
+   * Check if all player slots are filled and create game session if needed
+   * This is called automatically after slot assignments
+   */
+  async checkAndCreateGameSession(eventId: string): Promise<{
+    sessionCreated: boolean;
+    sessionId?: string;
+  }> {
+    try {
+      // Get event details
+      const eventResult = await db
+        .select()
+        .from(events)
+        .where(eq(events.id, eventId))
+        .limit(1);
+
+      if (!eventResult || eventResult.length === 0 || !eventResult[0]) {
+        return { sessionCreated: false };
+      }
+
+      const event = eventResult[0];
+
+      // Only create sessions for game_pod events
+      if (event.type !== "game_pod") {
+        return { sessionCreated: false };
+      }
+
+      // Check if all player slots are filled
+      const availability = await this.getAvailableSlots(eventId);
+
+      if (availability.playerSlots.available !== 0) {
+        // Not all slots filled yet
+        return { sessionCreated: false };
+      }
+
+      // Check if session already exists for this event
+      const existingSession = await db
+        .select()
+        .from(gameSessions)
+        .where(eq(gameSessions.eventId, eventId))
+        .limit(1);
+
+      if (existingSession.length > 0) {
+        // Session already exists
+        return { sessionCreated: false, sessionId: existingSession[0]?.id };
+      }
+
+      // Get all players for the session
+      const assignments = await this.getSlotAssignments(eventId);
+
+      // Create game session with player positions
+      const gameData = {
+        playerPositions: assignments.players.map((p) => ({
+          userId: p.userId,
+          position: p.slotPosition,
+        })),
+        eventId: eventId,
+      };
+
+      const sessionId = crypto.randomUUID();
+      await db.insert(gameSessions).values({
+        id: sessionId,
+        eventId: eventId,
+        gameType: event.gameFormat || "game_pod",
+        communityId: event.communityId || undefined,
+        status: "waiting",
+        maxPlayers: event.playerSlots || assignments.players.length,
+        currentPlayers: assignments.players.length,
+        hostId: event.creatorId,
+        gameData: JSON.stringify(gameData),
+      });
+
+      logger.info("Game session created for filled game pod", {
+        eventId,
+        sessionId,
+        playerCount: assignments.players.length,
+      });
+
+      return { sessionCreated: true, sessionId };
+    } catch (error) {
+      logger.error(
+        "Failed to check and create game session",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
+      // Don't throw - this is a non-critical operation
+      return { sessionCreated: false };
+    }
+  }
+
+  /**
+   * Update game session when players change
+   * Called after slot changes to sync with TableSync
+   */
+  async updateGameSession(eventId: string): Promise<boolean> {
+    try {
+      // Find existing session
+      const existingSession = await db
+        .select()
+        .from(gameSessions)
+        .where(eq(gameSessions.eventId, eventId))
+        .limit(1);
+
+      if (existingSession.length === 0 || !existingSession[0]) {
+        // No session to update
+        return false;
+      }
+
+      const session = existingSession[0];
+
+      // Get current slot assignments
+      const assignments = await this.getSlotAssignments(eventId);
+
+      // Update game data with current player positions
+      const gameData = {
+        playerPositions: assignments.players.map((p) => ({
+          userId: p.userId,
+          position: p.slotPosition,
+        })),
+        eventId: eventId,
+      };
+
+      await db
+        .update(gameSessions)
+        .set({
+          currentPlayers: assignments.players.length,
+          gameData: JSON.stringify(gameData),
+        })
+        .where(eq(gameSessions.id, session.id));
+
+      logger.info("Game session updated with new player positions", {
+        eventId,
+        sessionId: session.id,
+        playerCount: assignments.players.length,
+      });
+
+      return true;
+    } catch (error) {
+      logger.error(
+        "Failed to update game session",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId },
+      );
+      // Don't throw - this is a non-critical operation
+      return false;
     }
   }
 }

@@ -379,6 +379,86 @@ if (result.promotedAlternate) {
 await gamePodSlotService.swapPlayerPositions(eventId, "user-1", "user-2");
 ```
 
+## TableSync Integration
+
+The game pod slot management system automatically integrates with TableSync to create and maintain game sessions.
+
+### Automatic Session Creation
+
+When all player slots in a game pod are filled, the system automatically creates a TableSync game session:
+
+```typescript
+// Last player joins, filling all slots
+const result = await gamePodSlotService.assignPlayerSlot(eventId, userId);
+
+// Automatically checks if all slots filled and creates game session
+// Game session includes:
+// - Player positions mapped to slot positions
+// - Event metadata (gameFormat, community, etc.)
+// - Status set to "waiting" for players to start
+```
+
+### Session Updates
+
+The system keeps TableSync sessions in sync with slot changes:
+
+```typescript
+// Player is removed
+await gamePodSlotService.removePlayerSlot(eventId, userId);
+// → Game session updated with new player count
+
+// Alternate is promoted
+await gamePodSlotService.promoteAlternate(eventId, slotPosition);
+// → Game session player positions updated
+
+// Players swap positions
+await gamePodSlotService.swapPlayerPositions(eventId, user1, user2);
+// → Game session position mapping updated
+```
+
+### Session Data Structure
+
+The game session stores player position information:
+
+```json
+{
+  "id": "session-123",
+  "eventId": "event-1",
+  "gameType": "commander",
+  "status": "waiting",
+  "maxPlayers": 4,
+  "currentPlayers": 4,
+  "hostId": "user-host",
+  "gameData": {
+    "playerPositions": [
+      { "userId": "user-1", "position": 1 },
+      { "userId": "user-2", "position": 2 },
+      { "userId": "user-3", "position": 3 },
+      { "userId": "user-4", "position": 4 }
+    ],
+    "eventId": "event-1"
+  }
+}
+```
+
+### Integration Points
+
+1. **Session Creation**: Triggered automatically when `playerSlots.available === 0`
+2. **Session Update**: Called after any slot modification (assignment, removal, swap, promotion)
+3. **Duplicate Prevention**: Checks for existing session before creating new one
+4. **Event Type Filter**: Only creates sessions for `type: 'game_pod'` events
+5. **Non-Breaking**: Session operations are non-critical and won't fail slot operations
+
+### Service Methods
+
+**`checkAndCreateGameSession(eventId: string): Promise<{sessionCreated: boolean, sessionId?: string}>`**
+
+Checks if all slots are filled and creates a game session if needed. Returns session creation result.
+
+**`updateGameSession(eventId: string): Promise<boolean>`**
+
+Updates existing game session with current player positions. Returns true if updated successfully.
+
 ## Database Indexes
 
 The following indexes have been added for efficient slot queries:
@@ -409,13 +489,13 @@ All slot assignment operations use database transactions to ensure:
 
 Potential improvements for future releases:
 
-1. **TableSync Integration**: Auto-create game sessions when all slots filled
-2. **Position Preferences**: Allow players to request specific positions
-3. **Batch Operations**: Bulk assign/remove multiple users
-4. **Notifications**: Automatic notifications for promotion, position changes
-5. **Analytics**: Track slot fill rates, average wait times
-6. **Advanced Rules**: Custom promotion rules beyond FIFO
-7. **Seat Trading**: Allow players to trade positions with consent
+1. **Position Preferences**: Allow players to request specific positions
+2. **Batch Operations**: Bulk assign/remove multiple users
+3. **Notifications**: Automatic notifications for promotion, position changes
+4. **Analytics**: Track slot fill rates, average wait times
+5. **Advanced Rules**: Custom promotion rules beyond FIFO
+6. **Seat Trading**: Allow players to trade positions with consent
+7. **Session State Sync**: Real-time synchronization between slot changes and active game sessions
 
 ## Testing
 
