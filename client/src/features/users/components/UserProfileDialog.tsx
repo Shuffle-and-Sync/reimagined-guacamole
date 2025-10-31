@@ -1,5 +1,8 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { FormInputField, FormSelectField } from "@/components/forms";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,19 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormField } from "@/components/ui/form";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  userProfileSchema,
+  type UserProfileFormData,
+} from "@/schemas/userProfileSchema";
 
 interface UserProfileDialogProps {
   open: boolean;
@@ -36,35 +35,44 @@ export function UserProfileDialog({
   const { communities } = useCommunity();
   const { toast } = useToast();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [primaryCommunity, setPrimaryCommunity] = useState("");
-  const lastInitializedUserRef = useRef<string | null>(null);
+  // Initialize form with React Hook Form
+  const form = useForm<UserProfileFormData>({
+    resolver: zodResolver(userProfileSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      primaryCommunity: "",
+    },
+    mode: "onBlur",
+  });
 
-  // Initialize form values when user or dialog opens
+  const {
+    formState: { isDirty, isSubmitting },
+  } = form;
+
+  // Update form values when user or dialog opens
   useEffect(() => {
-    if (user && open && lastInitializedUserRef.current !== user.id) {
-      // Use a microtask to avoid cascading renders
-      queueMicrotask(() => {
-        setFirstName(user.firstName || "");
-        setLastName(user.lastName || "");
-        setPrimaryCommunity(user.primaryCommunity || "");
-        lastInitializedUserRef.current = user.id;
+    if (user && open) {
+      form.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        primaryCommunity: user.primaryCommunity || "",
       });
     }
-  }, [user, open]);
+  }, [user, open, form]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: {
-      firstName: string;
-      lastName: string;
-      primaryCommunity: string;
-    }) => {
-      return apiRequest("PATCH", "/api/user/profile", data);
+    mutationFn: async (data: UserProfileFormData) => {
+      return apiRequest("PATCH", "/api/user/profile", {
+        firstName: data.firstName?.trim(),
+        lastName: data.lastName?.trim(),
+        primaryCommunity: data.primaryCommunity || "",
+      });
     },
     onSuccess: () => {
       toast({ title: "Profile updated successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      form.reset(form.getValues());
       onOpenChange(false);
     },
     onError: () => {
@@ -75,18 +83,19 @@ export function UserProfileDialog({
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      primaryCommunity: primaryCommunity || "",
-    });
+  const onSubmit = async (data: UserProfileFormData) => {
+    try {
+      await updateProfileMutation.mutateAsync(data);
+    } catch (error) {
+      // Error is handled in mutation onError
+      console.error("Form submission error:", error);
+    }
   };
 
   const getUserInitials = () => {
-    const first = firstName || user?.firstName || "";
-    const last = lastName || user?.lastName || "";
+    const values = form.getValues();
+    const first = values.firstName || user?.firstName || "";
+    const last = values.lastName || user?.lastName || "";
     return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
   };
 
@@ -100,77 +109,85 @@ export function UserProfileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center justify-center">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={user?.profileImageUrl || undefined} />
-              <AvatarFallback className="text-lg">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex items-center justify-center">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={user?.profileImageUrl || undefined} />
+                <AvatarFallback className="text-lg">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Enter first name"
-                data-testid="input-first-name"
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormInputField
+                    label="First Name"
+                    placeholder="Enter first name"
+                    fieldClassName="space-y-2"
+                    data-testid="input-first-name"
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormInputField
+                    label="Last Name"
+                    placeholder="Enter last name"
+                    fieldClassName="space-y-2"
+                    data-testid="input-last-name"
+                    {...field}
+                  />
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Enter last name"
-                data-testid="input-last-name"
-              />
+
+            <FormField
+              control={form.control}
+              name="primaryCommunity"
+              render={({ field }) => (
+                <FormSelectField
+                  label="Primary Community"
+                  placeholder="Select your primary community"
+                  fieldClassName="space-y-2"
+                  options={[
+                    { value: "", label: "No Preference" },
+                    ...communities.map((community) => ({
+                      value: community.id,
+                      label: community.displayName,
+                    })),
+                  ]}
+                  {...field}
+                />
+              )}
+            />
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                data-testid="button-cancel-profile"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={!isDirty || isSubmitting}
+                data-testid="button-save-profile"
+              >
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="primaryCommunity">Primary Community</Label>
-            <Select
-              value={primaryCommunity}
-              onValueChange={setPrimaryCommunity}
-            >
-              <SelectTrigger data-testid="select-primary-community">
-                <SelectValue placeholder="Select your primary community" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">No Preference</SelectItem>
-                {communities.map((community) => (
-                  <SelectItem key={community.id} value={community.id}>
-                    {community.displayName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              data-testid="button-cancel-profile"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={updateProfileMutation.isPending}
-              data-testid="button-save-profile"
-            >
-              {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
