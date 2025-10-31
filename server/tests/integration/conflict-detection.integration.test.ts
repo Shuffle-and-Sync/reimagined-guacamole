@@ -5,7 +5,6 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "@jest/globals";
-import { conflictDetectionService } from "../../features/events/conflict-detection.service";
 import { DEFAULT_EVENT_DURATION_MS } from "../../features/events/events.constants";
 import { eventsService } from "../../features/events/events.service";
 import { storage } from "../../storage";
