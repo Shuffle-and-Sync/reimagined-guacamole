@@ -1,3 +1,4 @@
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { withTransaction } from "@shared/database-unified";
 import { insertEventSchema } from "@shared/schema";
 import type { Event, EventAttendee } from "@shared/schema";
@@ -833,10 +834,6 @@ export class EventsService {
   convertEventTimezone(event: Event, targetTimezone: string): Event {
     try {
       const sourceTimezone = event.timezone || "UTC";
-
-      // Import timezone utils
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { toZonedTime, fromZonedTime } = require("date-fns-tz");
 
       const convertedStart = fromZonedTime(
         toZonedTime(new Date(event.startTime), sourceTimezone),

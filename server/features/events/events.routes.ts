@@ -272,6 +272,7 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
 router.patch(
   "/:id",
   isAuthenticated,
+  eventCreationRateLimit,
   cacheInvalidation.events(),
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
@@ -311,118 +312,134 @@ router.patch(
 );
 
 // Reschedule an event
-router.post("/:id/reschedule", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const { id } = req.params;
-    const { startTime, endTime } = req.body;
+router.post(
+  "/:id/reschedule",
+  isAuthenticated,
+  eventCreationRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { id } = req.params;
+      const { startTime, endTime } = req.body;
 
-    if (!startTime) {
-      return res.status(400).json({ message: "startTime is required" });
-    }
-
-    const result = await eventsService.rescheduleEvent(
-      id,
-      userId,
-      new Date(startTime),
-      endTime ? new Date(endTime) : undefined,
-    );
-
-    res.json(result);
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "Event not found") {
-        return res.status(404).json({ message: error.message });
+      if (!startTime) {
+        return res.status(400).json({ message: "startTime is required" });
       }
-      if (error.message === "Unauthorized to reschedule this event") {
-        return res.status(403).json({ message: error.message });
+
+      const result = await eventsService.rescheduleEvent(
+        id,
+        userId,
+        new Date(startTime),
+        endTime ? new Date(endTime) : undefined,
+      );
+
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Event not found") {
+          return res.status(404).json({ message: error.message });
+        }
+        if (error.message === "Unauthorized to reschedule this event") {
+          return res.status(403).json({ message: error.message });
+        }
       }
+      logger.error(
+        "Failed to reschedule event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+          eventId: req.params.id,
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
     }
-    logger.error(
-      "Failed to reschedule event",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-        eventId: req.params.id,
-      },
-    );
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+  },
+);
 
 // Detect conflicts for a potential event (enhanced version)
-router.post("/conflicts/detect", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const { eventId, startTime, endTime, communityId } = req.body;
+router.post(
+  "/conflicts/detect",
+  isAuthenticated,
+  eventCheckConflictsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { eventId, startTime, endTime, communityId } = req.body;
 
-    if (!startTime || !endTime) {
-      return res.status(400).json({
-        message: "startTime and endTime are required",
+      if (!startTime || !endTime) {
+        return res.status(400).json({
+          message: "startTime and endTime are required",
+        });
+      }
+
+      const conflicts = await eventsService.detectConflicts({
+        eventId,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        userId,
+        communityId,
       });
+
+      res.json({
+        hasConflicts: conflicts.length > 0,
+        conflicts,
+      });
+    } catch (error) {
+      logger.error(
+        "Failed to detect conflicts",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    const conflicts = await eventsService.detectConflicts({
-      eventId,
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
-      userId,
-      communityId,
-    });
-
-    res.json({
-      hasConflicts: conflicts.length > 0,
-      conflicts,
-    });
-  } catch (error) {
-    logger.error(
-      "Failed to detect conflicts",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+  },
+);
 
 // Batch update events
-router.post("/batch/update", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const { updates } = req.body;
+router.post(
+  "/batch/update",
+  isAuthenticated,
+  eventBulkOperationsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { updates } = req.body;
 
-    if (!Array.isArray(updates)) {
-      return res.status(400).json({ message: "updates array is required" });
+      if (!Array.isArray(updates)) {
+        return res.status(400).json({ message: "updates array is required" });
+      }
+
+      const results = await eventsService.batchUpdateEvents(userId, updates);
+
+      res.json({
+        total: results.length,
+        successful: results.filter((r) => r.success).length,
+        failed: results.filter((r) => !r.success).length,
+        results,
+      });
+    } catch (error) {
+      logger.error(
+        "Batch update failed",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    const results = await eventsService.batchUpdateEvents(userId, updates);
-
-    res.json({
-      total: results.length,
-      successful: results.filter((r) => r.success).length,
-      failed: results.filter((r) => !r.success).length,
-      results,
-    });
-  } catch (error) {
-    logger.error(
-      "Batch update failed",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+  },
+);
 
 // Delete recurring event series
 router.delete(
   "/recurring/:parentEventId",
   isAuthenticated,
+  eventBulkOperationsRateLimit,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
