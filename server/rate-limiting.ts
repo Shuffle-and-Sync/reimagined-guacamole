@@ -137,3 +137,60 @@ export const tokenRevocationLimiter = rateLimit({
     });
   },
 });
+
+// Rate limiting for checking event conflicts
+export const eventCheckConflictsRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // Limit each IP to 50 conflict checks per 15 minutes
+  handler: (req: Request, res: Response) => {
+    logRateLimit(req, "Event conflict check", { userId: safeGetUserId(req) });
+    res.status(429).json({
+      error: "Too many conflict check requests",
+      message:
+        "You have made too many conflict check requests. Please try again later.",
+    });
+  },
+});
+
+// Rate limiting for joining events
+export const eventJoinRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 join requests per minute
+  handler: (req: Request, res: Response) => {
+    logRateLimit(req, "Event join", { userId: safeGetUserId(req) });
+    res.status(429).json({
+      error: "Too many join requests",
+      message: "You are joining events too quickly. Please slow down.",
+    });
+  },
+});
+
+// Rate limiting for bulk operations
+export const eventBulkOperationsRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // Limit each IP to 5 bulk operations per hour
+  handler: (req: Request, res: Response) => {
+    logRateLimit(req, "Event bulk operations", { userId: safeGetUserId(req) });
+    res.status(429).json({
+      error: "Too many bulk operations",
+      message:
+        "You have performed too many bulk operations. Please try again later.",
+    });
+  },
+});
+
+// Rate limiting for recurring event creation
+export const eventRecurringCreationRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // Limit each IP to 5 recurring event creations per hour
+  handler: (req: Request, res: Response) => {
+    logRateLimit(req, "Recurring event creation", {
+      userId: safeGetUserId(req),
+    });
+    res.status(429).json({
+      error: "Too many recurring events created",
+      message:
+        "You have created too many recurring events. Please try again later.",
+    });
+  },
+});

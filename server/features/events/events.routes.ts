@@ -9,7 +9,13 @@ import {
   cacheStrategies,
   cacheInvalidation,
 } from "../../middleware/cache.middleware";
-import { eventCreationRateLimit, eventCheckConflictsRateLimit } from "../../rate-limiting";
+import {
+  eventCreationRateLimit,
+  eventCheckConflictsRateLimit,
+  eventJoinRateLimit,
+  eventBulkOperationsRateLimit,
+  eventRecurringCreationRateLimit,
+} from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventsService } from "./events.service";
 
@@ -85,35 +91,40 @@ router.get("/:id", async (req, res) => {
 });
 
 // Check for scheduling conflicts
-router.post("/check-conflicts", isAuthenticated, eventCheckConflictsRateLimit, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const { startTime, endTime, attendeeIds } = req.body;
-    const userId = getAuthUserId(authenticatedReq);
+router.post(
+  "/check-conflicts",
+  isAuthenticated,
+  eventCheckConflictsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { startTime, endTime, attendeeIds } = req.body;
+      const userId = getAuthUserId(authenticatedReq);
 
-    if (!startTime) {
-      return res.status(400).json({ message: "startTime is required" });
+      if (!startTime) {
+        return res.status(400).json({ message: "startTime is required" });
+      }
+
+      const result = await eventsService.checkConflicts(
+        startTime,
+        endTime,
+        userId,
+        attendeeIds,
+      );
+
+      return res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to check conflicts",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      return res.status(500).json({ message: "Failed to check conflicts" });
     }
-
-    const result = await eventsService.checkConflicts(
-      startTime,
-      endTime,
-      userId,
-      attendeeIds,
-    );
-
-    return res.json(result);
-  } catch (error) {
-    logger.error(
-      "Failed to check conflicts",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    return res.status(500).json({ message: "Failed to check conflicts" });
-  }
-});
+  },
+);
 
 // Create event
 router.post(
@@ -244,32 +255,37 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
 });
 
 // Join event
-router.post("/:eventId/join", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const { eventId } = req.params;
-    if (!eventId) {
-      return res.status(400).json({ message: "Event ID is required" });
-    }
-    const userId = getAuthUserId(authenticatedReq);
+router.post(
+  "/:eventId/join",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const { eventId } = req.params;
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+      const userId = getAuthUserId(authenticatedReq);
 
-    const attendee = await eventsService.joinEvent(eventId, userId, req.body);
-    return res.json(attendee);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Event not found") {
-      return res.status(404).json({ message: "Event not found" });
-    }
+      const attendee = await eventsService.joinEvent(eventId, userId, req.body);
+      return res.json(attendee);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Event not found") {
+        return res.status(404).json({ message: "Event not found" });
+      }
 
-    logger.error(
-      "Failed to join event",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        eventId: req.params.eventId,
-      },
-    );
-    return res.status(500).json({ message: "Failed to join event" });
-  }
-});
+      logger.error(
+        "Failed to join event",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: req.params.eventId,
+        },
+      );
+      return res.status(500).json({ message: "Failed to join event" });
+    }
+  },
+);
 
 // Leave event
 router.delete("/:eventId/leave", isAuthenticated, async (req, res) => {
@@ -314,55 +330,65 @@ router.get("/:eventId/attendees", async (req, res) => {
 });
 
 // Create bulk events
-router.post("/bulk", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const createdEvents = await eventsService.createBulkEvents(
-      userId,
-      req.body,
-    );
-    return res.status(201).json(createdEvents);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === "Events array is required"
-    ) {
-      return res.status(400).json({ message: "Events array is required" });
-    }
+router.post(
+  "/bulk",
+  isAuthenticated,
+  eventBulkOperationsRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const createdEvents = await eventsService.createBulkEvents(
+        userId,
+        req.body,
+      );
+      return res.status(201).json(createdEvents);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "Events array is required"
+      ) {
+        return res.status(400).json({ message: "Events array is required" });
+      }
 
-    logger.error(
-      "Failed to create bulk events",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
+      logger.error(
+        "Failed to create bulk events",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // Create recurring events
-router.post("/recurring", isAuthenticated, async (req, res) => {
-  const authenticatedReq = req as AuthenticatedRequest;
-  try {
-    const userId = getAuthUserId(authenticatedReq);
-    const createdEvents = await eventsService.createRecurringEvents(
-      userId,
-      req.body,
-    );
-    res.status(201).json(createdEvents);
-  } catch (error) {
-    logger.error(
-      "Failed to create recurring events",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+router.post(
+  "/recurring",
+  isAuthenticated,
+  eventRecurringCreationRateLimit,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const createdEvents = await eventsService.createRecurringEvents(
+        userId,
+        req.body,
+      );
+      res.status(201).json(createdEvents);
+    } catch (error) {
+      logger.error(
+        "Failed to create recurring events",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 export { router as eventsRoutes };
 
