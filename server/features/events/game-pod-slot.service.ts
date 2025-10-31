@@ -198,7 +198,7 @@ export class GamePodSlotService {
 
         // If position not specified, find next available position
         let assignedPosition: number;
-        if (position === undefined || position === null) {
+        if (position == null) {
           const existingPositions = await tx
             .select({ slotPosition: eventAttendees.slotPosition })
             .from(eventAttendees)
