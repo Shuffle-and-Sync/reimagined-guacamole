@@ -553,7 +553,7 @@ export class EventReminderService {
    */
   private buildReminderMessage(event: Event, minutesBefore: number): string {
     const timeText = this.formatTimeBeforeEvent(minutesBefore);
-    const eventType = event.type.charAt(0).toUpperCase() + event.type.slice(1);
+    const eventType = this.capitalizeFirst(event.type);
 
     let message = `${eventType} "${event.title}" starts in ${timeText}.`;
 
@@ -562,6 +562,13 @@ export class EventReminderService {
     }
 
     return message;
+  }
+
+  /**
+   * Capitalize first letter of a string
+   */
+  private capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   /**
@@ -583,7 +590,7 @@ export class EventReminderService {
   }
 
   /**
-   * Get user's reminder settings
+   * Get user's reminder settings (public interface)
    */
   async getReminderSettings(userId: string): Promise<EventReminderSettings> {
     return this.getUserReminderSettings(userId);
