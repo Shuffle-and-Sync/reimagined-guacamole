@@ -77,6 +77,9 @@ export class GamePodSlotService {
       }
 
       const event = eventResult[0];
+      if (!event) {
+        throw new DatabaseError("Event not found", { eventId });
+      }
       const totalPlayerSlots = event.playerSlots ?? 0;
       const totalAlternateSlots = event.alternateSlots ?? 0;
 
@@ -156,16 +159,46 @@ export class GamePodSlotService {
   ): Promise<SlotAssignmentResult> {
     return withTransaction(async (tx) => {
       try {
-        // Get slot availability
-        const availability = await this.getAvailableSlots(eventId);
+        // Get event configuration within transaction
+        const eventResult = await tx
+          .select({
+            playerSlots: events.playerSlots,
+          })
+          .from(events)
+          .where(eq(events.id, eventId))
+          .limit(1);
 
-        if (availability.playerSlots.available === 0) {
+        if (!eventResult || eventResult.length === 0) {
+          throw new Error("Event not found");
+        }
+
+        const event = eventResult[0];
+        if (!event) {
+          throw new Error("Event not found");
+        }
+        const totalPlayerSlots = event.playerSlots ?? 0;
+
+        // Count filled player slots within transaction
+        const filledSlotsResult = await tx
+          .select({ count: count() })
+          .from(eventAttendees)
+          .where(
+            and(
+              eq(eventAttendees.eventId, eventId),
+              eq(eventAttendees.slotType, "player"),
+            ),
+          );
+
+        const filledSlots = filledSlotsResult[0]?.count || 0;
+        const availableSlots = Math.max(0, totalPlayerSlots - filledSlots);
+
+        if (availableSlots === 0) {
           throw new Error("No player slots available");
         }
 
         // If position not specified, find next available position
-        let assignedPosition = position;
-        if (!assignedPosition) {
+        let assignedPosition: number;
+        if (position === undefined || position === null) {
           const existingPositions = await tx
             .select({ slotPosition: eventAttendees.slotPosition })
             .from(eventAttendees)
@@ -187,6 +220,9 @@ export class GamePodSlotService {
             assignedPosition++;
           }
         } else {
+          // Position was specified, validate it
+          assignedPosition = position;
+
           // Validate position is not already taken
           const existingAtPosition = await tx
             .select()
@@ -195,19 +231,19 @@ export class GamePodSlotService {
               and(
                 eq(eventAttendees.eventId, eventId),
                 eq(eventAttendees.slotType, "player"),
-                eq(eventAttendees.slotPosition, position),
+                eq(eventAttendees.slotPosition, assignedPosition),
               ),
             )
             .limit(1);
 
           if (existingAtPosition.length > 0) {
-            throw new Error(`Position ${position} is already taken`);
+            throw new Error(`Position ${assignedPosition} is already taken`);
           }
 
-          // Validate position is within bounds
-          if (position < 1 || position > availability.playerSlots.total) {
+          // Validate position is within bounds (using fresh data from transaction)
+          if (assignedPosition < 1 || assignedPosition > totalPlayerSlots) {
             throw new Error(
-              `Position must be between 1 and ${availability.playerSlots.total}`,
+              `Position must be between 1 and ${totalPlayerSlots}`,
             );
           }
         }
@@ -226,7 +262,7 @@ export class GamePodSlotService {
 
         let attendee: EventAttendee;
 
-        if (existingAttendee.length > 0) {
+        if (existingAttendee.length > 0 && existingAttendee[0]) {
           // Update existing attendee
           const updated = await tx
             .update(eventAttendees)
@@ -239,6 +275,9 @@ export class GamePodSlotService {
             .where(eq(eventAttendees.id, existingAttendee[0].id))
             .returning();
 
+          if (!updated[0]) {
+            throw new Error("Failed to update attendee");
+          }
           attendee = updated[0];
         } else {
           // Create new attendee
@@ -255,6 +294,9 @@ export class GamePodSlotService {
             })
             .returning();
 
+          if (!inserted[0]) {
+            throw new Error("Failed to create attendee");
+          }
           attendee = inserted[0];
         }
 
@@ -331,7 +373,7 @@ export class GamePodSlotService {
 
         let attendee: EventAttendee;
 
-        if (existingAttendee.length > 0) {
+        if (existingAttendee.length > 0 && existingAttendee[0]) {
           // Update existing attendee
           const updated = await tx
             .update(eventAttendees)
@@ -344,6 +386,9 @@ export class GamePodSlotService {
             .where(eq(eventAttendees.id, existingAttendee[0].id))
             .returning();
 
+          if (!updated[0]) {
+            throw new Error("Failed to update attendee");
+          }
           attendee = updated[0];
         } else {
           // Create new attendee
@@ -360,6 +405,9 @@ export class GamePodSlotService {
             })
             .returning();
 
+          if (!inserted[0]) {
+            throw new Error("Failed to create attendee");
+          }
           attendee = inserted[0];
         }
 
@@ -429,6 +477,9 @@ export class GamePodSlotService {
         }
 
         const alternate = nextAlternate[0];
+        if (!alternate) {
+          throw new Error("No alternates available to promote");
+        }
 
         // Promote the alternate to player
         const updated = await tx
@@ -443,6 +494,9 @@ export class GamePodSlotService {
           .returning();
 
         const promotedAttendee = updated[0];
+        if (!promotedAttendee) {
+          throw new Error("Failed to promote alternate");
+        }
 
         logger.info("Alternate promoted to player", {
           eventId,
@@ -566,13 +620,17 @@ export class GamePodSlotService {
           )
           .limit(1);
 
-        if (attendee.length === 0) {
+        if (attendee.length === 0 || !attendee[0]) {
           throw new Error("Player not found in event");
         }
 
-        const playerPosition = attendee[0].slotPosition;
+        const player = attendee[0];
+        const playerPosition = player.slotPosition;
 
-        // Remove the player
+        // Remove the player from their slot
+        // Note: We set slotType and slotPosition to null (rather than keeping the old values)
+        // to indicate the slot is now free. The 'cancelled' status tracks that they left.
+        // The schema allows null values for these fields to support flexible slot management.
         await tx
           .update(eventAttendees)
           .set({
@@ -580,7 +638,7 @@ export class GamePodSlotService {
             slotPosition: null,
             status: "cancelled",
           })
-          .where(eq(eventAttendees.id, attendee[0].id));
+          .where(eq(eventAttendees.id, player.id));
 
         // Try to promote an alternate
         let promotedAlternate: EventAttendee | undefined;
@@ -589,8 +647,16 @@ export class GamePodSlotService {
             const result = await this.promoteAlternate(eventId, playerPosition);
             promotedAlternate = result.attendee;
           } catch (error) {
-            // No alternates available, that's okay
-            logger.info("No alternates available to promote", { eventId });
+            // No alternates available or other promotion error
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            logger.info("Could not promote alternate", {
+              eventId,
+              error: errorMessage,
+              reason: errorMessage.includes("No alternates")
+                ? "no_alternates"
+                : "promotion_failed",
+            });
           }
         }
 

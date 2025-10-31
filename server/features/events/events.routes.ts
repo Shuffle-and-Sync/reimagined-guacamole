@@ -576,7 +576,8 @@ router.delete(
       const authenticatedUserId = (req as AuthenticatedRequest).user.id;
 
       // Only allow users to remove themselves or event organizers to remove others
-      // For now, we'll just allow self-removal
+      // TODO: Add organizer permission check to allow event creators/organizers to remove any player
+      // For now, we'll just allow self-removal for security
       if (authenticatedUserId !== userId) {
         return res
           .status(403)
