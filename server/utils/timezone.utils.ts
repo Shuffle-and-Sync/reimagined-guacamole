@@ -31,9 +31,43 @@ export class TimezoneUtils {
    */
   static getTimezoneOffset(timezone: string, date: Date = new Date()): number {
     try {
-      const utcDate = toZonedTime(date, "UTC");
-      const tzDate = toZonedTime(date, timezone);
-      const offset = (tzDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+      // Get the UTC time parts
+      const utcYear = date.getUTCFullYear();
+      const utcMonth = date.getUTCMonth();
+      const utcDay = date.getUTCDate();
+      const utcHour = date.getUTCHours();
+      const utcMinute = date.getUTCMinutes();
+      const utcSecond = date.getUTCSeconds();
+
+      // Format the date in the target timezone and extract the local time parts
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+      const parts = dtf.formatToParts(date);
+      const getPart = (type: string) => {
+        const part = parts.find((p) => p.type === type);
+        return part ? parseInt(part.value, 10) : 0;
+      };
+      const tzYear = getPart("year");
+      const tzMonth = getPart("month") - 1; // JS months are 0-based
+      const tzDay = getPart("day");
+      const tzHour = getPart("hour");
+      const tzMinute = getPart("minute");
+      const tzSecond = getPart("second");
+
+      // Construct a Date object in the target timezone's local time, but as if it were UTC
+      const localAsUTC = Date.UTC(tzYear, tzMonth, tzDay, tzHour, tzMinute, tzSecond);
+      const utcTime = Date.UTC(utcYear, utcMonth, utcDay, utcHour, utcMinute, utcSecond);
+
+      // Offset in hours: (local time in target tz - UTC time) / 3600000
+      const offset = (localAsUTC - utcTime) / (1000 * 60 * 60);
       return offset;
     } catch (error) {
       throw new Error(
