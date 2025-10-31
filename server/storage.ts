@@ -386,6 +386,7 @@ export interface IStorage {
   getUserEventAttendance(
     userId: string,
   ): Promise<(EventAttendee & { event: Event })[]>;
+  getUserCreatedEvents(userId: string): Promise<Event[]>;
 
   // Password reset operations
   createPasswordResetToken(
@@ -2276,6 +2277,14 @@ export class DatabaseStorage implements IStorage {
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+  }
+
+  async getUserCreatedEvents(userId: string): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.creatorId, userId))
+      .orderBy(events.startTime);
   }
 
   async getEventAttendeesByEventIds(

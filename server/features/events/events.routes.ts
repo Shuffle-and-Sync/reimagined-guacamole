@@ -84,6 +84,37 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Check for scheduling conflicts
+router.post("/check-conflicts", isAuthenticated, async (req, res) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  try {
+    const { startTime, endTime, attendeeIds } = req.body;
+    const userId = getAuthUserId(authenticatedReq);
+
+    if (!startTime) {
+      return res.status(400).json({ message: "startTime is required" });
+    }
+
+    const result = await eventsService.checkConflicts(
+      startTime,
+      endTime,
+      userId,
+      attendeeIds,
+    );
+
+    return res.json(result);
+  } catch (error) {
+    logger.error(
+      "Failed to check conflicts",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
+    return res.status(500).json({ message: "Failed to check conflicts" });
+  }
+});
+
 // Create event
 router.post(
   "/",
@@ -96,8 +127,35 @@ router.post(
     try {
       const userId = getAuthUserId(authenticatedReq);
       const event = await eventsService.createEvent(userId, req.body);
-      res.json(event);
+      return res.json(event);
     } catch (error) {
+      // Handle conflict errors specifically
+      if (
+        error instanceof Error &&
+        error.message === "Scheduling conflict detected"
+      ) {
+        const conflictError = error as Error & {
+          statusCode: number;
+          conflicts: Array<{
+            eventId: string;
+            title: string;
+            startTime: Date;
+            endTime: Date | null;
+            conflictType: string;
+          }>;
+        };
+        return res.status(409).json({
+          message: "Scheduling conflict detected",
+          conflicts: conflictError.conflicts.map((c) => ({
+            eventId: c.eventId,
+            title: c.title,
+            startTime: c.startTime.toISOString(),
+            endTime: c.endTime ? c.endTime.toISOString() : null,
+            conflictType: c.conflictType,
+          })),
+        });
+      }
+
       logger.error(
         "Failed to create event",
         error instanceof Error ? error : new Error(String(error)),
@@ -105,7 +163,7 @@ router.post(
           userId: getAuthUserId(authenticatedReq),
         },
       );
-      res.status(500).json({ message: "Failed to create event" });
+      return res.status(500).json({ message: "Failed to create event" });
     }
   },
 );

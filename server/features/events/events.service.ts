@@ -5,6 +5,7 @@ import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { validateTimezone, getUserTimezone } from "../../utils/timezone";
+import { conflictDetectionService } from "./conflict-detection.service";
 // Note: User type reserved for future user-related event features
 import type {
   EventFilters,
@@ -53,10 +54,10 @@ export class EventsService {
       );
 
       // Attach attendees to each event
-      const eventsWithAttendees = events.map((event: unknown) => ({
+      const eventsWithAttendees = events.map((event) => ({
         ...event,
-        attendees: attendeesMap.get(event.id) || [],
-        attendeeCount: attendeesMap.get(event.id)?.length || 0,
+        attendees: attendeesMap.get((event as Event).id) || [],
+        attendeeCount: attendeesMap.get((event as Event).id)?.length || 0,
       }));
 
       return {
@@ -65,7 +66,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch events with attendees in EventsService",
-        error,
+        error instanceof Error ? error : new Error(String(error)),
         { filters },
       );
       throw error;
@@ -107,6 +108,32 @@ export class EventsService {
         throw new Error(
           `Invalid display timezone: ${eventData.displayTimezone}`,
         );
+      }
+
+      // Convert date/time to startTime and endTime for conflict checking
+      const startTime = new Date(
+        `${eventData.date}T${eventData.time || "12:00"}`,
+      );
+      // If no explicit end time, assume event lasts 2 hours
+      const endTime = eventData.endTime
+        ? new Date(eventData.endTime)
+        : new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+
+      // Check for scheduling conflicts
+      const conflictCheck = await conflictDetectionService.checkEventConflicts({
+        startTime,
+        endTime,
+        creatorId: userId,
+      });
+
+      if (conflictCheck.hasConflict) {
+        const error = new Error("Scheduling conflict detected") as Error & {
+          statusCode: number;
+          conflicts: typeof conflictCheck.conflictingEvents;
+        };
+        error.statusCode = 409;
+        error.conflicts = conflictCheck.conflictingEvents;
+        throw error;
       }
 
       const parsedEventData = insertEventSchema.parse({
@@ -522,6 +549,48 @@ export class EventsService {
         error instanceof Error ? error : new Error(String(error)),
         {
           filters,
+        },
+      );
+      throw error;
+    }
+  }
+
+  async checkConflicts(
+    startTime: string,
+    endTime: string | undefined,
+    creatorId: string,
+    attendeeIds?: string[],
+  ) {
+    try {
+      const start = new Date(startTime);
+      const end = endTime ? new Date(endTime) : null;
+
+      const conflictCheck = await conflictDetectionService.checkEventConflicts({
+        startTime: start,
+        endTime: end,
+        creatorId,
+        attendeeIds,
+      });
+
+      return {
+        hasConflict: conflictCheck.hasConflict,
+        conflicts: conflictCheck.conflictingEvents.map((conflict) => ({
+          eventId: conflict.eventId,
+          title: conflict.title,
+          startTime: conflict.startTime.toISOString(),
+          endTime: conflict.endTime ? conflict.endTime.toISOString() : null,
+          conflictType: conflict.conflictType,
+        })),
+        message: conflictCheck.message,
+      };
+    } catch (error) {
+      logger.error(
+        "Failed to check conflicts in EventsService",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          startTime,
+          endTime,
+          creatorId,
         },
       );
       throw error;

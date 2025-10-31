@@ -20,6 +20,7 @@ export interface CreateEventRequest {
   type: string;
   date: string;
   time: string;
+  endTime?: string; // Optional end time for the event
   timezone?: string; // IANA timezone (e.g., "America/New_York")
   displayTimezone?: string; // Optional override timezone for display
   location: string;
@@ -67,4 +68,23 @@ export interface BulkEventsRequest {
 
 export interface RecurringEventRequest extends CreateEventRequest {
   recurrenceEndDate: string;
+}
+
+export interface CheckConflictsRequest {
+  startTime: string;
+  endTime?: string;
+  creatorId: string;
+  attendeeIds?: string[];
+}
+
+export interface CheckConflictsResponse {
+  hasConflict: boolean;
+  conflicts: Array<{
+    eventId: string;
+    title: string;
+    startTime: string;
+    endTime: string | null;
+    conflictType: string;
+  }>;
+  message?: string;
 }
