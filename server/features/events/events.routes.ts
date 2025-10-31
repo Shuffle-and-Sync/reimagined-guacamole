@@ -20,6 +20,7 @@ import {
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventRegistrationService } from "./event-registration.service";
 import { eventsService } from "./events.service";
+import { gamePodSlotService } from "./game-pod-slot.service";
 
 const router = Router();
 
@@ -388,6 +389,231 @@ router.post(
         },
       );
       res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// ===========================
+// GAME POD SLOT MANAGEMENT ROUTES
+// ===========================
+
+// Get slot availability for an event
+router.get(
+  "/:eventId/slots/availability",
+  eventReadRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const availability = await gamePodSlotService.getAvailableSlots(eventId);
+      res.json(availability);
+    } catch (error) {
+      logger.error(
+        "Failed to get slot availability",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      res.status(500).json({ message: "Failed to get slot availability" });
+    }
+  },
+);
+
+// Get slot assignments for an event
+router.get(
+  "/:eventId/slots/assignments",
+  eventReadRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const assignments = await gamePodSlotService.getSlotAssignments(eventId);
+      res.json(assignments);
+    } catch (error) {
+      logger.error(
+        "Failed to get slot assignments",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      res.status(500).json({ message: "Failed to get slot assignments" });
+    }
+  },
+);
+
+// Assign user to player slot
+router.post(
+  "/:eventId/slots/player",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const userId = (req as AuthenticatedRequest).user.id;
+      const { position } = req.body;
+
+      const result = await gamePodSlotService.assignPlayerSlot(
+        eventId,
+        userId,
+        position,
+      );
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to assign player slot",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to assign player slot";
+      res.status(400).json({ message: errorMessage });
+    }
+  },
+);
+
+// Assign user to alternate slot
+router.post(
+  "/:eventId/slots/alternate",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const userId = (req as AuthenticatedRequest).user.id;
+
+      const result = await gamePodSlotService.assignAlternateSlot(
+        eventId,
+        userId,
+      );
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to assign alternate slot",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to assign alternate slot";
+      res.status(400).json({ message: errorMessage });
+    }
+  },
+);
+
+// Promote alternate to player slot
+router.post(
+  "/:eventId/slots/promote/:slotPosition",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId, slotPosition } = req.params;
+      const position = parseInt(slotPosition, 10);
+
+      if (isNaN(position)) {
+        return res.status(400).json({ message: "Invalid slot position" });
+      }
+
+      const result = await gamePodSlotService.promoteAlternate(
+        eventId,
+        position,
+      );
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to promote alternate",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId, slotPosition: req.params.slotPosition },
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to promote alternate";
+      res.status(400).json({ message: errorMessage });
+    }
+  },
+);
+
+// Swap player positions
+router.post(
+  "/:eventId/slots/swap",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { userId1, userId2 } = req.body;
+
+      if (!userId1 || !userId2) {
+        return res.status(400).json({ message: "Both user IDs are required" });
+      }
+
+      const result = await gamePodSlotService.swapPlayerPositions(
+        eventId,
+        userId1,
+        userId2,
+      );
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to swap player positions",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to swap player positions";
+      res.status(400).json({ message: errorMessage });
+    }
+  },
+);
+
+// Remove player from slot
+router.delete(
+  "/:eventId/slots/player/:userId",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId, userId } = req.params;
+      const authenticatedUserId = (req as AuthenticatedRequest).user.id;
+
+      // Only allow users to remove themselves or event organizers to remove others
+      // TODO: Add organizer permission check to allow event creators/organizers to remove any player
+      // For now, we'll just allow self-removal for security
+      if (authenticatedUserId !== userId) {
+        return res
+          .status(403)
+          .json({ message: "You can only remove yourself from a slot" });
+      }
+
+      const result = await gamePodSlotService.removePlayerSlot(eventId, userId);
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to remove player slot",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId, userId: req.params.userId },
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to remove player slot";
+      res.status(400).json({ message: errorMessage });
     }
   },
 );
