@@ -1,8 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, lazy, Suspense } from "react";
 import type { Tournament } from "@shared/schema";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
+import { FormSkeleton } from "@/components/skeletons";
 import { SkipLink } from "@/components/SkipLink";
+import { TournamentDialogs } from "@/components/tournaments/TournamentDialogs";
 import { VirtualTournamentList } from "@/components/tournaments/VirtualTournamentList";
 import TournamentsLoginPrompt from "@/components/TournamentsLoginPrompt";
 import { Badge } from "@/components/ui/badge";
@@ -14,31 +17,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth";
 import { useCommunity } from "@/features/communities";
 import { useToast } from "@/hooks/use-toast";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/shared/components";
+
+// Lazy load tournament form for the create tab
+const TournamentForm = lazy(() =>
+  import("@/components/tournaments/TournamentForm").then((m) => ({
+    default: m.TournamentForm,
+  })),
+);
 
 // Threshold for virtual scrolling - use virtualization for lists with >50 items
 const VIRTUAL_SCROLL_THRESHOLD = 50;
@@ -349,381 +341,31 @@ export default function Tournaments() {
           <TabsContent value="browse" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-semibold">Available Tournaments</h2>
-              <Dialog
-                open={isCreateModalOpen}
-                onOpenChange={setIsCreateModalOpen}
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                data-testid="button-create-tournament"
               >
-                <DialogTrigger asChild>
-                  <Button data-testid="button-create-tournament">
-                    <i className="fas fa-plus mr-2"></i>
-                    Create Tournament
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create New Tournament</DialogTitle>
-                    <DialogDescription>
-                      Set up a new tournament for your community. Fill in the
-                      details below.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="tournament-name">
-                          Tournament Name*
-                        </Label>
-                        <Input
-                          id="tournament-name"
-                          value={tournamentForm.name}
-                          onChange={(e) =>
-                            setTournamentForm((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
-                          }
-                          placeholder="Weekly Commander Night"
-                          data-testid="input-tournament-name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="game-format">Game Format*</Label>
-                        <Select
-                          value={tournamentForm.gameFormat}
-                          onValueChange={(value) =>
-                            setTournamentForm((prev) => ({
-                              ...prev,
-                              gameFormat: value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger data-testid="select-game-format">
-                            <SelectValue placeholder="Select format" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="commander">
-                              Commander/EDH
-                            </SelectItem>
-                            <SelectItem value="standard">Standard</SelectItem>
-                            <SelectItem value="modern">Modern</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="pokemon-standard">
-                              Pokemon Standard
-                            </SelectItem>
-                            <SelectItem value="lorcana-constructed">
-                              Lorcana Constructed
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={tournamentForm.description}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            description: e.target.value,
-                          }))
-                        }
-                        placeholder="Describe your tournament..."
-                        data-testid="textarea-tournament-description"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="max-participants">
-                          Max Participants
-                        </Label>
-                        <Select
-                          value={tournamentForm.maxParticipants.toString()}
-                          onValueChange={(value) =>
-                            setTournamentForm((prev) => ({
-                              ...prev,
-                              maxParticipants: parseInt(value),
-                            }))
-                          }
-                        >
-                          <SelectTrigger data-testid="select-max-participants">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="4">4 Players</SelectItem>
-                            <SelectItem value="8">8 Players</SelectItem>
-                            <SelectItem value="16">16 Players</SelectItem>
-                            <SelectItem value="32">32 Players</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="start-date">Start Date*</Label>
-                        <Input
-                          id="start-date"
-                          type="datetime-local"
-                          value={tournamentForm.startDate}
-                          onChange={(e) =>
-                            setTournamentForm((prev) => ({
-                              ...prev,
-                              startDate: e.target.value,
-                            }))
-                          }
-                          data-testid="input-start-date"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="prize-pool">Prize Pool (Optional)</Label>
-                      <Input
-                        id="prize-pool"
-                        value={tournamentForm.prizePool}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            prizePool: e.target.value,
-                          }))
-                        }
-                        placeholder="$100 store credit, booster packs, etc."
-                        data-testid="input-prize-pool"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="rules">Tournament Rules</Label>
-                      <Textarea
-                        id="rules"
-                        value={tournamentForm.rules}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            rules: e.target.value,
-                          }))
-                        }
-                        placeholder="Special rules, deck restrictions, etc."
-                        data-testid="textarea-tournament-rules"
-                      />
-                    </div>
-
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsCreateModalOpen(false)}
-                        data-testid="button-cancel-tournament"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleCreateTournament}
-                        disabled={createTournamentMutation.isPending}
-                        data-testid="button-submit-tournament"
-                      >
-                        {createTournamentMutation.isPending
-                          ? "Creating..."
-                          : "Create Tournament"}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              {/* Edit Tournament Modal */}
-              <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Edit Tournament</DialogTitle>
-                    <DialogDescription>
-                      Update tournament details.{" "}
-                      {editingTournament?.status === "active"
-                        ? "Limited fields can be edited while tournament is active."
-                        : ""}
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-tournament-name">
-                          Tournament Name*
-                        </Label>
-                        <Input
-                          id="edit-tournament-name"
-                          value={editForm.name}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
-                          }
-                          placeholder="Weekly Commander Night"
-                          data-testid="input-edit-tournament-name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-game-format">Game Format*</Label>
-                        <Select
-                          value={editForm.gameFormat}
-                          onValueChange={(value) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              gameFormat: value,
-                            }))
-                          }
-                          disabled={editingTournament?.status === "active"}
-                        >
-                          <SelectTrigger data-testid="select-edit-game-format">
-                            <SelectValue placeholder="Select format" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="commander">
-                              Commander/EDH
-                            </SelectItem>
-                            <SelectItem value="standard">Standard</SelectItem>
-                            <SelectItem value="modern">Modern</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="pokemon-standard">
-                              Pokemon Standard
-                            </SelectItem>
-                            <SelectItem value="lorcana-constructed">
-                              Lorcana Constructed
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-description">Description</Label>
-                      <Textarea
-                        id="edit-description"
-                        value={editForm.description}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            description: e.target.value,
-                          }))
-                        }
-                        placeholder="Describe your tournament..."
-                        data-testid="textarea-edit-tournament-description"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-max-participants">
-                          Max Participants
-                        </Label>
-                        <Select
-                          value={editForm.maxParticipants.toString()}
-                          onValueChange={(value) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              maxParticipants: parseInt(value),
-                            }))
-                          }
-                          disabled={editingTournament?.status === "active"}
-                        >
-                          <SelectTrigger data-testid="select-edit-max-participants">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="4">4 Players</SelectItem>
-                            <SelectItem value="8">8 Players</SelectItem>
-                            <SelectItem value="16">16 Players</SelectItem>
-                            <SelectItem value="32">32 Players</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-start-date">Start Date*</Label>
-                        <Input
-                          id="edit-start-date"
-                          type="datetime-local"
-                          value={editForm.startDate}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              startDate: e.target.value,
-                            }))
-                          }
-                          disabled={editingTournament?.status === "active"}
-                          data-testid="input-edit-start-date"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-prize-pool">
-                        Prize Pool (Optional)
-                      </Label>
-                      <Input
-                        id="edit-prize-pool"
-                        value={editForm.prizePool}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            prizePool: e.target.value,
-                          }))
-                        }
-                        placeholder="$100 store credit, booster packs, etc."
-                        data-testid="input-edit-prize-pool"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-rules">Tournament Rules</Label>
-                      <Textarea
-                        id="edit-rules"
-                        value={editForm.rules}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            rules: e.target.value,
-                          }))
-                        }
-                        placeholder="Special rules, deck restrictions, etc."
-                        data-testid="textarea-edit-tournament-rules"
-                      />
-                    </div>
-
-                    {editingTournament?.status === "active" && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                        <div className="flex items-center">
-                          <i className="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
-                          <p className="text-sm text-yellow-700">
-                            This tournament is active. Only name, description,
-                            rules, and prize pool can be edited.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsEditModalOpen(false)}
-                        data-testid="button-cancel-edit-tournament"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleEditTournament}
-                        disabled={editTournamentMutation.isPending}
-                        data-testid="button-submit-edit-tournament"
-                      >
-                        {editTournamentMutation.isPending
-                          ? "Updating..."
-                          : "Update Tournament"}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                <i className="fas fa-plus mr-2"></i>
+                Create Tournament
+              </Button>
             </div>
+
+            {/* Tournament Dialogs - Lazy Loaded */}
+            <TournamentDialogs
+              isCreateOpen={isCreateModalOpen}
+              onCreateClose={() => setIsCreateModalOpen(false)}
+              createFormData={tournamentForm}
+              onCreateFormChange={setTournamentForm}
+              onCreateSubmit={handleCreateTournament}
+              isCreateSubmitting={createTournamentMutation.isPending}
+              isEditOpen={isEditModalOpen}
+              onEditClose={() => setIsEditModalOpen(false)}
+              editFormData={editForm}
+              onEditFormChange={setEditForm}
+              onEditSubmit={handleEditTournament}
+              isEditSubmitting={editTournamentMutation.isPending}
+              editingTournament={editingTournament}
+            />
 
             {tournamentsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -988,174 +630,28 @@ export default function Tournaments() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Tournament Name*</Label>
-                      <Input
-                        id="name"
-                        value={tournamentForm.name}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        placeholder="Weekly Commander Night"
-                        data-testid="input-create-tournament-name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="format">Game Format*</Label>
-                      <Select
-                        value={tournamentForm.gameFormat}
-                        onValueChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            gameFormat: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger data-testid="select-create-game-format">
-                          <SelectValue placeholder="Select format" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="commander">
-                            Commander/EDH
-                          </SelectItem>
-                          <SelectItem value="standard">Standard</SelectItem>
-                          <SelectItem value="modern">Modern</SelectItem>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="pokemon-standard">
-                            Pokemon Standard
-                          </SelectItem>
-                          <SelectItem value="lorcana-constructed">
-                            Lorcana Constructed
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="participants">Max Participants</Label>
-                      <Select
-                        value={tournamentForm.maxParticipants.toString()}
-                        onValueChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            maxParticipants: parseInt(value),
-                          }))
-                        }
-                      >
-                        <SelectTrigger data-testid="select-create-max-participants">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="4">4 Players</SelectItem>
-                          <SelectItem value="8">8 Players</SelectItem>
-                          <SelectItem value="16">16 Players</SelectItem>
-                          <SelectItem value="32">32 Players</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="start-date">Start Date & Time*</Label>
-                      <Input
-                        id="start-date"
-                        type="datetime-local"
-                        value={tournamentForm.startDate}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            startDate: e.target.value,
-                          }))
-                        }
-                        data-testid="input-create-start-date"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="prize">Prize Pool (Optional)</Label>
-                      <Input
-                        id="prize"
-                        value={tournamentForm.prizePool}
-                        onChange={(e) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            prizePool: e.target.value,
-                          }))
-                        }
-                        placeholder="$100 store credit, booster packs, etc."
-                        data-testid="input-create-prize-pool"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description-create">Description</Label>
-                  <Textarea
-                    id="description-create"
-                    value={tournamentForm.description}
-                    onChange={(e) =>
-                      setTournamentForm((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Describe your tournament, special rules, etc."
-                    data-testid="textarea-create-tournament-description"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rules-create">Tournament Rules</Label>
-                  <Textarea
-                    id="rules-create"
-                    value={tournamentForm.rules}
-                    onChange={(e) =>
-                      setTournamentForm((prev) => ({
-                        ...prev,
-                        rules: e.target.value,
-                      }))
-                    }
-                    placeholder="Special rules, deck restrictions, ban list, etc."
-                    data-testid="textarea-create-tournament-rules"
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setTournamentForm({
-                        name: "",
-                        description: "",
-                        gameFormat: "",
-                        maxParticipants: 8,
-                        startDate: "",
-                        prizePool: "",
-                        rules: "",
-                      });
-                    }}
-                    data-testid="button-reset-tournament-form"
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    onClick={handleCreateTournament}
-                    disabled={createTournamentMutation.isPending}
-                    data-testid="button-create-tournament-submit"
-                  >
-                    {createTournamentMutation.isPending
-                      ? "Creating..."
-                      : "Create Tournament"}
-                  </Button>
-                </div>
+                <LazyLoadErrorBoundary>
+                  <Suspense fallback={<FormSkeleton fields={6} />}>
+                    <TournamentForm
+                      formData={tournamentForm}
+                      onFormChange={setTournamentForm}
+                      onSubmit={handleCreateTournament}
+                      onCancel={() => {
+                        setTournamentForm({
+                          name: "",
+                          description: "",
+                          gameFormat: "",
+                          maxParticipants: 8,
+                          startDate: "",
+                          prizePool: "",
+                          rules: "",
+                        });
+                      }}
+                      isSubmitting={createTournamentMutation.isPending}
+                      submitLabel="Create Tournament"
+                    />
+                  </Suspense>
+                </LazyLoadErrorBoundary>
               </CardContent>
             </Card>
           </TabsContent>
