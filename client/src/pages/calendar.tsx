@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import type { Community } from "@shared/schema";
 import { CalendarDialogs } from "@/components/calendar/CalendarDialogs";
 import { CalendarPageHeader } from "@/components/calendar/CalendarPageHeader";
@@ -31,7 +31,6 @@ export default function Calendar() {
     events,
     todaysEvents,
     upcomingEvents,
-    isLoading: eventsLoading,
     createEventMutation,
     updateEventMutation,
     deleteEventMutation,
@@ -75,14 +74,6 @@ export default function Calendar() {
     queryKey: ["/api/communities"],
     enabled: isAuthenticated,
   });
-
-  // Memoize filtered events
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      if (filterType !== "all" && event.type !== filterType) return false;
-      return true;
-    });
-  }, [events, filterType]);
 
   // Show login prompt for unauthenticated users
   if (!isLoading && !isAuthenticated) {
@@ -169,12 +160,12 @@ export default function Calendar() {
               <CalendarView
                 currentMonth={currentMonth}
                 setCurrentMonth={setCurrentMonth}
-                filteredEvents={filteredEvents}
                 filterType={filterType}
                 onFilterTypeChange={setFilterType}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
                 eventTypes={EVENT_TYPES}
+                communityId={selectedCommunity?.id}
                 communityName={selectedCommunity?.name}
                 eventsTerminology={communityTheme.terminology.events}
               />

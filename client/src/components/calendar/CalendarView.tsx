@@ -1,12 +1,13 @@
-import { addMonths, subMonths } from "date-fns";
-import { lazy, Suspense } from "react";
+import { addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { lazy, Suspense, useState, useMemo } from "react";
 import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
 import { CalendarSkeleton } from "@/components/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ExtendedEvent } from "@/hooks/useCalendarEvents";
+import { useCalendarDateRange } from "@/hooks/useCalendarDateRange";
 import { CalendarFilters } from "./CalendarFilters";
 import { CalendarHeader } from "./CalendarHeader";
 import type { EventType } from "./types";
+import type { DateRange } from "react-day-picker";
 
 // Lazy load the calendar grid component
 const CalendarGrid = lazy(() =>
@@ -16,35 +17,69 @@ const CalendarGrid = lazy(() =>
 interface CalendarViewProps {
   currentMonth: Date;
   setCurrentMonth: (date: Date) => void;
-  filteredEvents: ExtendedEvent[];
   filterType: string;
   onFilterTypeChange: (type: string) => void;
   viewMode: string;
   onViewModeChange: (mode: string) => void;
   eventTypes: EventType[];
+  communityId?: string;
   communityName?: string;
   eventsTerminology: string;
 }
 
 /**
  * CalendarView - Calendar tab content with grid and filters
- * Extracted from calendar.tsx to reduce file size
+ * Now includes date range filtering using the calendar API endpoint
  */
 export function CalendarView({
   currentMonth,
   setCurrentMonth,
-  filteredEvents,
   filterType,
   onFilterTypeChange,
   viewMode,
   onViewModeChange,
   eventTypes,
+  communityId,
   communityName,
   eventsTerminology,
 }: CalendarViewProps) {
+  // Calculate date range based on currentMonth - use useMemo to avoid unnecessary recalculations
+  const dateRange = useMemo<DateRange>(
+    () => ({
+      from: startOfMonth(currentMonth),
+      to: endOfMonth(currentMonth),
+    }),
+    [currentMonth],
+  );
+
+  // Separate state for when user manually selects a date range via picker
+  const [manualDateRange, setManualDateRange] = useState<
+    DateRange | undefined
+  >();
+
+  // Use manual date range if set, otherwise use calculated range from currentMonth
+  const activeDateRange = manualDateRange || dateRange;
+
+  // Fetch events using the calendar API with date range
+  const { events, isLoading, hasDateRange } = useCalendarDateRange({
+    dateRange: activeDateRange,
+    communityId,
+    eventType: filterType,
+    enabled: true,
+  });
+
+  // When user changes date range via picker, update manual override
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setManualDateRange(range);
+    // If range is provided and has a from date, update the current month view
+    if (range?.from) {
+      setCurrentMonth(range.from);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Filters */}
+      {/* Filters with Date Range Picker */}
       <CalendarFilters
         filterType={filterType}
         onFilterTypeChange={onFilterTypeChange}
@@ -53,6 +88,8 @@ export function CalendarView({
         eventTypes={eventTypes}
         communityName={communityName}
         eventsTerminology={eventsTerminology}
+        dateRange={activeDateRange}
+        onDateRangeChange={handleDateRangeChange}
       />
 
       {/* Calendar Grid */}
@@ -67,22 +104,30 @@ export function CalendarView({
           />
         </CardHeader>
         <CardContent>
-          <LazyLoadErrorBoundary>
-            <Suspense fallback={<CalendarSkeleton />}>
-              <CalendarGrid
-                currentDate={currentMonth}
-                events={filteredEvents}
-                onDateClick={(_date) => {
-                  // Could set selected date or open date view here
-                  // Functionality not yet implemented
-                }}
-                onEventClick={(_event) => {
-                  // Could open event details dialog here
-                  // Functionality not yet implemented
-                }}
-              />
-            </Suspense>
-          </LazyLoadErrorBoundary>
+          {!hasDateRange ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Please select a date range to view events</p>
+            </div>
+          ) : isLoading ? (
+            <CalendarSkeleton />
+          ) : (
+            <LazyLoadErrorBoundary>
+              <Suspense fallback={<CalendarSkeleton />}>
+                <CalendarGrid
+                  currentDate={currentMonth}
+                  events={events}
+                  onDateClick={(_date) => {
+                    // Could set selected date or open date view here
+                    // Functionality not yet implemented
+                  }}
+                  onEventClick={(_event) => {
+                    // Could open event details dialog here
+                    // Functionality not yet implemented
+                  }}
+                />
+              </Suspense>
+            </LazyLoadErrorBoundary>
+          )}
         </CardContent>
       </Card>
     </div>
