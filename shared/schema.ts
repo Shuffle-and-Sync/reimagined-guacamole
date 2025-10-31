@@ -308,6 +308,8 @@ export const events = sqliteTable(
     status: text("status").default("active"), // 'active', 'cancelled', 'completed', 'draft'
     startTime: integer("start_time", { mode: "timestamp" }).notNull(),
     endTime: integer("end_time", { mode: "timestamp" }),
+    timezone: text("timezone").notNull().default("UTC"), // IANA timezone (e.g., "America/New_York", "Europe/London")
+    displayTimezone: text("display_timezone"), // Optional: override timezone for display purposes
     location: text("location"),
     isVirtual: integer("is_virtual", { mode: "boolean" }).default(false),
     maxAttendees: integer("max_attendees"),
@@ -2717,6 +2719,8 @@ export const insertEventSchema = createInsertSchema(events, {
   ]),
   status: z.enum(["active", "cancelled", "completed", "draft"]).optional(),
   // Validation for new fields
+  timezone: z.string().min(1).optional(), // IANA timezone string
+  displayTimezone: z.string().min(1).optional(),
   isPublic: z.boolean().optional(),
   gameFormat: z.string().optional(),
   powerLevel: z.number().min(1).max(10).optional(),
