@@ -379,7 +379,7 @@ For questions or issues related to calendar date range filtering:
 
 ## Version History
 
-- **v1.0.0** (2025-10-31): Initial implementation
+- **v1.0.0** (2024-06-10): Initial implementation
   - DateRangePicker component
   - useCalendarDateRange hook
   - Visual event indicators
