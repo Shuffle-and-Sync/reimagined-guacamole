@@ -374,7 +374,7 @@ export class EventsService {
       // Validate recurrencePattern
       const validPatterns = ["daily", "weekly", "monthly"] as const;
       const recurrencePattern = validPatterns.includes(
-        recurringRequest.recurrencePattern as any,
+        recurringRequest.recurrencePattern as (typeof validPatterns)[number],
       )
         ? (recurringRequest.recurrencePattern as "daily" | "weekly" | "monthly")
         : undefined;

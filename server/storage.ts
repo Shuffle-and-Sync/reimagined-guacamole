@@ -2421,8 +2421,6 @@ export class DatabaseStorage implements IStorage {
       ? new Date(data.endTime).getTime() - startDate.getTime()
       : 0;
 
-    // Store the first event ID to use as parentEventId for subsequent events
-    let parentId: string | undefined = undefined;
     let isFirstEvent = true;
 
     while (currentStartDate <= endDate) {

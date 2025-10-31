@@ -12,7 +12,6 @@ import {
   afterEach,
   jest,
 } from "@jest/globals";
-import { SqliteRemoteDatabase } from "drizzle-orm/sqlite-proxy";
 import type { InsertEvent } from "@shared/schema";
 
 // Mock storage class for testing
