@@ -15,6 +15,7 @@ import {
   eventJoinRateLimit,
   eventBulkOperationsRateLimit,
   eventRecurringCreationRateLimit,
+  eventReadRateLimit,
 } from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventRegistrationService } from "./event-registration.service";
@@ -520,7 +521,10 @@ router.delete(
 
       return res.json(result);
     } catch (error) {
-      if (error instanceof Error && error.message === "Registration not found") {
+      if (
+        error instanceof Error &&
+        error.message === "Registration not found"
+      ) {
         return res.status(404).json({ message: "Registration not found" });
       }
 
@@ -534,11 +538,11 @@ router.delete(
       );
       return res.status(500).json({ message: "Failed to cancel registration" });
     }
-  }
+  },
 );
 
 // Get event capacity information
-router.get("/:eventId/capacity", async (req, res) => {
+router.get("/:eventId/capacity", eventReadRateLimit, async (req, res) => {
   try {
     const { eventId } = req.params;
     if (!eventId) {
@@ -564,7 +568,7 @@ router.get("/:eventId/capacity", async (req, res) => {
 });
 
 // Get event waitlist
-router.get("/:eventId/waitlist", async (req, res) => {
+router.get("/:eventId/waitlist", eventReadRateLimit, async (req, res) => {
   try {
     const { eventId } = req.params;
     if (!eventId) {

@@ -194,3 +194,17 @@ export const eventRecurringCreationRateLimit = rateLimit({
     });
   },
 });
+
+// Rate limiting for event read operations (capacity, waitlist, etc.)
+export const eventReadRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // Limit each IP to 30 read requests per minute
+  handler: (req: Request, res: Response) => {
+    logRateLimit(req, "Event read operations", { userId: safeGetUserId(req) });
+    res.status(429).json({
+      error: "Too many read requests",
+      message:
+        "You are checking event information too quickly. Please slow down.",
+    });
+  },
+});
