@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Router } from "express";
 import {
   isAuthenticated,
@@ -23,6 +24,7 @@ import eventReminderRoutes from "./event-reminder.routes";
 import eventStatusRoutes from "./event-status.routes";
 import { eventsService } from "./events.service";
 import { gamePodSlotService } from "./game-pod-slot.service";
+import { icsService } from "./ics.service";
 
 // Import and export reminder settings router
 
@@ -398,6 +400,93 @@ router.post(
 );
 
 // ===========================
+// ICS EXPORT ROUTES
+// ===========================
+
+// Export single event as ICS
+router.get("/:id/export/ics", eventReadRateLimit, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await eventsService.getEvent(id);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const result = await icsService.generateSingleEventICS(event);
+
+    if (result.error) {
+      logger.error("Failed to generate ICS file", result.error, {
+        eventId: id,
+      });
+      return res
+        .status(500)
+        .json({ message: "Failed to generate calendar file" });
+    }
+
+    const filename = icsService.generateFilename(event);
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(result.value);
+  } catch (error) {
+    logger.error(
+      "Failed to export event as ICS",
+      error instanceof Error ? error : new Error(String(error)),
+      { eventId: req.params.id },
+    );
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Export multiple events as ICS (for calendar view exports)
+router.post("/export/ics", eventReadRateLimit, async (req, res) => {
+  try {
+    const { eventIds } = req.body;
+
+    if (!Array.isArray(eventIds) || eventIds.length === 0) {
+      return res.status(400).json({ message: "eventIds array is required" });
+    }
+
+    // TODO: Optimize N+1 query pattern by implementing eventsService.getEventsByIds()
+    // for better performance when exporting many events
+    const events = await Promise.all(
+      eventIds.map((id: string) => eventsService.getEvent(id)),
+    );
+
+    const validEvents = events.filter(Boolean);
+
+    if (validEvents.length === 0) {
+      return res.status(404).json({ message: "No valid events found" });
+    }
+
+    const result = await icsService.generateMultipleEventsICS(validEvents);
+
+    if (result.error) {
+      logger.error(
+        "Failed to generate ICS file for multiple events",
+        result.error,
+      );
+      return res
+        .status(500)
+        .json({ message: "Failed to generate calendar file" });
+    }
+
+    const filename = icsService.generateFilename();
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(result.value);
+  } catch (error) {
+    logger.error(
+      "Failed to export events as ICS",
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// ===========================
 // GAME POD SLOT MANAGEMENT ROUTES
 // ===========================
 
@@ -648,7 +737,7 @@ userEventsRouter.get("/", isAuthenticated, async (req, res) => {
 // Separate router for calendar events (mounted at /api/calendar/events)
 export const calendarEventsRouter = Router();
 
-calendarEventsRouter.get("/", async (req, res) => {
+calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
   try {
     const { communityId, startDate, endDate, type } = req.query;
 
@@ -680,6 +769,76 @@ calendarEventsRouter.get("/", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Export user's calendar (all their events within a date range)
+calendarEventsRouter.get(
+  "/export/ics",
+  eventReadRateLimit,
+  isAuthenticated,
+  async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    try {
+      const userId = getAuthUserId(authenticatedReq);
+      const { startDate, endDate } = req.query;
+
+      // Validate required query parameters
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          message: "startDate and endDate query parameters are required",
+        });
+      }
+
+      // Validate date format (basic ISO date format check)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (
+        !dateRegex.test(startDate as string) ||
+        !dateRegex.test(endDate as string)
+      ) {
+        return res.status(400).json({
+          message: "startDate and endDate must be in ISO format (YYYY-MM-DD)",
+        });
+      }
+
+      const events = await eventsService.getCalendarEvents({
+        startDate: startDate as string,
+        endDate: endDate as string,
+      });
+
+      if (events.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No events found in date range" });
+      }
+
+      const result = await icsService.generateMultipleEventsICS(events);
+
+      if (result.error) {
+        logger.error("Failed to generate calendar export", result.error, {
+          userId,
+        });
+        return res
+          .status(500)
+          .json({ message: "Failed to generate calendar file" });
+      }
+
+      const filename = `shuffle-sync-calendar-${format(new Date(), "yyyy-MM-dd")}.ics`;
+
+      res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`,
+      );
+      res.send(result.value);
+    } catch (error) {
+      logger.error(
+        "Failed to export calendar",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId: getAuthUserId(authenticatedReq) },
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // ==========================================
 // EVENT REGISTRATION ENDPOINTS
