@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { email, imageUrl, phoneNumber } from "./shared";
+import { email, imageUrl, phoneNumber, optionalOrEmpty } from "./shared";
 
 /**
  * User profile form schema
@@ -8,13 +8,11 @@ import { email, imageUrl, phoneNumber } from "./shared";
 export const userProfileSchema = z.object({
   firstName: z
     .string()
-    .min(1, "First name is required")
     .max(50, "First name must be at most 50 characters")
     .optional()
     .or(z.literal("")),
   lastName: z
     .string()
-    .min(1, "Last name is required")
     .max(50, "Last name must be at most 50 characters")
     .optional()
     .or(z.literal("")),
@@ -36,8 +34,8 @@ export const userProfileSchema = z.object({
     .max(100, "Location must be at most 100 characters")
     .optional()
     .or(z.literal("")),
-  preferredFormat: z.string().optional().or(z.literal("")),
-  primaryCommunity: z.string().optional().or(z.literal("")),
+  preferredFormat: optionalOrEmpty,
+  primaryCommunity: optionalOrEmpty,
   notificationPreferences: z
     .object({
       email: z.boolean().optional(),

@@ -10,6 +10,8 @@ export const requiredString = (fieldName: string) =>
 
 export const optionalString = z.string().optional();
 
+export const optionalOrEmpty = z.string().optional().or(z.literal(""));
+
 export const email = z
   .string()
   .email("Invalid email address")
