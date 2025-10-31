@@ -354,10 +354,27 @@ export class EventsService {
     recurringRequest: RecurringEventRequest,
   ): Promise<Event[]> {
     try {
+      // Validate required recurring event fields
+      if (!recurringRequest.isRecurring) {
+        throw new Error("isRecurring must be true for recurring events");
+      }
+
+      if (!recurringRequest.recurrencePattern) {
+        throw new Error("recurrencePattern is required for recurring events");
+      }
+
+      if (!recurringRequest.recurrenceInterval) {
+        throw new Error("recurrenceInterval is required for recurring events");
+      }
+
+      if (!recurringRequest.recurrenceEndDate) {
+        throw new Error("recurrenceEndDate is required for recurring events");
+      }
+
       // Validate recurrencePattern
       const validPatterns = ["daily", "weekly", "monthly"] as const;
       const recurrencePattern = validPatterns.includes(
-        recurringRequest.recurrencePattern as unknown,
+        recurringRequest.recurrencePattern as any,
       )
         ? (recurringRequest.recurrencePattern as "daily" | "weekly" | "monthly")
         : undefined;
@@ -368,23 +385,23 @@ export class EventsService {
         );
       }
 
-      // Create base event data without recurrence fields and transform date/time to startTime
-      const {
-        recurrencePattern: _pattern,
-        recurrenceInterval: _interval,
-        recurrenceEndDate: _endDate,
-        date,
-        time,
-        ...eventBase
-      } = recurringRequest;
+      // Transform date/time to startTime
+      const { date, time, ...eventBase } = recurringRequest;
 
       const startTime = new Date(`${date}T${time || "12:00"}`);
+
+      // Parse the recurrenceEndDate to ensure it's a Date
+      const recurrenceEndDate = new Date(recurringRequest.recurrenceEndDate);
 
       const eventData = {
         ...eventBase,
         creatorId: userId,
         hostId: userId,
         startTime,
+        isRecurring: true,
+        recurrencePattern,
+        recurrenceInterval: recurringRequest.recurrenceInterval,
+        recurrenceEndDate,
         type: recurringRequest.type as
           | "tournament"
           | "convention"
@@ -399,11 +416,15 @@ export class EventsService {
         eventData,
         recurringRequest.recurrenceEndDate,
       );
+
       logger.info("Recurring events created", {
         userId,
         count: createdEvents.length,
         pattern: recurrencePattern,
+        interval: recurringRequest.recurrenceInterval,
+        endDate: recurringRequest.recurrenceEndDate,
       });
+
       return createdEvents;
     } catch (error) {
       logger.error(
