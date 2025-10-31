@@ -1,11 +1,9 @@
 import { format } from "date-fns";
 import {
   Calendar,
-  Clock,
   MapPin,
   Users,
   Download,
-  Share2,
   Edit,
   Trash2,
   Globe,
@@ -17,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
