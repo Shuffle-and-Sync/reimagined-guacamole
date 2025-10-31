@@ -19,7 +19,7 @@ class EventsCache {
     this.cache = new NodeCache({
       stdTTL: ttl,
       checkperiod: checkPeriod,
-      useClones: false, // Don't clone objects for better performance
+      useClones: true, // Clone objects to prevent cache corruption
     });
 
     logger.info("Events cache initialized", { ttl, checkPeriod });
