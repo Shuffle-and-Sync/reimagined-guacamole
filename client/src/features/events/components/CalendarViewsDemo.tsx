@@ -81,7 +81,7 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
   };
 
   // Handle drag-and-drop event rescheduling
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over) return;
@@ -92,11 +92,11 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
 
     const [_, year, month, day, hour, minute] = slotParts;
     const newStartTime = new Date(
-      parseInt(year),
-      parseInt(month) - 1,
-      parseInt(day),
-      parseInt(hour),
-      parseInt(minute),
+      parseInt(year || "0"),
+      parseInt(month || "0") - 1,
+      parseInt(day || "0"),
+      parseInt(hour || "0"),
+      parseInt(minute || "0"),
     );
 
     // Find the event being dragged
@@ -109,12 +109,19 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
     const duration = oldEnd ? oldEnd.getTime() - oldStart.getTime() : 3600000; // Default 1 hour
     const newEndTime = new Date(newStartTime.getTime() + duration);
 
-    // Update event with new times
-    updateEvent.mutate({
-      id: draggedEvent.id,
-      startTime: newStartTime,
-      endTime: newEndTime,
-    });
+    // Update event with new times using direct API call
+    try {
+      await fetch(`/api/events/${draggedEvent.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update event:", error);
+    }
   };
 
   // Handle event edit from modal
