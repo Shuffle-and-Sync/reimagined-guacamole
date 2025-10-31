@@ -2389,46 +2389,106 @@ export class DatabaseStorage implements IStorage {
     data: InsertEvent,
     _endDate: string,
   ): Promise<Event[]> {
-    // TODO: isRecurring, recurrencePattern, recurrenceInterval, date, time properties not in schema
-    // if (!data.isRecurring || !data.recurrencePattern || !data.recurrenceInterval) {
-    //   throw new Error('Invalid recurring event data');
-    // }
+    // Validate recurring event data
+    if (
+      !data.isRecurring ||
+      !data.recurrencePattern ||
+      !data.recurrenceInterval
+    ) {
+      throw new Error(
+        "Invalid recurring event data: isRecurring, recurrencePattern, and recurrenceInterval are required",
+      );
+    }
 
-    // const eventList: InsertEvent[] = [];
-    // const startDate = new Date(data.date + 'T' + (data.time || '12:00'));
-    // const end = new Date(endDate);
-    // let currentDate = new Date(startDate);
-    // const interval = Number(data.recurrenceInterval) || 1;
+    if (!data.startTime) {
+      throw new Error("Invalid recurring event data: startTime is required");
+    }
 
-    // while (currentDate <= end) {
-    //   const eventData: InsertEvent = {
-    //     ...data,
-    //     date: currentDate.toISOString().split('T')[0] as string,
-    //   };
-    //   // Remove parentEventId to let it be auto-generated
-    //   delete (eventData as any).parentEventId;
+    // Use recurrenceEndDate from data if available, otherwise use the _endDate parameter
+    const endDate = data.recurrenceEndDate || new Date(_endDate);
+    const startDate = new Date(data.startTime);
 
-    //   eventList.push(eventData);
+    if (endDate <= startDate) {
+      throw new Error("Recurrence end date must be after start date");
+    }
 
-    //   // Calculate next occurrence based on pattern
-    //   switch (data.recurrencePattern as string) {
-    //     case 'daily':
-    //       currentDate.setDate(currentDate.getDate() + interval);
-    //       break;
-    //     case 'weekly':
-    //       currentDate.setDate(currentDate.getDate() + (7 * interval));
-    //       break;
-    //     case 'monthly':
-    //       currentDate.setMonth(currentDate.getMonth() + interval);
-    //       break;
-    //   }
-    // }
+    const eventList: InsertEvent[] = [];
+    let currentStartDate = new Date(startDate);
+    const interval = data.recurrenceInterval;
 
-    // return this.createBulkEvents(eventList);
+    // Calculate duration if endTime exists
+    const duration = data.endTime
+      ? new Date(data.endTime).getTime() - startDate.getTime()
+      : 0;
 
-    // For now, just create a single event with the provided data
-    const event = await this.createEvent(data);
-    return [event];
+    // Store the first event ID to use as parentEventId for subsequent events
+    let parentId: string | undefined = undefined;
+    let isFirstEvent = true;
+
+    while (currentStartDate <= endDate) {
+      const currentEndTime =
+        duration > 0
+          ? new Date(currentStartDate.getTime() + duration)
+          : undefined;
+
+      const eventData: InsertEvent = {
+        ...data,
+        startTime: currentStartDate,
+        endTime: currentEndTime,
+        // First event in series has no parent, rest reference the first event
+        parentEventId: isFirstEvent ? undefined : parentId,
+      };
+
+      eventList.push(eventData);
+
+      // Calculate next occurrence based on pattern
+      switch (data.recurrencePattern) {
+        case "daily":
+          currentStartDate = new Date(currentStartDate);
+          currentStartDate.setDate(currentStartDate.getDate() + interval);
+          break;
+        case "weekly":
+          currentStartDate = new Date(currentStartDate);
+          currentStartDate.setDate(currentStartDate.getDate() + 7 * interval);
+          break;
+        case "monthly":
+          currentStartDate = new Date(currentStartDate);
+          currentStartDate.setMonth(currentStartDate.getMonth() + interval);
+          break;
+        default:
+          throw new Error(
+            `Invalid recurrence pattern: ${data.recurrencePattern}`,
+          );
+      }
+
+      isFirstEvent = false;
+    }
+
+    if (eventList.length === 0) {
+      throw new Error("No events to create - check recurrence parameters");
+    }
+
+    // Create all events using bulk insert
+    const createdEvents = await this.createBulkEvents(eventList);
+
+    // Update parent event IDs if needed
+    // The first event is the parent, so we need to update all subsequent events
+    if (createdEvents.length > 1) {
+      const firstEventId = createdEvents[0].id;
+
+      // Update all subsequent events to reference the first event as parent
+      for (let i = 1; i < createdEvents.length; i++) {
+        await db
+          .update(events)
+          .set({ parentEventId: firstEventId })
+          .where(eq(events.id, createdEvents[i].id));
+
+        // Update the in-memory object as well
+        createdEvents[i].parentEventId = firstEventId;
+      }
+    }
+
+    return createdEvents;
   }
 
   async getCalendarEvents(filters: {
