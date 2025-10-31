@@ -592,6 +592,36 @@ export const eventReminders = sqliteTable(
   ],
 );
 
+// Track event status changes for audit trail
+export const eventStatusHistory = sqliteTable(
+  "event_status_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    previousStatus: text("previous_status"), // null for initial status
+    newStatus: text("new_status").notNull(), // 'active', 'cancelled', 'completed', 'draft'
+    changedBy: text("changed_by").references(() => users.id), // null for automatic changes
+    reason: text("reason"), // Optional reason for status change
+    changedAt: integer("changed_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_event_status_history_event").on(table.eventId),
+    index("idx_event_status_history_changed_at").on(table.changedAt),
+    index("idx_event_status_history_changed_by").on(table.changedBy),
+    // Composite index for querying status changes by event and time
+    index("idx_event_status_history_event_time").on(
+      table.eventId,
+      table.changedAt,
+    ),
+  ],
+);
+
 // ======================
 // GAME SESSION TABLES
 // ======================
@@ -3224,3 +3254,7 @@ export type InsertEventReminderSettings =
   typeof eventReminderSettings.$inferInsert;
 export type EventReminder = typeof eventReminders.$inferSelect;
 export type InsertEventReminder = typeof eventReminders.$inferInsert;
+
+// Event status history types
+export type EventStatusHistory = typeof eventStatusHistory.$inferSelect;
+export type InsertEventStatusHistory = typeof eventStatusHistory.$inferInsert;

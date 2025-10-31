@@ -36,6 +36,7 @@ import {
   userEventsRouter,
   calendarEventsRouter,
   eventReminderRoutes,
+  eventStatusRoutes,
 } from "./features/events/events.routes";
 import { gamesRoutes } from "./features/games/games.routes";
 import {
@@ -349,6 +350,7 @@ server.listen(
   app.use("/api/user/communities", userCommunitiesRouter);
   app.use("/api/user/theme-preferences", themePreferencesRouter);
   app.use("/api/events", eventsRoutes);
+  app.use("/api/events", eventStatusRoutes);
   app.use("/api", gamesRoutes);
   app.use("/api/user/events", userEventsRouter);
   app.use("/api/calendar/events", calendarEventsRouter);
