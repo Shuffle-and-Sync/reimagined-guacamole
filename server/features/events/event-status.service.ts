@@ -1,4 +1,4 @@
-import { eq, and, lte, inArray } from "drizzle-orm";
+import { eq, and, lte, isNotNull } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import {
   events,
@@ -8,7 +8,6 @@ import {
   type InsertEventStatusHistory,
 } from "@shared/schema";
 import { logger } from "../../logger";
-import { notificationDeliveryService } from "../../services/notification-delivery.service";
 import { storage } from "../../storage";
 
 /**
@@ -226,7 +225,13 @@ export class EventStatusService {
       const activeEvents = await db
         .select()
         .from(events)
-        .where(and(eq(events.status, "active"), lte(events.endTime, now)));
+        .where(
+          and(
+            eq(events.status, "active"),
+            isNotNull(events.endTime),
+            lte(events.endTime, now),
+          ),
+        );
 
       logger.info("Processing expired events", {
         draftEventsToActivate: draftEvents.length,

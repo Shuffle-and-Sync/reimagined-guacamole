@@ -5,6 +5,9 @@
  * Runs every 10 minutes to check for and update expired events.
  * - Activates draft events when start time is reached
  * - Completes active events when end time has passed
+ *
+ * Note: Uses 'bull' package for queue management. Consider migrating to 'bullmq'
+ * (the maintained successor) for better TypeScript support and performance.
  */
 
 import Queue from "bull";
