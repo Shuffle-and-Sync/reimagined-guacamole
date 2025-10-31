@@ -9,7 +9,7 @@ import {
   cacheStrategies,
   cacheInvalidation,
 } from "../../middleware/cache.middleware";
-import { eventCreationRateLimit } from "../../rate-limiting";
+import { eventCreationRateLimit, eventCheckConflictsRateLimit } from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventsService } from "./events.service";
 
@@ -85,7 +85,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Check for scheduling conflicts
-router.post("/check-conflicts", isAuthenticated, async (req, res) => {
+router.post("/check-conflicts", isAuthenticated, eventCheckConflictsRateLimit, async (req, res) => {
   const authenticatedReq = req as AuthenticatedRequest;
   try {
     const { startTime, endTime, attendeeIds } = req.body;
