@@ -378,6 +378,9 @@ export const eventAttendees = sqliteTable(
     role: text("role").default("participant"), // 'participant', 'organizer', 'moderator'
     playerType: text("player_type").default("main"), // 'main', 'alternate' (for game pods with waitlist)
     waitlistPosition: integer("waitlist_position"), // Position in waitlist, null if not waitlisted
+    slotType: text("slot_type"), // 'player', 'alternate', 'spectator' - for game pod slot management
+    slotPosition: integer("slot_position"), // 1, 2, 3, etc. - position within the slot type
+    assignedAt: integer("assigned_at", { mode: "timestamp" }), // When user was assigned to specific slot
     registeredAt: integer("registered_at", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ), // When user registered for the event
@@ -396,6 +399,13 @@ export const eventAttendees = sqliteTable(
     index("idx_event_attendees_waitlist").on(
       table.eventId,
       table.waitlistPosition,
+    ),
+    // Index for slot management
+    index("idx_event_attendees_slot_type").on(table.eventId, table.slotType),
+    index("idx_event_attendees_slot_position").on(
+      table.eventId,
+      table.slotType,
+      table.slotPosition,
     ),
   ],
 );
