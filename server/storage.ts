@@ -64,6 +64,9 @@ import {
   collaborativeStreamEvents,
   streamCollaborators,
   streamCoordinationSessions,
+  // Calendar sync tables
+  calendarConnections,
+  externalEvents,
   // Admin & Moderation tables
   userRoles,
   userReputation,
@@ -168,6 +171,11 @@ import {
   type InsertPlatformMetrics,
   type InsertEventTracking,
   type InsertConversionFunnel,
+  // Calendar sync types
+  type CalendarConnection,
+  type InsertCalendarConnection,
+  type ExternalEvent,
+  type InsertExternalEvent,
   // Admin & Moderation types
   type UserRole,
   type UserReputation,
@@ -8852,6 +8860,165 @@ export class DatabaseStorage implements IStorage {
 
   async deleteModerationTemplate(id: string): Promise<void> {
     await db.delete(moderationTemplates).where(eq(moderationTemplates.id, id));
+  }
+
+  // ======================
+  // CALENDAR SYNC METHODS
+  // ======================
+
+  async getUserCalendarConnections(
+    userId: string,
+  ): Promise<CalendarConnection[]> {
+    return await db
+      .select()
+      .from(calendarConnections)
+      .where(eq(calendarConnections.userId, userId));
+  }
+
+  async getCalendarConnection(
+    id: string,
+  ): Promise<CalendarConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(calendarConnections)
+      .where(eq(calendarConnections.id, id));
+    return connection;
+  }
+
+  async getAllActiveCalendarConnections(): Promise<CalendarConnection[]> {
+    return await db
+      .select()
+      .from(calendarConnections)
+      .where(eq(calendarConnections.syncEnabled, true));
+  }
+
+  async createCalendarConnection(
+    data: InsertCalendarConnection,
+  ): Promise<CalendarConnection> {
+    const [connection] = await db
+      .insert(calendarConnections)
+      .values(data)
+      .returning();
+
+    if (!connection) {
+      throw new Error("Failed to create calendar connection");
+    }
+
+    return connection;
+  }
+
+  async updateCalendarConnection(
+    id: string,
+    data: Partial<InsertCalendarConnection>,
+  ): Promise<CalendarConnection> {
+    const [updated] = await db
+      .update(calendarConnections)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(calendarConnections.id, id))
+      .returning();
+
+    if (!updated) {
+      throw new Error("Failed to update calendar connection");
+    }
+
+    return updated;
+  }
+
+  async deleteCalendarConnection(id: string): Promise<void> {
+    await db.delete(calendarConnections).where(eq(calendarConnections.id, id));
+  }
+
+  async getExternalEvent(id: string): Promise<ExternalEvent | undefined> {
+    const [event] = await db
+      .select()
+      .from(externalEvents)
+      .where(eq(externalEvents.id, id));
+    return event;
+  }
+
+  async getExternalEventByExternalId(
+    connectionId: string,
+    externalEventId: string,
+  ): Promise<ExternalEvent | undefined> {
+    const [event] = await db
+      .select()
+      .from(externalEvents)
+      .where(
+        and(
+          eq(externalEvents.connectionId, connectionId),
+          eq(externalEvents.externalEventId, externalEventId),
+        ),
+      );
+    return event;
+  }
+
+  async getConnectionExternalEvents(
+    connectionId: string,
+  ): Promise<ExternalEvent[]> {
+    return await db
+      .select()
+      .from(externalEvents)
+      .where(eq(externalEvents.connectionId, connectionId))
+      .orderBy(desc(externalEvents.startTime));
+  }
+
+  async createExternalEvent(data: InsertExternalEvent): Promise<ExternalEvent> {
+    const [event] = await db.insert(externalEvents).values(data).returning();
+
+    if (!event) {
+      throw new Error("Failed to create external event");
+    }
+
+    return event;
+  }
+
+  async upsertExternalEvent(
+    data: InsertExternalEvent & {
+      connectionId: string;
+      externalEventId: string;
+    },
+  ): Promise<ExternalEvent> {
+    const existing = await this.getExternalEventByExternalId(
+      data.connectionId,
+      data.externalEventId,
+    );
+
+    if (existing) {
+      const [updated] = await db
+        .update(externalEvents)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(externalEvents.id, existing.id))
+        .returning();
+
+      if (!updated) {
+        throw new Error("Failed to update external event");
+      }
+
+      return updated;
+    }
+
+    return await this.createExternalEvent(data);
+  }
+
+  async updateExternalEvent(
+    id: string,
+    data: Partial<InsertExternalEvent>,
+  ): Promise<ExternalEvent> {
+    const [updated] = await db
+      .update(externalEvents)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(externalEvents.id, id))
+      .returning();
+
+    if (!updated) {
+      throw new Error("Failed to update external event");
+    }
+
+    return updated;
+  }
+
+  async deleteExternalEvent(id: string): Promise<void> {
+    await db.delete(externalEvents).where(eq(externalEvents.id, id));
   }
 }
 

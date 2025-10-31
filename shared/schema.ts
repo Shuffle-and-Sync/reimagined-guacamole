@@ -411,6 +411,82 @@ export const eventAttendees = sqliteTable(
 );
 
 // ======================
+// CALENDAR SYNC TABLES
+// ======================
+
+export const calendarConnections = sqliteTable(
+  "calendar_connections",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(), // 'google' | 'outlook'
+    providerAccountId: text("provider_account_id").notNull(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token"),
+    expiresAt: integer("expires_at"), // Unix timestamp
+    calendarId: text("calendar_id"), // External calendar ID
+    calendarName: text("calendar_name"),
+    syncEnabled: integer("sync_enabled", { mode: "boolean" }).default(true),
+    lastSyncAt: integer("last_sync_at"), // Unix timestamp
+    syncDirection: text("sync_direction").default("both"), // 'import' | 'export' | 'both'
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_calendar_connections_user").on(table.userId),
+    index("idx_calendar_connections_provider").on(table.provider),
+    index("idx_calendar_connections_sync_enabled").on(table.syncEnabled),
+  ],
+);
+
+export const externalEvents = sqliteTable(
+  "external_events",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    connectionId: text("connection_id")
+      .notNull()
+      .references(() => calendarConnections.id, { onDelete: "cascade" }),
+    externalEventId: text("external_event_id").notNull(),
+    internalEventId: text("internal_event_id").references(() => events.id, {
+      onDelete: "set null",
+    }), // References events table if synced
+    title: text("title").notNull(),
+    description: text("description"),
+    location: text("location"),
+    startTime: integer("start_time", { mode: "timestamp" }).notNull(),
+    endTime: integer("end_time", { mode: "timestamp" }),
+    timezone: text("timezone").default("UTC"),
+    isAllDay: integer("is_all_day", { mode: "boolean" }).default(false),
+    status: text("status").default("confirmed"), // 'confirmed' | 'tentative' | 'cancelled'
+    rawData: text("raw_data"), // JSON string of original event data
+    lastSyncedAt: integer("last_synced_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    unique().on(table.connectionId, table.externalEventId),
+    index("idx_external_events_connection").on(table.connectionId),
+    index("idx_external_events_internal").on(table.internalEventId),
+    index("idx_external_events_start_time").on(table.startTime),
+    index("idx_external_events_status").on(table.status),
+  ],
+);
+
+// ======================
 // MESSAGING TABLES
 // ======================
 
@@ -2861,6 +2937,23 @@ export const insertEventAttendeeSchema = createInsertSchema(
   joinedAt: true,
 });
 
+// Calendar sync insert schemas
+export const insertCalendarConnectionSchema = createInsertSchema(
+  calendarConnections,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertExternalEventSchema = createInsertSchema(
+  externalEvents,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertGameSessionSchema = createInsertSchema(gameSessions).omit({
   id: true,
   createdAt: true,
@@ -3258,3 +3351,9 @@ export type InsertEventReminder = typeof eventReminders.$inferInsert;
 // Event status history types
 export type EventStatusHistory = typeof eventStatusHistory.$inferSelect;
 export type InsertEventStatusHistory = typeof eventStatusHistory.$inferInsert;
+
+// Calendar sync types
+export type CalendarConnection = typeof calendarConnections.$inferSelect;
+export type InsertCalendarConnection = typeof calendarConnections.$inferInsert;
+export type ExternalEvent = typeof externalEvents.$inferSelect;
+export type InsertExternalEvent = typeof externalEvents.$inferInsert;
