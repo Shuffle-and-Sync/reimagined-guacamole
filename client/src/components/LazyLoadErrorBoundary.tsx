@@ -25,11 +25,19 @@ export class LazyLoadErrorBoundary extends Component<
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log to console for development
     console.error("Lazy load error:", error, errorInfo);
+
+    // TODO: In production, integrate with error reporting service (e.g., Sentry)
+    // Example: Sentry.captureException(error, { contexts: { react: errorInfo } });
   }
 
   handleReload = () => {
+    // Reset error state to allow retry
     this.setState({ hasError: false, error: null });
+
+    // TODO: Implement more targeted retry mechanism
+    // For now, reload the entire page as a reliable fallback
     window.location.reload();
   };
 

@@ -9,21 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { TournamentFormData } from "./types";
 
 // Lazy load the tournament form
 const TournamentForm = lazy(() =>
   import("./TournamentForm").then((m) => ({ default: m.TournamentForm })),
 );
-
-interface TournamentFormData {
-  name: string;
-  description: string;
-  gameFormat: string;
-  maxParticipants: number;
-  startDate: string;
-  prizePool: string;
-  rules: string;
-}
 
 interface TournamentDialogsProps {
   isCreateOpen: boolean;

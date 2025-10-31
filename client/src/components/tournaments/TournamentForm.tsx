@@ -9,16 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-interface TournamentFormData {
-  name: string;
-  description: string;
-  gameFormat: string;
-  maxParticipants: number;
-  startDate: string;
-  prizePool: string;
-  rules: string;
-}
+import type { TournamentFormData } from "./types";
 
 interface TournamentFormProps {
   formData: TournamentFormData;
