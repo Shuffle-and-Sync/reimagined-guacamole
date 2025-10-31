@@ -13,6 +13,7 @@ import {
   isNotNull,
   inArray,
   lt,
+  gt,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import {
@@ -2204,6 +2205,7 @@ export class DatabaseStorage implements IStorage {
   /**
    * Get user's events in a specific time range
    * Used for conflict detection and availability checking
+   * Returns events that overlap with the given time range
    */
   async getUserEventsInRange(
     userId: string,
@@ -2216,8 +2218,9 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           or(eq(events.creatorId, userId), eq(events.hostId, userId)),
-          gte(events.startTime, startDate),
-          lte(events.startTime, endDate),
+          // Find events that overlap: startTime < endDate AND (endTime > startDate OR endTime is NULL)
+          lt(events.startTime, endDate),
+          or(gt(events.endTime, startDate), sql`${events.endTime} IS NULL`),
         ),
       )
       .all();

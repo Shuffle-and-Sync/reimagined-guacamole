@@ -6,21 +6,19 @@ import { toZonedTime, fromZonedTime, format as formatTz } from "date-fns-tz";
  */
 export class TimezoneUtils {
   /**
-   * Convert a date from one timezone to another
+   * Convert a date's display to a different timezone
+   * This maintains the same moment in time but returns it formatted in the target timezone
    * @param date - The date to convert
-   * @param fromTz - Source timezone (IANA format)
+   * @param fromTz - Source timezone (IANA format) - not used but kept for API compatibility
    * @param toTz - Target timezone (IANA format)
-   * @returns Converted date in target timezone
+   * @returns Date object representing the same moment in time
+   * @note The returned Date is still in UTC internally; use formatInTimezone to display it
    */
-  static convertTimezone(date: Date, fromTz: string, toTz: string): Date {
-    try {
-      const zonedDate = toZonedTime(date, fromTz);
-      return fromZonedTime(zonedDate, toTz);
-    } catch (error) {
-      throw new Error(
-        `Failed to convert timezone from ${fromTz} to ${toTz}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
+  static convertTimezone(date: Date, _fromTz: string, _toTz: string): Date {
+    // Simply return the date - it already represents the correct moment in time
+    // The timezone is just metadata for display purposes
+    // Use formatInTimezone() to display this date in the target timezone
+    return date;
   }
 
   /**
@@ -63,8 +61,22 @@ export class TimezoneUtils {
       const tzSecond = getPart("second");
 
       // Construct a Date object in the target timezone's local time, but as if it were UTC
-      const localAsUTC = Date.UTC(tzYear, tzMonth, tzDay, tzHour, tzMinute, tzSecond);
-      const utcTime = Date.UTC(utcYear, utcMonth, utcDay, utcHour, utcMinute, utcSecond);
+      const localAsUTC = Date.UTC(
+        tzYear,
+        tzMonth,
+        tzDay,
+        tzHour,
+        tzMinute,
+        tzSecond,
+      );
+      const utcTime = Date.UTC(
+        utcYear,
+        utcMonth,
+        utcDay,
+        utcHour,
+        utcMinute,
+        utcSecond,
+      );
 
       // Offset in hours: (local time in target tz - UTC time) / 3600000
       const offset = (localAsUTC - utcTime) / (1000 * 60 * 60);

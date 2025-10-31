@@ -1,4 +1,3 @@
-import { TimezoneUtils } from "../../utils/timezone.utils";
 import { withTransaction } from "@shared/database-unified";
 import { insertEventSchema } from "@shared/schema";
 import type { Event, EventAttendee } from "@shared/schema";
@@ -6,6 +5,7 @@ import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { validateTimezone } from "../../utils/timezone";
+import { TimezoneUtils } from "../../utils/timezone.utils";
 import { conflictDetectionService } from "./conflict-detection.service";
 import {
   DEFAULT_EVENT_DURATION_MS,
@@ -830,27 +830,16 @@ export class EventsService {
 
   /**
    * Convert event times to different timezone
+   * Returns event with timezone metadata updated for display purposes
+   * The underlying timestamps remain the same (same moment in time)
    */
   convertEventTimezone(event: Event, targetTimezone: string): Event {
     try {
-      const sourceTimezone = event.timezone || "UTC";
-
-      const convertedStart = fromZonedTime(
-        toZonedTime(new Date(event.startTime), sourceTimezone),
-        targetTimezone,
-      );
-
-      const convertedEnd = event.endTime
-        ? fromZonedTime(
-            toZonedTime(new Date(event.endTime), sourceTimezone),
-            targetTimezone,
-          )
-        : undefined;
-
+      // The event times are stored as timestamps which represent absolute moments in time
+      // We just update the timezone metadata - the actual moment in time doesn't change
+      // Display code should use formatInTimezone to show times in the target timezone
       return {
         ...event,
-        startTime: convertedStart,
-        endTime: convertedEnd || null,
         timezone: targetTimezone,
       };
     } catch (error) {

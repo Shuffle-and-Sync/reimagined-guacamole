@@ -29,10 +29,21 @@ const eventUpdateSchema = z.object({
   status: z.enum(["active", "cancelled", "completed", "draft"]).optional(),
 });
 
-const rescheduleSchema = z.object({
-  startTime: z.string().datetime(),
-  endTime: z.string().datetime().optional(),
-});
+const rescheduleSchema = z
+  .object({
+    startTime: z.string().datetime(),
+    endTime: z.string().datetime().optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.endTime) return true;
+      return new Date(data.endTime) > new Date(data.startTime);
+    },
+    {
+      message: "endTime must be after startTime",
+      path: ["endTime"],
+    },
+  );
 
 const conflictDetectionSchema = z.object({
   eventId: z.string().optional(),
@@ -81,18 +92,7 @@ export function validateReschedule(
   next: NextFunction,
 ) {
   try {
-    const validated = rescheduleSchema.parse(req.body);
-
-    // Ensure endTime is after startTime if provided
-    if (
-      validated.endTime &&
-      new Date(validated.endTime) <= new Date(validated.startTime)
-    ) {
-      return res.status(400).json({
-        message: "endTime must be after startTime",
-      });
-    }
-
+    rescheduleSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
