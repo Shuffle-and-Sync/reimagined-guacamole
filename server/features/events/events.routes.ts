@@ -735,7 +735,7 @@ userEventsRouter.get("/", isAuthenticated, async (req, res) => {
 // Separate router for calendar events (mounted at /api/calendar/events)
 export const calendarEventsRouter = Router();
 
-calendarEventsRouter.get("/", async (req, res) => {
+calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
   try {
     const { communityId, startDate, endDate, type } = req.query;
 
