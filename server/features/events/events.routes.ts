@@ -773,8 +773,8 @@ calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
 // Export user's calendar (all their events within a date range)
 calendarEventsRouter.get(
   "/export/ics",
-  isAuthenticated,
   eventReadRateLimit,
+  isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
