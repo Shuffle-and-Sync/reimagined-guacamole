@@ -374,7 +374,7 @@ export const eventAttendees = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status").default("confirmed"), // 'confirmed', 'waitlist', 'cancelled', 'declined', 'attending', 'maybe', 'not_attending' (legacy)
+    status: text("status").default("attending"), // 'confirmed', 'waitlist', 'cancelled', 'declined', 'attending' (default for backward compatibility), 'maybe', 'not_attending'
     role: text("role").default("participant"), // 'participant', 'organizer', 'moderator'
     playerType: text("player_type").default("main"), // 'main', 'alternate' (for game pods with waitlist)
     waitlistPosition: integer("waitlist_position"), // Position in waitlist, null if not waitlisted
