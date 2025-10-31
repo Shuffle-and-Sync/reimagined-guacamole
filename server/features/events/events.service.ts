@@ -610,6 +610,290 @@ export class EventsService {
       throw error;
     }
   }
+
+  /**
+   * Reschedule an event (change start/end time)
+   */
+  async rescheduleEvent(
+    eventId: string,
+    userId: string,
+    newStartTime: Date,
+    newEndTime?: Date,
+  ) {
+    try {
+      const event = await storage.getEvent(eventId);
+
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      // Check permission
+      if (event.creatorId !== userId && event.hostId !== userId) {
+        throw new Error("Unauthorized to reschedule this event");
+      }
+
+      // Calculate duration if endTime not provided
+      let calculatedEndTime = newEndTime;
+      if (!calculatedEndTime && event.endTime) {
+        const originalDuration =
+          new Date(event.endTime).getTime() -
+          new Date(event.startTime).getTime();
+        calculatedEndTime = new Date(newStartTime.getTime() + originalDuration);
+      }
+
+      // Check for conflicts
+      const conflicts = await this.detectConflicts({
+        eventId,
+        startTime: newStartTime,
+        endTime: calculatedEndTime || newStartTime,
+        userId,
+      });
+
+      const updatedEvent = await storage.updateEvent(eventId, {
+        startTime: newStartTime,
+        endTime: calculatedEndTime,
+      });
+
+      logger.info("Event rescheduled successfully", {
+        eventId,
+        userId,
+        hasConflicts: conflicts.length > 0,
+      });
+
+      return {
+        event: updatedEvent,
+        conflicts,
+      };
+    } catch (error) {
+      logger.error(
+        "Failed to reschedule event",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId, userId },
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Detect scheduling conflicts for a user
+   */
+  async detectConflicts(params: {
+    eventId?: string;
+    startTime: Date;
+    endTime: Date;
+    userId: string;
+    communityId?: string;
+  }) {
+    try {
+      const { eventId, startTime, endTime, userId } = params;
+
+      // Get user's events in the time range
+      const userEvents = await storage.getUserEventsInRange(
+        userId,
+        startTime,
+        endTime,
+      );
+
+      // Filter out the current event if updating
+      const relevantEvents = eventId
+        ? userEvents.filter((e) => e.id !== eventId)
+        : userEvents;
+
+      // Find overlapping events
+      const conflicts = relevantEvents.filter((event) => {
+        const eventStart = new Date(event.startTime);
+        const eventEnd = event.endTime
+          ? new Date(event.endTime)
+          : new Date(eventStart.getTime() + DEFAULT_EVENT_DURATION_MS);
+
+        // Check for overlap
+        return startTime < eventEnd && eventStart < endTime;
+      });
+
+      logger.info("Conflict detection completed", {
+        userId,
+        conflictCount: conflicts.length,
+      });
+
+      return conflicts;
+    } catch (error) {
+      logger.error(
+        "Failed to detect conflicts",
+        error instanceof Error ? error : new Error(String(error)),
+        params,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Batch update multiple events
+   */
+  async batchUpdateEvents(
+    userId: string,
+    updates: Array<{
+      eventId: string;
+      changes: Partial<UpdateEventRequest>;
+    }>,
+  ) {
+    try {
+      const results = [];
+
+      for (const { eventId, changes } of updates) {
+        try {
+          const updated = await this.updateEvent(eventId, userId, changes);
+          results.push({ eventId, success: true, event: updated });
+        } catch (error) {
+          results.push({
+            eventId,
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      }
+
+      logger.info("Batch update completed", {
+        userId,
+        total: updates.length,
+        successful: results.filter((r) => r.success).length,
+      });
+
+      return results;
+    } catch (error) {
+      logger.error(
+        "Batch update failed",
+        error instanceof Error ? error : new Error(String(error)),
+        { userId },
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a recurring event series
+   */
+  async deleteRecurringSeries(
+    parentEventId: string,
+    userId: string,
+    options: {
+      deleteAll: boolean;
+      deleteFrom?: Date;
+    },
+  ) {
+    try {
+      const seriesEvents = await storage.getRecurringEventSeries(parentEventId);
+
+      if (seriesEvents.length === 0) {
+        throw new Error("Series not found");
+      }
+
+      // Check permission (first event's creator)
+      if (seriesEvents[0].creatorId !== userId) {
+        throw new Error("Unauthorized to delete this series");
+      }
+
+      let deletedCount = 0;
+
+      if (options.deleteAll) {
+        // Delete all events in series
+        for (const event of seriesEvents) {
+          await storage.deleteEvent(event.id);
+          deletedCount++;
+        }
+      } else if (options.deleteFrom) {
+        // Delete events from a specific date onward
+        for (const event of seriesEvents) {
+          if (new Date(event.startTime) >= options.deleteFrom) {
+            await storage.deleteEvent(event.id);
+            deletedCount++;
+          }
+        }
+      }
+
+      logger.info("Recurring series deleted", {
+        parentEventId,
+        userId,
+        deletedCount,
+      });
+
+      return { deletedCount };
+    } catch (error) {
+      logger.error(
+        "Failed to delete recurring series",
+        error instanceof Error ? error : new Error(String(error)),
+        { parentEventId, userId },
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Convert event times to different timezone
+   */
+  convertEventTimezone(event: Event, targetTimezone: string): Event {
+    try {
+      const sourceTimezone = event.timezone || "UTC";
+
+      // Import timezone utils
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { toZonedTime, fromZonedTime } = require("date-fns-tz");
+
+      const convertedStart = fromZonedTime(
+        toZonedTime(new Date(event.startTime), sourceTimezone),
+        targetTimezone,
+      );
+
+      const convertedEnd = event.endTime
+        ? fromZonedTime(
+            toZonedTime(new Date(event.endTime), sourceTimezone),
+            targetTimezone,
+          )
+        : undefined;
+
+      return {
+        ...event,
+        startTime: convertedStart,
+        endTime: convertedEnd || null,
+        timezone: targetTimezone,
+      };
+    } catch (error) {
+      logger.error(
+        "Failed to convert event timezone",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          eventId: event.id,
+          targetTimezone,
+        },
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get events with timezone conversion
+   */
+  async getCalendarEventsInTimezone(
+    filters: CalendarEventFilters,
+    targetTimezone: string,
+  ) {
+    try {
+      const events = await this.getCalendarEvents(filters);
+
+      return events.map((event) =>
+        this.convertEventTimezone(event, targetTimezone),
+      );
+    } catch (error) {
+      logger.error(
+        "Failed to get events in timezone",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          filters,
+          targetTimezone,
+        },
+      );
+      throw error;
+    }
+  }
 }
 
 export const eventsService = new EventsService();
