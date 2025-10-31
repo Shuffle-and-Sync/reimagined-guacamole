@@ -4,6 +4,7 @@ import type { Event, EventAttendee } from "@shared/schema";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
+import { validateTimezone, getUserTimezone } from "../../utils/timezone";
 // Note: User type reserved for future user-related event features
 import type {
   EventFilters,
@@ -92,8 +93,26 @@ export class EventsService {
     eventData: CreateEventRequest,
   ): Promise<Event> {
     try {
+      // Validate and set timezone
+      const timezone = eventData.timezone || "UTC";
+      if (!validateTimezone(timezone)) {
+        throw new Error(`Invalid timezone: ${timezone}`);
+      }
+
+      // Validate displayTimezone if provided
+      if (
+        eventData.displayTimezone &&
+        !validateTimezone(eventData.displayTimezone)
+      ) {
+        throw new Error(
+          `Invalid display timezone: ${eventData.displayTimezone}`,
+        );
+      }
+
       const parsedEventData = insertEventSchema.parse({
         ...eventData,
+        timezone,
+        displayTimezone: eventData.displayTimezone || null,
         creatorId: userId,
         hostId: userId, // Set host to the same user who created the event
       });
@@ -103,6 +122,7 @@ export class EventsService {
         eventId: event.id,
         userId,
         title: event.title,
+        timezone: event.timezone,
       });
       return event;
     } catch (error) {
@@ -132,6 +152,21 @@ export class EventsService {
         throw new Error("Not authorized to edit this event");
       }
 
+      // Validate timezone if provided
+      if (eventData.timezone && !validateTimezone(eventData.timezone)) {
+        throw new Error(`Invalid timezone: ${eventData.timezone}`);
+      }
+
+      // Validate displayTimezone if provided
+      if (
+        eventData.displayTimezone &&
+        !validateTimezone(eventData.displayTimezone)
+      ) {
+        throw new Error(
+          `Invalid display timezone: ${eventData.displayTimezone}`,
+        );
+      }
+
       const parsedEventData = insertEventSchema.partial().parse(eventData);
       const updatedEvent = await storage.updateEvent(eventId, parsedEventData);
 
@@ -139,6 +174,7 @@ export class EventsService {
         eventId,
         userId,
         title: updatedEvent.title,
+        timezone: updatedEvent.timezone,
       });
       return updatedEvent;
     } catch (error) {
@@ -308,11 +344,25 @@ export class EventsService {
         const {
           date,
           time,
+          timezone,
+          displayTimezone,
           recurrencePattern: _recurrencePattern, // Reserved for recurring events feature
           recurrenceInterval: _recurrenceInterval, // Reserved for recurring events feature
           recurrenceEndDate: _recurrenceEndDate, // Reserved for recurring events feature
           ...eventProps
         } = event;
+
+        // Validate and set timezone
+        const eventTimezone = timezone || "UTC";
+        if (!validateTimezone(eventTimezone)) {
+          throw new Error(`Invalid timezone: ${eventTimezone}`);
+        }
+
+        // Validate displayTimezone if provided
+        if (displayTimezone && !validateTimezone(displayTimezone)) {
+          throw new Error(`Invalid display timezone: ${displayTimezone}`);
+        }
+
         const startTime = new Date(`${date}T${time || "12:00"}`);
 
         return {
@@ -320,6 +370,8 @@ export class EventsService {
           creatorId: userId,
           hostId: userId,
           startTime,
+          timezone: eventTimezone,
+          displayTimezone: displayTimezone || null,
           type: event.type as
             | "tournament"
             | "convention"
@@ -385,6 +437,22 @@ export class EventsService {
         );
       }
 
+      // Validate and set timezone
+      const timezone = recurringRequest.timezone || "UTC";
+      if (!validateTimezone(timezone)) {
+        throw new Error(`Invalid timezone: ${timezone}`);
+      }
+
+      // Validate displayTimezone if provided
+      if (
+        recurringRequest.displayTimezone &&
+        !validateTimezone(recurringRequest.displayTimezone)
+      ) {
+        throw new Error(
+          `Invalid display timezone: ${recurringRequest.displayTimezone}`,
+        );
+      }
+
       // Transform date/time to startTime
       const { date, time, ...eventBase } = recurringRequest;
 
@@ -398,6 +466,8 @@ export class EventsService {
         creatorId: userId,
         hostId: userId,
         startTime,
+        timezone,
+        displayTimezone: recurringRequest.displayTimezone || null,
         isRecurring: true,
         recurrencePattern,
         recurrenceInterval: recurringRequest.recurrenceInterval,
@@ -423,6 +493,7 @@ export class EventsService {
         pattern: recurrencePattern,
         interval: recurringRequest.recurrenceInterval,
         endDate: recurringRequest.recurrenceEndDate,
+        timezone,
       });
 
       return createdEvents;
