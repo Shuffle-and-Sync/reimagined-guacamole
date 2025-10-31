@@ -165,6 +165,7 @@
     "express-rate-limit": "^8.0.1",
     "express-session": "^1.18.2",
     "framer-motion": "^11.18.2",
+    "ics": "^3.8.1",
     "input-otp": "^1.4.2",
     "jose": "^6.1.0",
     "lucide-react": "^0.453.0",
