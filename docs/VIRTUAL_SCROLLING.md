@@ -180,7 +180,7 @@ function MyComponent() {
 
 ### useInfiniteLoad
 
-Hook for implementing infinite scroll loading.
+Hook for implementing infinite scroll loading with error handling.
 
 ```tsx
 import { useInfiniteLoad } from "@/hooks/useInfiniteLoad";
@@ -193,7 +193,7 @@ function MyInfiniteList({ items, hasNextPage, isLoading }) {
     setAllItems([...allItems, ...newItems]);
   };
 
-  const { containerRef, isFetching } = useInfiniteLoad({
+  const { containerRef, isFetching, error } = useInfiniteLoad({
     hasNextPage,
     isLoading,
     loadMore,
@@ -204,6 +204,7 @@ function MyInfiniteList({ items, hasNextPage, isLoading }) {
     <div ref={containerRef} className="overflow-auto h-[600px]">
       <VirtualList items={allItems} renderItem={renderItem} />
       {isFetching && <LoadingSpinner />}
+      {error && <ErrorMessage error={error} onRetry={loadMore} />}
     </div>
   );
 }
@@ -220,6 +221,11 @@ function MyInfiniteList({ items, hasNextPage, isLoading }) {
 
 - `containerRef` - Ref to attach to the scrollable container
 - `isFetching` - Whether more data is being fetched
+- `error` - Error object if loading failed, null otherwise
+
+**Race Condition Prevention:**
+
+The hook uses a ref-based synchronous tracking mechanism to prevent multiple simultaneous load requests, ensuring that rapid scrolling doesn't trigger duplicate API calls.
 
 ## When to Use Virtual Scrolling
 

@@ -7,14 +7,21 @@ interface UseInfiniteLoadOptions {
   threshold?: number;
 }
 
+interface UseInfiniteLoadReturn {
+  containerRef: React.RefObject<HTMLDivElement>;
+  isFetching: boolean;
+  error: Error | null;
+}
+
 /**
  * useInfiniteLoad - Hook for implementing infinite scroll loading
  *
  * Features:
  * - Detects when user scrolls near bottom
  * - Triggers loadMore callback
- * - Prevents duplicate loading requests
+ * - Prevents duplicate loading requests using ref for synchronous tracking
  * - Configurable threshold
+ * - Exposes error state for user feedback
  *
  * @param hasNextPage - Whether there are more items to load
  * @param isLoading - Whether data is currently being loaded
@@ -26,12 +33,19 @@ export function useInfiniteLoad({
   isLoading,
   loadMore,
   threshold = 200,
-}: UseInfiniteLoadOptions) {
+}: UseInfiniteLoadOptions): UseInfiniteLoadReturn {
   const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false); // Synchronous tracking to prevent race conditions
 
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || isLoading || isFetching || !hasNextPage) {
+    if (
+      !containerRef.current ||
+      isLoading ||
+      isLoadingRef.current ||
+      !hasNextPage
+    ) {
       return;
     }
 
@@ -39,16 +53,22 @@ export function useInfiniteLoad({
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
     if (distanceFromBottom < threshold) {
+      isLoadingRef.current = true; // Set synchronously to prevent race condition
       setIsFetching(true);
+      setError(null); // Clear previous errors
+
       loadMore()
-        .catch((error) => {
+        .catch((err) => {
+          const error = err instanceof Error ? err : new Error(String(err));
+          setError(error);
           console.error("Error loading more items:", error);
         })
         .finally(() => {
           setIsFetching(false);
+          isLoadingRef.current = false; // Clear synchronously
         });
     }
-  }, [hasNextPage, isLoading, isFetching, loadMore, threshold]);
+  }, [hasNextPage, isLoading, loadMore, threshold]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -61,5 +81,6 @@ export function useInfiniteLoad({
   return {
     containerRef,
     isFetching: isFetching || isLoading,
+    error,
   };
 }

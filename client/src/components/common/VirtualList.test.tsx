@@ -8,6 +8,8 @@ describe("VirtualList", () => {
     name: `Item ${i}`,
   }));
 
+  type MockItem = (typeof mockItems)[0];
+
   it("renders virtual list with items", () => {
     render(
       <VirtualList
@@ -27,7 +29,7 @@ describe("VirtualList", () => {
     const { container } = render(
       <VirtualList
         items={mockItems}
-        renderItem={(item: (typeof mockItems)[0]) => (
+        renderItem={(item: MockItem) => (
           <div data-testid={item.id}>{item.name}</div>
         )}
         estimateSize={50}
@@ -111,7 +113,7 @@ describe("VirtualList", () => {
     render(
       <VirtualList
         items={smallItems}
-        renderItem={(item: (typeof mockItems)[0]) => (
+        renderItem={(item: MockItem) => (
           <div data-testid={item.id}>{item.name}</div>
         )}
         estimateSize={50}

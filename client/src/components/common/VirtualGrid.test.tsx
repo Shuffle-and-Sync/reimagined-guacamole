@@ -8,6 +8,8 @@ describe("VirtualGrid", () => {
     name: `Item ${i}`,
   }));
 
+  type MockItem = (typeof mockItems)[0];
+
   it("renders virtual grid with items", () => {
     render(
       <VirtualGrid
@@ -27,7 +29,7 @@ describe("VirtualGrid", () => {
     const { container } = render(
       <VirtualGrid
         items={mockItems}
-        renderItem={(item: (typeof mockItems)[0]) => (
+        renderItem={(item: MockItem) => (
           <div data-testid={item.id}>{item.name}</div>
         )}
         columnCount={3}

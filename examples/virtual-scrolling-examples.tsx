@@ -150,8 +150,8 @@ export function LazyLoadEventList({ events }: { events: Event[] }) {
 }
 
 /**
- * Example 6: Infinite Scrolling
- * Automatically load more items as user scrolls
+ * Example 6: Infinite Scrolling with Error Handling
+ * Automatically load more items as user scrolls with proper error feedback
  */
 export function InfiniteScrollEventList({
   initialEvents,
@@ -166,6 +166,9 @@ export function InfiniteScrollEventList({
     setIsLoading(true);
     try {
       const response = await fetch(`/api/events?offset=${events.length}`);
+      if (!response.ok) {
+        throw new Error("Failed to load more events");
+      }
       const newEvents = await response.json();
 
       if (newEvents.length === 0) {
@@ -178,7 +181,7 @@ export function InfiniteScrollEventList({
     }
   };
 
-  const { containerRef, isFetching } = useInfiniteLoad({
+  const { containerRef, isFetching, error } = useInfiniteLoad({
     hasNextPage: hasMore,
     isLoading,
     loadMore,
@@ -200,6 +203,17 @@ export function InfiniteScrollEventList({
       {isFetching && (
         <div className="p-4 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+        </div>
+      )}
+      {error && (
+        <div className="p-4 text-center text-red-600">
+          <p>Error loading more items: {error.message}</p>
+          <button
+            onClick={() => loadMore()}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded"
+          >
+            Retry
+          </button>
         </div>
       )}
     </div>

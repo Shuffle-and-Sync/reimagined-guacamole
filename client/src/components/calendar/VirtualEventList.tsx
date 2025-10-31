@@ -68,7 +68,6 @@ export function VirtualEventList({
     return (
       <div className="px-1 py-2">
         <UpcomingEventCard
-          key={event.id}
           event={event}
           eventType={eventType}
           user={user}
