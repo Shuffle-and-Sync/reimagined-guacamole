@@ -26,10 +26,20 @@ export class OutlookCalendarService {
    */
   async refreshAccessToken(connection: CalendarConnection): Promise<string> {
     try {
+      if (
+        !process.env.AZURE_TENANT_ID ||
+        !process.env.AZURE_CLIENT_ID ||
+        !process.env.AZURE_CLIENT_SECRET
+      ) {
+        throw new Error(
+          "Azure credentials not configured. Set AZURE_TENANT_ID, AZURE_CLIENT_ID, and AZURE_CLIENT_SECRET environment variables.",
+        );
+      }
+
       const credential = new ClientSecretCredential(
-        process.env.AZURE_TENANT_ID!,
-        process.env.AZURE_CLIENT_ID!,
-        process.env.AZURE_CLIENT_SECRET!,
+        process.env.AZURE_TENANT_ID,
+        process.env.AZURE_CLIENT_ID,
+        process.env.AZURE_CLIENT_SECRET,
       );
 
       const tokenResponse = await credential.getToken(
@@ -49,7 +59,9 @@ export class OutlookCalendarService {
   /**
    * List available calendars
    */
-  async listCalendars(connection: CalendarConnection): Promise<Event[]> {
+  async listCalendars(
+    connection: CalendarConnection,
+  ): Promise<{ id?: string; name?: string; primary?: boolean }[]> {
     try {
       const client = this.getClient(connection.accessToken);
       const response = await client.api("/me/calendars").get();

@@ -7,6 +7,10 @@ import type {
   CalendarEventUpdate,
 } from "./types";
 
+// Constants
+const DEFAULT_MAX_RESULTS = 2500;
+const DEFAULT_EVENT_DURATION_MS = 3600000; // 1 hour
+
 /**
  * Google Calendar Service
  * Handles all interactions with Google Calendar API
@@ -107,7 +111,7 @@ export class GoogleCalendarService {
         calendarId: options.calendarId || connection.calendarId || "primary",
         timeMin: options.timeMin?.toISOString(),
         timeMax: options.timeMax?.toISOString(),
-        maxResults: options.maxResults || 2500,
+        maxResults: options.maxResults || DEFAULT_MAX_RESULTS,
         singleEvents: true,
         orderBy: "startTime",
       });
@@ -148,7 +152,9 @@ export class GoogleCalendarService {
         end: {
           dateTime:
             event.endTime?.toISOString() ||
-            new Date(event.startTime.getTime() + 3600000).toISOString(),
+            new Date(
+              event.startTime.getTime() + DEFAULT_EVENT_DURATION_MS,
+            ).toISOString(),
           timeZone: event.timezone || "UTC",
         },
       };
@@ -184,20 +190,27 @@ export class GoogleCalendarService {
         auth: this.oauth2Client,
       });
 
-      const googleEvent: calendar_v3.Schema$Event = {
-        summary: updates.title,
-        description: updates.description,
-        location: updates.location,
-      };
+      const googleEvent: calendar_v3.Schema$Event = {};
 
-      if (updates.startTime) {
+      // Only include defined fields in the update
+      if (updates.title !== undefined) {
+        googleEvent.summary = updates.title;
+      }
+      if (updates.description !== undefined) {
+        googleEvent.description = updates.description;
+      }
+      if (updates.location !== undefined) {
+        googleEvent.location = updates.location;
+      }
+
+      if (updates.startTime !== undefined) {
         googleEvent.start = {
           dateTime: updates.startTime.toISOString(),
           timeZone: updates.timezone || "UTC",
         };
       }
 
-      if (updates.endTime) {
+      if (updates.endTime !== undefined) {
         googleEvent.end = {
           dateTime: updates.endTime.toISOString(),
           timeZone: updates.timezone || "UTC",

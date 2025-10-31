@@ -1,8 +1,12 @@
+import type { Event } from "@shared/schema";
 import { logger } from "@/logger";
 import { storage } from "@/storage";
 import { googleCalendarService } from "./google-calendar.service";
 import { outlookCalendarService } from "./outlook-calendar.service";
 import type { CalendarConnection } from "./types";
+
+// Constants
+const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 
 /**
  * Calendar Sync Service
@@ -225,7 +229,7 @@ export class CalendarSyncService {
 
       await storage.updateCalendarConnection(connection.id, {
         accessToken: newAccessToken,
-        expiresAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+        expiresAt: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS,
       });
 
       logger.info("Successfully refreshed connection token", {
