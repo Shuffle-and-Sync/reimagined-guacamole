@@ -13,7 +13,7 @@ interface VirtualTournamentListProps {
   onExport: (tournament: Tournament) => void;
   formatGameName: (gameType: string | null) => string;
   getStatusBadgeVariant: (
-    status: string,
+    status: string | null,
   ) => "default" | "secondary" | "destructive" | "outline";
   containerHeight?: number;
   columnCount?: number;
