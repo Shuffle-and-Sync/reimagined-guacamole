@@ -11,7 +11,7 @@
  * @module GamePodSlotService
  */
 
-import { eq, and, isNull, or, sql, count, asc } from "drizzle-orm";
+import { eq, and, or, count, asc } from "drizzle-orm";
 import { db, withTransaction } from "@shared/database-unified";
 import { events, eventAttendees, gameSessions } from "@shared/schema";
 import type { EventAttendee, Event } from "@shared/schema";
