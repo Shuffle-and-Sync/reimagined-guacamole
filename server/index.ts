@@ -35,6 +35,7 @@ import {
   eventsRoutes,
   userEventsRouter,
   calendarEventsRouter,
+  eventReminderRoutes,
 } from "./features/events/events.routes";
 import { gamesRoutes } from "./features/games/games.routes";
 import {
@@ -351,6 +352,7 @@ server.listen(
   app.use("/api", gamesRoutes);
   app.use("/api/user/events", userEventsRouter);
   app.use("/api/calendar/events", calendarEventsRouter);
+  app.use("/api/users/reminder-settings", eventReminderRoutes);
   app.use("/api/user", usersRoutes);
   app.use("/api/friends", friendsRouter);
   app.use("/api/friend-requests", friendRequestsRouter);
@@ -889,6 +891,17 @@ server.listen(
     logger.info("Monitoring service started");
   } catch (error) {
     logger.warn("Failed to start monitoring service", error);
+  }
+
+  // Start event reminder job
+  try {
+    const { scheduleEventReminderJob } = await import(
+      "./jobs/event-reminder.job"
+    );
+    await scheduleEventReminderJob();
+    logger.info("Event reminder job scheduled");
+  } catch (error) {
+    logger.warn("Failed to schedule event reminder job", error);
   }
 
   // Start memory monitoring and integrate with alerting

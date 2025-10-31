@@ -3,6 +3,7 @@ import { db, withTransaction } from "@shared/database-unified";
 import { events, eventAttendees } from "@shared/schema";
 import type { EventAttendee } from "@shared/schema";
 import { logger } from "../../logger";
+import { eventReminderService } from "./event-reminder.service";
 
 /**
  * Registration result with status and optional waitlist information
@@ -150,6 +151,19 @@ export class EventRegistrationService {
             throw new Error("Failed to update registration");
           }
 
+          // Schedule event reminders for the user (only if confirmed)
+          if (newStatus === "confirmed") {
+            try {
+              await eventReminderService.scheduleReminders(eventId, [userId]);
+            } catch (error) {
+              logger.error("Failed to schedule event reminders", {
+                error: error instanceof Error ? error.message : String(error),
+                eventId,
+                userId,
+              });
+            }
+          }
+
           return {
             success: true,
             status: newStatus,
@@ -202,6 +216,20 @@ export class EventRegistrationService {
         status,
         waitlistPosition,
       });
+
+      // Schedule event reminders for the user (only if confirmed, not waitlisted)
+      if (status === "confirmed") {
+        try {
+          await eventReminderService.scheduleReminders(eventId, [userId]);
+        } catch (error) {
+          // Log error but don't fail the registration
+          logger.error("Failed to schedule event reminders", {
+            error: error instanceof Error ? error.message : String(error),
+            eventId,
+            userId,
+          });
+        }
+      }
 
       return {
         success: true,
@@ -261,6 +289,17 @@ export class EventRegistrationService {
         userId,
         previousStatus: attendee.status,
       });
+
+      // Cancel event reminders for this user
+      try {
+        await eventReminderService.cancelUserReminders(eventId, userId);
+      } catch (error) {
+        logger.error("Failed to cancel event reminders", {
+          error: error instanceof Error ? error.message : String(error),
+          eventId,
+          userId,
+        });
+      }
 
       // If user was confirmed, try to promote someone from waitlist
       let promoted: EventAttendee | undefined = undefined;
@@ -332,6 +371,19 @@ export class EventRegistrationService {
         userId: attendee.userId,
         previousPosition: attendee.waitlistPosition,
       });
+
+      // Schedule event reminders for the newly promoted user
+      try {
+        await eventReminderService.scheduleReminders(eventId, [
+          attendee.userId,
+        ]);
+      } catch (error) {
+        logger.error("Failed to schedule reminders for promoted attendee", {
+          error: error instanceof Error ? error.message : String(error),
+          eventId,
+          userId: attendee.userId,
+        });
+      }
 
       // Reorder remaining waitlist
       await this.reorderWaitlist(eventId);
