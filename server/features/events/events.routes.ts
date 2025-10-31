@@ -19,8 +19,11 @@ import {
 } from "../../rate-limiting";
 import { validateRequest, validateEventSchema } from "../../validation";
 import { eventRegistrationService } from "./event-registration.service";
+import eventReminderRoutes from "./event-reminder.routes";
 import { eventsService } from "./events.service";
 import { gamePodSlotService } from "./game-pod-slot.service";
+
+// Import and export reminder settings router
 
 const router = Router();
 
@@ -860,3 +863,4 @@ router.post(
     }
   },
 );
+export { eventReminderRoutes };

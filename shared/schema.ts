@@ -521,6 +521,77 @@ export const pushSubscriptions = sqliteTable(
   ],
 );
 
+// Event reminder user preferences
+export const eventReminderSettings = sqliteTable(
+  "event_reminder_settings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    eventType: text("event_type"), // Optional: specific event types like 'tournament', 'stream', etc. null means all events
+    reminderTimes: text("reminder_times").notNull().default("[60, 1440]"), // JSON array of minutes before event [60, 1440, 10080] = 1hr, 1day, 1week
+    channels: text("channels").notNull().default('["email", "in_app"]'), // JSON array: 'email', 'in_app', 'push'
+    isEnabled: integer("is_enabled", { mode: "boolean" }).default(true),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_event_reminder_settings_user").on(table.userId),
+    index("idx_event_reminder_settings_enabled").on(table.isEnabled),
+  ],
+);
+
+// Track scheduled reminders for events
+export const eventReminders = sqliteTable(
+  "event_reminders",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reminderTime: integer("reminder_time", { mode: "timestamp" }).notNull(), // When to send the reminder
+    minutesBefore: integer("minutes_before").notNull(), // How many minutes before event (e.g., 60, 1440, 10080)
+    channels: text("channels").notNull(), // JSON array of channels to use for this reminder
+    status: text("status").default("pending"), // 'pending', 'sent', 'failed', 'cancelled'
+    sentAt: integer("sent_at", { mode: "timestamp" }),
+    failureReason: text("failure_reason"),
+    notificationId: text("notification_id"), // Link to notification if sent
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_event_reminders_event").on(table.eventId),
+    index("idx_event_reminders_user").on(table.userId),
+    index("idx_event_reminders_time").on(table.reminderTime),
+    index("idx_event_reminders_status").on(table.status),
+    // Composite index for querying pending reminders due now
+    index("idx_event_reminders_status_time").on(
+      table.status,
+      table.reminderTime,
+    ),
+    // Unique constraint: one reminder per user/event/time combination
+    unique("unique_event_user_time").on(
+      table.eventId,
+      table.userId,
+      table.minutesBefore,
+    ),
+  ],
+);
+
 // ======================
 // GAME SESSION TABLES
 // ======================
@@ -3146,3 +3217,10 @@ export type UserMfaSettings = typeof userMfaSettings.$inferSelect;
 export type InsertUserMfaSettings = typeof userMfaSettings.$inferInsert;
 export type AuthAuditLog = typeof authAuditLog.$inferSelect;
 export type InsertAuthAuditLog = typeof authAuditLog.$inferInsert;
+
+// Event reminder types
+export type EventReminderSettings = typeof eventReminderSettings.$inferSelect;
+export type InsertEventReminderSettings =
+  typeof eventReminderSettings.$inferInsert;
+export type EventReminder = typeof eventReminders.$inferSelect;
+export type InsertEventReminder = typeof eventReminders.$inferInsert;
