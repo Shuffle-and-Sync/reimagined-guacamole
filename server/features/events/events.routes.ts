@@ -430,7 +430,7 @@ router.get(
       );
       res.status(500).json({ message: "Failed to get slot assignments" });
     }
-  }
+  },
 );
 
 // Assign user to player slot
@@ -505,6 +505,7 @@ router.post(
 router.post(
   "/:eventId/slots/promote/:slotPosition",
   isAuthenticated,
+  eventJoinRateLimit,
   async (req, res) => {
     try {
       const { eventId, slotPosition } = req.params;
@@ -537,43 +538,49 @@ router.post(
 );
 
 // Swap player positions
-router.post("/:eventId/slots/swap", isAuthenticated, async (req, res) => {
-  try {
-    const { eventId } = req.params;
-    const { userId1, userId2 } = req.body;
+router.post(
+  "/:eventId/slots/swap",
+  isAuthenticated,
+  eventJoinRateLimit,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { userId1, userId2 } = req.body;
 
-    if (!userId1 || !userId2) {
-      return res.status(400).json({ message: "Both user IDs are required" });
+      if (!userId1 || !userId2) {
+        return res.status(400).json({ message: "Both user IDs are required" });
+      }
+
+      const result = await gamePodSlotService.swapPlayerPositions(
+        eventId,
+        userId1,
+        userId2,
+      );
+
+      // Invalidate relevant caches
+      await cacheInvalidation.invalidateEvent(eventId);
+
+      res.json(result);
+    } catch (error) {
+      logger.error(
+        "Failed to swap player positions",
+        error instanceof Error ? error : new Error(String(error)),
+        { eventId: req.params.eventId },
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to swap player positions";
+      res.status(400).json({ message: errorMessage });
     }
-
-    const result = await gamePodSlotService.swapPlayerPositions(
-      eventId,
-      userId1,
-      userId2,
-    );
-
-    // Invalidate relevant caches
-    await cacheInvalidation.invalidateEvent(eventId);
-
-    res.json(result);
-  } catch (error) {
-    logger.error(
-      "Failed to swap player positions",
-      error instanceof Error ? error : new Error(String(error)),
-      { eventId: req.params.eventId },
-    );
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to swap player positions";
-    res.status(400).json({ message: errorMessage });
-  }
-});
+  },
+);
 
 // Remove player from slot
 router.delete(
   "/:eventId/slots/player/:userId",
   isAuthenticated,
+  eventJoinRateLimit,
   async (req, res) => {
     try {
       const { eventId, userId } = req.params;
