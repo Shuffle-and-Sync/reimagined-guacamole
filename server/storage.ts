@@ -2284,7 +2284,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.creatorId, userId))
-      .orderBy(events.startTime);
+      .orderBy(asc(events.startTime));
   }
 
   async getEventAttendeesByEventIds(
