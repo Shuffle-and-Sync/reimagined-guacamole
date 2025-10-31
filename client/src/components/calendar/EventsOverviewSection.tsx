@@ -1,8 +1,16 @@
+import { lazy, Suspense } from "react";
 import type { Event, Community } from "@shared/schema";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
 import type { AuthUser } from "@/features/auth/types";
 import { TodayEvents } from "./TodayEvents";
 import { UpcomingEvents } from "./UpcomingEvents";
-import { VirtualEventList } from "./VirtualEventList";
+
+// Lazy load VirtualEventList since it's only needed for large lists (>50 events)
+const VirtualEventList = lazy(() =>
+  import("./VirtualEventList").then((m) => ({
+    default: m.VirtualEventList,
+  })),
+);
 
 type ExtendedEvent = Event & {
   creator: unknown;
@@ -71,18 +79,33 @@ export function EventsOverviewSection({
           <h2 className="text-2xl font-bold mb-4 community-heading">
             Upcoming {eventsTerminology}
           </h2>
-          <VirtualEventList
-            events={upcomingEvents}
-            eventTypes={eventTypes}
-            user={user}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onJoinLeave={onJoinLeave}
-            onGenerateGraphics={onGenerateGraphics}
-            onLoginRequired={onLoginRequired}
-            containerHeight={800}
-            estimatedItemHeight={120}
-          />
+          <LazyLoadErrorBoundary>
+            <Suspense
+              fallback={
+                <div className="animate-pulse space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-32 bg-gray-200 dark:bg-gray-700 rounded"
+                    />
+                  ))}
+                </div>
+              }
+            >
+              <VirtualEventList
+                events={upcomingEvents}
+                eventTypes={eventTypes}
+                user={user}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onJoinLeave={onJoinLeave}
+                onGenerateGraphics={onGenerateGraphics}
+                onLoginRequired={onLoginRequired}
+                containerHeight={800}
+                estimatedItemHeight={120}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </div>
       ) : (
         <UpcomingEvents

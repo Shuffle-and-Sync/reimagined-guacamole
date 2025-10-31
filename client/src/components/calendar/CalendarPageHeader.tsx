@@ -1,8 +1,17 @@
+import { lazy, Suspense } from "react";
 import type { Community } from "@shared/schema";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
+import { FormSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EventFormDialog } from "./forms/EventFormDialog";
 import type { EventFormData } from "./forms/eventFormSchema";
+
+// Lazy load the event form dialog
+const EventFormDialog = lazy(() =>
+  import("./forms/EventFormDialog").then((m) => ({
+    default: m.EventFormDialog,
+  })),
+);
 
 interface EventType {
   id: string;
@@ -85,17 +94,21 @@ export function CalendarPageHeader({
             <i className="fas fa-file-csv mr-2"></i>
             Bulk Upload
           </Button>
-          <EventFormDialog
-            isOpen={isCreateDialogOpen}
-            onOpenChange={onCreateDialogOpenChange}
-            onSubmit={onEventSubmit}
-            editingEventId={editingEventId}
-            communities={communities}
-            eventTypes={eventTypes}
-            selectedCommunityId={selectedCommunity?.id}
-            defaultValues={editingEventData}
-            isSubmitting={isSubmitting}
-          />
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<FormSkeleton fields={4} />}>
+              <EventFormDialog
+                isOpen={isCreateDialogOpen}
+                onOpenChange={onCreateDialogOpenChange}
+                onSubmit={onEventSubmit}
+                editingEventId={editingEventId}
+                communities={communities}
+                eventTypes={eventTypes}
+                selectedCommunityId={selectedCommunity?.id}
+                defaultValues={editingEventData}
+                isSubmitting={isSubmitting}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </div>
       </div>
     </div>
