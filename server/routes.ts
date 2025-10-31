@@ -15,6 +15,7 @@ import {
 } from "./auth";
 import { sendContactEmail } from "./email";
 import authRouter from "./features/auth/auth.routes";
+import calendarSyncRouter from "./features/calendar-sync/calendar-sync.routes";
 import { cardRecognitionRoutes } from "./features/cards/cards.routes";
 import { universalCardRoutes } from "./features/cards/universal-cards.routes";
 import { gamesCrudRoutes } from "./features/games/games-crud.routes";
@@ -115,6 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes - authentication, MFA, tokens, password reset, registration (from features/auth)
   app.use("/api/auth", authRouter);
+
+  // Calendar sync routes - Google Calendar and Outlook Calendar integration
+  app.use("/api/calendar-sync", calendarSyncRouter);
 
   // Session management routes - device fingerprints, security assessment
   app.use("/api/sessions", sessionsRouter);
