@@ -588,6 +588,7 @@ router.get("/:eventId/waitlist", async (req, res) => {
 // Promote user from waitlist (admin/organizer only)
 router.post(
   "/:eventId/waitlist/:userId/promote",
+  eventBulkOperationsRateLimit,
   isAuthenticated,
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
