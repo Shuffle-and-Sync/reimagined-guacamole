@@ -106,10 +106,11 @@ export class ConflictDetectionService {
       }
 
       // Check attendee conflicts - attendees can't attend overlapping events
-      for (const attendeeId of attendeeIds) {
-        const attendeeEvents = await storage.getUserEventAttendance(attendeeId);
+      if (attendeeIds.length > 0) {
+        // Batch fetch all attendances for all attendees
+        const allAttendances = await storage.getUsersEventAttendance(attendeeIds);
 
-        for (const attendance of attendeeEvents) {
+        for (const attendance of allAttendances) {
           const event = attendance.event;
 
           // Skip the event being updated
