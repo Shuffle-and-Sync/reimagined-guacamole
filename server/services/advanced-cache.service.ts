@@ -66,7 +66,7 @@ export class AdvancedCacheService {
 
       return cachedData.data;
     } catch (error) {
-      logger.error("Error parsing cached data", { key, error });
+      logger.error("Error parsing cached data", error, { key });
       // Fallback to fresh fetch
       const data = await fetchFn();
       await this.set(key, data, options);
