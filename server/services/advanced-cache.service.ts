@@ -52,7 +52,9 @@ export class AdvancedCacheService {
         return data;
       }
 
-      const cachedData: CachedData<T> = JSON.parse(cached);
+      // Ensure cached is a string before parsing
+      const cachedString = typeof cached === "string" ? cached : String(cached);
+      const cachedData: CachedData<T> = JSON.parse(cachedString);
       const now = Date.now();
 
       // Check if data is stale
