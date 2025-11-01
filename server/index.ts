@@ -379,6 +379,13 @@ server.listen(
   // Register admin routes
   app.use("/api/admin", adminRoutes);
 
+  // Register static assets middleware for CDN-optimized serving
+  // This middleware serves files from /static with proper cache headers
+  const { staticAssetsMiddleware } = await import(
+    "./middleware/static-assets.middleware"
+  );
+  app.use(staticAssetsMiddleware());
+
   // Email verification endpoints (moved from routes.ts to avoid Auth.js conflicts)
   app.post(
     "/api/email/send-verification-email",
