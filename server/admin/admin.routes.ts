@@ -7,8 +7,6 @@ import { assertRouteParam } from "../shared/utils";
 import { storage } from "../storage";
 import {
   requirePermission,
-  requireAllPermissions,
-  requireAnyPermission,
   requireAdmin,
   auditAdminAction,
   comprehensiveAuditLogging,
@@ -2011,6 +2009,81 @@ router.get(
         },
       );
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
+      return;
+    }
+  },
+);
+
+// ===== CACHE MANAGEMENT =====
+
+// Get cache statistics
+router.get(
+  "/cache/stats",
+  requirePermission(ADMIN_PERMISSIONS.VIEW_SYSTEM),
+  async (req, res): Promise<void> => {
+    try {
+      const { advancedCache } = await import(
+        "../services/advanced-cache.service"
+      );
+      const stats = await advancedCache.getStats();
+
+      res.json({
+        cache: stats,
+        revalidationQueueSize: advancedCache.getRevalidationQueueSize(),
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error(
+        "Error fetching cache stats",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "fetching_cache_stats",
+        },
+      );
+      res.status(500).json({ message: "Failed to fetch cache stats" });
+      return;
+    }
+  },
+);
+
+// Clear cache by pattern
+router.post(
+  "/cache/invalidate",
+  requirePermission(ADMIN_PERMISSIONS.MANAGE_SYSTEM),
+  auditAdminAction("cache_invalidated"),
+  async (req, res): Promise<void> => {
+    try {
+      const { pattern } = req.body;
+
+      if (!pattern || typeof pattern !== "string") {
+        res.status(400).json({
+          message: "Pattern is required",
+          errors: [{ message: "Pattern must be a non-empty string" }],
+        });
+        return;
+      }
+
+      const { advancedCache } = await import(
+        "../services/advanced-cache.service"
+      );
+      const count = await advancedCache.invalidatePattern(pattern);
+
+      res.json({
+        message: "Cache invalidated successfully",
+        keysInvalidated: count,
+        pattern,
+      });
+    } catch (error) {
+      logger.error(
+        "Error invalidating cache",
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          userId: getAuthUserId(req),
+          operation: "invalidating_cache",
+        },
+      );
+      res.status(500).json({ message: "Failed to invalidate cache" });
       return;
     }
   },

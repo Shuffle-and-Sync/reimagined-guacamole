@@ -155,6 +155,7 @@ export default [
       "vite.config.ts.*",
       "generated/**",
       "**/*.d.ts",
+      "public/**",
     ],
   },
 
