@@ -245,6 +245,15 @@ export class SessionAccessService {
       }
 
       if (new Date() > invitation.expiresAt) {
+        // Mark invitation as expired in the database
+        await db
+          .update(sessionInvitations)
+          .set({
+            status: "expired",
+            respondedAt: new Date(),
+          })
+          .where(eq(sessionInvitations.id, invitationId));
+
         throw new Error("Invitation has expired");
       }
 

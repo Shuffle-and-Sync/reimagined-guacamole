@@ -9,15 +9,8 @@
  * - Error scenarios
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  jest,
-} from "@jest/globals";
-import { eq, and } from "drizzle-orm";
+import { describe, it, expect, afterEach, jest } from "@jest/globals";
+import { eq } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { userBans } from "@shared/schema";
 import { banService } from "../../features/moderation/ban.service";
@@ -196,21 +189,20 @@ describe("BanService", () => {
     });
 
     it("should handle database errors gracefully", async () => {
-      // Mock db query to throw error
-      const originalSelect = db.select;
-      db.select = jest.fn().mockReturnValue({
+      // Mock db.select to throw error deep in the query chain
+      const selectSpy = jest.spyOn(db, "select").mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
             limit: jest.fn().mockRejectedValue(new Error("Database error")),
           }),
         }),
-      });
+      } as any);
 
       const result = await banService.isUserBanned("error-user");
       expect(result.banned).toBe(false); // Fail open
 
-      // Restore
-      db.select = originalSelect;
+      // Restore is automatic with jest.spyOn
+      selectSpy.mockRestore();
     });
   });
 
@@ -358,17 +350,16 @@ describe("BanService", () => {
     });
 
     it("should handle database errors gracefully", async () => {
-      const originalSelect = db.select;
-      db.select = jest.fn().mockReturnValue({
+      const selectSpy = jest.spyOn(db, "select").mockReturnValue({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockRejectedValue(new Error("Database error")),
         }),
-      });
+      } as any);
 
       const bans = await banService.getUserBans("error-user");
       expect(bans).toEqual([]);
 
-      db.select = originalSelect;
+      selectSpy.mockRestore();
     });
   });
 

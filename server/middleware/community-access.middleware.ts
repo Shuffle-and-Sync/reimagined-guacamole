@@ -13,8 +13,9 @@ import type { Request, Response, NextFunction } from "express";
 
 export interface CommunityAccessOptions {
   communityIdParam?: string;
-  requireRole?: "owner" | "moderator" | "member";
-  allowPublic?: boolean; // Allow access to public communities even without membership
+  // Note: The following options are defined for future enhancement but not currently implemented
+  // requireRole?: "owner" | "moderator" | "member";
+  // allowPublic?: boolean;
 }
 
 /**
@@ -50,8 +51,7 @@ export function checkCommunityAccess(options: CommunityAccessOptions = {}) {
       }
 
       // Check if public access is allowed
-      // Note: Current schema doesn't have a "type" field, so we skip this check
-      // If public access is needed, add a "type" or "isPublic" field to communities table
+      // Note: Future enhancement - requires adding "type" or "isPublic" field to communities table
 
       // Check membership
       const membership = await db.query.userCommunities.findFirst({
@@ -73,9 +73,7 @@ export function checkCommunityAccess(options: CommunityAccessOptions = {}) {
       }
 
       // Check role requirements if specified
-      // Note: Current userCommunities schema doesn't have a "role" field
-      // If role-based access is needed, add a "role" field to userCommunities table
-      // For now, we just verify membership exists
+      // Note: Future enhancement - requires adding "role" field to userCommunities table
 
       // Attach membership to request for use in controllers
       req.communityMembership = membership;

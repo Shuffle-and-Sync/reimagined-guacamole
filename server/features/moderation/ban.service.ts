@@ -109,12 +109,28 @@ export class BanService {
    */
   async liftBan(banId: string, liftedBy: string): Promise<void> {
     try {
+      // Fetch the existing ban to preserve previous notes
+      const [existingBan] = await db
+        .select()
+        .from(userBans)
+        .where(eq(userBans.id, banId));
+
+      if (!existingBan) {
+        throw new Error(`Ban ${banId} not found`);
+      }
+
+      const previousNotes = existingBan.notes ?? "";
+      const liftedNote = `Lifted by ${liftedBy} at ${new Date().toISOString()}`;
+      const newNotes = previousNotes
+        ? `${previousNotes}\n${liftedNote}`
+        : liftedNote;
+
       await db
         .update(userBans)
         .set({
           isActive: false,
           updatedAt: new Date(),
-          notes: `Lifted by ${liftedBy}`,
+          notes: newNotes,
         })
         .where(eq(userBans.id, banId));
 

@@ -815,7 +815,12 @@ export const sessionInvitations = sqliteTable(
       table.sessionId,
       table.status,
     ),
-    unique("unique_session_invitee").on(table.sessionId, table.inviteeId),
+    // Allow multiple invitations per user/session combo if previous was declined/expired
+    unique("unique_session_invitee_pending").on(
+      table.sessionId,
+      table.inviteeId,
+      table.status,
+    ),
   ],
 );
 
