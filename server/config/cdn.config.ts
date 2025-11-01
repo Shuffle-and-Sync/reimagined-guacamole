@@ -17,18 +17,31 @@ export type CDNProvider = "cloudflare" | "cloudfront" | "fastly";
  * CDN configuration interface
  */
 export interface CDNConfig {
+  enabled: boolean;
   provider: CDNProvider;
   baseUrl: string;
+  assetPath: string;
   staticAssets: string[];
   cacheControl: Record<string, string>;
+  cacheTTL: {
+    images: number;
+    scripts: number;
+    styles: number;
+    fonts: number;
+  };
 }
 
 /**
  * CDN configuration
  */
 export const cdnConfig: CDNConfig = {
+  enabled: process.env.CDN_ENABLED === "true",
   provider: (process.env.CDN_PROVIDER as CDNProvider) || "cloudflare",
-  baseUrl: process.env.CDN_URL || "https://cdn.shufflesync.com",
+  baseUrl:
+    process.env.CDN_BASE_URL ||
+    process.env.CDN_URL ||
+    "https://cdn.shufflesync.com",
+  assetPath: "/static",
 
   // Asset types to serve from CDN
   staticAssets: ["/images/*", "/css/*", "/js/*", "/fonts/*", "/assets/*"],
@@ -41,7 +54,39 @@ export const cdnConfig: CDNConfig = {
     fonts: "public, max-age=31536000, immutable",
     html: "public, max-age=3600", // 1 hour
   },
+
+  // Cache TTL in seconds for different asset types
+  cacheTTL: {
+    images: 31536000, // 1 year (immutable)
+    scripts: 31536000, // 1 year (immutable, versioned)
+    styles: 31536000, // 1 year (immutable, versioned)
+    fonts: 31536000, // 1 year (immutable)
+  },
 };
+
+/**
+ * Get the full CDN URL for an asset
+ */
+export function getCDNUrl(assetPath: string): string {
+  if (!cdnConfig.enabled) {
+    return assetPath;
+  }
+
+  // Remove leading slash if present
+  const cleanPath = assetPath.startsWith("/") ? assetPath.slice(1) : assetPath;
+
+  return `${cdnConfig.baseUrl}${cdnConfig.assetPath}/${cleanPath}`;
+}
+
+/**
+ * Get cache control header for asset type
+ */
+export function getCacheControlHeader(
+  assetType: keyof typeof cdnConfig.cacheTTL,
+): string {
+  const ttl = cdnConfig.cacheTTL[assetType];
+  return `public, max-age=${ttl}, immutable`;
+}
 
 /**
  * Check if a URL matches CDN asset patterns

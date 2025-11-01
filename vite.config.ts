@@ -43,6 +43,11 @@ export default defineConfig({
     },
   },
   root: path.resolve(projectRoot, "client"),
+  // CDN support - use CDN base URL if configured
+  base:
+    process.env.CDN_ENABLED === "true"
+      ? (process.env.CDN_BASE_URL || process.env.CDN_URL || "") + "/static/"
+      : "/",
   build: {
     outDir: path.resolve(projectRoot, "dist/public"),
     emptyOutDir: true,
@@ -74,11 +79,11 @@ export default defineConfig({
           // Icons and animations
           "visual-vendor": ["lucide-react", "framer-motion"],
         },
-        // Optimize asset file names
+        // Optimize asset file names with hash for cache busting
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split(".") || [];
           const ext = info[info.length - 1];
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext || "")) {
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp/i.test(ext || "")) {
             return `assets/images/[name]-[hash][extname]`;
           } else if (/woff|woff2|eot|ttf|otf/i.test(ext || "")) {
             return `assets/fonts/[name]-[hash][extname]`;
@@ -98,6 +103,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ["react", "react-dom", "@tanstack/react-query", "wouter"],
   },
+  // Copy public directory (including service worker and offline page)
+  publicDir: path.resolve(projectRoot, "public"),
   server: {
     fs: {
       strict: true,
