@@ -45,7 +45,7 @@ class CacheInvalidationEmitter extends EventEmitter {
           });
         }
       } catch (error) {
-        logger.error("Error invalidating cache pattern", { event, error });
+        logger.error("Error invalidating cache pattern", error, { event });
       }
     });
   }
