@@ -98,7 +98,7 @@ export class AdvancedCacheService {
 
       await this.redis.setEx(key, options.ttl, JSON.stringify(cachedData));
     } catch (error) {
-      logger.error("Error setting cache", { key, error });
+      logger.error("Error setting cache", error, { key });
     }
   }
 
