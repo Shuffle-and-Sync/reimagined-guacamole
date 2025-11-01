@@ -3,17 +3,27 @@ import express, { Response } from "express";
 import { getCacheControlHeader } from "../config/cdn.config";
 
 /**
+ * Get the public directory path relative to the build output
+ */
+const getPublicDir = () => {
+  // In production, dist/index.js serves from dist/public
+  // In development, this middleware isn't typically used
+  return path.join(process.cwd(), "dist", "public");
+};
+
+/**
  * Static Assets Middleware
  *
  * Serves static files with appropriate cache headers for CDN optimization
  */
 export function staticAssetsMiddleware() {
   const router = express.Router();
+  const publicDir = getPublicDir();
 
   // Serve static files with appropriate cache headers
   router.use(
     "/static",
-    express.static(path.join(__dirname, "../../dist/public"), {
+    express.static(publicDir, {
       maxAge: 0, // Let CDN handle caching
       etag: true,
       lastModified: true,

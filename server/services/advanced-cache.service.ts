@@ -18,6 +18,8 @@ interface CachedData<T> {
  * Advanced Cache Service with stale-while-revalidate strategy
  */
 export class AdvancedCacheService {
+  private static readonly DEFAULT_STALE_TIME_RATIO = 0.8;
+
   private redis: RedisClientType | null;
   private revalidationQueue: Map<string, Promise<unknown>>;
 
@@ -84,7 +86,9 @@ export class AdvancedCacheService {
 
     try {
       const now = Date.now();
-      const staleTime = options.staleTime || options.ttl * 0.8; // 80% of TTL by default
+      const staleTime =
+        options.staleTime ||
+        options.ttl * AdvancedCacheService.DEFAULT_STALE_TIME_RATIO;
 
       const cachedData: CachedData<T> = {
         data,
