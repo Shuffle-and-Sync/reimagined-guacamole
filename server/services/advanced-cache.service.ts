@@ -66,7 +66,7 @@ export class AdvancedCacheService {
 
       return cachedData.data;
     } catch (error) {
-      logger.error("Error parsing cached data", error, { key });
+      logger.error("Error parsing cached data", error as Error, { key });
       // Fallback to fresh fetch
       const data = await fetchFn();
       await this.set(key, data, options);
@@ -98,7 +98,7 @@ export class AdvancedCacheService {
 
       await this.redis.setEx(key, options.ttl, JSON.stringify(cachedData));
     } catch (error) {
-      logger.error("Error setting cache", error, { key });
+      logger.error("Error setting cache", error as Error, { key });
     }
   }
 
@@ -122,7 +122,10 @@ export class AdvancedCacheService {
         await this.set(key, freshData, options);
         logger.debug(`Cache revalidated for key: ${key}`);
       } catch (error) {
-        logger.error(`Error revalidating cache for key: ${key}`, error);
+        logger.error(
+          `Error revalidating cache for key: ${key}`,
+          error as Error,
+        );
       } finally {
         this.revalidationQueue.delete(key);
       }
@@ -144,7 +147,9 @@ export class AdvancedCacheService {
       }
       return await this.redis.del(keys);
     } catch (error) {
-      logger.error("Error invalidating cache pattern", { pattern, error });
+      logger.error("Error invalidating cache pattern", error as Error, {
+        pattern,
+      });
       return 0;
     }
   }
@@ -158,7 +163,7 @@ export class AdvancedCacheService {
     try {
       return await this.redis.del(key);
     } catch (error) {
-      logger.error("Error invalidating cache key", { key, error });
+      logger.error("Error invalidating cache key", error as Error, { key });
       return 0;
     }
   }
@@ -196,7 +201,7 @@ export class AdvancedCacheService {
         hitRate: Math.round(hitRate * 100) / 100,
       };
     } catch (error) {
-      logger.error("Error getting cache stats", error);
+      logger.error("Error getting cache stats", error as Error);
       return {
         totalKeys: 0,
         memoryUsage: "0B",

@@ -31,7 +31,7 @@ class CacheInvalidationEmitter extends EventEmitter {
           });
         }
       } catch (error) {
-        logger.error("Error invalidating cache", { event, error });
+        logger.error("Error invalidating cache", error as Error, { event });
       }
     });
 
@@ -45,7 +45,9 @@ class CacheInvalidationEmitter extends EventEmitter {
           });
         }
       } catch (error) {
-        logger.error("Error invalidating cache pattern", error, { event });
+        logger.error("Error invalidating cache pattern", error as Error, {
+          event,
+        });
       }
     });
   }
