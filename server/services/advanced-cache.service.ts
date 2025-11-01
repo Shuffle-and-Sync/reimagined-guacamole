@@ -122,7 +122,7 @@ export class AdvancedCacheService {
         await this.set(key, freshData, options);
         logger.debug(`Cache revalidated for key: ${key}`);
       } catch (error) {
-        logger.error(`Error revalidating cache for key: ${key}`, { error });
+        logger.error(`Error revalidating cache for key: ${key}`, error);
       } finally {
         this.revalidationQueue.delete(key);
       }
