@@ -196,7 +196,7 @@ export class AdvancedCacheService {
         hitRate: Math.round(hitRate * 100) / 100,
       };
     } catch (error) {
-      logger.error("Error getting cache stats", { error });
+      logger.error("Error getting cache stats", error);
       return {
         totalKeys: 0,
         memoryUsage: "0B",
