@@ -723,6 +723,20 @@ export const gameSessions = sqliteTable(
     coHostId: text("co_host_id").references(() => users.id),
     boardState: text("board_state"), // JSON string
     gameData: text("game_data"), // JSON string
+    // Session access control fields
+    visibility: text("visibility", {
+      enum: ["public", "private", "invite_only", "community_only"],
+    })
+      .default("public")
+      .notNull(),
+    password: text("password"), // Hashed password for password-protected sessions
+    allowSpectators: integer("allow_spectators", { mode: "boolean" })
+      .default(true)
+      .notNull(),
+    maxSpectators: integer("max_spectators").default(10),
+    requireApproval: integer("require_approval", { mode: "boolean" })
+      .default(false)
+      .notNull(),
     startedAt: integer("started_at", { mode: "timestamp" }),
     endedAt: integer("ended_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
@@ -747,6 +761,61 @@ export const gameSessions = sqliteTable(
       table.status,
       table.createdAt,
     ),
+    // Indexes for session access control
+    index("idx_game_sessions_visibility").on(table.visibility),
+    index("idx_game_sessions_community_visibility").on(
+      table.communityId,
+      table.visibility,
+    ),
+  ],
+);
+
+// Session invitations table - for invite-only sessions
+export const sessionInvitations = sqliteTable(
+  "session_invitations",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => gameSessions.id, { onDelete: "cascade" }),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    inviteeId: text("invitee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["player", "spectator"] })
+      .default("player")
+      .notNull(),
+    status: text("status", {
+      enum: ["pending", "accepted", "declined", "expired"],
+    })
+      .default("pending")
+      .notNull(),
+    message: text("message"),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    respondedAt: integer("responded_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_session_invitations_session").on(table.sessionId),
+    index("idx_session_invitations_inviter").on(table.inviterId),
+    index("idx_session_invitations_invitee").on(table.inviteeId),
+    index("idx_session_invitations_status").on(table.status),
+    // Composite indexes for common queries
+    index("idx_session_invitations_invitee_status").on(
+      table.inviteeId,
+      table.status,
+    ),
+    index("idx_session_invitations_session_status").on(
+      table.sessionId,
+      table.status,
+    ),
+    unique("unique_session_invitee").on(table.sessionId, table.inviteeId),
   ],
 );
 
@@ -1334,6 +1403,51 @@ export const moderationActions = sqliteTable(
       table.action,
       table.isActive,
     ),
+  ],
+);
+
+// ===============================
+// USER BAN SYSTEM
+// ===============================
+
+// User bans table - comprehensive ban management system
+export const userBans = sqliteTable(
+  "user_bans",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bannedBy: text("banned_by")
+      .notNull()
+      .references(() => users.id),
+    reason: text("reason").notNull(),
+    scope: text("scope", {
+      enum: ["global", "community", "game_session"],
+    }).notNull(),
+    scopeId: text("scope_id"), // Community ID or Session ID if scoped
+    startTime: integer("start_time", { mode: "timestamp" }).notNull(),
+    endTime: integer("end_time", { mode: "timestamp" }), // null = permanent
+    isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
+    notes: text("notes"),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+  },
+  (table) => [
+    index("idx_user_bans_user_id").on(table.userId),
+    index("idx_user_bans_scope").on(table.scope),
+    index("idx_user_bans_scope_id").on(table.scopeId),
+    index("idx_user_bans_active").on(table.isActive),
+    index("idx_user_bans_end_time").on(table.endTime),
+    // Composite index for active ban queries
+    index("idx_user_bans_user_active").on(table.userId, table.isActive),
+    index("idx_user_bans_scope_scope_id").on(table.scope, table.scopeId),
   ],
 );
 
@@ -3037,6 +3151,29 @@ export const insertModerationActionSchema = createInsertSchema(
   createdAt: true,
 });
 
+// Security enhancement insert schemas
+export const insertUserBanSchema = createInsertSchema(userBans, {
+  reason: z.string().min(1).max(500),
+  scope: z.enum(["global", "community", "game_session"]),
+  notes: z.string().max(1000).optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSessionInvitationSchema = createInsertSchema(
+  sessionInvitations,
+  {
+    role: z.enum(["player", "spectator"]),
+    status: z.enum(["pending", "accepted", "declined", "expired"]),
+    message: z.string().max(500).optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertModerationQueueSchema = createInsertSchema(
   moderationQueue,
 ).omit({
@@ -3291,6 +3428,14 @@ export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type InsertRefreshToken = typeof refreshTokens.$inferInsert;
 export type RevokedJwtToken = typeof revokedJwtTokens.$inferSelect;
 export type InsertRevokedJwtToken = typeof revokedJwtTokens.$inferInsert;
+
+// Security enhancement types
+export type UserBan = typeof userBans.$inferSelect;
+export type InsertUserBan = z.infer<typeof insertUserBanSchema>;
+export type SessionInvitation = typeof sessionInvitations.$inferSelect;
+export type InsertSessionInvitation = z.infer<
+  typeof insertSessionInvitationSchema
+>;
 
 // Additional commonly used types that were missing
 export type UserCommunity = typeof userCommunities.$inferSelect;
