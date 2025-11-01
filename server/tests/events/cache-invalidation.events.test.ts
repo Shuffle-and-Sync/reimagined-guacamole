@@ -1,22 +1,26 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { cacheInvalidation } from "../events/cache-invalidation.events";
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 
 // Mock the advanced cache service
-vi.mock("../services/advanced-cache.service", () => ({
+jest.mock("../../services/advanced-cache.service", () => ({
   advancedCache: {
-    invalidate: vi.fn().mockResolvedValue(1),
-    invalidatePattern: vi.fn().mockResolvedValue(5),
+    invalidate: jest.fn().mockResolvedValue(1),
+    invalidatePattern: jest.fn().mockResolvedValue(5),
   },
 }));
 
 describe("CacheInvalidationEmitter", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  let cacheInvalidation: typeof import("../../events/cache-invalidation.events").cacheInvalidation;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    // Dynamically import to ensure mock is applied
+    const module = await import("../../events/cache-invalidation.events");
+    cacheInvalidation = module.cacheInvalidation;
   });
 
   it("should invalidate a specific key", async () => {
     const { advancedCache } = await import(
-      "../services/advanced-cache.service"
+      "../../services/advanced-cache.service"
     );
 
     cacheInvalidation.invalidateKey("test:key", "Test reason");
@@ -29,7 +33,7 @@ describe("CacheInvalidationEmitter", () => {
 
   it("should invalidate keys by pattern", async () => {
     const { advancedCache } = await import(
-      "../services/advanced-cache.service"
+      "../../services/advanced-cache.service"
     );
 
     cacheInvalidation.invalidatePattern("test:*", "Test pattern reason");
@@ -42,7 +46,7 @@ describe("CacheInvalidationEmitter", () => {
 
   it("should handle multiple invalidations", async () => {
     const { advancedCache } = await import(
-      "../services/advanced-cache.service"
+      "../../services/advanced-cache.service"
     );
 
     cacheInvalidation.invalidateKey("key1");

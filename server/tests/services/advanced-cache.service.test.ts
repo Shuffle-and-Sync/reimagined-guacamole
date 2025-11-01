@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { AdvancedCacheService } from "../services/advanced-cache.service";
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { AdvancedCacheService } from "../../services/advanced-cache.service";
 import type { RedisClientType } from "redis";
 
 // Mock Redis client
@@ -7,30 +7,31 @@ const createMockRedis = () => {
   const store = new Map<string, { value: string; ttl: number }>();
 
   return {
-    get: vi.fn(async (key: string) => {
+    get: jest.fn(async (key: string) => {
       const item = store.get(key);
       return item ? item.value : null;
     }),
-    setEx: vi.fn(async (key: string, ttl: number, value: string) => {
+    setEx: jest.fn(async (key: string, ttl: number, value: string) => {
       store.set(key, { value, ttl });
       return "OK";
     }),
-    del: vi.fn(async (...keys: string[]) => {
+    del: jest.fn(async (keys: string | string[]) => {
       let deleted = 0;
-      keys.forEach((key) => {
+      const keyArray = Array.isArray(keys) ? keys : [keys];
+      keyArray.forEach((key) => {
         if (store.delete(key)) deleted++;
       });
       return deleted;
     }),
-    keys: vi.fn(async (pattern: string) => {
+    keys: jest.fn(async (pattern: string) => {
       const regex = new RegExp(pattern.replace(/\*/g, ".*"));
       return Array.from(store.keys()).filter((key) => regex.test(key));
     }),
-    info: vi.fn(
+    info: jest.fn(
       async () =>
         "keyspace_hits:100\nkeyspace_misses:20\nused_memory_human:1.5M",
     ),
-    dbSize: vi.fn(async () => store.size),
+    dbSize: jest.fn(async () => store.size),
     clear: () => store.clear(),
     getStore: () => store,
   } as unknown as RedisClientType & {
@@ -46,12 +47,12 @@ describe("AdvancedCacheService", () => {
   beforeEach(() => {
     mockRedis = createMockRedis();
     cacheService = new AdvancedCacheService(mockRedis);
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe("getStaleWhileRevalidate", () => {
     it("should fetch fresh data on cache miss", async () => {
-      const fetchFn = vi.fn().mockResolvedValue({ data: "fresh" });
+      const fetchFn = jest.fn().mockResolvedValue({ data: "fresh" });
 
       const result = await cacheService.getStaleWhileRevalidate(
         "test-key",
@@ -72,11 +73,11 @@ describe("AdvancedCacheService", () => {
         staleAt: now + 60000, // Fresh for 60s
       };
 
-      (mockRedis.get as ReturnType<typeof vi.fn>).mockResolvedValue(
+      (mockRedis.get as ReturnType<typeof jest.fn>).mockResolvedValue(
         JSON.stringify(cachedData),
       );
 
-      const fetchFn = vi.fn().mockResolvedValue({ value: "fresh" });
+      const fetchFn = jest.fn().mockResolvedValue({ value: "fresh" });
 
       const result = await cacheService.getStaleWhileRevalidate(
         "test-key",
@@ -96,11 +97,11 @@ describe("AdvancedCacheService", () => {
         staleAt: now - 10000, // Stale
       };
 
-      (mockRedis.get as ReturnType<typeof vi.fn>).mockResolvedValue(
+      (mockRedis.get as ReturnType<typeof jest.fn>).mockResolvedValue(
         JSON.stringify(cachedData),
       );
 
-      const fetchFn = vi.fn().mockResolvedValue({ value: "fresh" });
+      const fetchFn = jest.fn().mockResolvedValue({ value: "fresh" });
 
       const result = await cacheService.getStaleWhileRevalidate(
         "test-key",
@@ -119,11 +120,11 @@ describe("AdvancedCacheService", () => {
     });
 
     it("should fallback to fresh fetch on parse error", async () => {
-      (mockRedis.get as ReturnType<typeof vi.fn>).mockResolvedValue(
+      (mockRedis.get as ReturnType<typeof jest.fn>).mockResolvedValue(
         "invalid-json",
       );
 
-      const fetchFn = vi.fn().mockResolvedValue({ value: "fresh" });
+      const fetchFn = jest.fn().mockResolvedValue({ value: "fresh" });
 
       const result = await cacheService.getStaleWhileRevalidate(
         "test-key",
@@ -137,7 +138,7 @@ describe("AdvancedCacheService", () => {
 
     it("should work without Redis available", async () => {
       const serviceWithoutRedis = new AdvancedCacheService(null);
-      const fetchFn = vi.fn().mockResolvedValue({ value: "fresh" });
+      const fetchFn = jest.fn().mockResolvedValue({ value: "fresh" });
 
       const result = await serviceWithoutRedis.getStaleWhileRevalidate(
         "test-key",
@@ -159,14 +160,25 @@ describe("AdvancedCacheService", () => {
       store.set("user:456:profile", { value: "data2", ttl: 60 });
       store.set("game:789", { value: "data3", ttl: 60 });
 
+      // Mock keys to return matching keys
+      (mockRedis.keys as ReturnType<typeof jest.fn>).mockResolvedValue([
+        "user:123:profile",
+        "user:456:profile",
+      ]);
+
       const count = await cacheService.invalidatePattern("user:*");
 
       expect(count).toBe(2);
       expect(mockRedis.keys).toHaveBeenCalledWith("user:*");
-      expect(mockRedis.del).toHaveBeenCalled();
+      expect(mockRedis.del).toHaveBeenCalledWith([
+        "user:123:profile",
+        "user:456:profile",
+      ]);
     });
 
     it("should return 0 when no keys match", async () => {
+      // Mock keys to return empty array
+      (mockRedis.keys as ReturnType<typeof jest.fn>).mockResolvedValue([]);
       const count = await cacheService.invalidatePattern("nonexistent:*");
 
       expect(count).toBe(0);

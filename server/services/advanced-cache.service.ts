@@ -180,8 +180,10 @@ export class AdvancedCacheService {
       const dbsize = await this.redis.dbSize();
 
       // Parse Redis info
-      const hits = this.parseInfoValue(info, "keyspace_hits");
-      const misses = this.parseInfoValue(info, "keyspace_misses");
+      const hitsStr = this.parseInfoValue(info, "keyspace_hits");
+      const missesStr = this.parseInfoValue(info, "keyspace_misses");
+      const hits = hitsStr ? parseInt(hitsStr, 10) : 0;
+      const misses = missesStr ? parseInt(missesStr, 10) : 0;
       const hitRate = hits + misses > 0 ? (hits / (hits + misses)) * 100 : 0;
 
       return {
