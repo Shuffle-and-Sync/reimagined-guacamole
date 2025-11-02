@@ -1,4 +1,4 @@
-import { Phone, PhoneOff, AlertCircle, Search } from "lucide-react";
+import { Phone, PhoneOff, AlertCircle, Search, Gamepad2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -9,6 +9,7 @@ import {
   CardPreview,
   CardIdentifier,
 } from "@/features/card-recognition";
+import { useGameState, GameStateOverlay } from "@/features/game-state";
 import { useWebRTC } from "../hooks/useWebRTC";
 import { VideoFeed, type VideoFeedHandle } from "./VideoFeed";
 
@@ -21,6 +22,8 @@ interface VideoRoomProps {
   onLeave?: () => void;
   gameId?: string;
   enableCardRecognition?: boolean;
+  enableGameState?: boolean;
+  gameFormat?: string;
 }
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
@@ -41,6 +44,8 @@ export function VideoRoom({
   onLeave,
   gameId = "mtg",
   enableCardRecognition = true,
+  enableGameState = true,
+  gameFormat = "casual",
 }: VideoRoomProps) {
   const [hasJoined, setHasJoined] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -48,6 +53,8 @@ export function VideoRoom({
   const [cardRecognitionEnabled, setCardRecognitionEnabled] = useState(
     enableCardRecognition,
   );
+  const [gameStateEnabled, setGameStateEnabled] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const videoFeedRef = useRef<VideoFeedHandle>(null);
 
   const {
@@ -79,6 +86,43 @@ export function VideoRoom({
   } = useCardRecognition({
     gameId,
   });
+
+  // Game state tracking
+  const {
+    gameState,
+    startGame,
+    updateLife,
+    updateCommanderDamage,
+    updateCounter,
+    passTurn,
+    endGame,
+  } = useGameState({
+    gameId: `game-${roomId}`,
+    roomId,
+    userId,
+    socket,
+    gameType: gameId as "mtg" | "pokemon" | "yugioh" | "lorcana",
+    format: gameFormat,
+    playerNames: { [userId]: userName },
+  });
+
+  // Start game when players join
+  useEffect(() => {
+    if (hasJoined && !gameStarted && enableGameState) {
+      const playerIds = [userId, ...Array.from(remoteStreams.keys())];
+      if (playerIds.length >= 2) {
+        startGame(playerIds);
+        setGameStarted(true);
+      }
+    }
+  }, [
+    hasJoined,
+    gameStarted,
+    enableGameState,
+    userId,
+    remoteStreams,
+    startGame,
+  ]);
 
   const handleJoinRoom = async () => {
     try {
@@ -173,6 +217,18 @@ export function VideoRoom({
                 {cardRecognitionEnabled ? "Card ID: ON" : "Card ID: OFF"}
               </Button>
             )}
+
+            {/* Game State Toggle */}
+            {enableGameState && gameStarted && (
+              <Button
+                variant={gameStateEnabled ? "default" : "outline"}
+                size="sm"
+                onClick={() => setGameStateEnabled(!gameStateEnabled)}
+              >
+                <Gamepad2 className="w-4 h-4 mr-2" />
+                {gameStateEnabled ? "Game: ON" : "Game: OFF"}
+              </Button>
+            )}
           </div>
           <Button onClick={handleLeaveRoom} variant="destructive" size="sm">
             <PhoneOff className="w-4 h-4 mr-2" />
@@ -252,6 +308,19 @@ export function VideoRoom({
           alternatives={alternatives}
           onClose={clearRecognition}
           onSelectAlternative={selectAlternative}
+        />
+      )}
+
+      {/* Game State Overlay */}
+      {gameStateEnabled && gameStarted && (
+        <GameStateOverlay
+          gameState={gameState}
+          userId={userId}
+          onClose={() => setGameStateEnabled(false)}
+          onLifeChange={updateLife}
+          onCommanderDamageChange={updateCommanderDamage}
+          onCounterChange={updateCounter}
+          onPassTurn={passTurn}
         />
       )}
     </div>

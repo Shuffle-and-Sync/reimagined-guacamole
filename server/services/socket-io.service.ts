@@ -9,6 +9,7 @@
 
 import { Server as HTTPServer } from "http";
 import { Server as SocketServer } from "socket.io";
+import { GameStateServer } from "../features/game-state/game-state-server";
 import { VideoSignalingServer } from "../features/video/video-signaling";
 import { logger } from "../logger";
 
@@ -28,6 +29,12 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
   (
     io as unknown as { videoSignalingServer: VideoSignalingServer }
   ).videoSignalingServer = videoSignalingServer;
+
+  // Initialize game state server
+  const gameStateServer = new GameStateServer(io);
+  // Store instance for admin/monitoring access
+  (io as unknown as { gameStateServer: GameStateServer }).gameStateServer =
+    gameStateServer;
 
   // Connection event
   io.on("connection", (socket) => {
@@ -58,4 +65,4 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
   return io;
 }
 
-export { VideoSignalingServer };
+export { VideoSignalingServer, GameStateServer };
