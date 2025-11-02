@@ -1,11 +1,16 @@
-import { Phone, PhoneOff, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Phone, PhoneOff, AlertCircle, Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  useCardRecognition,
+  CardPreview,
+  CardIdentifier,
+} from "@/features/card-recognition";
 import { useWebRTC } from "../hooks/useWebRTC";
-import { VideoFeed } from "./VideoFeed";
+import { VideoFeed, type VideoFeedHandle } from "./VideoFeed";
 
 interface VideoRoomProps {
   roomId: string;
@@ -14,6 +19,8 @@ interface VideoRoomProps {
   socket: Socket;
   iceServers?: RTCIceServer[];
   onLeave?: () => void;
+  gameId?: string;
+  enableCardRecognition?: boolean;
 }
 
 const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
@@ -32,10 +39,16 @@ export function VideoRoom({
   socket,
   iceServers = DEFAULT_ICE_SERVERS,
   onLeave,
+  gameId = "mtg",
+  enableCardRecognition = true,
 }: VideoRoomProps) {
   const [hasJoined, setHasJoined] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [cardRecognitionEnabled, setCardRecognitionEnabled] = useState(
+    enableCardRecognition,
+  );
+  const videoFeedRef = useRef<VideoFeedHandle>(null);
 
   const {
     localStream,
@@ -51,6 +64,20 @@ export function VideoRoom({
     userId,
     socket,
     iceServers,
+  });
+
+  // Card recognition
+  const {
+    isRecognizing,
+    recognizedCard,
+    alternatives,
+    error: recognitionError,
+    confidence,
+    recognizeFromClick,
+    clearRecognition,
+    selectAlternative,
+  } = useCardRecognition({
+    gameId,
   });
 
   const handleJoinRoom = async () => {
@@ -123,13 +150,29 @@ export function VideoRoom({
         </Card>
       ) : (
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-yellow-500"}`}
-            />
-            <span className="text-sm text-gray-600">
-              {isConnected ? "Connected" : "Connecting..."}
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-yellow-500"}`}
+              />
+              <span className="text-sm text-gray-600">
+                {isConnected ? "Connected" : "Connecting..."}
+              </span>
+            </div>
+
+            {/* Card Recognition Toggle */}
+            {enableCardRecognition && (
+              <Button
+                variant={cardRecognitionEnabled ? "default" : "outline"}
+                size="sm"
+                onClick={() =>
+                  setCardRecognitionEnabled(!cardRecognitionEnabled)
+                }
+              >
+                <Search className="w-4 h-4 mr-2" />
+                {cardRecognitionEnabled ? "Card ID: ON" : "Card ID: OFF"}
+              </Button>
+            )}
           </div>
           <Button onClick={handleLeaveRoom} variant="destructive" size="sm">
             <PhoneOff className="w-4 h-4 mr-2" />
@@ -143,6 +186,7 @@ export function VideoRoom({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Local video */}
           <VideoFeed
+            ref={videoFeedRef}
             stream={localStream}
             userId={userId}
             userName={userName}
@@ -151,6 +195,22 @@ export function VideoRoom({
             isCameraOff={isCameraOff}
             onToggleCamera={handleToggleCamera}
             onToggleMicrophone={handleToggleMicrophone}
+            enableCardRecognition={cardRecognitionEnabled}
+            cardRecognitionOverlay={
+              cardRecognitionEnabled && videoFeedRef.current?.videoElement ? (
+                <CardIdentifier
+                  videoRef={
+                    videoFeedRef as React.RefObject<{
+                      videoElement: HTMLVideoElement | null;
+                    }>
+                  }
+                  isEnabled={cardRecognitionEnabled}
+                  onIdentify={recognizeFromClick}
+                  isRecognizing={isRecognizing}
+                  error={recognitionError}
+                />
+              ) : undefined
+            }
           />
 
           {/* Remote videos */}
@@ -182,6 +242,17 @@ export function VideoRoom({
             </>
           )}
         </div>
+      )}
+
+      {/* Card Preview Modal */}
+      {recognizedCard && (
+        <CardPreview
+          card={recognizedCard}
+          confidence={confidence}
+          alternatives={alternatives}
+          onClose={clearRecognition}
+          onSelectAlternative={selectAlternative}
+        />
       )}
     </div>
   );
