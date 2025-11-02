@@ -231,6 +231,10 @@ app.get("/api/health", async (_req, res) => {
 const { createServer } = await import("http");
 const server = createServer(app);
 
+// Initialize Socket.io for real-time features (video, game state, etc.)
+const { initializeSocketIO } = await import("./services/socket-io.service");
+const _io = initializeSocketIO(server);
+
 // CRITICAL: Start listening on PORT immediately BEFORE initialization
 // This allows Cloud Run to detect the container as healthy while initialization proceeds in background
 const port = parseInt(
