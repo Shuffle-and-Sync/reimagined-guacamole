@@ -57,7 +57,8 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
 
   // Fetch events
   const { data: allEvents = [] } = useEvents(communityId);
-  const updateEvent = useUpdateEvent();
+  // Update function available for future event editing features
+  const _updateEvent = useUpdateEvent();
 
   // Filter events by visible layers
   const visibleEvents = allEvents.filter((event) => {
@@ -125,21 +126,21 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
   };
 
   // Handle event edit from modal
-  const handleEventEdit = (event: Event) => {
+  const handleEventEdit = (_event: Event) => {
     setIsModalOpen(false);
     // In a real app, this would open an edit form
     // Example: navigate to edit page or open edit modal
   };
 
   // Handle event delete from modal
-  const handleEventDelete = (event: Event) => {
+  const handleEventDelete = (_event: Event) => {
     setIsModalOpen(false);
     // In a real app, this would show a confirmation dialog
     // Example: show confirmation modal before deleting
   };
 
   // Handle event export from modal
-  const handleEventExport = (event: Event) => {
+  const handleEventExport = (_event: Event) => {
     // In a real app, this would trigger ICS download
     // Example: call export service or download ICS file
   };

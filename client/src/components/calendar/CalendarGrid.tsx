@@ -23,8 +23,9 @@ interface CalendarGridProps {
 /**
  * Color classes for different event types
  * Module-level constant to avoid recreation on every render
+ * Reserved for future use in event styling
  */
-const EVENT_TYPE_COLORS: Record<string, string> = {
+const _EVENT_TYPE_COLORS: Record<string, string> = {
   tournament:
     "bg-purple-500/20 hover:bg-purple-500/30 text-purple-700 dark:text-purple-300",
   stream:
@@ -41,7 +42,7 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
     "bg-gray-500/20 hover:bg-gray-500/30 text-gray-700 dark:text-gray-300",
 };
 
-const DEFAULT_EVENT_COLOR =
+const _DEFAULT_EVENT_COLOR =
   "bg-gray-500/20 hover:bg-gray-500/30 text-gray-700 dark:text-gray-300";
 
 /**

@@ -67,7 +67,8 @@ export function EnhancedCalendarIntegration({
 
   // Fetch events
   const { data: allEvents = [] } = useEvents(communityId);
-  const updateEvent = useUpdateEvent();
+  // Update function available for future event editing features
+  const _updateEvent = useUpdateEvent();
   const { exportSingleEvent, exportDateRange } = useICSExport();
 
   // Memoize filtered events to avoid recalculation on every render
@@ -143,13 +144,13 @@ export function EnhancedCalendarIntegration({
   );
 
   // Handle event edit from modal
-  const handleEventEdit = useCallback((event: Event) => {
+  const handleEventEdit = useCallback((_event: Event) => {
     setIsModalOpen(false);
     // In a real app, this would open an edit form
   }, []);
 
   // Handle event delete from modal
-  const handleEventDelete = useCallback((event: Event) => {
+  const handleEventDelete = useCallback((_event: Event) => {
     setIsModalOpen(false);
     // In a real app, this would show a confirmation dialog
   }, []);

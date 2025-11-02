@@ -287,6 +287,11 @@ async function updateUserEmailPreferences(
  */
 router.post("/sendgrid/inbound", async (req: Request, res: Response) => {
   try {
+    // Extract only the fields we currently use for logging and validation
+    // Note: text, html, attachments, headers are available in req.body but not
+    // currently processed. When implementing full inbound email processing
+    // (e.g., support tickets, email replies), these fields should be extracted
+    // and processed according to business requirements.
     const { from, to, subject, dkim, SPF } = req.body;
 
     logger.info("SendGrid inbound email received", {
@@ -298,7 +303,7 @@ router.post("/sendgrid/inbound", async (req: Request, res: Response) => {
     });
 
     // Process inbound email (e.g., support tickets, replies, etc.)
-    // This is optional functionality
+    // This is optional functionality - currently only validates receipt
 
     return res.status(200).json({ received: true });
   } catch (error) {

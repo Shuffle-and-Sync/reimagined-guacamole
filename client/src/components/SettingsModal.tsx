@@ -1,11 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import React, { useState, useEffect, useRef } from "react";
 import type { UserSettings } from "@shared/schema";
-import {
-  getErrorMessage,
-  isUserSettings,
-  type UserSettings as TypedUserSettings,
-} from "@shared/type-utils";
+import { getErrorMessage, isUserSettings } from "@shared/type-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

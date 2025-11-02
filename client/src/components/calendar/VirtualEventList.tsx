@@ -63,7 +63,7 @@ export function VirtualEventList({
   containerHeight = 600,
   estimatedItemHeight = 120,
 }: VirtualEventListProps) {
-  const renderEvent = (event: ExtendedEvent, index: number) => {
+  const renderEvent = (event: ExtendedEvent, _index: number) => {
     const eventType = eventTypes.find((t) => t.id === event.type);
     return (
       <div className="px-1 py-2">
