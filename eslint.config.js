@@ -156,6 +156,7 @@ export default [
       "generated/**",
       "**/*.d.ts",
       "public/**",
+      "docs/archive/**",
     ],
   },
 

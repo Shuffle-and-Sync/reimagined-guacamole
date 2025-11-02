@@ -4,11 +4,8 @@
  */
 
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
 import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
-import { db } from "@shared/database-unified";
-import { notifications } from "@shared/schema";
 import { logger } from "../logger";
 
 const router = Router();
@@ -16,10 +13,10 @@ const router = Router();
 // Rate limiter for SendGrid Webhook events
 const sendgridWebhookLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 20,             // limit each IP to 20 requests per minute
+  max: 20, // limit each IP to 20 requests per minute
   message: { error: "Too many requests, please try again later." },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 /**
@@ -60,44 +57,48 @@ function verifySendGridSignature(
  * Handles email events: delivered, opened, clicked, bounced, spam reports, unsubscribes
  * Documentation: https://docs.sendgrid.com/for-developers/tracking-events/event
  */
-router.post("/sendgrid/events", sendgridWebhookLimiter, async (req: Request, res: Response) => {
-  try {
-    // Verify webhook signature if public key is configured
-    if (process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
-      const signature = req.headers["x-twilio-email-event-webhook-signature"];
-      const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"];
+router.post(
+  "/sendgrid/events",
+  sendgridWebhookLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      // Verify webhook signature if public key is configured
+      if (process.env.SENDGRID_WEBHOOK_PUBLIC_KEY) {
+        const signature = req.headers["x-twilio-email-event-webhook-signature"];
+        const timestamp = req.headers["x-twilio-email-event-webhook-timestamp"];
 
-      if (!signature || !timestamp) {
-        logger.warn("SendGrid webhook missing required headers");
-        return res.status(401).json({ error: "Missing signature headers" });
+        if (!signature || !timestamp) {
+          logger.warn("SendGrid webhook missing required headers");
+          return res.status(401).json({ error: "Missing signature headers" });
+        }
+
+        const payload = JSON.stringify(req.body);
+        const isValid = verifySendGridSignature(
+          process.env.SENDGRID_WEBHOOK_PUBLIC_KEY,
+          payload,
+          signature as string,
+          timestamp as string,
+        );
+
+        if (!isValid) {
+          logger.warn("SendGrid webhook signature verification failed");
+          return res.status(401).json({ error: "Invalid signature" });
+        }
       }
 
-      const payload = JSON.stringify(req.body);
-      const isValid = verifySendGridSignature(
-        process.env.SENDGRID_WEBHOOK_PUBLIC_KEY,
-        payload,
-        signature as string,
-        timestamp as string,
-      );
+      const events = Array.isArray(req.body) ? req.body : [req.body];
 
-      if (!isValid) {
-        logger.warn("SendGrid webhook signature verification failed");
-        return res.status(401).json({ error: "Invalid signature" });
+      for (const event of events) {
+        await handleSendGridEvent(event);
       }
+
+      return res.status(200).json({ received: true, processed: events.length });
+    } catch (error) {
+      logger.error("SendGrid webhook error", { error });
+      return res.status(500).json({ error: "Internal server error" });
     }
-
-    const events = Array.isArray(req.body) ? req.body : [req.body];
-
-    for (const event of events) {
-      await handleSendGridEvent(event);
-    }
-
-    return res.status(200).json({ received: true, processed: events.length });
-  } catch (error) {
-    logger.error("SendGrid webhook error", { error });
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+  },
+);
 
 /**
  * Process individual SendGrid event
@@ -286,8 +287,7 @@ async function updateUserEmailPreferences(
  */
 router.post("/sendgrid/inbound", async (req: Request, res: Response) => {
   try {
-    const { from, to, subject, text, html, attachments, headers, dkim, SPF } =
-      req.body;
+    const { from, to, subject, dkim, SPF } = req.body;
 
     logger.info("SendGrid inbound email received", {
       from,
