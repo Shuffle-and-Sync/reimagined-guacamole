@@ -88,16 +88,29 @@ export const useWebRTC = (options: UseWebRTCOptions) => {
 
       // Handle connection state
       pc.onconnectionstatechange = () => {
-        if (pc.connectionState === "connected") {
-          setIsConnected(true);
-        } else if (
+        // Check if all peer connections are in connected state
+        const checkAllConnections = () => {
+          const allPeers = Array.from(peersRef.current.values());
+          if (allPeers.length === 0) {
+            setIsConnected(false);
+            return;
+          }
+          const allConnected = allPeers.every(
+            (p) => p.connection.connectionState === "connected",
+          );
+          setIsConnected(allConnected);
+        };
+
+        if (
           pc.connectionState === "failed" ||
           pc.connectionState === "disconnected"
         ) {
-          // Attempt to reconnect
           console.warn(
             `Connection ${pc.connectionState} with ${peerId}, may need reconnection`,
           );
+          checkAllConnections();
+        } else if (pc.connectionState === "connected") {
+          checkAllConnections();
         }
       };
 
@@ -151,124 +164,140 @@ export const useWebRTC = (options: UseWebRTCOptions) => {
     [],
   );
 
-  // Join room and initiate connections
-  const joinRoom = useCallback(async () => {
-    try {
-      const stream = await initializeMedia();
+  // Set up socket event listeners once
+  useEffect(() => {
+    // Listen for new peers
+    const handleUserJoined = async ({
+      userId: newUserId,
+    }: {
+      userId: string;
+    }) => {
+      if (newUserId === userId || !localStreamRef.current) return;
 
-      socket.emit("join-video-room", { roomId, userId });
+      // Create offer for new user
+      const pc = createPeerConnection(newUserId, localStreamRef.current);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
 
-      // Listen for new peers
-      socket.on("user-joined", async ({ userId: newUserId }) => {
-        if (newUserId === userId) return;
+      socket.emit("offer", { roomId, to: newUserId, offer });
 
-        // Create offer for new user
-        const pc = createPeerConnection(newUserId, stream);
+      setPeers(
+        (prev) =>
+          new Map(prev.set(newUserId, { peerId: newUserId, connection: pc })),
+      );
+    };
+
+    // Listen for existing users
+    const handleExistingUsers = async ({ users }: { users: string[] }) => {
+      if (!localStreamRef.current) return;
+
+      for (const existingUserId of users) {
+        const pc = createPeerConnection(existingUserId, localStreamRef.current);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        socket.emit("offer", { roomId, to: newUserId, offer });
+        socket.emit("offer", { roomId, to: existingUserId, offer });
 
         setPeers(
           (prev) =>
-            new Map(prev.set(newUserId, { peerId: newUserId, connection: pc })),
+            new Map(
+              prev.set(existingUserId, {
+                peerId: existingUserId,
+                connection: pc,
+              }),
+            ),
         );
-      });
+      }
+    };
 
-      // Listen for existing users
-      socket.on("existing-users", async ({ users }) => {
-        for (const existingUserId of users) {
-          const pc = createPeerConnection(existingUserId, stream);
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
+    // Listen for signaling events
+    const handleOfferReceived = ({
+      offer,
+      from,
+    }: {
+      offer: RTCSessionDescriptionInit;
+      from: string;
+    }) => {
+      handleOffer(offer, from);
+    };
 
-          socket.emit("offer", { roomId, to: existingUserId, offer });
+    const handleAnswerReceived = ({
+      answer,
+      from,
+    }: {
+      answer: RTCSessionDescriptionInit;
+      from: string;
+    }) => {
+      handleAnswer(answer, from);
+    };
 
-          setPeers(
-            (prev) =>
-              new Map(
-                prev.set(existingUserId, {
-                  peerId: existingUserId,
-                  connection: pc,
-                }),
-              ),
-          );
-        }
-      });
+    const handleIceCandidateReceived = ({
+      candidate,
+      from,
+    }: {
+      candidate: RTCIceCandidateInit;
+      from: string;
+    }) => {
+      handleIceCandidate(candidate, from);
+    };
 
-      // Listen for signaling events
-      socket.on(
-        "offer",
-        ({
-          offer,
-          from,
-        }: {
-          offer: RTCSessionDescriptionInit;
-          from: string;
-        }) => {
-          handleOffer(offer, from);
-        },
-      );
+    // Handle user leaving
+    const handleUserLeft = ({ userId: leftUserId }: { userId: string }) => {
+      const peer = peersRef.current.get(leftUserId);
+      if (peer) {
+        peer.connection.close();
+        setPeers((prev) => {
+          const newPeers = new Map(prev);
+          newPeers.delete(leftUserId);
+          return newPeers;
+        });
+        setRemoteStreams((prev) => {
+          const newStreams = new Map(prev);
+          newStreams.delete(leftUserId);
+          return newStreams;
+        });
+      }
+    };
 
-      socket.on(
-        "answer",
-        ({
-          answer,
-          from,
-        }: {
-          answer: RTCSessionDescriptionInit;
-          from: string;
-        }) => {
-          handleAnswer(answer, from);
-        },
-      );
+    // Register event listeners
+    socket.on("user-joined", handleUserJoined);
+    socket.on("existing-users", handleExistingUsers);
+    socket.on("offer", handleOfferReceived);
+    socket.on("answer", handleAnswerReceived);
+    socket.on("ice-candidate", handleIceCandidateReceived);
+    socket.on("user-left", handleUserLeft);
 
-      socket.on(
-        "ice-candidate",
-        ({
-          candidate,
-          from,
-        }: {
-          candidate: RTCIceCandidateInit;
-          from: string;
-        }) => {
-          handleIceCandidate(candidate, from);
-        },
-      );
+    // Cleanup listeners on unmount or when dependencies change
+    return () => {
+      socket.off("user-joined", handleUserJoined);
+      socket.off("existing-users", handleExistingUsers);
+      socket.off("offer", handleOfferReceived);
+      socket.off("answer", handleAnswerReceived);
+      socket.off("ice-candidate", handleIceCandidateReceived);
+      socket.off("user-left", handleUserLeft);
+    };
+  }, [
+    roomId,
+    userId,
+    socket,
+    createPeerConnection,
+    handleOffer,
+    handleAnswer,
+    handleIceCandidate,
+  ]);
 
-      // Handle user leaving
-      socket.on("user-left", ({ userId: leftUserId }: { userId: string }) => {
-        const peer = peersRef.current.get(leftUserId);
-        if (peer) {
-          peer.connection.close();
-          setPeers((prev) => {
-            const newPeers = new Map(prev);
-            newPeers.delete(leftUserId);
-            return newPeers;
-          });
-          setRemoteStreams((prev) => {
-            const newStreams = new Map(prev);
-            newStreams.delete(leftUserId);
-            return newStreams;
-          });
-        }
-      });
+  // Join room and initiate connections
+  const joinRoom = useCallback(async () => {
+    try {
+      await initializeMedia();
+      socket.emit("join-video-room", { roomId, userId });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to join room";
       setError(errorMessage);
       throw err;
     }
-  }, [
-    roomId,
-    userId,
-    socket,
-    initializeMedia,
-    createPeerConnection,
-    handleOffer,
-    handleAnswer,
-    handleIceCandidate,
-  ]);
+  }, [roomId, userId, socket, initializeMedia]);
 
   // Leave room and cleanup
   const leaveRoom = useCallback(() => {
@@ -281,14 +310,6 @@ export const useWebRTC = (options: UseWebRTCOptions) => {
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
 
     socket.emit("leave-video-room", { roomId, userId });
-
-    // Clean up socket listeners
-    socket.off("user-joined");
-    socket.off("existing-users");
-    socket.off("offer");
-    socket.off("answer");
-    socket.off("ice-candidate");
-    socket.off("user-left");
 
     // Reset state
     setPeers(new Map());

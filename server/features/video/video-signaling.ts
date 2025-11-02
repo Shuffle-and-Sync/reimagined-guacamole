@@ -15,7 +15,7 @@ interface VideoRoom {
 
 export class VideoSignalingServer {
   private rooms: Map<string, VideoRoom> = new Map();
-  private userSockets: Map<string, string> = new Map(); // userId -> socketId
+  private userSockets: Map<string, Set<string>> = new Map(); // userId -> Set<socketId> (support multiple tabs)
 
   constructor(private io: SocketServer) {
     this.setupListeners();
@@ -52,9 +52,15 @@ export class VideoSignalingServer {
           to: string;
           offer: RTCSessionDescriptionInit;
         }) => {
-          const targetSocketId = this.userSockets.get(to);
-          if (targetSocketId) {
-            socket.to(targetSocketId).emit("offer", { offer, from: socket.id });
+          const fromUserId = this.getSocketUserId(socket.id);
+          const targetSocketIds = this.userSockets.get(to);
+          if (targetSocketIds && fromUserId) {
+            // Send to all tabs/devices for this user
+            targetSocketIds.forEach((targetSocketId) => {
+              socket
+                .to(targetSocketId)
+                .emit("offer", { offer, from: fromUserId });
+            });
           }
         },
       );
@@ -69,11 +75,15 @@ export class VideoSignalingServer {
           to: string;
           answer: RTCSessionDescriptionInit;
         }) => {
-          const targetSocketId = this.userSockets.get(to);
-          if (targetSocketId) {
-            socket
-              .to(targetSocketId)
-              .emit("answer", { answer, from: socket.id });
+          const fromUserId = this.getSocketUserId(socket.id);
+          const targetSocketIds = this.userSockets.get(to);
+          if (targetSocketIds && fromUserId) {
+            // Send to all tabs/devices for this user
+            targetSocketIds.forEach((targetSocketId) => {
+              socket
+                .to(targetSocketId)
+                .emit("answer", { answer, from: fromUserId });
+            });
           }
         },
       );
@@ -88,11 +98,15 @@ export class VideoSignalingServer {
           to: string;
           candidate: RTCIceCandidateInit;
         }) => {
-          const targetSocketId = this.userSockets.get(to);
-          if (targetSocketId) {
-            socket
-              .to(targetSocketId)
-              .emit("ice-candidate", { candidate, from: socket.id });
+          const fromUserId = this.getSocketUserId(socket.id);
+          const targetSocketIds = this.userSockets.get(to);
+          if (targetSocketIds && fromUserId) {
+            // Send to all tabs/devices for this user
+            targetSocketIds.forEach((targetSocketId) => {
+              socket
+                .to(targetSocketId)
+                .emit("ice-candidate", { candidate, from: fromUserId });
+            });
           }
         },
       );
@@ -131,7 +145,15 @@ export class VideoSignalingServer {
 
     // Add user to room
     room.users.set(socket.id, userId);
-    this.userSockets.set(userId, socket.id);
+
+    // Track socket for this user (support multiple tabs)
+    if (!this.userSockets.has(userId)) {
+      this.userSockets.set(userId, new Set());
+    }
+    const socketSet = this.userSockets.get(userId);
+    if (socketSet) {
+      socketSet.add(socket.id);
+    }
     socket.join(roomId);
 
     // Get list of existing users (excluding the new user)
@@ -167,11 +189,19 @@ export class VideoSignalingServer {
 
     // Remove user from room
     room.users.delete(socket.id);
-    this.userSockets.delete(userId);
-    socket.leave(roomId);
 
-    // Notify other users
-    socket.to(roomId).emit("user-left", { userId });
+    // Remove socket from user's socket set
+    const socketSet = this.userSockets.get(userId);
+    if (socketSet) {
+      socketSet.delete(socket.id);
+      // If no more sockets for this user, remove the entry and notify others
+      if (socketSet.size === 0) {
+        this.userSockets.delete(userId);
+        // Notify other users only if this was the last connection for this user
+        socket.to(roomId).emit("user-left", { userId });
+      }
+    }
+    socket.leave(roomId);
 
     // Delete room if empty
     if (room.users.size === 0) {
@@ -202,6 +232,16 @@ export class VideoSignalingServer {
     });
 
     logger.info("Video signaling client disconnected", { socketId: socket.id });
+  }
+
+  // Helper method to get userId from socketId
+  private getSocketUserId(socketId: string): string | undefined {
+    for (const room of this.rooms.values()) {
+      if (room.users.has(socketId)) {
+        return room.users.get(socketId);
+      }
+    }
+    return undefined;
   }
 
   public getRoomInfo(roomId: string): VideoRoom | undefined {

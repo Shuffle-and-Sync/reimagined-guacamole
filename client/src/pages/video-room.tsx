@@ -57,8 +57,9 @@ export default function VideoRoomPage() {
     };
 
     const newSocket = initSocket();
-    // Defer state update to next tick
-    Promise.resolve().then(() => setSocket(newSocket));
+    // Setting socket state in effect is intentional here - we need to initialize socket on mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSocket(newSocket);
 
     return () => {
       newSocket.close();

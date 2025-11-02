@@ -80,14 +80,16 @@ export function VideoRoom({
     setIsMuted(!enabled);
   };
 
-  // Cleanup on unmount
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
       if (hasJoined) {
         leaveRoom();
       }
     };
-  }, [hasJoined, leaveRoom]);
+    // Only run on unmount - disable exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Convert remote streams to array for rendering
   const remoteStreamArray = Array.from(remoteStreams.entries());

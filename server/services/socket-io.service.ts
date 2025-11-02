@@ -22,8 +22,12 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
     transports: ["websocket", "polling"],
   });
 
-  // Initialize video signaling
-  new VideoSignalingServer(io);
+  // Initialize video signaling and expose for monitoring/administration
+  const videoSignalingServer = new VideoSignalingServer(io);
+  // Store instance for admin/monitoring access
+  (
+    io as unknown as { videoSignalingServer: VideoSignalingServer }
+  ).videoSignalingServer = videoSignalingServer;
 
   // Connection event
   io.on("connection", (socket) => {
