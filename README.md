@@ -29,6 +29,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **🎮 Multi-TCG Support**: Magic, Pokemon, Lorcana, Yu-Gi-Oh, and more
 - **📺 Streaming Coordination**: Real-time tools for collaborative multi-streamer events
 - **🎯 TableSync**: Remote gameplay coordination with real-time board state sync
+- **🎥 Video Streaming**: WebRTC-based video chat for remote TCG gameplay (2-4 players)
 - **🏆 Tournament Management**: Full tournament lifecycle with AI-powered matchmaking
 - **📅 Calendar Integration**: Event scheduling with timezone handling
 - **🔄 Calendar Sync**: Bidirectional sync with Google Calendar and Outlook Calendar
@@ -58,6 +59,7 @@ A comprehensive trading card game (TCG) streaming coordination platform that ena
 - **Session Storage**: Database sessions via Drizzle adapter
 - **Email**: SendGrid for transactional emails
 - **Real-time**: WebSocket support for live features
+- **Video Streaming**: Socket.io for WebRTC signaling and real-time coordination
 
 > **Note**: The project uses Drizzle ORM exclusively with SQLite/SQLite Cloud. See [Database Architecture Guide](docs/architecture/DATABASE_ARCHITECTURE.md) for details.
 
@@ -325,6 +327,7 @@ Complete documentation is organized in the [docs/](docs/) directory:
 ### Feature Documentation
 
 - **[🎮 TableSync Framework](docs/features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_README.md)** - Remote gameplay coordination
+- **[🎥 Video Streaming](docs/features/VIDEO_STREAMING.md)** - WebRTC video chat for remote gameplay
 - **[🤖 AI Matchmaking](docs/features/matchmaking/TCG_SYNERGY_AI_MATCHMAKER_PRD_AUDIT.md)** - Intelligent player matching
 - **[📺 Twitch Integration](docs/features/twitch/TWITCH_OAUTH_GUIDE.md)** - Streaming platform OAuth
 
