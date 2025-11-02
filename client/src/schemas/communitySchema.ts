@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { optionalOrEmpty } from "./shared";
 
 /**
  * Community settings form schema

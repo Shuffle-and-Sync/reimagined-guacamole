@@ -19,11 +19,6 @@ import type { User } from "@shared/schema";
 import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
-import type {
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  AuthenticatedUser,
-} from "./auth.types";
 
 /**
  * Authentication Service

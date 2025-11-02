@@ -14,7 +14,7 @@
 import { eq, and, or, count, asc } from "drizzle-orm";
 import { db, withTransaction } from "@shared/database-unified";
 import { events, eventAttendees, gameSessions } from "@shared/schema";
-import type { EventAttendee, Event } from "@shared/schema";
+import type { EventAttendee } from "@shared/schema";
 import { logger } from "../../logger";
 import { DatabaseError } from "../../middleware/error-handling.middleware";
 

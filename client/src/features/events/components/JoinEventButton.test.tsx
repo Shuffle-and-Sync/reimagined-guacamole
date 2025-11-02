@@ -1243,11 +1243,11 @@ describe("Dialog Interactions", () => {
       attendees,
     );
 
-    let resolveLeave:
+    let _resolveLeave:
       | ((value: Response | PromiseLike<Response>) => void)
       | undefined;
     const leavePromise = new Promise<Response>((resolve) => {
-      resolveLeave = resolve;
+      _resolveLeave = resolve;
     });
 
     mockFetch.mockImplementationOnce(() => leavePromise);

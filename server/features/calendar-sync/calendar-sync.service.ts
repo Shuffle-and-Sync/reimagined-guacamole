@@ -1,4 +1,3 @@
-import type { Event } from "@shared/schema";
 import { logger } from "@/logger";
 import { storage } from "@/storage";
 import { googleCalendarService } from "./google-calendar.service";
