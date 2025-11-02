@@ -49,6 +49,7 @@ const Contact = lazy(() => import("@/pages/contact"));
 const Terms = lazy(() => import("@/pages/terms"));
 const Privacy = lazy(() => import("@/pages/privacy"));
 const Conduct = lazy(() => import("@/pages/conduct"));
+const VideoRoom = lazy(() => import("@/pages/video-room"));
 const SignIn = lazy(() => import("@/pages/auth/signin"));
 const Register = lazy(() => import("@/pages/auth/register"));
 const VerifyEmail = lazy(() => import("@/pages/auth/verify-email"));
@@ -151,6 +152,20 @@ function Router() {
           <RequireAuth redirectTo="/">
             <ErrorBoundary level="feature">
               <CollaborativeStreamingDashboard />
+            </ErrorBoundary>
+          </RequireAuth>
+        </Route>
+        <Route path="/video-room">
+          <RequireAuth redirectTo="/">
+            <ErrorBoundary level="feature">
+              <VideoRoom />
+            </ErrorBoundary>
+          </RequireAuth>
+        </Route>
+        <Route path="/video-room/:roomId">
+          <RequireAuth redirectTo="/">
+            <ErrorBoundary level="feature">
+              <VideoRoom />
             </ErrorBoundary>
           </RequireAuth>
         </Route>
