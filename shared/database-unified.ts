@@ -2,7 +2,7 @@
 // Supports SQLite Cloud connections
 import { resolve } from "path";
 import { config } from "dotenv";
-import { sql } from "drizzle-orm";
+import { sql, desc } from "drizzle-orm";
 import * as schema from "./schema";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
