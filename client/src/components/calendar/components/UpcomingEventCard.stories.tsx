@@ -1,6 +1,8 @@
-import { fn } from "@storybook/test";
 import { UpcomingEventCard } from "./UpcomingEventCard";
 import type { Meta, StoryObj } from "@storybook/react";
+
+// Mock function for Storybook actions
+const fn = () => () => {};
 
 /**
  * UpcomingEventCard displays a detailed event card with action buttons.
