@@ -33,29 +33,32 @@ class TestGameAdapter extends BaseGameAdapter<
     return { test: "initial" };
   }
 
-  validateState(state: { test: string }): ValidationResult {
+  validateState(_state: { test: string }): ValidationResult {
     return { valid: true };
   }
 
-  validateAction(state: { test: string }, action: { action: string }): boolean {
+  validateAction(
+    _state: { test: string },
+    _action: { action: string },
+  ): boolean {
     return true;
   }
 
   applyAction(
     state: { test: string },
-    action: { action: string },
+    _action: { action: string },
   ): { test: string } {
     return state;
   }
 
   getAvailableActions(
-    state: { test: string },
+    _state: { test: string },
     playerId: string,
   ): Array<{ action: string }> {
     return [];
   }
 
-  checkWinCondition(state: { test: string }): WinResult | null {
+  checkWinCondition(_state: { test: string }): WinResult | null {
     return null;
   }
 

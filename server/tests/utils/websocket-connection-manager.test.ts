@@ -558,7 +558,7 @@ describe("WebSocketConnectionManager", () => {
         close: jest.fn(),
       } as unknown as ExtendedWebSocket;
 
-      const connectionId = manager.registerConnection(mockWs, "user-123");
+      const _connectionId = manager.registerConnection(mockWs, "user-123");
 
       // Make the connection stale by setting old lastActivity
       mockWs.lastActivity = Date.now() - 31 * 60 * 1000; // 31 minutes ago

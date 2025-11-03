@@ -188,7 +188,7 @@ export class NotificationQueueService {
    */
   private setupEventListeners(): void {
     // Email queue events
-    this.emailQueue.on("completed", (job, result) => {
+    this.emailQueue.on("completed", (job, _result) => {
       logger.info("Email job completed", {
         jobId: job.id,
         userId: job.data.userId,
@@ -205,7 +205,7 @@ export class NotificationQueueService {
     });
 
     // Push queue events
-    this.pushQueue.on("completed", (job, result) => {
+    this.pushQueue.on("completed", (job, _result) => {
       logger.info("Push notification job completed", {
         jobId: job.id,
         userId: job.data.userId,
@@ -222,7 +222,7 @@ export class NotificationQueueService {
     });
 
     // SMS queue events
-    this.smsQueue.on("completed", (job, result) => {
+    this.smsQueue.on("completed", (job, _result) => {
       logger.info("SMS job completed", {
         jobId: job.id,
         userId: job.data.userId,
@@ -239,7 +239,7 @@ export class NotificationQueueService {
     });
 
     // Digest queue events
-    this.digestQueue.on("completed", (job, result) => {
+    this.digestQueue.on("completed", (job, _result) => {
       logger.info("Digest job completed", {
         jobId: job.id,
         userId: job.data.userId,

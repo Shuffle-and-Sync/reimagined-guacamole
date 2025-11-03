@@ -53,7 +53,7 @@ class MockGameAdapter extends BaseGameAdapter<
   }
 
   getAvailableActions(
-    state: { value: number },
+    _state: { value: number },
     playerId: string,
   ): Array<{ type: string; value: number }> {
     return [

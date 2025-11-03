@@ -13,7 +13,7 @@ describe("Event Registration API", () => {
       // This test demonstrates the expected API behavior
       // Actual integration tests require database setup
 
-      const mockEvent = {
+      const _mockEvent = {
         id: "event-1",
         title: "Tournament",
         maxAttendees: 2,

@@ -9,7 +9,7 @@ import { describe, test, expect } from "@jest/globals";
 describe("GamePodSlotService - TableSync Integration", () => {
   describe("checkAndCreateGameSession", () => {
     test("should demonstrate creating game session when all slots filled", () => {
-      const mockEvent = {
+      const _mockEvent = {
         id: "event-1",
         type: "game_pod",
         playerSlots: 4,

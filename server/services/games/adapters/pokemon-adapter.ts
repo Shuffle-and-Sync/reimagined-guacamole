@@ -695,7 +695,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   private applyRetreat(
     state: PokemonGameState,
     player: PokemonPlayer,
-    action: PokemonAction,
+    _action: PokemonAction,
   ): void {
     const activePokemon = player.zones.active[0];
     if (!activePokemon || player.zones.bench.length === 0) return;

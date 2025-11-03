@@ -64,7 +64,7 @@ describe("Rate Limit Configuration", () => {
     });
 
     test("all configurations should have required fields", () => {
-      Object.entries(rateLimitConfig).forEach(([name, config]) => {
+      Object.entries(rateLimitConfig).forEach(([_name, config]) => {
         expect(config.windowMs).toBeDefined();
         expect(config.max).toBeDefined();
         expect(config.message).toBeDefined();
@@ -152,7 +152,7 @@ describe("Rate Limit Configuration", () => {
 
   describe("Configuration Validation", () => {
     test("window times should be reasonable", () => {
-      Object.entries(rateLimitConfig).forEach(([name, config]) => {
+      Object.entries(rateLimitConfig).forEach(([_name, config]) => {
         // Window should be at least 1 minute
         expect(config.windowMs).toBeGreaterThanOrEqual(60 * 1000);
         // Window should not exceed 24 hours
@@ -161,13 +161,13 @@ describe("Rate Limit Configuration", () => {
     });
 
     test("max values should be positive", () => {
-      Object.entries(rateLimitConfig).forEach(([name, config]) => {
+      Object.entries(rateLimitConfig).forEach(([_name, config]) => {
         expect(config.max).toBeGreaterThan(0);
       });
     });
 
     test("messages should be helpful", () => {
-      Object.entries(rateLimitConfig).forEach(([name, config]) => {
+      Object.entries(rateLimitConfig).forEach(([_name, config]) => {
         expect(config.message).toMatch(
           /limit|exceeded|slow|try again|attempts/i,
         );
