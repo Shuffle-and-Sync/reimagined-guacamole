@@ -100,6 +100,82 @@ const user = createMockUser({
 });
 ```
 
+### Community and Tournament Mocks
+
+#### createMockCommunityFromSchema
+
+Creates a mock `Community` from the shared schema for testing community-related features.
+
+```typescript
+import { createMockCommunityFromSchema } from "@/test-utils";
+
+const community = createMockCommunityFromSchema({
+  id: "mtg-community",
+  name: "mtg",
+  displayName: "Magic: The Gathering",
+  description: "The original TCG community",
+});
+```
+
+**Default Values:**
+
+- `id`: Random UUID
+- `name`: Random from ["mtg", "pokemon", "lorcana", "yugioh"]
+- `displayName`: Faker company name
+- `description`: Faker paragraph
+- `createdAt`: Current date
+- `isActive`: true
+- `themeColor`: Random color
+- `iconClass`: Random icon class
+
+#### createMockTournamentFromSchema
+
+Creates a mock `Tournament` from the shared schema.
+
+```typescript
+import { createMockTournamentFromSchema } from "@/test-utils";
+
+const tournament = createMockTournamentFromSchema({
+  name: "Weekly Commander Tournament",
+  format: "Commander",
+  maxParticipants: 32,
+});
+```
+
+**Default Values:**
+
+- `id`: Random UUID
+- `name`: Faker company catchphrase
+- `description`: Faker paragraph
+- `format`: Random from ["Standard", "Modern", "Commander"]
+- `startDate`: Future date
+- `endDate`: Date soon after start
+- `maxParticipants`: Random from [8, 16, 32, 64]
+- `currentParticipants`: Random 0-32
+- `status`: "upcoming"
+- `registrationOpen`: true
+
+#### createMockEventFromSchema
+
+Creates a mock `Event` from the shared schema (different from CalendarEvent).
+
+```typescript
+import { createMockEventFromSchema } from "@/test-utils";
+
+const event = createMockEventFromSchema({
+  title: "Commander Night",
+  type: "game_pod",
+  playerSlots: 4,
+  alternateSlots: 2,
+});
+```
+
+**Default Values:**
+
+- Full Event schema with all required and optional fields
+- Sensible defaults for dates, locations, and event properties
+- Compatible with database schema
+
 ## Component Testing Patterns
 
 ### Setting Up Tests
