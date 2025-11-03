@@ -1,15 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { Community } from "@shared/schema";
+import {
+  isEventCreatedMessage,
+  isEventUpdatedMessage,
+  isEventDeletedMessage,
+  isPodStatusChangedMessage,
+  type ServerToClientMessage,
+} from "@shared/types/websocket.types";
 import { useToast } from "@/hooks/use-toast";
 
 type ConnectionStatus = "connected" | "disconnected" | "reconnecting";
-
-interface WebSocketMessage {
-  type: string;
-  description?: string;
-  data?: unknown;
-}
 
 interface UseCalendarWebSocketOptions {
   isAuthenticated: boolean;
@@ -21,6 +22,7 @@ interface UseCalendarWebSocketOptions {
 /**
  * Custom hook for managing WebSocket connection for calendar real-time updates
  * Handles connection lifecycle, reconnection logic, and event handling
+ * Now uses typed WebSocket messages with type guards for type safety
  */
 export function useCalendarWebSocket({
   isAuthenticated,
@@ -37,39 +39,36 @@ export function useCalendarWebSocket({
   const reconnectAttemptsRef = useRef(0);
 
   const handleMessage = useCallback(
-    (message: WebSocketMessage) => {
-      const eventTypes = [
-        "EVENT_CREATED",
-        "EVENT_UPDATED",
-        "EVENT_DELETED",
-        "POD_STATUS_CHANGED",
-      ];
-
-      if (eventTypes.includes(message.type)) {
+    (message: ServerToClientMessage) => {
+      // Use type guards for type-safe message handling
+      if (isEventCreatedMessage(message)) {
         // Invalidate queries to refetch events
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
 
-        // Show toast for real-time updates
-        const titles: Record<string, string> = {
-          EVENT_CREATED: "New Event Created",
-          EVENT_UPDATED: "Event Updated",
-          EVENT_DELETED: "Event Deleted",
-          POD_STATUS_CHANGED: "Pod Status Updated",
-        };
-
-        const descriptions: Record<string, string> = {
-          EVENT_CREATED: "Calendar updated with new event",
-          EVENT_UPDATED: "Event information has changed",
-          EVENT_DELETED: "An event has been removed",
-          POD_STATUS_CHANGED: "A game pod status has changed",
-        };
+        toast({
+          title: "New Event Created",
+          description: message.data.title || "Calendar updated with new event",
+        });
+      } else if (isEventUpdatedMessage(message)) {
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
 
         toast({
-          title: titles[message.type] || "Calendar Updated",
-          description:
-            message.description ||
-            descriptions[message.type] ||
-            "Calendar has been updated",
+          title: "Event Updated",
+          description: "Event information has changed",
+        });
+      } else if (isEventDeletedMessage(message)) {
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+
+        toast({
+          title: "Event Deleted",
+          description: "An event has been removed",
+        });
+      } else if (isPodStatusChangedMessage(message)) {
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+
+        toast({
+          title: "Pod Status Updated",
+          description: "A game pod status has changed",
         });
       }
     },
@@ -100,7 +99,7 @@ export function useCalendarWebSocket({
 
         ws.onmessage = (event) => {
           try {
-            const message = JSON.parse(event.data) as WebSocketMessage;
+            const message = JSON.parse(event.data) as ServerToClientMessage;
             handleMessage(message);
           } catch (error) {
             console.error("Error parsing WebSocket message:", error);
