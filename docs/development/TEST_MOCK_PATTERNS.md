@@ -328,14 +328,12 @@ expect(arg?.property).toBe(value);
 ### Testing Component Rendering
 
 ```typescript
-it('renders component correctly', async () => {
+it('renders component correctly', () => {
   const event = createMockCalendarEvent({ title: 'Test Event' });
 
   renderWithProviders(<EventCard event={event} />, { queryClient });
 
-  await waitFor(() => {
-    expect(screen.getByText('Test Event')).toBeInTheDocument();
-  });
+  expect(screen.getByText('Test Event')).toBeInTheDocument();
 });
 ```
 
