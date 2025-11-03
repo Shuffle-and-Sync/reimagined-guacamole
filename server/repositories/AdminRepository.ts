@@ -14,7 +14,7 @@
  * @module AdminRepository
  */
 
-import { eq, and, desc, gte, lte, or, count, inArray } from "drizzle-orm";
+import { eq, and, desc, gte, lte, count } from "drizzle-orm";
 import { db, withQueryTiming } from "@shared/database-unified";
 import {
   userRoles,

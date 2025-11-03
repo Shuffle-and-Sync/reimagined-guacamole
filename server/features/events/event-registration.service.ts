@@ -1,4 +1,4 @@
-import { eq, and, count, or } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { db, withTransaction } from "@shared/database-unified";
 import { events, eventAttendees } from "@shared/schema";
 import type { EventAttendee } from "@shared/schema";

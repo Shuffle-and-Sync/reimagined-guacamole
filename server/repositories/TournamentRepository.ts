@@ -12,7 +12,7 @@
  * @module TournamentRepository
  */
 
-import { eq, and, desc, sql, count, inArray, alias } from "drizzle-orm";
+import { eq, and, desc, sql, count, alias } from "drizzle-orm";
 import {
   db,
   withQueryTiming,
