@@ -66,6 +66,87 @@ export function createMockEvent(overrides = {}) {
 }
 
 /**
+ * Generate a mock CalendarEvent for testing event components
+ */
+export function createMockCalendarEvent(
+  overrides: Partial<{
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    date: string;
+    time: string;
+    location: string;
+    playerSlots: number;
+    alternateSlots: number;
+    gameFormat: string;
+    powerLevel: number;
+    creator: unknown;
+    creatorId: string;
+    attendeeCount: number;
+    mainPlayers: number;
+    alternates: number;
+  }> = {},
+) {
+  return {
+    id: faker.string.uuid(),
+    title: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    type: faker.helpers.arrayElement([
+      "tournament",
+      "game_pod",
+      "convention",
+      "release",
+    ]),
+    date: faker.date.future().toISOString().split("T")[0],
+    time: "18:00",
+    location: faker.location.city(),
+    playerSlots: 4,
+    alternateSlots: 2,
+    gameFormat: faker.helpers.arrayElement(["commander", "standard", "modern"]),
+    powerLevel: faker.number.int({ min: 1, max: 10 }),
+    creator: null,
+    creatorId: faker.string.uuid(),
+    attendeeCount: 0,
+    mainPlayers: 0,
+    alternates: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * Generate a mock Attendee for testing event components
+ */
+export function createMockAttendee(
+  overrides: Partial<{
+    userId: string;
+    eventId: string;
+    status: string;
+    role: string;
+    playerType: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  }> = {},
+) {
+  return {
+    userId: faker.string.uuid(),
+    eventId: faker.string.uuid(),
+    status: "attending",
+    role: "participant",
+    playerType: faker.helpers.arrayElement(["main", "alternate"]),
+    user: {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email(),
+    },
+    ...overrides,
+  };
+}
+
+/**
  * Generate a mock tournament
  */
 export function createMockTournament(overrides = {}) {
