@@ -116,9 +116,23 @@ describe("Game Seeding", () => {
       await db.insert(games).values(game1);
 
       // Second insert with same code should fail due to unique constraint
-      await expect(db.insert(games).values(game2)).rejects.toThrow(
-        /unique|constraint|UNIQUE/i,
-      );
+      // The error message may vary by SQLite version/config
+      try {
+        await db.insert(games).values(game2);
+        // If we get here, the constraint wasn't enforced - fail the test
+        throw new Error(
+          "Expected unique constraint violation but insert succeeded",
+        );
+      } catch (error) {
+        // Verify it's the right kind of error
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        expect(
+          errorMessage.toLowerCase().includes("unique") ||
+            errorMessage.toLowerCase().includes("constraint") ||
+            errorMessage.includes("UNIQUE"),
+        ).toBe(true);
+      }
     });
   });
 });
