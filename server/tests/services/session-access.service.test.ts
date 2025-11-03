@@ -24,6 +24,9 @@ import {
   gameSessions,
   sessionInvitations,
   userCommunities,
+  users,
+  communities,
+  games,
 } from "@shared/schema";
 import { sessionAccessService } from "../../features/game-sessions/session-access.service";
 
@@ -41,6 +44,57 @@ describe("SessionAccessService", () => {
   const testHostId = "test-host-456";
   const testSessionId = "test-session-789";
   const testCommunityId = "test-community-abc";
+  const testGameId = "test-game-xyz";
+
+  // Set up test data before each test
+  beforeEach(async () => {
+    try {
+      // Create test game
+      await db
+        .insert(games)
+        .values({
+          id: testGameId,
+          name: "Test Game",
+          code: "TEST",
+          isActive: true,
+        })
+        .onConflictDoNothing();
+
+      // Create test users
+      await db
+        .insert(users)
+        .values({
+          id: testUserId,
+          email: `test-user-${Date.now()}@example.com`,
+          firstName: "Test",
+          lastName: "User",
+        })
+        .onConflictDoNothing();
+
+      await db
+        .insert(users)
+        .values({
+          id: testHostId,
+          email: `test-host-${Date.now()}@example.com`,
+          firstName: "Test",
+          lastName: "Host",
+        })
+        .onConflictDoNothing();
+
+      // Create test community
+      await db
+        .insert(communities)
+        .values({
+          id: testCommunityId,
+          name: "Test Community",
+          gameId: testGameId,
+          creatorId: testHostId,
+        })
+        .onConflictDoNothing();
+    } catch (error) {
+      // Ignore if already exists
+    }
+  });
 
   // Clean up after tests
   afterEach(async () => {
@@ -52,6 +106,10 @@ describe("SessionAccessService", () => {
       await db
         .delete(userCommunities)
         .where(eq(userCommunities.userId, testUserId));
+      await db.delete(communities).where(eq(communities.id, testCommunityId));
+      await db.delete(users).where(eq(users.id, testUserId));
+      await db.delete(users).where(eq(users.id, testHostId));
+      await db.delete(games).where(eq(games.id, testGameId));
     } catch (error) {
       // Ignore cleanup errors
     }

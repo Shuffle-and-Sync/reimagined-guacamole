@@ -9,10 +9,17 @@
  * - Error scenarios
  */
 
-import { describe, it, expect, afterEach, jest } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  jest,
+} from "@jest/globals";
 import { eq } from "drizzle-orm";
 import { db } from "@shared/database-unified";
-import { userBans } from "@shared/schema";
+import { userBans, users } from "@shared/schema";
 import { banService } from "../../features/moderation/ban.service";
 
 // Mock logger to reduce noise in tests
@@ -30,10 +37,42 @@ describe("BanService", () => {
   const testCommunityId = "test-community-789";
   const testSessionId = "test-session-abc";
 
-  // Clean up test bans after each test
+  // Set up test users before each test
+  beforeEach(async () => {
+    try {
+      // Create test user if not exists
+      await db
+        .insert(users)
+        .values({
+          id: testUserId,
+          email: `test-user-${Date.now()}@example.com`,
+          firstName: "Test",
+          lastName: "User",
+        })
+        .onConflictDoNothing();
+
+      // Create test admin if not exists
+      await db
+        .insert(users)
+        .values({
+          id: testAdminId,
+          email: `test-admin-${Date.now()}@example.com`,
+          firstName: "Test",
+          lastName: "Admin",
+          role: "admin",
+        })
+        .onConflictDoNothing();
+    } catch (error) {
+      // Ignore if users already exist
+    }
+  });
+
+  // Clean up test bans and users after each test
   afterEach(async () => {
     try {
       await db.delete(userBans).where(eq(userBans.userId, testUserId));
+      await db.delete(users).where(eq(users.id, testUserId));
+      await db.delete(users).where(eq(users.id, testAdminId));
     } catch (error) {
       // Ignore cleanup errors
     }

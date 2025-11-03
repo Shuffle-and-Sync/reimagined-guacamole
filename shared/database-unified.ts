@@ -272,10 +272,34 @@ function applySchemaUpdates(sqlite: any): void {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS user_bans (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      banned_by TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      scope_id TEXT,
+      start_time INTEGER NOT NULL,
+      end_time INTEGER,
+      is_active INTEGER DEFAULT 1 NOT NULL,
+      notes TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (banned_by) REFERENCES users(id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);
     CREATE INDEX IF NOT EXISTS idx_event_reminders_user ON event_reminders(user_id);
     CREATE INDEX IF NOT EXISTS idx_event_reminders_status ON event_reminders(status);
     CREATE INDEX IF NOT EXISTS idx_event_reminders_reminder_time ON event_reminders(reminder_time);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_user_id ON user_bans(user_id);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope ON user_bans(scope);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope_id ON user_bans(scope_id);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_active ON user_bans(is_active);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_end_time ON user_bans(end_time);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_user_active ON user_bans(user_id, is_active);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope_scope_id ON user_bans(scope, scope_id);
   `;
 
   const tableStatements = newTables
@@ -305,6 +329,13 @@ function applySchemaUpdates(sqlite: any): void {
     `ALTER TABLE event_attendees ADD COLUMN assigned_at INTEGER`,
     `ALTER TABLE event_attendees ADD COLUMN registered_at INTEGER`,
     `ALTER TABLE event_attendees ADD COLUMN joined_at INTEGER`,
+
+    // Add columns to game_sessions table for access control
+    `ALTER TABLE game_sessions ADD COLUMN visibility TEXT DEFAULT 'public' NOT NULL`,
+    `ALTER TABLE game_sessions ADD COLUMN password TEXT`,
+    `ALTER TABLE game_sessions ADD COLUMN allow_spectators INTEGER DEFAULT 1 NOT NULL`,
+    `ALTER TABLE game_sessions ADD COLUMN max_spectators INTEGER DEFAULT 10`,
+    `ALTER TABLE game_sessions ADD COLUMN require_approval INTEGER DEFAULT 0 NOT NULL`,
 
     // Add timezone column to events table if it doesn't exist
     `ALTER TABLE events ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC'`,
