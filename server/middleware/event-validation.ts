@@ -68,16 +68,17 @@ export function validateEventUpdate(
   req: Request,
   res: Response,
   next: NextFunction,
-) {
+): void {
   try {
     eventUpdateSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Validation failed",
         errors: error.errors,
       });
+      return;
     }
     next(error);
   }
@@ -90,16 +91,17 @@ export function validateReschedule(
   req: Request,
   res: Response,
   next: NextFunction,
-) {
+): void {
   try {
     rescheduleSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Validation failed",
         errors: error.errors,
       });
+      return;
     }
     next(error);
   }
@@ -112,16 +114,17 @@ export function validateConflictDetection(
   req: Request,
   res: Response,
   next: NextFunction,
-) {
+): void {
   try {
     conflictDetectionSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Validation failed",
         errors: error.errors,
       });
+      return;
     }
     next(error);
   }
@@ -134,16 +137,17 @@ export function validateBatchUpdate(
   req: Request,
   res: Response,
   next: NextFunction,
-) {
+): void {
   try {
     batchUpdateSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Validation failed",
         errors: error.errors,
       });
+      return;
     }
     next(error);
   }

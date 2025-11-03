@@ -10,6 +10,9 @@
 import { z } from "zod";
 import type { GameStateBase, GameStateAction } from "../game-state-schema";
 
+// Re-export GameStateBase for convenience
+export type { GameStateBase, GameStateAction };
+
 // ============================================================================
 // Configuration Types
 // ============================================================================

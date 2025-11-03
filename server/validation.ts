@@ -15,6 +15,7 @@ import {
   nonNegativeIntSchema,
   createEnumSchema,
   optionalNameSchema,
+  sanitizeString,
 } from "./utils/validation.utils";
 
 // Safe helper to get user ID without throwing error
@@ -32,8 +33,8 @@ export const validateEmailSchema = z.object({
 });
 
 export const validateUserProfileUpdateSchema = z.object({
-  firstName: optionalNameSchema.max(50),
-  lastName: optionalNameSchema.max(50),
+  firstName: z.string().min(1).max(50).transform(sanitizeString).optional(),
+  lastName: z.string().min(1).max(50).transform(sanitizeString).optional(),
   username: usernameSchema.optional(),
   bio: bioSchema,
   location: z.string().max(100).optional(),

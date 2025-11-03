@@ -24,7 +24,7 @@ export class MTGAdapter extends BaseGameAdapter<TCGGameState> {
 
   private manager = new GameStateManager();
 
-  createInitialState(config: GameConfig): TCGGameState {
+  override createInitialState(config: GameConfig): TCGGameState {
     const players = config.players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -46,7 +46,7 @@ export class MTGAdapter extends BaseGameAdapter<TCGGameState> {
       players,
       turnOrder: players.map((p) => p.id),
       currentTurn: {
-        playerId: players[0].id,
+        playerId: players[0]?.id || "",
         phase: "untap",
         turnNumber: 1,
       },

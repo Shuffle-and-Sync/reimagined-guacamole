@@ -47,7 +47,7 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
   readonly gameName = "Pokémon Trading Card Game";
   readonly version = "1.0.0";
 
-  createInitialState(config: GameConfig): PokemonGameState {
+  override createInitialState(config: GameConfig): PokemonGameState {
     const players = config.players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -68,7 +68,7 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
       players,
       turnOrder: players.map((p) => p.id),
       currentTurn: {
-        playerId: players[0].id,
+        playerId: players[0]?.id || "",
         phase: "setup",
       },
     };
@@ -110,7 +110,7 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
         return this.isPlayerTurn(state, action.playerId);
       case "play":
         return this.isPlayerTurn(state, action.playerId);
-      case "attack":
+      case "declare_attackers": // Attack action in Pokemon
         return this.isPlayerTurn(state, action.playerId);
       case "concede":
         return true;
@@ -184,7 +184,9 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
 
     if (state.currentTurn.phase === "attack" && player.activePokemon) {
       // Can attack with active Pokémon
-      actions.push(createGameAction("attack", playerId, {}, state.version));
+      actions.push(
+        createGameAction("declare_attackers", playerId, {}, state.version),
+      );
     }
 
     // Always available
@@ -217,7 +219,7 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
     // Winner is player with prize cards remaining
     const playersWithPrizes = state.players.filter((p) => p.prizeCards > 0);
     if (playersWithPrizes.length === 1) {
-      return playersWithPrizes[0].id;
+      return playersWithPrizes[0]?.id || null;
     }
 
     // Winner is player with Pokémon in play
@@ -225,13 +227,13 @@ export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
       (p) => p.activePokemon || p.bench.length > 0,
     );
     if (playersWithPokemon.length === 1) {
-      return playersWithPokemon[0].id;
+      return playersWithPokemon[0]?.id || null;
     }
 
     // Winner is player with cards in deck
     const playersWithDeck = state.players.filter((p) => p.deck.count > 0);
     if (playersWithDeck.length === 1) {
-      return playersWithDeck[0].id;
+      return playersWithDeck[0]?.id || null;
     }
 
     return null;
