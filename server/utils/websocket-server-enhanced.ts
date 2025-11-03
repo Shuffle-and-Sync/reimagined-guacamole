@@ -25,6 +25,10 @@ import {
 } from "./websocket-rate-limiter";
 
 // WebSocket message interface for type safety
+// Note: This is a local union type that covers the validated incoming messages.
+// The message has already been validated by websocketMessageSchema at this point,
+// so we know it matches one of the expected shapes. Type assertions in handlers
+// are used to narrow to specific message types after the discriminated union check.
 interface WebSocketMessage {
   type: string;
   sessionId?: string;
