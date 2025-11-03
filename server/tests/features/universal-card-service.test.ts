@@ -37,7 +37,7 @@ describe("Universal Card Service - Database Integration", () => {
       expect(result).toBeDefined();
       expect(Array.isArray(result.cards)).toBe(true);
       expect(result.cards.length).toBeGreaterThan(0);
-    }, 30000); // 30 second timeout for external API call
+    }, 60000); // 60 second timeout for external API call (can be slow)
 
     test("should support legacy game ID: yugioh-tcg", async () => {
       const result = await universalCardService.searchCards(
