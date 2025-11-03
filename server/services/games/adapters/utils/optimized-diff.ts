@@ -258,9 +258,13 @@ function parsePath(path: string): Array<{ key: string; isArray: boolean }> {
   for (const segment of segments) {
     const arrayMatch = segment.match(/^(.+)\[(\d+)\]$/);
     if (arrayMatch) {
-      // Array access
-      parts.push({ key: arrayMatch[1]!, isArray: false });
-      parts.push({ key: arrayMatch[2]!, isArray: true });
+      // Array access - regex groups are guaranteed to exist
+      const key = arrayMatch[1];
+      const index = arrayMatch[2];
+      if (key && index) {
+        parts.push({ key, isArray: false });
+        parts.push({ key: index, isArray: true });
+      }
     } else {
       parts.push({ key: segment, isArray: false });
     }

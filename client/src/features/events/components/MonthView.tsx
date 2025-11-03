@@ -156,7 +156,8 @@ export function MonthView({
                           getEventTypeColor(event.type),
                         )}
                       >
-                        {format(new Date(event.startTime!), "h:mm a")}{" "}
+                        {event.startTime &&
+                          format(new Date(event.startTime), "h:mm a")}{" "}
                         {event.title}
                       </button>
                     ))}

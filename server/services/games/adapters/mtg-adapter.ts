@@ -590,11 +590,13 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
         },
         status: player.life <= 0 ? "eliminated" : undefined,
       })),
-      currentPhase: {
-        id: currentPhaseInfo!.id,
-        name: currentPhaseInfo!.name,
-        description: currentPhaseInfo!.description,
-      },
+      currentPhase: currentPhaseInfo
+        ? {
+            id: currentPhaseInfo.id,
+            name: currentPhaseInfo.name,
+            description: currentPhaseInfo.description,
+          }
+        : { id: "unknown", name: "Unknown", description: "Unknown phase" },
       turnNumber: state.turnNumber,
       gameStatus: state.isGameOver ? "finished" : "active",
       winner: state.winner,

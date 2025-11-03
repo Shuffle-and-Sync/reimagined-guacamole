@@ -235,8 +235,11 @@ export class OutlookCalendarService {
    * Convert Outlook event to internal format
    */
   convertToInternalEvent(outlookEvent: Event) {
+    if (!outlookEvent.id) {
+      throw new Error("Outlook Calendar event missing required id field");
+    }
     return {
-      externalEventId: outlookEvent.id!,
+      externalEventId: outlookEvent.id,
       title: outlookEvent.subject || "Untitled Event",
       description: outlookEvent.body?.content || null,
       location: outlookEvent.location?.displayName || null,

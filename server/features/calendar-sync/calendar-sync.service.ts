@@ -171,13 +171,19 @@ export class CalendarSyncService {
         connection,
         eventData,
       );
-      externalEventId = googleEvent.id!;
+      if (!googleEvent.id) {
+        throw new Error("Google Calendar event created without ID");
+      }
+      externalEventId = googleEvent.id;
     } else if (connection.provider === "outlook") {
       const outlookEvent = await outlookCalendarService.createEvent(
         connection,
         eventData,
       );
-      externalEventId = outlookEvent.id!;
+      if (!outlookEvent.id) {
+        throw new Error("Outlook Calendar event created without ID");
+      }
+      externalEventId = outlookEvent.id;
     } else {
       throw new Error("Unsupported provider");
     }

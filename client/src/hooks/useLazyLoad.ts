@@ -20,8 +20,9 @@ export function useLazyLoad<T>() {
   const loadDetail = useCallback(
     async (id: string, fetchFn: () => Promise<T>) => {
       // Return cached detail if available
-      if (loadedDetailsRef.current.has(id)) {
-        return loadedDetailsRef.current.get(id)!;
+      const cached = loadedDetailsRef.current.get(id);
+      if (cached) {
+        return cached;
       }
 
       // Skip if already loading
