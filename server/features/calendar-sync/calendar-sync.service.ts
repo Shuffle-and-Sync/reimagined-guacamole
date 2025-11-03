@@ -1,5 +1,5 @@
-import { logger } from "@/logger";
-import { storage } from "@/storage";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
 import { googleCalendarService } from "./google-calendar.service";
 import { outlookCalendarService } from "./outlook-calendar.service";
 import type { CalendarConnection } from "./types";

@@ -1,26 +1,26 @@
-import { describe, it, expect, beforeEach, vi } from "@jest/globals";
-import { storage } from "@/storage";
-import { CalendarSyncService } from "../calendar-sync.service";
-import { googleCalendarService } from "../google-calendar.service";
-import { outlookCalendarService } from "../outlook-calendar.service";
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { storage } from "../../storage";
+import { CalendarSyncService } from "./calendar-sync.service";
+import { googleCalendarService } from "./google-calendar.service";
+import { outlookCalendarService } from "./outlook-calendar.service";
 
 // Mock dependencies
-vi.mock("@/storage");
-vi.mock("../google-calendar.service");
-vi.mock("../outlook-calendar.service");
-vi.mock("@/logger");
+jest.mock("../../storage");
+jest.mock("./google-calendar.service");
+jest.mock("./outlook-calendar.service");
+jest.mock("../../logger");
 
 describe("CalendarSyncService", () => {
   let calendarSyncService: CalendarSyncService;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     calendarSyncService = new CalendarSyncService();
   });
 
   describe("importEvents", () => {
     it("should throw error if connection not found", async () => {
-      vi.mocked(storage.getCalendarConnection).mockResolvedValue(undefined);
+      (storage.getCalendarConnection as jest.Mock).mockResolvedValue(undefined);
 
       await expect(
         calendarSyncService.importEvents("non-existent-id"),
@@ -28,7 +28,7 @@ describe("CalendarSyncService", () => {
     });
 
     it("should throw error if sync is disabled", async () => {
-      vi.mocked(storage.getCalendarConnection).mockResolvedValue({
+      (storage.getCalendarConnection as jest.Mock).mockResolvedValue({
         id: "conn-1",
         userId: "user-1",
         provider: "google",
@@ -68,11 +68,11 @@ describe("CalendarSyncService", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(storage.getCalendarConnection).mockResolvedValue(
+      (storage.getCalendarConnection as jest.Mock).mockResolvedValue(
         mockConnection,
       );
-      vi.mocked(googleCalendarService.fetchEvents).mockResolvedValue([]);
-      vi.mocked(storage.upsertExternalEvent).mockResolvedValue({
+      (googleCalendarService.fetchEvents as jest.Mock).mockResolvedValue([]);
+      (storage.upsertExternalEvent as jest.Mock).mockResolvedValue({
         id: "ext-1",
         connectionId: "conn-1",
         externalEventId: "google-event-1",
@@ -90,7 +90,7 @@ describe("CalendarSyncService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      vi.mocked(storage.updateCalendarConnection).mockResolvedValue(
+      (storage.updateCalendarConnection as jest.Mock).mockResolvedValue(
         mockConnection,
       );
 
@@ -109,8 +109,8 @@ describe("CalendarSyncService", () => {
 
   describe("exportEvent", () => {
     it("should throw error if connection not found", async () => {
-      vi.mocked(storage.getCalendarConnection).mockResolvedValue(undefined);
-      vi.mocked(storage.getEvent).mockResolvedValue({
+      (storage.getCalendarConnection as jest.Mock).mockResolvedValue(undefined);
+      (storage.getEvent as jest.Mock).mockResolvedValue({
         id: "event-1",
         title: "Test Event",
         type: "community",
@@ -147,7 +147,7 @@ describe("CalendarSyncService", () => {
     });
 
     it("should throw error if event not found", async () => {
-      vi.mocked(storage.getCalendarConnection).mockResolvedValue({
+      (storage.getCalendarConnection as jest.Mock).mockResolvedValue({
         id: "conn-1",
         userId: "user-1",
         provider: "google",
@@ -163,7 +163,7 @@ describe("CalendarSyncService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      vi.mocked(storage.getEvent).mockResolvedValue(undefined);
+      (storage.getEvent as jest.Mock).mockResolvedValue(undefined);
 
       await expect(
         calendarSyncService.exportEvent("non-existent-event", "conn-1"),

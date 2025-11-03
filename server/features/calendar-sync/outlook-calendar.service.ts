@@ -1,6 +1,6 @@
 import { ClientSecretCredential } from "@azure/identity";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { logger } from "@/logger";
+import { logger } from "../../logger";
 import type {
   CalendarConnection,
   CalendarEventData,

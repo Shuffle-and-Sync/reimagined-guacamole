@@ -1,6 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
 import { google, calendar_v3 } from "googleapis";
-import { logger } from "@/logger";
+import { logger } from "../../logger";
 import type {
   CalendarConnection,
   CalendarEventData,

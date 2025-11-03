@@ -3,9 +3,9 @@ import {
   isAuthenticated,
   getAuthUserId,
   type AuthenticatedRequest,
-} from "@/auth";
-import { logger } from "@/logger";
-import { storage } from "@/storage";
+} from "../../auth";
+import { logger } from "../../logger";
+import { storage } from "../../storage";
 import { calendarSyncService } from "./calendar-sync.service";
 import { googleCalendarService } from "./google-calendar.service";
 import { outlookCalendarService } from "./outlook-calendar.service";
