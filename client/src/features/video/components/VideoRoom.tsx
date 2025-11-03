@@ -95,7 +95,8 @@ export function VideoRoom({
     updateCommanderDamage,
     updateCounter,
     passTurn,
-    endGame,
+    // endGame function available for future game completion features
+    endGame: _endGame,
   } = useGameState({
     gameId: `game-${roomId}`,
     roomId,

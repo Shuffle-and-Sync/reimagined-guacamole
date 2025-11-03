@@ -74,7 +74,7 @@ export const matchConflictResolutionService = {
           matchId: submission.matchId,
           submission1Id: existingResult?.id || "pending",
           submission2Id: crypto.randomUUID(),
-          submission1By: match.resultSubmittedBy!,
+          submission1By: match.resultSubmittedBy || "unknown",
           submission2By: submission.submittedBy,
           submission1Data: JSON.stringify({
             winnerId: existingResult?.winnerId,

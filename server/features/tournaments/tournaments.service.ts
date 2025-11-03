@@ -1073,8 +1073,12 @@ export const tournamentsService = {
         if (!pairingHistory.has(match.player2Id)) {
           pairingHistory.set(match.player2Id, new Set());
         }
-        pairingHistory.get(match.player1Id)!.add(match.player2Id);
-        pairingHistory.get(match.player2Id)!.add(match.player1Id);
+        const player1History = pairingHistory.get(match.player1Id);
+        const player2History = pairingHistory.get(match.player2Id);
+        if (player1History && player2History) {
+          player1History.add(match.player2Id);
+          player2History.add(match.player1Id);
+        }
       }
     }
 
@@ -1089,7 +1093,10 @@ export const tournamentsService = {
       if (!scoreGroups.has(standing.matchPoints)) {
         scoreGroups.set(standing.matchPoints, []);
       }
-      scoreGroups.get(standing.matchPoints)!.push(standing);
+      const group = scoreGroups.get(standing.matchPoints);
+      if (group) {
+        group.push(standing);
+      }
     }
 
     // Pair within score groups, expanding search if needed
@@ -1360,7 +1367,7 @@ export const tournamentsService = {
 
     const winners = typedMatches
       .filter((m) => m.status === "completed" && m.winnerId)
-      .map((m) => m.winnerId!)
+      .map((m) => m.winnerId as string)
       .filter((id) => id !== null);
 
     if (winners.length === 0) {

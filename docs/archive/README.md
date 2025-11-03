@@ -2,6 +2,28 @@
 
 This directory contains historical documentation that has been superseded by newer guides or is no longer actively maintained. These files are preserved for reference and historical context.
 
+## Recently Archived (November 2025)
+
+As part of the deployment preparation cleanup, the following files were archived to streamline the repository root:
+
+### Summary & Analysis Reports
+
+Historical development summaries, optimization reports, and analysis documents that tracked progress on various initiatives. These provide valuable context for past decisions but are no longer actively referenced in day-to-day development.
+
+### Implementation Documentation
+
+Step-by-step implementation guides and completion summaries for features that are now fully integrated into the codebase.
+
+### Configuration Files
+
+Optimized build configurations (`.optimized.*`) that were experimental or alternative approaches but are not currently used in the active build process.
+
+### Utility Scripts
+
+Helper scripts (`format-everything.sh`, `quick-wins.sh`) that were useful during specific refactoring phases but have been superseded by npm scripts and automated tooling.
+
+**Note:** Code examples in archived documents may not reflect current best practices or may contain patterns that would be flagged by current linting rules. These are preserved for historical context only and should not be copy-pasted into production code without review and updates.
+
 ## Archived Files
 
 ### Authentication & Deployment Fixes (Historical)

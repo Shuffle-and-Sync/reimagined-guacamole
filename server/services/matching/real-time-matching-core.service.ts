@@ -100,9 +100,9 @@ export class RealTimeMatchingCoreService {
 
       // Filter by preferences
       if (request.preferences?.minCompatibilityScore) {
+        const minScore = request.preferences.minCompatibilityScore;
         enhancedMatches = enhancedMatches.filter(
-          (m) =>
-            m.compatibilityScore >= request.preferences!.minCompatibilityScore!,
+          (m) => m.compatibilityScore >= minScore,
         );
       }
 

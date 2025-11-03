@@ -30,7 +30,8 @@ export const useGameState = (options: UseGameStateOptions) => {
   const {
     gameId,
     roomId,
-    userId,
+    // userId reserved for future multiplayer coordination features
+    userId: _userId,
     socket,
     gameType = "mtg",
     format = "casual",

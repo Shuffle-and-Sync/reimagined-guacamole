@@ -14,7 +14,7 @@
  * @module StreamingRepository
  */
 
-import { eq, and, desc, gte, lt, or, count, inArray } from "drizzle-orm";
+import { eq, and, desc, gte, lt } from "drizzle-orm";
 import { db, withQueryTiming } from "@shared/database-unified";
 import {
   streamSessions,
@@ -23,7 +23,6 @@ import {
   collaborationRequests,
   streamAnalytics,
   collaborativeStreamEvents,
-  streamCollaborators,
   streamCoordinationSessions,
   users,
   type StreamSession,
@@ -38,8 +37,6 @@ import {
   type InsertStreamAnalytics,
   type CollaborativeStreamEvent,
   type InsertCollaborativeStreamEvent,
-  type StreamCollaborator,
-  type InsertStreamCollaborator,
   type StreamCoordinationSession,
   type InsertStreamCoordinationSession,
   type User,

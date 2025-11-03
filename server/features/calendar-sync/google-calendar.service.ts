@@ -266,8 +266,11 @@ export class GoogleCalendarService {
    * Convert Google Calendar event to internal format
    */
   convertToInternalEvent(googleEvent: calendar_v3.Schema$Event) {
+    if (!googleEvent.id) {
+      throw new Error("Google Calendar event missing required id field");
+    }
     return {
-      externalEventId: googleEvent.id!,
+      externalEventId: googleEvent.id,
       title: googleEvent.summary || "Untitled Event",
       description: googleEvent.description || null,
       location: googleEvent.location || null,

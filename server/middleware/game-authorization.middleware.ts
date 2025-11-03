@@ -179,7 +179,11 @@ export function requiresTurnValidation(actionType: string): boolean {
 export interface AuthorizationResult {
   authorized: boolean;
   reason?: string;
-  sessionData?: GameSession & { host: any; coHost?: any; event: any };
+  sessionData?: GameSession & {
+    host: { id: string; username: string };
+    coHost?: { id: string; username: string };
+    event: { id: string; title: string };
+  };
 }
 
 /**
@@ -298,8 +302,10 @@ export async function authorizeGameAction(
         } catch (parseError) {
           logger.warn(
             "Failed to parse session.boardState during authorization",
-            parseError instanceof Error ? parseError : new Error(String(parseError)),
-            { sessionId, userId }
+            parseError instanceof Error
+              ? parseError
+              : new Error(String(parseError)),
+            { sessionId, userId },
           );
           return {
             authorized: false,

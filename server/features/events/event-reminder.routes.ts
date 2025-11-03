@@ -35,81 +35,91 @@ const updateReminderSettingsSchema = z.object({
  * GET /api/users/reminder-settings
  * Get current user's reminder settings
  */
-router.get("/", requireAuth, reminderRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
+router.get(
+  "/",
+  requireAuth,
+  reminderRateLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
+      if (!userId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const settings = await eventReminderService.getReminderSettings(userId);
+
+      // Parse JSON fields for response
+      const response = {
+        ...settings,
+        reminderTimes: JSON.parse(settings.reminderTimes),
+        channels: JSON.parse(settings.channels),
+      };
+
+      res.json(response);
+    } catch (error) {
+      logger.error("Failed to get reminder settings", {
+        error: error instanceof Error ? error.message : String(error),
+        userId: req.user?.id,
+      });
+      res.status(500).json({ error: "Failed to get reminder settings" });
     }
-
-    const settings = await eventReminderService.getReminderSettings(userId);
-
-    // Parse JSON fields for response
-    const response = {
-      ...settings,
-      reminderTimes: JSON.parse(settings.reminderTimes),
-      channels: JSON.parse(settings.channels),
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error("Failed to get reminder settings", {
-      error: error instanceof Error ? error.message : String(error),
-      userId: req.user?.id,
-    });
-    res.status(500).json({ error: "Failed to get reminder settings" });
-  }
-});
+  },
+);
 
 /**
  * PUT /api/users/reminder-settings
  * Update current user's reminder settings
  */
-router.put("/", requireAuth, reminderRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
+router.put(
+  "/",
+  requireAuth,
+  reminderRateLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
+      if (!userId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
 
-    // Validate request body
-    const validation = updateReminderSettingsSchema.safeParse(req.body);
+      // Validate request body
+      const validation = updateReminderSettingsSchema.safeParse(req.body);
 
-    if (!validation.success) {
-      res.status(400).json({
-        error: "Invalid request data",
-        details: validation.error.issues,
+      if (!validation.success) {
+        res.status(400).json({
+          error: "Invalid request data",
+          details: validation.error.issues,
+        });
+        return;
+      }
+
+      const updates = validation.data;
+
+      // Update settings
+      const updated = await eventReminderService.updateReminderSettings(
+        userId,
+        updates,
+      );
+
+      // Parse JSON fields for response
+      const response = {
+        ...updated,
+        reminderTimes: JSON.parse(updated.reminderTimes),
+        channels: JSON.parse(updated.channels),
+      };
+
+      res.json(response);
+    } catch (error) {
+      logger.error("Failed to update reminder settings", {
+        error: error instanceof Error ? error.message : String(error),
+        userId: req.user?.id,
       });
-      return;
+      res.status(500).json({ error: "Failed to update reminder settings" });
     }
-
-    const updates = validation.data;
-
-    // Update settings
-    const updated = await eventReminderService.updateReminderSettings(
-      userId,
-      updates,
-    );
-
-    // Parse JSON fields for response
-    const response = {
-      ...updated,
-      reminderTimes: JSON.parse(updated.reminderTimes),
-      channels: JSON.parse(updated.channels),
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error("Failed to update reminder settings", {
-      error: error instanceof Error ? error.message : String(error),
-      userId: req.user?.id,
-    });
-    res.status(500).json({ error: "Failed to update reminder settings" });
-  }
-});
+  },
+);
 
 export default router;

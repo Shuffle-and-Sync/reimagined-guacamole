@@ -30,7 +30,7 @@ describe("App Component - Lazy Loading", () => {
     render(<App />);
 
     // Should show a loading spinner while lazy components load
-    const spinners = document.querySelectorAll(".animate-spin");
+    const _spinners = document.querySelectorAll(".animate-spin");
 
     // Wait for the lazy component to load
     await waitFor(

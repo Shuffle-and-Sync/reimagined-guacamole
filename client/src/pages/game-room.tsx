@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
-import { getErrorMessage } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +70,7 @@ export default function GameRoom() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity } = useCommunity();
+  const { selectedCommunity: _selectedCommunity } = useCommunity();
   const _queryClient = useQueryClient();
 
   // Check if user is in spectator mode

@@ -10,12 +10,14 @@ This comprehensive guide provides step-by-step instructions for deploying Shuffl
 - [Deployment Options](#deployment-options)
 - [Deployment Procedures](#deployment-procedures)
 - [Windows Deployment (Git Bash)](#windows-deployment-git-bash)
+  - **📘 For detailed Windows instructions, see [Windows Deployment Guide](docs/deployment/WINDOWS_DEPLOYMENT.md)**
 - [Rollback Strategies](#rollback-strategies)
 - [Verification Steps](#verification-steps)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
   - [Administrator Setup Guide](docs/deployment/ADMIN_SETUP.md)
   - [Memory Configuration Guide](docs/deployment/MEMORY_CONFIGURATION.md)
+  - [Windows Deployment Guide](docs/deployment/WINDOWS_DEPLOYMENT.md)
 
 ---
 

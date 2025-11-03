@@ -23,11 +23,8 @@ import {
   userSecurityContexts,
   passwordResetTokens,
   emailVerificationTokens,
-  emailChangeTokens,
   type UserMfaSettings,
   type InsertUserMfaSettings,
-  type UserMfaAttempts,
-  type InsertUserMfaAttempts,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
   type RevokedJwtToken,
@@ -38,8 +35,6 @@ import {
   type InsertPasswordResetToken,
   type EmailVerificationToken,
   type InsertEmailVerificationToken,
-  type EmailChangeToken,
-  type InsertEmailChangeToken,
 } from "@shared/schema";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";

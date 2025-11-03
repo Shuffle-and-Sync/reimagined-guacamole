@@ -5,9 +5,7 @@ import {
   eventReminderSettings,
   events,
   eventAttendees,
-  users,
   type Event,
-  type EventReminder,
   type EventReminderSettings,
   type InsertEventReminder,
 } from "@shared/schema";

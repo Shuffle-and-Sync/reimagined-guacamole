@@ -1,16 +1,9 @@
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import {
-  insertCommunitySchema,
-  insertEventSchema,
-  insertEventAttendeeSchema,
-  insertGameSessionSchema,
-  type UpsertUser,
-} from "@shared/schema";
+import { insertEventSchema } from "@shared/schema";
 import {
   isAuthenticated,
   getAuthUserId,
-  requireHybridAuth,
   type AuthenticatedRequest,
 } from "./auth";
 import { sendContactEmail } from "./email";

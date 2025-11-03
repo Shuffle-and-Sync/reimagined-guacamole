@@ -81,7 +81,7 @@ export default function CommunityForum() {
   useDocumentTitle("Community Forum");
 
   const { user } = useAuth();
-  const { selectedCommunity, communityTheme } = useCommunity();
+  const { selectedCommunity, communityTheme: _communityTheme } = useCommunity();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPost, setSelectedPost] = useState<string | null>(null);

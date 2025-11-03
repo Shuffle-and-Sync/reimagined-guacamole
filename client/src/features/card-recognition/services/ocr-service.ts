@@ -47,7 +47,8 @@ export async function extractTextFromImage(
     // Perform OCR
     const result = await tesseractWorker.recognize(canvas);
 
-    const processingTime = Date.now() - startTime;
+    // Processing time tracked for potential future performance monitoring
+    const _processingTime = Date.now() - startTime;
 
     return {
       text: result.data.text.trim(),

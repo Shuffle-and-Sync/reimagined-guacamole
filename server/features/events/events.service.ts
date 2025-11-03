@@ -5,7 +5,6 @@ import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
 import { validateTimezone } from "../../utils/timezone";
-import { TimezoneUtils } from "../../utils/timezone.utils";
 import { conflictDetectionService } from "./conflict-detection.service";
 import {
   DEFAULT_EVENT_DURATION_MS,
