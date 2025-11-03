@@ -42,12 +42,15 @@ jest.mock("../../logger", () => ({
 describe("SessionAccessService", () => {
   const testUserId = "test-user-123";
   const testHostId = "test-host-456";
-  const testSessionId = "test-session-789";
+  let testSessionId: string; // Make dynamic
   const testCommunityId = "test-community-abc";
   const testGameId = "test-game-xyz";
 
   // Set up test data before each test
   beforeEach(async () => {
+    // Generate unique session ID for each test
+    testSessionId = `test-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     try {
       // Create test game
       await db

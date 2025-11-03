@@ -289,6 +289,22 @@ function applySchemaUpdates(sqlite: any): void {
       FOREIGN KEY (banned_by) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS session_invitations (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      inviter_id TEXT NOT NULL,
+      invitee_id TEXT NOT NULL,
+      role TEXT DEFAULT 'player' NOT NULL,
+      status TEXT DEFAULT 'pending' NOT NULL,
+      message TEXT,
+      expires_at INTEGER NOT NULL,
+      responded_at INTEGER,
+      created_at INTEGER,
+      FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);
     CREATE INDEX IF NOT EXISTS idx_event_reminders_user ON event_reminders(user_id);
     CREATE INDEX IF NOT EXISTS idx_event_reminders_status ON event_reminders(status);
@@ -300,6 +316,9 @@ function applySchemaUpdates(sqlite: any): void {
     CREATE INDEX IF NOT EXISTS idx_user_bans_end_time ON user_bans(end_time);
     CREATE INDEX IF NOT EXISTS idx_user_bans_user_active ON user_bans(user_id, is_active);
     CREATE INDEX IF NOT EXISTS idx_user_bans_scope_scope_id ON user_bans(scope, scope_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_session ON session_invitations(session_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_invitee ON session_invitations(invitee_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_status ON session_invitations(status);
   `;
 
   const tableStatements = newTables
