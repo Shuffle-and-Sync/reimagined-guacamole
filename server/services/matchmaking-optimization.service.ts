@@ -12,6 +12,7 @@ import {
   matchmakingPreferences,
   playerRatings,
   tournamentMatches,
+  users,
 } from "@shared/schema";
 import { logger } from "../logger";
 
