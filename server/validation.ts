@@ -32,8 +32,8 @@ export const validateEmailSchema = z.object({
 });
 
 export const validateUserProfileUpdateSchema = z.object({
-  firstName: z.string().min(1).max(50).transform(sanitizeString).optional(),
-  lastName: z.string().min(1).max(50).transform(sanitizeString).optional(),
+  firstName: z.string().max(50).transform(sanitizeString).optional(),
+  lastName: z.string().max(50).transform(sanitizeString).optional(),
   username: usernameSchema.optional(),
   bio: bioSchema,
   location: z.string().max(100).optional(),

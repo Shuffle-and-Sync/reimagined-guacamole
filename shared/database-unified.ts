@@ -917,7 +917,7 @@ export const preparedQueries = {
           .from(schema.notifications)
           .where(sql`user_id = $1 AND is_read = false`)
           .orderBy(desc(schema.notifications.createdAt))
-          .limit(50), // Default limit, can be overridden by caller
+          .limit(50), // Default limit of 50
     );
   },
 
@@ -932,7 +932,7 @@ export const preparedQueries = {
           .where(sql`user_id = $1`)
           .orderBy(desc(schema.notifications.createdAt))
           .limit(50) // Default limit
-          .offset(0), // Will be overridden by caller if needed
+          .offset(0), // Default offset
     );
   },
 
@@ -1091,7 +1091,7 @@ export async function applyCompositeIndexes(): Promise<void> {
 
   for (const indexSql of compositeIndexes) {
     try {
-      // Use db.run() with sql`` template literal
+      // Use db.run() with sql.raw() for dynamic SQL strings
       await db.run(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
       console.warn(`✅ Applied index: ${indexName}`);

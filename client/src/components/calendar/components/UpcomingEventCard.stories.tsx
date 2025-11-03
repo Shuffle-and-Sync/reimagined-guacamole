@@ -1,7 +1,7 @@
 import { UpcomingEventCard } from "./UpcomingEventCard";
 import type { Meta, StoryObj } from "@storybook/react";
 
-// Mock function for Storybook actions
+// Mock function for Storybook actions - no-op for now
 const fn = () => () => {};
 
 /**

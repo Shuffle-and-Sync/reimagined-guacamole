@@ -78,7 +78,7 @@ describe("SessionAccessService", () => {
         },
       ]);
 
-      // Create test community with correct schema (no gameId or creatorId)
+      // Create test community (uses actual schema fields from communities table)
       await db.insert(communities).values({
         id: testCommunityId,
         name: `Test Community ${Date.now()}`,
