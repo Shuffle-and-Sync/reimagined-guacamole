@@ -763,7 +763,7 @@ describe("JoinEventButton", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId(`button-join-${mockEvent.id}`),
+          screen.getByTestId(`button-join-alternate-${mockEvent.id}`),
         ).toBeInTheDocument();
       });
 
@@ -1233,29 +1233,22 @@ describe("JoinEventButton", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId(`button-join-${mockEvent.id}`),
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
         ).toBeInTheDocument();
       });
 
-      // Open dialog
-      await user.click(screen.getByTestId(`button-join-${mockEvent.id}`));
+      const leaveButton = screen.getByTestId(`button-leave-${mockEvent.id}`);
+      await user.click(leaveButton);
 
-      await waitFor(() => {
-        expect(screen.getByTestId("button-cancel-join")).toBeInTheDocument();
-      });
-
-      // Click cancel
-      await user.click(screen.getByTestId("button-cancel-join"));
-
-      // Dialog should close
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId("button-cancel-join"),
-        ).not.toBeInTheDocument();
-      });
-
-      // onSuccess should not be called
-      expect(mockOnSuccess).not.toHaveBeenCalled();
+      // Check for loading state - should show immediately after click
+      await waitFor(
+        () => {
+          const button = screen.getByTestId(`button-leave-${mockEvent.id}`);
+          expect(button).toBeDisabled();
+          expect(button).toHaveTextContent("Leaving...");
+        },
+        { timeout: 500 },
+      );
     });
 
     it("disables Pod Full button permanently", async () => {
