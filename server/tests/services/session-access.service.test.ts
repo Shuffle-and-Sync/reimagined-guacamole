@@ -43,59 +43,54 @@ describe("SessionAccessService", () => {
   const testUserId = "test-user-123";
   const testHostId = "test-host-456";
   let testSessionId: string; // Make dynamic
-  const testCommunityId = "test-community-abc";
-  const testGameId = "test-game-xyz";
+  let testCommunityId: string; // Make dynamic for test isolation
+  let testGameId: string; // Make dynamic for test isolation
 
   // Set up test data before each test
   beforeEach(async () => {
-    // Generate unique session ID for each test
+    // Generate unique IDs for each test
     testSessionId = `test-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    testCommunityId = `test-community-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    testGameId = `test-game-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     try {
       // Create test game
-      await db
-        .insert(games)
-        .values({
-          id: testGameId,
-          name: "Test Game",
-          code: "TEST",
-          isActive: true,
-        })
-        .onConflictDoNothing();
+      await db.insert(games).values({
+        id: testGameId,
+        name: "Test Game",
+        code: `TEST-${Date.now()}`,
+        isActive: true,
+      });
 
       // Create test users
-      await db
-        .insert(users)
-        .values({
+      await db.insert(users).values([
+        {
           id: testUserId,
           email: `test-user-${Date.now()}@example.com`,
           firstName: "Test",
           lastName: "User",
-        })
-        .onConflictDoNothing();
-
-      await db
-        .insert(users)
-        .values({
+        },
+        {
           id: testHostId,
           email: `test-host-${Date.now()}@example.com`,
           firstName: "Test",
           lastName: "Host",
-        })
-        .onConflictDoNothing();
+        },
+      ]);
 
-      // Create test community
-      await db
-        .insert(communities)
-        .values({
-          id: testCommunityId,
-          name: "Test Community",
-          gameId: testGameId,
-          creatorId: testHostId,
-        })
-        .onConflictDoNothing();
+      // Create test community (uses actual schema fields from communities table)
+      await db.insert(communities).values({
+        id: testCommunityId,
+        name: `Test Community ${Date.now()}`,
+        displayName: "Test Community",
+        description: "A test community",
+        themeColor: "#000000",
+        iconClass: "game-icon",
+        isActive: true,
+      });
     } catch (error) {
       // Ignore if already exists
+      console.error("Setup error:", error);
     }
   });
 

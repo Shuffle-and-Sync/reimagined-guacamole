@@ -303,11 +303,30 @@ export class UniversalCardService {
         .from(games)
         .where(eq(games.isActive, true));
 
-      return allGames.map((game) => ({
-        id: game.id,
-        name: game.name,
-        code: game.code,
-      }));
+      // If database has games, return them
+      if (allGames.length > 0) {
+        return allGames.map((game) => ({
+          id: game.id,
+          name: game.name,
+          code: game.code,
+        }));
+      }
+
+      // Otherwise return hardcoded fallback list
+      logger.info("No games in database, returning hardcoded fallback list");
+      return [
+        { id: "mtg-official", name: "Magic: The Gathering", code: "MTG" },
+        {
+          id: "pokemon-tcg",
+          name: "Pokemon Trading Card Game",
+          code: "POKEMON",
+        },
+        {
+          id: "yugioh-tcg",
+          name: "Yu-Gi-Oh! Trading Card Game",
+          code: "YUGIOH",
+        },
+      ];
     } catch (error) {
       logger.error("Failed to get supported games from database", error);
       // Return hardcoded list as fallback

@@ -302,6 +302,6 @@ describe("Card Recognition Service", () => {
 
       // Should take at least 100ms due to rate limiting
       expect(elapsed).toBeGreaterThanOrEqual(100);
-    }, 10000);
+    }, 20000); // 20 second timeout for external API calls
   });
 });

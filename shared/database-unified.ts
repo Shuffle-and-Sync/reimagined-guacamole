@@ -909,26 +909,30 @@ export const preparedQueries = {
   // Notifications
   getUnreadNotifications: () => {
     const cache = PreparedStatementCache.getInstance();
-    return cache.getOrPrepare("getUnreadNotifications", () =>
-      db
-        .select()
-        .from(schema.notifications)
-        .where(sql`user_id = $1 AND is_read = false`)
-        .orderBy(desc(schema.notifications.createdAt))
-        .limit(sql`$2`),
+    return cache.getOrPrepare(
+      "getUnreadNotifications",
+      () =>
+        db
+          .select()
+          .from(schema.notifications)
+          .where(sql`user_id = $1 AND is_read = false`)
+          .orderBy(desc(schema.notifications.createdAt))
+          .limit(50), // Default limit of 50
     );
   },
 
   getUserNotifications: () => {
     const cache = PreparedStatementCache.getInstance();
-    return cache.getOrPrepare("getUserNotifications", () =>
-      db
-        .select()
-        .from(schema.notifications)
-        .where(sql`user_id = $1`)
-        .orderBy(desc(schema.notifications.createdAt))
-        .limit(sql`$2`)
-        .offset(sql`$3`),
+    return cache.getOrPrepare(
+      "getUserNotifications",
+      () =>
+        db
+          .select()
+          .from(schema.notifications)
+          .where(sql`user_id = $1`)
+          .orderBy(desc(schema.notifications.createdAt))
+          .limit(50) // Default limit
+          .offset(0), // Default offset
     );
   },
 
@@ -957,18 +961,20 @@ export const preparedQueries = {
   // Community members
   getCommunityMembers: () => {
     const cache = PreparedStatementCache.getInstance();
-    return cache.getOrPrepare("getCommunityMembers", () =>
-      db
-        .select({
-          user: schema.users,
-          isPrimary: schema.userCommunities.isPrimary,
-          joinedAt: schema.userCommunities.joinedAt,
-        })
-        .from(schema.userCommunities)
-        .innerJoin(schema.users, sql`user_communities.user_id = users.id`)
-        .where(sql`user_communities.community_id = $1`)
-        .limit(sql`$2`)
-        .offset(sql`$3`),
+    return cache.getOrPrepare(
+      "getCommunityMembers",
+      () =>
+        db
+          .select({
+            user: schema.users,
+            isPrimary: schema.userCommunities.isPrimary,
+            joinedAt: schema.userCommunities.joinedAt,
+          })
+          .from(schema.userCommunities)
+          .innerJoin(schema.users, sql`user_communities.user_id = users.id`)
+          .where(sql`user_communities.community_id = $1`)
+          .limit(100) // Default limit
+          .offset(0), // Will be overridden by caller if needed
     );
   },
 
@@ -1011,13 +1017,15 @@ export const preparedQueries = {
 
   getUserStreamSessions: () => {
     const cache = PreparedStatementCache.getInstance();
-    return cache.getOrPrepare("getUserStreamSessions", () =>
-      db
-        .select()
-        .from(schema.streamSessions)
-        .where(sql`streamer_id = $1`)
-        .orderBy(desc(schema.streamSessions.scheduledStart))
-        .limit(sql`$2`),
+    return cache.getOrPrepare(
+      "getUserStreamSessions",
+      () =>
+        db
+          .select()
+          .from(schema.streamSessions)
+          .where(sql`streamer_id = $1`)
+          .orderBy(desc(schema.streamSessions.scheduledStart))
+          .limit(50), // Default limit
     );
   },
 
@@ -1083,9 +1091,8 @@ export async function applyCompositeIndexes(): Promise<void> {
 
   for (const indexSql of compositeIndexes) {
     try {
-      // Use db.execute() with sql.raw() instead of db.run()
-      // db.run() only works with sql`` template literals
-      await db.execute(sql.raw(indexSql));
+      // Use db.run() with sql.raw() for dynamic SQL strings
+      await db.run(sql.raw(indexSql));
       const indexName = indexSql.match(/idx_\w+/)?.[0] || "unknown";
       console.warn(`✅ Applied index: ${indexName}`);
     } catch (error) {

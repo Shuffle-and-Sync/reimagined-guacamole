@@ -1,6 +1,8 @@
-import { fn } from "@storybook/test";
 import { CalendarHeader } from "./CalendarHeader";
 import type { Meta, StoryObj } from "@storybook/react";
+
+// Mock function for Storybook actions - no-op for now
+const fn = () => () => {};
 
 /**
  * CalendarHeader displays navigation controls for the calendar

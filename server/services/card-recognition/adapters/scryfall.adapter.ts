@@ -6,7 +6,7 @@
  */
 
 import { logger } from "../../../logger";
-import { cardRecognitionService } from "../../card-recognition";
+import { cardRecognitionService } from "../../card-recognition.service";
 import type {
   ICardAdapter,
   UniversalCard,

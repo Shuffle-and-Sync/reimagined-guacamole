@@ -544,7 +544,10 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
   // UI Helper Methods
   // ============================================================================
 
-  renderState(state: MTGGameState, viewingPlayerId?: string): RenderedState {
+  override renderState(
+    state: MTGGameState,
+    viewingPlayerId?: string,
+  ): RenderedState {
     const phases = this.getGamePhases();
     const currentPhaseInfo =
       phases.find((p) => p.id === state.currentPhase) || phases[0];
@@ -609,7 +612,10 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
     };
   }
 
-  getPlayerActions(state: MTGGameState, playerId: string): PlayerAction[] {
+  override getPlayerActions(
+    state: MTGGameState,
+    playerId: string,
+  ): PlayerAction[] {
     const availableActions = this.getAvailableActions(state, playerId);
     const player = state.players.find((p) => p.id === playerId);
 

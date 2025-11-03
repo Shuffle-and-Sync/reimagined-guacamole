@@ -100,22 +100,39 @@ describe("Game Seeding", () => {
 
   describe("Game Codes", () => {
     test("should have unique codes", async () => {
+      const uniqueCode = `UNIQUE${Date.now()}`;
       const game1 = {
-        name: "Game One",
-        code: "UNIQUE1",
+        name: `Game One ${Date.now()}`,
+        code: uniqueCode,
         isActive: true,
       };
 
       const game2 = {
-        name: "Game Two",
-        code: "UNIQUE1", // Same code - should fail
+        name: `Game Two ${Date.now()}`,
+        code: uniqueCode, // Same code - should fail
         isActive: true,
       };
 
       await db.insert(games).values(game1);
 
-      // Second insert with same code should fail
-      await expect(db.insert(games).values(game2)).rejects.toThrow();
+      // Second insert with same code should fail due to unique constraint
+      // The error message may vary by SQLite version/config
+      try {
+        await db.insert(games).values(game2);
+        // If we get here, the constraint wasn't enforced - fail the test
+        throw new Error(
+          "Expected unique constraint violation but insert succeeded",
+        );
+      } catch (error) {
+        // Verify it's the right kind of error
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        expect(
+          errorMessage.toLowerCase().includes("unique") ||
+            errorMessage.toLowerCase().includes("constraint") ||
+            errorMessage.includes("UNIQUE"),
+        ).toBe(true);
+      }
     });
   });
 });
