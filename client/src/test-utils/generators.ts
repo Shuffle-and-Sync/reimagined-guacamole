@@ -6,6 +6,8 @@
  */
 
 import { faker } from "@faker-js/faker";
+import type { Community, Tournament, Event } from "@shared/schema";
+import type { CalendarEvent, Attendee } from "@/features/events/types";
 
 /**
  * Generate a mock user
@@ -61,6 +63,60 @@ export function createMockEvent(overrides = {}) {
     status: "upcoming",
     createdAt: faker.date.past().toISOString(),
     updatedAt: faker.date.recent().toISOString(),
+    ...overrides,
+  };
+}
+
+/**
+ * Generate a mock CalendarEvent for testing event components
+ */
+export function createMockCalendarEvent(
+  overrides: Partial<CalendarEvent> = {},
+): CalendarEvent {
+  const date = faker.date.future();
+  return {
+    id: faker.string.uuid(),
+    title: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    type: faker.helpers.arrayElement([
+      "tournament",
+      "game_pod",
+      "convention",
+      "release",
+    ]),
+    date: date.toISOString().split("T")[0] || "",
+    time: "18:00",
+    location: faker.location.city(),
+    playerSlots: 4,
+    alternateSlots: 2,
+    gameFormat: faker.helpers.arrayElement(["commander", "standard", "modern"]),
+    powerLevel: faker.number.int({ min: 1, max: 10 }),
+    creator: null,
+    creatorId: faker.string.uuid(),
+    attendeeCount: 0,
+    mainPlayers: 0,
+    alternates: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * Generate a mock Attendee for testing event components
+ */
+export function createMockAttendee(
+  overrides: Partial<Attendee> = {},
+): Attendee {
+  return {
+    userId: faker.string.uuid(),
+    eventId: faker.string.uuid(),
+    status: "attending",
+    role: "participant",
+    playerType: faker.helpers.arrayElement(["main", "alternate"]),
+    user: {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email(),
+    },
     ...overrides,
   };
 }
@@ -238,5 +294,117 @@ export function createErrorResponse(
     status,
     error: message,
     errors,
+  };
+}
+
+/**
+ * Generate a mock Community from shared schema
+ */
+export function createMockCommunityFromSchema(
+  overrides: Partial<Community> = {},
+): Community {
+  const now = new Date();
+  return {
+    id: faker.string.uuid(),
+    name: faker.helpers.arrayElement(["mtg", "pokemon", "lorcana", "yugioh"]),
+    displayName: faker.company.name(),
+    description: faker.lorem.paragraph(),
+    createdAt: now,
+    isActive: true,
+    themeColor: faker.helpers.arrayElement([
+      "#8B5CF6",
+      "#EC4899",
+      "#10B981",
+      "#F59E0B",
+    ]),
+    iconClass: faker.helpers.arrayElement([
+      "fas fa-magic",
+      "fas fa-bolt",
+      "fas fa-crown",
+    ]),
+    ...overrides,
+  };
+}
+
+/**
+ * Generate a mock Tournament from shared schema
+ */
+export function createMockTournamentFromSchema(
+  overrides: Partial<Tournament> = {},
+): Tournament {
+  const startDate = faker.date.future();
+  return {
+    id: faker.string.uuid(),
+    name: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    gameType: faker.helpers.arrayElement(["mtg", "pokemon", "lorcana"]),
+    format: faker.helpers.arrayElement(["Standard", "Modern", "Commander"]),
+    status: "upcoming",
+    maxParticipants: faker.helpers.arrayElement([8, 16, 32, 64]),
+    currentParticipants: faker.number.int({ min: 0, max: 32 }),
+    prizePool: faker.helpers.arrayElement([null, 100, 250, 500]),
+    organizerId: faker.string.uuid(),
+    communityId: faker.helpers.arrayElement([null, faker.string.uuid()]),
+    startDate,
+    endDate: faker.date.soon({ refDate: startDate }),
+    bracketStructure: null,
+    seedingAlgorithm: "random",
+    createdAt: faker.date.past(),
+    updatedAt: faker.date.recent(),
+    ...overrides,
+  };
+}
+
+/**
+ * Generate a mock Event from shared schema
+ */
+export function createMockEventFromSchema(
+  overrides: Partial<Event> = {},
+): Event {
+  const now = new Date();
+  const startTime = faker.date.future();
+  return {
+    id: faker.string.uuid(),
+    title: faker.company.catchPhrase(),
+    description: faker.lorem.paragraph(),
+    type: faker.helpers.arrayElement([
+      "tournament",
+      "game_pod",
+      "convention",
+      "release",
+      "community",
+      "stream",
+      "personal",
+    ]),
+    status: "active",
+    startTime,
+    endTime: faker.date.soon({ refDate: startTime }),
+    timezone: "UTC",
+    displayTimezone: null,
+    location: faker.location.city(),
+    isVirtual: faker.datatype.boolean(),
+    maxAttendees: faker.helpers.arrayElement([null, 8, 16, 32, 64]),
+    playerSlots: faker.helpers.arrayElement([null, 4, 8]),
+    alternateSlots: faker.helpers.arrayElement([null, 2, 4]),
+    isPublic: true,
+    gameFormat: faker.helpers.arrayElement([
+      null,
+      "commander",
+      "standard",
+      "modern",
+    ]),
+    powerLevel: faker.helpers.arrayElement([null, 1, 3, 5, 7, 9]),
+    isRecurring: false,
+    recurrencePattern: null,
+    recurrenceInterval: null,
+    recurrenceEndDate: null,
+    parentEventId: null,
+    creatorId: faker.string.uuid(),
+    hostId: null,
+    coHostId: null,
+    communityId: null,
+    createdAt: now,
+    updatedAt: now,
+    ...overrides,
   };
 }

@@ -2,39 +2,25 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import type { Event } from "@shared/schema";
+import { createMockEventFromSchema } from "@/test-utils";
 import { EventDetailsModal } from "./EventDetailsModal";
 
 describe("EventDetailsModal", () => {
-  const mockEvent: Event = {
+  const mockEvent: Event = createMockEventFromSchema({
     id: "test-event-1",
     title: "Test Tournament",
     description: "A great tournament event",
     type: "tournament",
-    status: "active",
     startTime: new Date("2025-11-15T14:00:00"),
     endTime: new Date("2025-11-15T18:00:00"),
     timezone: "America/New_York",
-    displayTimezone: null,
     location: "Game Store",
     isVirtual: false,
     maxAttendees: 32,
-    playerSlots: null,
-    alternateSlots: null,
-    isPublic: true,
     gameFormat: "commander",
     powerLevel: 7,
-    isRecurring: false,
-    recurrencePattern: null,
-    recurrenceInterval: null,
-    recurrenceEndDate: null,
-    parentEventId: null,
-    creatorId: "user-1",
-    hostId: null,
-    coHostId: null,
     communityId: "community-1",
-    createdAt: new Date("2025-11-01"),
-    updatedAt: new Date("2025-11-01"),
-  };
+  });
 
   const mockEventWithExtra = {
     ...mockEvent,

@@ -13,10 +13,16 @@ import { http, HttpResponse } from "msw";
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as toastHook from "@/hooks/use-toast";
-import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
+import {
+  renderWithProviders,
+  screen,
+  userEvent,
+  waitFor,
+  createTestQueryClient,
+} from "@/test-utils";
 import { server } from "@/test-utils/mocks/server";
 import { JoinEventButton } from "./JoinEventButton";
-import type { CalendarEvent } from "../types";
+import type { CalendarEvent, Attendee } from "../types";
 
 // Mock the useToast hook
 const mockToast = vi.fn();
@@ -39,29 +45,34 @@ vi.mock("@/features/auth", () => ({
 }));
 
 describe("JoinEventButton", () => {
-  const mockOnSuccess = vi.fn();
-
-  // Sample event data
-  const mockEvent: CalendarEvent = {
-    id: "event-123",
-    title: "Commander Night",
-    description: "Casual EDH games",
-    type: "game_pod",
-    date: "2024-12-01",
-    time: "18:00",
-    location: "Local Game Store",
-    playerSlots: 4,
-    alternateSlots: 2,
-    gameFormat: "commander",
-    powerLevel: 5,
-    creator: null,
-    creatorId: "creator-123",
-    attendeeCount: 0,
-    mainPlayers: 0,
-    alternates: 0,
-  };
+  let queryClient: ReturnType<typeof createTestQueryClient>;
+  let mockOnSuccess: ReturnType<typeof vi.fn>;
+  let mockEvent: CalendarEvent;
 
   beforeEach(() => {
+    queryClient = createTestQueryClient();
+    mockOnSuccess = vi.fn();
+
+    // Sample event data
+    mockEvent = {
+      id: "event-123",
+      title: "Commander Night",
+      description: "Casual EDH games",
+      type: "game_pod",
+      date: "2024-12-01",
+      time: "18:00",
+      location: "Local Game Store",
+      playerSlots: 4,
+      alternateSlots: 2,
+      gameFormat: "commander",
+      powerLevel: 5,
+      creator: null,
+      creatorId: "creator-123",
+      attendeeCount: 0,
+      mainPlayers: 0,
+      alternates: 0,
+    };
+
     vi.clearAllMocks();
   });
 
@@ -128,9 +139,11 @@ describe("JoinEventButton", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId(`button-join-${mockEvent.id}`),
+          screen.getByTestId(`button-join-alternate-${mockEvent.id}`),
         ).toBeInTheDocument();
       });
+
+      expect(screen.getByText("Join as Alternate")).toBeInTheDocument();
     });
 
     it("renders Leave Pod button when user is already attending", async () => {
@@ -176,7 +189,7 @@ describe("JoinEventButton", () => {
     it("renders Leave Pod button when user is attending", async () => {
       const attendees: Attendee[] = [
         {
-          userId: "user-123",
+          userId: "test-user-123",
           eventId: "event-123",
           status: "attending",
           role: "participant",
@@ -750,7 +763,7 @@ describe("JoinEventButton", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId(`button-join-${mockEvent.id}`),
+          screen.getByTestId(`button-join-alternate-${mockEvent.id}`),
         ).toBeInTheDocument();
       });
 
@@ -791,7 +804,7 @@ describe("JoinEventButton", () => {
     });
 
     it("shows loading state during leave mutation", async () => {
-      const _user = userEvent.setup();
+      const user = userEvent.setup();
 
       renderWithProviders(
         <JoinEventButton
@@ -799,557 +812,516 @@ describe("JoinEventButton", () => {
           isFull={false}
           onSuccess={mockOnSuccess}
         />,
-        screen.getByTestId("button-join-alternate-event-123"),
-      ).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByTestId("button-join-alternate-event-123"));
-
-    await waitFor(() => {
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("sends correct data when joining as alternate", async () => {
-    const user = userEvent.setup();
-
-    const onlyAlternatesEvent: CalendarEvent = {
-      ...mockEvent,
-      mainPlayers: 4,
-      alternates: 0,
-    };
-
-    renderWithProviders(
-      <JoinEventButton
-        event={onlyAlternatesEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-leave-${mockEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    const leaveButton = screen.getByTestId(`button-leave-${mockEvent.id}`);
-    await user.click(leaveButton);
-
-    // Check for loading state - should show immediately after click
-    await waitFor(
-      () => {
-        const button = screen.getByTestId(`button-leave-${mockEvent.id}`);
-        expect(button).toBeDisabled();
-        expect(button).toHaveTextContent("Leaving...");
-      },
-      { timeout: 500 },
-    );
-  });
-
-  it("has proper success handling configured for leave mutation", async () => {
-    // Verify the component renders the leave button when user is attending
-    const _attendees: Attendee[] = [
-      {
-        userId: "test-user-123",
-        eventId: mockEvent.id,
-        status: "attending",
-        role: "participant",
-        playerType: "main",
-        user: {
-          firstName: "Test",
-          lastName: "User",
-          email: "test@example.com",
-        },
-      },
-    ];
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-leave-${mockEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    // The component structure supports success handling as evidenced by:
-    // 1. onSuccess handler in leaveMutation that calls props.onSuccess
-    // 2. Success toast is shown on successful leave
-    // 3. Button state properly managed with isPending
-    expect(true).toBe(true);
-  });
-});
-
-describe("Event Emission - Leave Event", () => {
-  it("calls onSuccess when leave is successful", async () => {
-    const _user = userEvent.setup();
-
-    const attendees: Attendee[] = [
-      {
-        userId: "user-123",
-        eventId: "event-123",
-        status: "attending",
-        role: "participant",
-        playerType: "main",
-        user: {
-          firstName: "Test",
-          lastName: "User",
-          email: "test@example.com",
-        },
-      },
-    ];
-
-    // Set the attendees data in query cache
-    queryClient.setQueryData(
-      ["/api/events", mockEvent.id, "attendees"],
-      attendees,
-    );
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-leave-${mockEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    // The component structure supports success handling as evidenced by:
-    // 1. onSuccess handler in leaveMutation that calls props.onSuccess
-    // 2. Success toast is shown on successful leave
-    // 3. Button state properly managed with isPending
-    expect(true).toBe(true);
-  });
-});
-
-describe("Leave Mutation - Error State", () => {
-  beforeEach(() => {
-    // Mock user already attending
-    server.use(
-      http.get("/api/events/:eventId/attendees", () => {
-        return HttpResponse.json([
-          {
-            userId: "test-user-123",
-            eventId: mockEvent.id,
-            status: "attending",
-            role: "participant",
-            playerType: "main",
-            user: {
-              firstName: "Test",
-              lastName: "User",
-              email: "test@example.com",
-            },
-          },
-        ]);
-      }),
-      http.delete("/api/events/:eventId/leave", async () => {
-        // Add small delay to simulate network request
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        return new HttpResponse(
-          JSON.stringify({ error: "Failed to leave event" }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-      }),
-    );
-  });
-
-  // Note: These tests verify that error handling is properly configured in the component
-  // However, due to MSW/React Query interaction complexities in the test environment,
-  // we verify the setup rather than the full async flow
-  it("has proper error handling configured for leave mutation", () => {
-    // This test verifies the component structure supports error handling
-    // The component has onError handlers that display toasts
-    expect(true).toBe(true);
-  });
-});
-
-describe("Join as Alternate", () => {
-  it("shows join as alternate button when only alternate slots available", async () => {
-    const fullMainEvent = {
-      ...mockEvent,
-      mainPlayers: 4, // All main slots taken
-      alternates: 0, // Alternate slots available
-    };
-
-    server.use(
-      http.get("/api/events/:eventId/attendees", () => {
-        return HttpResponse.json([]);
-      }),
-      http.post("/api/events/:eventId/join", async () => {
-        return HttpResponse.json(
-          {
-            id: "attendance-123",
-            userId: "test-user-123",
-            eventId: fullMainEvent.id,
-            status: "attending",
-            role: "participant",
-            playerType: "alternate",
-          },
-          { status: 200 },
-        );
-      }),
-    );
-
-    renderWithProviders(
-      <JoinEventButton
-        event={fullMainEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-    );
-
-    await waitFor(() => {
-      const button = screen.getByTestId(
-        `button-join-alternate-${fullMainEvent.id}`,
+        { queryClient },
       );
-      expect(button).toBeInTheDocument();
-      expect(button).toHaveTextContent("Join as Alternate");
-    });
-  });
 
-  it("sends DELETE request when leaving", async () => {
-    const user = userEvent.setup();
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
 
-    const attendees: Attendee[] = [
-      {
-        userId: "user-123",
-        eventId: "event-123",
-        status: "attending",
-        role: "participant",
-        playerType: "main",
-        user: {
-          firstName: "Test",
-          lastName: "User",
-          email: "test@example.com",
+      const leaveButton = screen.getByTestId(`button-leave-${mockEvent.id}`);
+      await user.click(leaveButton);
+
+      // Check for loading state - should show immediately after click
+      await waitFor(
+        () => {
+          const button = screen.getByTestId(`button-leave-${mockEvent.id}`);
+          expect(button).toBeDisabled();
+          expect(button).toHaveTextContent("Leaving...");
         },
-      },
-    ];
-
-    // Set the attendees data in query cache
-    queryClient.setQueryData(
-      ["/api/events", mockEvent.id, "attendees"],
-      attendees,
-    );
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-leave-${mockEvent.id}`),
-      ).toBeInTheDocument();
+        { timeout: 500 },
+      );
     });
 
-    await user.click(screen.getByTestId(`button-leave-${mockEvent.id}`));
-
-    await waitFor(() => {
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("successfully joins as alternate", async () => {
-    const user = userEvent.setup();
-    const fullMainEvent = {
-      ...mockEvent,
-      mainPlayers: 4,
-      alternates: 0,
-    };
-
-    renderWithProviders(
-      <JoinEventButton
-        event={fullMainEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-join-alternate-${fullMainEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    await user.click(
-      screen.getByTestId(`button-join-alternate-${fullMainEvent.id}`),
-    );
-
-    await waitFor(
-      () => {
-        expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-      },
-      { timeout: 3000 },
-    );
-  });
-});
-
-describe("Button States", () => {
-  it("disables button while joining", async () => {
-    const user = userEvent.setup();
-
-    let resolveJoin:
-      | ((value: Response | PromiseLike<Response>) => void)
-      | undefined;
-    const joinPromise = new Promise<Response>((resolve) => {
-      resolveJoin = resolve;
-    });
-
-    mockFetch.mockImplementationOnce(() => joinPromise);
-
-    const onlyAlternatesEvent: CalendarEvent = {
-      ...mockEvent,
-      mainPlayers: 4,
-      alternates: 0,
-    };
-
-    server.use(
-      http.get("/api/events/:eventId/attendees", () => {
-        return HttpResponse.json([]);
-      }),
-      http.post("/api/events/:eventId/join", async () => {
-        return HttpResponse.json(
-          {
-            id: "attendance-123",
-            userId: "test-user-123",
-            eventId: onlyAlternatesEvent.id,
-            status: "attending",
-            role: "participant",
-            playerType: "alternate",
+    it("has proper success handling configured for leave mutation", async () => {
+      // Verify the component renders the leave button when user is attending
+      const _attendees: Attendee[] = [
+        {
+          userId: "test-user-123",
+          eventId: mockEvent.id,
+          status: "attending",
+          role: "participant",
+          playerType: "main",
+          user: {
+            firstName: "Test",
+            lastName: "User",
+            email: "test@example.com",
           },
-          { status: 200 },
-        );
-      }),
-    );
-
-    renderWithProviders(
-      <JoinEventButton
-        event={onlyAlternatesEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-join-alternate-${onlyAlternatesEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    await user.click(
-      screen.getByTestId(`button-join-alternate-${onlyAlternatesEvent.id}`),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Joining...")).toBeInTheDocument();
-    });
-
-    // Resolve the promise
-    resolveJoin({ ok: true, json: async () => ({ success: true }) });
-  });
-});
-
-describe("Dialog Interactions", () => {
-  beforeEach(() => {
-    server.use(
-      http.get("/api/events/:eventId/attendees", () => {
-        return HttpResponse.json([]);
-      }),
-    );
-  });
-
-  it("cancels join when cancel button is clicked", async () => {
-    const user = userEvent.setup();
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-join-${mockEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    // Open dialog
-    await user.click(screen.getByTestId(`button-join-${mockEvent.id}`));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("button-cancel-join")).toBeInTheDocument();
-    });
-
-    // Click cancel
-    await user.click(screen.getByTestId("button-cancel-join"));
-
-    // Dialog should close
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId("button-cancel-join"),
-      ).not.toBeInTheDocument();
-    });
-
-    // onSuccess should not be called
-    expect(mockOnSuccess).not.toHaveBeenCalled();
-  });
-
-  it("disables button while leaving", async () => {
-    const user = userEvent.setup();
-
-    const attendees: Attendee[] = [
-      {
-        userId: "user-123",
-        eventId: "event-123",
-        status: "attending",
-        role: "participant",
-        playerType: "main",
-        user: {
-          firstName: "Test",
-          lastName: "User",
-          email: "test@example.com",
         },
-      },
-    ];
+      ];
 
-    // Set the attendees data in query cache
-    queryClient.setQueryData(
-      ["/api/events", mockEvent.id, "attendees"],
-      attendees,
-    );
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
 
-    let _resolveLeave:
-      | ((value: Response | PromiseLike<Response>) => void)
-      | undefined;
-    const leavePromise = new Promise<Response>((resolve) => {
-      _resolveLeave = resolve;
-    });
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
 
-    mockFetch.mockImplementationOnce(() => leavePromise);
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(`button-join-${mockEvent.id}`),
-      ).toBeInTheDocument();
-    });
-
-    // Open dialog
-    await user.click(screen.getByTestId(`button-join-${mockEvent.id}`));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("button-cancel-join")).toBeInTheDocument();
-    });
-
-    // Click cancel
-    await user.click(screen.getByTestId("button-cancel-join"));
-
-    // Dialog should close
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId("button-cancel-join"),
-      ).not.toBeInTheDocument();
-    });
-
-    // onSuccess should not be called
-    expect(mockOnSuccess).not.toHaveBeenCalled();
-  });
-
-  it("disables Pod Full button permanently", async () => {
-    const fullEvent: CalendarEvent = {
-      ...mockEvent,
-      mainPlayers: 4,
-      alternates: 2,
-    };
-
-    renderWithProviders(
-      <JoinEventButton
-        event={fullEvent}
-        isFull={true}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    await waitFor(() => {
-      const button = screen.getByTestId("button-full-event-123");
-      expect(button).toBeDisabled();
-    });
-  });
-});
-
-describe("Edge Cases", () => {
-  it("handles fetch errors gracefully", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
-    renderWithProviders(
-      <JoinEventButton
-        event={mockEvent}
-        isFull={false}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
-
-    // Should still render despite fetch error
-    await waitFor(() => {
-      expect(screen.getByText("Join Pod")).toBeInTheDocument();
+      // The component structure supports success handling as evidenced by:
+      // 1. onSuccess handler in leaveMutation that calls props.onSuccess
+      // 2. Success toast is shown on successful leave
+      // 3. Button state properly managed with isPending
+      expect(true).toBe(true);
     });
   });
 
-  it("handles events with zero slots gracefully", async () => {
-    const noSlotsEvent: CalendarEvent = {
-      ...mockEvent,
-      playerSlots: 0,
-      alternateSlots: 0,
-      mainPlayers: 0,
-      alternates: 0,
-    };
+  describe("Event Emission - Leave Event", () => {
+    it("calls onSuccess when leave is successful", async () => {
+      const _user = userEvent.setup();
 
-    renderWithProviders(
-      <JoinEventButton
-        event={noSlotsEvent}
-        isFull={true}
-        onSuccess={mockOnSuccess}
-      />,
-      { queryClient },
-    );
+      const attendees: Attendee[] = [
+        {
+          userId: "test-user-123",
+          eventId: "event-123",
+          status: "attending",
+          role: "participant",
+          playerType: "main",
+          user: {
+            firstName: "Test",
+            lastName: "User",
+            email: "test@example.com",
+          },
+        },
+      ];
 
-    await waitFor(() => {
-      expect(screen.getByText("Pod Full")).toBeInTheDocument();
+      // Set the attendees data in query cache
+      queryClient.setQueryData(
+        ["/api/events", mockEvent.id, "attendees"],
+        attendees,
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      // The component structure supports success handling as evidenced by:
+      // 1. onSuccess handler in leaveMutation that calls props.onSuccess
+      // 2. Success toast is shown on successful leave
+      // 3. Button state properly managed with isPending
+      expect(true).toBe(true);
+    });
+  });
+
+  describe("Leave Mutation - Error State", () => {
+    beforeEach(() => {
+      // Mock user already attending
+      server.use(
+        http.get("/api/events/:eventId/attendees", () => {
+          return HttpResponse.json([
+            {
+              userId: "test-user-123",
+              eventId: mockEvent.id,
+              status: "attending",
+              role: "participant",
+              playerType: "main",
+              user: {
+                firstName: "Test",
+                lastName: "User",
+                email: "test@example.com",
+              },
+            },
+          ]);
+        }),
+        http.delete("/api/events/:eventId/leave", async () => {
+          // Add small delay to simulate network request
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return new HttpResponse(
+            JSON.stringify({ error: "Failed to leave event" }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }),
+      );
+    });
+
+    // Note: These tests verify that error handling is properly configured in the component
+    // However, due to MSW/React Query interaction complexities in the test environment,
+    // we verify the setup rather than the full async flow
+    it("has proper error handling configured for leave mutation", () => {
+      // This test verifies the component structure supports error handling
+      // The component has onError handlers that display toasts
+      expect(true).toBe(true);
+    });
+  });
+
+  describe("Join as Alternate", () => {
+    it("shows join as alternate button when only alternate slots available", async () => {
+      const fullMainEvent = {
+        ...mockEvent,
+        mainPlayers: 4, // All main slots taken
+        alternates: 0, // Alternate slots available
+      };
+
+      server.use(
+        http.get("/api/events/:eventId/attendees", () => {
+          return HttpResponse.json([]);
+        }),
+        http.post("/api/events/:eventId/join", async () => {
+          return HttpResponse.json(
+            {
+              id: "attendance-123",
+              userId: "test-user-123",
+              eventId: fullMainEvent.id,
+              status: "attending",
+              role: "participant",
+              playerType: "alternate",
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={fullMainEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+      );
+
+      await waitFor(() => {
+        const button = screen.getByTestId(
+          `button-join-alternate-${fullMainEvent.id}`,
+        );
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveTextContent("Join as Alternate");
+      });
+    });
+
+    it("sends DELETE request when leaving", async () => {
+      const user = userEvent.setup();
+
+      const attendees: Attendee[] = [
+        {
+          userId: "test-user-123",
+          eventId: "event-123",
+          status: "attending",
+          role: "participant",
+          playerType: "main",
+          user: {
+            firstName: "Test",
+            lastName: "User",
+            email: "test@example.com",
+          },
+        },
+      ];
+
+      // Set the attendees data in query cache
+      queryClient.setQueryData(
+        ["/api/events", mockEvent.id, "attendees"],
+        attendees,
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByTestId(`button-leave-${mockEvent.id}`));
+
+      await waitFor(() => {
+        expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("successfully joins as alternate", async () => {
+      const user = userEvent.setup();
+      const fullMainEvent = {
+        ...mockEvent,
+        mainPlayers: 4,
+        alternates: 0,
+      };
+
+      renderWithProviders(
+        <JoinEventButton
+          event={fullMainEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-join-alternate-${fullMainEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      await user.click(
+        screen.getByTestId(`button-join-alternate-${fullMainEvent.id}`),
+      );
+
+      await waitFor(
+        () => {
+          expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
+    });
+  });
+
+  describe("Button States", () => {
+    it("disables button while joining", async () => {
+      const user = userEvent.setup();
+
+      const onlyAlternatesEvent: CalendarEvent = {
+        ...mockEvent,
+        mainPlayers: 4,
+        alternates: 0,
+      };
+
+      server.use(
+        http.get("/api/events/:eventId/attendees", () => {
+          return HttpResponse.json([]);
+        }),
+        http.post("/api/events/:eventId/join", async () => {
+          // Add small delay to simulate loading state
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return HttpResponse.json(
+            {
+              id: "attendance-123",
+              userId: "test-user-123",
+              eventId: onlyAlternatesEvent.id,
+              status: "attending",
+              role: "participant",
+              playerType: "alternate",
+            },
+            { status: 200 },
+          );
+        }),
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={onlyAlternatesEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-join-alternate-${onlyAlternatesEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      await user.click(
+        screen.getByTestId(`button-join-alternate-${onlyAlternatesEvent.id}`),
+      );
+
+      // Check for loading state
+      await waitFor(() => {
+        expect(screen.getByText("Joining...")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Dialog Interactions", () => {
+    beforeEach(() => {
+      server.use(
+        http.get("/api/events/:eventId/attendees", () => {
+          return HttpResponse.json([]);
+        }),
+      );
+    });
+
+    it("cancels join when cancel button is clicked", async () => {
+      const user = userEvent.setup();
+
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-join-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      // Open dialog
+      await user.click(screen.getByTestId(`button-join-${mockEvent.id}`));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("button-cancel-join")).toBeInTheDocument();
+      });
+
+      // Click cancel
+      await user.click(screen.getByTestId("button-cancel-join"));
+
+      // Dialog should close
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId("button-cancel-join"),
+        ).not.toBeInTheDocument();
+      });
+
+      // onSuccess should not be called
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it("disables button while leaving", async () => {
+      const user = userEvent.setup();
+
+      const attendees: Attendee[] = [
+        {
+          userId: "test-user-123",
+          eventId: "event-123",
+          status: "attending",
+          role: "participant",
+          playerType: "main",
+          user: {
+            firstName: "Test",
+            lastName: "User",
+            email: "test@example.com",
+          },
+        },
+      ];
+
+      // Set the attendees data in query cache
+      queryClient.setQueryData(
+        ["/api/events", mockEvent.id, "attendees"],
+        attendees,
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`button-leave-${mockEvent.id}`),
+        ).toBeInTheDocument();
+      });
+
+      const leaveButton = screen.getByTestId(`button-leave-${mockEvent.id}`);
+      await user.click(leaveButton);
+
+      // Check for loading state - should show immediately after click
+      await waitFor(
+        () => {
+          const button = screen.getByTestId(`button-leave-${mockEvent.id}`);
+          expect(button).toBeDisabled();
+          expect(button).toHaveTextContent("Leaving...");
+        },
+        { timeout: 500 },
+      );
+    });
+
+    it("disables Pod Full button permanently", async () => {
+      const fullEvent: CalendarEvent = {
+        ...mockEvent,
+        mainPlayers: 4,
+        alternates: 2,
+      };
+
+      renderWithProviders(
+        <JoinEventButton
+          event={fullEvent}
+          isFull={true}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        const button = screen.getByTestId("button-full-event-123");
+        expect(button).toBeDisabled();
+      });
+    });
+  });
+
+  describe("Edge Cases", () => {
+    it("handles fetch errors gracefully", async () => {
+      // Mock a failing attendees fetch
+      server.use(
+        http.get("/api/events/:eventId/attendees", () => {
+          return new HttpResponse(null, {
+            status: 500,
+            statusText: "Internal Server Error",
+          });
+        }),
+      );
+
+      renderWithProviders(
+        <JoinEventButton
+          event={mockEvent}
+          isFull={false}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      // Should still render despite fetch error
+      await waitFor(() => {
+        expect(screen.getByText("Join Pod")).toBeInTheDocument();
+      });
+    });
+
+    it("handles events with zero slots gracefully", async () => {
+      const noSlotsEvent: CalendarEvent = {
+        ...mockEvent,
+        playerSlots: 0,
+        alternateSlots: 0,
+        mainPlayers: 0,
+        alternates: 0,
+      };
+
+      renderWithProviders(
+        <JoinEventButton
+          event={noSlotsEvent}
+          isFull={true}
+          onSuccess={mockOnSuccess}
+        />,
+        { queryClient },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Pod Full")).toBeInTheDocument();
+      });
     });
   });
 });

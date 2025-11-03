@@ -106,6 +106,30 @@ export const handlers = [
     });
   }),
 
+  // Event attendees endpoint - default empty array
+  http.get("/api/events/:eventId/attendees", () => {
+    return HttpResponse.json([]);
+  }),
+
+  // Event join endpoint
+  http.post("/api/events/:eventId/join", () => {
+    return HttpResponse.json(
+      {
+        id: "attendance-" + Date.now(),
+        status: "attending",
+        role: "participant",
+      },
+      { status: 200 },
+    );
+  }),
+
+  // Event leave endpoint
+  http.delete("/api/events/:eventId/leave", async () => {
+    // Add small delay to simulate network request
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return HttpResponse.json({ success: true }, { status: 200 });
+  }),
+
   // Registration endpoint
   http.post("/api/auth/register", async ({ request }) => {
     const body = (await request.json()) as RegisterRequestBody;

@@ -6,20 +6,23 @@
 
 import { describe, it, expect, vi } from "vitest";
 import type { Community } from "@shared/schema";
-import { renderWithProviders, screen, fireEvent } from "@/test-utils";
+import {
+  renderWithProviders,
+  screen,
+  fireEvent,
+  createMockCommunityFromSchema,
+} from "@/test-utils";
 import { CommunityCard } from "./CommunityCard";
 
 describe("CommunityCard Component", () => {
-  const mockCommunity: Community = {
+  const mockCommunity: Community = createMockCommunityFromSchema({
     id: "magic-the-gathering",
     name: "Magic: The Gathering",
     displayName: "Magic: The Gathering",
     description: "The original and most popular TCG",
     themeColor: "#0d47a1",
     iconClass: "fas fa-hat-wizard",
-    isActive: true,
-    createdAt: new Date("2024-01-01"),
-  };
+  });
 
   const mockOnSelect = vi.fn();
 
