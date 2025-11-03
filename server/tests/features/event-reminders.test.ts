@@ -4,6 +4,8 @@
  * Tests for event reminder scheduling, sending, and management
  */
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import {
   describe,
   it,
@@ -54,15 +56,16 @@ jest.mock("../../storage", () => ({
 }));
 
 describe("EventReminderService", () => {
-  let testEvent: Event;
-  let testUser: User;
+  let testEvent: Event | undefined;
+  let testUser: User | undefined;
 
   beforeEach(async () => {
-    // Create test user
+    // Create test user with unique email to avoid conflicts
+    const uniqueEmail = `test-${Date.now()}-${Math.random()}@example.com`;
     const [user] = await db
       .insert(users)
       .values({
-        email: "test@example.com",
+        email: uniqueEmail,
         firstName: "Test",
         lastName: "User",
       })
@@ -78,38 +81,47 @@ describe("EventReminderService", () => {
         type: "tournament",
         startTime,
         timezone: "UTC",
-        creatorId: testUser.id,
+        creatorId: testUser!.id,
       })
       .returning();
     testEvent = event;
   });
 
   afterEach(async () => {
-    // Clean up test data
-    await db
-      .delete(eventReminders)
-      .where(eq(eventReminders.eventId, testEvent.id));
-    await db
-      .delete(eventAttendees)
-      .where(eq(eventAttendees.eventId, testEvent.id));
-    await db
-      .delete(eventReminderSettings)
-      .where(eq(eventReminderSettings.userId, testUser.id));
-    await db.delete(events).where(eq(events.id, testEvent.id));
-    await db.delete(users).where(eq(users.id, testUser.id));
+    // Clean up test data - only if setup succeeded
+    if (testEvent?.id) {
+      await db
+        .delete(eventReminders)
+        .where(eq(eventReminders.eventId, testEvent!.id));
+      await db
+        .delete(eventAttendees)
+        .where(eq(eventAttendees.eventId, testEvent!.id));
+      await db.delete(events).where(eq(events.id, testEvent!.id));
+    }
+    if (testUser?.id) {
+      await db
+        .delete(eventReminderSettings)
+        .where(eq(eventReminderSettings.userId, testUser!.id));
+      await db.delete(users).where(eq(users.id, testUser!.id));
+    }
+    // Reset for next test
+    testEvent = undefined;
+    testUser = undefined;
   });
 
   describe("scheduleReminders", () => {
     it("should schedule reminders for event attendees", async () => {
       // Add attendee
       await db.insert(eventAttendees).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
       // Schedule reminders
-      const result = await eventReminderService.scheduleReminders(testEvent.id);
+      const result = await eventReminderService.scheduleReminders(
+        testEvent!.id,
+      );
 
       expect(result.success).toBe(true);
       expect(result.remindersScheduled).toBeGreaterThan(0);
@@ -120,8 +132,8 @@ describe("EventReminderService", () => {
         .from(eventReminders)
         .where(
           and(
-            eq(eventReminders.eventId, testEvent.id),
-            eq(eventReminders.userId, testUser.id),
+            eq(eventReminders.eventId, testEvent!.id),
+            eq(eventReminders.userId, testUser!.id),
           ),
         );
 
@@ -131,12 +143,14 @@ describe("EventReminderService", () => {
 
     it("should use default reminder settings for new users", async () => {
       await db.insert(eventAttendees).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
-      const result = await eventReminderService.scheduleReminders(testEvent.id);
+      const result = await eventReminderService.scheduleReminders(
+        testEvent!.id,
+      );
 
       expect(result.success).toBe(true);
 
@@ -144,7 +158,7 @@ describe("EventReminderService", () => {
       const reminders = await db
         .select()
         .from(eventReminders)
-        .where(eq(eventReminders.userId, testUser.id));
+        .where(eq(eventReminders.userId, testUser!.id));
 
       // Should have 2 default reminders
       expect(reminders.length).toBe(2);
@@ -164,13 +178,13 @@ describe("EventReminderService", () => {
           type: "stream",
           startTime,
           timezone: "UTC",
-          creatorId: testUser.id,
+          creatorId: testUser!.id,
         })
         .returning();
 
       await db.insert(eventAttendees).values({
         eventId: nearEvent.id,
-        userId: testUser.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
@@ -186,22 +200,22 @@ describe("EventReminderService", () => {
 
     it("should not schedule duplicate reminders", async () => {
       await db.insert(eventAttendees).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
       // Schedule once
-      await eventReminderService.scheduleReminders(testEvent.id);
+      await eventReminderService.scheduleReminders(testEvent!.id);
 
       // Try to schedule again
-      const result = await eventReminderService.scheduleReminders(testEvent.id);
+      await eventReminderService.scheduleReminders(testEvent!.id);
 
       // Should not create duplicates
       const reminders = await db
         .select()
         .from(eventReminders)
-        .where(eq(eventReminders.userId, testUser.id));
+        .where(eq(eventReminders.userId, testUser!.id));
 
       expect(reminders.length).toBe(2); // Still only 2 (default)
     });
@@ -210,11 +224,11 @@ describe("EventReminderService", () => {
   describe("getUserReminderSettings", () => {
     it("should return user reminder settings", async () => {
       const settings = await eventReminderService.getReminderSettings(
-        testUser.id,
+        testUser!.id,
       );
 
       expect(settings).toBeDefined();
-      expect(settings.userId).toBe(testUser.id);
+      expect(settings.userId).toBe(testUser!.id);
       expect(settings.isEnabled).toBe(true);
 
       // Check default values
@@ -230,7 +244,7 @@ describe("EventReminderService", () => {
     it("should create default settings for new users", async () => {
       // Get settings (should create them if they don't exist)
       const settings = await eventReminderService.getReminderSettings(
-        testUser.id,
+        testUser!.id,
       );
 
       expect(settings).toBeDefined();
@@ -240,7 +254,7 @@ describe("EventReminderService", () => {
       const [saved] = await db
         .select()
         .from(eventReminderSettings)
-        .where(eq(eventReminderSettings.userId, testUser.id));
+        .where(eq(eventReminderSettings.userId, testUser!.id));
 
       expect(saved).toBeDefined();
     });
@@ -249,7 +263,7 @@ describe("EventReminderService", () => {
   describe("updateReminderSettings", () => {
     it("should update reminder times", async () => {
       const updated = await eventReminderService.updateReminderSettings(
-        testUser.id,
+        testUser!.id,
         {
           reminderTimes: [30, 60, 120], // 30 min, 1 hour, 2 hours
         },
@@ -262,7 +276,7 @@ describe("EventReminderService", () => {
 
     it("should update notification channels", async () => {
       const updated = await eventReminderService.updateReminderSettings(
-        testUser.id,
+        testUser!.id,
         {
           channels: ["email", "push"],
         },
@@ -275,7 +289,7 @@ describe("EventReminderService", () => {
 
     it("should disable reminders", async () => {
       const updated = await eventReminderService.updateReminderSettings(
-        testUser.id,
+        testUser!.id,
         {
           isEnabled: false,
         },
@@ -289,17 +303,17 @@ describe("EventReminderService", () => {
     it("should cancel pending reminders for a user", async () => {
       // Create attendee and reminders
       await db.insert(eventAttendees).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
-      await eventReminderService.scheduleReminders(testEvent.id);
+      await eventReminderService.scheduleReminders(testEvent!.id);
 
       // Cancel reminders
       const cancelledCount = await eventReminderService.cancelUserReminders(
-        testEvent.id,
-        testUser.id,
+        testEvent!.id,
+        testUser!.id,
       );
 
       expect(cancelledCount).toBeGreaterThan(0);
@@ -310,8 +324,8 @@ describe("EventReminderService", () => {
         .from(eventReminders)
         .where(
           and(
-            eq(eventReminders.eventId, testEvent.id),
-            eq(eventReminders.userId, testUser.id),
+            eq(eventReminders.eventId, testEvent!.id),
+            eq(eventReminders.userId, testUser!.id),
           ),
         );
 
@@ -323,18 +337,18 @@ describe("EventReminderService", () => {
     it("should only cancel pending reminders, not already sent", async () => {
       // Create reminders
       await db.insert(eventAttendees).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         status: "confirmed",
       });
 
-      await eventReminderService.scheduleReminders(testEvent.id);
+      await eventReminderService.scheduleReminders(testEvent!.id);
 
       // Mark one as sent
       const [reminder] = await db
         .select()
         .from(eventReminders)
-        .where(eq(eventReminders.userId, testUser.id))
+        .where(eq(eventReminders.userId, testUser!.id))
         .limit(1);
 
       if (reminder) {
@@ -346,15 +360,15 @@ describe("EventReminderService", () => {
 
       // Cancel reminders
       const cancelledCount = await eventReminderService.cancelUserReminders(
-        testEvent.id,
-        testUser.id,
+        testEvent!.id,
+        testUser!.id,
       );
 
       // Should only cancel the pending ones
       const allReminders = await db
         .select()
         .from(eventReminders)
-        .where(eq(eventReminders.userId, testUser.id));
+        .where(eq(eventReminders.userId, testUser!.id));
 
       const sentReminders = allReminders.filter((r) => r.status === "sent");
       const cancelledReminders = allReminders.filter(
@@ -379,15 +393,15 @@ describe("EventReminderService", () => {
         .returning();
 
       await db.insert(eventAttendees).values([
-        { eventId: testEvent.id, userId: testUser.id, status: "confirmed" },
-        { eventId: testEvent.id, userId: user2.id, status: "confirmed" },
+        { eventId: testEvent!.id, userId: testUser!.id, status: "confirmed" },
+        { eventId: testEvent!.id, userId: user2.id, status: "confirmed" },
       ]);
 
-      await eventReminderService.scheduleReminders(testEvent.id);
+      await eventReminderService.scheduleReminders(testEvent!.id);
 
       // Cancel all reminders
       const cancelledCount = await eventReminderService.cancelReminders(
-        testEvent.id,
+        testEvent!.id,
       );
 
       expect(cancelledCount).toBeGreaterThan(0);
@@ -396,7 +410,7 @@ describe("EventReminderService", () => {
       const reminders = await db
         .select()
         .from(eventReminders)
-        .where(eq(eventReminders.eventId, testEvent.id));
+        .where(eq(eventReminders.eventId, testEvent!.id));
 
       reminders.forEach((reminder) => {
         expect(reminder.status).toBe("cancelled");
@@ -413,8 +427,8 @@ describe("EventReminderService", () => {
       const [reminder] = await db
         .insert(eventReminders)
         .values({
-          eventId: testEvent.id,
-          userId: testUser.id,
+          eventId: testEvent!.id,
+          userId: testUser!.id,
           reminderTime: new Date(Date.now() - 1000), // 1 second ago
           minutesBefore: 60,
           channels: JSON.stringify(["email", "in_app"]),
@@ -439,8 +453,8 @@ describe("EventReminderService", () => {
     it("should not process future reminders", async () => {
       // Create a reminder for the future
       await db.insert(eventReminders).values({
-        eventId: testEvent.id,
-        userId: testUser.id,
+        eventId: testEvent!.id,
+        userId: testUser!.id,
         reminderTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
         minutesBefore: 60,
         channels: JSON.stringify(["email"]),
