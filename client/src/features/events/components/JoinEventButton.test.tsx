@@ -139,9 +139,11 @@ describe("JoinEventButton", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId(`button-join-${mockEvent.id}`),
+          screen.getByTestId(`button-join-alternate-${mockEvent.id}`),
         ).toBeInTheDocument();
       });
+
+      expect(screen.getByText("Join as Alternate")).toBeInTheDocument();
     });
 
     it("renders Leave Pod button when user is already attending", async () => {
@@ -187,7 +189,7 @@ describe("JoinEventButton", () => {
     it("renders Leave Pod button when user is attending", async () => {
       const attendees: Attendee[] = [
         {
-          userId: "user-123",
+          userId: "test-user-123",
           eventId: "event-123",
           status: "attending",
           role: "participant",
@@ -879,7 +881,7 @@ describe("JoinEventButton", () => {
 
       const attendees: Attendee[] = [
         {
-          userId: "user-123",
+          userId: "test-user-123",
           eventId: "event-123",
           status: "attending",
           role: "participant",
@@ -1014,7 +1016,7 @@ describe("JoinEventButton", () => {
 
       const attendees: Attendee[] = [
         {
-          userId: "user-123",
+          userId: "test-user-123",
           eventId: "event-123",
           status: "attending",
           role: "participant",
@@ -1201,7 +1203,7 @@ describe("JoinEventButton", () => {
 
       const attendees: Attendee[] = [
         {
-          userId: "user-123",
+          userId: "test-user-123",
           eventId: "event-123",
           status: "attending",
           role: "participant",

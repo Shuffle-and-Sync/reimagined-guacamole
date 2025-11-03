@@ -6,6 +6,7 @@
  */
 
 import { faker } from "@faker-js/faker";
+import type { CalendarEvent, Attendee } from "@/features/events/types";
 
 /**
  * Generate a mock user
@@ -69,25 +70,8 @@ export function createMockEvent(overrides = {}) {
  * Generate a mock CalendarEvent for testing event components
  */
 export function createMockCalendarEvent(
-  overrides: Partial<{
-    id: string;
-    title: string;
-    description: string;
-    type: string;
-    date: string;
-    time: string;
-    location: string;
-    playerSlots: number;
-    alternateSlots: number;
-    gameFormat: string;
-    powerLevel: number;
-    creator: unknown;
-    creatorId: string;
-    attendeeCount: number;
-    mainPlayers: number;
-    alternates: number;
-  }> = {},
-) {
+  overrides: Partial<CalendarEvent> = {},
+): CalendarEvent {
   return {
     id: faker.string.uuid(),
     title: faker.company.catchPhrase(),
@@ -118,19 +102,8 @@ export function createMockCalendarEvent(
  * Generate a mock Attendee for testing event components
  */
 export function createMockAttendee(
-  overrides: Partial<{
-    userId: string;
-    eventId: string;
-    status: string;
-    role: string;
-    playerType: string;
-    user: {
-      firstName: string;
-      lastName: string;
-      email: string;
-    };
-  }> = {},
-) {
+  overrides: Partial<Attendee> = {},
+): Attendee {
   return {
     userId: faker.string.uuid(),
     eventId: faker.string.uuid(),
