@@ -1,11 +1,11 @@
 {
-  "version": "7",
+  "version": "6",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1761071901442,
+      "when": 1760985231832,
       "tag": "0000_pretty_bloodaxe",
       "breakpoints": true
     },
@@ -21,6 +21,20 @@
       "version": "6",
       "when": 1761862295909,
       "tag": "0002_cold_sleepwalker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1762000000000,
+      "tag": "0003_add_active_sessions_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1762193440586,
+      "tag": "0004_chemical_kulan_gath",
       "breakpoints": true
     }
   ]
