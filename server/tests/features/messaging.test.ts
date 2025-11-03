@@ -313,7 +313,7 @@ describe("WebSocket Connection Management", () => {
     }, 150);
   });
 
-  test("should manage room memberships", () => {
+  test("should manage room memberships", async () => {
     const connectionManager = new WebSocketConnectionManager();
     const mockWS = createMockWebSocket() as any;
 
@@ -322,7 +322,10 @@ describe("WebSocket Connection Management", () => {
       "user-123",
     );
 
-    const joined = connectionManager.joinGameRoom(connectionId, "session-123");
+    const joined = await connectionManager.joinGameRoom(
+      connectionId,
+      "session-123",
+    );
     expect(joined).toBe(true);
 
     const connections = connectionManager.getGameRoomConnections("session-123");
