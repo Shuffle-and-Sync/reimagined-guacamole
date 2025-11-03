@@ -14,7 +14,6 @@ import {
   positiveIntSchema,
   nonNegativeIntSchema,
   createEnumSchema,
-  optionalNameSchema,
   sanitizeString,
 } from "./utils/validation.utils";
 

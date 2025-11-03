@@ -102,21 +102,23 @@ describe("Game Seeding", () => {
     test("should have unique codes", async () => {
       const uniqueCode = `UNIQUE${Date.now()}`;
       const game1 = {
-        name: "Game One",
+        name: `Game One ${Date.now()}`,
         code: uniqueCode,
         isActive: true,
       };
 
       const game2 = {
-        name: "Game Two",
+        name: `Game Two ${Date.now()}`,
         code: uniqueCode, // Same code - should fail
         isActive: true,
       };
 
       await db.insert(games).values(game1);
 
-      // Second insert with same code should fail
-      await expect(db.insert(games).values(game2)).rejects.toThrow();
+      // Second insert with same code should fail due to unique constraint
+      await expect(db.insert(games).values(game2)).rejects.toThrow(
+        /unique|constraint|UNIQUE/i,
+      );
     });
   });
 });

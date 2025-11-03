@@ -45,7 +45,7 @@ export interface PokemonGameState extends GameStateBase {
 export class PokemonAdapter extends BaseGameAdapter<PokemonGameState> {
   readonly gameType = "pokemon";
   readonly gameName = "Pokémon Trading Card Game";
-  readonly version = "1.0.0";
+  override readonly version = "1.0.0";
 
   override createInitialState(config: GameConfig): PokemonGameState {
     const players = config.players.map((p) => ({

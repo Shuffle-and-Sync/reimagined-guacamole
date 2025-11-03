@@ -20,7 +20,7 @@ import type { TCGGameState, GameStateAction } from "../game-state-schema";
 export class MTGAdapter extends BaseGameAdapter<TCGGameState> {
   readonly gameType = "mtg";
   readonly gameName = "Magic: The Gathering";
-  readonly version = "1.0.0";
+  override readonly version = "1.0.0";
 
   private manager = new GameStateManager();
 
