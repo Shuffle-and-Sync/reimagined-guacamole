@@ -24,6 +24,22 @@ import {
   highFrequencyRateLimiter,
 } from "./websocket-rate-limiter";
 
+// WebSocket message interface for type safety
+interface WebSocketMessage {
+  type: string;
+  sessionId?: string;
+  user?: unknown;
+  content?: unknown;
+  action?: string;
+  data?: unknown;
+  eventId?: string;
+  newPhase?: string;
+  eventType?: string;
+  eventData?: unknown;
+  statusUpdate?: unknown;
+  [key: string]: unknown;
+}
+
 export class EnhancedWebSocketServer {
   private wss: WebSocketServer;
   private httpServer: HttpServer;
@@ -273,7 +289,7 @@ export class EnhancedWebSocketServer {
           return;
         }
 
-        const message = validationResult.data;
+        const message = validationResult.data as WebSocketMessage;
 
         // Apply rate limiting
         const rateLimiter = this.selectRateLimiter(message.type);
