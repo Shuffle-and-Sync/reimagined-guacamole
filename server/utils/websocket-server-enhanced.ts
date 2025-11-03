@@ -370,7 +370,7 @@ export class EnhancedWebSocketServer {
   private async processMessage(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
     switch (message.type) {
       case "join_room":
@@ -412,9 +412,12 @@ export class EnhancedWebSocketServer {
   private async handleJoinRoom(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { sessionId, user } = message;
+    const { sessionId, user } = message as {
+      sessionId: string;
+      user: { id: string; name: string; avatar?: string };
+    };
 
     // Verify user matches authenticated user
     if (user.id !== ws.userId) {
@@ -471,9 +474,13 @@ export class EnhancedWebSocketServer {
   private async handleChatMessage(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { sessionId, user, content } = message;
+    const { sessionId, user, content } = message as {
+      sessionId: string;
+      user: { id: string; name: string; avatar?: string };
+      content: string;
+    };
 
     if (user.id !== ws.userId) {
       this.sendMessage(
@@ -496,7 +503,9 @@ export class EnhancedWebSocketServer {
           email: user.name,
           profileImageUrl: user.avatar,
         },
-        content: messageValidator.sanitizeMessage({ content }).content,
+        content: (
+          messageValidator.sanitizeMessage({ content }) as { content: string }
+        ).content,
         timestamp: new Date().toISOString(),
         type: "chat" as const,
       },
@@ -508,9 +517,14 @@ export class EnhancedWebSocketServer {
   private async handleGameAction(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { sessionId, action, user, data } = message;
+    const { sessionId, action, user, data } = message as {
+      sessionId: string;
+      action: string;
+      user: { id: string; name: string; avatar?: string };
+      data?: Record<string, unknown>;
+    };
 
     if (user.id !== ws.userId) {
       this.sendMessage(
@@ -588,9 +602,9 @@ export class EnhancedWebSocketServer {
   private async handleJoinCollabStream(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { eventId } = message;
+    const { eventId } = message as { eventId: string };
 
     try {
       // Validate event access
@@ -670,9 +684,12 @@ export class EnhancedWebSocketServer {
   private async handlePhaseChange(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { eventId, newPhase } = message;
+    const { eventId, newPhase } = message as {
+      eventId: string;
+      newPhase: string;
+    };
 
     try {
       // Verify authorization
@@ -714,7 +731,7 @@ export class EnhancedWebSocketServer {
       // Update phase in service
       await collaborativeStreaming.updateCoordinationPhase(
         eventId,
-        newPhase,
+        newPhase as "preparation" | "live" | "break" | "wrap_up" | "ended",
         ws.userId,
       );
 
@@ -747,9 +764,13 @@ export class EnhancedWebSocketServer {
   private async handleCoordinationEvent(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { eventId, eventType, eventData } = message;
+    const { eventId, eventType, eventData } = message as {
+      eventId: string;
+      eventType: string;
+      eventData: Record<string, unknown>;
+    };
 
     if (!ws.userId || !ws.userName) {
       logger.error(
@@ -776,9 +797,12 @@ export class EnhancedWebSocketServer {
   private async handleCollaboratorStatusUpdate(
     ws: ExtendedWebSocket,
     connectionId: string,
-    message: unknown,
+    message: WebSocketMessage,
   ): Promise<void> {
-    const { eventId, statusUpdate } = message;
+    const { eventId, statusUpdate } = message as {
+      eventId: string;
+      statusUpdate: Record<string, unknown>;
+    };
 
     if (!ws.userId) {
       logger.error("WebSocket missing userId for status update");
@@ -832,7 +856,12 @@ export class EnhancedWebSocketServer {
       this.sendMessage(ws, messageValidator.createErrorMessage(error, code));
       ws.close(1008, error);
     } catch (closeError) {
-      logger.error("Failed to close WebSocket connection cleanly", closeError);
+      logger.error(
+        "Failed to close WebSocket connection cleanly",
+        closeError instanceof Error
+          ? closeError
+          : new Error(String(closeError)),
+      );
       ws.terminate();
     }
   }
