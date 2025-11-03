@@ -100,15 +100,16 @@ describe("Game Seeding", () => {
 
   describe("Game Codes", () => {
     test("should have unique codes", async () => {
+      const uniqueCode = `UNIQUE${Date.now()}`;
       const game1 = {
         name: "Game One",
-        code: "UNIQUE1",
+        code: uniqueCode,
         isActive: true,
       };
 
       const game2 = {
         name: "Game Two",
-        code: "UNIQUE1", // Same code - should fail
+        code: uniqueCode, // Same code - should fail
         isActive: true,
       };
 

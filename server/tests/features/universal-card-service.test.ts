@@ -22,7 +22,7 @@ describe("Universal Card Service - Database Integration", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result.cards).toBeInstanceOf(Array);
+      expect(Array.isArray(result.cards)).toBe(true);
       expect(result.cards.length).toBeGreaterThan(0);
       expect(result.cards[0].gameId).toBe("mtg-official");
     });
@@ -35,7 +35,7 @@ describe("Universal Card Service - Database Integration", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result.cards).toBeInstanceOf(Array);
+      expect(Array.isArray(result.cards)).toBe(true);
       expect(result.cards.length).toBeGreaterThan(0);
     });
 
@@ -47,7 +47,7 @@ describe("Universal Card Service - Database Integration", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result.cards).toBeInstanceOf(Array);
+      expect(Array.isArray(result.cards)).toBe(true);
       expect(result.cards.length).toBeGreaterThan(0);
     });
 
@@ -69,7 +69,7 @@ describe("Universal Card Service - Database Integration", () => {
         );
 
         expect(result).toBeDefined();
-        expect(result.cards).toBeInstanceOf(Array);
+        expect(Array.isArray(result.cards)).toBe(true);
       } catch (error) {
         // If games not seeded in test DB, should fall back gracefully
         expect(error).toBeDefined();
@@ -85,7 +85,7 @@ describe("Universal Card Service - Database Integration", () => {
         );
 
         expect(result).toBeDefined();
-        expect(result.cards).toBeInstanceOf(Array);
+        expect(Array.isArray(result.cards)).toBe(true);
       } catch (error) {
         // If games not seeded in test DB, should fall back gracefully
         expect(error).toBeDefined();
@@ -97,7 +97,7 @@ describe("Universal Card Service - Database Integration", () => {
     test("should return list of supported games", async () => {
       const games = await universalCardService.getSupportedGames();
 
-      expect(games).toBeInstanceOf(Array);
+      expect(Array.isArray(games)).toBe(true);
       expect(games.length).toBeGreaterThan(0);
 
       // Should have at least the three hardcoded fallback games
@@ -150,7 +150,7 @@ describe("Universal Card Service - Database Integration", () => {
         "mtg-official",
         "forest",
       );
-      expect(result.cards).toBeInstanceOf(Array);
+      expect(Array.isArray(result.cards)).toBe(true);
     });
 
     test("getCardById should work with database-backed games", async () => {
@@ -182,7 +182,7 @@ describe("Universal Card Service - Database Integration", () => {
         "light",
         10,
       );
-      expect(result.suggestions).toBeInstanceOf(Array);
+      expect(Array.isArray(result.suggestions)).toBe(true);
       expect(result.suggestions.length).toBeGreaterThan(0);
     });
 
