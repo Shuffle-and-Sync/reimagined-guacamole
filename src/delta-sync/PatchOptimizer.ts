@@ -254,4 +254,30 @@ export class PatchOptimizer {
       from: patch.from,
     });
   }
+
+  /**
+   * Calculate savings from optimization
+   */
+  calculateSavings(
+    original: JsonPatch[],
+    optimized: JsonPatch[],
+  ): {
+    originalCount: number;
+    optimizedCount: number;
+    savedCount: number;
+    savingsPercent: number;
+  } {
+    const originalCount = original.length;
+    const optimizedCount = optimized.length;
+    const savedCount = originalCount - optimizedCount;
+    const savingsPercent =
+      originalCount > 0 ? (savedCount / originalCount) * 100 : 0;
+
+    return {
+      originalCount,
+      optimizedCount,
+      savedCount,
+      savingsPercent,
+    };
+  }
 }

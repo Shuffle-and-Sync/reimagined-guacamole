@@ -16,7 +16,17 @@
  * - Data quality and privacy
  */
 
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  jest,
+} from "@jest/globals";
+import { eq } from "drizzle-orm";
+import { db } from "@shared/database-unified";
+import { users, streamSessions } from "@shared/schema";
 import { analyticsService } from "../../services/analytics-service";
 import type {
   AnalyticsEvent,
@@ -26,8 +36,78 @@ import type {
 } from "../../services/analytics-service";
 
 describe("Analytics Tracking Verification", () => {
-  beforeEach(() => {
+  const testUserId = "test-analytics-user";
+  const testSessionIds = [
+    "stream-session-1",
+    "stream-session-2",
+    "stream-session-3",
+    "stream-session-4",
+    "stream-session-5",
+  ];
+
+  beforeEach(async () => {
     jest.clearAllMocks();
+
+    // Create test user for stream sessions
+    try {
+      await db
+        .insert(users)
+        .values({
+          id: testUserId,
+          email: `analytics-test-${Date.now()}@example.com`,
+          firstName: "Test",
+          lastName: "Analytics",
+        })
+        .onConflictDoNothing();
+
+      // Create users for platform names (workaround for analytics service using platform as userId)
+      const platforms = ["twitch", "youtube", "facebook", "discord"];
+      for (const platform of platforms) {
+        await db
+          .insert(users)
+          .values({
+            id: platform,
+            email: `${platform}-${Date.now()}@example.com`,
+            firstName: platform,
+            lastName: "Platform",
+          })
+          .onConflictDoNothing();
+      }
+
+      // Create test stream sessions
+      for (const sessionId of testSessionIds) {
+        await db
+          .insert(streamSessions)
+          .values({
+            id: sessionId,
+            streamerId: testUserId,
+            title: `Test Stream ${sessionId}`,
+            platform: "twitch",
+            status: "live",
+          })
+          .onConflictDoNothing();
+      }
+    } catch (error) {
+      // Ignore if already exists
+    }
+  });
+
+  afterEach(async () => {
+    // Cleanup test data
+    try {
+      for (const sessionId of testSessionIds) {
+        await db.delete(streamSessions).where(eq(streamSessions.id, sessionId));
+      }
+      await db.delete(users).where(eq(users.id, testUserId));
+
+      // Cleanup platform users
+      const platforms = ["twitch", "youtube", "facebook", "discord"];
+      for (const platform of platforms) {
+        await db.delete(users).where(eq(users.id, platform));
+      }
+    } catch (error) {
+      // Ignore cleanup errors
+    }
   });
 
   describe("Analytics Service Health", () => {

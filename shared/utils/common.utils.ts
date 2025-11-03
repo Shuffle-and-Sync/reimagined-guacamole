@@ -274,7 +274,8 @@ export function groupBy<T>(
 ): Record<string, T[]> {
   return array.reduce(
     (groups, item) => {
-      const groupKey = isFunction(key) ? String(key(item)) : String(item[key]);
+      const groupKey =
+        typeof key === "function" ? String(key(item)) : String(item[key]);
       if (!groups[groupKey]) {
         groups[groupKey] = [];
       }
@@ -294,7 +295,8 @@ export function mapBy<T>(
 ): Map<string | number, T> {
   const map = new Map<string | number, T>();
   for (const item of array) {
-    const mapKey = isFunction(key) ? key(item) : (item[key] as string | number);
+    const mapKey =
+      typeof key === "function" ? key(item) : (item[key] as string | number);
     map.set(mapKey, item);
   }
   return map;
@@ -309,8 +311,8 @@ export function sortBy<T>(
   direction: "asc" | "desc" = "asc",
 ): T[] {
   return [...array].sort((a, b) => {
-    const aValue = isFunction(key) ? key(a) : a[key];
-    const bValue = isFunction(key) ? key(b) : b[key];
+    const aValue = typeof key === "function" ? key(a) : a[key];
+    const bValue = typeof key === "function" ? key(b) : b[key];
 
     if (aValue < bValue) return direction === "asc" ? -1 : 1;
     if (aValue > bValue) return direction === "asc" ? 1 : -1;
@@ -369,7 +371,12 @@ export function shuffle<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i];
+    const swapValue = shuffled[j];
+    if (temp !== undefined && swapValue !== undefined) {
+      shuffled[i] = swapValue;
+      shuffled[j] = temp;
+    }
   }
   return shuffled;
 }

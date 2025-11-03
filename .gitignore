@@ -94,3 +94,8 @@ backup-*.json
 
 *storybook.log
 storybook-static
+
+# Checklist symlinks
+FINAL_VERIFICATION_CHECKLIST.md
+DOCUMENTATION_RELEASE_CHECKLIST.md
+UX_RELEASE_CHECKLIST_SUMMARY.md

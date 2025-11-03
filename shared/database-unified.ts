@@ -2,7 +2,7 @@
 // Supports SQLite Cloud connections
 import { resolve } from "path";
 import { config } from "dotenv";
-import { sql } from "drizzle-orm";
+import { sql, desc } from "drizzle-orm";
 import * as schema from "./schema";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
@@ -134,85 +134,451 @@ async function initializeConnection() {
 
 /**
  * Initialize schema for local SQLite databases synchronously
- * Creates essential tables needed for tests using SQLite-compatible SQL
+ * Uses Drizzle's schema to generate and execute CREATE TABLE statements
  */
 function initializeLocalSchemaSync(): void {
   try {
-    // Create essential tables manually with SQLite-compatible SQL
-    const createTablesSQL = `
-      CREATE TABLE IF NOT EXISTS stream_analytics (
-        id TEXT PRIMARY KEY,
-        session_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
-        platform TEXT NOT NULL,
-        viewer_count INTEGER DEFAULT 0,
-        peak_viewers INTEGER DEFAULT 0,
-        average_viewers INTEGER DEFAULT 0,
-        chat_messages INTEGER DEFAULT 0,
-        likes INTEGER DEFAULT 0,
-        shares INTEGER DEFAULT 0,
-        duration_minutes INTEGER DEFAULT 0,
-        timestamp INTEGER NOT NULL
-      );
-      
-      CREATE TABLE IF NOT EXISTS user_activity_analytics (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        activity_type TEXT NOT NULL,
-        count INTEGER DEFAULT 1,
-        metadata TEXT DEFAULT '{}',
-        date TEXT NOT NULL,
-        created_at INTEGER NOT NULL
-      );
-      
-      CREATE TABLE IF NOT EXISTS stream_sessions (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        title TEXT,
-        description TEXT,
-        scheduled_start_time INTEGER,
-        actual_start_time INTEGER,
-        end_time INTEGER,
-        status TEXT DEFAULT 'scheduled',
-        is_collaborative INTEGER DEFAULT 0,
-        created_at INTEGER,
-        updated_at INTEGER
-      );
-      
-      CREATE INDEX IF NOT EXISTS idx_stream_analytics_session ON stream_analytics(session_id);
-      CREATE INDEX IF NOT EXISTS idx_stream_analytics_user ON stream_analytics(user_id);
-      CREATE INDEX IF NOT EXISTS idx_user_activity_user ON user_activity_analytics(user_id);
-    `;
-
-    const statements = createTablesSQL
-      .split(";")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-
     // Get the SQLite instance from Drizzle db
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sqlite = (db as any).session.client;
 
-    for (const statement of statements) {
-      try {
-        sqlite.prepare(statement).run();
-      } catch (error) {
-        // Ignore errors for tables that already exist
-        if (
-          error instanceof Error &&
-          !error.message.includes("already exists")
-        ) {
-          // Silently ignore other errors
+    // Disable foreign key constraints during schema initialization
+    sqlite.pragma("foreign_keys = OFF");
+
+    // Load and run migration files
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readdirSync, readFileSync, existsSync } = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { join } = require("path");
+
+    const migrationsDir = join(process.cwd(), "migrations");
+
+    // Check if migrations directory exists
+    if (!existsSync(migrationsDir)) {
+      console.warn("⚠️  Migrations directory not found, using embedded schema");
+
+      // Use embedded essential tables
+      const essentialTablesSQL = createEssentialTablesSQL();
+      const statements = essentialTablesSQL
+        .split(";")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      for (const statement of statements) {
+        try {
+          sqlite.prepare(statement).run();
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            !error.message.includes("already exists")
+          ) {
+            if (process.env.VERBOSE_TESTS) {
+              console.warn(`⚠️  Statement failed: ${error.message}`);
+            }
+          }
+        }
+      }
+
+      sqlite.pragma("foreign_keys = ON");
+      console.warn(
+        `✅ Local database schema initialized with essential tables`,
+      );
+      return;
+    }
+
+    // Get all SQL migration files in order
+    const migrationFiles = readdirSync(migrationsDir)
+      .filter((f: string) => f.endsWith(".sql"))
+      .sort();
+
+    let totalStatements = 0;
+    let failedStatements = 0;
+
+    for (const file of migrationFiles) {
+      const filePath = join(migrationsDir, file);
+      const migrationSQL = readFileSync(filePath, "utf8");
+
+      // Split by statement separator and clean up
+      const statements = migrationSQL
+        .split("--> statement-breakpoint")
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+
+      for (const statement of statements) {
+        try {
+          sqlite.prepare(statement).run();
+          totalStatements++;
+        } catch (error) {
+          // Ignore errors for tables/indexes that already exist
+          if (
+            error instanceof Error &&
+            !error.message.includes("already exists")
+          ) {
+            failedStatements++;
+            // Only log in verbose mode to reduce noise
+            if (process.env.VERBOSE_TESTS) {
+              console.warn(`⚠️  Migration statement failed: ${error.message}`);
+            }
+          }
         }
       }
     }
 
+    // After migrations, apply any schema updates that aren't in migrations yet
+    applySchemaUpdates(sqlite);
+
+    // Re-enable foreign key constraints
+    sqlite.pragma("foreign_keys = ON");
+
     console.warn(
-      `✅ Local database schema initialized (${statements.length} statements executed)`,
+      `✅ Local database schema initialized (${totalStatements} statements executed, ${failedStatements} skipped from ${migrationFiles.length} migrations)`,
     );
   } catch (error) {
     console.warn("⚠️  Failed to initialize local schema:", error);
   }
+}
+
+/**
+ * Apply schema updates that aren't in migrations yet
+ * This is a temporary solution until migrations are regenerated
+ */
+function applySchemaUpdates(sqlite: any): void {
+  // First, create tables that don't exist in migrations
+  const newTables = `
+    CREATE TABLE IF NOT EXISTS event_reminder_settings (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      reminder_times TEXT DEFAULT '[60,1440]',
+      notification_channels TEXT DEFAULT '["email","browser"]',
+      is_enabled INTEGER DEFAULT 1,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS event_reminders (
+      id TEXT PRIMARY KEY,
+      event_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      reminder_time INTEGER NOT NULL,
+      minutes_before INTEGER NOT NULL,
+      channels TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      sent_at INTEGER,
+      failure_reason TEXT,
+      notification_id TEXT,
+      created_at INTEGER,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS user_bans (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      banned_by TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      scope_id TEXT,
+      start_time INTEGER NOT NULL,
+      end_time INTEGER,
+      is_active INTEGER DEFAULT 1 NOT NULL,
+      notes TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (banned_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS session_invitations (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      inviter_id TEXT NOT NULL,
+      invitee_id TEXT NOT NULL,
+      role TEXT DEFAULT 'player' NOT NULL,
+      status TEXT DEFAULT 'pending' NOT NULL,
+      message TEXT,
+      expires_at INTEGER NOT NULL,
+      responded_at INTEGER,
+      created_at INTEGER,
+      FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_user ON event_reminders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_status ON event_reminders(status);
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_reminder_time ON event_reminders(reminder_time);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_user_id ON user_bans(user_id);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope ON user_bans(scope);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope_id ON user_bans(scope_id);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_active ON user_bans(is_active);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_end_time ON user_bans(end_time);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_user_active ON user_bans(user_id, is_active);
+    CREATE INDEX IF NOT EXISTS idx_user_bans_scope_scope_id ON user_bans(scope, scope_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_session ON session_invitations(session_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_invitee ON session_invitations(invitee_id);
+    CREATE INDEX IF NOT EXISTS idx_session_invitations_status ON session_invitations(status);
+  `;
+
+  const tableStatements = newTables
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  for (const statement of tableStatements) {
+    try {
+      sqlite.prepare(statement).run();
+    } catch (error) {
+      if (error instanceof Error && !error.message.includes("already exists")) {
+        if (process.env.VERBOSE_TESTS) {
+          console.warn(`⚠️  Table creation failed: ${error.message}`);
+        }
+      }
+    }
+  }
+
+  // Then apply column updates to existing tables
+  const updates = [
+    // Add columns to event_attendees table
+    `ALTER TABLE event_attendees ADD COLUMN player_type TEXT DEFAULT 'main'`,
+    `ALTER TABLE event_attendees ADD COLUMN waitlist_position INTEGER`,
+    `ALTER TABLE event_attendees ADD COLUMN slot_type TEXT`,
+    `ALTER TABLE event_attendees ADD COLUMN slot_position INTEGER`,
+    `ALTER TABLE event_attendees ADD COLUMN assigned_at INTEGER`,
+    `ALTER TABLE event_attendees ADD COLUMN registered_at INTEGER`,
+    `ALTER TABLE event_attendees ADD COLUMN joined_at INTEGER`,
+
+    // Add columns to game_sessions table for access control
+    `ALTER TABLE game_sessions ADD COLUMN visibility TEXT DEFAULT 'public' NOT NULL`,
+    `ALTER TABLE game_sessions ADD COLUMN password TEXT`,
+    `ALTER TABLE game_sessions ADD COLUMN allow_spectators INTEGER DEFAULT 1 NOT NULL`,
+    `ALTER TABLE game_sessions ADD COLUMN max_spectators INTEGER DEFAULT 10`,
+    `ALTER TABLE game_sessions ADD COLUMN require_approval INTEGER DEFAULT 0 NOT NULL`,
+
+    // Add timezone column to events table if it doesn't exist
+    `ALTER TABLE events ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC'`,
+    `ALTER TABLE events ADD COLUMN display_timezone TEXT`,
+    `ALTER TABLE events ADD COLUMN is_public INTEGER DEFAULT 1`,
+    `ALTER TABLE events ADD COLUMN game_format TEXT`,
+    `ALTER TABLE events ADD COLUMN prize_description TEXT`,
+    `ALTER TABLE events ADD COLUMN registration_deadline INTEGER`,
+    `ALTER TABLE events ADD COLUMN min_participants INTEGER`,
+    `ALTER TABLE events ADD COLUMN max_teams INTEGER`,
+    `ALTER TABLE events ADD COLUMN entry_fee TEXT`,
+    `ALTER TABLE events ADD COLUMN rules_url TEXT`,
+    `ALTER TABLE events ADD COLUMN discord_url TEXT`,
+    `ALTER TABLE events ADD COLUMN stream_url TEXT`,
+    `ALTER TABLE events ADD COLUMN bracket_url TEXT`,
+    `ALTER TABLE events ADD COLUMN requires_approval INTEGER DEFAULT 0`,
+    `ALTER TABLE events ADD COLUMN requires_password INTEGER DEFAULT 0`,
+    `ALTER TABLE events ADD COLUMN password_hash TEXT`,
+    `ALTER TABLE events ADD COLUMN allow_spectators INTEGER DEFAULT 1`,
+    `ALTER TABLE events ADD COLUMN max_spectators INTEGER`,
+    `ALTER TABLE events ADD COLUMN tags TEXT DEFAULT '[]'`,
+    `ALTER TABLE events ADD COLUMN custom_fields TEXT`,
+    `ALTER TABLE events ADD COLUMN recurrence_rule TEXT`,
+    `ALTER TABLE events ADD COLUMN parent_series_id TEXT`,
+  ];
+
+  for (const update of updates) {
+    try {
+      sqlite.prepare(update).run();
+    } catch (error) {
+      // Ignore "duplicate column name" errors
+      if (
+        error instanceof Error &&
+        !error.message.includes("duplicate column")
+      ) {
+        if (process.env.VERBOSE_TESTS) {
+          console.warn(`⚠️  Schema update failed: ${error.message}`);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Create essential tables SQL as fallback
+ */
+function createEssentialTablesSQL(): string {
+  return `
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      first_name TEXT,
+      last_name TEXT,
+      name TEXT,
+      username TEXT,
+      image TEXT,
+      status TEXT DEFAULT 'active',
+      role TEXT DEFAULT 'user',
+      is_email_verified INTEGER DEFAULT 0,
+      mfa_enabled INTEGER DEFAULT 0,
+      created_at INTEGER,
+      updated_at INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      type TEXT NOT NULL,
+      status TEXT DEFAULT 'active',
+      start_time INTEGER NOT NULL,
+      end_time INTEGER,
+      timezone TEXT NOT NULL DEFAULT 'UTC',
+      display_timezone TEXT,
+      location TEXT,
+      is_virtual INTEGER DEFAULT 0,
+      is_public INTEGER DEFAULT 1,
+      max_attendees INTEGER,
+      player_slots INTEGER,
+      alternate_slots INTEGER,
+      game_format TEXT,
+      creator_id TEXT NOT NULL,
+      host_id TEXT,
+      co_host_id TEXT,
+      community_id TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (creator_id) REFERENCES users(id),
+      FOREIGN KEY (host_id) REFERENCES users(id),
+      FOREIGN KEY (co_host_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS event_attendees (
+      id TEXT PRIMARY KEY,
+      event_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      role TEXT DEFAULT 'attendee',
+      notes TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS event_reminder_settings (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      reminder_times TEXT DEFAULT '[60,1440]',
+      notification_channels TEXT DEFAULT '["email","browser"]',
+      is_enabled INTEGER DEFAULT 1,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS event_reminders (
+      id TEXT PRIMARY KEY,
+      event_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      minutes_before INTEGER NOT NULL,
+      scheduled_time INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      notification_channels TEXT,
+      sent_at INTEGER,
+      created_at INTEGER,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS games (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      code TEXT NOT NULL UNIQUE,
+      description TEXT,
+      is_active INTEGER DEFAULT 1,
+      created_at INTEGER,
+      updated_at INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS communities (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      game_id TEXT,
+      creator_id TEXT NOT NULL,
+      is_private INTEGER DEFAULT 0,
+      member_count INTEGER DEFAULT 0,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (game_id) REFERENCES games(id),
+      FOREIGN KEY (creator_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS bans (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      scope_type TEXT DEFAULT 'global',
+      scope_id TEXT,
+      reason TEXT NOT NULL,
+      banned_by TEXT NOT NULL,
+      start_time INTEGER NOT NULL,
+      end_time INTEGER,
+      is_permanent INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (banned_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS game_sessions (
+      id TEXT PRIMARY KEY,
+      title TEXT,
+      description TEXT,
+      game_id TEXT NOT NULL,
+      host_id TEXT NOT NULL,
+      visibility TEXT DEFAULT 'public',
+      password_hash TEXT,
+      allow_spectators INTEGER DEFAULT 1,
+      max_players INTEGER,
+      max_spectators INTEGER,
+      status TEXT DEFAULT 'scheduled',
+      created_at INTEGER,
+      updated_at INTEGER,
+      FOREIGN KEY (game_id) REFERENCES games(id),
+      FOREIGN KEY (host_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS session_invitations (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      inviter_id TEXT NOT NULL,
+      invitee_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      expires_at INTEGER,
+      responded_at INTEGER,
+      created_at INTEGER,
+      FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (inviter_id) REFERENCES users(id),
+      FOREIGN KEY (invitee_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_communities (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      community_id TEXT NOT NULL,
+      role TEXT DEFAULT 'member',
+      joined_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (community_id) REFERENCES communities(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_events_creator ON events(creator_id);
+    CREATE INDEX IF NOT EXISTS idx_events_start_time ON events(start_time);
+    CREATE INDEX IF NOT EXISTS idx_event_attendees_event ON event_attendees(event_id);
+    CREATE INDEX IF NOT EXISTS idx_event_attendees_user ON event_attendees(user_id);
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_event ON event_reminders(event_id);
+    CREATE INDEX IF NOT EXISTS idx_event_reminders_user ON event_reminders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_bans_user ON bans(user_id);
+    CREATE INDEX IF NOT EXISTS idx_bans_scope ON bans(scope_type, scope_id);
+  `;
 }
 
 // Store initialization promise for awaiting
