@@ -401,19 +401,22 @@ export class GameStateDeltaCompressor {
 
     for (let i = 0; i < path.length - 1; i++) {
       const key = path[i];
+      if (key === undefined) continue;
 
       // Create intermediate objects/arrays if needed
       if (!(key in current)) {
         // Check if next key is a number to decide array vs object
         const nextKey = path[i + 1];
-        current[key] = /^\d+$/.test(nextKey) ? [] : {};
+        current[key] = nextKey && /^\d+$/.test(nextKey) ? [] : {};
       }
 
       current = current[key];
     }
 
     const lastKey = path[path.length - 1];
-    current[lastKey] = value;
+    if (lastKey !== undefined) {
+      current[lastKey] = value;
+    }
   }
 
   /**
@@ -428,6 +431,7 @@ export class GameStateDeltaCompressor {
 
     for (let i = 0; i < path.length - 1; i++) {
       const key = path[i];
+      if (key === undefined) return;
 
       if (!(key in current)) {
         return; // Path doesn't exist, nothing to remove
@@ -437,6 +441,7 @@ export class GameStateDeltaCompressor {
     }
 
     const lastKey = path[path.length - 1];
+    if (lastKey === undefined) return;
 
     if (Array.isArray(current)) {
       current.splice(parseInt(lastKey, 10), 1);
@@ -483,15 +488,27 @@ export class GameStateDeltaCompressor {
       return null;
     }
 
+    const firstDelta = deltas[0];
+    if (!firstDelta) {
+      return null;
+    }
+
     if (deltas.length === 1) {
-      return deltas[0];
+      return firstDelta;
     }
 
     // Ensure deltas are sequential
     for (let i = 1; i < deltas.length; i++) {
-      if (deltas[i].baseVersion !== deltas[i - 1].targetVersion) {
+      const currentDelta = deltas[i];
+      const previousDelta = deltas[i - 1];
+
+      if (!currentDelta || !previousDelta) {
+        throw new Error(`Invalid delta at index ${i}`);
+      }
+
+      if (currentDelta.baseVersion !== previousDelta.targetVersion) {
         throw new Error(
-          `Deltas are not sequential: delta ${i} base version ${deltas[i].baseVersion} does not match previous target version ${deltas[i - 1].targetVersion}`,
+          `Deltas are not sequential: delta ${i} base version ${currentDelta.baseVersion} does not match previous target version ${previousDelta.targetVersion}`,
         );
       }
     }
@@ -499,11 +516,16 @@ export class GameStateDeltaCompressor {
     // Merge all operations
     const allOperations = deltas.flatMap((d) => d.operations);
 
+    const lastDelta = deltas[deltas.length - 1];
+    if (!lastDelta) {
+      return null;
+    }
+
     return {
-      baseVersion: deltas[0].baseVersion,
-      targetVersion: deltas[deltas.length - 1].targetVersion,
+      baseVersion: firstDelta.baseVersion,
+      targetVersion: lastDelta.targetVersion,
       operations: allOperations,
-      timestamp: deltas[deltas.length - 1].timestamp,
+      timestamp: lastDelta.timestamp,
     };
   }
 }
@@ -671,12 +693,15 @@ export function decompressDeltaIfNeeded(delta: GameStateDelta): GameStateDelta {
 
   try {
     // Check if operations contain compressed data
+    const firstOp = delta.operations[0];
     if (
       delta.operations.length === 1 &&
-      delta.operations[0].op === "replace" &&
-      delta.operations[0].path === "/_compressed"
+      firstOp &&
+      firstOp.op === "replace" &&
+      firstOp.path === "/_compressed" &&
+      "value" in firstOp
     ) {
-      const compressedData = delta.operations[0].value as string;
+      const compressedData = firstOp.value as string;
       const decompressedOps = decompressData<DeltaOperation[]>(compressedData);
 
       return {

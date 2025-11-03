@@ -393,17 +393,5 @@ export const GameStateActionSchema = z.object({
 // ============================================================================
 // Type Exports
 // ============================================================================
-
-export type {
-  GameStateBase,
-  CardReference,
-  ZoneState,
-  Permanent,
-  StackItem,
-  GamePhase,
-  TurnState,
-  PlayerState,
-  TCGGameState,
-  GameActionType,
-  GameStateAction,
-};
+// Note: Types are already exported at their declaration sites above
+// No need for redundant re-export which causes TS2484 conflicts

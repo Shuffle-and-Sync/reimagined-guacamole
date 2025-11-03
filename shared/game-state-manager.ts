@@ -291,15 +291,21 @@ export class GameStateManager {
 
     if (cardIndex !== -1) {
       const card = player.hand[cardIndex];
+      if (!card) return state;
+
       player.hand.splice(cardIndex, 1);
 
       // Add to battlefield as permanent
       state.battlefield.permanents.push({
-        ...card,
-        ownerId: action.playerId,
-        controllerId: action.playerId,
+        id: card.id,
+        name: card.name,
         isTapped: false,
         isFaceUp: true,
+        counters: card.counters,
+        attachments: card.attachments,
+        metadata: card.metadata,
+        ownerId: action.playerId,
+        controllerId: action.playerId,
       });
     }
 
@@ -483,7 +489,10 @@ export class GameStateManager {
     const currentPhaseIndex = phases.indexOf(state.currentTurn.phase);
     const nextPhaseIndex = (currentPhaseIndex + 1) % phases.length;
 
-    state.currentTurn.phase = phases[nextPhaseIndex];
+    const nextPhase = phases[nextPhaseIndex];
+    if (nextPhase) {
+      state.currentTurn.phase = nextPhase;
+    }
 
     // If we wrapped around to untap, advance to next player
     if (nextPhaseIndex === 0) {
@@ -491,7 +500,10 @@ export class GameStateManager {
         state.currentTurn.playerId,
       );
       const nextPlayerIndex = (currentPlayerIndex + 1) % state.turnOrder.length;
-      state.currentTurn.playerId = state.turnOrder[nextPlayerIndex];
+      const nextPlayerId = state.turnOrder[nextPlayerIndex];
+      if (nextPlayerId) {
+        state.currentTurn.playerId = nextPlayerId;
+      }
       state.currentTurn.turnNumber++;
     }
 
@@ -541,8 +553,11 @@ export class GameStateManager {
       // Check if there's a winner
       const remainingPlayers = state.players.filter((p) => !p.hasLost);
       if (remainingPlayers.length === 1) {
-        state.winnerId = remainingPlayers[0].id;
-        state.winCondition = "opponents conceded";
+        const winner = remainingPlayers[0];
+        if (winner) {
+          state.winnerId = winner.id;
+          state.winCondition = "opponents conceded";
+        }
       }
     }
     return state;
@@ -679,28 +694,36 @@ export function createInitialTCGState(
   playerIds: string[],
   playerNames: string[],
 ): TCGGameState {
-  const players = playerIds.map((id, index) => ({
-    id,
-    name: playerNames[index] || `Player ${index + 1}`,
-    lifeTotal: 20,
-    poisonCounters: 0,
-    hand: [],
-    graveyard: { cards: [], isPublic: true },
-    library: { count: 60 },
-    exile: { cards: [], isPublic: true },
-    resources: {},
-  }));
+  const players = playerIds.map((id, index) => {
+    const playerName = playerNames[index];
+    return {
+      id,
+      name: playerName !== undefined ? playerName : `Player ${index + 1}`,
+      lifeTotal: 20,
+      poisonCounters: 0,
+      hand: [],
+      graveyard: { cards: [], isPublic: true },
+      library: { count: 60 },
+      exile: { cards: [], isPublic: true },
+      resources: {},
+    };
+  });
+
+  const firstPlayerId = playerIds[0];
+  if (!firstPlayerId) {
+    throw new Error("At least one player is required to create a game state");
+  }
 
   return {
     version: 0,
     timestamp: Date.now(),
-    lastModifiedBy: playerIds[0],
+    lastModifiedBy: firstPlayerId,
     gameType: "tcg",
     sessionId,
     players,
     turnOrder: playerIds,
     currentTurn: {
-      playerId: playerIds[0],
+      playerId: firstPlayerId,
       phase: "untap",
       turnNumber: 1,
     },
