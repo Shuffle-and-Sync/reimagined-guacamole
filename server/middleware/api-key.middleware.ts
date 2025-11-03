@@ -98,7 +98,7 @@ export function optionalApiKey(
 
     (req as any).isApiAuthenticated = isValid;
     next();
-  } catch (error) {
+  } catch (_error) {
     (req as any).isApiAuthenticated = false;
     next();
   }

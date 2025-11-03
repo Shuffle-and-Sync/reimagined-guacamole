@@ -293,7 +293,7 @@ export function decompressDiffs(compressed: string): StateDiff[] {
 
   try {
     parsed = JSON.parse(compressed);
-  } catch (error) {
+  } catch (_error) {
     throw new Error("Invalid compressed diff format: not valid JSON");
   }
 

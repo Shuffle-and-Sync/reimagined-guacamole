@@ -105,7 +105,7 @@ export function NotificationSettings() {
 
       const data = await response.json();
       setPreferences(data);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to load notification preferences",
@@ -236,7 +236,7 @@ export function NotificationSettings() {
         title: "Success",
         description: "Notification preferences saved",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to save notification preferences",
