@@ -8,6 +8,7 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { userCommunities, communities } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
 
@@ -81,7 +82,7 @@ export function checkCommunityAccess(options: CommunityAccessOptions = {}) {
     } catch (error) {
       logger.error(
         "Error checking community access",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { communityId },
       );
       res.status(500).json({ error: "Error checking access" });

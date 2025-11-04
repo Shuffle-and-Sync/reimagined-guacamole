@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { getAuthUserId } from "../auth";
 import { logger } from "../logger";
 import { storage } from "../storage";
@@ -187,7 +188,7 @@ export async function hasAdminRole(userId: string): Promise<boolean> {
   } catch (error) {
     logger.error(
       "Error checking admin role",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId,
         operation: "checking_admin_role",
@@ -244,7 +245,7 @@ export async function hasPermission(
   } catch (error) {
     logger.error(
       "Error checking permission",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId,
         operation: "checking_permission",
@@ -291,7 +292,7 @@ export async function requireAdmin(
   } catch (error) {
     logger.error(
       "Admin role check error",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(req),
         operation: "admin_role_check_error",
@@ -344,7 +345,7 @@ export function requirePermission(
     } catch (error) {
       logger.error(
         "Admin permission check error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "admin_permission_check_error",
@@ -403,7 +404,7 @@ export function requireAllPermissions(
     } catch (error) {
       logger.error(
         "Admin permissions check error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "admin_permissions_check_error",
@@ -466,7 +467,7 @@ export function requireAnyPermission(
     } catch (error) {
       logger.error(
         "Admin permissions check error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "admin_permissions_check_error",
@@ -507,7 +508,7 @@ export function auditAdminAction(
     } catch (error) {
       logger.error(
         "Audit middleware error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "audit_middleware_error",

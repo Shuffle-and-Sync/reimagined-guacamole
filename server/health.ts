@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 import { storage } from "./storage";
 
@@ -38,7 +39,7 @@ export async function healthCheck(_req: Request, res: Response) {
       uptime: process.uptime(),
     });
   } catch (error) {
-    logger.error("Health check failed", error);
+    logger.error("Health check failed", toLoggableError(error));
     res.status(503).json({
       status: "unhealthy",
       timestamp: new Date().toISOString(),

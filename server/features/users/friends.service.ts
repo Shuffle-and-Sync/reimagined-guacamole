@@ -8,6 +8,7 @@
  * - Fetching friends and friend requests
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import {
   ValidationError,
@@ -23,7 +24,7 @@ export class FriendsService {
     try {
       return await storage.getFriends(userId);
     } catch (error) {
-      logger.error("Failed to fetch friends", error, { userId });
+      logger.error("Failed to fetch friends", toLoggableError(error), { userId });
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class FriendsService {
     try {
       return await storage.getFriendRequests(userId);
     } catch (error) {
-      logger.error("Failed to fetch friend requests", error, { userId });
+      logger.error("Failed to fetch friend requests", toLoggableError(error), { userId });
       throw error;
     }
   }
@@ -86,7 +87,7 @@ export class FriendsService {
 
       return friendship;
     } catch (error) {
-      logger.error("Failed to send friend request", error, {
+      logger.error("Failed to send friend request", toLoggableError(error), {
         requesterId,
         addresseeId,
       });
@@ -132,7 +133,7 @@ export class FriendsService {
 
       return friendship;
     } catch (error) {
-      logger.error("Failed to respond to friend request", error, {
+      logger.error("Failed to respond to friend request", toLoggableError(error), {
         requestId,
         status,
       });
@@ -162,7 +163,7 @@ export class FriendsService {
 
       return { success: true };
     } catch (error) {
-      logger.error("Failed to remove friend", error, { userId, friendId });
+      logger.error("Failed to remove friend", toLoggableError(error), { userId, friendId });
       throw error;
     }
   }

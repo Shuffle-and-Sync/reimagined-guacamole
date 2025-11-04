@@ -1,4 +1,5 @@
 import { RedisClientType } from "redis";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { redisClient } from "./redis-client.service";
 
@@ -68,7 +69,7 @@ export class AdvancedCacheService {
 
       return cachedData.data;
     } catch (error) {
-      logger.error("Error parsing cached data", error as Error, { key });
+      logger.error("Error parsing cached data", toLoggableError(error), { key });
       // Fallback to fresh fetch
       const data = await fetchFn();
       await this.set(key, data, options);
@@ -100,7 +101,7 @@ export class AdvancedCacheService {
 
       await this.redis.setEx(key, options.ttl, JSON.stringify(cachedData));
     } catch (error) {
-      logger.error("Error setting cache", error as Error, { key });
+      logger.error("Error setting cache", toLoggableError(error), { key });
     }
   }
 
@@ -149,7 +150,7 @@ export class AdvancedCacheService {
       }
       return await this.redis.del(keys);
     } catch (error) {
-      logger.error("Error invalidating cache pattern", error as Error, {
+      logger.error("Error invalidating cache pattern", toLoggableError(error), {
         pattern,
       });
       return 0;
@@ -165,7 +166,7 @@ export class AdvancedCacheService {
     try {
       return await this.redis.del(key);
     } catch (error) {
-      logger.error("Error invalidating cache key", error as Error, { key });
+      logger.error("Error invalidating cache key", toLoggableError(error), { key });
       return 0;
     }
   }
@@ -203,7 +204,7 @@ export class AdvancedCacheService {
         hitRate: Math.round(hitRate * 100) / 100,
       };
     } catch (error) {
-      logger.error("Error getting cache stats", error as Error);
+      logger.error("Error getting cache stats", toLoggableError(error));
       return {
         totalKeys: 0,
         memoryUsage: "0B",

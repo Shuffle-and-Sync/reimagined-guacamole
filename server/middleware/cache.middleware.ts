@@ -6,6 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { queryCache, generateCacheKey } from "../utils/cache.utils";
 
@@ -101,7 +102,7 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
           queryCache.set(cacheKey, responseToCache, ttl).catch((error) => {
             logger.error(
               "Failed to cache response",
-              error instanceof Error ? error : new Error(String(error)),
+              toLoggableError(error),
               { cacheKey },
             );
           });
@@ -116,7 +117,7 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
     } catch (error) {
       logger.error(
         "Cache middleware error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { path: req.path },
       );
       // Continue without caching on error
@@ -154,7 +155,7 @@ export function invalidateCacheMiddleware(patterns: string[]) {
         ).catch((error) => {
           logger.error(
             "Failed to invalidate cache",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { patterns },
           );
         });
@@ -261,7 +262,7 @@ export const cacheInvalidation = {
         queryCache.flush().catch((error) => {
           logger.error(
             "Failed to flush cache",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         });
       }

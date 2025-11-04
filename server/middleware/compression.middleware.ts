@@ -6,6 +6,7 @@
  */
 
 import { gzipSync } from "zlib";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
 
@@ -113,7 +114,7 @@ export const compressionMiddleware = (
 
         return res.end(compressed);
       } catch (error) {
-        logger.error("Compression failed", error, { path: req.path });
+        logger.error("Compression failed", toLoggableError(error), { path: req.path });
         // Fall back to original response if compression fails
         return originalJson(data);
       }
@@ -156,7 +157,7 @@ export const compressionMiddleware = (
 
         return res.end(compressed);
       } catch (error) {
-        logger.error("Compression failed", error, { path: req.path });
+        logger.error("Compression failed", toLoggableError(error), { path: req.path });
         // Fall back to original response if compression fails
         return originalSend(data);
       }

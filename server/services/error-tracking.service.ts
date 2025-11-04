@@ -7,6 +7,7 @@
 
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type {
   Request,
@@ -95,7 +96,7 @@ export function initializeSentry(): void {
   } catch (error) {
     logger.error(
       "Failed to initialize Sentry",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
   }
 }
@@ -320,7 +321,7 @@ export async function flushSentry(timeout = 2000): Promise<boolean> {
   } catch (error) {
     logger.error(
       "Failed to flush Sentry events",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     return false;
   }

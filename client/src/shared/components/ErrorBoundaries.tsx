@@ -1,5 +1,6 @@
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -79,7 +80,7 @@ export class ErrorBoundary extends Component<
 
     // In development, log detailed error information
     if (import.meta.env.DEV) {
-      logger.error("🚨 Error Boundary Caught Error", error, errorData);
+      logger.error("🚨 Error Boundary Caught Error", toLoggableError(error), errorData);
     }
 
     // In production, send to error tracking service

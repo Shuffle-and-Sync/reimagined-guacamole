@@ -1,4 +1,5 @@
 import type { ServerToClientMessage } from "@shared/types/websocket.types";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { queryClient } from "@/lib/queryClient";
 import { logger } from "./logger";
 
@@ -276,7 +277,7 @@ class WebSocketClient {
             const data = JSON.parse(event.data);
             this.handleMessage(data);
           } catch (error) {
-            logger.error("Failed to parse WebSocket message", error);
+            logger.error("Failed to parse WebSocket message", toLoggableError(error));
           }
         };
 
@@ -311,7 +312,7 @@ class WebSocketClient {
         };
 
         this.ws.onerror = (error) => {
-          logger.error("WebSocket connection error", error);
+          logger.error("WebSocket connection error", toLoggableError(error));
 
           // Try fallback URL construction if primary fails
           if (this.reconnectAttempts === 0) {
@@ -326,7 +327,7 @@ class WebSocketClient {
           }
         };
       } catch (error) {
-        logger.error("Failed to create WebSocket connection", error);
+        logger.error("Failed to create WebSocket connection", toLoggableError(error));
         reject(error);
       }
     });
@@ -346,7 +347,7 @@ class WebSocketClient {
         try {
           callback(state, attempt);
         } catch (error) {
-          logger.error("Error in connection state callback", error);
+          logger.error("Error in connection state callback", toLoggableError(error));
         }
       });
     }
@@ -579,7 +580,7 @@ class WebSocketClient {
         const data = JSON.parse(event.data);
         this.handleMessage(data);
       } catch (error) {
-        logger.error("Failed to parse WebSocket message", error);
+        logger.error("Failed to parse WebSocket message", toLoggableError(error));
       }
     };
 
@@ -615,7 +616,7 @@ class WebSocketClient {
     setTimeout(() => {
       this.reconnectAttempts++;
       this.connect().catch((error) => {
-        logger.error("WebSocket reconnect failed", error);
+        logger.error("WebSocket reconnect failed", toLoggableError(error));
       });
     }, delay);
   }
@@ -674,7 +675,7 @@ class WebSocketClient {
         try {
           listener(data);
         } catch (error) {
-          logger.error("Error in WebSocket event listener", error, {
+          logger.error("Error in WebSocket event listener", toLoggableError(error), {
             eventType: data.type,
           });
         }
@@ -727,7 +728,7 @@ class WebSocketClient {
 
       logger.debug("WebSocket message sent", { type: message.type, id });
     } catch (error) {
-      logger.error("Failed to send WebSocket message", error, {
+      logger.error("Failed to send WebSocket message", toLoggableError(error), {
         messageType: message.type,
         messageId: id,
         error: error instanceof Error ? error.message : "Unknown error",

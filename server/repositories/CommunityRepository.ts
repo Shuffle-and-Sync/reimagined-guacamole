@@ -27,6 +27,7 @@ import {
   type CommunityAnalytics,
   type InsertCommunityAnalytics,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -92,7 +93,7 @@ export class CommunityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get communities",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
         throw new DatabaseError("Failed to get communities", { cause: error });
       }
@@ -143,7 +144,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get communities with stats",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError("Failed to get communities with stats", {
             cause: error,
@@ -171,7 +172,7 @@ export class CommunityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get community",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { id },
         );
         throw new DatabaseError("Failed to get community", { cause: error });
@@ -202,7 +203,7 @@ export class CommunityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to create community",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to create community", { cause: error });
@@ -255,7 +256,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user communities",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to get user communities", {
@@ -314,7 +315,7 @@ export class CommunityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to join community",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to join community", { cause: error });
@@ -348,7 +349,7 @@ export class CommunityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to leave community",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId, communityId },
         );
         throw new DatabaseError("Failed to leave community", { cause: error });
@@ -396,7 +397,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to set primary community",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, communityId },
           );
           throw new DatabaseError("Failed to set primary community", {
@@ -450,7 +451,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get community active users",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { communityId, options },
           );
           throw new DatabaseError("Failed to get community active users", {
@@ -486,7 +487,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get community member count",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { communityId },
           );
           throw new DatabaseError("Failed to get community member count", {
@@ -533,7 +534,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record community analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record community analytics", {
@@ -581,7 +582,7 @@ export class CommunityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get community analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { communityId, options },
           );
           throw new DatabaseError("Failed to get community analytics", {

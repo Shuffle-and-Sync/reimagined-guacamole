@@ -5,6 +5,7 @@
  * visibility settings, invitations, passwords, and spectator limits
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { sessionAccessService } from "../features/game-sessions/session-access.service";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
@@ -65,7 +66,7 @@ export function checkSessionAccess(options: SessionAccessOptions) {
     } catch (error) {
       logger.error(
         "Error checking session access",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { sessionId },
       );
       res.status(500).json({ error: "Error checking access" });

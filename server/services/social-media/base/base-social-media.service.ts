@@ -3,6 +3,7 @@
  * Abstract base class for social media platform integrations
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import type { SocialMediaTokens } from "./social-media-types";
 
@@ -66,7 +67,7 @@ export abstract class BaseSocialMediaService {
     } catch (error) {
       logger.error(
         "Social media API request failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { url },
       );
       throw error;

@@ -5,6 +5,7 @@
  * Wraps the existing CardRecognitionService to provide the ICardAdapter interface
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import { cardRecognitionService } from "../../card-recognition.service";
 import type {
@@ -76,7 +77,7 @@ export class ScryfallAdapter implements ICardAdapter {
         hasMore: result.hasMore,
       };
     } catch (error) {
-      logger.error("Scryfall adapter search failed", error, { query, options });
+      logger.error("Scryfall adapter search failed", toLoggableError(error), { query, options });
       throw error;
     }
   }
@@ -88,7 +89,7 @@ export class ScryfallAdapter implements ICardAdapter {
 
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getCardById failed", error, { id });
+      logger.error("Scryfall adapter getCardById failed", toLoggableError(error), { id });
       throw error;
     }
   }
@@ -103,7 +104,7 @@ export class ScryfallAdapter implements ICardAdapter {
 
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getCardByName failed", error, {
+      logger.error("Scryfall adapter getCardByName failed", toLoggableError(error), {
         name,
         options,
       });
@@ -116,7 +117,7 @@ export class ScryfallAdapter implements ICardAdapter {
       const result = await cardRecognitionService.autocomplete(query, limit);
       return result;
     } catch (error) {
-      logger.error("Scryfall adapter autocomplete failed", error, {
+      logger.error("Scryfall adapter autocomplete failed", toLoggableError(error), {
         query,
         limit,
       });
@@ -132,7 +133,7 @@ export class ScryfallAdapter implements ICardAdapter {
       const card = await cardRecognitionService.getRandomCard(options);
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getRandomCard failed", error, { options });
+      logger.error("Scryfall adapter getRandomCard failed", toLoggableError(error), { options });
       throw error;
     }
   }

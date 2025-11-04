@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -50,7 +51,7 @@ router.get("/status", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get test service status", error);
+    logger.error("Failed to get test service status", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get test service status",
@@ -101,7 +102,7 @@ router.post("/run", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Infrastructure tests failed", error, {
+    logger.error("Infrastructure tests failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -164,7 +165,7 @@ router.post("/suite/:suiteName", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Test suite execution failed", error, {
+    logger.error("Test suite execution failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
       suiteName: req.params.suiteName,
     });
@@ -304,7 +305,7 @@ router.get("/summary", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get test summary", error);
+    logger.error("Failed to get test summary", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get test summary",
@@ -346,7 +347,7 @@ router.get("/health", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Test service health check failed", error);
+    logger.error("Test service health check failed", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Test service health check failed",

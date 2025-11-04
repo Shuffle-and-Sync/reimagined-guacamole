@@ -3,6 +3,7 @@
  * Main orchestrator for real-time matching operations
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { aiAlgorithmEngine } from "../ai";
 import { aiStreamingMatcher } from "../ai-streaming-matcher.service";
@@ -163,7 +164,7 @@ export class RealTimeMatchingCoreService {
     } catch (error) {
       logger.error(
         "Error getting realtime matches",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId: request.userId },
       );
       throw error;

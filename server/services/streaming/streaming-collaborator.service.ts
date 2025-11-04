@@ -7,6 +7,7 @@ import type {
   InsertStreamCollaborator,
   StreamCollaborator,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { aiStreamingMatcher } from "../ai-streaming-matcher.service";
@@ -54,7 +55,7 @@ export class StreamingCollaboratorService {
     } catch (error) {
       logger.error(
         "Failed to add collaborator",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       throw error;
@@ -92,7 +93,7 @@ export class StreamingCollaboratorService {
     } catch (error) {
       logger.error(
         "Failed to get collaboration suggestions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, requesterId },
       );
       throw error;
@@ -115,7 +116,7 @@ export class StreamingCollaboratorService {
     } catch (error) {
       logger.error(
         "Failed to handle collaborator join",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, userId },
       );
       throw error;

@@ -3,6 +3,7 @@
  * Handles HTTP requests to Facebook Graph API with error handling and retries
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import { BaseSocialMediaService } from "../base/base-social-media.service";
 import type { FacebookAPIResult, FacebookTokens } from "./facebook-types";
@@ -101,7 +102,7 @@ export class FacebookAPIClientService extends BaseSocialMediaService {
         if (attempt === retries) {
           logger.error(
             "Facebook API request failed after retries",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { endpoint, attempt },
           );
           return {

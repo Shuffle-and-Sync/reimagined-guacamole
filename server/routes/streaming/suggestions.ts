@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -30,7 +31,7 @@ router.get(
         );
       return res.json(suggestions);
     } catch (error) {
-      logger.error("Failed to get collaboration suggestions", error, {
+      logger.error("Failed to get collaboration suggestions", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });

@@ -17,6 +17,7 @@ import { hashPassword } from "../server/auth/password";
 import { logger } from "../server/logger";
 import crypto from "crypto";
 import { sql } from "drizzle-orm";
+import { toLoggableError } from "@shared/utils/type-guards";
 
 /**
  * Wait for database connection to be ready
@@ -86,7 +87,7 @@ async function getUserByEmail(email: string) {
   try {
     const user = await storage.getUserByEmail(email);
     return user;
-  } catch (error) {
+  } catch (_error) {
     // User not found
     return undefined;
   }
@@ -101,7 +102,7 @@ async function hasSuperAdminRole(userId: string): Promise<boolean> {
     return userRoles.some(
       (role) => role.role === "super_admin" && role.isActive,
     );
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -285,7 +286,7 @@ async function initializeAdminAccount(verify = false): Promise<boolean> {
 
     return true;
   } catch (error) {
-    logger.error("Failed to initialize admin account", error);
+    logger.error("Failed to initialize admin account", toLoggableError(error));
     throw error;
   }
 }

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -42,7 +43,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Failed to fetch event status history",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.id },
       );
       return res
@@ -107,7 +108,7 @@ router.put(
     } catch (error) {
       logger.error(
         "Failed to update event status",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.id },
       );
       return res.status(500).json({ message: "Failed to update status" });
@@ -156,7 +157,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to validate status transition",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.id },
       );
       return res
@@ -195,7 +196,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to process expired events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return res
         .status(500)

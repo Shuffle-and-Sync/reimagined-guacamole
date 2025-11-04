@@ -1,5 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
 import { google, calendar_v3 } from "googleapis";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import type {
   CalendarConnection,
@@ -56,7 +57,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to refresh Google access token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -81,7 +82,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to list Google calendars",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -120,7 +121,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to fetch Google Calendar events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -168,7 +169,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to create Google Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -227,7 +228,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to update Google Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id, eventId },
       );
       throw error;
@@ -255,7 +256,7 @@ export class GoogleCalendarService {
     } catch (error) {
       logger.error(
         "Failed to delete Google Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id, eventId },
       );
       throw error;

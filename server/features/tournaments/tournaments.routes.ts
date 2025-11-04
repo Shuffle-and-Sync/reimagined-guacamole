@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -46,7 +47,7 @@ router.get("/", cacheStrategies.shortLived(), async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch tournaments",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     res.status(500).json({ message: "Failed to fetch tournaments" });
   }
@@ -60,7 +61,7 @@ router.get("/formats", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch tournament formats",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     res.status(500).json({ message: "Failed to fetch tournament formats" });
   }
@@ -78,7 +79,7 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         tournamentId: req.params.id,
       },
@@ -107,7 +108,7 @@ router.post("/", isAuthenticated, cacheInvalidation.all(), async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to create tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },
@@ -131,7 +132,7 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to join tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
         tournamentId: req.params.id,
@@ -160,7 +161,7 @@ router.delete("/:id/leave", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to leave tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
         tournamentId: req.params.id,
@@ -189,7 +190,7 @@ router.post("/:id/start", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to start tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
         tournamentId: req.params.id,
@@ -216,7 +217,7 @@ router.post("/:id/advance", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to advance tournament round",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
         tournamentId: req.params.id,
@@ -256,7 +257,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to report match result",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           tournamentId: req.params.id,
@@ -280,7 +281,7 @@ router.get("/:id/details", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch tournament details",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         tournamentId: req.params.id,
       },
@@ -313,7 +314,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to create tournament match game session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           tournamentId: req.params.id,
@@ -352,7 +353,7 @@ router.patch("/:id", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to update tournament",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         tournamentId: req.params.id,
         userId: getAuthUserId(authenticatedReq),

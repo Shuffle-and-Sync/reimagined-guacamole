@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { googleCalendarService } from "./google-calendar.service";
@@ -39,7 +40,7 @@ export class CalendarSyncService {
     } catch (error) {
       logger.error(
         "Failed to import events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId },
       );
       throw error;
@@ -136,7 +137,7 @@ export class CalendarSyncService {
     } catch (error) {
       logger.error(
         "Failed to export event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, connectionId },
       );
       throw error;
@@ -243,7 +244,7 @@ export class CalendarSyncService {
     } catch (error) {
       logger.error(
         "Failed to refresh connection token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -268,7 +269,7 @@ export class CalendarSyncService {
         } catch (error) {
           logger.error(
             "Failed to sync connection",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { connectionId: connection.id },
           );
           // Continue with other connections
@@ -277,7 +278,7 @@ export class CalendarSyncService {
     } catch (error) {
       logger.error(
         "Failed to sync all connections",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     }
   }

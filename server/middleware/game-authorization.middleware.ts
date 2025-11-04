@@ -10,6 +10,7 @@
 
 import { z } from "zod";
 import type { GameSession } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 
@@ -241,7 +242,7 @@ export async function authorizeSessionJoin(
   } catch (error) {
     logger.error(
       "Error checking session join authorization",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { sessionId, userId },
     );
     return {
@@ -332,7 +333,7 @@ export async function authorizeGameAction(
   } catch (error) {
     logger.error(
       "Error checking game action authorization",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { sessionId, userId, actionType: action.type },
     );
     return {
@@ -378,7 +379,7 @@ export async function authorizeSpectate(
   } catch (error) {
     logger.error(
       "Error checking spectate authorization",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { sessionId, userId },
     );
     return {

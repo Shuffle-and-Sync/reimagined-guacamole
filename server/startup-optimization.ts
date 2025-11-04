@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 /**
@@ -50,7 +51,7 @@ export async function initializeServicesParallel<
           endTimer(`service-${name}`);
           logger.error(
             `Failed to initialize service: ${name}`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw error;
         }
@@ -69,7 +70,7 @@ export async function initializeServicesParallel<
     endTimer("parallel-initialization");
     logger.error(
       "Service initialization failed",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     throw error;
   }
@@ -143,7 +144,7 @@ export function setupGracefulShutdown(
     } catch (error) {
       logger.error(
         "Error during graceful shutdown",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       process.exit(1);
     }

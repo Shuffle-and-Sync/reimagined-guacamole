@@ -41,6 +41,7 @@ import {
   type InsertAdminAuditLog,
   type User,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -125,7 +126,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get user roles",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId },
         );
         throw new DatabaseError("Failed to get user roles", { cause: error });
@@ -154,7 +155,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to create user role",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to create user role", { cause: error });
@@ -189,7 +190,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to check user permission",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId, permission },
         );
         throw new DatabaseError("Failed to check user permission", {
@@ -229,7 +230,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get users by role",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { role },
         );
         throw new DatabaseError("Failed to get users by role", {
@@ -263,7 +264,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get user reputation",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId },
         );
         throw new DatabaseError("Failed to get user reputation", {
@@ -308,7 +309,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to update user reputation",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId, data },
         );
         throw new DatabaseError("Failed to update user reputation", {
@@ -350,7 +351,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to create content report",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to create content report", {
@@ -410,7 +411,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get content reports",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { filters },
         );
         throw new DatabaseError("Failed to get content reports", {
@@ -452,7 +453,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to assign content report",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { reportId, moderatorId },
         );
         throw new DatabaseError("Failed to assign content report", {
@@ -507,7 +508,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to resolve content report",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { reportId, resolution },
         );
         throw new DatabaseError("Failed to resolve content report", {
@@ -553,7 +554,7 @@ export class AdminRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create moderation action",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create moderation action", {
@@ -621,7 +622,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get moderation actions",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { filters },
         );
         throw new DatabaseError("Failed to get moderation actions", {
@@ -664,7 +665,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to add to moderation queue",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to add to moderation queue", {
@@ -732,7 +733,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get moderation queue",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { filters },
         );
         throw new DatabaseError("Failed to get moderation queue", {
@@ -782,7 +783,7 @@ export class AdminRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get moderation queue stats",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError("Failed to get moderation queue stats", {
             cause: error,
@@ -827,7 +828,7 @@ export class AdminRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create ban evasion record",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create ban evasion record", {
@@ -869,7 +870,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to create audit log",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to create audit log", { cause: error });
@@ -930,7 +931,7 @@ export class AdminRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get audit logs",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { filters },
         );
         throw new DatabaseError("Failed to get audit logs", { cause: error });

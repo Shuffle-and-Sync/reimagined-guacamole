@@ -1,6 +1,7 @@
 /**
  * Performance Utilities and Monitoring
  */
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../lib/logger";
 
 // Performance timing utilities
@@ -169,7 +170,7 @@ export const bundleOptimizations = {
       const module = await importFn();
       return module;
     } catch (error) {
-      logger.error("Dynamic import failed", error);
+      logger.error("Dynamic import failed", toLoggableError(error));
       return null;
     }
   },

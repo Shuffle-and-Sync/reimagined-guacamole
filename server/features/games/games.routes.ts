@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -16,7 +17,7 @@ router.get("/game-sessions", async (req, res) => {
     const sessions = await storage.getGameSessions();
     res.json(sessions);
   } catch (error) {
-    logger.error("Failed to fetch game sessions", error);
+    logger.error("Failed to fetch game sessions", toLoggableError(error));
     res.status(500).json({ message: "Failed to fetch game sessions" });
   }
 });
@@ -36,7 +37,7 @@ router.post(
       const session = await storage.createGameSession(sessionData);
       res.json(session);
     } catch (error) {
-      logger.error("Failed to create game session", error, {
+      logger.error("Failed to create game session", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       res.status(500).json({ message: "Failed to create game session" });
@@ -55,7 +56,7 @@ router.get("/game-sessions/:sessionId", async (req, res) => {
 
     return res.json(session);
   } catch (error) {
-    logger.error("Failed to fetch game session", error, {
+    logger.error("Failed to fetch game session", toLoggableError(error), {
       sessionId: req.params.sessionId,
     });
     return res.status(500).json({ message: "Failed to fetch game session" });

@@ -7,6 +7,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { analyzeDrizzleUsage } from "./drizzle-analyzer";
 
@@ -137,7 +138,7 @@ export class BackendCopilotAgent {
     } catch (error) {
       logger.error(
         "❌ Backend analysis failed:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }

@@ -1,5 +1,6 @@
 // Auth.js v5 middleware for Express.js routes
 import { Auth } from "@auth/core";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { authConfig } from "./auth.config";
@@ -190,7 +191,7 @@ export async function requireAuth(
   } catch (error) {
     logger.error(
       "Auth middleware error",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { url: req.url, method: req.method },
     );
     return res.status(401).json({ message: "Unauthorized" });
@@ -240,7 +241,7 @@ export async function optionalAuth(
   } catch (error) {
     logger.warn(
       "Optional auth middleware error",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { url: req.url, method: req.method },
     );
     // Continue without authentication on error
@@ -378,7 +379,7 @@ export async function requireJWTAuth(
   } catch (error) {
     logger.error(
       "JWT authentication error",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         ip: req.ip,
         userAgent: req.headers["user-agent"],

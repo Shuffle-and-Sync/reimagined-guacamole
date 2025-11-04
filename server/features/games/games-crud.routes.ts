@@ -6,6 +6,7 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -90,7 +91,7 @@ router.post("/", isAuthenticated, async (req, res) => {
 
     logger.error(
       "Failed to create game",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },
@@ -116,7 +117,7 @@ router.get("/", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch games",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     return res.status(500).json({ message: "Failed to fetch games" });
   }
@@ -144,7 +145,7 @@ router.get("/:id", async (req, res) => {
     }
     logger.error(
       "Failed to fetch game",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { gameId: req.params.id },
     );
     return res.status(500).json({ message: "Failed to fetch game" });
@@ -189,7 +190,7 @@ router.put("/:id", isAuthenticated, async (req, res) => {
 
     logger.error(
       "Failed to update game",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.id,
         userId: getAuthUserId(authenticatedReq),
@@ -228,7 +229,7 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
 
     logger.error(
       "Failed to delete game",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.id,
         userId: getAuthUserId(authenticatedReq),
@@ -267,7 +268,7 @@ router.post("/:id/publish", isAuthenticated, async (req, res) => {
 
     logger.error(
       "Failed to publish game",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.id,
         userId: getAuthUserId(authenticatedReq),
@@ -293,7 +294,7 @@ router.get("/:id/stats", async (req, res) => {
 
     logger.error(
       "Failed to fetch game stats",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.id,
       },

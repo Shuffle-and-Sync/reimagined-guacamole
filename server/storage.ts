@@ -216,6 +216,7 @@ import {
   type _InsertRevokedJwtToken,
   type _RevokedJwtToken,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 // Extended types for entities with properties not yet in schema
@@ -6595,7 +6596,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to create collaborative stream event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }
@@ -6613,7 +6614,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get collaborative stream event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw error;
@@ -6637,7 +6638,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to update collaborative stream event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           id,
         },
@@ -6654,7 +6655,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to delete collaborative stream event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           id,
         },
@@ -6674,7 +6675,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get user collaborative stream events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
         },
@@ -6699,7 +6700,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to create stream collaborator",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }
@@ -6715,7 +6716,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get stream collaborator",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw error;
@@ -6739,7 +6740,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to update stream collaborator",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw error;
@@ -6754,7 +6755,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to delete stream collaborator",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw error;
@@ -6772,7 +6773,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get stream collaborators",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           streamEventId,
         },
@@ -6797,7 +6798,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to create stream coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }
@@ -6815,7 +6816,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get stream coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw error;
@@ -6839,7 +6840,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to update stream coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           id,
         },
@@ -6856,7 +6857,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to delete stream coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           id,
         },
@@ -6874,7 +6875,7 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logger.error(
         "Failed to get active coordination sessions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }

@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 
@@ -65,7 +66,7 @@ export class GraphicsGeneratorService {
     } catch (error) {
       logger.error(
         "Failed to generate event graphic",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           template,
