@@ -401,7 +401,7 @@ export class NotificationTemplateService {
    * Default template for unknown notification types
    */
   private getDefaultTemplate = (
-    type: string,
+    _type: string,
     context: TemplateContext,
   ): NotificationTemplate => {
     return {

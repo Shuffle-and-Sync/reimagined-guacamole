@@ -584,7 +584,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private canNormalSummon(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): boolean {
@@ -607,7 +607,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private canSetMonster(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): boolean {
@@ -620,7 +620,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private canSetSpellTrap(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): boolean {
@@ -641,7 +641,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private applyNormalSummon(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): void {
@@ -661,7 +661,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private applySetMonster(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): void {
@@ -681,7 +681,7 @@ export class YuGiOhGameAdapter extends BaseGameAdapter<
   }
 
   private applySetSpellTrap(
-    state: YuGiOhGameState,
+    _state: YuGiOhGameState,
     player: YuGiOhPlayer,
     action: YuGiOhAction,
   ): void {

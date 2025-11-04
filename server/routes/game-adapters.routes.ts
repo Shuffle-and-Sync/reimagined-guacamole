@@ -50,7 +50,7 @@ const gameStates = new Map<
 // Get available games
 router.get(
   "/games",
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req: _req, res) => {
     const games = getAvailableGames();
     return res.json({
       games,

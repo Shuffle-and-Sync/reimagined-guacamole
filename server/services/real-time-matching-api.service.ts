@@ -674,7 +674,7 @@ export class RealTimeMatchingAPI {
   }
 
   private calculateUrgencyScore(
-    baseMatch: unknown,
+    _baseMatch: unknown,
     request: RealTimeMatchRequest,
   ): number {
     let urgencyScore = 50; // Base score
@@ -1046,7 +1046,7 @@ interface PerformanceMetric {
 class MachineLearningModel {
   private outcomeHistory: Map<string, any[]> = new Map();
   private userPatterns: Map<string, any> = new Map();
-  private collaborationSuccess: Map<string, number> = new Map();
+  private _collaborationSuccess: Map<string, number> = new Map();
 
   async recordOutcome(matchId: string, outcome: unknown): Promise<void> {
     const history = this.outcomeHistory.get(matchId) || [];

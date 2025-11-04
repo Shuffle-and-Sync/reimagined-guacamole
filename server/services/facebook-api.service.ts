@@ -203,7 +203,7 @@ export class FacebookAPIService {
   }
 
   // Webhook verification token for security
-  private webhookVerifyToken: string;
+  private _webhookVerifyToken: string;
 
   /**
    * Check if Facebook API is properly configured

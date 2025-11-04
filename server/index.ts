@@ -281,7 +281,10 @@ server.listen(
     initializationStatus.env = true;
   } catch (error) {
     endTimer("env-validation");
-    logger.error("Environment validation failed during startup", toLoggableError(error));
+    logger.error(
+      "Environment validation failed during startup",
+      toLoggableError(error),
+    );
     initializationStatus.status = "degraded";
     if (process.env.NODE_ENV === "production") {
       logger.error("Environment validation failed - cannot continue");
@@ -312,7 +315,10 @@ server.listen(
     }
   } catch (error) {
     endTimer("security-audit");
-    logger.error("Security audit failed during startup", toLoggableError(error));
+    logger.error(
+      "Security audit failed during startup",
+      toLoggableError(error),
+    );
     initializationStatus.status = "degraded";
     if (process.env.NODE_ENV === "production") {
       process.exit(1);
@@ -464,7 +470,10 @@ server.listen(
             "If an account with that email exists, a verification email has been sent.",
         });
       } catch (error) {
-        logger.error("Failed to send verification email", toLoggableError(error));
+        logger.error(
+          "Failed to send verification email",
+          toLoggableError(error),
+        );
         res.status(500).json({ message: "Failed to send verification email" });
         return;
       }
@@ -622,7 +631,10 @@ server.listen(
           message: "If an account exists, a verification email has been sent.",
         });
       } catch (error) {
-        logger.error("Failed to resend verification email", toLoggableError(error));
+        logger.error(
+          "Failed to resend verification email",
+          toLoggableError(error),
+        );
         res
           .status(500)
           .json({ message: "Failed to resend verification email" });
@@ -852,7 +864,7 @@ server.listen(
   app.use(sentryErrorHandler());
 
   // Basic error handler
-  app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     console.error("Server error:", err.message);
     res.status(500).json({ message: "Internal server error" });
   });
@@ -935,6 +947,9 @@ server.listen(
     logger.warn("Failed to start memory monitoring", error);
   }
 })().catch((error) => {
-  logger.error("Fatal error during server initialization", toLoggableError(error));
+  logger.error(
+    "Fatal error during server initialization",
+    toLoggableError(error),
+  );
   process.exit(1);
 });

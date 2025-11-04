@@ -12,7 +12,7 @@ import { validateRequest, validateGameSessionSchema } from "../../validation";
 const router = Router();
 
 // Game sessions routes
-router.get("/game-sessions", async (req, res) => {
+router.get("/game-sessions", async (_req: _req, res) => {
   try {
     const sessions = await storage.getGameSessions();
     res.json(sessions);

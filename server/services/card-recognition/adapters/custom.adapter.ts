@@ -164,7 +164,7 @@ export class CustomGameAdapter implements ICardAdapter {
     */
   }
 
-  async autocomplete(query: string, _limit = 20): Promise<AutocompleteResult> {
+  async autocomplete(_query: string, _limit = 20): Promise<AutocompleteResult> {
     // TODO: Re-enable when cards table is added to schema
     throw new Error(
       "Custom game adapter not yet implemented - cards table missing from schema",

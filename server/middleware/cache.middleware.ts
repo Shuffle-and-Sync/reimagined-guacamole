@@ -100,11 +100,9 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
           // Cache asynchronously (don't block response)
           queryCache.set(cacheKey, responseToCache, ttl).catch((error) => {
-            logger.error(
-              "Failed to cache response",
-              toLoggableError(error),
-              { cacheKey },
-            );
+            logger.error("Failed to cache response", toLoggableError(error), {
+              cacheKey,
+            });
           });
 
           res.setHeader("Cache-Control", cacheControl);
@@ -115,11 +113,9 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
       next();
     } catch (error) {
-      logger.error(
-        "Cache middleware error",
-        toLoggableError(error),
-        { path: req.path },
-      );
+      logger.error("Cache middleware error", toLoggableError(error), {
+        path: req.path,
+      });
       // Continue without caching on error
       next();
     }
@@ -153,11 +149,9 @@ export function invalidateCacheMiddleware(patterns: string[]) {
         Promise.all(
           patterns.map((pattern) => queryCache.invalidate(pattern)),
         ).catch((error) => {
-          logger.error(
-            "Failed to invalidate cache",
-            toLoggableError(error),
-            { patterns },
-          );
+          logger.error("Failed to invalidate cache", toLoggableError(error), {
+            patterns,
+          });
         });
       }
 
@@ -255,15 +249,12 @@ export const cacheInvalidation = {
   /**
    * Invalidate all caches (use sparingly)
    */
-  all: () => async (req: Request, res: Response, next: NextFunction) => {
+  all: () => async (_req: Request, res: Response, next: NextFunction) => {
     const originalJson = res.json.bind(res);
     res.json = function (data: unknown): Response {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         queryCache.flush().catch((error) => {
-          logger.error(
-            "Failed to flush cache",
-            toLoggableError(error),
-          );
+          logger.error("Failed to flush cache", toLoggableError(error));
         });
       }
       return originalJson(data);

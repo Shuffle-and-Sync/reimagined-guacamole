@@ -49,7 +49,7 @@ export const doubleEliminationService = {
    * Generate double elimination bracket structure
    */
   async generateBracket(
-    tournamentId: string,
+    _tournamentId: string,
     participants: Participant[],
   ): Promise<DoubleEliminationBracket> {
     const playerCount = participants.length;

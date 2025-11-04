@@ -123,7 +123,7 @@ export function connectionMonitoringHeadersMiddleware(
 export function connectionTrackingErrorHandler(
   err: Error,
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const trackingReq = req as ConnectionTrackingRequest;

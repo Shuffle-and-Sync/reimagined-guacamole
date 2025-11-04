@@ -116,10 +116,7 @@ router.get("/search", async (req, res) => {
       });
     }
 
-    logger.error(
-      "Error searching cards",
-      toLoggableError(error),
-    );
+    logger.error("Error searching cards", toLoggableError(error));
     return res.status(500).json({ message: "Failed to search cards" });
   }
 });
@@ -149,11 +146,9 @@ router.get("/:id", async (req, res) => {
 
     return res.json(addDeprecationWarning(card));
   } catch (error) {
-    logger.error(
-      "Error fetching card by ID",
-      toLoggableError(error),
-      { id: req.params.id },
-    );
+    logger.error("Error fetching card by ID", toLoggableError(error), {
+      id: req.params.id,
+    });
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -203,10 +198,7 @@ router.get("/named", async (req, res) => {
       });
     }
 
-    logger.error(
-      "Error fetching card by name",
-      toLoggableError(error),
-    );
+    logger.error("Error fetching card by name", toLoggableError(error));
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -241,10 +233,7 @@ router.get("/autocomplete", async (req, res) => {
       });
     }
 
-    logger.error(
-      "Error autocompleting card names",
-      toLoggableError(error),
-    );
+    logger.error("Error autocompleting card names", toLoggableError(error));
     return res.status(500).json({ message: "Failed to autocomplete" });
   }
 });
@@ -279,10 +268,7 @@ router.get("/random", async (req, res) => {
       });
     }
 
-    logger.error(
-      "Error fetching random card",
-      toLoggableError(error),
-    );
+    logger.error("Error fetching random card", toLoggableError(error));
     return res.status(500).json({ message: "Failed to fetch random card" });
   }
 });
@@ -293,15 +279,12 @@ router.get("/random", async (req, res) => {
  *
  * NOTE: This endpoint is not deprecated as it's for internal monitoring
  */
-router.get("/cache/stats", async (req, res) => {
+router.get("/cache/stats", async (_req: _req, res) => {
   try {
     const stats = cardRecognitionService.getCacheStats();
     res.json(stats);
   } catch (error) {
-    logger.error(
-      "Error fetching cache stats",
-      toLoggableError(error),
-    );
+    logger.error("Error fetching cache stats", toLoggableError(error));
     res.status(500).json({ message: "Failed to fetch cache stats" });
   }
 });

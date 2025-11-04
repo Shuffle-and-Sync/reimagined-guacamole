@@ -15,15 +15,12 @@ import { communitiesService } from "./communities.service";
 const router = Router();
 
 // Get all communities
-router.get("/", cacheStrategies.community(), async (req, res) => {
+router.get("/", cacheStrategies.community(), async (_req: _req, res) => {
   try {
     const communities = await communitiesService.getAllCommunities();
     res.json(communities);
   } catch (error) {
-    logger.error(
-      "Failed to fetch communities",
-      toLoggableError(error),
-    );
+    logger.error("Failed to fetch communities", toLoggableError(error));
     res.status(500).json({ message: "Failed to fetch communities" });
   }
 });
@@ -45,11 +42,9 @@ router.get("/:id", cacheStrategies.community(), async (req, res) => {
 
     return res.json(community);
   } catch (error) {
-    logger.error(
-      "Failed to fetch community",
-      toLoggableError(error),
-      { id: req.params.id },
-    );
+    logger.error("Failed to fetch community", toLoggableError(error), {
+      id: req.params.id,
+    });
     return res.status(500).json({ message: "Failed to fetch community" });
   }
 });
@@ -84,14 +79,10 @@ userCommunitiesRouter.post(
         return res.status(404).json({ message: "Community not found" });
       }
 
-      logger.error(
-        "Failed to join community",
-        toLoggableError(error),
-        {
-          userId: getAuthUserId(authenticatedReq),
-          communityId: req.params.communityId,
-        },
-      );
+      logger.error("Failed to join community", toLoggableError(error), {
+        userId: getAuthUserId(authenticatedReq),
+        communityId: req.params.communityId,
+      });
       return res.status(500).json({ message: "Failed to join community" });
     }
   },
@@ -114,14 +105,10 @@ userCommunitiesRouter.post(
       await communitiesService.setPrimaryCommunity(userId, communityId);
       return res.json({ success: true });
     } catch (error) {
-      logger.error(
-        "Failed to set primary community",
-        toLoggableError(error),
-        {
-          userId: getAuthUserId(authenticatedReq),
-          communityId: req.params.communityId,
-        },
-      );
+      logger.error("Failed to set primary community", toLoggableError(error), {
+        userId: getAuthUserId(authenticatedReq),
+        communityId: req.params.communityId,
+      });
       return res
         .status(500)
         .json({ message: "Failed to set primary community" });
@@ -141,13 +128,9 @@ themePreferencesRouter.get("/", isAuthenticated, async (req, res) => {
       await communitiesService.getUserThemePreferences(userId);
     res.json(preferences);
   } catch (error) {
-    logger.error(
-      "Failed to fetch theme preferences",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
+    logger.error("Failed to fetch theme preferences", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+    });
     res.status(500).json({ message: "Failed to fetch theme preferences" });
   }
 });
@@ -167,13 +150,9 @@ themePreferencesRouter.post("/", isAuthenticated, async (req, res) => {
 
     res.json(preference);
   } catch (error) {
-    logger.error(
-      "Failed to update theme preferences",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
+    logger.error("Failed to update theme preferences", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+    });
     res.status(500).json({ message: "Failed to update theme preferences" });
   }
 });

@@ -1018,8 +1018,8 @@ export class AIAlgorithmEngine {
   }
 
   private isTimeSlotCompatible(
-    userSlot: string,
-    candidateSlot: string,
+    _userSlot: string,
+    _candidateSlot: string,
     offset: number,
   ): boolean {
     // Simplified time compatibility check
@@ -1028,8 +1028,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifySchedulingConflicts(
-    userSchedule: ScheduleData,
-    candidateSchedule: ScheduleData,
+    _userSchedule: ScheduleData,
+    _candidateSchedule: ScheduleData,
     timezoneOffset: number,
   ): string[] {
     const conflicts: string[] = [];

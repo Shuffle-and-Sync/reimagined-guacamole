@@ -1042,7 +1042,7 @@ export const tournamentsService = {
   async generateSwissPairings(
     participants: (TournamentParticipant & { user: User })[],
     tournamentId: string,
-    roundNumber: number,
+    _roundNumber: number,
   ): Promise<PairingResult[]> {
     // Get match history to track previous pairings and scores
     const previousMatches = await storage.getTournamentMatches(tournamentId);
@@ -1176,7 +1176,7 @@ export const tournamentsService = {
       // Count wins, losses, and byes
       let wins = 0;
       let losses = 0;
-      let byes = 0;
+      let _byes = 0;
       const opponents: string[] = [];
 
       for (const match of matches as any[]) {
@@ -1186,7 +1186,7 @@ export const tournamentsService = {
 
           if (!opponentId) {
             // Bye match
-            byes++;
+            _byes++;
             wins++; // Byes count as wins
           } else {
             opponents.push(opponentId);

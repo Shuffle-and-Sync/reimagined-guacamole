@@ -678,7 +678,7 @@ export class SessionSecurityService {
    */
   private getRecommendedActions(
     riskLevel: "low" | "medium" | "high" | "critical",
-    riskFactors: string[],
+    _riskFactors: string[],
     suspiciousFlags: SuspiciousActivityFlags,
   ): string[] {
     const actions: string[] = [];

@@ -109,10 +109,7 @@ export class DrizzleAnalyzer {
         performanceMetrics,
       };
     } catch (error) {
-      logger.error(
-        "❌ Drizzle analysis failed:",
-        toLoggableError(error),
-      );
+      logger.error("❌ Drizzle analysis failed:", toLoggableError(error));
       throw error;
     }
   }
@@ -331,7 +328,7 @@ export class DrizzleAnalyzer {
     file: string,
     line: string,
     lineNumber: number,
-    content: string,
+    _content: string,
     issues: CodeIssue[],
   ): void {
     const relativePath = path.relative(this.projectRoot, file);

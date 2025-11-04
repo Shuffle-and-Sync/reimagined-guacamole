@@ -45,24 +45,18 @@ router.get("/", cacheStrategies.shortLived(), async (req, res) => {
     const tournaments = await tournamentsService.getTournaments(communityId);
     res.json(tournaments);
   } catch (error) {
-    logger.error(
-      "Failed to fetch tournaments",
-      toLoggableError(error),
-    );
+    logger.error("Failed to fetch tournaments", toLoggableError(error));
     res.status(500).json({ message: "Failed to fetch tournaments" });
   }
 });
 
 // Get tournament formats (must be before /:id route to avoid shadowing)
-router.get("/formats", async (req, res) => {
+router.get("/formats", async (_req: _req, res) => {
   try {
     const formats = await tournamentsService.getTournamentFormats();
     res.json(formats);
   } catch (error) {
-    logger.error(
-      "Failed to fetch tournament formats",
-      toLoggableError(error),
-    );
+    logger.error("Failed to fetch tournament formats", toLoggableError(error));
     res.status(500).json({ message: "Failed to fetch tournament formats" });
   }
 });
@@ -77,13 +71,9 @@ router.get("/:id", async (req, res) => {
     }
     return res.json(tournament);
   } catch (error) {
-    logger.error(
-      "Failed to fetch tournament",
-      toLoggableError(error),
-      {
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to fetch tournament", toLoggableError(error), {
+      tournamentId: req.params.id,
+    });
     return res.status(500).json({ message: "Failed to fetch tournament" });
   }
 });
@@ -106,13 +96,9 @@ router.post("/", isAuthenticated, cacheInvalidation.all(), async (req, res) => {
       await tournamentsService.createTournament(tournamentData);
     res.json(tournament);
   } catch (error) {
-    logger.error(
-      "Failed to create tournament",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
+    logger.error("Failed to create tournament", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+    });
     res.status(500).json({ message: "Failed to create tournament" });
   }
 });
@@ -130,14 +116,10 @@ router.post("/:id/join", isAuthenticated, async (req, res) => {
     );
     res.json(participant);
   } catch (error) {
-    logger.error(
-      "Failed to join tournament",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to join tournament", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+      tournamentId: req.params.id,
+    });
     res.status(500).json({ message: "Failed to join tournament" });
   }
 });
@@ -159,14 +141,10 @@ router.delete("/:id/leave", isAuthenticated, async (req, res) => {
       res.status(404).json({ message: "Tournament participation not found" });
     }
   } catch (error) {
-    logger.error(
-      "Failed to leave tournament",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to leave tournament", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+      tournamentId: req.params.id,
+    });
     res.status(500).json({ message: "Failed to leave tournament" });
   }
 });
@@ -188,14 +166,10 @@ router.post("/:id/start", isAuthenticated, async (req, res) => {
     );
     res.json(tournament);
   } catch (error) {
-    logger.error(
-      "Failed to start tournament",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to start tournament", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+      tournamentId: req.params.id,
+    });
     res.status(500).json({
       message: (error as Error).message || "Failed to start tournament",
     });
@@ -215,14 +189,10 @@ router.post("/:id/advance", isAuthenticated, async (req, res) => {
     );
     res.json(tournament);
   } catch (error) {
-    logger.error(
-      "Failed to advance tournament round",
-      toLoggableError(error),
-      {
-        userId: getAuthUserId(authenticatedReq),
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to advance tournament round", toLoggableError(error), {
+      userId: getAuthUserId(authenticatedReq),
+      tournamentId: req.params.id,
+    });
     res.status(500).json({
       message: (error as Error).message || "Failed to advance tournament round",
     });
@@ -255,15 +225,11 @@ router.post(
       );
       res.json(result);
     } catch (error) {
-      logger.error(
-        "Failed to report match result",
-        toLoggableError(error),
-        {
-          userId: getAuthUserId(authenticatedReq),
-          tournamentId: req.params.id,
-          matchId: req.params.matchId,
-        },
-      );
+      logger.error("Failed to report match result", toLoggableError(error), {
+        userId: getAuthUserId(authenticatedReq),
+        tournamentId: req.params.id,
+        matchId: req.params.matchId,
+      });
       res.status(500).json({
         message: (error as Error).message || "Failed to report match result",
       });
@@ -279,13 +245,9 @@ router.get("/:id/details", async (req, res) => {
       await tournamentsService.getTournamentDetails(tournamentId);
     res.json(tournament);
   } catch (error) {
-    logger.error(
-      "Failed to fetch tournament details",
-      toLoggableError(error),
-      {
-        tournamentId: req.params.id,
-      },
-    );
+    logger.error("Failed to fetch tournament details", toLoggableError(error), {
+      tournamentId: req.params.id,
+    });
     res.status(500).json({ message: "Failed to fetch tournament details" });
   }
 });
@@ -351,14 +313,10 @@ router.patch("/:id", isAuthenticated, async (req, res) => {
     );
     return res.json(updatedTournament);
   } catch (error) {
-    logger.error(
-      "Failed to update tournament",
-      toLoggableError(error),
-      {
-        tournamentId: req.params.id,
-        userId: getAuthUserId(authenticatedReq),
-      },
-    );
+    logger.error("Failed to update tournament", toLoggableError(error), {
+      tournamentId: req.params.id,
+      userId: getAuthUserId(authenticatedReq),
+    });
 
     // Return specific error messages from service
     if (error instanceof Error) {

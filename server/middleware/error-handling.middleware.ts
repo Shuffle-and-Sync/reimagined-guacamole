@@ -121,7 +121,7 @@ export class ExternalServiceError extends AppError {
 }
 
 // Error response interface (legacy - kept for backward compatibility)
-interface ErrorResponse {
+interface _ErrorResponse {
   success: false;
   error: {
     code: string;
@@ -412,7 +412,7 @@ export function requestIdMiddleware(
  */
 export function notFoundHandler(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const error = new NotFoundError("Endpoint", {

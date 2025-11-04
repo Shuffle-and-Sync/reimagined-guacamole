@@ -107,7 +107,7 @@ async function handleSendGridEvent(event: any): Promise<void> {
   const {
     email,
     event: eventType,
-    timestamp,
+    timestamp: _timestamp,
     notification_id,
     user_id,
     sg_message_id,
@@ -315,7 +315,7 @@ router.post("/sendgrid/inbound", async (req: Request, res: Response) => {
 /**
  * Webhook health check
  */
-router.get("/sendgrid/health", (req: Request, res: Response) => {
+router.get("/sendgrid/health", (_req: Request, res: Response) => {
   res.status(200).json({
     status: "healthy",
     service: "sendgrid-webhooks",

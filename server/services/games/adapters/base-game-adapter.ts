@@ -176,7 +176,7 @@ export abstract class BaseGameAdapter<TState = unknown, TAction = unknown>
    * Render state for UI display
    * Basic implementation - game-specific adapters should override for better UX
    */
-  renderState(state: TState, viewingPlayerId?: string): RenderedState {
+  renderState(_state: TState, viewingPlayerId?: string): RenderedState {
     // This is a basic implementation that should be overridden by subclasses
     // It provides minimal functionality for generic state rendering
     return {

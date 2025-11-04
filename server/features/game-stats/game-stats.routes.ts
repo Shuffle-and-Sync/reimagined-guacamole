@@ -329,7 +329,7 @@ router.delete(
 /**
  * Error handling middleware for this router
  */
-router.use((error: unknown, req: unknown, res: unknown, _next: unknown) => {
+router.use((error: unknown, _req: unknown, res: unknown, _next: unknown) => {
   console.error("Game Stats API Error:", error);
 
   if (error instanceof z.ZodError) {

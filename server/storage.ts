@@ -3747,7 +3747,7 @@ export class DatabaseStorage implements IStorage {
   async revokeJWT(
     jti: string,
     userId: string,
-    tokenType: string,
+    _tokenType: string,
     reason: string,
     expiresAt: Date,
     _originalExpiry?: Date,
@@ -7274,7 +7274,7 @@ export class DatabaseStorage implements IStorage {
 
   async recordReportSubmission(
     userId: string,
-    reportId: string,
+    _reportId: string,
     isAccurate?: boolean,
   ): Promise<void> {
     const reputation = await this.getUserReputation(userId);

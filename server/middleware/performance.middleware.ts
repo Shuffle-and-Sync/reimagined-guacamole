@@ -369,7 +369,7 @@ export function databaseMonitoringMiddleware(
  * Creates a comprehensive health check endpoint
  */
 export function createHealthCheckEndpoint() {
-  return async (req: Request, res: Response): Promise<void> => {
+  return async (_req: Request, res: Response): Promise<void> => {
     try {
       const monitor = PerformanceMonitor.getInstance();
       const dbMonitor = DatabaseMonitor.getInstance();
