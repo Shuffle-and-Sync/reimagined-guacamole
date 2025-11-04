@@ -47,7 +47,7 @@ export function useCalendarWebSocket({
 
         toast({
           title: "New Event Created",
-          description: message.data.title || "Calendar updated with new event",
+          description: message.data.title,
         });
       } else if (isEventUpdatedMessage(message)) {
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
