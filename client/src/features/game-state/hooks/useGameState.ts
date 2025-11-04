@@ -257,6 +257,9 @@ export const useGameState = (options: UseGameStateOptions) => {
       const nextIndex = (currentIndex + 1) % playerIds.length;
       const nextPlayerId = playerIds[nextIndex];
 
+      // Ensure nextPlayerId exists
+      if (!nextPlayerId) return prev;
+
       const newTurnNumber = prev.turnNumber + 1;
 
       emitGameStateUpdate(socket, {
@@ -314,34 +317,44 @@ export const useGameState = (options: UseGameStateOptions) => {
       switch (update.type) {
         case "life-change": {
           const data = update.data as LifeChangeUpdate;
-          setGameState((prev) => ({
-            ...prev,
-            players: {
-              ...prev.players,
-              [data.playerId]: {
-                ...prev.players[data.playerId],
-                lifeTotal: data.newTotal,
+          setGameState((prev) => {
+            const player = prev.players[data.playerId];
+            if (!player) return prev;
+
+            return {
+              ...prev,
+              players: {
+                ...prev.players,
+                [data.playerId]: {
+                  ...player,
+                  lifeTotal: data.newTotal,
+                },
               },
-            },
-          }));
+            };
+          });
           break;
         }
 
         case "commander-damage": {
           const data = update.data as CommanderDamageUpdate;
-          setGameState((prev) => ({
-            ...prev,
-            players: {
-              ...prev.players,
-              [data.victimId]: {
-                ...prev.players[data.victimId],
-                commanderDamage: {
-                  ...prev.players[data.victimId].commanderDamage,
-                  [data.commanderId]: data.newTotal,
+          setGameState((prev) => {
+            const victim = prev.players[data.victimId];
+            if (!victim) return prev;
+
+            return {
+              ...prev,
+              players: {
+                ...prev.players,
+                [data.victimId]: {
+                  ...victim,
+                  commanderDamage: {
+                    ...victim.commanderDamage,
+                    [data.commanderId]: data.newTotal,
+                  },
                 },
               },
-            },
-          }));
+            };
+          });
           break;
         }
 
@@ -349,6 +362,8 @@ export const useGameState = (options: UseGameStateOptions) => {
           const data = update.data as CounterChangeUpdate;
           setGameState((prev) => {
             const player = prev.players[data.playerId];
+            if (!player) return prev;
+
             const updatedPlayer = { ...player };
 
             if (data.counterType === "poison") {

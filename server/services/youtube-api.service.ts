@@ -221,7 +221,10 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      logger.error("Error fetching YouTube channel", result.error);
+      logger.error(
+        "Error fetching YouTube channel",
+        toLoggableError(toLoggableError(result.error)),
+      );
       return null;
     }
 
@@ -267,7 +270,7 @@ export class YouTubeAPIService {
     if (!searchResult.success) {
       logger.error(
         "Error searching for YouTube live streams",
-        searchResult.error,
+        toLoggableError(toLoggableError(searchResult.error)),
       );
       return null;
     }
@@ -283,7 +286,10 @@ export class YouTubeAPIService {
     );
 
     if (!videoResult.success) {
-      logger.error("Error fetching YouTube video details", videoResult.error);
+      logger.error(
+        "Error fetching YouTube video details",
+        toLoggableError(videoResult.error),
+      );
       return null;
     }
 
@@ -338,7 +344,7 @@ export class YouTubeAPIService {
     if (!searchResult.success) {
       logger.error(
         "Error searching YouTube channel videos",
-        searchResult.error,
+        toLoggableError(toLoggableError(searchResult.error)),
       );
       return [];
     }
@@ -356,7 +362,10 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      logger.error("Error fetching YouTube video details", videosResult.error);
+      logger.error(
+        "Error fetching YouTube video details",
+        toLoggableError(videosResult.error),
+      );
       return [];
     }
 
@@ -406,7 +415,10 @@ export class YouTubeAPIService {
     );
 
     if (!searchResult.success) {
-      logger.error("Error searching YouTube videos", searchResult.error);
+      logger.error(
+        "Error searching YouTube videos",
+        toLoggableError(searchResult.error),
+      );
       return [];
     }
 
@@ -423,7 +435,10 @@ export class YouTubeAPIService {
     );
 
     if (!videosResult.success) {
-      logger.error("Error fetching YouTube video details", videosResult.error);
+      logger.error(
+        "Error fetching YouTube video details",
+        toLoggableError(videosResult.error),
+      );
       return [];
     }
 
@@ -490,7 +505,10 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      logger.error("Error creating YouTube live broadcast", result.error);
+      logger.error(
+        "Error creating YouTube live broadcast",
+        toLoggableError(result.error),
+      );
       return null;
     }
 
@@ -557,7 +575,10 @@ export class YouTubeAPIService {
     );
 
     if (!result.success) {
-      logger.error("Error updating YouTube live broadcast", result.error);
+      logger.error(
+        "Error updating YouTube live broadcast",
+        toLoggableError(result.error),
+      );
       return null;
     }
 
@@ -983,7 +1004,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error unsubscribing from YouTube channel notifications",
-        error,
+        toLoggableError(error),
       );
       return false;
     }
@@ -1314,7 +1335,7 @@ export class YouTubeAPIService {
     if (!result.success) {
       logger.error(
         "Error fetching authenticated YouTube channel",
-        result.error,
+        toLoggableError(result.error),
       );
       return null;
     }

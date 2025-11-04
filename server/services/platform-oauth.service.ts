@@ -196,7 +196,7 @@ export async function refreshPlatformToken(
   } catch (error) {
     logger.error(
       `Failed to refresh ${platform} token for user ${userId}:`,
-      error,
+      toLoggableError(error),
     );
     return null;
   }
@@ -450,14 +450,10 @@ async function handleYouTubeCallback(
 
     return account;
   } catch (error) {
-    logger.error(
-      "YouTube OAuth callback failed",
-      toLoggableError(error),
-      {
-        userId,
-        codeVerifier: !!codeVerifier,
-      },
-    );
+    logger.error("YouTube OAuth callback failed", toLoggableError(error), {
+      userId,
+      codeVerifier: !!codeVerifier,
+    });
     throw error;
   }
 }
@@ -556,11 +552,9 @@ async function refreshTwitchToken(
 
     return tokenData.access_token;
   } catch (error) {
-    logger.error(
-      "Failed to refresh Twitch token:",
-      toLoggableError(error),
-      { userId },
-    );
+    logger.error("Failed to refresh Twitch token:", toLoggableError(error), {
+      userId,
+    });
     return null;
   }
 }
@@ -598,10 +592,7 @@ async function refreshYouTubeToken(
 
     return tokenData.access_token;
   } catch (error) {
-    logger.error(
-      "Failed to refresh YouTube token:",
-      toLoggableError(error),
-    );
+    logger.error("Failed to refresh YouTube token:", toLoggableError(error));
     return null;
   }
 }

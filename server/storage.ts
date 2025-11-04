@@ -4333,7 +4333,7 @@ export class DatabaseStorage implements IStorage {
         ),
       );
 
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -4367,7 +4367,7 @@ export class DatabaseStorage implements IStorage {
         ),
       );
 
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
@@ -4988,7 +4988,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(tournamentMatches.matchNumber); // Use matchNumber instead of bracketPosition
 
     const results = await query;
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r.match,
       player1: r.player1 ?? undefined,
       player2: r.player2 ?? undefined,
@@ -5091,7 +5091,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(matchResults.createdAt));
 
     const results = await query;
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r.result,
       winner: r.winner,
       loser: r.loser ?? undefined,
@@ -5272,7 +5272,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tournamentMatches.tournamentId, tournamentId))
       .orderBy(tournamentMatches.matchNumber, tournamentMatches.createdAt); // Use matchNumber instead of bracketPosition
 
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r.match,
       player1: r.player1 || undefined,
       player2: r.player2 || undefined,
@@ -5325,7 +5325,7 @@ export class DatabaseStorage implements IStorage {
 
     const results = await query;
 
-    return results.map((r: unknown) => ({
+    return results.map((r) => ({
       ...r.post,
       author: r.author,
       community: r.community,
@@ -5476,7 +5476,7 @@ export class DatabaseStorage implements IStorage {
     // Batch load like status for all replies if user is provided
     let likedReplyIds: Set<string> = new Set();
     if (userId && replies.length > 0) {
-      const replyIds = replies.map((r: unknown) => r.reply.id);
+      const replyIds = replies.map((r) => r.reply.id);
       const likes = await db
         .select({ replyId: forumReplyLikes.replyId })
         .from(forumReplyLikes)
@@ -5490,7 +5490,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Map replies with like status
-    const enrichedReplies = replies.map((r: unknown) => ({
+    const enrichedReplies = replies.map((r) => ({
       ...r.reply,
       author: r.author,
       isLiked: likedReplyIds.has(r.reply.id),
@@ -5669,7 +5669,7 @@ export class DatabaseStorage implements IStorage {
       .from(userGamingProfiles)
       .groupBy(userGamingProfiles.communityId);
 
-    return result.map((r: unknown) => ({
+    return result.map((r) => ({
       game: r.communityId,
       players: r.count,
       change: Math.floor(Math.random() * 20) - 10, // Mock change percentage
@@ -5824,7 +5824,7 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
 
-      const sessionIds = results.map((r: unknown) => r.session.id);
+      const sessionIds = results.map((r) => r.session.id);
 
       const [allCoHosts, allPlatforms] = await Promise.all([
         db
@@ -6206,7 +6206,7 @@ export class DatabaseStorage implements IStorage {
 
       return results
         .filter((r: unknown) => r.fromUser && r.toUser)
-        .map((r: unknown) => ({
+        .map((r) => ({
           ...r.request,
           fromUser: r.fromUser,
           toUser: r.toUser,
