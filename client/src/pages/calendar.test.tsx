@@ -136,10 +136,6 @@ describe("Calendar Page", () => {
 
     it("shows current month by default", () => {
       renderWithProviders(<Calendar />, { queryClient });
-      const _monthYear = new Date().toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
       // Calendar should display current month
       expect(document.body).toBeInTheDocument();
     });
@@ -153,7 +149,6 @@ describe("Calendar Page", () => {
     });
 
     it("filters events by type", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Filter interaction would be tested here
@@ -169,7 +164,6 @@ describe("Calendar Page", () => {
     });
 
     it("allows creating new events", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Event creation flow would be tested here
@@ -185,7 +179,6 @@ describe("Calendar Page", () => {
     });
 
     it("supports week view", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Week view switching would be tested here
@@ -193,7 +186,6 @@ describe("Calendar Page", () => {
     });
 
     it("supports day view", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Day view switching would be tested here
@@ -203,7 +195,6 @@ describe("Calendar Page", () => {
 
   describe("Navigation", () => {
     it("allows navigating to previous month", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Previous month navigation would be tested here
@@ -211,7 +202,6 @@ describe("Calendar Page", () => {
     });
 
     it("allows navigating to next month", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Next month navigation would be tested here
@@ -219,7 +209,6 @@ describe("Calendar Page", () => {
     });
 
     it("allows jumping to today", async () => {
-      const _user = userEvent.setup();
       renderWithProviders(<Calendar />, { queryClient });
 
       // Today button would be tested here

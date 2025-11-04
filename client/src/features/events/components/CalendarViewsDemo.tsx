@@ -57,8 +57,6 @@ export function CalendarViewsDemo({ communityId }: CalendarViewsDemoProps) {
 
   // Fetch events
   const { data: allEvents = [] } = useEvents(communityId);
-  // Update function available for future event editing features
-  const _updateEvent = useUpdateEvent();
 
   // Filter events by visible layers
   const visibleEvents = allEvents.filter((event) => {

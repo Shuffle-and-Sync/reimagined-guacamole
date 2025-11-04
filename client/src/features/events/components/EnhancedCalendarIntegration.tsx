@@ -67,8 +67,6 @@ export function EnhancedCalendarIntegration({
 
   // Fetch events
   const { data: allEvents = [] } = useEvents(communityId);
-  // Update function available for future event editing features
-  const _updateEvent = useUpdateEvent();
   const { exportSingleEvent, exportDateRange } = useICSExport();
 
   // Memoize filtered events to avoid recalculation on every render

@@ -131,7 +131,7 @@ export default function Matchmaking() {
 
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedCommunity, _communityTheme } = useCommunity();
+  const { selectedCommunity } = useCommunity();
 
   // Matchmaking preferences
   const [selectedGames, setSelectedGames] = useState<string[]>(["MTG"]);
@@ -333,7 +333,7 @@ export default function Matchmaking() {
     );
   }, []);
 
-  const _toggleFormat = useCallback((format: string) => {
+  const toggleFormat = useCallback((format: string) => {
     setSelectedFormats((prev) =>
       prev.includes(format)
         ? prev.filter((f) => f !== format)

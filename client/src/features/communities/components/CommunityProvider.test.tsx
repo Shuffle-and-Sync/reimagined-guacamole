@@ -272,8 +272,6 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      const _initialTheme = result.current.communityTheme;
-
       result.current.setSelectedCommunity(mockCommunities[0]);
 
       await waitFor(() => {
