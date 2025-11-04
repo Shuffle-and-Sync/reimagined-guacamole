@@ -39,6 +39,7 @@ import {
   type User,
   type Community,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -134,11 +135,9 @@ export class TournamentRepository extends BaseRepository<
           participantCount: result.participantCount,
         }));
       } catch (error) {
-        logger.error(
-          "Failed to get tournaments",
-          error instanceof Error ? error : new Error(String(error)),
-          { communityId },
-        );
+        logger.error("Failed to get tournaments", toLoggableError(error), {
+          communityId,
+        });
         throw new DatabaseError("Failed to get tournaments", { cause: error });
       }
     });
@@ -195,11 +194,9 @@ export class TournamentRepository extends BaseRepository<
           })),
         };
       } catch (error) {
-        logger.error(
-          "Failed to get tournament",
-          error instanceof Error ? error : new Error(String(error)),
-          { tournamentId },
-        );
+        logger.error("Failed to get tournament", toLoggableError(error), {
+          tournamentId,
+        });
         throw new DatabaseError("Failed to get tournament", { cause: error });
       }
     });
@@ -229,11 +226,9 @@ export class TournamentRepository extends BaseRepository<
         try {
           return await this.create(data);
         } catch (error) {
-          logger.error(
-            "Failed to create tournament",
-            error instanceof Error ? error : new Error(String(error)),
-            { data },
-          );
+          logger.error("Failed to create tournament", toLoggableError(error), {
+            data,
+          });
           throw new DatabaseError("Failed to create tournament", {
             cause: error,
           });
@@ -271,11 +266,10 @@ export class TournamentRepository extends BaseRepository<
 
           return await this.update(tournamentId, updateData);
         } catch (error) {
-          logger.error(
-            "Failed to update tournament",
-            error instanceof Error ? error : new Error(String(error)),
-            { tournamentId, data },
-          );
+          logger.error("Failed to update tournament", toLoggableError(error), {
+            tournamentId,
+            data,
+          });
           throw new DatabaseError("Failed to update tournament", {
             cause: error,
           });
@@ -311,7 +305,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update tournament status",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { tournamentId, status },
           );
           throw new DatabaseError("Failed to update tournament status", {
@@ -357,11 +351,10 @@ export class TournamentRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to join tournament",
-          error instanceof Error ? error : new Error(String(error)),
-          { tournamentId, userId },
-        );
+        logger.error("Failed to join tournament", toLoggableError(error), {
+          tournamentId,
+          userId,
+        });
         throw new DatabaseError("Failed to join tournament", { cause: error });
       }
     });
@@ -400,11 +393,10 @@ export class TournamentRepository extends BaseRepository<
 
         return result.length > 0;
       } catch (error) {
-        logger.error(
-          "Failed to leave tournament",
-          error instanceof Error ? error : new Error(String(error)),
-          { tournamentId, userId },
-        );
+        logger.error("Failed to leave tournament", toLoggableError(error), {
+          tournamentId,
+          userId,
+        });
         throw new DatabaseError("Failed to leave tournament", { cause: error });
       }
     });
@@ -429,7 +421,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get tournament formats",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError("Failed to get tournament formats", {
             cause: error,
@@ -473,7 +465,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create tournament format",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create tournament format", {
@@ -508,7 +500,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get tournament rounds",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { tournamentId },
           );
           throw new DatabaseError("Failed to get tournament rounds", {
@@ -554,7 +546,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create tournament round",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create tournament round", {
@@ -601,7 +593,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update tournament round",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { roundId, data },
           );
           throw new DatabaseError("Failed to update tournament round", {
@@ -665,7 +657,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get tournament matches",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { tournamentId, roundId },
           );
           throw new DatabaseError("Failed to get tournament matches", {
@@ -712,7 +704,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create tournament match",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create tournament match", {
@@ -760,7 +752,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update tournament match",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { matchId, data },
           );
           throw new DatabaseError("Failed to update tournament match", {
@@ -805,7 +797,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get tournament participants",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { tournamentId },
           );
           throw new DatabaseError("Failed to get tournament participants", {
@@ -841,7 +833,7 @@ export class TournamentRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get participant count",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { tournamentId },
           );
           throw new DatabaseError("Failed to get participant count", {
@@ -874,7 +866,7 @@ export class TournamentRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to get tournament with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { tournamentId },
       );
       throw new DatabaseError("Failed to get tournament with transaction", {
@@ -902,7 +894,7 @@ export class TournamentRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to get tournament participants with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { tournamentId },
       );
       throw new DatabaseError(
@@ -932,7 +924,7 @@ export class TournamentRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to get tournament rounds with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { tournamentId },
       );
       throw new DatabaseError(

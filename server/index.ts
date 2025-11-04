@@ -9,6 +9,7 @@ import { sql } from "drizzle-orm";
 import express, { type Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { db, initializeDatabase } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import adminRoutes from "./admin/admin.routes";
 import { getAuthUserId } from "./auth";
 import {
@@ -197,7 +198,7 @@ app.get("/api/health", async (_req, res) => {
       }
     } catch (error) {
       dbStatus = "disconnected";
-      logger.warn("Database health check failed", error);
+      logger.warn("Database health check failed", toLoggableError(error));
     }
   } else {
     dbStatus = "initializing";
@@ -280,7 +281,10 @@ server.listen(
     initializationStatus.env = true;
   } catch (error) {
     endTimer("env-validation");
-    logger.error("Environment validation failed during startup", error);
+    logger.error(
+      "Environment validation failed during startup",
+      toLoggableError(error),
+    );
     initializationStatus.status = "degraded";
     if (process.env.NODE_ENV === "production") {
       logger.error("Environment validation failed - cannot continue");
@@ -311,7 +315,10 @@ server.listen(
     }
   } catch (error) {
     endTimer("security-audit");
-    logger.error("Security audit failed during startup", error);
+    logger.error(
+      "Security audit failed during startup",
+      toLoggableError(error),
+    );
     initializationStatus.status = "degraded";
     if (process.env.NODE_ENV === "production") {
       process.exit(1);
@@ -327,7 +334,7 @@ server.listen(
     initializationStatus.database = true;
   } catch (error) {
     endTimer("database-init");
-    logger.error("Failed to initialize database", error);
+    logger.error("Failed to initialize database", toLoggableError(error));
     initializationStatus.database = false;
     initializationStatus.status = "degraded";
     if (process.env.NODE_ENV === "production") {
@@ -463,7 +470,10 @@ server.listen(
             "If an account with that email exists, a verification email has been sent.",
         });
       } catch (error) {
-        logger.error("Failed to send verification email", error);
+        logger.error(
+          "Failed to send verification email",
+          toLoggableError(error),
+        );
         res.status(500).json({ message: "Failed to send verification email" });
         return;
       }
@@ -513,7 +523,7 @@ server.listen(
         redirectUrl: "/dashboard",
       });
     } catch (error) {
-      logger.error("Failed to verify email", error);
+      logger.error("Failed to verify email", toLoggableError(error));
       res.status(500).json({ message: "Failed to verify email" });
       return;
     }
@@ -621,7 +631,10 @@ server.listen(
           message: "If an account exists, a verification email has been sent.",
         });
       } catch (error) {
-        logger.error("Failed to resend verification email", error);
+        logger.error(
+          "Failed to resend verification email",
+          toLoggableError(error),
+        );
         res
           .status(500)
           .json({ message: "Failed to resend verification email" });
@@ -741,7 +754,7 @@ server.listen(
           expiresAt: expiresAt.toISOString(),
         });
       } catch (error) {
-        logger.error("Failed to initiate email change", error);
+        logger.error("Failed to initiate email change", toLoggableError(error));
         res.status(500).json({ message: "Failed to initiate email change" });
         return;
       }
@@ -814,7 +827,7 @@ server.listen(
           redirectUrl: "/dashboard",
         });
       } catch (error) {
-        logger.error("Failed to confirm email change", error);
+        logger.error("Failed to confirm email change", toLoggableError(error));
         res.status(500).json({ message: "Failed to confirm email change" });
         return;
       }
@@ -840,7 +853,7 @@ server.listen(
 
         res.json({ message: "Email change request cancelled successfully" });
       } catch (error) {
-        logger.error("Failed to cancel email change", error);
+        logger.error("Failed to cancel email change", toLoggableError(error));
         res.status(500).json({ message: "Failed to cancel email change" });
       }
     },
@@ -903,7 +916,7 @@ server.listen(
     monitoringService.start();
     logger.info("Monitoring service started");
   } catch (error) {
-    logger.warn("Failed to start monitoring service", error);
+    logger.warn("Failed to start monitoring service", toLoggableError(error));
   }
 
   // Start event reminder job
@@ -914,7 +927,10 @@ server.listen(
     await scheduleEventReminderJob();
     logger.info("Event reminder job scheduled");
   } catch (error) {
-    logger.warn("Failed to schedule event reminder job", error);
+    logger.warn(
+      "Failed to schedule event reminder job",
+      toLoggableError(error),
+    );
   }
 
   // Start memory monitoring and integrate with alerting
@@ -931,7 +947,7 @@ server.listen(
       config: memoryMonitor.getStatus().config,
     });
   } catch (error) {
-    logger.warn("Failed to start memory monitoring", error);
+    logger.warn("Failed to start memory monitoring", toLoggableError(error));
   }
 })().catch((error) => {
   logger.error("Fatal error during server initialization", error);

@@ -15,6 +15,7 @@ import { eq, gte, lte, sql } from "drizzle-orm";
 // Note: and, desc, asc, count, Transaction reserved for advanced query features
 import { db } from "@shared/database-unified";
 import { users } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { NotFoundError, ValidationError } from "../../shared/types";
 
@@ -380,10 +381,7 @@ class GameStatsService {
       // In a real implementation, this would also recalculate statistics
       return true;
     } catch (error) {
-      logger.error(
-        "Error deleting game result:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error deleting game result:", toLoggableError(error));
       throw error;
     }
   }

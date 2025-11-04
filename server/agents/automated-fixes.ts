@@ -7,6 +7,7 @@
 import { execSync } from "child_process";
 import fs from "fs/promises";
 import path from "path";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { CodeIssue } from "./backend-copilot-agent";
 
@@ -75,7 +76,7 @@ export class AutomatedFixEngine {
         changedFiles: [],
       };
     } catch (error) {
-      logger.warn("Prettier formatting failed:", error);
+      logger.warn("Prettier formatting failed:", toLoggableError(error));
       return {
         success: false,
         message: "Prettier formatting failed",
@@ -203,10 +204,7 @@ export class AutomatedFixEngine {
         changedFiles: Array.from(fixedFiles),
       };
     } catch (error) {
-      logger.error(
-        "Code fixes failed:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Code fixes failed:", toLoggableError(error));
       return {
         success: false,
         message: "Code fixes failed",

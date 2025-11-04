@@ -6,6 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { queryCache, generateCacheKey } from "../utils/cache.utils";
 
@@ -99,11 +100,9 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
           // Cache asynchronously (don't block response)
           queryCache.set(cacheKey, responseToCache, ttl).catch((error) => {
-            logger.error(
-              "Failed to cache response",
-              error instanceof Error ? error : new Error(String(error)),
-              { cacheKey },
-            );
+            logger.error("Failed to cache response", toLoggableError(error), {
+              cacheKey,
+            });
           });
 
           res.setHeader("Cache-Control", cacheControl);
@@ -114,11 +113,9 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
       next();
     } catch (error) {
-      logger.error(
-        "Cache middleware error",
-        error instanceof Error ? error : new Error(String(error)),
-        { path: req.path },
-      );
+      logger.error("Cache middleware error", toLoggableError(error), {
+        path: req.path,
+      });
       // Continue without caching on error
       next();
     }
@@ -152,11 +149,9 @@ export function invalidateCacheMiddleware(patterns: string[]) {
         Promise.all(
           patterns.map((pattern) => queryCache.invalidate(pattern)),
         ).catch((error) => {
-          logger.error(
-            "Failed to invalidate cache",
-            error instanceof Error ? error : new Error(String(error)),
-            { patterns },
-          );
+          logger.error("Failed to invalidate cache", toLoggableError(error), {
+            patterns,
+          });
         });
       }
 
@@ -259,10 +254,7 @@ export const cacheInvalidation = {
     res.json = function (data: unknown): Response {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         queryCache.flush().catch((error) => {
-          logger.error(
-            "Failed to flush cache",
-            error instanceof Error ? error : new Error(String(error)),
-          );
+          logger.error("Failed to flush cache", toLoggableError(error));
         });
       }
       return originalJson(data);

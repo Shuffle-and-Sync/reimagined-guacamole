@@ -7,6 +7,7 @@
 
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type {
   Request,
@@ -93,10 +94,7 @@ export function initializeSentry(): void {
       sampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
     });
   } catch (error) {
-    logger.error(
-      "Failed to initialize Sentry",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Failed to initialize Sentry", toLoggableError(error));
   }
 }
 
@@ -318,10 +316,7 @@ export async function flushSentry(timeout = 2000): Promise<boolean> {
     logger.info("Sentry events flushed successfully");
     return result;
   } catch (error) {
-    logger.error(
-      "Failed to flush Sentry events",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Failed to flush Sentry events", toLoggableError(error));
     return false;
   }
 }

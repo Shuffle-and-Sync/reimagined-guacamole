@@ -18,6 +18,7 @@ import {
   type Notification,
   type InsertNotification,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -89,7 +90,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user notifications",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, options },
           );
           throw new DatabaseError("Failed to get user notifications", {
@@ -145,7 +146,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user notifications with cursor",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, options },
           );
           throw new DatabaseError(
@@ -188,7 +189,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get unread notification count",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to get unread notification count", {
@@ -224,7 +225,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create notification",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create notification", {
@@ -257,7 +258,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark notification as read",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { notificationId },
           );
           throw new DatabaseError("Failed to mark notification as read", {
@@ -290,7 +291,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark all notifications as read",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to mark all notifications as read", {
@@ -320,7 +321,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete notification",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { notificationId },
           );
           throw new DatabaseError("Failed to delete notification", {
@@ -351,7 +352,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete all user notifications",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to delete all user notifications", {
@@ -395,7 +396,7 @@ export class NotificationRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete old read notifications",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { olderThan },
           );
           throw new DatabaseError("Failed to delete old read notifications", {

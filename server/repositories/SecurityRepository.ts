@@ -36,6 +36,7 @@ import {
   type EmailVerificationToken,
   type InsertEmailVerificationToken,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -94,7 +95,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user MFA settings",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to get user MFA settings", {
@@ -131,7 +132,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create user MFA settings",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create user MFA settings", {
@@ -171,7 +172,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update user MFA settings",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, data },
           );
           throw new DatabaseError("Failed to update user MFA settings", {
@@ -221,11 +222,9 @@ export class SecurityRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to enable user MFA",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to enable user MFA", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to enable user MFA", { cause: error });
       }
     });
@@ -254,11 +253,9 @@ export class SecurityRepository extends BaseRepository<
           })
           .where(eq(userMfaSettings.userId, userId));
       } catch (error) {
-        logger.error(
-          "Failed to disable user MFA",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to disable user MFA", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to disable user MFA", { cause: error });
       }
     });
@@ -283,11 +280,9 @@ export class SecurityRepository extends BaseRepository<
           attemptedAt: new Date(),
         });
       } catch (error) {
-        logger.error(
-          "Failed to record MFA failure",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to record MFA failure", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to record MFA failure", {
           cause: error,
         });
@@ -341,11 +336,9 @@ export class SecurityRepository extends BaseRepository<
           attemptsRemaining: maxAttempts - failedAttempts,
         };
       } catch (error) {
-        logger.error(
-          "Failed to check MFA lockout",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to check MFA lockout", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to check MFA lockout", {
           cause: error,
         });
@@ -370,11 +363,9 @@ export class SecurityRepository extends BaseRepository<
           .delete(userMfaAttempts)
           .where(eq(userMfaAttempts.userId, userId));
       } catch (error) {
-        logger.error(
-          "Failed to reset MFA attempts",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to reset MFA attempts", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to reset MFA attempts", {
           cause: error,
         });
@@ -414,7 +405,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get device fingerprint",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { fingerprintHash },
           );
           throw new DatabaseError("Failed to get device fingerprint", {
@@ -451,7 +442,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user device fingerprints",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to get user device fingerprints", {
@@ -503,7 +494,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to upsert device fingerprint",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to upsert device fingerprint", {
@@ -548,11 +539,9 @@ export class SecurityRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to revoke JWT token",
-          error instanceof Error ? error : new Error(String(error)),
-          { data },
-        );
+        logger.error("Failed to revoke JWT token", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to revoke JWT token", { cause: error });
       }
     });
@@ -582,7 +571,7 @@ export class SecurityRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to check if JWT token is revoked",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { tokenHash },
         );
         throw new DatabaseError("Failed to check if JWT token is revoked", {
@@ -611,7 +600,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to cleanup expired revoked tokens",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError("Failed to cleanup expired revoked tokens", {
             cause: error,
@@ -651,7 +640,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create password reset token",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create password reset token", {
@@ -685,7 +674,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get password reset token",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { token },
           );
           throw new DatabaseError("Failed to get password reset token", {
@@ -713,7 +702,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark password reset token as used",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { token },
           );
           throw new DatabaseError(
@@ -739,7 +728,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to cleanup expired password reset tokens",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError(
             "Failed to cleanup expired password reset tokens",
@@ -782,7 +771,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create email verification token",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create email verification token", {
@@ -816,7 +805,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get email verification token",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { token },
           );
           throw new DatabaseError("Failed to get email verification token", {
@@ -844,7 +833,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark email verification token as used",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { token },
           );
           throw new DatabaseError(
@@ -882,7 +871,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create security context",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create security context", {
@@ -916,7 +905,7 @@ export class SecurityRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user security context",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId },
           );
           throw new DatabaseError("Failed to get user security context", {

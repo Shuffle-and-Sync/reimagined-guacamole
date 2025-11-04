@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -34,7 +35,7 @@ router.patch(
       const updatedUser = await usersService.updateProfile(userId, req.body);
       res.json(updatedUser);
     } catch (error) {
-      logger.error("Failed to update user profile", error, {
+      logger.error("Failed to update user profile", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       res.status(500).json({ message: "Failed to update profile" });
@@ -64,7 +65,7 @@ router.get(
 
       return res.json(userProfile);
     } catch (error) {
-      logger.error("Failed to fetch user profile", error, {
+      logger.error("Failed to fetch user profile", toLoggableError(error), {
         currentUserId: getAuthUserId(authenticatedReq),
         targetUserId: req.params.userId,
       });
@@ -87,7 +88,7 @@ router.get(
       const socialLinks = await usersService.getUserSocialLinks(targetUserId);
       res.json(socialLinks);
     } catch (error) {
-      logger.error("Failed to fetch social links", error, {
+      logger.error("Failed to fetch social links", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       res.status(500).json({ message: "Failed to fetch social links" });
@@ -109,7 +110,7 @@ router.put(
       );
       res.json(updatedLinks);
     } catch (error) {
-      logger.error("Failed to update social links", error, {
+      logger.error("Failed to update social links", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       res.status(500).json({ message: "Failed to update social links" });
@@ -128,7 +129,7 @@ router.get("/gaming-profiles/:userId?", isAuthenticated, async (req, res) => {
       await usersService.getUserGamingProfiles(targetUserId);
     res.json(gamingProfiles);
   } catch (error) {
-    logger.error("Failed to fetch gaming profiles", error, {
+    logger.error("Failed to fetch gaming profiles", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to fetch gaming profiles" });
@@ -143,7 +144,7 @@ router.get("/settings", isAuthenticated, async (req, res) => {
     const settings = await usersService.getUserSettings(userId);
     res.json(settings);
   } catch (error) {
-    logger.error("Failed to fetch user settings", error, {
+    logger.error("Failed to fetch user settings", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to fetch user settings" });
@@ -160,7 +161,7 @@ router.put("/settings", isAuthenticated, async (req, res) => {
     );
     res.json(updatedSettings);
   } catch (error) {
-    logger.error("Failed to update user settings", error, {
+    logger.error("Failed to update user settings", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to update user settings" });
@@ -182,7 +183,7 @@ router.get("/export-data", isAuthenticated, async (req, res) => {
     );
     res.json(userData);
   } catch (error) {
-    logger.error("Failed to export user data", error, {
+    logger.error("Failed to export user data", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to export user data" });
@@ -207,7 +208,7 @@ router.delete("/account", isAuthenticated, async (req, res) => {
       res.status(404).json({ message: "User account not found" });
     }
   } catch (error) {
-    logger.error("Failed to delete user account", error, {
+    logger.error("Failed to delete user account", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to delete account" });
@@ -226,7 +227,7 @@ friendsRouter.get("/", isAuthenticated, async (req, res) => {
     const friends = await friendsService.getFriends(userId);
     res.json(friends);
   } catch (error) {
-    logger.error("Failed to fetch friends", error, {
+    logger.error("Failed to fetch friends", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to fetch friends" });
@@ -246,7 +247,7 @@ friendsRouter.delete("/:id", isAuthenticated, async (req, res) => {
       return res.status(404).json({ message: "Friendship not found" });
     }
 
-    logger.error("Failed to remove friend", error, {
+    logger.error("Failed to remove friend", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to remove friend" });
@@ -263,7 +264,7 @@ friendRequestsRouter.get("/", isAuthenticated, async (req, res) => {
     const friendRequests = await friendsService.getFriendRequests(userId);
     res.json(friendRequests);
   } catch (error) {
-    logger.error("Failed to fetch friend requests", error, {
+    logger.error("Failed to fetch friend requests", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to fetch friend requests" });
@@ -291,7 +292,7 @@ friendRequestsRouter.post("/", isAuthenticated, async (req, res) => {
       }
     }
 
-    logger.error("Failed to send friend request", error, {
+    logger.error("Failed to send friend request", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({ message: "Failed to send friend request" });
@@ -311,9 +312,13 @@ friendRequestsRouter.put("/:id", isAuthenticated, async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
 
-    logger.error("Failed to respond to friend request", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to respond to friend request",
+      toLoggableError(error),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res
       .status(500)
       .json({ message: "Failed to respond to friend request" });
@@ -330,9 +335,13 @@ matchmakingRouter.get("/preferences", isAuthenticated, async (req, res) => {
     const preferences = await usersService.getMatchmakingPreferences(userId);
     res.json(preferences);
   } catch (error) {
-    logger.error("Failed to fetch matchmaking preferences", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to fetch matchmaking preferences",
+      toLoggableError(error),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     res
       .status(500)
       .json({ message: "Failed to fetch matchmaking preferences" });
@@ -349,9 +358,13 @@ matchmakingRouter.put("/preferences", isAuthenticated, async (req, res) => {
     );
     res.json(updatedPreferences);
   } catch (error) {
-    logger.error("Failed to update matchmaking preferences", error, {
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to update matchmaking preferences",
+      toLoggableError(error),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     res
       .status(500)
       .json({ message: "Failed to update matchmaking preferences" });
@@ -365,7 +378,7 @@ matchmakingRouter.post("/find-players", isAuthenticated, async (req, res) => {
     const players = await usersService.findPlayers(userId, req.body);
     res.json(players);
   } catch (error) {
-    logger.error("Failed to find players", error, {
+    logger.error("Failed to find players", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     res.status(500).json({ message: "Failed to find players" });

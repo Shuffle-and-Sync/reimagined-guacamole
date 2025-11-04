@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { validateUUID, sanitizeInput } from "../validation";
 
@@ -143,7 +144,7 @@ export function inputSanitizationMiddleware(
 
     next();
   } catch (error) {
-    logger.error("Input sanitization error", error, {
+    logger.error("Input sanitization error", toLoggableError(error), {
       url: req.url,
       method: req.method,
     });

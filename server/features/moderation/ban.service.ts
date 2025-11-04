@@ -8,6 +8,7 @@
 import { eq, and, or, isNull, gt } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { userBans, type UserBan, type InsertUserBan } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 
 export class BanService {
@@ -58,11 +59,11 @@ export class BanService {
 
       return { banned: false };
     } catch (error) {
-      logger.error(
-        "Error checking ban status",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId, scope, scopeId },
-      );
+      logger.error("Error checking ban status", toLoggableError(error), {
+        userId,
+        scope,
+        scopeId,
+      });
       // Fail open to avoid blocking legitimate users on database errors
       return { banned: false };
     }
@@ -95,11 +96,9 @@ export class BanService {
 
       return newBan;
     } catch (error) {
-      logger.error(
-        "Error creating ban",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId: ban.userId },
-      );
+      logger.error("Error creating ban", toLoggableError(error), {
+        userId: ban.userId,
+      });
       throw error;
     }
   }
@@ -136,11 +135,10 @@ export class BanService {
 
       logger.info(`Ban ${banId} lifted by ${liftedBy}`);
     } catch (error) {
-      logger.error(
-        "Error lifting ban",
-        error instanceof Error ? error : new Error(String(error)),
-        { banId, liftedBy },
-      );
+      logger.error("Error lifting ban", toLoggableError(error), {
+        banId,
+        liftedBy,
+      });
       throw error;
     }
   }
@@ -155,11 +153,9 @@ export class BanService {
         .from(userBans)
         .where(and(eq(userBans.userId, userId), eq(userBans.isActive, true)));
     } catch (error) {
-      logger.error(
-        "Error getting user bans",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId },
-      );
+      logger.error("Error getting user bans", toLoggableError(error), {
+        userId,
+      });
       return [];
     }
   }
@@ -186,11 +182,10 @@ export class BanService {
         .from(userBans)
         .where(and(...conditions));
     } catch (error) {
-      logger.error(
-        "Error getting scoped bans",
-        error instanceof Error ? error : new Error(String(error)),
-        { scope, scopeId },
-      );
+      logger.error("Error getting scoped bans", toLoggableError(error), {
+        scope,
+        scopeId,
+      });
       return [];
     }
   }

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { insertStreamCollaboratorSchema } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -36,7 +37,7 @@ router.post(
       );
       return res.status(201).json(collaborator);
     } catch (error) {
-      logger.error("Failed to add collaborator", error, {
+      logger.error("Failed to add collaborator", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });
@@ -57,7 +58,7 @@ router.get(
       const collaborators = await storage.getStreamCollaborators(eventId);
       return res.json(collaborators);
     } catch (error) {
-      logger.error("Failed to get collaborators", error, {
+      logger.error("Failed to get collaborators", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });
@@ -88,7 +89,7 @@ router.patch(
       );
       return res.json(collaborator);
     } catch (error) {
-      logger.error("Failed to update collaborator", error, {
+      logger.error("Failed to update collaborator", toLoggableError(error), {
         eventId: req.params.eventId,
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),
@@ -116,7 +117,7 @@ router.delete(
       await storage.deleteStreamCollaborator(collaboratorId);
       return res.json({ message: "Collaborator removed successfully" });
     } catch (error) {
-      logger.error("Failed to remove collaborator", error, {
+      logger.error("Failed to remove collaborator", toLoggableError(error), {
         eventId: req.params.eventId,
         collaboratorId: req.params.collaboratorId,
         userId: getAuthUserId(authenticatedReq),

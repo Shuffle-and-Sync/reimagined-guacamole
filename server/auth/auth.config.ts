@@ -4,6 +4,7 @@ import Google from "@auth/core/providers/google";
 import Twitch from "@auth/core/providers/twitch";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import {
@@ -360,11 +361,9 @@ export const authConfig: AuthConfig = {
             image: user.profileImageUrl,
           };
         } catch (error) {
-          logger.error(
-            "Authentication error",
-            error instanceof Error ? error : new Error(String(error)),
-            { provider: "credentials" },
-          );
+          logger.error("Authentication error", toLoggableError(error), {
+            provider: "credentials",
+          });
           return null;
         }
       },
@@ -432,11 +431,9 @@ export const authConfig: AuthConfig = {
 
         return true;
       } catch (error) {
-        logger.error(
-          "Sign-in callback error",
-          error instanceof Error ? error : new Error(String(error)),
-          { provider: account?.provider },
-        );
+        logger.error("Sign-in callback error", toLoggableError(error), {
+          provider: account?.provider,
+        });
         return false;
       }
     },

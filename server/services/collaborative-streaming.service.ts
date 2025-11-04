@@ -6,6 +6,7 @@ import type {
   InsertStreamCollaborator,
   _InsertStreamCoordinationSession,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { aiStreamingMatcher } from "./ai-streaming-matcher";
@@ -79,7 +80,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to create collaborative streaming event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           creatorId,
         },
@@ -114,11 +115,9 @@ export class CollaborativeStreamingService {
 
       return collaborator;
     } catch (error) {
-      logger.error(
-        "Failed to add collaborator",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to add collaborator", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -169,7 +168,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to get collaboration suggestions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           requesterId,
@@ -246,7 +245,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to start coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           hostUserId,
@@ -291,7 +290,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to update coordination phase",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           newPhase,
@@ -353,7 +352,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to get coordination status",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       throw error;
@@ -407,7 +406,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to handle collaborator join",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -519,7 +518,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to coordinate platform actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           phase,
@@ -621,7 +620,7 @@ export class CollaborativeStreamingService {
                 } catch (error) {
                   logger.error(
                     "Failed to sync YouTube stream status",
-                    error instanceof Error ? error : new Error(String(error)),
+                    toLoggableError(error),
                     {
                       eventId,
                     },
@@ -683,7 +682,7 @@ export class CollaborativeStreamingService {
                 } catch (error) {
                   logger.error(
                     "Failed to sync Twitch stream status",
-                    error instanceof Error ? error : new Error(String(error)),
+                    toLoggableError(error),
                     {
                       eventId,
                     },
@@ -786,7 +785,7 @@ export class CollaborativeStreamingService {
         } catch (error) {
           logger.error(
             `Failed to start ${platformName} streaming`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             {
               eventId,
             },
@@ -857,7 +856,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to start cross-platform streaming",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -1028,7 +1027,7 @@ export class CollaborativeStreamingService {
         } catch (error) {
           logger.error(
             `Failed to coordinate break on ${platformName}`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             {
               eventId,
             },
@@ -1075,11 +1074,9 @@ export class CollaborativeStreamingService {
         results: breakResults,
       });
     } catch (error) {
-      logger.error(
-        "Failed to coordinate break",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to coordinate break", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -1293,7 +1290,7 @@ export class CollaborativeStreamingService {
         } catch (error) {
           logger.error(
             `Failed to end ${platformName} streaming`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             {
               eventId,
             },
@@ -1366,7 +1363,7 @@ export class CollaborativeStreamingService {
     } catch (error) {
       logger.error(
         "Failed to end cross-platform streaming",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -1398,11 +1395,9 @@ export class CollaborativeStreamingService {
         });
       }
     } catch (error) {
-      logger.error(
-        "Failed to log coordination event",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to log coordination event", toLoggableError(error), {
+        eventId,
+      });
     }
   }
 

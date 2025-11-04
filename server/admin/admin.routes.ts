@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { isAuthenticated, getAuthUserId } from "../auth";
 import { logger } from "../logger";
 import { generalRateLimit } from "../rate-limiting";
@@ -192,14 +193,10 @@ router.get(
           : "Admin user exists but missing super_admin role - run npm run admin:init",
       });
     } catch (error) {
-      logger.error(
-        "Error checking system status",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "system_status_check",
-        },
-      );
+      logger.error("Error checking system status", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "system_status_check",
+      });
       res.status(500).json({
         message: "Failed to check system status",
         error: error instanceof Error ? error.message : "Unknown error",
@@ -310,14 +307,10 @@ router.post(
         ].filter(Boolean),
       });
     } catch (error) {
-      logger.error(
-        "Error verifying admin account",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "admin_verification",
-        },
-      );
+      logger.error("Error verifying admin account", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "admin_verification",
+      });
       res.status(500).json({
         message: "Failed to verify admin account",
         error: error instanceof Error ? error.message : "Unknown error",
@@ -370,14 +363,10 @@ router.get(
 
       res.json(data);
     } catch (error) {
-      logger.error(
-        "Error fetching users",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetch_users",
-        },
-      );
+      logger.error("Error fetching users", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetch_users",
+      });
       res.status(500).json({ message: "Failed to fetch users" });
       return;
     }
@@ -417,14 +406,10 @@ router.get(
 
       res.json(data);
     } catch (error) {
-      logger.error(
-        "Error fetching user details",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_user_details",
-        },
-      );
+      logger.error("Error fetching user details", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_user_details",
+      });
       res.status(500).json({ message: "Failed to fetch user details" });
       return;
     }
@@ -462,14 +447,10 @@ router.patch(
 
       res.json(updatedUser);
     } catch (error) {
-      logger.error(
-        "Error updating user",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "updating_user",
-        },
-      );
+      logger.error("Error updating user", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "updating_user",
+      });
       res.status(500).json({ message: "Failed to update user" });
       return;
     }
@@ -491,14 +472,10 @@ router.get(
 
       res.json(roles);
     } catch (error) {
-      logger.error(
-        "Error fetching user roles",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_user_roles",
-        },
-      );
+      logger.error("Error fetching user roles", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_user_roles",
+      });
       res.status(500).json({ message: "Failed to fetch user roles" });
       return;
     }
@@ -547,14 +524,10 @@ router.post(
       res.status(201).json(newRole);
       return;
     } catch (error) {
-      logger.error(
-        "Error assigning role",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "assigning_role",
-        },
-      );
+      logger.error("Error assigning role", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "assigning_role",
+      });
       res.status(500).json({ message: "Failed to assign role" });
       return;
     }
@@ -574,14 +547,10 @@ router.delete(
 
       res.json({ message: "Role revoked successfully" });
     } catch (error) {
-      logger.error(
-        "Error revoking role",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "revoking_role",
-        },
-      );
+      logger.error("Error revoking role", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "revoking_role",
+      });
       res.status(500).json({ message: "Failed to revoke role" });
       return;
     }
@@ -628,14 +597,10 @@ router.get(
         },
       });
     } catch (error) {
-      logger.error(
-        "Error fetching user details",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_user_details",
-        },
-      );
+      logger.error("Error fetching user details", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_user_details",
+      });
       res.status(500).json({ message: "Failed to fetch user details" });
       return;
     }
@@ -678,14 +643,10 @@ router.get(
         total: notes.length,
       });
     } catch (error) {
-      logger.error(
-        "Error fetching user notes",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_user_notes",
-        },
-      );
+      logger.error("Error fetching user notes", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_user_notes",
+      });
       res.status(500).json({ message: "Failed to fetch user notes" });
       return;
     }
@@ -746,14 +707,10 @@ router.post(
       });
       return;
     } catch (error) {
-      logger.error(
-        "Error adding user note",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "adding_user_note",
-        },
-      );
+      logger.error("Error adding user note", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "adding_user_note",
+      });
       res.status(500).json({ message: "Failed to add user note" });
       return;
     }
@@ -866,14 +823,10 @@ router.post(
         user: await storage.getUser(userId),
       });
     } catch (error) {
-      logger.error(
-        "Error performing user action",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "performing_user_action",
-        },
-      );
+      logger.error("Error performing user action", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "performing_user_action",
+      });
       res.status(500).json({ message: "Failed to perform user action" });
       return;
     }
@@ -920,14 +873,10 @@ router.get(
 
       res.json(activity);
     } catch (error) {
-      logger.error(
-        "Error fetching user activity",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_user_activity",
-        },
-      );
+      logger.error("Error fetching user activity", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_user_activity",
+      });
       res.status(500).json({ message: "Failed to fetch user activity" });
       return;
     }
@@ -953,14 +902,10 @@ router.get(
 
       res.json(reports);
     } catch (error) {
-      logger.error(
-        "Error fetching content reports",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_content_reports",
-        },
-      );
+      logger.error("Error fetching content reports", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_content_reports",
+      });
       res.status(500).json({ message: "Failed to fetch content reports" });
       return;
     }
@@ -984,14 +929,10 @@ router.get(
 
       res.json(report);
     } catch (error) {
-      logger.error(
-        "Error fetching content report",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_content_report",
-        },
-      );
+      logger.error("Error fetching content report", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_content_report",
+      });
       res.status(500).json({ message: "Failed to fetch content report" });
       return;
     }
@@ -1012,14 +953,10 @@ router.patch(
 
       res.json(report);
     } catch (error) {
-      logger.error(
-        "Error assigning content report",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "assigning_content_report",
-        },
-      );
+      logger.error("Error assigning content report", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "assigning_content_report",
+      });
       res.status(500).json({ message: "Failed to assign content report" });
       return;
     }
@@ -1046,14 +983,10 @@ router.patch(
 
       res.json(report);
     } catch (error) {
-      logger.error(
-        "Error resolving content report",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "resolving_content_report",
-        },
-      );
+      logger.error("Error resolving content report", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "resolving_content_report",
+      });
       res.status(500).json({ message: "Failed to resolve content report" });
       return;
     }
@@ -1083,7 +1016,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_actions",
@@ -1113,14 +1046,10 @@ router.post(
       res.status(201).json(action);
       return;
     } catch (error) {
-      logger.error(
-        "Error creating moderation action",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "creating_moderation_action",
-        },
-      );
+      logger.error("Error creating moderation action", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "creating_moderation_action",
+      });
       res.status(500).json({ message: "Failed to create moderation action" });
       return;
     }
@@ -1148,7 +1077,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error reversing moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "reversing_moderation_action",
@@ -1198,7 +1127,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching active moderation actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_active_moderation_actions",
@@ -1254,7 +1183,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation history",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_history",
@@ -1324,7 +1253,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error reversing moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "reversing_moderation_action",
@@ -1372,14 +1301,10 @@ router.get(
         updatedAt: action.createdAt, // Use createdAt since there's no updatedAt
       });
     } catch (error) {
-      logger.error(
-        "Error fetching moderation action",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_moderation_action",
-        },
-      );
+      logger.error("Error fetching moderation action", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_moderation_action",
+      });
       res.status(500).json({ message: "Failed to fetch moderation action" });
       return;
     }
@@ -1417,14 +1342,10 @@ router.get(
 
       res.json(queue);
     } catch (error) {
-      logger.error(
-        "Error fetching moderation queue",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_moderation_queue",
-        },
-      );
+      logger.error("Error fetching moderation queue", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_moderation_queue",
+      });
       res.status(500).json({ message: "Failed to fetch moderation queue" });
       return;
     }
@@ -1445,14 +1366,10 @@ router.patch(
 
       res.json(item);
     } catch (error) {
-      logger.error(
-        "Error assigning queue item",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "assigning_queue_item",
-        },
-      );
+      logger.error("Error assigning queue item", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "assigning_queue_item",
+      });
       res.status(500).json({ message: "Failed to assign queue item" });
       return;
     }
@@ -1486,14 +1403,10 @@ router.patch(
 
       res.json(item);
     } catch (error) {
-      logger.error(
-        "Error completing queue item",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "completing_queue_item",
-        },
-      );
+      logger.error("Error completing queue item", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "completing_queue_item",
+      });
       res.status(500).json({ message: "Failed to complete queue item" });
       return;
     }
@@ -1510,14 +1423,10 @@ router.get(
       const stats = await storage.getModerationQueueStats();
       res.json(stats);
     } catch (error) {
-      logger.error(
-        "Error fetching queue stats",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_queue_stats",
-        },
-      );
+      logger.error("Error fetching queue stats", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_queue_stats",
+      });
       res.status(500).json({ message: "Failed to fetch queue statistics" });
       return;
     }
@@ -1545,14 +1454,10 @@ router.post(
 
       res.json(result);
     } catch (error) {
-      logger.error(
-        "Error auto-assigning queue items",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "auto-assigning_queue_items",
-        },
-      );
+      logger.error("Error auto-assigning queue items", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "auto-assigning_queue_items",
+      });
       res.status(500).json({ message: "Failed to auto-assign queue items" });
       return;
     }
@@ -1586,14 +1491,10 @@ router.post(
         items: assignedItems,
       });
     } catch (error) {
-      logger.error(
-        "Error bulk assigning queue items",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "bulk_assigning_queue_items",
-        },
-      );
+      logger.error("Error bulk assigning queue items", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "bulk_assigning_queue_items",
+      });
       res.status(500).json({ message: "Failed to bulk assign queue items" });
       return;
     }
@@ -1617,7 +1518,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderator workload",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderator_workload",
@@ -1653,14 +1554,10 @@ router.post(
         items: escalatedItems,
       });
     } catch (error) {
-      logger.error(
-        "Error escalating overdue items",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "escalating_overdue_items",
-        },
-      );
+      logger.error("Error escalating overdue items", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "escalating_overdue_items",
+      });
       res.status(500).json({ message: "Failed to escalate overdue items" });
       return;
     }
@@ -1693,14 +1590,10 @@ router.patch(
 
       res.json(item);
     } catch (error) {
-      logger.error(
-        "Error updating queue priority",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "updating_queue_priority",
-        },
-      );
+      logger.error("Error updating queue priority", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "updating_queue_priority",
+      });
       res.status(500).json({ message: "Failed to update queue priority" });
       return;
     }
@@ -1726,14 +1619,10 @@ router.get(
 
       res.json(appeals);
     } catch (error) {
-      logger.error(
-        "Error fetching appeals",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_appeals",
-        },
-      );
+      logger.error("Error fetching appeals", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_appeals",
+      });
       res.status(500).json({ message: "Failed to fetch appeals" });
       return;
     }
@@ -1754,14 +1643,10 @@ router.patch(
 
       res.json(appeal);
     } catch (error) {
-      logger.error(
-        "Error assigning appeal",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "assigning_appeal",
-        },
-      );
+      logger.error("Error assigning appeal", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "assigning_appeal",
+      });
       res.status(500).json({ message: "Failed to assign appeal" });
       return;
     }
@@ -1788,14 +1673,10 @@ router.patch(
 
       res.json(appeal);
     } catch (error) {
-      logger.error(
-        "Error resolving appeal",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "resolving_appeal",
-        },
-      );
+      logger.error("Error resolving appeal", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "resolving_appeal",
+      });
       res.status(500).json({ message: "Failed to resolve appeal" });
       return;
     }
@@ -1822,14 +1703,10 @@ router.get(
 
       res.json(logs);
     } catch (error) {
-      logger.error(
-        "Error fetching audit logs",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_audit_logs",
-        },
-      );
+      logger.error("Error fetching audit logs", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_audit_logs",
+      });
       res.status(500).json({ message: "Failed to fetch audit logs" });
       return;
     }
@@ -1858,14 +1735,10 @@ router.get(
 
       res.json(content);
     } catch (error) {
-      logger.error(
-        "Error fetching CMS content",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_cms_content",
-        },
-      );
+      logger.error("Error fetching CMS content", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_cms_content",
+      });
       res.status(500).json({ message: "Failed to fetch CMS content" });
       return;
     }
@@ -1891,14 +1764,10 @@ router.post(
       res.status(201).json(content);
       return;
     } catch (error) {
-      logger.error(
-        "Error creating CMS content",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "creating_cms_content",
-        },
-      );
+      logger.error("Error creating CMS content", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "creating_cms_content",
+      });
       res.status(500).json({ message: "Failed to create CMS content" });
       return;
     }
@@ -1923,14 +1792,10 @@ router.patch(
 
       res.json(content);
     } catch (error) {
-      logger.error(
-        "Error updating CMS content",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "updating_cms_content",
-        },
-      );
+      logger.error("Error updating CMS content", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "updating_cms_content",
+      });
       res.status(500).json({ message: "Failed to update CMS content" });
       return;
     }
@@ -1951,14 +1816,10 @@ router.patch(
 
       res.json(content);
     } catch (error) {
-      logger.error(
-        "Error publishing CMS content",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "publishing_cms_content",
-        },
-      );
+      logger.error("Error publishing CMS content", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "publishing_cms_content",
+      });
       res.status(500).json({ message: "Failed to publish CMS content" });
       return;
     }
@@ -2000,14 +1861,10 @@ router.get(
 
       res.json(stats);
     } catch (error) {
-      logger.error(
-        "Error fetching dashboard stats",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_dashboard_stats",
-        },
-      );
+      logger.error("Error fetching dashboard stats", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_dashboard_stats",
+      });
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
       return;
     }
@@ -2033,14 +1890,10 @@ router.get(
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      logger.error(
-        "Error fetching cache stats",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "fetching_cache_stats",
-        },
-      );
+      logger.error("Error fetching cache stats", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "fetching_cache_stats",
+      });
       res.status(500).json({ message: "Failed to fetch cache stats" });
       return;
     }
@@ -2075,14 +1928,10 @@ router.post(
         pattern,
       });
     } catch (error) {
-      logger.error(
-        "Error invalidating cache",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "invalidating_cache",
-        },
-      );
+      logger.error("Error invalidating cache", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "invalidating_cache",
+      });
       res.status(500).json({ message: "Failed to invalidate cache" });
       return;
     }

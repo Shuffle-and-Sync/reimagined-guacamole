@@ -5,6 +5,7 @@
  * Official API: https://pokemontcg.io/
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import type {
   ICardAdapter,
@@ -182,10 +183,14 @@ export class PokemonTCGAdapter implements ICardAdapter {
         hasMore: data.page * data.pageSize < data.totalCount,
       };
     } catch (error) {
-      logger.error("Pokemon TCG adapter search failed", error, {
-        query,
-        options,
-      });
+      logger.error(
+        "Pokemon TCG adapter search failed",
+        toLoggableError(error),
+        {
+          query,
+          options,
+        },
+      );
       throw error;
     }
   }
@@ -214,7 +219,11 @@ export class PokemonTCGAdapter implements ICardAdapter {
 
       return this.transformToUniversal(data.data);
     } catch (error) {
-      logger.error("Pokemon TCG adapter getCardById failed", error, { id });
+      logger.error(
+        "Pokemon TCG adapter getCardById failed",
+        toLoggableError(error),
+        { id },
+      );
       throw error;
     }
   }
@@ -257,10 +266,14 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error("Pokemon TCG adapter getCardByName failed", error, {
-        name,
-        options,
-      });
+      logger.error(
+        "Pokemon TCG adapter getCardByName failed",
+        toLoggableError(error),
+        {
+          name,
+          options,
+        },
+      );
       throw error;
     }
   }
@@ -304,10 +317,14 @@ export class PokemonTCGAdapter implements ICardAdapter {
         })),
       };
     } catch (error) {
-      logger.error("Pokemon TCG adapter autocomplete failed", error, {
-        query,
-        limit,
-      });
+      logger.error(
+        "Pokemon TCG adapter autocomplete failed",
+        toLoggableError(error),
+        {
+          query,
+          limit,
+        },
+      );
       throw error;
     }
   }
@@ -354,9 +371,13 @@ export class PokemonTCGAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(randomCard);
     } catch (error) {
-      logger.error("Pokemon TCG adapter getRandomCard failed", error, {
-        options,
-      });
+      logger.error(
+        "Pokemon TCG adapter getRandomCard failed",
+        toLoggableError(error),
+        {
+          options,
+        },
+      );
       throw error;
     }
   }

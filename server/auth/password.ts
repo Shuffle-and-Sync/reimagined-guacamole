@@ -1,4 +1,5 @@
 import { hash, verify } from "@node-rs/argon2";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 // Argon2id configuration for enterprise-grade security
@@ -35,10 +36,7 @@ export async function verifyPassword(
     });
     return false;
   } catch (error) {
-    logger.error(
-      "Password verification error",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Password verification error", toLoggableError(error));
     return false;
   }
 }

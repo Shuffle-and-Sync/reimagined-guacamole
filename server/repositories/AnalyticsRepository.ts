@@ -28,6 +28,7 @@ import {
   type ConversionFunnel,
   type InsertConversionFunnel,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -100,7 +101,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record user activity analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record user activity analytics", {
@@ -156,7 +157,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user activity analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, dateRange },
           );
           throw new DatabaseError("Failed to get user activity analytics", {
@@ -219,7 +220,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user activity count",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, activityType, dateRange },
           );
           throw new DatabaseError("Failed to get user activity count", {
@@ -265,7 +266,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record platform metrics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record platform metrics", {
@@ -328,7 +329,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get platform metrics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { metricType, dateRange },
           );
           throw new DatabaseError("Failed to get platform metrics", {
@@ -401,7 +402,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get platform metrics summary",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { dateRange },
           );
           throw new DatabaseError("Failed to get platform metrics summary", {
@@ -445,7 +446,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record event tracking",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record event tracking", {
@@ -502,11 +503,10 @@ export class AnalyticsRepository extends BaseRepository<
 
         return await query;
       } catch (error) {
-        logger.error(
-          "Failed to get event tracking",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventName, dateRange },
-        );
+        logger.error("Failed to get event tracking", toLoggableError(error), {
+          eventName,
+          dateRange,
+        });
         throw new DatabaseError("Failed to get event tracking", {
           cause: error,
         });
@@ -549,11 +549,10 @@ export class AnalyticsRepository extends BaseRepository<
 
         return result[0]?.count || 0;
       } catch (error) {
-        logger.error(
-          "Failed to get event count",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventName, dateRange },
-        );
+        logger.error("Failed to get event count", toLoggableError(error), {
+          eventName,
+          dateRange,
+        });
         throw new DatabaseError("Failed to get event count", { cause: error });
       }
     });
@@ -594,7 +593,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record conversion funnel",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record conversion funnel", {
@@ -667,7 +666,7 @@ export class AnalyticsRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get conversion funnel data",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { funnelName, dateRange },
           );
           throw new DatabaseError("Failed to get conversion funnel data", {
@@ -719,11 +718,9 @@ export class AnalyticsRepository extends BaseRepository<
           eventCount: eventResult[0]?.count || 0,
         };
       } catch (error) {
-        logger.error(
-          "Failed to get analytics data",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId },
-        );
+        logger.error("Failed to get analytics data", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to get analytics data", {
           cause: error,
         });

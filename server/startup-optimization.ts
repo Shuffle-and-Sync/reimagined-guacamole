@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 /**
@@ -50,7 +51,7 @@ export async function initializeServicesParallel<
           endTimer(`service-${name}`);
           logger.error(
             `Failed to initialize service: ${name}`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw error;
         }
@@ -67,10 +68,7 @@ export async function initializeServicesParallel<
     return resultsObject;
   } catch (error) {
     endTimer("parallel-initialization");
-    logger.error(
-      "Service initialization failed",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Service initialization failed", toLoggableError(error));
     throw error;
   }
 }
@@ -88,7 +86,7 @@ export async function warmupCriticalPaths(): Promise<void> {
 
     logger.info("Critical paths warmed up");
   } catch (error) {
-    logger.warn("Warmup failed, continuing startup", error);
+    logger.warn("Warmup failed, continuing startup", toLoggableError(error));
   } finally {
     endTimer("warmup");
   }
@@ -118,7 +116,10 @@ export function setupGracefulShutdown(
             await clients.closeDatabaseConnections();
             logger.info("Database connections closed");
           } catch (error) {
-            logger.warn("Error closing database connections", error);
+            logger.warn(
+              "Error closing database connections",
+              toLoggableError(error),
+            );
           }
         }
 
@@ -127,7 +128,10 @@ export function setupGracefulShutdown(
             await clients.drizzle.$client.end();
             logger.info("Drizzle connection pool closed");
           } catch (error) {
-            logger.warn("Error closing Drizzle connection pool", error);
+            logger.warn(
+              "Error closing Drizzle connection pool",
+              toLoggableError(error),
+            );
           }
         }
 
@@ -141,10 +145,7 @@ export function setupGracefulShutdown(
         process.exit(1);
       }, 10000); // 10 second grace period
     } catch (error) {
-      logger.error(
-        "Error during graceful shutdown",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error during graceful shutdown", toLoggableError(error));
       process.exit(1);
     }
   };

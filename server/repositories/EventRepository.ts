@@ -33,6 +33,7 @@ import {
   type EventTracking,
   type InsertEventTracking,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -200,11 +201,9 @@ export class EventRepository extends BaseRepository<
           };
         });
       } catch (error) {
-        logger.error(
-          "Failed to get events",
-          error instanceof Error ? error : new Error(String(error)),
-          { filters },
-        );
+        logger.error("Failed to get events", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get events", { cause: error });
       }
     });
@@ -298,11 +297,10 @@ export class EventRepository extends BaseRepository<
           isUserAttending,
         };
       } catch (error) {
-        logger.error(
-          "Failed to get event",
-          error instanceof Error ? error : new Error(String(error)),
-          { id, userId },
-        );
+        logger.error("Failed to get event", toLoggableError(error), {
+          id,
+          userId,
+        });
         throw new DatabaseError("Failed to get event", { cause: error });
       }
     });
@@ -417,11 +415,9 @@ export class EventRepository extends BaseRepository<
           };
         });
       } catch (error) {
-        logger.error(
-          "Failed to get calendar events",
-          error instanceof Error ? error : new Error(String(error)),
-          { filters },
-        );
+        logger.error("Failed to get calendar events", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get calendar events", {
           cause: error,
         });
@@ -448,11 +444,9 @@ export class EventRepository extends BaseRepository<
       try {
         return await this.createMany(data);
       } catch (error) {
-        logger.error(
-          "Failed to create bulk events",
-          error instanceof Error ? error : new Error(String(error)),
-          { count: data.length },
-        );
+        logger.error("Failed to create bulk events", toLoggableError(error), {
+          count: data.length,
+        });
         throw new DatabaseError("Failed to create bulk events", {
           cause: error,
         });
@@ -508,7 +502,7 @@ export class EventRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create recurring events",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { endDate },
           );
           throw new DatabaseError("Failed to create recurring events", {
@@ -542,11 +536,7 @@ export class EventRepository extends BaseRepository<
           .returning();
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to join event",
-          error instanceof Error ? error : new Error(String(error)),
-          { data },
-        );
+        logger.error("Failed to join event", toLoggableError(error), { data });
         throw new DatabaseError("Failed to join event", { cause: error });
       }
     });
@@ -575,11 +565,10 @@ export class EventRepository extends BaseRepository<
             ),
           );
       } catch (error) {
-        logger.error(
-          "Failed to leave event",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId, userId },
-        );
+        logger.error("Failed to leave event", toLoggableError(error), {
+          eventId,
+          userId,
+        });
         throw new DatabaseError("Failed to leave event", { cause: error });
       }
     });
@@ -628,7 +617,7 @@ export class EventRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to update event attendee",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { eventId, userId, data },
         );
         throw new DatabaseError("Failed to update event attendee", {
@@ -657,11 +646,9 @@ export class EventRepository extends BaseRepository<
           .from(eventAttendees)
           .where(eq(eventAttendees.eventId, eventId));
       } catch (error) {
-        logger.error(
-          "Failed to get event attendees",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId },
-        );
+        logger.error("Failed to get event attendees", toLoggableError(error), {
+          eventId,
+        });
         throw new DatabaseError("Failed to get event attendees", {
           cause: error,
         });
@@ -701,7 +688,7 @@ export class EventRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get event attendees by event IDs",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { eventIds },
           );
           throw new DatabaseError(
@@ -756,7 +743,7 @@ export class EventRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user event attendance",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, includeUpcoming },
           );
           throw new DatabaseError("Failed to get user event attendance", {
@@ -787,11 +774,9 @@ export class EventRepository extends BaseRepository<
           .where(eq(eventTracking.eventId, eventId))
           .orderBy(desc(eventTracking.trackedAt));
       } catch (error) {
-        logger.error(
-          "Failed to get event tracking",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId },
-        );
+        logger.error("Failed to get event tracking", toLoggableError(error), {
+          eventId,
+        });
         throw new DatabaseError("Failed to get event tracking", {
           cause: error,
         });
@@ -825,7 +810,7 @@ export class EventRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to create event tracking",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to create event tracking", {
@@ -856,7 +841,7 @@ export class EventRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to get event with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { id },
       );
       throw new DatabaseError("Failed to get event with transaction", {
@@ -882,7 +867,7 @@ export class EventRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to join event with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { data },
       );
       throw new DatabaseError("Failed to join event with transaction", {

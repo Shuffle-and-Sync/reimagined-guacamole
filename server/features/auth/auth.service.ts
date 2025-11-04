@@ -64,7 +64,7 @@ export class AuthService {
     } catch (error) {
       logger.error(
         "Failed to fetch user in AuthService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -165,7 +165,7 @@ export class AuthService {
     } catch (error) {
       logger.error(
         "Failed to verify reset token in AuthService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           token: token.substring(0, 8) + "***",
         },
@@ -230,7 +230,7 @@ export class AuthService {
     } catch (error) {
       logger.error(
         "Failed to reset password in AuthService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           token: token.substring(0, 8) + "***",
         },

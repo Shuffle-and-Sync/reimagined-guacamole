@@ -18,6 +18,7 @@ import {
   userCommunities,
   type SessionInvitation,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 
 export class SessionAccessService {
@@ -157,11 +158,11 @@ export class SessionAccessService {
           return { allowed: false, reason: "Invalid session visibility" };
       }
     } catch (error) {
-      logger.error(
-        "Error checking session access",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId, sessionId, role },
-      );
+      logger.error("Error checking session access", toLoggableError(error), {
+        userId,
+        sessionId,
+        role,
+      });
       // Fail closed for security - deny access on errors
       return { allowed: false, reason: "Error checking access" };
     }
@@ -210,11 +211,9 @@ export class SessionAccessService {
 
       return invitation;
     } catch (error) {
-      logger.error(
-        "Error creating invitation",
-        error instanceof Error ? error : new Error(String(error)),
-        { sessionId: data.sessionId },
-      );
+      logger.error("Error creating invitation", toLoggableError(error), {
+        sessionId: data.sessionId,
+      });
       throw error;
     }
   }
@@ -277,11 +276,10 @@ export class SessionAccessService {
 
       return updated;
     } catch (error) {
-      logger.error(
-        "Error responding to invitation",
-        error instanceof Error ? error : new Error(String(error)),
-        { invitationId, userId },
-      );
+      logger.error("Error responding to invitation", toLoggableError(error), {
+        invitationId,
+        userId,
+      });
       throw error;
     }
   }
@@ -301,11 +299,9 @@ export class SessionAccessService {
           ),
         );
     } catch (error) {
-      logger.error(
-        "Error getting user invitations",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId },
-      );
+      logger.error("Error getting user invitations", toLoggableError(error), {
+        userId,
+      });
       return [];
     }
   }

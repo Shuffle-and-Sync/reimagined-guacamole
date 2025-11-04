@@ -9,6 +9,7 @@
 
 import { Server as HTTPServer } from "http";
 import { Server as SocketServer } from "socket.io";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { GameStateServer } from "../features/game-state/game-state-server";
 import { VideoSignalingServer } from "../features/video/video-signaling";
 import { logger } from "../logger";
@@ -54,10 +55,7 @@ export function initializeSocketIO(httpServer: HTTPServer): SocketServer {
 
   // Health check for monitoring
   io.on("error", (error) => {
-    logger.error(
-      "Socket.io error",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Socket.io error", toLoggableError(error));
   });
 
   logger.info("Socket.io initialized successfully");

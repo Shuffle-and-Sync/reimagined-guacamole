@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { validatePasswordStrength, hashPassword } from "../../auth/password";
 import { generateEmailVerificationJWT, TOKEN_EXPIRY } from "../../auth/tokens";
 import { sendEmailVerificationEmail } from "../../email-service";
@@ -243,7 +244,7 @@ router.post(
         emailSent,
       });
     } catch (error) {
-      logger.error("Registration failed", error, {
+      logger.error("Registration failed", toLoggableError(error), {
         email: req.body?.email,
         username: req.body?.username,
         ip: req.ip,

@@ -5,6 +5,7 @@
  * This job runs periodically to pre-populate the cache with frequently accessed data.
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 /**
@@ -101,7 +102,7 @@ async function warmEndpoint(endpoint: CacheWarmingEndpoint): Promise<boolean> {
       return false;
     }
   } catch (error) {
-    logger.error("✗ Failed to warm cache (error)", error, {
+    logger.error("✗ Failed to warm cache (error)", toLoggableError(error), {
       endpoint: endpoint.path,
       priority: endpoint.priority,
     });

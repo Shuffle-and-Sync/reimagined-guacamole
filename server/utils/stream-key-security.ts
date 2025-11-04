@@ -17,6 +17,7 @@
  */
 
 import * as crypto from "crypto";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 /**
@@ -105,13 +106,9 @@ export function decryptStreamKey(encryptedKey: string): string {
 
     return decrypted;
   } catch (error) {
-    logger.error(
-      "Failed to decrypt stream key",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        operation: "decrypt_stream_key",
-      },
-    );
+    logger.error("Failed to decrypt stream key", toLoggableError(error), {
+      operation: "decrypt_stream_key",
+    });
     return "";
   }
 }

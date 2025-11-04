@@ -15,6 +15,7 @@ import { eq, and, or, count, asc } from "drizzle-orm";
 import { db, withTransaction } from "@shared/database-unified";
 import { events, eventAttendees, gameSessions } from "@shared/schema";
 import type { EventAttendee } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { DatabaseError } from "../../middleware/error-handling.middleware";
 
@@ -140,11 +141,9 @@ export class GamePodSlotService {
         },
       };
     } catch (error) {
-      logger.error(
-        "Failed to get available slots",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to get available slots", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -312,11 +311,11 @@ export class GamePodSlotService {
           message: `Assigned to player slot ${assignedPosition}`,
         };
       } catch (error) {
-        logger.error(
-          "Failed to assign player slot",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId, userId, position },
-        );
+        logger.error("Failed to assign player slot", toLoggableError(error), {
+          eventId,
+          userId,
+          position,
+        });
         throw error;
       }
     });
@@ -432,7 +431,7 @@ export class GamePodSlotService {
       } catch (error) {
         logger.error(
           "Failed to assign alternate slot",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { eventId, userId },
         );
         throw error;
@@ -518,11 +517,10 @@ export class GamePodSlotService {
           message: `Promoted from alternate to player slot ${slotPosition}`,
         };
       } catch (error) {
-        logger.error(
-          "Failed to promote alternate",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId, slotPosition },
-        );
+        logger.error("Failed to promote alternate", toLoggableError(error), {
+          eventId,
+          slotPosition,
+        });
         throw error;
       }
     });
@@ -608,7 +606,7 @@ export class GamePodSlotService {
       } catch (error) {
         logger.error(
           "Failed to swap player positions",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { eventId, userId1, userId2 },
         );
         throw error;
@@ -695,11 +693,10 @@ export class GamePodSlotService {
           promotedAlternate,
         };
       } catch (error) {
-        logger.error(
-          "Failed to remove player slot",
-          error instanceof Error ? error : new Error(String(error)),
-          { eventId, userId },
-        );
+        logger.error("Failed to remove player slot", toLoggableError(error), {
+          eventId,
+          userId,
+        });
         throw error;
       }
     });
@@ -737,11 +734,9 @@ export class GamePodSlotService {
         spectators,
       };
     } catch (error) {
-      logger.error(
-        "Failed to get slot assignments",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to get slot assignments", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -828,7 +823,7 @@ export class GamePodSlotService {
     } catch (error) {
       logger.error(
         "Failed to check and create game session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       // Don't throw - this is a non-critical operation
@@ -884,11 +879,9 @@ export class GamePodSlotService {
 
       return true;
     } catch (error) {
-      logger.error(
-        "Failed to update game session",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to update game session", toLoggableError(error), {
+        eventId,
+      });
       // Don't throw - this is a non-critical operation
       return false;
     }

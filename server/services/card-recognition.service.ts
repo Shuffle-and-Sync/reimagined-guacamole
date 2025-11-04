@@ -5,6 +5,7 @@
  * using the Scryfall API. Implements caching and rate limiting for optimal performance.
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 // Card data interface based on Scryfall API structure
@@ -128,7 +129,10 @@ export class CardRecognitionService {
         hasMore: data.has_more || false,
       };
     } catch (error) {
-      logger.error("Error searching cards", error, { query, options });
+      logger.error("Error searching cards", toLoggableError(error), {
+        query,
+        options,
+      });
       throw error;
     }
   }
@@ -160,7 +164,7 @@ export class CardRecognitionService {
 
       return card;
     } catch (error) {
-      logger.error("Error fetching card by ID", error, { id });
+      logger.error("Error fetching card by ID", toLoggableError(error), { id });
       throw error;
     }
   }
@@ -199,7 +203,10 @@ export class CardRecognitionService {
 
       return card;
     } catch (error) {
-      logger.error("Error fetching card by name", error, { name, options });
+      logger.error("Error fetching card by name", toLoggableError(error), {
+        name,
+        options,
+      });
       throw error;
     }
   }
@@ -234,7 +241,9 @@ export class CardRecognitionService {
           .map((name: string) => ({ name })),
       };
     } catch (error) {
-      logger.error("Error autocompleting card names", error, { query });
+      logger.error("Error autocompleting card names", toLoggableError(error), {
+        query,
+      });
       throw error;
     }
   }
@@ -266,7 +275,9 @@ export class CardRecognitionService {
       const data = await response.json();
       return this.transformScryfallCard(data);
     } catch (error) {
-      logger.error("Error fetching random card", error, { options });
+      logger.error("Error fetching random card", toLoggableError(error), {
+        options,
+      });
       throw error;
     }
   }

@@ -8,6 +8,7 @@
  * @module api.utils
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { ApiResponse, type PaginationMeta } from "./ApiResponse";
 import type { Request, Response } from "express";
@@ -413,16 +414,12 @@ export function logApiError(
   error: Error | unknown,
   userId?: string,
 ): void {
-  logger.error(
-    "API error",
-    error instanceof Error ? error : new Error(String(error)),
-    {
-      method: req.method,
-      path: req.path,
-      userId,
-      ip: req.ip,
-    },
-  );
+  logger.error("API error", toLoggableError(error), {
+    method: req.method,
+    path: req.path,
+    userId,
+    ip: req.ip,
+  });
 }
 
 /**

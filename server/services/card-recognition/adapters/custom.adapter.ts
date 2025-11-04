@@ -8,6 +8,7 @@
 // TODO: Re-enable when cards table is added to schema
 // import { cards } from '../../../../shared/schema';
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import type {
   ICardAdapter,
   UniversalCard,
@@ -95,7 +96,7 @@ export class CustomGameAdapter implements ICardAdapter {
         hasMore: offset + results.length < total,
       };
     } catch (error) {
-      logger.error('Custom adapter search failed', error, { gameId: this.gameId, query, options });
+      logger.error('Custom adapter search failed', toLoggableError(error), { gameId: this.gameId, query, options });
       throw error;
     }
     */
@@ -122,7 +123,7 @@ export class CustomGameAdapter implements ICardAdapter {
       
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Custom adapter getCardById failed', error, { gameId: this.gameId, id });
+      logger.error('Custom adapter getCardById failed', toLoggableError(error), { gameId: this.gameId, id });
       throw error;
     }
     */
@@ -158,7 +159,7 @@ export class CustomGameAdapter implements ICardAdapter {
       
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Custom adapter getCardByName failed', error, { gameId: this.gameId, name, options });
+      logger.error('Custom adapter getCardByName failed', toLoggableError(error), { gameId: this.gameId, name, options });
       throw error;
     }
     */
@@ -189,7 +190,7 @@ export class CustomGameAdapter implements ICardAdapter {
         suggestions: results.map((r: unknown) => ({ id: r.id, name: r.name })),
       };
     } catch (error) {
-      logger.error('Custom adapter autocomplete failed', error, { gameId: this.gameId, query, limit });
+      logger.error('Custom adapter autocomplete failed', toLoggableError(error), { gameId: this.gameId, query, limit });
       throw error;
     }
     */
@@ -226,7 +227,7 @@ export class CustomGameAdapter implements ICardAdapter {
 
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error('Custom adapter getRandomCard failed', error, { gameId: this.gameId, options });
+      logger.error('Custom adapter getRandomCard failed', toLoggableError(error), { gameId: this.gameId, options });
       throw error;
     }
     */

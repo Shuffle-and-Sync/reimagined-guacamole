@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -29,10 +30,14 @@ router.post(
       );
       return res.status(201).json(session);
     } catch (error) {
-      logger.error("Failed to start coordination session", error, {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to start coordination session",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to start coordination session" });
@@ -59,11 +64,15 @@ router.patch(
       );
       return res.json({ message: "Coordination phase updated successfully" });
     } catch (error) {
-      logger.error("Failed to update coordination phase", error, {
-        eventId: req.params.eventId,
-        phase: req.body.phase,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to update coordination phase",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          phase: req.body.phase,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to update coordination phase" });
@@ -85,10 +94,14 @@ router.get(
         await collaborativeStreaming.getCoordinationStatus(eventId);
       return res.json(status);
     } catch (error) {
-      logger.error("Failed to get coordination status", error, {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to get coordination status",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to get coordination status" });

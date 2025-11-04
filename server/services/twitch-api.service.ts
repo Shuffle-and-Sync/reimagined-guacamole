@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { Request, Response } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 // Twitch API configuration
@@ -135,10 +136,7 @@ export class TwitchAPIService {
 
       return this.accessToken;
     } catch (error) {
-      logger.error(
-        "Error getting Twitch access token",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error getting Twitch access token", toLoggableError(error));
       throw error;
     }
   }
@@ -189,10 +187,7 @@ export class TwitchAPIService {
       );
       return data.data?.[0] || null;
     } catch (error) {
-      logger.error(
-        "Error fetching Twitch user",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error fetching Twitch user", toLoggableError(error));
       return null;
     }
   }
@@ -207,10 +202,7 @@ export class TwitchAPIService {
       );
       return data.data?.[0] || null;
     } catch (error) {
-      logger.error(
-        "Error fetching Twitch stream",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error fetching Twitch stream", toLoggableError(error));
       return null;
     }
   }
@@ -231,10 +223,7 @@ export class TwitchAPIService {
       );
       return data.data || [];
     } catch (error) {
-      logger.error(
-        "Error fetching Twitch streams",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error fetching Twitch streams", toLoggableError(error));
       return [];
     }
   }
@@ -260,10 +249,7 @@ export class TwitchAPIService {
       );
       return data.data || [];
     } catch (error) {
-      logger.error(
-        "Error fetching Twitch categories",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error fetching Twitch categories", toLoggableError(error));
       return [];
     }
   }
@@ -278,10 +264,7 @@ export class TwitchAPIService {
       );
       return data.data || [];
     } catch (error) {
-      logger.error(
-        "Error searching Twitch categories",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Error searching Twitch categories", toLoggableError(error));
       return [];
     }
   }
@@ -317,7 +300,7 @@ export class TwitchAPIService {
     } catch (error) {
       logger.error(
         "Error subscribing to Twitch EventSub",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -335,7 +318,7 @@ export class TwitchAPIService {
     } catch (error) {
       logger.error(
         "Error fetching Twitch EventSub subscriptions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return [];
     }
@@ -356,7 +339,7 @@ export class TwitchAPIService {
     } catch (error) {
       logger.error(
         "Error deleting Twitch EventSub subscription",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }

@@ -1,5 +1,6 @@
 import { withTransaction } from "@shared/database-unified";
 import type { Notification, Message } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import type {
@@ -29,10 +30,14 @@ export class MessagingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch notifications in MessagingService", error, {
-        userId,
-        filters,
-      });
+      logger.error(
+        "Failed to fetch notifications in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          filters,
+        },
+      );
       throw error;
     }
   }
@@ -57,9 +62,13 @@ export class MessagingService {
       });
       return notification;
     } catch (error) {
-      logger.error("Failed to create notification in MessagingService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to create notification in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -115,10 +124,14 @@ export class MessagingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch messages in MessagingService", error, {
-        userId,
-        filters,
-      });
+      logger.error(
+        "Failed to fetch messages in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          filters,
+        },
+      );
       throw error;
     }
   }
@@ -164,10 +177,14 @@ export class MessagingService {
 
       return result;
     } catch (error) {
-      logger.error("Failed to send message in MessagingService", error, {
-        userId,
-        messageData,
-      });
+      logger.error(
+        "Failed to send message in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          messageData,
+        },
+      );
       throw error;
     }
   }
@@ -177,10 +194,14 @@ export class MessagingService {
     try {
       return await storage.getConversation(currentUserId, targetUserId);
     } catch (error) {
-      logger.error("Failed to fetch conversation in MessagingService", error, {
-        currentUserId,
-        targetUserId,
-      });
+      logger.error(
+        "Failed to fetch conversation in MessagingService",
+        toLoggableError(error),
+        {
+          currentUserId,
+          targetUserId,
+        },
+      );
       throw error;
     }
   }

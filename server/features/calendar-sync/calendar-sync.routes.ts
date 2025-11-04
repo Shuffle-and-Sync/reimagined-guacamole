@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -29,7 +30,7 @@ calendarSyncRouter.get(
     } catch (error) {
       logger.error(
         "Failed to fetch calendar connections",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       res.status(500).json({ message: "Internal server error" });
     }
@@ -80,7 +81,7 @@ calendarSyncRouter.post(
     } catch (error) {
       logger.error(
         "Failed to create calendar connection",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       res.status(500).json({ message: "Internal server error" });
     }
@@ -112,7 +113,7 @@ calendarSyncRouter.delete(
     } catch (error) {
       logger.error(
         "Failed to delete calendar connection",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       res.status(500).json({ message: "Internal server error" });
     }
@@ -146,10 +147,7 @@ calendarSyncRouter.post(
         importedCount,
       });
     } catch (error) {
-      logger.error(
-        "Failed to sync calendar",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to sync calendar", toLoggableError(error));
       res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -190,10 +188,7 @@ calendarSyncRouter.post(
         externalEventId,
       });
     } catch (error) {
-      logger.error(
-        "Failed to export event",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to export event", toLoggableError(error));
       res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -238,10 +233,7 @@ calendarSyncRouter.get(
 
       res.json(calendars);
     } catch (error) {
-      logger.error(
-        "Failed to list calendars",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to list calendars", toLoggableError(error));
       res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -270,10 +262,7 @@ calendarSyncRouter.get(
       const events = await storage.getConnectionExternalEvents(id);
       res.json(events);
     } catch (error) {
-      logger.error(
-        "Failed to fetch external events",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to fetch external events", toLoggableError(error));
       res.status(500).json({ message: "Internal server error" });
     }
   },

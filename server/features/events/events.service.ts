@@ -1,6 +1,7 @@
 import { withTransaction } from "@shared/database-unified";
 import { insertEventSchema } from "@shared/schema";
 import type { Event, EventAttendee } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { BatchQueryOptimizer } from "../../utils/database.utils";
@@ -28,7 +29,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch events in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           filters,
         },
@@ -73,7 +74,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch events with attendees in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { filters },
       );
       throw error;
@@ -86,7 +87,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: id,
           userId,
@@ -169,7 +170,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to create event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
         },
@@ -221,7 +222,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to update event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -247,7 +248,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to delete event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -311,7 +312,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to join event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -329,7 +330,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to leave event in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -345,7 +346,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch event attendees in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -360,7 +361,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch user events in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
         },
@@ -433,7 +434,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to create bulk events in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
         },
@@ -560,7 +561,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to fetch calendar events in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           filters,
         },
@@ -600,7 +601,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to check conflicts in EventsService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           startTime,
           endTime,
@@ -665,11 +666,10 @@ export class EventsService {
         conflicts,
       };
     } catch (error) {
-      logger.error(
-        "Failed to reschedule event",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId, userId },
-      );
+      logger.error("Failed to reschedule event", toLoggableError(error), {
+        eventId,
+        userId,
+      });
       throw error;
     }
   }
@@ -719,7 +719,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to detect conflicts",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         params,
       );
       throw error;
@@ -760,11 +760,7 @@ export class EventsService {
 
       return results;
     } catch (error) {
-      logger.error(
-        "Batch update failed",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId },
-      );
+      logger.error("Batch update failed", toLoggableError(error), { userId });
       throw error;
     }
   }
@@ -820,7 +816,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to delete recurring series",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { parentEventId, userId },
       );
       throw error;
@@ -842,14 +838,10 @@ export class EventsService {
         timezone: targetTimezone,
       };
     } catch (error) {
-      logger.error(
-        "Failed to convert event timezone",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          eventId: event.id,
-          targetTimezone,
-        },
-      );
+      logger.error("Failed to convert event timezone", toLoggableError(error), {
+        eventId: event.id,
+        targetTimezone,
+      });
       throw error;
     }
   }
@@ -868,14 +860,10 @@ export class EventsService {
         this.convertEventTimezone(event, targetTimezone),
       );
     } catch (error) {
-      logger.error(
-        "Failed to get events in timezone",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          filters,
-          targetTimezone,
-        },
-      );
+      logger.error("Failed to get events in timezone", toLoggableError(error), {
+        filters,
+        targetTimezone,
+      });
       throw error;
     }
   }

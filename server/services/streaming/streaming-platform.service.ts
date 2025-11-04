@@ -3,6 +3,7 @@
  * Handles cross-platform streaming coordination
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { facebookAPI } from "../facebook-api.service";
@@ -51,7 +52,7 @@ export class StreamingPlatformService {
     } catch (error) {
       logger.error(
         "Failed to coordinate platform actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, phase },
       );
     }
@@ -115,7 +116,7 @@ export class StreamingPlatformService {
         } catch (error) {
           logger.error(
             `Failed to start ${platformName} streaming`,
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { eventId },
           );
           platformErrors.push(
@@ -138,7 +139,7 @@ export class StreamingPlatformService {
     } catch (error) {
       logger.error(
         "Failed to start cross-platform streaming",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       throw error;

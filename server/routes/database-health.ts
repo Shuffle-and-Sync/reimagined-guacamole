@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { checkDatabaseHealth, DatabaseMonitor } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -115,7 +116,7 @@ router.get("/health", async (req, res) => {
       ...enhancedHealth,
     });
   } catch (error) {
-    logger.error("Database health check failed", error);
+    logger.error("Database health check failed", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Health check failed",
@@ -162,7 +163,7 @@ router.get("/stats", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get database stats", error);
+    logger.error("Failed to get database stats", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get database statistics",
@@ -205,7 +206,7 @@ router.post("/reset-stats", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to reset database stats", error);
+    logger.error("Failed to reset database stats", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to reset statistics",
@@ -241,7 +242,7 @@ router.get("/pool", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get pool information", error);
+    logger.error("Failed to get pool information", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get pool information",
@@ -281,7 +282,10 @@ router.get("/connections", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get connection monitoring details", error);
+    logger.error(
+      "Failed to get connection monitoring details",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to get connection monitoring details",
@@ -323,7 +327,10 @@ router.post("/connections/reset", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to reset connection monitoring metrics", error);
+    logger.error(
+      "Failed to reset connection monitoring metrics",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to reset connection monitoring metrics",

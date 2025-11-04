@@ -7,6 +7,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { analyzeDrizzleUsage } from "./drizzle-analyzer";
 
@@ -135,10 +136,7 @@ export class BackendCopilotAgent {
       );
       return result;
     } catch (error) {
-      logger.error(
-        "❌ Backend analysis failed:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("❌ Backend analysis failed:", toLoggableError(error));
       throw error;
     }
   }
@@ -188,7 +186,7 @@ export class BackendCopilotAgent {
         });
       }
     } catch (error) {
-      logger.warn("TypeScript analysis had issues:", error);
+      logger.warn("TypeScript analysis had issues:", toLoggableError(error));
     }
 
     return issues;

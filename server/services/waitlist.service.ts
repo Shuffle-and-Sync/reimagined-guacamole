@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { enhancedNotificationService } from "./enhanced-notifications";
@@ -83,7 +84,7 @@ export class WaitlistService {
     } catch (error) {
       logger.error(
         "Failed to join event with waitlist",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -144,11 +145,9 @@ export class WaitlistService {
 
       return null;
     } catch (error) {
-      logger.error(
-        "Failed to promote from waitlist",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to promote from waitlist", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -170,14 +169,10 @@ export class WaitlistService {
       const position = alternates.findIndex((a) => a.userId === userId);
       return position >= 0 ? position + 1 : 0;
     } catch (error) {
-      logger.error(
-        "Failed to get waitlist position",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          eventId,
-          userId,
-        },
-      );
+      logger.error("Failed to get waitlist position", toLoggableError(error), {
+        eventId,
+        userId,
+      });
       return 0;
     }
   }
@@ -202,11 +197,9 @@ export class WaitlistService {
 
       return waitlist;
     } catch (error) {
-      logger.error(
-        "Failed to get waitlist",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to get waitlist", toLoggableError(error), {
+        eventId,
+      });
       return [];
     }
   }

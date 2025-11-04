@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   requireHybridAuth,
   getAuthUserId,
@@ -175,7 +176,7 @@ router.post(
           .json({ message: "Token rotation failed - please login again" });
       }
     } catch (error) {
-      logger.error("Token refresh failed", error, {
+      logger.error("Token refresh failed", toLoggableError(error), {
         userAgent: req.headers["user-agent"],
         ipAddress: req.ip,
       });
@@ -225,7 +226,7 @@ router.post(
 
       return res.json({ message: "Token revoked successfully" });
     } catch (error) {
-      logger.error("Token revocation failed", error, {
+      logger.error("Token revocation failed", toLoggableError(error), {
         userId: getAuthUserId(req as AuthenticatedRequest),
         userAgent: req.headers["user-agent"],
         ipAddress: req.ip,
@@ -264,7 +265,7 @@ router.post(
         revokedTokenCount: tokenCount,
       });
     } catch (error) {
-      logger.error("All tokens revocation failed", error, {
+      logger.error("All tokens revocation failed", toLoggableError(error), {
         userId: getAuthUserId(req as AuthenticatedRequest),
         userAgent: req.headers["user-agent"],
         ipAddress: req.ip,
@@ -313,7 +314,7 @@ router.get("/tokens", requireHybridAuth, async (req, res) => {
       totalActive: tokenList.length,
     });
   } catch (error) {
-    logger.error("Failed to fetch user tokens", error, {
+    logger.error("Failed to fetch user tokens", toLoggableError(error), {
       userId: getAuthUserId(req as AuthenticatedRequest),
     });
     return res.status(500).json({ message: "Failed to fetch active tokens" });

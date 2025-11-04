@@ -7,6 +7,7 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { universalCardService } from "../../services/card-recognition/index";
 
@@ -23,10 +24,7 @@ router.get("/", async (req, res) => {
       count: supportedGames.length,
     });
   } catch (error) {
-    logger.error(
-      "Error fetching supported games",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Error fetching supported games", toLoggableError(error));
     return res.status(500).json({ message: "Failed to fetch supported games" });
   }
 });
@@ -109,13 +107,9 @@ router.get("/:game_id/cards/search", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error(
-      "Error in game-scoped card search",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        gameId: req.params.game_id,
-      },
-    );
+    logger.error("Error in game-scoped card search", toLoggableError(error), {
+      gameId: req.params.game_id,
+    });
     return res.status(500).json({ message: "Failed to search cards" });
   }
 });
@@ -145,14 +139,10 @@ router.get("/:game_id/cards/:id", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error(
-      "Error getting card by ID",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        gameId: req.params.game_id,
-        cardId: req.params.id,
-      },
-    );
+    logger.error("Error getting card by ID", toLoggableError(error), {
+      gameId: req.params.game_id,
+      cardId: req.params.id,
+    });
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -198,13 +188,9 @@ router.get("/:game_id/cards/named", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error(
-      "Error getting card by name",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        gameId: req.params.game_id,
-      },
-    );
+    logger.error("Error getting card by name", toLoggableError(error), {
+      gameId: req.params.game_id,
+    });
     return res.status(500).json({ message: "Failed to fetch card" });
   }
 });
@@ -238,13 +224,9 @@ router.get("/:game_id/cards/autocomplete", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error(
-      "Error in autocomplete",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        gameId: req.params.game_id,
-      },
-    );
+    logger.error("Error in autocomplete", toLoggableError(error), {
+      gameId: req.params.game_id,
+    });
     return res.status(500).json({ message: "Failed to autocomplete" });
   }
 });
@@ -277,13 +259,9 @@ router.get("/:game_id/cards/random", async (req, res) => {
       return res.status(404).json({ message: "Game not found" });
     }
 
-    logger.error(
-      "Error getting random card",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        gameId: req.params.game_id,
-      },
-    );
+    logger.error("Error getting random card", toLoggableError(error), {
+      gameId: req.params.game_id,
+    });
     return res.status(500).json({ message: "Failed to fetch random card" });
   }
 });

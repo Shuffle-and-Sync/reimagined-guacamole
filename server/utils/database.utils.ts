@@ -20,6 +20,7 @@ import {
   lt,
   like,
 } from "drizzle-orm";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import type { SQLiteColumn } from "drizzle-orm/sqlite-core";
@@ -88,11 +89,9 @@ export function buildWhereConditions(
         conditions.push(condition);
       }
     } catch (error) {
-      logger.error(
-        "Error building filter condition",
-        error instanceof Error ? error : new Error(String(error)),
-        { filter },
-      );
+      logger.error("Error building filter condition", toLoggableError(error), {
+        filter,
+      });
       // Skip invalid conditions rather than failing the entire query
     }
   }
@@ -707,10 +706,7 @@ export class BatchQueryOptimizer {
 
       return resultMap;
     } catch (error) {
-      logger.error(
-        "Batch query failed:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Batch query failed:", toLoggableError(error));
       throw new DatabaseError("Failed to execute batch query");
     }
   }

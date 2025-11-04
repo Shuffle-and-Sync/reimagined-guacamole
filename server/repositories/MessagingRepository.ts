@@ -27,6 +27,7 @@ import {
   type User,
   type Event,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -136,11 +137,10 @@ export class MessagingRepository extends BaseRepository<
           sender: r.sender,
         })) as MessageWithDetails[];
       } catch (error) {
-        logger.error(
-          "Failed to get user messages",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId, options },
-        );
+        logger.error("Failed to get user messages", toLoggableError(error), {
+          userId,
+          options,
+        });
         throw new DatabaseError("Failed to get user messages", {
           cause: error,
         });
@@ -213,7 +213,7 @@ export class MessagingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get user messages with cursor",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, options },
           );
           throw new DatabaseError("Failed to get user messages with cursor", {
@@ -281,11 +281,11 @@ export class MessagingRepository extends BaseRepository<
           sender: r.sender,
         })) as MessageWithDetails[];
       } catch (error) {
-        logger.error(
-          "Failed to get conversation",
-          error instanceof Error ? error : new Error(String(error)),
-          { userId1, userId2, options },
-        );
+        logger.error("Failed to get conversation", toLoggableError(error), {
+          userId1,
+          userId2,
+          options,
+        });
         throw new DatabaseError("Failed to get conversation", {
           cause: error,
         });
@@ -319,7 +319,7 @@ export class MessagingRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get unread message count",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { userId },
         );
         throw new DatabaseError("Failed to get unread message count", {
@@ -350,11 +350,9 @@ export class MessagingRepository extends BaseRepository<
       try {
         return await this.create(data);
       } catch (error) {
-        logger.error(
-          "Failed to send message",
-          error instanceof Error ? error : new Error(String(error)),
-          { data },
-        );
+        logger.error("Failed to send message", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to send message", { cause: error });
       }
     });
@@ -380,7 +378,7 @@ export class MessagingRepository extends BaseRepository<
     } catch (error) {
       logger.error(
         "Failed to send message with transaction",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { data },
       );
       throw new DatabaseError("Failed to send message with transaction", {
@@ -411,7 +409,7 @@ export class MessagingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark message as read",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { messageId },
           );
           throw new DatabaseError("Failed to mark message as read", {
@@ -454,7 +452,7 @@ export class MessagingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to mark conversation as read",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId, senderId },
           );
           throw new DatabaseError("Failed to mark conversation as read", {
@@ -480,11 +478,9 @@ export class MessagingRepository extends BaseRepository<
       try {
         await this.delete(messageId);
       } catch (error) {
-        logger.error(
-          "Failed to delete message",
-          error instanceof Error ? error : new Error(String(error)),
-          { messageId },
-        );
+        logger.error("Failed to delete message", toLoggableError(error), {
+          messageId,
+        });
         throw new DatabaseError("Failed to delete message", { cause: error });
       }
     });
@@ -527,7 +523,7 @@ export class MessagingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete conversation",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { userId1, userId2 },
           );
           throw new DatabaseError("Failed to delete conversation", {
@@ -566,7 +562,7 @@ export class MessagingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete old messages",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { olderThan },
           );
           throw new DatabaseError("Failed to delete old messages", {

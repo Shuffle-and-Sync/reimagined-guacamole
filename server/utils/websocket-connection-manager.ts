@@ -1,4 +1,5 @@
 import { WebSocket } from "ws";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   WebSocketMessageBatcher,
   getMessagePriority,
@@ -102,7 +103,7 @@ export class WebSocketConnectionManager {
           } catch (error) {
             logger.warn(
               "Error closing oldest connection",
-              error instanceof Error ? error : new Error(String(error)),
+              toLoggableError(error),
             );
           }
         }
@@ -136,7 +137,7 @@ export class WebSocketConnectionManager {
           } catch (error) {
             logger.error(
               "Failed to send batched message",
-              error instanceof Error ? error : new Error(String(error)),
+              toLoggableError(error),
               {
                 connectionId,
                 userId,
@@ -552,7 +553,7 @@ export class WebSocketConnectionManager {
         } catch (error) {
           logger.warn(
             "Error closing stale WebSocket connection",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         }
         this.removeConnection(connectionId);
@@ -581,14 +582,10 @@ export class WebSocketConnectionManager {
     });
 
     ws.on("error", (error) => {
-      logger.error(
-        "WebSocket connection error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          connectionId: ws.connectionId,
-          userId: ws.userId,
-        },
-      );
+      logger.error("WebSocket connection error", toLoggableError(error), {
+        connectionId: ws.connectionId,
+        userId: ws.userId,
+      });
     });
 
     ws.on("pong", () => {
@@ -626,7 +623,7 @@ export class WebSocketConnectionManager {
           } catch (error) {
             logger.error(
               "Failed to send WebSocket message",
-              error instanceof Error ? error : new Error(String(error)),
+              toLoggableError(error),
               {
                 connectionId: ws.connectionId,
                 userId: ws.userId,
@@ -656,7 +653,7 @@ export class WebSocketConnectionManager {
           } catch (error) {
             logger.warn(
               "Failed to ping WebSocket connection",
-              error instanceof Error ? error : new Error(String(error)),
+              toLoggableError(error),
             );
           }
         }

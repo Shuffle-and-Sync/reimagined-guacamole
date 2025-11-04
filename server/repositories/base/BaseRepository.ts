@@ -11,6 +11,7 @@ import {
   type Database,
   type Transaction,
 } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { DatabaseError } from "../../middleware/error-handling.middleware";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
@@ -97,7 +98,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to find ${this.tableName} by ID`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { id },
         );
         throw new DatabaseError(`Failed to find ${this.tableName}`);
@@ -122,7 +123,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to find ${this.tableName} by IDs`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { ids },
         );
         throw new DatabaseError(`Failed to find ${this.tableName} records`);
@@ -192,7 +193,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to find ${this.tableName} records`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             options,
           },
@@ -224,7 +225,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to find one ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             filters,
           },
@@ -253,7 +254,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to create ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError(`Failed to create ${this.tableName}`);
@@ -278,7 +279,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to create multiple ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             count: data.length,
           },
@@ -304,7 +305,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to update ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { id, data },
         );
         throw new DatabaseError(`Failed to update ${this.tableName}`);
@@ -336,7 +337,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to update ${this.tableName} with filters`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             filters,
             data,
@@ -375,7 +376,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to delete ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { id },
         );
         throw new DatabaseError(`Failed to delete ${this.tableName}`);
@@ -419,7 +420,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to delete ${this.tableName} with filters`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             filters,
           },
@@ -449,7 +450,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to count ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { filters },
         );
         throw new DatabaseError(`Failed to count ${this.tableName} records`);
@@ -546,7 +547,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Failed to find ${this.tableName} with cursor`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             options,
           },
@@ -618,7 +619,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Raw query failed for ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           {
             query,
             params,
@@ -693,7 +694,7 @@ export abstract class BaseRepository<
       } catch (error) {
         logger.error(
           `Transaction failed for ${this.tableName}`,
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
         throw new DatabaseError(
           `Transaction failed for ${this.tableName}: ${error instanceof Error ? error.message : "Unknown error"}`,

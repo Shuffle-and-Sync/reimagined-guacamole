@@ -13,6 +13,7 @@
  * @module EnhancedNotificationService
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 
@@ -88,11 +89,9 @@ export class EnhancedNotificationService {
 
       logger.info("Event reminders sent", { eventId, count: attendees.length });
     } catch (error) {
-      logger.error(
-        "Failed to send event reminders",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId },
-      );
+      logger.error("Failed to send event reminders", toLoggableError(error), {
+        eventId,
+      });
     }
   }
 
@@ -136,7 +135,7 @@ export class EnhancedNotificationService {
     } catch (error) {
       logger.error(
         "Failed to send event update notifications",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -180,7 +179,7 @@ export class EnhancedNotificationService {
     } catch (error) {
       logger.error(
         "Failed to send event cancellation notifications",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -225,7 +224,7 @@ export class EnhancedNotificationService {
     } catch (error) {
       logger.error(
         "Failed to send starting soon notifications",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -254,7 +253,7 @@ export class EnhancedNotificationService {
     } catch (error) {
       logger.error(
         "Failed to send waitlist promotion notification",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,

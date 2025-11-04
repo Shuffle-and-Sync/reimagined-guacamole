@@ -4,6 +4,7 @@
  */
 
 import type { StreamCoordinationSession } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { streamingPlatformService } from "./streaming-platform.service";
@@ -63,7 +64,7 @@ export class StreamingSessionCoordinatorService {
     } catch (error) {
       logger.error(
         "Failed to start coordination session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, hostUserId },
       );
       throw error;
@@ -113,7 +114,7 @@ export class StreamingSessionCoordinatorService {
     } catch (error) {
       logger.error(
         "Failed to update coordination phase",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId, newPhase },
       );
       throw error;
@@ -158,7 +159,7 @@ export class StreamingSessionCoordinatorService {
     } catch (error) {
       logger.error(
         "Failed to get coordination status",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       throw error;
@@ -191,11 +192,10 @@ export class StreamingSessionCoordinatorService {
         eventData,
       });
     } catch (error) {
-      logger.error(
-        "Failed to log coordination event",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId, eventType },
-      );
+      logger.error("Failed to log coordination event", toLoggableError(error), {
+        eventId,
+        eventType,
+      });
     }
   }
 

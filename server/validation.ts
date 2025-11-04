@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { getAuthUserId } from "./auth";
 import { logger } from "./logger";
 // Import reusable validation schemas from utilities
@@ -212,14 +213,10 @@ export function validateRequest(schema: z.ZodSchema) {
       req.body = result.data;
       next();
     } catch (error) {
-      logger.error(
-        "Validation middleware error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          url: req.url,
-          method: req.method,
-        },
-      );
+      logger.error("Validation middleware error", toLoggableError(error), {
+        url: req.url,
+        method: req.method,
+      });
       next(error);
     }
   };
@@ -242,7 +239,7 @@ export function validateQuery(schema: z.ZodSchema) {
     } catch (error) {
       logger.error(
         "Query validation middleware error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           url: req.url,
           method: req.method,
@@ -302,7 +299,7 @@ export function validateParamsWithSchema(schema: z.ZodSchema) {
     } catch (error) {
       logger.error(
         "Parameter validation middleware error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           url: req.url,
           method: req.method,

@@ -1,4 +1,5 @@
 import type { User, UpsertUser } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 // Note: CursorPagination reserved for advanced pagination features
@@ -53,9 +54,13 @@ export class UsersService {
       });
       return updatedUser;
     } catch (error) {
-      logger.error("Failed to update user profile in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to update user profile in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -79,10 +84,14 @@ export class UsersService {
         friendCount: await storage.getFriendCount(userId),
       };
     } catch (error) {
-      logger.error("Failed to fetch user profile in UsersService", error, {
-        currentUserId,
-        targetUserId,
-      });
+      logger.error(
+        "Failed to fetch user profile in UsersService",
+        toLoggableError(error),
+        {
+          currentUserId,
+          targetUserId,
+        },
+      );
       throw error;
     }
   }
@@ -92,9 +101,13 @@ export class UsersService {
     try {
       return await storage.getUserSocialLinks(userId);
     } catch (error) {
-      logger.error("Failed to fetch social links in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch social links in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -106,9 +119,13 @@ export class UsersService {
       logger.info("Social links updated", { userId, linkCount: links.length });
       return updatedLinks;
     } catch (error) {
-      logger.error("Failed to update social links in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to update social links in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -118,9 +135,13 @@ export class UsersService {
     try {
       return await storage.getUserGamingProfiles(userId);
     } catch (error) {
-      logger.error("Failed to fetch gaming profiles in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch gaming profiles in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -130,9 +151,13 @@ export class UsersService {
     try {
       return await storage.getUserSettings(userId);
     } catch (error) {
-      logger.error("Failed to fetch user settings in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch user settings in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -146,9 +171,13 @@ export class UsersService {
       logger.info("User settings updated", { userId });
       return updatedSettings;
     } catch (error) {
-      logger.error("Failed to update user settings in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to update user settings in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -160,9 +189,13 @@ export class UsersService {
       logger.info("User data exported", { userId });
       return userData;
     } catch (error) {
-      logger.error("Failed to export user data in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to export user data in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -176,9 +209,13 @@ export class UsersService {
       }
       return success;
     } catch (error) {
-      logger.error("Failed to delete user account in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to delete user account in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -188,9 +225,13 @@ export class UsersService {
     try {
       return await storage.getFriends(userId);
     } catch (error) {
-      logger.error("Failed to fetch friends in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch friends in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -199,9 +240,13 @@ export class UsersService {
     try {
       return await storage.getFriendRequests(userId);
     } catch (error) {
-      logger.error("Failed to fetch friend requests in UsersService", error, {
-        userId,
-      });
+      logger.error(
+        "Failed to fetch friend requests in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -247,9 +292,13 @@ export class UsersService {
       logger.info("Friend request sent", { requesterId, addresseeId });
       return friendship;
     } catch (error) {
-      logger.error("Failed to send friend request in UsersService", error, {
-        requesterId,
-      });
+      logger.error(
+        "Failed to send friend request in UsersService",
+        toLoggableError(error),
+        {
+          requesterId,
+        },
+      );
       throw error;
     }
   }
@@ -304,10 +353,14 @@ export class UsersService {
       });
       logger.info("Friend removed", { userId, friendshipId });
     } catch (error) {
-      logger.error("Failed to remove friend in UsersService", error, {
-        userId,
-        friendshipId,
-      });
+      logger.error(
+        "Failed to remove friend in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+          friendshipId,
+        },
+      );
       throw error;
     }
   }
@@ -377,10 +430,14 @@ export class UsersService {
 
       return players;
     } catch (error) {
-      logger.error("Failed to find players in UsersService", error, {
-        userId,
-        searchCriteria,
-      });
+      logger.error(
+        "Failed to find players in UsersService",
+        toLoggableError(error),
+        {
+          userId,
+          searchCriteria,
+        },
+      );
       throw error;
     }
   }
@@ -415,10 +472,14 @@ export class UsersService {
 
       return activeUsers;
     } catch (error) {
-      logger.error("Failed to get community active users", error, {
-        communityId,
-        options,
-      });
+      logger.error(
+        "Failed to get community active users",
+        toLoggableError(error),
+        {
+          communityId,
+          options,
+        },
+      );
       throw error;
     }
   }

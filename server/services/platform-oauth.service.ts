@@ -17,6 +17,7 @@
  */
 
 import { randomBytes, createHash } from "crypto";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { FacebookAPIService } from "./facebook-api.service";
@@ -449,14 +450,10 @@ async function handleYouTubeCallback(
 
     return account;
   } catch (error) {
-    logger.error(
-      "YouTube OAuth callback failed",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId,
-        codeVerifier: !!codeVerifier,
-      },
-    );
+    logger.error("YouTube OAuth callback failed", toLoggableError(error), {
+      userId,
+      codeVerifier: !!codeVerifier,
+    });
     throw error;
   }
 }
@@ -555,11 +552,9 @@ async function refreshTwitchToken(
 
     return tokenData.access_token;
   } catch (error) {
-    logger.error(
-      "Failed to refresh Twitch token:",
-      error instanceof Error ? error : new Error(String(error)),
-      { userId },
-    );
+    logger.error("Failed to refresh Twitch token:", toLoggableError(error), {
+      userId,
+    });
     return null;
   }
 }
@@ -597,10 +592,7 @@ async function refreshYouTubeToken(
 
     return tokenData.access_token;
   } catch (error) {
-    logger.error(
-      "Failed to refresh YouTube token:",
-      error instanceof Error ? error : new Error(String(error)),
-    );
+    logger.error("Failed to refresh YouTube token:", toLoggableError(error));
     return null;
   }
 }
@@ -645,7 +637,7 @@ async function refreshFacebookToken(
   } catch (error) {
     logger.error(
       `Failed to refresh Facebook token for user ${userId}:`,
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     return null;
   }

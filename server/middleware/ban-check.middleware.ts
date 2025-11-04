@@ -5,6 +5,7 @@
  * Supports global, community, and game session scoped bans
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { banService } from "../features/moderation/ban.service";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
@@ -54,11 +55,9 @@ export function checkBanStatus(options: BanCheckOptions = {}) {
 
       next();
     } catch (error) {
-      logger.error(
-        "Error checking ban status",
-        error instanceof Error ? error : new Error(String(error)),
-        { userId },
-      );
+      logger.error("Error checking ban status", toLoggableError(error), {
+        userId,
+      });
       // Fail open to avoid blocking legitimate users on errors
       next();
     }

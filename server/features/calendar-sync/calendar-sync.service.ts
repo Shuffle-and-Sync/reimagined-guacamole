@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { googleCalendarService } from "./google-calendar.service";
@@ -37,11 +38,9 @@ export class CalendarSyncService {
 
       return await this.importEventsInternal(connection);
     } catch (error) {
-      logger.error(
-        "Failed to import events",
-        error instanceof Error ? error : new Error(String(error)),
-        { connectionId },
-      );
+      logger.error("Failed to import events", toLoggableError(error), {
+        connectionId,
+      });
       throw error;
     }
   }
@@ -134,11 +133,10 @@ export class CalendarSyncService {
 
       return await this.exportEventInternal(event, connection);
     } catch (error) {
-      logger.error(
-        "Failed to export event",
-        error instanceof Error ? error : new Error(String(error)),
-        { eventId, connectionId },
-      );
+      logger.error("Failed to export event", toLoggableError(error), {
+        eventId,
+        connectionId,
+      });
       throw error;
     }
   }
@@ -243,7 +241,7 @@ export class CalendarSyncService {
     } catch (error) {
       logger.error(
         "Failed to refresh connection token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -266,19 +264,14 @@ export class CalendarSyncService {
             await this.importEvents(connection.id);
           }
         } catch (error) {
-          logger.error(
-            "Failed to sync connection",
-            error instanceof Error ? error : new Error(String(error)),
-            { connectionId: connection.id },
-          );
+          logger.error("Failed to sync connection", toLoggableError(error), {
+            connectionId: connection.id,
+          });
           // Continue with other connections
         }
       }
     } catch (error) {
-      logger.error(
-        "Failed to sync all connections",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to sync all connections", toLoggableError(error));
     }
   }
 }

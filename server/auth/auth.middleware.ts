@@ -1,5 +1,6 @@
 // Auth.js v5 middleware for Express.js routes
 import { Auth } from "@auth/core";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { authConfig } from "./auth.config";
@@ -188,11 +189,10 @@ export async function requireAuth(
 
     return next();
   } catch (error) {
-    logger.error(
-      "Auth middleware error",
-      error instanceof Error ? error : new Error(String(error)),
-      { url: req.url, method: req.method },
-    );
+    logger.error("Auth middleware error", toLoggableError(error), {
+      url: req.url,
+      method: req.method,
+    });
     return res.status(401).json({ message: "Unauthorized" });
   }
 }
@@ -238,11 +238,10 @@ export async function optionalAuth(
 
     next();
   } catch (error) {
-    logger.warn(
-      "Optional auth middleware error",
-      error instanceof Error ? error : new Error(String(error)),
-      { url: req.url, method: req.method },
-    );
+    logger.warn("Optional auth middleware error", toLoggableError(error), {
+      url: req.url,
+      method: req.method,
+    });
     // Continue without authentication on error
     next();
   }
@@ -376,14 +375,10 @@ export async function requireJWTAuth(
 
     next();
   } catch (error) {
-    logger.error(
-      "JWT authentication error",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        ip: req.ip,
-        userAgent: req.headers["user-agent"],
-      },
-    );
+    logger.error("JWT authentication error", toLoggableError(error), {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
     res.status(500).json({ message: "Authentication failed" });
   }
 }

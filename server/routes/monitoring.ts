@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -51,7 +52,7 @@ router.get("/status", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get monitoring status", error);
+    logger.error("Failed to get monitoring status", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get monitoring status",
@@ -89,7 +90,7 @@ router.get("/metrics", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get metrics", error);
+    logger.error("Failed to get metrics", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get metrics",
@@ -134,7 +135,7 @@ router.get("/health", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get health status", error);
+    logger.error("Failed to get health status", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get health status",
@@ -184,7 +185,7 @@ router.get("/alerts", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get alerts", error);
+    logger.error("Failed to get alerts", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get alerts",
@@ -219,7 +220,7 @@ router.post("/health/check", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Manual health check failed", error);
+    logger.error("Manual health check failed", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Health check failed",
@@ -255,7 +256,7 @@ router.post("/metrics/collect", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Manual metrics collection failed", error);
+    logger.error("Manual metrics collection failed", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Metrics collection failed",
@@ -290,7 +291,7 @@ router.post("/start", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to start monitoring service", error);
+    logger.error("Failed to start monitoring service", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to start monitoring service",
@@ -337,7 +338,7 @@ router.post("/stop", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to stop monitoring service", error);
+    logger.error("Failed to stop monitoring service", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to stop monitoring service",
@@ -387,7 +388,7 @@ router.post("/alerts/test", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to create test alert", error);
+    logger.error("Failed to create test alert", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to create test alert",
@@ -420,7 +421,10 @@ router.get("/memory/status", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get memory monitoring status", error);
+    logger.error(
+      "Failed to get memory monitoring status",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to get memory monitoring status",
@@ -452,7 +456,7 @@ router.get("/memory/metrics", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get memory metrics", error);
+    logger.error("Failed to get memory metrics", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get memory metrics",

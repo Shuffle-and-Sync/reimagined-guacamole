@@ -20,6 +20,7 @@ import fs from "fs/promises";
 import path from "path";
 import { sql } from "drizzle-orm";
 import { db } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 /**
@@ -149,9 +150,13 @@ class BackupService {
         backupDir: this.backupDir,
       });
     } catch (error) {
-      logger.error("Failed to initialize backup directory", error, {
-        backupDir: this.backupDir,
-      });
+      logger.error(
+        "Failed to initialize backup directory",
+        toLoggableError(error),
+        {
+          backupDir: this.backupDir,
+        },
+      );
       throw error;
     }
   }
@@ -219,7 +224,7 @@ class BackupService {
       metadata.error = error instanceof Error ? error.message : "Unknown error";
       metadata.duration = Date.now() - startTime;
 
-      logger.error("Full backup failed", error, { backupId });
+      logger.error("Full backup failed", toLoggableError(error), { backupId });
       await this.notifyBackupFailure(metadata, error);
       throw error;
     }
@@ -298,7 +303,9 @@ class BackupService {
       metadata.error = error instanceof Error ? error.message : "Unknown error";
       metadata.duration = Date.now() - startTime;
 
-      logger.error("Critical data backup failed", error, { backupId });
+      logger.error("Critical data backup failed", toLoggableError(error), {
+        backupId,
+      });
       throw error;
     }
   }
@@ -379,7 +386,10 @@ class BackupService {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 
-      logger.error("Database restore failed", error, { backupPath, duration });
+      logger.error("Database restore failed", toLoggableError(error), {
+        backupPath,
+        duration,
+      });
 
       return {
         success: false,
@@ -456,7 +466,9 @@ class BackupService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      logger.error("Backup verification failed", error, { backupPath });
+      logger.error("Backup verification failed", toLoggableError(error), {
+        backupPath,
+      });
 
       return {
         valid: false,
@@ -536,14 +548,16 @@ class BackupService {
         } catch (error) {
           const errorMsg = `Failed to process file ${file}: ${error}`;
           errors.push(errorMsg);
-          logger.error("Backup cleanup error", error, { file });
+          logger.error("Backup cleanup error", toLoggableError(error), {
+            file,
+          });
         }
       }
 
       logger.info("Backup cleanup completed", { deletedCount, freedSpace });
       return { deletedCount, freedSpace, errors };
     } catch (error) {
-      logger.error("Backup cleanup failed", error);
+      logger.error("Backup cleanup failed", toLoggableError(error));
       throw error;
     }
   }
@@ -605,7 +619,7 @@ class BackupService {
 
       return result.map((row: unknown) => row.table_name);
     } catch (error) {
-      logger.error("Failed to get table names", error);
+      logger.error("Failed to get table names", toLoggableError(error));
       return [];
     }
   }
@@ -776,7 +790,9 @@ class BackupService {
 
       return hasCreateStatements && hasValidStructure;
     } catch (error) {
-      logger.error("SQL validation failed", error, { filePath });
+      logger.error("SQL validation failed", toLoggableError(error), {
+        filePath,
+      });
       return false;
     }
   }

@@ -7,6 +7,7 @@ import {
   type EventStatusHistory,
   type InsertEventStatusHistory,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 
@@ -125,15 +126,11 @@ export class EventStatusService {
         history,
       };
     } catch (error) {
-      logger.error(
-        "Failed to update event status",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          eventId,
-          newStatus,
-          userId,
-        },
-      );
+      logger.error("Failed to update event status", toLoggableError(error), {
+        eventId,
+        newStatus,
+        userId,
+      });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -191,7 +188,7 @@ export class EventStatusService {
     } catch (error) {
       logger.error(
         "Failed to get event status history",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
         },
@@ -285,10 +282,7 @@ export class EventStatusService {
 
       return result;
     } catch (error) {
-      logger.error(
-        "Failed to process expired events",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Failed to process expired events", toLoggableError(error));
       result.errors.push(
         error instanceof Error ? error.message : "Unknown error",
       );
@@ -359,7 +353,7 @@ export class EventStatusService {
     } catch (error) {
       logger.error(
         "Failed to send status change notifications",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: event.id,
           newStatus,

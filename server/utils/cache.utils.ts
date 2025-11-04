@@ -6,6 +6,7 @@
  */
 
 import NodeCache from "node-cache";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 export interface CacheOptions {
@@ -61,13 +62,9 @@ export class QueryCache {
       logger.debug("Cache miss", { key });
       return undefined;
     } catch (error) {
-      logger.error(
-        "Cache get error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          key,
-        },
-      );
+      logger.error("Cache get error", toLoggableError(error), {
+        key,
+      });
       return undefined;
     }
   }
@@ -83,13 +80,9 @@ export class QueryCache {
       }
       return success;
     } catch (error) {
-      logger.error(
-        "Cache set error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          key,
-        },
-      );
+      logger.error("Cache set error", toLoggableError(error), {
+        key,
+      });
       return false;
     }
   }
@@ -114,11 +107,9 @@ export class QueryCache {
       await this.set(key, result, ttl);
       return result;
     } catch (error) {
-      logger.error(
-        "Query function error in getOrSet",
-        error instanceof Error ? error : new Error(String(error)),
-        { key },
-      );
+      logger.error("Query function error in getOrSet", toLoggableError(error), {
+        key,
+      });
       throw error;
     }
   }
@@ -130,13 +121,9 @@ export class QueryCache {
     try {
       this.cache.del(key);
     } catch (error) {
-      logger.error(
-        "Cache delete error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          key,
-        },
-      );
+      logger.error("Cache delete error", toLoggableError(error), {
+        key,
+      });
     }
   }
 
@@ -147,11 +134,7 @@ export class QueryCache {
     try {
       this.cache.del(keys);
     } catch (error) {
-      logger.error(
-        "Cache delete many error",
-        error instanceof Error ? error : new Error(String(error)),
-        { keys },
-      );
+      logger.error("Cache delete many error", toLoggableError(error), { keys });
     }
   }
 
@@ -170,11 +153,9 @@ export class QueryCache {
         });
       }
     } catch (error) {
-      logger.error(
-        "Cache invalidate error",
-        error instanceof Error ? error : new Error(String(error)),
-        { pattern },
-      );
+      logger.error("Cache invalidate error", toLoggableError(error), {
+        pattern,
+      });
     }
   }
 
@@ -186,10 +167,7 @@ export class QueryCache {
       this.cache.flushAll();
       logger.info("Cache flushed");
     } catch (error) {
-      logger.error(
-        "Cache flush error",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      logger.error("Cache flush error", toLoggableError(error));
     }
   }
 

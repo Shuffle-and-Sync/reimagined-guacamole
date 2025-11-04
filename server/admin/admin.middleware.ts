@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { getAuthUserId } from "../auth";
 import { logger } from "../logger";
 import { storage } from "../storage";
@@ -185,14 +186,10 @@ export async function hasAdminRole(userId: string): Promise<boolean> {
         ),
     );
   } catch (error) {
-    logger.error(
-      "Error checking admin role",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId,
-        operation: "checking_admin_role",
-      },
-    );
+    logger.error("Error checking admin role", toLoggableError(error), {
+      userId,
+      operation: "checking_admin_role",
+    });
     return false;
   }
 }
@@ -242,14 +239,10 @@ export async function hasPermission(
 
     return false;
   } catch (error) {
-    logger.error(
-      "Error checking permission",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId,
-        operation: "checking_permission",
-      },
-    );
+    logger.error("Error checking permission", toLoggableError(error), {
+      userId,
+      operation: "checking_permission",
+    });
     return false;
   }
 }
@@ -289,14 +282,10 @@ export async function requireAdmin(
 
     next();
   } catch (error) {
-    logger.error(
-      "Admin role check error",
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        userId: getAuthUserId(req),
-        operation: "admin_role_check_error",
-      },
-    );
+    logger.error("Admin role check error", toLoggableError(error), {
+      userId: getAuthUserId(req),
+      operation: "admin_role_check_error",
+    });
     res.status(500).json({ message: "Permission check failed" });
     return;
   }
@@ -342,14 +331,10 @@ export function requirePermission(
 
       next();
     } catch (error) {
-      logger.error(
-        "Admin permission check error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "admin_permission_check_error",
-        },
-      );
+      logger.error("Admin permission check error", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "admin_permission_check_error",
+      });
       res.status(500).json({
         message: "Permission check failed",
         code: "INTERNAL_ERROR",
@@ -401,14 +386,10 @@ export function requireAllPermissions(
 
       next();
     } catch (error) {
-      logger.error(
-        "Admin permissions check error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "admin_permissions_check_error",
-        },
-      );
+      logger.error("Admin permissions check error", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "admin_permissions_check_error",
+      });
       res.status(500).json({
         message: "Permissions check failed",
         code: "INTERNAL_ERROR",
@@ -464,14 +445,10 @@ export function requireAnyPermission(
 
       next();
     } catch (error) {
-      logger.error(
-        "Admin permissions check error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "admin_permissions_check_error",
-        },
-      );
+      logger.error("Admin permissions check error", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "admin_permissions_check_error",
+      });
       res.status(500).json({
         message: "Permissions check failed",
         code: "INTERNAL_ERROR",
@@ -505,14 +482,10 @@ export function auditAdminAction(
 
       next();
     } catch (error) {
-      logger.error(
-        "Audit middleware error",
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          userId: getAuthUserId(req),
-          operation: "audit_middleware_error",
-        },
-      );
+      logger.error("Audit middleware error", toLoggableError(error), {
+        userId: getAuthUserId(req),
+        operation: "audit_middleware_error",
+      });
       next(); // Continue even if audit setup fails
     }
   };

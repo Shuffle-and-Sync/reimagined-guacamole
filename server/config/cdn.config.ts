@@ -5,6 +5,7 @@
  * Supports multiple CDN providers (Cloudflare, CloudFront, Fastly).
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
 
@@ -162,7 +163,9 @@ export const cdnRewriteMiddleware = (
       const rewritten = rewriteUrls(data, cdnConfig.baseUrl);
       return originalJson(rewritten);
     } catch (error) {
-      logger.error("Failed to rewrite CDN URLs", error, { path: req.path });
+      logger.error("Failed to rewrite CDN URLs", toLoggableError(error), {
+        path: req.path,
+      });
       // Fall back to original response if rewriting fails
       return originalJson(data);
     }
