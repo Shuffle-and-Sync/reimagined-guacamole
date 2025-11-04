@@ -134,17 +134,25 @@ describe("Checkbox Component", () => {
       const user = userEvent.setup();
 
       const TestComponent = () => {
-        const [checked, setChecked] = React.useState(false);
+        const [checked, setChecked] = React.useState<boolean | "indeterminate">(
+          false,
+        );
 
         return (
           <div>
             <Checkbox
               checked={checked}
-              onCheckedChange={(value) => setChecked(value === true)}
+              onCheckedChange={(value) =>
+                setChecked(value === "indeterminate" ? false : value)
+              }
               aria-label="Test checkbox"
             />
             <span data-testid="status">
-              {checked ? "Checked" : "Unchecked"}
+              {checked === true
+                ? "Checked"
+                : checked === "indeterminate"
+                  ? "Indeterminate"
+                  : "Unchecked"}
             </span>
           </div>
         );
