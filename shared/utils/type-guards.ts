@@ -430,3 +430,58 @@ export function safeArrayAccess<T>(
   }
   return array[index];
 }
+
+/**
+ * Convert unknown error to a format suitable for logging
+ *
+ * @param error - The error value to convert
+ * @returns Error object or record suitable for logging
+ *
+ * @example
+ * try {
+ *   doSomething();
+ * } catch (error) {
+ *   logger.error("Operation failed", toLoggableError(error));
+ * }
+ */
+export function toLoggableError(
+  error: unknown,
+): Record<string, unknown> | Error {
+  if (isError(error)) {
+    return error;
+  }
+  if (typeof error === "object" && error !== null) {
+    return error as Record<string, unknown>;
+  }
+  return { error: String(error) };
+}
+
+/**
+ * Extract error message from unknown error type
+ *
+ * @param error - The error value
+ * @returns Error message string
+ *
+ * @example
+ * try {
+ *   doSomething();
+ * } catch (error) {
+ *   const message = getErrorMessage(error);
+ *   console.error(message);
+ * }
+ */
+export function getErrorMessage(error: unknown): string {
+  if (isError(error)) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (typeof error === "object" && error !== null) {
+    const obj = error as Record<string, unknown>;
+    if (typeof obj.message === "string") {
+      return obj.message;
+    }
+  }
+  return String(error);
+}

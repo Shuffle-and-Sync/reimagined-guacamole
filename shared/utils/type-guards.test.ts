@@ -25,6 +25,8 @@ import {
   ensureBounds,
   isError,
   safeArrayAccess,
+  toLoggableError,
+  getErrorMessage,
 } from "./type-guards";
 
 describe("Type Guards - isDefined", () => {
@@ -443,5 +445,50 @@ describe("Type Guards - safeArrayAccess", () => {
     const arr = [1, 2, 3];
     expect(safeArrayAccess(arr, NaN)).toBeUndefined();
     expect(safeArrayAccess(arr, Infinity)).toBeUndefined();
+  });
+});
+
+describe("Type Guards - toLoggableError", () => {
+  it("should return Error objects as-is", () => {
+    const error = new Error("test error");
+    expect(toLoggableError(error)).toBe(error);
+  });
+
+  it("should convert objects to records", () => {
+    const obj = { code: "ERR001", message: "Something failed" };
+    const result = toLoggableError(obj);
+    expect(result).toEqual(obj);
+  });
+
+  it("should convert primitives to records", () => {
+    const result = toLoggableError("error string");
+    expect(result).toEqual({ error: "error string" });
+  });
+
+  it("should handle null and undefined", () => {
+    expect(toLoggableError(null)).toEqual({ error: "null" });
+    expect(toLoggableError(undefined)).toEqual({ error: "undefined" });
+  });
+});
+
+describe("Type Guards - getErrorMessage", () => {
+  it("should extract message from Error objects", () => {
+    const error = new Error("test message");
+    expect(getErrorMessage(error)).toBe("test message");
+  });
+
+  it("should return string errors as-is", () => {
+    expect(getErrorMessage("error string")).toBe("error string");
+  });
+
+  it("should extract message property from objects", () => {
+    const obj = { message: "custom error", code: 500 };
+    expect(getErrorMessage(obj)).toBe("custom error");
+  });
+
+  it("should convert other types to string", () => {
+    expect(getErrorMessage(123)).toBe("123");
+    expect(getErrorMessage(null)).toBe("null");
+    expect(getErrorMessage(undefined)).toBe("undefined");
   });
 });

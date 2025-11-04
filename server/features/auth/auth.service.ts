@@ -16,6 +16,7 @@
 
 import { randomBytes } from "crypto";
 import type { User } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { sendPasswordResetEmail } from "../../email-service";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
@@ -121,7 +122,7 @@ export class AuthService {
     } catch (error) {
       logger.error(
         "Failed to process forgot password request in AuthService",
-        error,
+        toLoggableError(error),
         { email },
       );
       throw error;
