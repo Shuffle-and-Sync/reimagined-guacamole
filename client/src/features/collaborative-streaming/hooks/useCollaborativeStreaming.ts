@@ -119,7 +119,7 @@ export function useUpdateCollaborativeStreamEvent() {
       );
       return response.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: collaborativeStreamingKeys.event(variables.eventId),
       });

@@ -3,7 +3,7 @@ import { useCreateEvent, useUpdateEvent, useDeleteEvent } from "./useEvents";
 interface UseEventMutationsOptions {
   onCreateSuccess?: (event: any) => void;
   onUpdateSuccess?: (event: any) => void;
-  onDeleteSuccess?: (eventId: string) => void;
+  onDeleteSuccess?: () => void;
   onError?: (error: Error) => void;
   skipToast?: boolean;
 }

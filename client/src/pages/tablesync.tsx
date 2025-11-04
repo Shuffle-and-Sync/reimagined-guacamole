@@ -414,7 +414,7 @@ export default function TableSync() {
         queryKey: ["/api/events", "game_pod", "upcoming"],
       });
     },
-    onError: (error, { playerType }) => {
+    onError: (_error, { playerType }) => {
       toast({
         title: `Failed to join as ${playerType}`,
         variant: "destructive",

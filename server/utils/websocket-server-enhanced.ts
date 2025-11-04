@@ -46,12 +46,10 @@ interface WebSocketMessage {
 
 export class EnhancedWebSocketServer {
   private wss: WebSocketServer;
-  private httpServer: HttpServer;
   private isShuttingDown = false;
   private compressionEnabled: boolean;
 
   constructor(httpServer: HttpServer) {
-    this.httpServer = httpServer;
     this.compressionEnabled = WS_FEATURES.COMPRESSION_ENABLED;
 
     // Configure WebSocket server with optional compression
@@ -153,7 +151,7 @@ export class EnhancedWebSocketServer {
   }
 
   private async authenticateConnection(
-    ws: WebSocket,
+    _ws: WebSocket,
     req: IncomingMessage,
   ): Promise<{
     success: boolean;
@@ -477,7 +475,7 @@ export class EnhancedWebSocketServer {
 
   private async handleChatMessage(
     ws: ExtendedWebSocket,
-    connectionId: string,
+    _connectionId: string,
     message: WebSocketMessage,
   ): Promise<void> {
     const { sessionId, user, content } = message as {
@@ -520,7 +518,7 @@ export class EnhancedWebSocketServer {
 
   private async handleGameAction(
     ws: ExtendedWebSocket,
-    connectionId: string,
+    _connectionId: string,
     message: WebSocketMessage,
   ): Promise<void> {
     const { sessionId, action, user, data } = message as {
@@ -687,7 +685,7 @@ export class EnhancedWebSocketServer {
 
   private async handlePhaseChange(
     ws: ExtendedWebSocket,
-    connectionId: string,
+    _connectionId: string,
     message: WebSocketMessage,
   ): Promise<void> {
     const { eventId, newPhase } = message as {
@@ -767,7 +765,7 @@ export class EnhancedWebSocketServer {
 
   private async handleCoordinationEvent(
     ws: ExtendedWebSocket,
-    connectionId: string,
+    _connectionId: string,
     message: WebSocketMessage,
   ): Promise<void> {
     const { eventId, eventType, eventData } = message as {
@@ -800,7 +798,7 @@ export class EnhancedWebSocketServer {
 
   private async handleCollaboratorStatusUpdate(
     ws: ExtendedWebSocket,
-    connectionId: string,
+    _connectionId: string,
     message: WebSocketMessage,
   ): Promise<void> {
     const { eventId, statusUpdate } = message as {

@@ -469,7 +469,7 @@ export class GameStateManager {
    */
   private handleAdvancePhase(
     state: TCGGameState,
-    action: GameStateAction,
+    _action: GameStateAction,
   ): TCGGameState {
     const phases = [
       "untap",
@@ -529,7 +529,7 @@ export class GameStateManager {
    */
   private handleResolveStack(
     state: TCGGameState,
-    action: GameStateAction,
+    _action: GameStateAction,
   ): TCGGameState {
     if (state.stack.length > 0) {
       // Resolve top item on stack (LIFO)

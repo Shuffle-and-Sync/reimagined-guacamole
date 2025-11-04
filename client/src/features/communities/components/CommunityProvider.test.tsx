@@ -157,10 +157,10 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
-        expect(result.current.selectedCommunity).toEqual(mockCommunities[0]);
+        expect(result.current.selectedCommunity).toEqual(mockCommunities[0]!);
       });
     });
 
@@ -171,7 +171,7 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
         expect(localStorageMock.getItem("selectedCommunityId")).toBe(
@@ -187,10 +187,10 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
-        expect(result.current.selectedCommunity).toEqual(mockCommunities[0]);
+        expect(result.current.selectedCommunity).toEqual(mockCommunities[0]!);
       });
 
       result.current.setSelectedCommunity(null);
@@ -208,7 +208,7 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
         expect(result.current.selectedCommunity?.id).toBe(
@@ -216,7 +216,7 @@ describe("CommunityProvider", () => {
         );
       });
 
-      result.current.setSelectedCommunity(mockCommunities[1]);
+      result.current.setSelectedCommunity(mockCommunities[1]!);
 
       await waitFor(() => {
         expect(result.current.selectedCommunity?.id).toBe("pokemon-tcg");
@@ -272,9 +272,7 @@ describe("CommunityProvider", () => {
         expect(result.current.communities).toHaveLength(2);
       });
 
-      const _initialTheme = result.current.communityTheme;
-
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
         // Theme should update (may or may not be different depending on implementation)
@@ -338,10 +336,10 @@ describe("CommunityProvider", () => {
       });
 
       // Rapidly change communities
-      result.current.setSelectedCommunity(mockCommunities[0]);
-      result.current.setSelectedCommunity(mockCommunities[1]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
+      result.current.setSelectedCommunity(mockCommunities[1]!);
       result.current.setSelectedCommunity(null);
-      result.current.setSelectedCommunity(mockCommunities[0]);
+      result.current.setSelectedCommunity(mockCommunities[0]!);
 
       await waitFor(() => {
         expect(result.current.selectedCommunity?.id).toBe(

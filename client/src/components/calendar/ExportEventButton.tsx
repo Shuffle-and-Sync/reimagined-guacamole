@@ -45,16 +45,18 @@ export function ExportEventButton({
 
   if (exportableConnections.length === 1) {
     // If only one connection, make it a direct button
+    // Length check guarantees the first element exists
+    const connection = exportableConnections[0]!;
+
     return (
       <Button
         variant={variant}
         size={size}
-        onClick={() => handleExport(exportableConnections[0].id)}
+        onClick={() => handleExport(connection.id)}
         disabled={exportEvent.isPending}
       >
         <Download className="mr-2 h-4 w-4" />
-        Export to{" "}
-        {exportableConnections[0].provider === "google" ? "Google" : "Outlook"}
+        Export to {connection.provider === "google" ? "Google" : "Outlook"}
       </Button>
     );
   }

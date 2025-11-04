@@ -744,8 +744,6 @@ describe("JoinEventButton", () => {
 
   describe("Event Emission - Join as Alternate", () => {
     it("joins directly as alternate when only alternate slots available", async () => {
-      const _user = userEvent.setup();
-
       const onlyAlternatesEvent: CalendarEvent = {
         ...mockEvent,
         mainPlayers: 4,
@@ -837,21 +835,6 @@ describe("JoinEventButton", () => {
 
     it("has proper success handling configured for leave mutation", async () => {
       // Verify the component renders the leave button when user is attending
-      const _attendees: Attendee[] = [
-        {
-          userId: "test-user-123",
-          eventId: mockEvent.id,
-          status: "attending",
-          role: "participant",
-          playerType: "main",
-          user: {
-            firstName: "Test",
-            lastName: "User",
-            email: "test@example.com",
-          },
-        },
-      ];
-
       renderWithProviders(
         <JoinEventButton
           event={mockEvent}
@@ -877,8 +860,6 @@ describe("JoinEventButton", () => {
 
   describe("Event Emission - Leave Event", () => {
     it("calls onSuccess when leave is successful", async () => {
-      const _user = userEvent.setup();
-
       const attendees: Attendee[] = [
         {
           userId: "test-user-123",

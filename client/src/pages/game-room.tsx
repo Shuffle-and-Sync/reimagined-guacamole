@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -71,7 +71,6 @@ export default function GameRoom() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { selectedCommunity: _selectedCommunity } = useCommunity();
-  const _queryClient = useQueryClient();
 
   // Check if user is in spectator mode
   const searchParams = new URLSearchParams(window.location.search);

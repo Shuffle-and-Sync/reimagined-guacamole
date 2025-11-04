@@ -37,17 +37,28 @@ export async function preprocessImage(
   for (let i = 0; i < data.length; i += 4) {
     // Contrast enhancement
     const factor = 1.5;
-    data[i] = clamp((data[i] - 128) * factor + 128); // R
-    data[i + 1] = clamp((data[i + 1] - 128) * factor + 128); // G
-    data[i + 2] = clamp((data[i + 2] - 128) * factor + 128); // B
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
 
-    // Reduce glare (bright spots)
-    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    if (brightness > 220) {
-      const reduction = 0.8;
-      data[i] *= reduction;
-      data[i + 1] *= reduction;
-      data[i + 2] *= reduction;
+    if (r !== undefined && g !== undefined && b !== undefined) {
+      // Apply contrast enhancement
+      let newR = clamp((r - 128) * factor + 128);
+      let newG = clamp((g - 128) * factor + 128);
+      let newB = clamp((b - 128) * factor + 128);
+
+      // Reduce glare (bright spots)
+      const brightness = (newR + newG + newB) / 3;
+      if (brightness > 220) {
+        const reduction = 0.8;
+        newR *= reduction;
+        newG *= reduction;
+        newB *= reduction;
+      }
+
+      data[i] = newR;
+      data[i + 1] = newG;
+      data[i + 2] = newB;
     }
   }
 

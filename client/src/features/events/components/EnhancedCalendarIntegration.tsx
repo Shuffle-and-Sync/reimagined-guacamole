@@ -5,7 +5,7 @@ import type { Event } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEvents, useUpdateEvent } from "../hooks/useEvents";
+import { useEvents } from "../hooks/useEvents";
 import { useICSExport } from "../hooks/useICSExport";
 import { AgendaView } from "./AgendaView";
 import { CalendarLayerToggle } from "./CalendarLayerToggle";
@@ -67,8 +67,6 @@ export function EnhancedCalendarIntegration({
 
   // Fetch events
   const { data: allEvents = [] } = useEvents(communityId);
-  // Update function available for future event editing features
-  const _updateEvent = useUpdateEvent();
   const { exportSingleEvent, exportDateRange } = useICSExport();
 
   // Memoize filtered events to avoid recalculation on every render

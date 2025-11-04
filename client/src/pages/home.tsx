@@ -36,11 +36,6 @@ export default function Home() {
   const communityTheme = getCommunityTheme(selectedCommunity?.id);
 
   // Define all hooks before any conditional returns
-  // Note: handleLogout is defined for future use in quick actions
-  const _handleLogout = useCallback(() => {
-    window.location.href = "/api/auth/signout";
-  }, []);
-
   const getUserInitials = useCallback(() => {
     const first = user?.firstName?.[0] || "";
     const last = user?.lastName?.[0] || "";

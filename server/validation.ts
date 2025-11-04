@@ -199,7 +199,7 @@ export function validateUUID(id: string): boolean {
 
 // Middleware factory for input validation
 export function validateRequest(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.body);
 
@@ -227,7 +227,7 @@ export function validateRequest(schema: z.ZodSchema) {
 
 // Query parameter validation middleware
 export function validateQuery(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.query);
 
@@ -259,7 +259,7 @@ export function validateParams(
   validator: (value: string) => boolean,
   errorMessage: string,
 ) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     const paramValue = req.params[paramName];
 
     if (!paramValue || !validator(paramValue)) {
@@ -287,7 +287,7 @@ export function validateParams(
 
 // Enhanced parameter validation with Zod schema
 export function validateParamsWithSchema(schema: z.ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.params);
 
@@ -315,7 +315,7 @@ export function validateParamsWithSchema(schema: z.ZodSchema) {
 
 // Security headers middleware
 export function securityHeaders(
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) {

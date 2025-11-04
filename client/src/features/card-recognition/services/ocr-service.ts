@@ -27,8 +27,6 @@ async function getWorker(): Promise<Worker> {
 export async function extractTextFromImage(
   imageData: ImageData,
 ): Promise<OCRResult> {
-  const startTime = Date.now();
-
   try {
     const tesseractWorker = await getWorker();
 
@@ -47,13 +45,23 @@ export async function extractTextFromImage(
     // Perform OCR
     const result = await tesseractWorker.recognize(canvas);
 
-    // Processing time tracked for potential future performance monitoring
-    const _processingTime = Date.now() - startTime;
+    // Type-safe access to lines property
+    interface TesseractLine {
+      text: string;
+    }
+
+    interface TesseractDataWithLines {
+      text: string;
+      confidence: number;
+      lines?: TesseractLine[];
+    }
 
     return {
       text: result.data.text.trim(),
       confidence: result.data.confidence / 100,
-      lines: result.data.lines.map((line) => line.text.trim()),
+      lines: ((result.data as TesseractDataWithLines).lines || []).map((line) =>
+        line.text.trim(),
+      ),
     };
   } catch (error) {
     console.error("OCR extraction failed:", error);
