@@ -418,10 +418,7 @@ export class WebSocketMessageValidator {
         outgoingWebSocketMessageSchema.safeParse(message);
 
       if (!validationResult.success) {
-        const messageType =
-          typeof message === "object" && message !== null && "type" in message
-            ? (message as { type: string }).type
-            : "unknown";
+        const messageType = (message as { type?: string })?.type || "unknown";
 
         logger.warn("Invalid outgoing WebSocket message", {
           error: validationResult.error,
