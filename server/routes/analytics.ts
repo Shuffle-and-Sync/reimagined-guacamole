@@ -15,16 +15,10 @@ import { generalRateLimit } from "../rate-limiting";
 import { analyticsService } from "../services/analytics-service";
 import { streamingCoordinator } from "../services/streaming-coordinator.service";
 import { storage } from "../storage";
-import {
-  validateRequest,
-  _validateQuery,
-  _validateParamsWithSchema,
-  _userParamSchema,
-  _paginationQuerySchema,
-} from "../validation";
+import { validateRequest } from "../validation";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { _NotFoundError, AuthorizationError, _ValidationError } = errors;
+const { AuthorizationError } = errors;
 
 const router = Router();
 
