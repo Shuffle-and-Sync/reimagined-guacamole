@@ -85,9 +85,6 @@ export class SessionSecurityService {
     /^127\./, // Localhost
   ];
 
-  // Maximum reasonable travel speed (km/h) for impossible travel detection
-  private readonly MAX_TRAVEL_SPEED = 900; // Approximately jet aircraft speed
-
   public static getInstance(): SessionSecurityService {
     if (!SessionSecurityService.instance) {
       SessionSecurityService.instance = new SessionSecurityService();

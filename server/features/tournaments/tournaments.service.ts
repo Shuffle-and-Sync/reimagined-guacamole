@@ -737,8 +737,6 @@ export const tournamentsService = {
 
       // Update the match with result - only update winnerId
       // Note: loserId calculated but not stored - reserved for double elimination bracket tracking
-      const _loserId =
-        winnerId === match.player1Id ? match.player2Id : match.player1Id;
       const updatedMatch = await storage.updateTournamentMatch(matchId, {
         winnerId,
         status: "completed",

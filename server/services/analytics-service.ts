@@ -434,24 +434,25 @@ export class AnalyticsService {
   }
 
   // Private helper methods
-  private categorizeEventType(
-    eventName: string,
-  ):
-    | "page_view"
-    | "feature_usage"
-    | "interaction"
-    | "navigation"
-    | "form_submit" {
-    if (eventName.includes("page_") || eventName.includes("route_"))
-      return "page_view";
-    if (eventName.includes("form_") || eventName.includes("submit"))
-      return "form_submit";
-    if (eventName.includes("click_") || eventName.includes("scroll"))
-      return "interaction";
-    if (eventName.includes("nav_") || eventName.includes("menu"))
-      return "navigation";
-    return "feature_usage";
-  }
+  // Unused but kept for potential future use
+  // private categorizeEventType(
+  //   eventName: string,
+  // ):
+  //   | "page_view"
+  //   | "feature_usage"
+  //   | "interaction"
+  //   | "navigation"
+  //   | "form_submit" {
+  //   if (eventName.includes("page_") || eventName.includes("route_"))
+  //     return "page_view";
+  //   if (eventName.includes("form_") || eventName.includes("submit"))
+  //     return "form_submit";
+  //   if (eventName.includes("click_") || eventName.includes("scroll"))
+  //     return "interaction";
+  //   if (eventName.includes("nav_") || eventName.includes("menu"))
+  //     return "navigation";
+  //   return "feature_usage";
+  // }
 
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -489,11 +490,6 @@ export class AnalyticsService {
         ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
         : new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-    const _endTime =
-      hour !== undefined
-        ? new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour
-        : new Date(startTime.getTime() + 24 * 60 * 60 * 1000); // 1 day
-
     // Calculate metrics for the time period
     // This would involve complex queries to aggregate data
     // For now, return mock data structure
@@ -511,10 +507,11 @@ export class AnalyticsService {
     };
   }
 
-  private async getCommunityMemberCount(_communityId: string): Promise<number> {
-    // Get total members in community
-    return 0; // Implement actual count
-  }
+  // Unused but kept for potential future use
+  // private async getCommunityMemberCount(_communityId: string): Promise<number> {
+  //   // Get total members in community
+  //   return 0; // Implement actual count
+  // }
 
   private getTimeframeStartDate(timeframe: "24h" | "7d" | "30d" | "90d"): Date {
     const now = new Date();

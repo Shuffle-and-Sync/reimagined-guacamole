@@ -114,7 +114,7 @@ router.get("/health", async (req, res) => {
         .json({ success: false, error: "Admin access required" });
     }
 
-    const _status = monitoringService.getStatus();
+    monitoringService.getStatus();
     const healthChecks = await monitoringService.performHealthChecks();
 
     return res.json({
@@ -421,7 +421,10 @@ router.get("/memory/status", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get memory monitoring status", toLoggableError(error));
+    logger.error(
+      "Failed to get memory monitoring status",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to get memory monitoring status",

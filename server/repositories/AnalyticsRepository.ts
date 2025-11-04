@@ -653,7 +653,6 @@ export class AnalyticsRepository extends BaseRepository<
 
           // Convert to array and calculate dropoff rates
           const steps = Array.from(stepCounts.entries());
-          const _totalUsers = steps.length > 0 ? steps[0][1] : 0;
 
           return steps.map(([step, count], index) => ({
             step,

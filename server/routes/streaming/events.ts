@@ -43,9 +43,13 @@ router.post(
       });
       return res.status(201).json(event);
     } catch (error) {
-      logger.error("Failed to create collaborative stream event", toLoggableError(error), {
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to create collaborative stream event",
+        toLoggableError(error),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to create collaborative stream event" });
@@ -61,9 +65,13 @@ router.get("/", isAuthenticated, async (req, res) => {
     const events = await storage.getUserCollaborativeStreamEvents(userId);
     return res.json(events);
   } catch (error) {
-    logger.error("Failed to get collaborative stream events", toLoggableError(error), {
-      userId: getAuthUserId(authenticatedReq),
-    });
+    logger.error(
+      "Failed to get collaborative stream events",
+      toLoggableError(error),
+      {
+        userId: getAuthUserId(authenticatedReq),
+      },
+    );
     return res
       .status(500)
       .json({ message: "Failed to get collaborative stream events" });
@@ -78,7 +86,7 @@ router.get(
   async (req, res) => {
     const authenticatedReq = req as AuthenticatedRequest;
     try {
-      const _userId = getAuthUserId(authenticatedReq);
+      getAuthUserId(authenticatedReq);
       const eventId = assertRouteParam(req.params.eventId, "eventId");
 
       const event = await storage.getCollaborativeStreamEvent(eventId);
@@ -90,10 +98,14 @@ router.get(
 
       return res.json(event);
     } catch (error) {
-      logger.error("Failed to get collaborative stream event", toLoggableError(error), {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to get collaborative stream event",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to get collaborative stream event" });
@@ -132,10 +144,14 @@ router.patch(
       );
       return res.json(updatedEvent);
     } catch (error) {
-      logger.error("Failed to update collaborative stream event", toLoggableError(error), {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to update collaborative stream event",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to update collaborative stream event" });
@@ -172,10 +188,14 @@ router.delete(
         message: "Collaborative stream event deleted successfully",
       });
     } catch (error) {
-      logger.error("Failed to delete collaborative stream event", toLoggableError(error), {
-        eventId: req.params.eventId,
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to delete collaborative stream event",
+        toLoggableError(error),
+        {
+          eventId: req.params.eventId,
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res
         .status(500)
         .json({ message: "Failed to delete collaborative stream event" });

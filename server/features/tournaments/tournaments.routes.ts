@@ -22,10 +22,7 @@ router.get("/", cacheStrategies.shortLived(), async (req, res) => {
     const { cursor, limit, page } = req.query;
 
     // Parse limit with proper bounds (unused for now but ready for future cursor implementation)
-    const _parsedLimit = Math.min(
-      Math.max(1, parseInt(limit as string) || 50),
-      100,
-    );
+    Math.min(Math.max(1, parseInt(limit as string) || 50), 100);
 
     // Warn if using offset pagination on potentially large dataset
     if (page && !cursor) {

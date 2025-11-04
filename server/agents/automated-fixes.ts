@@ -35,7 +35,7 @@ export class AutomatedFixEngine {
       logger.info("🔧 Running ESLint with auto-fix...");
 
       const command = "npm run lint";
-      const _output = execSync(command, {
+      execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -93,7 +93,7 @@ export class AutomatedFixEngine {
       logger.info("📝 Running TypeScript type checking...");
 
       const command = "npm run check";
-      const _output = execSync(command, {
+      execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -121,7 +121,7 @@ export class AutomatedFixEngine {
       logger.info("🗄️ Running database health check...");
 
       const command = "npm run db:health";
-      const _output = execSync(command, {
+      execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -149,7 +149,7 @@ export class AutomatedFixEngine {
       logger.info("🧪 Running test suite...");
 
       const command = "npm run test";
-      const _output = execSync(command, {
+      execSync(command, {
         cwd: this.projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
@@ -204,10 +204,7 @@ export class AutomatedFixEngine {
         changedFiles: Array.from(fixedFiles),
       };
     } catch (error) {
-      logger.error(
-        "Code fixes failed:",
-        toLoggableError(error),
-      );
+      logger.error("Code fixes failed:", toLoggableError(error));
       return {
         success: false,
         message: "Code fixes failed",

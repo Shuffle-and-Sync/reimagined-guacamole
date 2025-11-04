@@ -321,7 +321,7 @@ export const advancedSeedingService = {
     windowDays: number,
   ): Promise<ScoredParticipant[]> {
     // Get recent matchups for all participants
-    const _userIds = participants.map((p) => p.userId);
+    participants.map((p) => p.userId);
     const cutoffDate = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
 
     const recentMatches = await db

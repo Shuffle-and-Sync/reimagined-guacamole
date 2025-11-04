@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  isAuthenticated,
-  getAuthUserId,
-  type AuthenticatedRequest,
-} from "../auth";
+import { isAuthenticated, getAuthUserId } from "../auth";
 import { enhancedSessionManager } from "../auth/session-security";
 import { logger } from "../logger";
 import { storage } from "../storage";
