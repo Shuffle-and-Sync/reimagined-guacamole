@@ -1,5 +1,3 @@
-import { toLoggableError } from "@shared/utils/type-guards";
-
 /**
  * Custom Game Adapter
  *
