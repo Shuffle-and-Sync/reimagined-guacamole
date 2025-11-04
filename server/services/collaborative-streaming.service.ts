@@ -19,6 +19,18 @@ import { streamingCoordinator } from "./streaming-coordinator.service";
 import { twitchAPI } from "./twitch-api.service";
 import { youtubeAPI } from "./youtube-api.service";
 
+interface StreamerMatch {
+  audienceOverlap: number;
+  compatibilityScore: number;
+  [key: string]: unknown;
+}
+
+interface PlatformStreamResult {
+  status?: string;
+  viewerCount?: number;
+  [key: string]: unknown;
+}
+
 /**
  * Collaborative Streaming Service
  * Manages multi-streamer coordination, automated scheduling, and real-time collaboration
@@ -421,7 +433,7 @@ export class CollaborativeStreamingService {
    */
   private generateStrategicRecommendations(
     event: CollaborativeStreamEvent,
-    matches: unknown[],
+    matches: StreamerMatch[],
   ): string[] {
     const recommendations: string[] = [];
 
@@ -542,7 +554,7 @@ export class CollaborativeStreamingService {
         throw new Error(`Collaborative event not found: ${eventId}`);
       }
 
-      const platformResults: Record<string, unknown> = {};
+      const platformResults: Record<string, PlatformStreamResult> = {};
       const platformErrors: string[] = [];
 
       // Validate current host before proceeding
