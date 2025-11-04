@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Event } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEvents, useUpdateEvent } from "../hooks/useEvents";
+import { useEvents } from "../hooks/useEvents";
 import { CalendarLayerToggle } from "./CalendarLayerToggle";
 import { DayView } from "./DayView";
 import { EventDetailsModal } from "./EventDetailsModal";

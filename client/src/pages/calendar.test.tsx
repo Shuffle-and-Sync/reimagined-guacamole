@@ -7,7 +7,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as authModule from "@/features/auth";
-import { renderWithProviders, screen, userEvent, waitFor } from "@/test-utils";
+import { renderWithProviders, screen, waitFor } from "@/test-utils";
 import Calendar from "./calendar";
 
 // Mock hooks

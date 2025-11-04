@@ -333,14 +333,6 @@ export default function Matchmaking() {
     );
   }, []);
 
-  const toggleFormat = useCallback((format: string) => {
-    setSelectedFormats((prev) =>
-      prev.includes(format)
-        ? prev.filter((f) => f !== format)
-        : [...prev, format],
-    );
-  }, []);
-
   const getInitials = useCallback((username: string) => {
     return username.substring(0, 2).toUpperCase();
   }, []);
