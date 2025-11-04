@@ -191,6 +191,141 @@ export const outgoingMessageSchemas = {
     type: z.literal("auth_refreshed"),
     expiresAt: z.number(),
   }),
+
+  // Event broadcast messages
+  event_created: z.object({
+    type: z.literal("event:created"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      eventId: z.string(),
+      title: z.string(),
+      startTime: z.string(),
+      endTime: z.string().optional(),
+      createdBy: z.object({
+        id: z.string(),
+        username: z.string(),
+      }),
+    }),
+  }),
+
+  event_updated: z.object({
+    type: z.literal("event:updated"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      eventId: z.string(),
+      changes: z.record(z.any()),
+      updatedBy: z.string(),
+    }),
+  }),
+
+  event_deleted: z.object({
+    type: z.literal("event:deleted"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      eventId: z.string(),
+      deletedBy: z.string(),
+    }),
+  }),
+
+  // Pod broadcast messages
+  player_joined_pod: z.object({
+    type: z.literal("pod:player_joined"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      podId: z.string(),
+      player: z.object({
+        userId: z.string(),
+        username: z.string(),
+        status: z.enum(["ready", "registered", "waiting"]),
+      }),
+      currentPlayerCount: z.number().int().positive(),
+      maxPlayers: z.number().int().positive(),
+    }),
+  }),
+
+  player_left_pod: z.object({
+    type: z.literal("pod:player_left"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      podId: z.string(),
+      playerId: z.string(),
+      currentPlayerCount: z.number().int().nonnegative(),
+    }),
+  }),
+
+  pod_full: z.object({
+    type: z.literal("pod:full"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      podId: z.string(),
+      title: z.string(),
+      players: z.array(
+        z.object({
+          userId: z.string(),
+          username: z.string(),
+        }),
+      ),
+    }),
+  }),
+
+  pod_status_changed: z.object({
+    type: z.literal("pod:status_changed"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      podId: z.string(),
+      oldStatus: z.string(),
+      newStatus: z.enum(["waiting", "active", "finished", "cancelled"]),
+    }),
+  }),
+
+  // Chat and system messages
+  chat_message: z.object({
+    type: z.literal("chat:message"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      podId: z.string(),
+      messageId: z.string(),
+      userId: z.string(),
+      username: z.string(),
+      message: z.string(),
+      timestamp: z.string(),
+    }),
+  }),
+
+  system_notification: z.object({
+    type: z.literal("system:notification"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      severity: z.enum(["info", "warning", "error", "success"]),
+      title: z.string(),
+      message: z.string(),
+      action: z
+        .object({
+          label: z.string(),
+          url: z.string(),
+        })
+        .optional(),
+    }),
+  }),
+
+  connection_status: z.object({
+    type: z.literal("system:connection_status"),
+    timestamp: z.string(),
+    id: z.string().optional(),
+    data: z.object({
+      status: z.enum(["connected", "disconnected", "reconnecting"]),
+      serverId: z.string().optional(),
+    }),
+  }),
 };
 
 // Union of all outgoing message schemas
@@ -213,6 +348,17 @@ export const outgoingWebSocketMessageSchema = z.discriminatedUnion("type", [
   outgoingMessageSchemas.rate_limit_warning,
   outgoingMessageSchemas.auth_required,
   outgoingMessageSchemas.auth_refreshed,
+  // New pod and event broadcast messages
+  outgoingMessageSchemas.event_created,
+  outgoingMessageSchemas.event_updated,
+  outgoingMessageSchemas.event_deleted,
+  outgoingMessageSchemas.player_joined_pod,
+  outgoingMessageSchemas.player_left_pod,
+  outgoingMessageSchemas.pod_full,
+  outgoingMessageSchemas.pod_status_changed,
+  outgoingMessageSchemas.chat_message,
+  outgoingMessageSchemas.system_notification,
+  outgoingMessageSchemas.connection_status,
 ]);
 
 export type OutgoingWebSocketMessage = z.infer<
@@ -272,9 +418,11 @@ export class WebSocketMessageValidator {
         outgoingWebSocketMessageSchema.safeParse(message);
 
       if (!validationResult.success) {
+        const messageType = (message as { type?: string })?.type || "unknown";
+
         logger.warn("Invalid outgoing WebSocket message", {
           error: validationResult.error,
-          messageType: message?.type,
+          messageType,
           message: message,
         });
 
@@ -317,7 +465,8 @@ export class WebSocketMessageValidator {
     for (const field of stringFields) {
       if (sanitized[field] && typeof sanitized[field] === "string") {
         // Simple and secure approach: HTML entity encoding
-        sanitized[field] = sanitized[field]
+        const fieldValue = sanitized[field] as string;
+        sanitized[field] = fieldValue
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
@@ -326,8 +475,9 @@ export class WebSocketMessageValidator {
           .replace(/\//g, "&#x2F;");
 
         // Length limiting for safety
-        if (sanitized[field].length > 10000) {
-          sanitized[field] = sanitized[field].substring(0, 10000);
+        const sanitizedValue = sanitized[field] as string;
+        if (sanitizedValue.length > 10000) {
+          sanitized[field] = sanitizedValue.substring(0, 10000);
         }
       }
     }
@@ -354,8 +504,8 @@ export class WebSocketMessageValidator {
       type: "error",
       message: error,
       ...(code && { code }),
-      ...(details && { details }),
-    };
+      ...(details !== undefined && { details }),
+    } as OutgoingWebSocketMessage;
   }
 
   /**
@@ -383,8 +533,8 @@ export class WebSocketMessageValidator {
     return {
       type: "auth_required",
       reason,
-      ...(expiry && { expiry }),
-    };
+      ...(expiry !== undefined && { expiry }),
+    } as OutgoingWebSocketMessage;
   }
 }
 

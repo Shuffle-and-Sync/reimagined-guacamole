@@ -149,6 +149,178 @@ export const tournamentStatusChangedSchema = z.object({
   timestamp: z.date(),
 });
 
+// Pod-related client-to-server message schemas
+export const joinPodSchema = z.object({
+  type: z.literal("join_pod"),
+  data: z.object({
+    podId: z.string().min(1),
+    userId: z.string().min(1),
+  }),
+});
+
+export const leavePodSchema = z.object({
+  type: z.literal("leave_pod"),
+  data: z.object({
+    podId: z.string().min(1),
+    userId: z.string().min(1),
+  }),
+});
+
+export const sendChatSchema = z.object({
+  type: z.literal("send_chat"),
+  data: z.object({
+    podId: z.string().min(1),
+    message: z.string().min(1).max(1000),
+  }),
+});
+
+export const subscribeEventSchema = z.object({
+  type: z.literal("subscribe_event"),
+  data: z.object({
+    eventId: z.string().min(1),
+  }),
+});
+
+export const unsubscribeEventSchema = z.object({
+  type: z.literal("unsubscribe_event"),
+  data: z.object({
+    eventId: z.string().min(1),
+  }),
+});
+
+// Pod and Event server-to-client broadcast schemas
+export const eventCreatedBroadcastSchema = z.object({
+  type: z.literal("event:created"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    eventId: z.string(),
+    title: z.string(),
+    startTime: z.string(),
+    endTime: z.string().optional(),
+    createdBy: z.object({
+      id: z.string(),
+      username: z.string(),
+    }),
+  }),
+});
+
+export const eventUpdatedBroadcastSchema = z.object({
+  type: z.literal("event:updated"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    eventId: z.string(),
+    changes: z.record(z.any()),
+    updatedBy: z.string(),
+  }),
+});
+
+export const eventDeletedBroadcastSchema = z.object({
+  type: z.literal("event:deleted"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    eventId: z.string(),
+    deletedBy: z.string(),
+  }),
+});
+
+export const playerJoinedPodBroadcastSchema = z.object({
+  type: z.literal("pod:player_joined"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    podId: z.string(),
+    player: z.object({
+      userId: z.string(),
+      username: z.string(),
+      status: z.enum(["ready", "registered", "waiting"]),
+    }),
+    currentPlayerCount: z.number().int().positive(),
+    maxPlayers: z.number().int().positive(),
+  }),
+});
+
+export const playerLeftPodBroadcastSchema = z.object({
+  type: z.literal("pod:player_left"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    podId: z.string(),
+    playerId: z.string(),
+    currentPlayerCount: z.number().int().nonnegative(),
+  }),
+});
+
+export const podFullBroadcastSchema = z.object({
+  type: z.literal("pod:full"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    podId: z.string(),
+    title: z.string(),
+    players: z.array(
+      z.object({
+        userId: z.string(),
+        username: z.string(),
+      }),
+    ),
+  }),
+});
+
+export const podStatusChangedBroadcastSchema = z.object({
+  type: z.literal("pod:status_changed"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    podId: z.string(),
+    oldStatus: z.string(),
+    newStatus: z.enum(["waiting", "active", "finished", "cancelled"]),
+  }),
+});
+
+export const chatMessageBroadcastSchema = z.object({
+  type: z.literal("chat:message"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    podId: z.string(),
+    messageId: z.string(),
+    userId: z.string(),
+    username: z.string(),
+    message: z.string(),
+    timestamp: z.string(),
+  }),
+});
+
+export const systemNotificationBroadcastSchema = z.object({
+  type: z.literal("system:notification"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    severity: z.enum(["info", "warning", "error", "success"]),
+    title: z.string(),
+    message: z.string(),
+    action: z
+      .object({
+        label: z.string(),
+        url: z.string(),
+      })
+      .optional(),
+  }),
+});
+
+export const connectionStatusBroadcastSchema = z.object({
+  type: z.literal("system:connection_status"),
+  timestamp: z.string(),
+  id: z.string().optional(),
+  data: z.object({
+    status: z.enum(["connected", "disconnected", "reconnecting"]),
+    serverId: z.string().optional(),
+  }),
+});
+
 // Union of all incoming WebSocket message schemas
 export const websocketMessageSchema = z.discriminatedUnion("type", [
   joinCollabStreamSchema,
@@ -164,6 +336,12 @@ export const websocketMessageSchema = z.discriminatedUnion("type", [
   joinTournamentRoomSchema,
   leaveTournamentRoomSchema,
   watchMatchSchema,
+  // Pod management (client-to-server)
+  joinPodSchema,
+  leavePodSchema,
+  sendChatSchema,
+  subscribeEventSchema,
+  unsubscribeEventSchema,
   // Legacy game room schemas for backward compatibility
   z.object({
     type: z.literal("join_room"),
@@ -209,19 +387,25 @@ export const validateMessageRate = (
       game_action: { windowMs: 10 * 1000, maxMessages: 20 }, // 20 per 10 seconds
       coordination_event: { windowMs: 10 * 1000, maxMessages: 15 },
       webrtc_ice_candidate: { windowMs: 10 * 1000, maxMessages: 30 },
+      send_chat: { windowMs: 10 * 1000, maxMessages: 20 }, // Chat messages
 
       // Medium-frequency messages
       message: { windowMs: 60 * 1000, maxMessages: 30 }, // 30 per minute
       collaborator_status_update: { windowMs: 60 * 1000, maxMessages: 20 },
+      subscribe_event: { windowMs: 60 * 1000, maxMessages: 30 },
+      unsubscribe_event: { windowMs: 60 * 1000, maxMessages: 30 },
 
       // Low-frequency messages (more lenient)
       join_room: { windowMs: 60 * 1000, maxMessages: 10 },
       join_collab_stream: { windowMs: 60 * 1000, maxMessages: 10 },
+      join_pod: { windowMs: 60 * 1000, maxMessages: 10 },
+      leave_pod: { windowMs: 60 * 1000, maxMessages: 10 },
       phase_change: { windowMs: 60 * 1000, maxMessages: 5 }, // Very limited
 
       // Default for unknown message types
       default: { windowMs: 60 * 1000, maxMessages: 100 },
     };
 
-  return rateConfigs[messageType] || rateConfigs["default"]!;
+  // No need for a separate defaultConfig; rateConfigs["default"] is always defined.
+  return rateConfigs[messageType] || rateConfigs["default"];
 };

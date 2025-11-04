@@ -1,7 +1,28 @@
+import type {
+  ServerToClientMessage,
+  ClientToServerMessage,
+} from "@shared/types/websocket.types";
 import { queryClient } from "@/lib/queryClient";
 import { logger } from "./logger";
 
-// Type definitions for WebSocket message payloads
+// Re-export types for backward compatibility
+export type { ClientToServerMessage } from "@shared/types/websocket.types";
+
+// Export type guards for consumers
+export {
+  isWebSocketMessage,
+  isEventCreatedMessage,
+  isEventUpdatedMessage,
+  isEventDeletedMessage,
+  isPlayerJoinedPodMessage,
+  isPlayerLeftPodMessage,
+  isPodFullMessage,
+  isPodStatusChangedMessage,
+  isChatMessageReceived,
+  isSystemNotificationMessage,
+} from "@shared/types/websocket.types";
+
+// Legacy type definitions for backward compatibility with existing code
 export interface GameActionData {
   [key: string]: unknown;
 }
@@ -40,7 +61,7 @@ export interface WebRTCIceCandidate {
   sdpMid?: string | null;
 }
 
-// Event callback data types
+// Event callback data types - kept for backward compatibility
 export interface CollaboratorJoinedData {
   type: "collaborator_joined";
   eventId: string;
@@ -81,15 +102,7 @@ export interface PhaseChangeError {
   phase?: string;
 }
 
-export type WebSocketEventData =
-  | CollaboratorJoinedData
-  | CollaboratorLeftData
-  | PhaseUpdatedData
-  | CoordinationEventBroadcast
-  | CollaboratorStatusChanged
-  | PhaseChangeError
-  | WebSocketMessage;
-
+// Legacy WebSocketMessage union type - still supported alongside new types
 export type WebSocketMessage =
   // Game room messages
   | {
@@ -165,6 +178,17 @@ export type WebSocketMessage =
       user: { id: string; name: string };
       micOn: boolean;
     };
+
+// Combined event data type supporting both legacy and new types
+export type WebSocketEventData =
+  | CollaboratorJoinedData
+  | CollaboratorLeftData
+  | PhaseUpdatedData
+  | CoordinationEventBroadcast
+  | CollaboratorStatusChanged
+  | PhaseChangeError
+  | WebSocketMessage
+  | ServerToClientMessage; // Include new typed messages
 
 export type WebSocketEventListener<T = WebSocketEventData> = (data: T) => void;
 
