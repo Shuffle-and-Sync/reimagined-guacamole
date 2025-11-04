@@ -35,6 +35,14 @@ const TournamentForm = lazy(() =>
 // Threshold for virtual scrolling - use virtualization for lists with >50 items
 const VIRTUAL_SCROLL_THRESHOLD = 50;
 
+// Helper function to extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 export default function Tournaments() {
   useDocumentTitle("Tournaments");
 

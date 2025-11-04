@@ -133,7 +133,7 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
 
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
-        type: randomType,
+        type: randomType as CoordinationEvent["type"],
         timestamp: new Date(),
         data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,
