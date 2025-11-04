@@ -52,13 +52,12 @@ export const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
       retry: (failureCount, error: unknown) => {
         // Don't retry on 4xx errors except 401, 403
-        if (
-          error?.message?.includes("401") ||
-          error?.message?.includes("403")
-        ) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes("401") || errorMessage.includes("403")) {
           return false;
         }
-        if (error?.message?.match(/4\d\d/)) {
+        if (errorMessage.match(/4\d\d/)) {
           return false;
         }
         return failureCount < 3;
@@ -68,7 +67,9 @@ export const queryClient = new QueryClient({
     mutations: {
       retry: (failureCount, error: unknown) => {
         // Don't retry mutations on client errors
-        if (error?.message?.match(/4\d\d/)) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (errorMessage.match(/4\d\d/)) {
           return false;
         }
         return failureCount < 2;

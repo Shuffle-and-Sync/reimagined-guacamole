@@ -130,8 +130,6 @@ describe("Select Component", () => {
     });
 
     it("displays selected value", async () => {
-      const _user = userEvent.setup();
-
       renderWithProviders(
         <Select defaultValue="option2">
           <SelectTrigger>

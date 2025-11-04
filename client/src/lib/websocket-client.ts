@@ -1,7 +1,4 @@
-import type {
-  ServerToClientMessage,
-  ClientToServerMessage,
-} from "@shared/types/websocket.types";
+import type { ServerToClientMessage } from "@shared/types/websocket.types";
 import { queryClient } from "@/lib/queryClient";
 import { logger } from "./logger";
 
@@ -820,23 +817,6 @@ class WebSocketClient {
     }
 
     return sanitized;
-  }
-
-  private getReadyStateString(): string {
-    if (!this.ws) return "no-websocket";
-
-    switch (this.ws.readyState) {
-      case WebSocket.CONNECTING:
-        return "connecting";
-      case WebSocket.OPEN:
-        return "open";
-      case WebSocket.CLOSING:
-        return "closing";
-      case WebSocket.CLOSED:
-        return "closed";
-      default:
-        return "unknown";
-    }
   }
 
   addEventListener<T = WebSocketEventData>(

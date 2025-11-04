@@ -57,6 +57,16 @@ export async function recognizeCard(
     // 5. Return best match with combined confidence
     const bestMatch = searchResults[0];
 
+    if (!bestMatch) {
+      return {
+        card: null,
+        confidence: 0,
+        alternatives: [],
+        processingTime: Date.now() - startTime,
+        extractedText,
+      };
+    }
+
     // Combine OCR confidence with match score
     // OCR confidence: 70%, match score: 30%
     const finalConfidence = ocrConfidence * 0.7 + bestMatch.matchScore * 0.3;
