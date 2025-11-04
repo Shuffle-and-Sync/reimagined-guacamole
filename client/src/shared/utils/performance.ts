@@ -3,6 +3,7 @@
  */
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../lib/logger";
+import type { QueryClient } from "@tanstack/react-query";
 
 // Performance timing utilities
 export const performance_utils = {
@@ -140,7 +141,7 @@ export const queryOptimizations = {
   /**
    * Batch query invalidation
    */
-  batchInvalidate: (queryClient: unknown, patterns: string[][]) => {
+  batchInvalidate: (queryClient: QueryClient, patterns: string[][]) => {
     const invalidations = patterns.map((pattern) =>
       queryClient.invalidateQueries({ queryKey: pattern }),
     );
@@ -152,7 +153,7 @@ export const queryOptimizations = {
    * Selective data updates
    */
   optimisticUpdate: <T>(
-    queryClient: unknown,
+    queryClient: QueryClient,
     queryKey: string[],
     updater: (oldData: T) => T,
   ) => {

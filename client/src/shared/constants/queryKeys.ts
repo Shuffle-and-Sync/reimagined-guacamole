@@ -3,6 +3,8 @@
  * Provides type-safe, consistent query keys across all features
  */
 
+import type { QueryClient } from "@tanstack/react-query";
+
 export const queryKeys = {
   // Auth queries
   auth: {
@@ -72,7 +74,7 @@ export const queryUtils = {
    * Invalidate all queries for a specific feature
    */
   invalidateFeature: (
-    queryClient: unknown,
+    queryClient: QueryClient,
     feature: keyof typeof queryKeys,
   ) => {
     return queryClient.invalidateQueries({
@@ -83,7 +85,10 @@ export const queryUtils = {
   /**
    * Remove all queries for a specific feature
    */
-  removeFeature: (queryClient: unknown, feature: keyof typeof queryKeys) => {
+  removeFeature: (
+    queryClient: QueryClient,
+    feature: keyof typeof queryKeys,
+  ) => {
     return queryClient.removeQueries({
       queryKey: queryKeys[feature].all,
     });
@@ -93,7 +98,7 @@ export const queryUtils = {
    * Prefetch related data for better UX
    */
   prefetchRelatedData: async (
-    queryClient: unknown,
+    queryClient: QueryClient,
     type: "user" | "community" | "event",
     id: string,
   ) => {
