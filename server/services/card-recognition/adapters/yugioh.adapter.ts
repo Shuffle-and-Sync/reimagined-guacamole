@@ -5,6 +5,7 @@
  * Official API: https://ygoprodeck.com/api-guide/
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import type {
   ICardAdapter,
@@ -170,7 +171,7 @@ export class YuGiOhAdapter implements ICardAdapter {
         hasMore: end < filteredCards.length,
       };
     } catch (error) {
-      logger.error("Yu-Gi-Oh adapter search failed", error, { query, options });
+      logger.error("Yu-Gi-Oh adapter search failed", toLoggableError(error), { query, options });
       throw error;
     }
   }
@@ -205,7 +206,7 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error("Yu-Gi-Oh adapter getCardById failed", error, { id });
+      logger.error("Yu-Gi-Oh adapter getCardById failed", toLoggableError(error), { id });
       throw error;
     }
   }
@@ -257,7 +258,7 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error("Yu-Gi-Oh adapter getCardByName failed", error, {
+      logger.error("Yu-Gi-Oh adapter getCardByName failed", toLoggableError(error), {
         name,
         options,
       });
@@ -305,7 +306,7 @@ export class YuGiOhAdapter implements ICardAdapter {
         })),
       };
     } catch (error) {
-      logger.error("Yu-Gi-Oh adapter autocomplete failed", error, {
+      logger.error("Yu-Gi-Oh adapter autocomplete failed", toLoggableError(error), {
         query,
         limit,
       });
@@ -343,7 +344,7 @@ export class YuGiOhAdapter implements ICardAdapter {
       }
       return this.transformToUniversal(firstCard);
     } catch (error) {
-      logger.error("Yu-Gi-Oh adapter getRandomCard failed", error, { options });
+      logger.error("Yu-Gi-Oh adapter getRandomCard failed", toLoggableError(error), { options });
       throw error;
     }
   }

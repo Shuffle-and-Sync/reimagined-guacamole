@@ -11,6 +11,7 @@ import { Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { nanoid } from "nanoid";
 import { ZodError } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { ErrorCode } from "../lib/error-codes";
 import {
   AppError as StandardizedAppError,
@@ -177,7 +178,7 @@ export function globalErrorHandler(
 
     // Log with appropriate level
     if (error.statusCode >= 500) {
-      logger.error("Server error", error, errorLog);
+      logger.error("Server error", toLoggableError(error), errorLog);
     } else if (error.statusCode >= 400) {
       logger.warn("Client error", errorLog);
     }
@@ -212,7 +213,7 @@ export function globalErrorHandler(
     };
 
     if (error.statusCode >= 500) {
-      logger.error("Server error", error, errorLog);
+      logger.error("Server error", toLoggableError(error), errorLog);
     } else if (error.statusCode >= 400) {
       logger.warn("Client error", errorLog);
     }
@@ -351,7 +352,7 @@ export function globalErrorHandler(
   }
 
   // Handle unexpected errors
-  logger.error("Unexpected error", error, {
+  logger.error("Unexpected error", toLoggableError(error), {
     requestId,
     timestamp,
     url: req.url,
@@ -451,7 +452,7 @@ export function createGracefulShutdownHandler(server: Server) {
  * Database connection error handler
  */
 export function handleDatabaseError(error: Error & { code?: string }): never {
-  logger.error("Database connection error", error);
+  logger.error("Database connection error", toLoggableError(error));
 
   if (error.code === "ECONNREFUSED") {
     throw new DatabaseError("Database connection refused", {

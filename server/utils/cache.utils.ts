@@ -6,6 +6,7 @@
  */
 
 import NodeCache from "node-cache";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 export interface CacheOptions {
@@ -63,7 +64,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache get error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           key,
         },
@@ -85,7 +86,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache set error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           key,
         },
@@ -116,7 +117,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Query function error in getOrSet",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { key },
       );
       throw error;
@@ -132,7 +133,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache delete error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           key,
         },
@@ -149,7 +150,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache delete many error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { keys },
       );
     }
@@ -172,7 +173,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache invalidate error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { pattern },
       );
     }
@@ -188,7 +189,7 @@ export class QueryCache {
     } catch (error) {
       logger.error(
         "Cache flush error",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     }
   }

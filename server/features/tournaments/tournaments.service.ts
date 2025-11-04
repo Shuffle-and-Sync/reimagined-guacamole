@@ -6,6 +6,7 @@ import {
   UpdateTournament,
   User,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { tournamentRoomManager } from "../../utils/tournament-room-manager";
@@ -32,7 +33,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to fetch tournaments",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           communityId,
         },
@@ -47,7 +48,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to fetch tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
         },
@@ -89,7 +90,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to fetch tournament with participants",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { tournamentId },
       );
       throw error;
@@ -103,7 +104,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to create tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentData,
         },
@@ -132,7 +133,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to join tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           userId,
@@ -149,7 +150,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to leave tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           userId,
@@ -268,7 +269,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to update tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           updates,
@@ -292,7 +293,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to fetch tournament formats",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }
@@ -344,7 +345,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to start tournament",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           organizerId,
@@ -394,7 +395,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to generate bracket",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           format,
@@ -676,7 +677,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to advance round",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           organizerId,
@@ -782,7 +783,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to report match result",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
           matchId,
@@ -834,7 +835,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to get tournament details",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           tournamentId,
         },
@@ -946,7 +947,7 @@ export const tournamentsService = {
     } catch (error) {
       logger.error(
         "Service error: Failed to create match game session",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { tournamentId, matchId, userId },
       );
       throw error;

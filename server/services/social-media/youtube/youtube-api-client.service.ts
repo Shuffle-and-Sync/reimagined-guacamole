@@ -3,6 +3,7 @@
  * Handles HTTP requests to YouTube API with error handling and retries
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
 import { BaseSocialMediaService } from "../base/base-social-media.service";
 import type { YouTubeAPIResult, YouTubeTokens } from "./youtube-types";
@@ -121,7 +122,7 @@ export class YouTubeAPIClientService extends BaseSocialMediaService {
         if (attempt === retries) {
           logger.error(
             "YouTube API request failed after retries",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { endpoint, attempt },
           );
           return {

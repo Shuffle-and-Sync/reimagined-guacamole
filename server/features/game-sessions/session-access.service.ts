@@ -18,6 +18,7 @@ import {
   userCommunities,
   type SessionInvitation,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 
 export class SessionAccessService {
@@ -159,7 +160,7 @@ export class SessionAccessService {
     } catch (error) {
       logger.error(
         "Error checking session access",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, sessionId, role },
       );
       // Fail closed for security - deny access on errors
@@ -212,7 +213,7 @@ export class SessionAccessService {
     } catch (error) {
       logger.error(
         "Error creating invitation",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { sessionId: data.sessionId },
       );
       throw error;
@@ -279,7 +280,7 @@ export class SessionAccessService {
     } catch (error) {
       logger.error(
         "Error responding to invitation",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { invitationId, userId },
       );
       throw error;
@@ -303,7 +304,7 @@ export class SessionAccessService {
     } catch (error) {
       logger.error(
         "Error getting user invitations",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       return [];

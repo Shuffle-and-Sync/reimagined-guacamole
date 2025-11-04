@@ -7,6 +7,7 @@
 
 import { Router } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { universalCardService } from "../../services/card-recognition/index";
 
@@ -25,7 +26,7 @@ router.get("/", async (req, res) => {
   } catch (error) {
     logger.error(
       "Error fetching supported games",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     return res.status(500).json({ message: "Failed to fetch supported games" });
   }
@@ -111,7 +112,7 @@ router.get("/:game_id/cards/search", async (req, res) => {
 
     logger.error(
       "Error in game-scoped card search",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.game_id,
       },
@@ -147,7 +148,7 @@ router.get("/:game_id/cards/:id", async (req, res) => {
 
     logger.error(
       "Error getting card by ID",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.game_id,
         cardId: req.params.id,
@@ -200,7 +201,7 @@ router.get("/:game_id/cards/named", async (req, res) => {
 
     logger.error(
       "Error getting card by name",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.game_id,
       },
@@ -240,7 +241,7 @@ router.get("/:game_id/cards/autocomplete", async (req, res) => {
 
     logger.error(
       "Error in autocomplete",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.game_id,
       },
@@ -279,7 +280,7 @@ router.get("/:game_id/cards/random", async (req, res) => {
 
     logger.error(
       "Error getting random card",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         gameId: req.params.game_id,
       },

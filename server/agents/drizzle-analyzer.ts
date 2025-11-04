@@ -7,6 +7,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { CodeIssue } from "./backend-copilot-agent";
 
@@ -110,7 +111,7 @@ export class DrizzleAnalyzer {
     } catch (error) {
       logger.error(
         "❌ Drizzle analysis failed:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }

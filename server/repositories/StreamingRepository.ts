@@ -41,6 +41,7 @@ import {
   type InsertStreamCoordinationSession,
   type User,
 } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { DatabaseError } from "../middleware/error-handling.middleware";
 import { BaseRepository } from "./base";
@@ -147,7 +148,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get stream sessions",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { filters },
           );
           throw new DatabaseError("Failed to get stream sessions", {
@@ -204,7 +205,7 @@ export class StreamingRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to get stream session",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { id },
         );
         throw new DatabaseError("Failed to get stream session", {
@@ -238,7 +239,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create stream session",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create stream session", {
@@ -275,7 +276,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update stream session",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id, data },
           );
           throw new DatabaseError("Failed to update stream session", {
@@ -310,7 +311,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update stream status",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id, status },
           );
           throw new DatabaseError("Failed to update stream status", {
@@ -340,7 +341,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to delete stream session",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id },
           );
           throw new DatabaseError("Failed to delete stream session", {
@@ -384,7 +385,7 @@ export class StreamingRepository extends BaseRepository<
       } catch (error) {
         logger.error(
           "Failed to add stream co-host",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { data },
         );
         throw new DatabaseError("Failed to add stream co-host", {
@@ -421,7 +422,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to remove stream co-host",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { sessionId, userId },
           );
           throw new DatabaseError("Failed to remove stream co-host", {
@@ -468,7 +469,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update co-host permissions",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id, permissions },
           );
           throw new DatabaseError("Failed to update co-host permissions", {
@@ -514,7 +515,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to add stream platform",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to add stream platform", {
@@ -561,7 +562,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to update stream platform",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id, data },
           );
           throw new DatabaseError("Failed to update stream platform", {
@@ -593,7 +594,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to remove stream platform",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id },
           );
           throw new DatabaseError("Failed to remove stream platform", {
@@ -629,7 +630,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get stream platforms",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { sessionId },
           );
           throw new DatabaseError("Failed to get stream platforms", {
@@ -713,7 +714,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get collaboration requests",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { filters },
           );
           throw new DatabaseError("Failed to get collaboration requests", {
@@ -759,7 +760,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create collaboration request",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to create collaboration request", {
@@ -806,7 +807,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to respond to collaboration request",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id, status },
           );
           throw new DatabaseError(
@@ -848,7 +849,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to expire collaboration requests",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError("Failed to expire collaboration requests", {
             cause: error,
@@ -893,7 +894,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to record stream analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError("Failed to record stream analytics", {
@@ -938,7 +939,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get stream analytics",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { sessionId },
           );
           throw new DatabaseError("Failed to get stream analytics", {
@@ -985,7 +986,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create collaborative stream event",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError(
@@ -1025,7 +1026,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get collaborative stream event",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { id },
           );
           throw new DatabaseError("Failed to get collaborative stream event", {
@@ -1072,7 +1073,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to create stream coordination session",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
             { data },
           );
           throw new DatabaseError(
@@ -1107,7 +1108,7 @@ export class StreamingRepository extends BaseRepository<
         } catch (error) {
           logger.error(
             "Failed to get active coordination sessions",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
           throw new DatabaseError(
             "Failed to get active coordination sessions",

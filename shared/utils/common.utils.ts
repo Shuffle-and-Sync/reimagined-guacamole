@@ -1,3 +1,5 @@
+import { toLoggableError } from "@shared/utils/type-guards";
+
 /**
  * Common Utilities
  *
@@ -460,7 +462,7 @@ export async function retry<T>(
     try {
       return await fn();
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
+      lastError = toLoggableError(error);
 
       if (attempt === maxAttempts || !shouldRetry(lastError)) {
         throw lastError;

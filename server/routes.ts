@@ -1,6 +1,7 @@
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { insertEventSchema } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -110,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const preferences = await storage.getMatchmakingPreferences(userId);
       return res.json(preferences);
     } catch (error) {
-      logger.error("Failed to fetch matchmaking preferences", error, {
+      logger.error("Failed to fetch matchmaking preferences", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       return res.status(500).json({ message: "Failed to fetch preferences" });
@@ -127,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.upsertMatchmakingPreferences(preferencesData);
       return res.json(preferences);
     } catch (error) {
-      logger.error("Failed to update matchmaking preferences", error, {
+      logger.error("Failed to update matchmaking preferences", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       return res.status(500).json({ message: "Failed to update preferences" });
@@ -170,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const matches = await storage.findMatchingPlayers(userId, preferences);
         return res.json(matches);
       } catch (error) {
-        logger.error("Failed to find matching players", error, {
+        logger.error("Failed to find matching players", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Failed to find matches" });
@@ -296,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ message: "Tournament participation not found" });
         }
       } catch (error) {
-        logger.error("Failed to leave tournament", error, {
+        logger.error("Failed to leave tournament", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
           tournamentId: req.params.id,
         });
@@ -406,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to send message" });
       }
     } catch (error) {
-      logger.error("Contact form error", error, { email: req.body?.email });
+      logger.error("Contact form error", toLoggableError(error), { email: req.body?.email });
       return res.status(500).json({ message: "Failed to send message" });
     }
   });
@@ -417,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const communities = await storage.getCommunities();
       return res.json(communities);
     } catch (error) {
-      logger.error("Failed to fetch communities", error);
+      logger.error("Failed to fetch communities", toLoggableError(error));
       return res.status(500).json({ message: "Failed to fetch communities" });
     }
   });
@@ -431,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.json(community);
     } catch (error) {
-      logger.error("Failed to fetch community", error, { id: _req.params.id });
+      logger.error("Failed to fetch community", toLoggableError(error), { id: _req.params.id });
       return res.status(500).json({ message: "Failed to fetch community" });
     }
   });
@@ -460,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json(userCommunity);
       } catch (error) {
-        logger.error("Failed to join community", error, {
+        logger.error("Failed to join community", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
           communityId: req.body.communityId,
         });
@@ -481,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.setPrimaryCommunity(userId, communityId);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to set primary community", error, {
+        logger.error("Failed to set primary community", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
           communityId: req.body.communityId,
         });
@@ -503,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const preferences = await storage.getUserThemePreferences(userId);
         return res.json(preferences);
       } catch (error) {
-        logger.error("Failed to fetch theme preferences", error, {
+        logger.error("Failed to fetch theme preferences", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res
@@ -531,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json(preference);
       } catch (error) {
-        logger.error("Failed to update theme preferences", error, {
+        logger.error("Failed to update theme preferences", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res
@@ -556,7 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       return sendSuccess(res, events);
     } catch (error) {
-      logger.error("Failed to fetch events", error, { filters: req.query });
+      logger.error("Failed to fetch events", toLoggableError(error), { filters: req.query });
       return sendInternalError(res, "Failed to fetch events");
     }
   });
@@ -573,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       return sendSuccess(res, event);
     } catch (error) {
-      logger.error("Failed to fetch event", error, { eventId: req.params.id });
+      logger.error("Failed to fetch event", toLoggableError(error), { eventId: req.params.id });
       return sendInternalError(res, "Failed to fetch event");
     }
   });
@@ -596,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const event = await storage.createEvent(eventData);
         return res.json(event);
       } catch (error) {
-        logger.error("Failed to create event", error, {
+        logger.error("Failed to create event", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Failed to create event" });
@@ -647,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json(updatedEvent);
       } catch (error) {
-        logger.error("Failed to update event", error, {
+        logger.error("Failed to update event", toLoggableError(error), {
           eventId: req.params.id,
         });
         return res.status(500).json({ message: "Failed to update event" });
@@ -678,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.deleteEvent(id);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to delete event", error, {
+        logger.error("Failed to delete event", toLoggableError(error), {
           eventId: req.params.id,
         });
         return res.status(500).json({ message: "Failed to delete event" });
@@ -770,7 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json(attendee);
       } catch (error) {
-        logger.error("Failed to join event", error, {
+        logger.error("Failed to join event", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
           eventId: req.body.eventId,
         });
@@ -822,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to leave event", error, {
+        logger.error("Failed to leave event", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
           eventId: req.params.eventId,
         });
@@ -838,7 +839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attendees = await storage.getEventAttendees(eventId);
       return res.json(attendees);
     } catch (error) {
-      logger.error("Failed to fetch event attendees", error, {
+      logger.error("Failed to fetch event attendees", toLoggableError(error), {
         eventId: req.params.eventId,
       });
       return res
@@ -878,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eventId,
         });
       } catch (error) {
-        logger.error("Failed to generate graphic", error, {
+        logger.error("Failed to generate graphic", toLoggableError(error), {
           eventId: req.body.eventId,
         });
         return res.status(500).json({ message: "Failed to generate graphic" });
@@ -897,7 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const attendance = await storage.getUserEventAttendance(userId);
         return res.json(attendance);
       } catch (error) {
-        logger.error("Failed to fetch user events", error, {
+        logger.error("Failed to fetch user events", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Failed to fetch user events" });
@@ -922,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         return sendSuccess(res, notifications);
       } catch (error) {
-        logger.error("Failed to fetch notifications", error, {
+        logger.error("Failed to fetch notifications", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return sendInternalError(res);
@@ -941,7 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const notification = await storage.createNotification(notificationData);
         return res.status(201).json(notification);
       } catch (error) {
-        logger.error("Failed to create notification", error);
+        logger.error("Failed to create notification", toLoggableError(error));
         return res.status(500).json({ message: "Internal server error" });
       }
     },
@@ -956,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.markNotificationAsRead(id);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to mark notification as read", error, {
+        logger.error("Failed to mark notification as read", toLoggableError(error), {
           notificationId: req.params.id,
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -974,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.markAllNotificationsAsRead(userId);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to mark all notifications as read", error, {
+        logger.error("Failed to mark all notifications as read", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -996,7 +997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       return sendSuccess(res, messages);
     } catch (error) {
-      logger.error("Failed to fetch messages", error, {
+      logger.error("Failed to fetch messages", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       return sendInternalError(res);
@@ -1014,7 +1015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const message = await storage.sendMessage(messageData);
         return res.status(201).json(message);
       } catch (error) {
-        logger.error("Failed to send message", error, {
+        logger.error("Failed to send message", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -1030,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversation = await storage.getConversation(currentUserId, userId);
       return res.json(conversation);
     } catch (error) {
-      logger.error("Failed to fetch conversation", error, {
+      logger.error("Failed to fetch conversation", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       return res.status(500).json({ message: "Internal server error" });
@@ -1061,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const createdEvents = await storage.createBulkEvents(eventData);
         return res.status(201).json(createdEvents);
       } catch (error) {
-        logger.error("Failed to create bulk events", error, {
+        logger.error("Failed to create bulk events", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -1088,7 +1089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         return res.status(201).json(createdEvents);
       } catch (error) {
-        logger.error("Failed to create recurring events", error, {
+        logger.error("Failed to create recurring events", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -1115,7 +1116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       return res.json(events);
     } catch (error) {
-      logger.error("Failed to fetch calendar events", error, {
+      logger.error("Failed to fetch calendar events", toLoggableError(error), {
         filters: req.query,
       });
       return res
@@ -1140,7 +1141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to leave spectating", error, {
+        logger.error("Failed to leave spectating", toLoggableError(error), {
           userId: getAuthUserId(authenticatedReq),
         });
         return res.status(500).json({ message: "Internal server error" });
@@ -1251,7 +1252,7 @@ async function initializeDefaultCommunities(): Promise<void> {
         });
       }
     } catch (error) {
-      logger.error("Failed to create community", error, {
+      logger.error("Failed to create community", toLoggableError(error), {
         name: communityData.displayName,
       });
     }

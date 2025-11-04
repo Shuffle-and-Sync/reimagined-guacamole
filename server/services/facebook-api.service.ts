@@ -3,6 +3,7 @@
 // TODO: Implement full Facebook Gaming Creator API and Graph API integration
 
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 export interface FacebookPage {
@@ -579,7 +580,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error creating Facebook live video",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -633,7 +634,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error fetching Facebook live video details",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -725,7 +726,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error updating Facebook live video",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -774,7 +775,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error ending Facebook live video",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -836,7 +837,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error fetching Facebook page posts",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return [];
     }
@@ -904,7 +905,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error creating Facebook post",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -1042,7 +1043,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error exchanging Facebook OAuth code",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -1088,7 +1089,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error exchanging Facebook token for long-lived token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -1127,7 +1128,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error getting Facebook page access token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -1205,7 +1206,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error subscribing to Facebook webhooks",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -1252,7 +1253,7 @@ export class FacebookAPIService {
     } catch (error) {
       logger.error(
         "Error verifying webhook signature",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }

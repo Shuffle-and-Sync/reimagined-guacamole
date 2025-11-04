@@ -6,6 +6,7 @@
  */
 
 import { type User } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { generateEmailVerificationJWT } from "../auth/tokens";
 import { sendEmailVerificationEmail } from "../email-service";
 import {
@@ -112,7 +113,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to create user",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { email: data.email },
       );
       throw error;
@@ -128,7 +129,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to get user by ID",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -148,7 +149,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to get user by email",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { email },
       );
       throw error;
@@ -171,7 +172,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to search users",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { options },
       );
       throw error;
@@ -222,7 +223,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to update user profile",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -264,7 +265,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to change user email",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, newEmail },
       );
       throw error;
@@ -293,7 +294,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to join community",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, communityId },
       );
       throw error;
@@ -310,7 +311,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to leave community",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, communityId },
       );
       throw error;
@@ -330,7 +331,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to set primary community",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
           communityId,
@@ -349,7 +350,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to get user stats",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -370,7 +371,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to deactivate user account",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -387,7 +388,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to delete user account",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -426,7 +427,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to send email verification",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -444,7 +445,7 @@ export class UserService {
     } catch (error) {
       logger.error(
         "Failed to verify email",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { token },
       );
       throw error;

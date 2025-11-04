@@ -15,6 +15,7 @@ import { eq, sql } from "drizzle-orm";
 import { logger } from "../server/logger";
 import { db } from "../shared/database-unified";
 import { games, type InsertGame } from "../shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 
 /**
  * Wait for database connection to be ready
@@ -156,7 +157,7 @@ async function seedGames() {
   } catch (error) {
     console.error("\n❌ Error seeding games:");
     console.error(error);
-    logger.error("Game seeding failed", error);
+    logger.error("Game seeding failed", toLoggableError(error));
     process.exit(1);
   }
 }

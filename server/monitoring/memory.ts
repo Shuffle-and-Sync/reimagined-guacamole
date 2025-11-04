@@ -5,6 +5,7 @@
  * Integrated with the main monitoring service for centralized alerting.
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 export interface MemoryUsageMetrics {
@@ -205,7 +206,7 @@ class MemoryMonitor {
       } catch (error) {
         logger.error(
           "Error in memory alert handler",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
       }
     });

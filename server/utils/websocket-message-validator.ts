@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { websocketMessageSchema } from "@shared/websocket-schemas";
 import { logger } from "../logger";
 
@@ -400,7 +401,7 @@ export class WebSocketMessageValidator {
     } catch (error) {
       logger.error(
         "Error validating incoming WebSocket message",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return {
         success: false,
@@ -440,7 +441,7 @@ export class WebSocketMessageValidator {
     } catch (error) {
       logger.error(
         "Error validating outgoing WebSocket message",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return {
         success: false,

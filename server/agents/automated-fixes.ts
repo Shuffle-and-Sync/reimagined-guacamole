@@ -7,6 +7,7 @@
 import { execSync } from "child_process";
 import fs from "fs/promises";
 import path from "path";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { CodeIssue } from "./backend-copilot-agent";
 
@@ -205,7 +206,7 @@ export class AutomatedFixEngine {
     } catch (error) {
       logger.error(
         "Code fixes failed:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return {
         success: false,

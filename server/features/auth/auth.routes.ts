@@ -10,6 +10,7 @@
  */
 
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -45,7 +46,7 @@ router.get("/user", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch user",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },

@@ -18,6 +18,7 @@ import fs from "fs/promises";
 import os from "os";
 import { sql } from "drizzle-orm";
 import { db } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { redisClient } from "./redis-client.service";
 
@@ -259,7 +260,7 @@ class MonitoringService extends EventEmitter {
       this.collectSystemMetrics().catch((error) => {
         logger.error(
           "Failed to collect system metrics",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
       });
     }, this.config.intervals.metrics);
@@ -270,7 +271,7 @@ class MonitoringService extends EventEmitter {
       this.performHealthChecks().catch((error) => {
         logger.error(
           "Failed to perform health checks",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
       });
     }, this.config.intervals.healthCheck);
@@ -281,7 +282,7 @@ class MonitoringService extends EventEmitter {
       this.evaluateAlerts().catch((error) => {
         logger.error(
           "Failed to evaluate alerts",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
         );
       });
     }, this.config.intervals.alertCheck);
@@ -293,7 +294,7 @@ class MonitoringService extends EventEmitter {
         this.cleanup().catch((error) => {
           logger.error(
             "Failed to cleanup old data",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         });
       },
@@ -305,13 +306,13 @@ class MonitoringService extends EventEmitter {
     this.collectSystemMetrics().catch((error) => {
       logger.error(
         "Initial metrics collection failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     });
     this.performHealthChecks().catch((error) => {
       logger.error(
         "Initial health check failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     });
 
@@ -432,7 +433,7 @@ class MonitoringService extends EventEmitter {
     } catch (error) {
       logger.error(
         "Failed to collect system metrics",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       throw error;
     }
@@ -876,7 +877,7 @@ class MonitoringService extends EventEmitter {
     } catch (error) {
       logger.error(
         "Failed to send alert notification",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           alertId: alert.id,
         },

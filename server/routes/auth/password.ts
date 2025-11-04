@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { validatePasswordStrength, hashPassword } from "../../auth/password";
 import {
   generatePasswordResetJWT,
@@ -99,7 +100,7 @@ router.get("/verify-reset-token/:token", async (req, res) => {
     const user = await storage.getUser(resetToken.userId);
     return res.json({ message: "Token is valid", email: user?.email });
   } catch (error) {
-    logger.error("Failed to verify reset token", error, {
+    logger.error("Failed to verify reset token", toLoggableError(error), {
       token: req.body.token,
     });
     return res.status(500).json({ message: "Failed to verify reset token" });

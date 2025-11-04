@@ -3,6 +3,7 @@
 // Includes OAuth 2.0, live broadcasting, webhook support with security and error handling
 
 import { createHmac, timingSafeEqual } from "crypto";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { generateSecureToken } from "../utils/security.utils";
 
@@ -644,7 +645,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error creating YouTube live stream",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -691,7 +692,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error binding YouTube broadcast to stream",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -740,7 +741,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error transitioning YouTube broadcast",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -845,7 +846,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error exchanging YouTube OAuth code",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -900,7 +901,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error refreshing YouTube access token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }
@@ -942,7 +943,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error subscribing to YouTube channel notifications",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -1059,7 +1060,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error verifying YouTube webhook signature",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -1133,7 +1134,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error parsing YouTube webhook notification",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return null;
     }

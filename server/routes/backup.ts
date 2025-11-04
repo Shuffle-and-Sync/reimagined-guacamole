@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -50,7 +51,7 @@ router.get("/status", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get backup status", error);
+    logger.error("Failed to get backup status", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Failed to get backup status",
@@ -96,7 +97,7 @@ router.post("/full", async (req, res) => {
       message: "Full backup completed successfully",
     });
   } catch (error) {
-    logger.error("Full backup failed", error, {
+    logger.error("Full backup failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -133,7 +134,7 @@ router.post("/critical", async (req, res) => {
       message: "Critical data backup completed successfully",
     });
   } catch (error) {
-    logger.error("Critical data backup failed", error, {
+    logger.error("Critical data backup failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -199,7 +200,7 @@ router.post("/restore", async (req, res) => {
         : "Database restore failed",
     });
   } catch (error) {
-    logger.error("Database restore failed", error, {
+    logger.error("Database restore failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -250,7 +251,7 @@ router.post("/verify", async (req, res) => {
         : "Backup verification failed",
     });
   } catch (error) {
-    logger.error("Backup verification failed", error, {
+    logger.error("Backup verification failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -287,7 +288,7 @@ router.delete("/cleanup", async (req, res) => {
       message: `Cleanup completed: ${result.deletedCount} files deleted, ${Math.round(result.freedSpace / 1024 / 1024)}MB freed`,
     });
   } catch (error) {
-    logger.error("Backup cleanup failed", error, {
+    logger.error("Backup cleanup failed", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res.status(500).json({
@@ -342,7 +343,7 @@ router.get("/health", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Backup health check failed", error);
+    logger.error("Backup health check failed", toLoggableError(error));
     return res.status(500).json({
       success: false,
       error: "Backup health check failed",

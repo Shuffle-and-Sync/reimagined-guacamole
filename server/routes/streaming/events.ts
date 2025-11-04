@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { insertCollaborativeStreamEventSchema } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -42,7 +43,7 @@ router.post(
       });
       return res.status(201).json(event);
     } catch (error) {
-      logger.error("Failed to create collaborative stream event", error, {
+      logger.error("Failed to create collaborative stream event", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
       return res
@@ -60,7 +61,7 @@ router.get("/", isAuthenticated, async (req, res) => {
     const events = await storage.getUserCollaborativeStreamEvents(userId);
     return res.json(events);
   } catch (error) {
-    logger.error("Failed to get collaborative stream events", error, {
+    logger.error("Failed to get collaborative stream events", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
     return res
@@ -89,7 +90,7 @@ router.get(
 
       return res.json(event);
     } catch (error) {
-      logger.error("Failed to get collaborative stream event", error, {
+      logger.error("Failed to get collaborative stream event", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });
@@ -131,7 +132,7 @@ router.patch(
       );
       return res.json(updatedEvent);
     } catch (error) {
-      logger.error("Failed to update collaborative stream event", error, {
+      logger.error("Failed to update collaborative stream event", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });
@@ -171,7 +172,7 @@ router.delete(
         message: "Collaborative stream event deleted successfully",
       });
     } catch (error) {
-      logger.error("Failed to delete collaborative stream event", error, {
+      logger.error("Failed to delete collaborative stream event", toLoggableError(error), {
         eventId: req.params.eventId,
         userId: getAuthUserId(authenticatedReq),
       });

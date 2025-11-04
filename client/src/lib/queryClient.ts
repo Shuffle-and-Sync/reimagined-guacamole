@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 async function throwIfResNotOk(res: Response) {
@@ -75,7 +76,7 @@ export const queryClient = new QueryClient({
         return failureCount < 2;
       },
       onError: (error) => {
-        logger.error("Mutation error", error);
+        logger.error("Mutation error", toLoggableError(error));
       },
     },
   },

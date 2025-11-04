@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import { DEFAULT_EVENT_DURATION_MS } from "./events.constants";
@@ -160,7 +161,7 @@ export class ConflictDetectionService {
     } catch (error) {
       logger.error(
         "Failed to check event conflicts",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           startTime: params.startTime.toISOString(),
           endTime: params.endTime?.toISOString(),
@@ -191,7 +192,7 @@ export class ConflictDetectionService {
     } catch (error) {
       logger.error(
         "Failed to check user availability",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, startTime, endTime },
       );
       throw error;

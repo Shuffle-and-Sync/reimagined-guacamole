@@ -1,4 +1,5 @@
 import type { Community, UserCommunity, ThemePreference } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import { storage } from "../../storage";
 import type { ThemePreferencesRequest } from "./communities.types";
@@ -26,7 +27,7 @@ export class CommunitiesService {
     } catch (error) {
       logger.error(
         "Failed to fetch community in CommunitiesService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           id,
         },
@@ -57,7 +58,7 @@ export class CommunitiesService {
     } catch (error) {
       logger.error(
         "Failed to join community in CommunitiesService",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId,
           communityId,

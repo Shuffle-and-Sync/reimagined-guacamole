@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { isAuthenticated, getAuthUserId } from "../auth";
 import { logger } from "../logger";
 import { generalRateLimit } from "../rate-limiting";
@@ -194,7 +195,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error checking system status",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "system_status_check",
@@ -312,7 +313,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error verifying admin account",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "admin_verification",
@@ -372,7 +373,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching users",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetch_users",
@@ -419,7 +420,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching user details",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_user_details",
@@ -464,7 +465,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error updating user",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "updating_user",
@@ -493,7 +494,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching user roles",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_user_roles",
@@ -549,7 +550,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error assigning role",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "assigning_role",
@@ -576,7 +577,7 @@ router.delete(
     } catch (error) {
       logger.error(
         "Error revoking role",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "revoking_role",
@@ -630,7 +631,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching user details",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_user_details",
@@ -680,7 +681,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching user notes",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_user_notes",
@@ -748,7 +749,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error adding user note",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "adding_user_note",
@@ -868,7 +869,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error performing user action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "performing_user_action",
@@ -922,7 +923,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching user activity",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_user_activity",
@@ -955,7 +956,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching content reports",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_content_reports",
@@ -986,7 +987,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching content report",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_content_report",
@@ -1014,7 +1015,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error assigning content report",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "assigning_content_report",
@@ -1048,7 +1049,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error resolving content report",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "resolving_content_report",
@@ -1083,7 +1084,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_actions",
@@ -1115,7 +1116,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error creating moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "creating_moderation_action",
@@ -1148,7 +1149,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error reversing moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "reversing_moderation_action",
@@ -1198,7 +1199,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching active moderation actions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_active_moderation_actions",
@@ -1254,7 +1255,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation history",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_history",
@@ -1324,7 +1325,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error reversing moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "reversing_moderation_action",
@@ -1374,7 +1375,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation action",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_action",
@@ -1419,7 +1420,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderation queue",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderation_queue",
@@ -1447,7 +1448,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error assigning queue item",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "assigning_queue_item",
@@ -1488,7 +1489,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error completing queue item",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "completing_queue_item",
@@ -1512,7 +1513,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching queue stats",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_queue_stats",
@@ -1547,7 +1548,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error auto-assigning queue items",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "auto-assigning_queue_items",
@@ -1588,7 +1589,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error bulk assigning queue items",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "bulk_assigning_queue_items",
@@ -1617,7 +1618,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching moderator workload",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_moderator_workload",
@@ -1655,7 +1656,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error escalating overdue items",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "escalating_overdue_items",
@@ -1695,7 +1696,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error updating queue priority",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "updating_queue_priority",
@@ -1728,7 +1729,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching appeals",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_appeals",
@@ -1756,7 +1757,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error assigning appeal",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "assigning_appeal",
@@ -1790,7 +1791,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error resolving appeal",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "resolving_appeal",
@@ -1824,7 +1825,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching audit logs",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_audit_logs",
@@ -1860,7 +1861,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching CMS content",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_cms_content",
@@ -1893,7 +1894,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error creating CMS content",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "creating_cms_content",
@@ -1925,7 +1926,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error updating CMS content",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "updating_cms_content",
@@ -1953,7 +1954,7 @@ router.patch(
     } catch (error) {
       logger.error(
         "Error publishing CMS content",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "publishing_cms_content",
@@ -2002,7 +2003,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching dashboard stats",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_dashboard_stats",
@@ -2035,7 +2036,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Error fetching cache stats",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "fetching_cache_stats",
@@ -2077,7 +2078,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Error invalidating cache",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(req),
           operation: "invalidating_cache",

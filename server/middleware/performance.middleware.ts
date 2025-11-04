@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { DatabaseMonitor } from "@shared/database-unified";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { AuthenticatedRequest } from "../types";
 
@@ -433,7 +434,7 @@ export function createHealthCheckEndpoint() {
 
       res.json(health);
     } catch (error) {
-      logger.error("Health check failed", error);
+      logger.error("Health check failed", toLoggableError(error));
       res.status(503).json({
         status: "unhealthy",
         timestamp: new Date().toISOString(),
@@ -467,7 +468,7 @@ export function createMetricsEndpoint() {
 
       res.json(metrics);
     } catch (error) {
-      logger.error("Failed to get metrics", error);
+      logger.error("Failed to get metrics", toLoggableError(error));
       res.status(500).json({ error: "Failed to get metrics" });
     }
   };

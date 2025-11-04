@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { cacheService } from "./cache-service";
@@ -336,7 +337,7 @@ export class StreamingCoordinator {
     } catch (error) {
       logger.error(
         "Error checking user streaming status:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return { isStreaming: false };
     }
@@ -496,7 +497,7 @@ export class StreamingCoordinator {
         } catch (error) {
           logger.error(
             "Error setting up Twitch webhooks:",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         }
       }
@@ -519,7 +520,7 @@ export class StreamingCoordinator {
         } catch (error) {
           logger.error(
             "Error setting up YouTube webhooks:",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         }
       }
@@ -553,7 +554,7 @@ export class StreamingCoordinator {
         } catch (error) {
           logger.error(
             "Error setting up Facebook webhooks:",
-            error instanceof Error ? error : new Error(String(error)),
+            toLoggableError(error),
           );
         }
       }
@@ -562,7 +563,7 @@ export class StreamingCoordinator {
     } catch (error) {
       logger.error(
         "Error setting up platform webhooks:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
       return false;
     }
@@ -628,7 +629,7 @@ export class StreamingCoordinator {
     } catch (error) {
       logger.error(
         "Error handling YouTube event:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     }
   }
@@ -654,7 +655,7 @@ export class StreamingCoordinator {
     } catch (error) {
       logger.error(
         "Error handling Facebook event:",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
       );
     }
   }

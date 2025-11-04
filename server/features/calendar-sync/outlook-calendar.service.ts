@@ -1,5 +1,6 @@
 import { ClientSecretCredential } from "@azure/identity";
 import { Client } from "@microsoft/microsoft-graph-client";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 import type {
   CalendarConnection,
@@ -49,7 +50,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to refresh Outlook access token",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -69,7 +70,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to list Outlook calendars",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -113,7 +114,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to fetch Outlook Calendar events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -157,7 +158,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to create Outlook Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id },
       );
       throw error;
@@ -204,7 +205,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to update Outlook Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id, eventId },
       );
       throw error;
@@ -224,7 +225,7 @@ export class OutlookCalendarService {
     } catch (error) {
       logger.error(
         "Failed to delete Outlook Calendar event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { connectionId: connection.id, eventId },
       );
       throw error;

@@ -5,6 +5,7 @@
  * Handles broadcasting tournament events to connected clients
  */
 
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import type { ExtendedWebSocket } from "./websocket-connection-manager";
 
@@ -175,7 +176,7 @@ export class TournamentRoomManager {
       } catch (error) {
         logger.error(
           "Failed to send tournament broadcast to connection",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { tournamentId, userId: ws.userId },
         );
         failureCount++;
@@ -222,7 +223,7 @@ export class TournamentRoomManager {
       } catch (error) {
         logger.error(
           "Failed to send match broadcast to connection",
-          error instanceof Error ? error : new Error(String(error)),
+          toLoggableError(error),
           { tournamentId, matchId, userId: ws.userId },
         );
         matchRoom.delete(ws);

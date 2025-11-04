@@ -1,3 +1,4 @@
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { enhancedNotificationService } from "./enhanced-notifications";
@@ -83,7 +84,7 @@ export class WaitlistService {
     } catch (error) {
       logger.error(
         "Failed to join event with waitlist",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -146,7 +147,7 @@ export class WaitlistService {
     } catch (error) {
       logger.error(
         "Failed to promote from waitlist",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       throw error;
@@ -172,7 +173,7 @@ export class WaitlistService {
     } catch (error) {
       logger.error(
         "Failed to get waitlist position",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId,
           userId,
@@ -204,7 +205,7 @@ export class WaitlistService {
     } catch (error) {
       logger.error(
         "Failed to get waitlist",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId },
       );
       return [];

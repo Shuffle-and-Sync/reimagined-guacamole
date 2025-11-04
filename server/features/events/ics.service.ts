@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { EventAttributes, createEvent, createEvents } from "ics";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 
 interface ShuffleEvent {
@@ -74,7 +75,7 @@ export class ICSService {
     } catch (error) {
       logger.error(
         "Failed to generate ICS for single event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: event.id },
       );
       throw error;
@@ -96,7 +97,7 @@ export class ICSService {
     } catch (error) {
       logger.error(
         "Failed to generate ICS for multiple events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventCount: events.length },
       );
       throw error;

@@ -8,6 +8,7 @@
 import { eq, and, or, isNull, gt } from "drizzle-orm";
 import { db } from "@shared/database-unified";
 import { userBans, type UserBan, type InsertUserBan } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
 
 export class BanService {
@@ -60,7 +61,7 @@ export class BanService {
     } catch (error) {
       logger.error(
         "Error checking ban status",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId, scope, scopeId },
       );
       // Fail open to avoid blocking legitimate users on database errors
@@ -97,7 +98,7 @@ export class BanService {
     } catch (error) {
       logger.error(
         "Error creating ban",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId: ban.userId },
       );
       throw error;
@@ -138,7 +139,7 @@ export class BanService {
     } catch (error) {
       logger.error(
         "Error lifting ban",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { banId, liftedBy },
       );
       throw error;
@@ -157,7 +158,7 @@ export class BanService {
     } catch (error) {
       logger.error(
         "Error getting user bans",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId },
       );
       return [];
@@ -188,7 +189,7 @@ export class BanService {
     } catch (error) {
       logger.error(
         "Error getting scoped bans",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { scope, scopeId },
       );
       return [];

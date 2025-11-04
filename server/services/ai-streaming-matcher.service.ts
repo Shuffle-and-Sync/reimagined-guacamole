@@ -1,4 +1,5 @@
 import type { User } from "@shared/schema";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { facebookAPI } from "./facebook-api";
@@ -230,7 +231,7 @@ export class AIStreamingMatcher {
 
       return rankedMatches;
     } catch (error) {
-      logger.error("AI streaming partner matching failed", error, {
+      logger.error("AI streaming partner matching failed", toLoggableError(error), {
         userId: criteria.userId,
         criteria,
       });
@@ -303,7 +304,7 @@ export class AIStreamingMatcher {
 
       return profile;
     } catch (error) {
-      logger.error("Failed to get streamer profile", error, { userId });
+      logger.error("Failed to get streamer profile", toLoggableError(error), { userId });
       return null;
     }
   }
@@ -385,7 +386,7 @@ export class AIStreamingMatcher {
         });
       }
     } catch (error) {
-      logger.error("Failed to get connected platforms", error, {
+      logger.error("Failed to get connected platforms", toLoggableError(error), {
         userId,
         username,
       });
@@ -427,7 +428,7 @@ export class AIStreamingMatcher {
 
       return candidates;
     } catch (error) {
-      logger.error("Failed to get streaming candidates", error, {
+      logger.error("Failed to get streaming candidates", toLoggableError(error), {
         userId: criteria.userId,
       });
       return [];
@@ -530,7 +531,7 @@ export class AIStreamingMatcher {
           matches.push(match);
         }
       } catch (error) {
-        logger.error("Failed to calculate compatibility for candidate", error, {
+        logger.error("Failed to calculate compatibility for candidate", toLoggableError(error), {
           userId: userProfile.id,
           candidateId: candidate.id,
         });
@@ -997,7 +998,7 @@ export class AIStreamingMatcher {
         noShowRate: 5, // 5% no-show rate
       };
     } catch (error) {
-      logger.error("Failed to get collaboration history", error, { userId });
+      logger.error("Failed to get collaboration history", toLoggableError(error), { userId });
       return {
         totalCollaborations: 0,
         successfulCollaborations: 0,

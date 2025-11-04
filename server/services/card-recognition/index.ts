@@ -6,6 +6,7 @@
  */
 
 import { eq } from "drizzle-orm";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { db } from "../../../shared/database-unified";
 import { games } from "../../../shared/schema";
 import { logger } from "../../logger";
@@ -180,7 +181,7 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.searchCards(query, options);
     } catch (error) {
-      logger.error("Universal card search failed", error, {
+      logger.error("Universal card search failed", toLoggableError(error), {
         gameId,
         query,
         options,
@@ -197,7 +198,7 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.getCardById(id);
     } catch (error) {
-      logger.error("Universal getCardById failed", error, { gameId, id });
+      logger.error("Universal getCardById failed", toLoggableError(error), { gameId, id });
       throw error;
     }
   }
@@ -214,7 +215,7 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.getCardByName(name, options);
     } catch (error) {
-      logger.error("Universal getCardByName failed", error, {
+      logger.error("Universal getCardByName failed", toLoggableError(error), {
         gameId,
         name,
         options,
@@ -235,7 +236,7 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.autocomplete(query, limit);
     } catch (error) {
-      logger.error("Universal autocomplete failed", error, {
+      logger.error("Universal autocomplete failed", toLoggableError(error), {
         gameId,
         query,
         limit,
@@ -258,7 +259,7 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.getRandomCard(options);
     } catch (error) {
-      logger.error("Universal getRandomCard failed", error, {
+      logger.error("Universal getRandomCard failed", toLoggableError(error), {
         gameId,
         options,
       });
@@ -328,7 +329,7 @@ export class UniversalCardService {
         },
       ];
     } catch (error) {
-      logger.error("Failed to get supported games from database", error);
+      logger.error("Failed to get supported games from database", toLoggableError(error));
       // Return hardcoded list as fallback
       return [
         { id: "mtg-official", name: "Magic: The Gathering", code: "MTG" },

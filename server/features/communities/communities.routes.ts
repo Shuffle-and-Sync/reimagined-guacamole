@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -21,7 +22,7 @@ router.get("/", cacheStrategies.community(), async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch communities",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     res.status(500).json({ message: "Failed to fetch communities" });
   }
@@ -46,7 +47,7 @@ router.get("/:id", cacheStrategies.community(), async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch community",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { id: req.params.id },
     );
     return res.status(500).json({ message: "Failed to fetch community" });
@@ -85,7 +86,7 @@ userCommunitiesRouter.post(
 
       logger.error(
         "Failed to join community",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           communityId: req.params.communityId,
@@ -115,7 +116,7 @@ userCommunitiesRouter.post(
     } catch (error) {
       logger.error(
         "Failed to set primary community",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           communityId: req.params.communityId,
@@ -142,7 +143,7 @@ themePreferencesRouter.get("/", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch theme preferences",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },
@@ -168,7 +169,7 @@ themePreferencesRouter.post("/", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to update theme preferences",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },

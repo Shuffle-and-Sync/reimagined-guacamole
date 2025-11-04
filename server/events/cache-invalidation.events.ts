@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { advancedCache } from "../services/advanced-cache.service";
 
@@ -31,7 +32,7 @@ class CacheInvalidationEmitter extends EventEmitter {
           });
         }
       } catch (error) {
-        logger.error("Error invalidating cache", error as Error, { event });
+        logger.error("Error invalidating cache", toLoggableError(error), { event });
       }
     });
 
@@ -45,7 +46,7 @@ class CacheInvalidationEmitter extends EventEmitter {
           });
         }
       } catch (error) {
-        logger.error("Error invalidating cache pattern", error as Error, {
+        logger.error("Error invalidating cache pattern", toLoggableError(error), {
           event,
         });
       }

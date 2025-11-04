@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { Router } from "express";
+import { toLoggableError } from "@shared/utils/type-guards";
 import {
   isAuthenticated,
   getAuthUserId,
@@ -71,7 +72,7 @@ router.get("/", cacheStrategies.events(), async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch events",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { filters: req.query },
     );
     res.status(500).json({ message: "Failed to fetch events" });
@@ -93,7 +94,7 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch event",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { eventId: req.params.id },
     );
     return res.status(500).json({ message: "Failed to fetch event" });
@@ -126,7 +127,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to check conflicts",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -179,7 +180,7 @@ router.post(
 
       logger.error(
         "Failed to create event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -223,7 +224,7 @@ router.put(
 
       logger.error(
         "Failed to update event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.id },
       );
       return res.status(500).json({ message: "Failed to update event" });
@@ -257,7 +258,7 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
 
     logger.error(
       "Failed to delete event",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { eventId: req.params.id },
     );
     return res.status(500).json({ message: "Failed to delete event" });
@@ -303,7 +304,7 @@ router.patch(
 
       logger.error(
         "Failed to update event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.id },
       );
       return res.status(500).json({ message: "Failed to update event" });
@@ -346,7 +347,7 @@ router.post(
       }
       logger.error(
         "Failed to reschedule event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           eventId: req.params.id,
@@ -389,7 +390,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to detect conflicts",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -425,7 +426,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Batch update failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -468,7 +469,7 @@ router.delete(
       }
       logger.error(
         "Failed to delete recurring series",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
           parentEventId: req.params.parentEventId,
@@ -502,7 +503,7 @@ router.post(
 
       logger.error(
         "Failed to join event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: req.params.eventId,
         },
@@ -527,7 +528,7 @@ router.delete("/:eventId/leave", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to leave event",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         eventId: req.params.eventId,
       },
@@ -545,7 +546,7 @@ router.get("/:eventId/attendees", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch event attendees",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         eventId: req.params.eventId,
       },
@@ -578,7 +579,7 @@ router.post(
 
       logger.error(
         "Failed to create bulk events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -605,7 +606,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to create recurring events",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           userId: getAuthUserId(authenticatedReq),
         },
@@ -648,7 +649,7 @@ router.get("/:id/export/ics", eventReadRateLimit, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to export event as ICS",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       { eventId: req.params.id },
     );
     res.status(500).json({ message: "Internal server error" });
@@ -696,7 +697,7 @@ router.post("/export/ics", eventReadRateLimit, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to export events as ICS",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
     );
     res.status(500).json({ message: "Internal server error" });
   }
@@ -718,7 +719,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Failed to get slot availability",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId },
       );
       res.status(500).json({ message: "Failed to get slot availability" });
@@ -738,7 +739,7 @@ router.get(
     } catch (error) {
       logger.error(
         "Failed to get slot assignments",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId },
       );
       res.status(500).json({ message: "Failed to get slot assignments" });
@@ -770,7 +771,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to assign player slot",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId },
       );
       const errorMessage =
@@ -802,7 +803,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to assign alternate slot",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId },
       );
       const errorMessage =
@@ -840,7 +841,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to promote alternate",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId, slotPosition: req.params.slotPosition },
       );
       const errorMessage =
@@ -877,7 +878,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to swap player positions",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId },
       );
       const errorMessage =
@@ -917,7 +918,7 @@ router.delete(
     } catch (error) {
       logger.error(
         "Failed to remove player slot",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { eventId: req.params.eventId, userId: req.params.userId },
       );
       const errorMessage =
@@ -941,7 +942,7 @@ userEventsRouter.get("/", isAuthenticated, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch user events",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         userId: getAuthUserId(authenticatedReq),
       },
@@ -977,7 +978,7 @@ calendarEventsRouter.get("/", eventReadRateLimit, async (req, res) => {
 
     logger.error(
       "Failed to fetch calendar events",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         filters: req.query,
       },
@@ -1014,7 +1015,7 @@ calendarEventsRouter.get("/timezone/:timezone", async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to fetch events in timezone",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         timezone: req.params.timezone,
         filters: req.query,
@@ -1086,7 +1087,7 @@ calendarEventsRouter.get(
     } catch (error) {
       logger.error(
         "Failed to export calendar",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         { userId: getAuthUserId(authenticatedReq) },
       );
       res.status(500).json({ message: "Internal server error" });
@@ -1132,7 +1133,7 @@ router.post(
 
       logger.error(
         "Failed to register for event",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: req.params.eventId,
           userId: getAuthUserId(authenticatedReq),
@@ -1173,7 +1174,7 @@ router.delete(
 
       logger.error(
         "Failed to cancel registration",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: req.params.eventId,
           userId: getAuthUserId(authenticatedReq),
@@ -1201,7 +1202,7 @@ router.get("/:eventId/capacity", eventReadRateLimit, async (req, res) => {
 
     logger.error(
       "Failed to get event capacity",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         eventId: req.params.eventId,
       },
@@ -1223,7 +1224,7 @@ router.get("/:eventId/waitlist", eventReadRateLimit, async (req, res) => {
   } catch (error) {
     logger.error(
       "Failed to get event waitlist",
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       {
         eventId: req.params.eventId,
       },
@@ -1266,7 +1267,7 @@ router.post(
     } catch (error) {
       logger.error(
         "Failed to promote from waitlist",
-        error instanceof Error ? error : new Error(String(error)),
+        toLoggableError(error),
         {
           eventId: req.params.eventId,
         },
