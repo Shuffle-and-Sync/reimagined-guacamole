@@ -49,6 +49,29 @@ export function useWebSocket(options: UseWebSocketOptions) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const messageQueueRef = useRef<ClientToServerMessage[]>([]);
 
+  // Store callbacks in refs to avoid recreating connection when they change
+  const onConnectRef = useRef(onConnect);
+  const onMessageRef = useRef(onMessage);
+  const onDisconnectRef = useRef(onDisconnect);
+  const onErrorRef = useRef(onError);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onConnectRef.current = onConnect;
+  }, [onConnect]);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
+
+  useEffect(() => {
+    onDisconnectRef.current = onDisconnect;
+  }, [onDisconnect]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
   const connect = useCallback(() => {
     try {
       const ws = new WebSocket(url);
@@ -62,7 +85,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
           error: null,
         }));
         reconnectAttemptsRef.current = 0;
-        onConnect?.();
+        onConnectRef.current?.();
 
         // Send queued messages
         while (messageQueueRef.current.length > 0) {
@@ -77,7 +100,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
         try {
           const message = JSON.parse(event.data) as ServerToClientMessage;
           setState((prev) => ({ ...prev, lastMessage: message }));
-          onMessage?.(message);
+          onMessageRef.current?.(message);
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
         }
@@ -86,7 +109,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
       ws.onerror = (event) => {
         console.error("WebSocket error:", event);
         setState((prev) => ({ ...prev, error: new Error("WebSocket error") }));
-        onError?.(event);
+        onErrorRef.current?.(event);
       };
 
       ws.onclose = () => {
@@ -95,7 +118,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
           ...prev,
           isConnected: false,
         }));
-        onDisconnect?.();
+        onDisconnectRef.current?.();
 
         if (reconnect && reconnectAttemptsRef.current < reconnectAttempts) {
           reconnectAttemptsRef.current++;
@@ -114,16 +137,9 @@ export function useWebSocket(options: UseWebSocketOptions) {
         error: error as Error,
       }));
     }
-  }, [
-    url,
-    onConnect,
-    onMessage,
-    onDisconnect,
-    onError,
-    reconnect,
-    reconnectInterval,
-    reconnectAttempts,
-  ]);
+    // Callbacks are now in refs and not included in dependencies
+     
+  }, [url, reconnect, reconnectInterval, reconnectAttempts]);
 
   const sendMessage = useCallback((message: ClientToServerMessage) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {

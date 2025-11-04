@@ -500,17 +500,12 @@ export class WebSocketMessageValidator {
     code?: string,
     details?: unknown,
   ): OutgoingWebSocketMessage {
-    const message: OutgoingWebSocketMessage = {
+    return {
       type: "error",
       message: error,
-    };
-    if (code) {
-      (message as { code?: string }).code = code;
-    }
-    if (details) {
-      (message as { details?: unknown }).details = details;
-    }
-    return message;
+      ...(code && { code }),
+      ...(details !== undefined && { details }),
+    } as OutgoingWebSocketMessage;
   }
 
   /**
@@ -535,14 +530,11 @@ export class WebSocketMessageValidator {
     reason: string,
     expiry?: number,
   ): OutgoingWebSocketMessage {
-    const message: OutgoingWebSocketMessage = {
+    return {
       type: "auth_required",
       reason,
-    };
-    if (expiry !== undefined) {
-      (message as { expiry?: number }).expiry = expiry;
-    }
-    return message;
+      ...(expiry !== undefined && { expiry }),
+    } as OutgoingWebSocketMessage;
   }
 }
 
