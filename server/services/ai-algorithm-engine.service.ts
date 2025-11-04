@@ -1499,7 +1499,9 @@ export class AIAlgorithmEngine {
 
   /**
    * Load adaptive weights from persistent storage
+   * Reserved for future use - currently using default weights
    */
+  /*
   private async loadAdaptiveWeights(): Promise<void> {
     try {
       // In production, this would load from database or storage service
@@ -1517,6 +1519,7 @@ export class AIAlgorithmEngine {
       });
     }
   }
+  */
 
   /**
    * Get current algorithm configuration

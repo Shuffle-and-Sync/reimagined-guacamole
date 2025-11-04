@@ -18,11 +18,7 @@ import {
   errorHandlingMiddleware,
   errors,
 } from "./middleware/error-handling.middleware";
-import {
-  generalRateLimit,
-  messageRateLimit,
-  eventCreationRateLimit,
-} from "./rate-limiting";
+import { generalRateLimit, eventCreationRateLimit } from "./rate-limiting";
 import analyticsRouter from "./routes/analytics";
 import backupRouter from "./routes/backup";
 import cacheHealthRouter from "./routes/cache-health";
@@ -63,15 +59,8 @@ import {
   validateQuery,
   validateParamsWithSchema,
   securityHeaders,
-  validateUserProfileUpdateSchema,
   validateEventSchema,
-  validateSocialLinksSchema,
-  validateJoinCommunitySchema,
-  validateJoinEventSchema,
-  validateMessageSchema,
-  validateGameSessionSchema,
   uuidParamSchema,
-  eventParamSchema,
   _userParamSchema,
   _communityParamSchema,
   paginationQuerySchema,
@@ -80,15 +69,7 @@ import {
 import type { Express } from "express";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const {
-  _AppError,
-  _ValidationError,
-  _AuthenticationError,
-  _AuthorizationError,
-  NotFoundError,
-  ConflictError,
-  _DatabaseError,
-} = errors;
+const { NotFoundError, ConflictError } = errors;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers middleware
@@ -441,16 +422,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/communities/:id", async (req, res) => {
+  app.get("/api/communities/:id", async (_req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = _req.params;
       const community = await storage.getCommunity(id);
       if (!community) {
         return res.status(404).json({ message: "Community not found" });
       }
       return res.json(community);
     } catch (error) {
-      logger.error("Failed to fetch community", error, { id: req.params.id });
+      logger.error("Failed to fetch community", error, { id: _req.params.id });
       return res.status(500).json({ message: "Failed to fetch community" });
     }
   });
@@ -871,7 +852,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/graphics/generate",
     isAuthenticated,
     async (req: AuthenticatedRequest, res) => {
-      const _authenticatedReq = req as AuthenticatedRequest;
       try {
         const { eventId, template = "modern", includeQR = true } = req.body;
 
@@ -971,7 +951,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/notifications/:id/read",
     isAuthenticated,
     async (req: AuthenticatedRequest, res) => {
-      const _authenticatedReq = req as AuthenticatedRequest;
       try {
         const { id } = req.params;
         await storage.markNotificationAsRead(id);
