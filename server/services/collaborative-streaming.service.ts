@@ -758,7 +758,7 @@ export class CollaborativeStreamingService {
                 } catch (error) {
                   logger.error(
                     "Failed to sync Facebook live video status",
-                    error,
+                    toLoggableError(error),
                     { eventId },
                   );
                   platformResults.facebook = {

@@ -80,7 +80,7 @@ export class MessagingService {
     } catch (error) {
       logger.error(
         "Failed to mark notification as read in MessagingService",
-        error,
+        toLoggableError(error),
         { notificationId },
       );
       throw error;
@@ -94,7 +94,7 @@ export class MessagingService {
     } catch (error) {
       logger.error(
         "Failed to mark all notifications as read in MessagingService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;

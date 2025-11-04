@@ -983,7 +983,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error unsubscribing from YouTube channel notifications",
-        error,
+        toLoggableError(error),
       );
       return false;
     }

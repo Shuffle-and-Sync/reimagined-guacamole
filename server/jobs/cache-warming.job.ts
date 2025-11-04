@@ -171,13 +171,13 @@ export function scheduleCacheWarming(
 
   // Warm cache immediately on startup
   warmCache().catch((error) => {
-    logger.error("Initial cache warming failed", error);
+    logger.error("Initial cache warming failed", toLoggableError(error));
   });
 
   // Schedule periodic warming
   return setInterval(() => {
     warmCache().catch((error) => {
-      logger.error("Scheduled cache warming failed", error);
+      logger.error("Scheduled cache warming failed", toLoggableError(error));
     });
   }, intervalMs);
 }

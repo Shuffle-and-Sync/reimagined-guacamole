@@ -393,7 +393,10 @@ export async function executeWithRetry<T>(
     }
   }
 
-  logger.error("Database operation failed after all retries", lastError);
+  logger.error(
+    "Database operation failed after all retries",
+    toLoggableError(lastError),
+  );
   throw new DatabaseError(
     `Operation failed after ${maxRetries} attempts: ${lastError.message}`,
   );

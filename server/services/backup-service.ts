@@ -835,7 +835,7 @@ class BackupService {
   ): Promise<void> {
     if (this.config.notificationChannels.length === 0) return;
 
-    logger.error("Backup failure notification sent", error, {
+    logger.error("Backup failure notification sent", toLoggableError(error), {
       backupId: metadata.id,
       channels: this.config.notificationChannels,
     });

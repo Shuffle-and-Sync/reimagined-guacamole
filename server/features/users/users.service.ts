@@ -336,7 +336,7 @@ export class UsersService {
     } catch (error) {
       logger.error(
         "Failed to respond to friend request in UsersService",
-        error,
+        toLoggableError(error),
         { userId, requestId },
       );
       throw error;
@@ -372,7 +372,7 @@ export class UsersService {
     } catch (error) {
       logger.error(
         "Failed to fetch matchmaking preferences in UsersService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -397,7 +397,7 @@ export class UsersService {
     } catch (error) {
       logger.error(
         "Failed to update matchmaking preferences in UsersService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;

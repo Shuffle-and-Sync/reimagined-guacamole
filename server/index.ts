@@ -950,6 +950,9 @@ server.listen(
     logger.warn("Failed to start memory monitoring", toLoggableError(error));
   }
 })().catch((error) => {
-  logger.error("Fatal error during server initialization", error);
+  logger.error(
+    "Fatal error during server initialization",
+    toLoggableError(error),
+  );
   process.exit(1);
 });

@@ -542,7 +542,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to create recurring events in EventsService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;
