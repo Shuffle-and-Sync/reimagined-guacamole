@@ -8,6 +8,7 @@
 // TODO: Re-enable when cards table is added to schema
 // import { cards } from '../../../../shared/schema';
 
+import type { Card } from "@shared/schema";
 import type {
   ICardAdapter,
   UniversalCard,
@@ -25,7 +26,7 @@ export class CustomGameAdapter implements ICardAdapter {
   /**
    * Transform database card to universal format
    */
-  private transformToUniversal(dbCard: unknown): UniversalCard {
+  private transformToUniversal(dbCard: Card): UniversalCard {
     return {
       id: dbCard.id,
       gameId: dbCard.gameId,

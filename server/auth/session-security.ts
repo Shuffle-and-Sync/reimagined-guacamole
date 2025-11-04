@@ -28,6 +28,12 @@ export interface SessionSecurityContext {
   timestamp: Date;
 }
 
+export interface HistoricalContext {
+  accountAge: number;
+  mfaEnabled: boolean;
+  recentFailures: number;
+}
+
 export interface SecurityRiskAssessment {
   riskScore: number; // 0.0 (safe) to 1.0 (high risk)
   riskFactors: string[];
@@ -589,7 +595,7 @@ export class SessionSecurityService {
   private async calculateTrustScore(
     userId: string,
     deviceHash: string,
-    historicalContext: unknown,
+    historicalContext: HistoricalContext,
   ): Promise<number> {
     try {
       let trustScore = 0.5; // Start with neutral trust
