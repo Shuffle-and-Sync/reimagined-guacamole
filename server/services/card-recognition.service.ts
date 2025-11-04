@@ -8,6 +8,44 @@
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
+// Scryfall API response interface
+interface ScryfallCardData {
+  id: string;
+  oracle_id?: string;
+  name: string;
+  mana_cost?: string;
+  cmc?: number;
+  type_line: string;
+  oracle_text?: string;
+  power?: string;
+  toughness?: string;
+  loyalty?: string;
+  colors?: string[];
+  color_identity?: string[];
+  set: string;
+  set_name: string;
+  collector_number: string;
+  rarity: string;
+  image_uris?: {
+    small?: string;
+    normal?: string;
+    large?: string;
+    png?: string;
+    art_crop?: string;
+    border_crop?: string;
+  };
+  prices?: {
+    usd?: string;
+    usd_foil?: string;
+    eur?: string;
+    eur_foil?: string;
+    tix?: string;
+  };
+  legalities?: Record<string, string>;
+  released_at?: string;
+  scryfall_uri?: string;
+}
+
 // Card data interface based on Scryfall API structure
 export interface MtgCard {
   id: string;
@@ -115,7 +153,7 @@ export class CardRecognitionService {
       const data = await response.json();
 
       // Transform Scryfall data to our format
-      const cards: MtgCard[] = data.data.map((card: unknown) =>
+      const cards: MtgCard[] = (data.data as ScryfallCardData[]).map((card) =>
         this.transformScryfallCard(card),
       );
 
@@ -129,7 +167,10 @@ export class CardRecognitionService {
         hasMore: data.has_more || false,
       };
     } catch (error) {
-      logger.error("Error searching cards", toLoggableError(error), { query, options });
+      logger.error("Error searching cards", toLoggableError(error), {
+        query,
+        options,
+      });
       throw error;
     }
   }
@@ -154,7 +195,7 @@ export class CardRecognitionService {
       }
 
       const data = await response.json();
-      const card = this.transformScryfallCard(data);
+      const card = this.transformScryfallCard(data as ScryfallCardData);
 
       // Cache the result
       this.cacheCard(card);
@@ -193,14 +234,17 @@ export class CardRecognitionService {
       }
 
       const data = await response.json();
-      const card = this.transformScryfallCard(data);
+      const card = this.transformScryfallCard(data as ScryfallCardData);
 
       // Cache the result
       this.cacheCard(card);
 
       return card;
     } catch (error) {
-      logger.error("Error fetching card by name", toLoggableError(error), { name, options });
+      logger.error("Error fetching card by name", toLoggableError(error), {
+        name,
+        options,
+      });
       throw error;
     }
   }
@@ -235,7 +279,9 @@ export class CardRecognitionService {
           .map((name: string) => ({ name })),
       };
     } catch (error) {
-      logger.error("Error autocompleting card names", toLoggableError(error), { query });
+      logger.error("Error autocompleting card names", toLoggableError(error), {
+        query,
+      });
       throw error;
     }
   }
@@ -265,9 +311,11 @@ export class CardRecognitionService {
       }
 
       const data = await response.json();
-      return this.transformScryfallCard(data);
+      return this.transformScryfallCard(data as ScryfallCardData);
     } catch (error) {
-      logger.error("Error fetching random card", toLoggableError(error), { options });
+      logger.error("Error fetching random card", toLoggableError(error), {
+        options,
+      });
       throw error;
     }
   }
@@ -275,7 +323,7 @@ export class CardRecognitionService {
   /**
    * Transform Scryfall API response to our card format
    */
-  private transformScryfallCard(scryfallCard: unknown): MtgCard {
+  private transformScryfallCard(scryfallCard: ScryfallCardData): MtgCard {
     return {
       id: scryfallCard.id,
       oracleId: scryfallCard.oracle_id,
