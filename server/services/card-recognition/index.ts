@@ -35,7 +35,6 @@ export class UniversalCardService {
     string,
     { code: string; name: string; isActive: boolean }
   >();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     // Register official game adapters by their legacy IDs for backward compatibility
@@ -198,7 +197,10 @@ export class UniversalCardService {
       const adapter = await this.getAdapter(gameId);
       return await adapter.getCardById(id);
     } catch (error) {
-      logger.error("Universal getCardById failed", toLoggableError(error), { gameId, id });
+      logger.error("Universal getCardById failed", toLoggableError(error), {
+        gameId,
+        id,
+      });
       throw error;
     }
   }
@@ -329,7 +331,10 @@ export class UniversalCardService {
         },
       ];
     } catch (error) {
-      logger.error("Failed to get supported games from database", toLoggableError(error));
+      logger.error(
+        "Failed to get supported games from database",
+        toLoggableError(error),
+      );
       // Return hardcoded list as fallback
       return [
         { id: "mtg-official", name: "Magic: The Gathering", code: "MTG" },

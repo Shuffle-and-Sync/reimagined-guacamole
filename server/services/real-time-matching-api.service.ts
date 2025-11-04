@@ -7,7 +7,10 @@
 
 import { logger } from "../logger";
 import { aiAlgorithmEngine } from "./ai";
-import { aiStreamingMatcher, type StreamerMatch , ConnectedPlatform } from "./ai-streaming-matcher";
+import {
+  aiStreamingMatcher,
+  type ConnectedPlatform,
+} from "./ai-streaming-matcher";
 
 // Internal match representation from AI service
 interface AIMatchResult {
@@ -1063,7 +1066,6 @@ interface PerformanceMetric {
 class MachineLearningModel {
   private outcomeHistory: Map<string, any[]> = new Map();
   private userPatterns: Map<string, any> = new Map();
-  private _collaborationSuccess: Map<string, number> = new Map();
 
   async recordOutcome(matchId: string, outcome: unknown): Promise<void> {
     const history = this.outcomeHistory.get(matchId) || [];

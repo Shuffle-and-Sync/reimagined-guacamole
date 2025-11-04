@@ -482,14 +482,9 @@ export class AnalyticsService {
 
   private async calculateCommunityMetrics(
     communityId: string,
-    date: Date,
-    hour?: number,
+    _date: Date,
+    _hour?: number,
   ): Promise<CommunityMetrics> {
-    const startTime =
-      hour !== undefined
-        ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour)
-        : new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
     // Calculate metrics for the time period
     // This would involve complex queries to aggregate data
     // For now, return mock data structure

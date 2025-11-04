@@ -1505,7 +1505,6 @@ export class DatabaseStorage implements IStorage {
       limit = 20,
       cursor,
       includeOffline = false,
-      _sortBy = "lastActiveAt",
       sortDirection = "desc",
     } = options;
 
@@ -3629,15 +3628,16 @@ export class DatabaseStorage implements IStorage {
    * 3 failures: 2 minutes
    * 4 failures: 8 minutes
    * 5+ failures: 30 minutes
+   * Unused but kept for potential future use
    */
-  private calculateLockoutSeconds(failedAttempts: number): number {
-    if (failedAttempts < 2) return 0;
-    if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
-
-    // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
-    const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
-    return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
-  }
+  // private calculateLockoutSeconds(failedAttempts: number): number {
+  //   if (failedAttempts < 2) return 0;
+  //   if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
+  //
+  //   // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
+  //   const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
+  //   return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
+  // }
 
   // Refresh token operations implementation
   async createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken> {
@@ -6460,7 +6460,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPlatformMetrics(
     metricType?: string,
-    timeWindow?: string,
+    _timeWindow?: string,
     startDate?: Date,
     endDate?: Date,
   ): Promise<PlatformMetrics[]> {

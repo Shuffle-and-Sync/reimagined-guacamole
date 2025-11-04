@@ -531,12 +531,13 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
       (c) => c.id === action.cardId,
     );
     if (cardIndex >= 0) {
-      const _card = player.zones.hand.splice(cardIndex, 1)[0];
+      const card = player.zones.hand.splice(cardIndex, 1)[0];
       state.stack.push({
         ...action,
         timestamp: new Date(),
       });
-      // Spell will resolve from stack later
+      // Spell will resolve from stack later (card moved to stack)
+      void card;
     }
   }
 
