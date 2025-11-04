@@ -136,21 +136,21 @@ import {
   type InsertEmailChangeToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
-  type _InsertFriendship,
+  type InsertFriendship,
   type InsertUserActivity,
   type InsertUserSettings,
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type UpdateTournament,
-  type _InsertTournamentParticipant,
+  type InsertTournamentParticipant,
   type InsertTournamentFormat,
   type InsertTournamentRound,
   type InsertTournamentMatch,
   type InsertMatchResult,
   type InsertForumPost,
   type InsertForumReply,
-  type _InsertForumPostLike,
-  type _InsertForumReplyLike,
+  type InsertForumPostLike,
+  type InsertForumReplyLike,
   type InsertStreamSession,
   type InsertStreamSessionCoHost,
   type InsertStreamSessionPlatform,
@@ -202,7 +202,7 @@ import {
   type UserMfaSettings,
   type InsertUserMfaSettings,
   type UserMfaAttempts,
-  type _InsertUserMfaAttempts,
+  type InsertUserMfaAttempts,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
   type MfaSecurityContext,
@@ -213,30 +213,31 @@ import {
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
-  type _InsertRevokedJwtToken,
-  type _RevokedJwtToken,
+  type InsertRevokedJwtToken,
+  type RevokedJwtToken,
 } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
-interface _ExtendedEvent extends Event {
-  date?: string;
-  time?: string;
-  gameFormat?: string;
-  powerLevel?: string;
-  isRecurring?: boolean;
-  recurrencePattern?: string;
-  recurrenceInterval?: number;
-  recurrenceEndDate?: Date;
-  isPublic?: boolean;
-}
-
-interface _ExtendedTournament extends Tournament {
-  gameFormat?: string;
-  rules?: Record<string, unknown>;
-}
+// Commented out unused interfaces - uncomment when needed
+// interface _ExtendedEvent extends Event {
+//   date?: string;
+//   time?: string;
+//   gameFormat?: string;
+//   powerLevel?: string;
+//   isRecurring?: boolean;
+//   recurrencePattern?: string;
+//   recurrenceInterval?: number;
+//   recurrenceEndDate?: Date;
+//   isPublic?: boolean;
+// }
+//
+// interface _ExtendedTournament extends Tournament {
+//   gameFormat?: string;
+//   rules?: Record<string, unknown>;
+// }
 
 // Type for matchmaking results
 export interface MatchedPlayer {
