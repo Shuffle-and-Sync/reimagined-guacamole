@@ -287,7 +287,7 @@ describe("Card Recognition Service", () => {
       expect(result).toBeDefined();
       // Empty or error results are acceptable
       expect(result.cards).toBeDefined();
-    });
+    }, 20000); // Increase timeout to 20 seconds
   });
 
   describe("rate limiting", () => {

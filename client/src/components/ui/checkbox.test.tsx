@@ -140,7 +140,7 @@ describe("Checkbox Component", () => {
           <div>
             <Checkbox
               checked={checked}
-              onCheckedChange={setChecked}
+              onCheckedChange={(value) => setChecked(value === true)}
               aria-label="Test checkbox"
             />
             <span data-testid="status">

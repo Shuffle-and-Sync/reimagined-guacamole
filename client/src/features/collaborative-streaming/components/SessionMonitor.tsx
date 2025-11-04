@@ -13,7 +13,6 @@ import {
   Heart,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { isWebSocketMessageType } from "@shared/type-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

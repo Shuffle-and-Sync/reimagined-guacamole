@@ -63,6 +63,23 @@ interface ConnectedPlayer {
   lastName?: string;
   email: string;
   profileImageUrl?: string;
+  name?: string;
+  avatar?: string;
+}
+
+interface WebRTCOfferMessage {
+  fromPlayer: string;
+  offer: RTCSessionDescriptionInit;
+}
+
+interface WebRTCAnswerMessage {
+  fromPlayer: string;
+  answer: RTCSessionDescriptionInit;
+}
+
+interface WebRTCCandidateMessage {
+  fromPlayer: string;
+  candidate: RTCIceCandidateInit;
 }
 
 export default function GameRoom() {
@@ -186,7 +203,7 @@ export default function GameRoom() {
   );
 
   const handleWebRTCOffer = useCallback(
-    async (data: unknown) => {
+    async (data: WebRTCOfferMessage) => {
       const { fromPlayer, offer } = data;
 
       if (!peerConnections.current.has(fromPlayer)) {
@@ -219,7 +236,7 @@ export default function GameRoom() {
     [createPeerConnection, sessionId],
   );
 
-  const handleWebRTCAnswer = useCallback(async (data: unknown) => {
+  const handleWebRTCAnswer = useCallback(async (data: WebRTCAnswerMessage) => {
     const { fromPlayer, answer } = data;
     const peerConnection = peerConnections.current.get(fromPlayer);
 
@@ -235,21 +252,24 @@ export default function GameRoom() {
     }
   }, []);
 
-  const handleICECandidate = useCallback(async (data: unknown) => {
-    const { fromPlayer, candidate } = data;
-    const peerConnection = peerConnections.current.get(fromPlayer);
+  const handleICECandidate = useCallback(
+    async (data: WebRTCCandidateMessage) => {
+      const { fromPlayer, candidate } = data;
+      const peerConnection = peerConnections.current.get(fromPlayer);
 
-    if (peerConnection) {
-      try {
-        await peerConnection.addIceCandidate(candidate);
-      } catch (error) {
-        // Log error for debugging
-        if (import.meta.env.DEV) {
-          console.error("Error adding ICE candidate:", error);
+      if (peerConnection) {
+        try {
+          await peerConnection.addIceCandidate(candidate);
+        } catch (error) {
+          // Log error for debugging
+          if (import.meta.env.DEV) {
+            console.error("Error adding ICE candidate:", error);
+          }
         }
       }
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Initialize camera and microphone
   const initializeMedia = useCallback(async () => {

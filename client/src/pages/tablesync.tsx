@@ -27,6 +27,21 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/shared/components";
 
+// Extended Event type with computed properties from API
+interface EventWithDetails extends Event {
+  creator?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+  mainPlayers?: number;
+  alternates?: number;
+  date?: string;
+  time?: string;
+  isUserAttending?: boolean;
+}
+
 const GAME_FORMATS = [
   { id: "commander", name: "Commander/EDH", players: "2-4 players" },
   { id: "standard", name: "Standard", players: "2 players" },
@@ -54,7 +69,12 @@ interface GameRoom {
   description: string;
   communityId: string;
   status: string;
-  gameData?: unknown;
+  gameData?: {
+    name?: string;
+    format?: string;
+    powerLevel?: string;
+    description?: string;
+  };
   createdAt: string;
 }
 
@@ -80,7 +100,7 @@ export default function TableSync() {
 
   // Fetch upcoming game pod events that users can join
   const { data: gameEvents = [], isLoading: isLoadingEvents } = useQuery<
-    Event[]
+    EventWithDetails[]
   >({
     queryKey: ["/api/events", "game_pod", "upcoming"],
     queryFn: async () => {
@@ -707,7 +727,7 @@ export default function TableSync() {
                                         {event.mainPlayers || 0}/
                                         {event.playerSlots || 4}
                                       </Badge>
-                                      {event.alternateSlots > 0 && (
+                                      {(event.alternateSlots ?? 0) > 0 && (
                                         <Badge
                                           variant="outline"
                                           className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
@@ -774,9 +794,9 @@ export default function TableSync() {
                                               <i className="fas fa-gamepad mr-2"></i>
                                               Join as Player
                                             </Button>
-                                          ) : event.alternateSlots > 0 &&
+                                          ) : (event.alternateSlots ?? 0) > 0 &&
                                             (event.alternates || 0) <
-                                              event.alternateSlots ? (
+                                              (event.alternateSlots ?? 0) ? (
                                             <Button
                                               className="w-full"
                                               variant="outline"
