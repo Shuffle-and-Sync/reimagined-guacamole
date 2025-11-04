@@ -45,11 +45,23 @@ export async function extractTextFromImage(
     // Perform OCR
     const result = await tesseractWorker.recognize(canvas);
 
+    // Type-safe access to lines property
+    interface TesseractLine {
+      text: string;
+    }
+
+    interface TesseractDataWithLines {
+      text: string;
+      confidence: number;
+      lines?: TesseractLine[];
+    }
+
     return {
       text: result.data.text.trim(),
       confidence: result.data.confidence / 100,
-      lines:
-        (result.data as any).lines?.map((line: any) => line.text.trim()) || [],
+      lines: ((result.data as TesseractDataWithLines).lines || []).map((line) =>
+        line.text.trim(),
+      ),
     };
   } catch (error) {
     console.error("OCR extraction failed:", error);

@@ -116,7 +116,7 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
-    const eventTypes = [
+    const eventTypes: CoordinationEvent["type"][] = [
       "phase_change",
       "collaborator_joined",
       "collaborator_left",
@@ -126,14 +126,13 @@ export function SessionMonitor({ eventId }: SessionMonitorProps) {
     const interval = setInterval(() => {
       const randomType =
         eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      // Validate the type before creating the event
-      if (!isWebSocketMessageType(randomType)) {
+      if (!randomType) {
         return;
       }
 
       const randomEvent: CoordinationEvent = {
         id: Math.random().toString(36).substr(2, 9),
-        type: randomType as CoordinationEvent["type"],
+        type: randomType,
         timestamp: new Date(),
         data: { message: "Sample event data" },
         message: `Event occurred at ${new Date().toLocaleTimeString()}`,

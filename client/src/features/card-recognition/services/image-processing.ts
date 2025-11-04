@@ -42,19 +42,23 @@ export async function preprocessImage(
     const b = data[i + 2];
 
     if (r !== undefined && g !== undefined && b !== undefined) {
-      data[i] = clamp((r - 128) * factor + 128); // R
-      data[i + 1] = clamp((g - 128) * factor + 128); // G
-      data[i + 2] = clamp((b - 128) * factor + 128); // B
+      // Apply contrast enhancement
+      let newR = clamp((r - 128) * factor + 128);
+      let newG = clamp((g - 128) * factor + 128);
+      let newB = clamp((b - 128) * factor + 128);
 
       // Reduce glare (bright spots)
-      // Using non-null assertions as we just assigned these values above
-      const brightness = (data[i]! + data[i + 1]! + data[i + 2]!) / 3;
+      const brightness = (newR + newG + newB) / 3;
       if (brightness > 220) {
         const reduction = 0.8;
-        data[i]! *= reduction;
-        data[i + 1]! *= reduction;
-        data[i + 2]! *= reduction;
+        newR *= reduction;
+        newG *= reduction;
+        newB *= reduction;
       }
+
+      data[i] = newR;
+      data[i + 1] = newG;
+      data[i + 2] = newB;
     }
   }
 
