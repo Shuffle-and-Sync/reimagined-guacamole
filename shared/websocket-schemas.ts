@@ -406,6 +406,6 @@ export const validateMessageRate = (
       default: { windowMs: 60 * 1000, maxMessages: 100 },
     };
 
-  const defaultConfig = { windowMs: 60 * 1000, maxMessages: 100 };
-  return rateConfigs[messageType] || rateConfigs["default"] || defaultConfig;
+  // No need for a separate defaultConfig; rateConfigs["default"] is always defined.
+  return rateConfigs[messageType] || rateConfigs["default"];
 };
