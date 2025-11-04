@@ -47,12 +47,13 @@ export async function preprocessImage(
       data[i + 2] = clamp((b - 128) * factor + 128); // B
 
       // Reduce glare (bright spots)
-      const brightness = (data[i]! + data[i + 1]! + data[i + 2]!) / 3;
+      // Values are guaranteed to exist after the assignments above
+      const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
       if (brightness > 220) {
         const reduction = 0.8;
-        data[i]! *= reduction;
-        data[i + 1]! *= reduction;
-        data[i + 2]! *= reduction;
+        data[i] *= reduction;
+        data[i + 1] *= reduction;
+        data[i + 2] *= reduction;
       }
     }
   }

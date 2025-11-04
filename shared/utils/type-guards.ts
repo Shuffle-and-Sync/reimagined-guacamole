@@ -221,6 +221,9 @@ export function assertNonEmptyArray<T>(
  * if (isTruthy(flag)) {
  *   console.log('Flag is true');
  * }
+ *
+ * @note This function checks for common falsy values (null, undefined, false, 0, "")
+ * but does not check for NaN or -0. Use isValidNumber() for numeric validation.
  */
 export function isTruthy<T>(
   value: T | undefined | null | false | 0 | "",
@@ -256,6 +259,10 @@ export function isNullish(value: unknown): value is null | undefined {
  *
  * @example
  * const config = safeJsonParse<Config>(input, defaultConfig);
+ *
+ * @warning This function uses type assertion and does not validate the parsed
+ * JSON matches type T. For runtime validation, use this in combination with
+ * assertType() or Zod schema validation.
  */
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {

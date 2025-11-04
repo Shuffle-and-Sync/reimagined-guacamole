@@ -45,8 +45,8 @@ export function ExportEventButton({
 
   if (exportableConnections.length === 1) {
     // If only one connection, make it a direct button
-    const connection = exportableConnections[0];
-    if (!connection) return null;
+    // Length check guarantees the first element exists
+    const connection = exportableConnections[0]!;
 
     return (
       <Button

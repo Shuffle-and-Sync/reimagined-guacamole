@@ -155,41 +155,24 @@ function levenshteinDistance(str1: string, str2: string): number {
   }
 
   for (let j = 0; j <= str1.length; j++) {
-    const row = matrix[0];
-    if (row) {
-      row[j] = j;
-    }
+    matrix[0]![j] = j;
   }
 
   for (let i = 1; i <= str2.length; i++) {
     for (let j = 1; j <= str1.length; j++) {
-      const currentRow = matrix[i];
-      const prevRow = matrix[i - 1];
-      const prevRowPrevCol = prevRow?.[j - 1];
-      const prevRowCurCol = prevRow?.[j];
-      const curRowPrevCol = currentRow?.[j - 1];
-
-      if (
-        currentRow &&
-        prevRowPrevCol !== undefined &&
-        prevRowCurCol !== undefined &&
-        curRowPrevCol !== undefined
-      ) {
-        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          currentRow[j] = prevRowPrevCol;
-        } else {
-          currentRow[j] = Math.min(
-            prevRowPrevCol + 1, // substitution
-            curRowPrevCol + 1, // insertion
-            prevRowCurCol + 1, // deletion
-          );
-        }
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i]![j] = matrix[i - 1]![j - 1]!;
+      } else {
+        matrix[i]![j] = Math.min(
+          matrix[i - 1]![j - 1]! + 1, // substitution
+          matrix[i]![j - 1]! + 1, // insertion
+          matrix[i - 1]![j]! + 1, // deletion
+        );
       }
     }
   }
 
-  const lastRow = matrix[str2.length];
-  return lastRow?.[str1.length] ?? 0;
+  return matrix[str2.length]![str1.length]!;
 }
 
 /**
