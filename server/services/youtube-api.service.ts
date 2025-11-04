@@ -8,7 +8,7 @@ import { logger } from "../logger";
 import { generateSecureToken } from "../utils/security.utils";
 
 // Structured error types for better error handling
-export interface YouTubeAPIError {
+export interface YouTubeAPIError extends Record<string, unknown> {
   code: string;
   message: string;
   details?: Record<string, unknown>;
@@ -983,7 +983,7 @@ export class YouTubeAPIService {
     } catch (error) {
       logger.error(
         "Error unsubscribing from YouTube channel notifications",
-        error,
+        toLoggableError(error),
       );
       return false;
     }

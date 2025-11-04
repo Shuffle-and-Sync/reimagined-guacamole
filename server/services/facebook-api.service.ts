@@ -311,7 +311,7 @@ export class FacebookAPIService {
       } catch (error) {
         logger.error(
           `Facebook API request attempt ${attempt + 1} failed`,
-          error,
+          toLoggableError(error),
         );
 
         if (attempt === retries - 1) {
@@ -773,10 +773,7 @@ export class FacebookAPIService {
 
       return data.success === true || response.ok;
     } catch (error) {
-      logger.error(
-        "Error ending Facebook live video",
-        toLoggableError(error),
-      );
+      logger.error("Error ending Facebook live video", toLoggableError(error));
       return false;
     }
   }
@@ -903,10 +900,7 @@ export class FacebookAPIService {
         shares: { count: 0 },
       };
     } catch (error) {
-      logger.error(
-        "Error creating Facebook post",
-        toLoggableError(error),
-      );
+      logger.error("Error creating Facebook post", toLoggableError(error));
       return null;
     }
   }
@@ -1251,10 +1245,7 @@ export class FacebookAPIService {
         Buffer.from(expectedSignature, "hex"),
       );
     } catch (error) {
-      logger.error(
-        "Error verifying webhook signature",
-        toLoggableError(error),
-      );
+      logger.error("Error verifying webhook signature", toLoggableError(error));
       return false;
     }
   }

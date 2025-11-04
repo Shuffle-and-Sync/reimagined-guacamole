@@ -136,11 +136,15 @@ router.post(
           // Don't fail registration if email fails, user can resend later
         }
       } catch (transactionError) {
-        logger.error("Registration transaction failed", transactionError, {
-          email: normalizedEmail,
-          username: normalizedUsername,
-          ip: req.ip,
-        });
+        logger.error(
+          "Registration transaction failed",
+          toLoggableError(transactionError),
+          {
+            email: normalizedEmail,
+            username: normalizedUsername,
+            ip: req.ip,
+          },
+        );
 
         // Log failed registration attempt
         try {
@@ -161,7 +165,10 @@ router.post(
             }),
           });
         } catch (auditError) {
-          logger.error("Failed to log registration failure", auditError);
+          logger.error(
+            "Failed to log registration failure",
+            toLoggableError(auditError),
+          );
         }
 
         return res
@@ -267,7 +274,10 @@ router.post(
             }),
           });
         } catch (auditError) {
-          logger.error("Failed to log registration failure", auditError);
+          logger.error(
+            "Failed to log registration failure",
+            toLoggableError(auditError),
+          );
         }
       }
 

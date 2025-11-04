@@ -30,10 +30,14 @@ export class MessagingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch notifications in MessagingService", toLoggableError(error), {
-        userId,
-        filters,
-      });
+      logger.error(
+        "Failed to fetch notifications in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          filters,
+        },
+      );
       throw error;
     }
   }
@@ -58,9 +62,13 @@ export class MessagingService {
       });
       return notification;
     } catch (error) {
-      logger.error("Failed to create notification in MessagingService", toLoggableError(error), {
-        userId,
-      });
+      logger.error(
+        "Failed to create notification in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+        },
+      );
       throw error;
     }
   }
@@ -72,7 +80,7 @@ export class MessagingService {
     } catch (error) {
       logger.error(
         "Failed to mark notification as read in MessagingService",
-        error,
+        toLoggableError(error),
         { notificationId },
       );
       throw error;
@@ -86,7 +94,7 @@ export class MessagingService {
     } catch (error) {
       logger.error(
         "Failed to mark all notifications as read in MessagingService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -116,10 +124,14 @@ export class MessagingService {
         });
       }
     } catch (error) {
-      logger.error("Failed to fetch messages in MessagingService", toLoggableError(error), {
-        userId,
-        filters,
-      });
+      logger.error(
+        "Failed to fetch messages in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          filters,
+        },
+      );
       throw error;
     }
   }
@@ -165,10 +177,14 @@ export class MessagingService {
 
       return result;
     } catch (error) {
-      logger.error("Failed to send message in MessagingService", toLoggableError(error), {
-        userId,
-        messageData,
-      });
+      logger.error(
+        "Failed to send message in MessagingService",
+        toLoggableError(error),
+        {
+          userId,
+          messageData,
+        },
+      );
       throw error;
     }
   }
@@ -178,10 +194,14 @@ export class MessagingService {
     try {
       return await storage.getConversation(currentUserId, targetUserId);
     } catch (error) {
-      logger.error("Failed to fetch conversation in MessagingService", toLoggableError(error), {
-        currentUserId,
-        targetUserId,
-      });
+      logger.error(
+        "Failed to fetch conversation in MessagingService",
+        toLoggableError(error),
+        {
+          currentUserId,
+          targetUserId,
+        },
+      );
       throw error;
     }
   }

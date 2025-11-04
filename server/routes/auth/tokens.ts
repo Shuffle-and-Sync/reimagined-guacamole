@@ -163,11 +163,15 @@ router.post(
           tokenType: "Bearer",
         });
       } catch (rotationError) {
-        logger.error("Refresh token rotation failed", rotationError, {
-          userId: user.id,
-          tokenId: payload.jti,
-          ip: req.ip,
-        });
+        logger.error(
+          "Refresh token rotation failed",
+          toLoggableError(rotationError),
+          {
+            userId: user.id,
+            tokenId: payload.jti,
+            ip: req.ip,
+          },
+        );
 
         // If rotation fails, revoke the old token for security
         await storage.revokeRefreshToken(payload.jti);

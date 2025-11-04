@@ -78,7 +78,7 @@ export class CommunitiesService {
     } catch (error) {
       logger.error(
         "Failed to set primary community in CommunitiesService",
-        error,
+        toLoggableError(error),
         { userId, communityId },
       );
       throw error;
@@ -91,7 +91,7 @@ export class CommunitiesService {
     } catch (error) {
       logger.error(
         "Failed to fetch theme preferences in CommunitiesService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -121,7 +121,7 @@ export class CommunitiesService {
     } catch (error) {
       logger.error(
         "Failed to update theme preferences in CommunitiesService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;

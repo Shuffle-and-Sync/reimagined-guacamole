@@ -542,7 +542,7 @@ export class EventsService {
     } catch (error) {
       logger.error(
         "Failed to create recurring events in EventsService",
-        error,
+        toLoggableError(error),
         { userId },
       );
       throw error;
@@ -666,11 +666,10 @@ export class EventsService {
         conflicts,
       };
     } catch (error) {
-      logger.error(
-        "Failed to reschedule event",
-        toLoggableError(error),
-        { eventId, userId },
-      );
+      logger.error("Failed to reschedule event", toLoggableError(error), {
+        eventId,
+        userId,
+      });
       throw error;
     }
   }
@@ -761,11 +760,7 @@ export class EventsService {
 
       return results;
     } catch (error) {
-      logger.error(
-        "Batch update failed",
-        toLoggableError(error),
-        { userId },
-      );
+      logger.error("Batch update failed", toLoggableError(error), { userId });
       throw error;
     }
   }
@@ -843,14 +838,10 @@ export class EventsService {
         timezone: targetTimezone,
       };
     } catch (error) {
-      logger.error(
-        "Failed to convert event timezone",
-        toLoggableError(error),
-        {
-          eventId: event.id,
-          targetTimezone,
-        },
-      );
+      logger.error("Failed to convert event timezone", toLoggableError(error), {
+        eventId: event.id,
+        targetTimezone,
+      });
       throw error;
     }
   }
@@ -869,14 +860,10 @@ export class EventsService {
         this.convertEventTimezone(event, targetTimezone),
       );
     } catch (error) {
-      logger.error(
-        "Failed to get events in timezone",
-        toLoggableError(error),
-        {
-          filters,
-          targetTimezone,
-        },
-      );
+      logger.error("Failed to get events in timezone", toLoggableError(error), {
+        filters,
+        targetTimezone,
+      });
       throw error;
     }
   }

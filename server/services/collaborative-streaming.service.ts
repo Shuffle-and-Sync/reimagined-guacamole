@@ -115,11 +115,9 @@ export class CollaborativeStreamingService {
 
       return collaborator;
     } catch (error) {
-      logger.error(
-        "Failed to add collaborator",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to add collaborator", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -760,7 +758,7 @@ export class CollaborativeStreamingService {
                 } catch (error) {
                   logger.error(
                     "Failed to sync Facebook live video status",
-                    error,
+                    toLoggableError(error),
                     { eventId },
                   );
                   platformResults.facebook = {
@@ -1076,11 +1074,9 @@ export class CollaborativeStreamingService {
         results: breakResults,
       });
     } catch (error) {
-      logger.error(
-        "Failed to coordinate break",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to coordinate break", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -1399,11 +1395,9 @@ export class CollaborativeStreamingService {
         });
       }
     } catch (error) {
-      logger.error(
-        "Failed to log coordination event",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to log coordination event", toLoggableError(error), {
+        eventId,
+      });
     }
   }
 
