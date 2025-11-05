@@ -231,10 +231,14 @@ export class AIStreamingMatcher {
 
       return rankedMatches;
     } catch (error) {
-      logger.error("AI streaming partner matching failed", toLoggableError(error), {
-        userId: criteria.userId,
-        criteria,
-      });
+      logger.error(
+        "AI streaming partner matching failed",
+        toLoggableError(error),
+        {
+          userId: criteria.userId,
+          criteria,
+        },
+      );
       throw error;
     }
   }
@@ -304,7 +308,9 @@ export class AIStreamingMatcher {
 
       return profile;
     } catch (error) {
-      logger.error("Failed to get streamer profile", toLoggableError(error), { userId });
+      logger.error("Failed to get streamer profile", toLoggableError(error), {
+        userId,
+      });
       return null;
     }
   }
@@ -386,10 +392,14 @@ export class AIStreamingMatcher {
         });
       }
     } catch (error) {
-      logger.error("Failed to get connected platforms", toLoggableError(error), {
-        userId,
-        username,
-      });
+      logger.error(
+        "Failed to get connected platforms",
+        toLoggableError(error),
+        {
+          userId,
+          username,
+        },
+      );
     }
 
     return platforms;
@@ -428,9 +438,13 @@ export class AIStreamingMatcher {
 
       return candidates;
     } catch (error) {
-      logger.error("Failed to get streaming candidates", toLoggableError(error), {
-        userId: criteria.userId,
-      });
+      logger.error(
+        "Failed to get streaming candidates",
+        toLoggableError(error),
+        {
+          userId: criteria.userId,
+        },
+      );
       return [];
     }
   }
@@ -531,10 +545,14 @@ export class AIStreamingMatcher {
           matches.push(match);
         }
       } catch (error) {
-        logger.error("Failed to calculate compatibility for candidate", toLoggableError(error), {
-          userId: userProfile.id,
-          candidateId: candidate.id,
-        });
+        logger.error(
+          "Failed to calculate compatibility for candidate",
+          toLoggableError(error),
+          {
+            userId: userProfile.id,
+            candidateId: candidate.id,
+          },
+        );
       }
     }
 
@@ -904,15 +922,40 @@ export class AIStreamingMatcher {
   private extractStreamingPreferences(
     userSettings: unknown,
   ): StreamingPreferences {
-    const streamingSettings = userSettings?.streamingSettings || {};
+    const settings =
+      userSettings && typeof userSettings === "object"
+        ? (userSettings as Record<string, unknown>)
+        : {};
+    const streamingSettings =
+      settings.streamingSettings &&
+      typeof settings.streamingSettings === "object"
+        ? (settings.streamingSettings as Record<string, unknown>)
+        : {};
 
     return {
-      preferredStreamTimes: streamingSettings.preferredTimes || ["19:00-22:00"],
-      streamFrequency: streamingSettings.frequency || "weekly",
-      streamDuration: streamingSettings.duration || 120,
-      contentRating: streamingSettings.contentRating || "family_friendly",
-      interactionStyle: streamingSettings.interactionStyle || "chill",
-      chatModeration: streamingSettings.chatModeration || "moderate",
+      preferredStreamTimes: Array.isArray(streamingSettings.preferredTimes)
+        ? streamingSettings.preferredTimes
+        : ["19:00-22:00"],
+      streamFrequency:
+        typeof streamingSettings.frequency === "string"
+          ? streamingSettings.frequency
+          : "weekly",
+      streamDuration:
+        typeof streamingSettings.duration === "number"
+          ? streamingSettings.duration
+          : 120,
+      contentRating:
+        typeof streamingSettings.contentRating === "string"
+          ? streamingSettings.contentRating
+          : "family_friendly",
+      interactionStyle:
+        typeof streamingSettings.interactionStyle === "string"
+          ? streamingSettings.interactionStyle
+          : "chill",
+      chatModeration:
+        typeof streamingSettings.chatModeration === "string"
+          ? streamingSettings.chatModeration
+          : "moderate",
     };
   }
 
@@ -944,9 +987,17 @@ export class AIStreamingMatcher {
   private extractContentPreferences(
     matchingPrefs: unknown,
   ): ContentPreferences {
+    const prefs =
+      matchingPrefs && typeof matchingPrefs === "object"
+        ? (matchingPrefs as Record<string, unknown>)
+        : {};
     return {
-      primaryGames: matchingPrefs?.selectedGames || ["MTG"],
-      secondaryGames: matchingPrefs?.selectedFormats || [],
+      primaryGames: Array.isArray(prefs.selectedGames)
+        ? prefs.selectedGames
+        : ["MTG"],
+      secondaryGames: Array.isArray(prefs.selectedFormats)
+        ? prefs.selectedFormats
+        : [],
       contentTypes: ["gameplay", "casual"],
       collabTypes: ["co_op", "casual_chat"],
       avoidedContent: [],
@@ -998,7 +1049,11 @@ export class AIStreamingMatcher {
         noShowRate: 5, // 5% no-show rate
       };
     } catch (error) {
-      logger.error("Failed to get collaboration history", toLoggableError(error), { userId });
+      logger.error(
+        "Failed to get collaboration history",
+        toLoggableError(error),
+        { userId },
+      );
       return {
         totalCollaborations: 0,
         successfulCollaborations: 0,

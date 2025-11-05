@@ -187,6 +187,7 @@ interface FacebookPostData {
 export class FacebookAPIService {
   private appId: string | undefined;
   private appSecret: string | undefined;
+  private webhookVerifyToken: string;
   private apiVersion: string = "v18.0";
 
   // Store OAuth states to validate CSRF protection

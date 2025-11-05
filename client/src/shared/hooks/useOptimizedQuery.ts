@@ -96,16 +96,37 @@ export function useCoordinatedQueries<T extends Record<string, unknown>>(
 } {
   const queryKeys = Object.keys(queries) as (keyof T)[];
 
-  const isLoading = queryKeys.some((key) => queries[key]?.isLoading);
-  const isError = queryKeys.some((key) => queries[key]?.isError);
+  const isLoading = queryKeys.some((key) => {
+    const query = queries[key];
+    return (
+      query &&
+      typeof query === "object" &&
+      "isLoading" in query &&
+      query.isLoading
+    );
+  });
+  const isError = queryKeys.some((key) => {
+    const query = queries[key];
+    return (
+      query && typeof query === "object" && "isError" in query && query.isError
+    );
+  });
 
   const data = queryKeys.reduce((acc, key) => {
-    acc[key] = queries[key]?.data;
+    const query = queries[key];
+    acc[key] =
+      query && typeof query === "object" && "data" in query
+        ? query.data
+        : undefined;
     return acc;
   }, {} as any);
 
   const errors = queryKeys.reduce((acc, key) => {
-    acc[key] = queries[key]?.error;
+    const query = queries[key];
+    acc[key] =
+      query && typeof query === "object" && "error" in query
+        ? query.error
+        : undefined;
     return acc;
   }, {} as any);
 

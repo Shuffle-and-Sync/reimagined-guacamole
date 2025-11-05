@@ -26,7 +26,7 @@ import {
 } from "../services/games/adapters/formats";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { NotFoundError, BadRequestError } = errors;
+const { NotFoundError, ValidationError } = errors;
 
 const router = Router();
 
@@ -240,7 +240,7 @@ router.post(
     }
 
     if (!action || !action.playerId) {
-      throw new BadRequestError("Action and playerId are required");
+      throw new ValidationError("Action and playerId are required");
     }
 
     const session = gameStates.get(sessionId);
@@ -252,7 +252,7 @@ router.post(
 
     // Validate action
     if (!adapter.validateAction(session.state, action)) {
-      throw new BadRequestError("Invalid action for current game state");
+      throw new ValidationError("Invalid action for current game state");
     }
 
     // Apply action
@@ -319,7 +319,7 @@ router.post(
     }
 
     if (!oldState || !newState) {
-      throw new BadRequestError("Both oldState and newState are required");
+      throw new ValidationError("Both oldState and newState are required");
     }
 
     if (!isGameSupported(gameId)) {

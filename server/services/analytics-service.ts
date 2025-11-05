@@ -421,11 +421,20 @@ export class AnalyticsService {
         engagementMetrics,
         collaborationData,
       );
+
+      const metrics =
+        engagementMetrics && typeof engagementMetrics === "object"
+          ? (engagementMetrics as Record<string, unknown>)
+          : {};
+
       return {
         userId,
         ...insights,
         activityPatterns: insights.activityPattern,
-        engagementScore: engagementMetrics?.engagementScore || 0,
+        engagementScore:
+          typeof metrics.engagementScore === "number"
+            ? metrics.engagementScore
+            : 0,
       };
     } catch (error) {
       logger.error("Failed to generate user insights", { error, userId });

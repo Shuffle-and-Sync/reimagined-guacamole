@@ -1097,9 +1097,8 @@ export class AIAlgorithmEngine {
     const weekendSlots: string[] = [];
 
     ["saturday", "sunday"].forEach((day) => {
-      const userSlots = userSchedule?.weeklySchedule?.[day]?.timeSlots || [];
-      const candidateSlots =
-        candidateSchedule?.weeklySchedule?.[day]?.timeSlots || [];
+      const userSlots = userSchedule?.weeklySchedule?.[day] || [];
+      const candidateSlots = candidateSchedule?.weeklySchedule?.[day] || [];
 
       if (userSlots.length > 0 && candidateSlots.length > 0) {
         weekendSlots.push(`${day}: Extended collaboration opportunity`);
@@ -1423,8 +1422,8 @@ export class AIAlgorithmEngine {
     if (outcomes.length === 0) return 0.5;
 
     const correlations = outcomes.map((outcome) => ({
-      factorScore: outcome[factor] || 0,
-      successScore: outcome.successScore || 0,
+      factorScore: (outcome as any)[factor] || 0,
+      successScore: outcome.rating / 10, // Normalize rating to 0-1 scale
     }));
 
     // Simple correlation calculation
