@@ -5162,14 +5162,6 @@ export class DatabaseStorage implements IStorage {
         .update(tournamentMatches)
         .set({
           winnerId: verifiedResult.winnerId,
-          player1Score:
-            verifiedResult.winnerId === matchResult.winnerId
-              ? verifiedResult.winnerScore
-              : verifiedResult.loserScore,
-          player2Score:
-            verifiedResult.winnerId === matchResult.winnerId
-              ? verifiedResult.loserScore
-              : verifiedResult.winnerScore,
           status: "completed" as unknown,
           endTime: new Date(),
         })
@@ -5200,7 +5192,7 @@ export class DatabaseStorage implements IStorage {
 
     if (result.length === 0) return undefined;
 
-    const { tournament, organizer, community } = result[0];
+    const { tournament, organizer, community } = result[0]!;
     return {
       ...tournament,
       organizer,
@@ -8166,25 +8158,37 @@ export class DatabaseStorage implements IStorage {
     basePriority = typePriorities[itemType] || basePriority;
 
     // Adjust based on metadata factors
-    if (metadata) {
+    if (metadata && typeof metadata === "object" && metadata !== null) {
+      const meta = metadata as Record<string, unknown>;
+
       // High-reputation reporter increases priority
-      if (metadata.reporterReputationScore > 300) basePriority += 1;
+      if (
+        typeof meta.reporterReputationScore === "number" &&
+        meta.reporterReputationScore > 300
+      )
+        basePriority += 1;
 
       // Low-reputation target increases priority
-      if (metadata.userReputationScore < 100) basePriority += 1;
+      if (
+        typeof meta.userReputationScore === "number" &&
+        meta.userReputationScore < 100
+      )
+        basePriority += 1;
 
       // Multiple reports increase priority
-      if (metadata.userReports > 1)
-        basePriority += Math.min(metadata.userReports - 1, 2);
+      if (typeof meta.userReports === "number" && meta.userReports > 1)
+        basePriority += Math.min(meta.userReports - 1, 2);
 
       // ML confidence score (if available)
-      if (metadata.mlConfidence > 0.8) basePriority += 2;
-      else if (metadata.mlConfidence > 0.6) basePriority += 1;
+      if (typeof meta.mlConfidence === "number") {
+        if (meta.mlConfidence > 0.8) basePriority += 2;
+        else if (meta.mlConfidence > 0.6) basePriority += 1;
+      }
 
       // Severity-based adjustments
-      if (metadata.severity === "critical") basePriority += 3;
-      else if (metadata.severity === "high") basePriority += 2;
-      else if (metadata.severity === "medium") basePriority += 1;
+      if (meta.severity === "critical") basePriority += 3;
+      else if (meta.severity === "high") basePriority += 2;
+      else if (meta.severity === "medium") basePriority += 1;
     }
 
     // Cap priority between 1 and 10

@@ -63,7 +63,7 @@ export function queryLoggingMiddleware(
   }
 
   const dbMonitor = DatabaseMonitor.getInstance();
-  const startMetrics = dbMonitor.getMetrics();
+  const startMetrics = dbMonitor.getStats();
   const startTime = Date.now();
 
   // Initialize query tracking on request
@@ -73,8 +73,11 @@ export function queryLoggingMiddleware(
     queries: [],
   };
 
-  // Store original query count
-  const startQueryCount = startMetrics.totalQueries;
+  // Store original query count - sum all operation counts
+  const startQueryCount = Object.values(startMetrics).reduce(
+    (sum, stat) => sum + stat.count,
+    0,
+  );
 
   // Track response
   const originalSend = res.send;
@@ -82,8 +85,12 @@ export function queryLoggingMiddleware(
     // Calculate metrics
     const endTime = Date.now();
     const duration = endTime - startTime;
-    const endMetrics = dbMonitor.getMetrics();
-    const queryCount = endMetrics.totalQueries - startQueryCount;
+    const endMetrics = dbMonitor.getStats();
+    const endQueryCount = Object.values(endMetrics).reduce(
+      (sum, stat) => sum + stat.count,
+      0,
+    );
+    const queryCount = endQueryCount - startQueryCount;
 
     // Update request query metrics
     if (req.queryMetrics) {

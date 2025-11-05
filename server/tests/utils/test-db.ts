@@ -62,8 +62,8 @@ export async function initTestSchema(
 
     for (const statement of statements) {
       if (statement && !statement.startsWith("--")) {
-        // Use db.execute() with sql.raw() instead of db.run()
-        await db.execute(sql.raw(statement));
+        // Use sqlite.exec() instead of db.execute()
+        sqlite.exec(statement);
       }
     }
   } catch {
@@ -241,8 +241,8 @@ export async function clearTestDb(
 
   for (const table of tables) {
     try {
-      // Use db.execute() with sql.raw() instead of db.run()
-      await db.execute(sql.raw(`DELETE FROM ${table}`));
+      // Use db.run() with sql.raw() for better-sqlite3
+      await db.run(sql.raw(`DELETE FROM ${table}`));
     } catch {
       // Table might not exist, skip it
       continue;
