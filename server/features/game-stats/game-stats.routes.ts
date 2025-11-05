@@ -98,7 +98,7 @@ const gameStatsQuerySchema = z.object({
  * - sortBy: Sort field
  * - sortOrder: Sort direction
  */
-router.get("/", gameStatsLimiter, requireAuth, async (req, res, next) => {
+router.get("/", requireAuth, gameStatsLimiter, async (req, res, next) => {
   try {
     // Validate query parameters
     const query = gameStatsQuerySchema.parse(req.query);
@@ -263,8 +263,8 @@ router.post(
  */
 router.get(
   "/game-results",
-  gameStatsLimiter,
   requireAuth,
+  gameStatsLimiter,
   async (req, res, next) => {
     try {
       const query = gameStatsQuerySchema.parse(req.query);
