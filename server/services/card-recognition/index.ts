@@ -110,7 +110,7 @@ export class UniversalCardService {
       // If database query fails, fall back to hardcoded game IDs
       logger.warn(
         "Game validation failed, falling back to hardcoded IDs",
-        error,
+        error as Record<string, unknown>,
       );
 
       // Support legacy game IDs

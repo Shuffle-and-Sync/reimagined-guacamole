@@ -5,7 +5,17 @@
  * demonstrating Copilot best practices for domain-specific data access.
  */
 
-import { eq, and, sql, ilike, or, count, desc, asc } from "drizzle-orm";
+import {
+  eq,
+  and,
+  sql,
+  ilike,
+  or,
+  count,
+  desc,
+  asc,
+  type AnyColumn,
+} from "drizzle-orm";
 import { db, withQueryTiming } from "@shared/database-unified";
 import {
   users,
@@ -250,8 +260,8 @@ export class UserRepository extends BaseRepository<
             if (column) {
               query = query.orderBy(
                 baseOptions.sort.direction === "desc"
-                  ? desc(column)
-                  : asc(column),
+                  ? desc(column as AnyColumn)
+                  : asc(column as AnyColumn),
               ) as typeof query;
             }
           }

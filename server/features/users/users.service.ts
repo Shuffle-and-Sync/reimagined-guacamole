@@ -115,7 +115,10 @@ export class UsersService {
   async updateSocialLinks(userId: string, socialLinksData: SocialLinksRequest) {
     try {
       const { links } = socialLinksData;
-      const updatedLinks = await storage.updateUserSocialLinks(userId, links);
+      const updatedLinks = await storage.updateUserSocialLinks(
+        userId,
+        links as any,
+      );
       logger.info("Social links updated", { userId, linkCount: links.length });
       return updatedLinks;
     } catch (error) {
@@ -387,11 +390,12 @@ export class UsersService {
       // Ensure required fields exist
       const prefsWithDefaults = {
         userId,
-        gameType: preferences.gameType || "MTG", // Default to MTG if not provided
+        gameType: (preferences.gameType as string) || "MTG", // Default to MTG if not provided
         ...preferences,
       };
-      const updatedPreferences =
-        await storage.upsertMatchmakingPreferences(prefsWithDefaults);
+      const updatedPreferences = await storage.upsertMatchmakingPreferences(
+        prefsWithDefaults as any,
+      );
       logger.info("Matchmaking preferences updated", { userId });
       return updatedPreferences;
     } catch (error) {

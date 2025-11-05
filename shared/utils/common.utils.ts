@@ -456,16 +456,18 @@ export async function retry<T>(
     shouldRetry = () => true,
   } = options;
 
-  let lastError: Error | undefined;
+  let lastError: Error | Record<string, unknown> | undefined;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = toLoggableError(error);
+      const errorForRetry =
+        lastError instanceof Error ? lastError : new Error(String(lastError));
 
-      if (attempt === maxAttempts || !shouldRetry(lastError)) {
-        throw lastError;
+      if (attempt === maxAttempts || !shouldRetry(errorForRetry)) {
+        throw errorForRetry;
       }
 
       const delay = delayMs * Math.pow(backoffMultiplier, attempt - 1);

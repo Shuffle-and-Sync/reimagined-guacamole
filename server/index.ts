@@ -199,7 +199,10 @@ app.get("/api/health", async (_req, res) => {
       }
     } catch (error) {
       dbStatus = "disconnected";
-      logger.warn("Database health check failed", error);
+      logger.warn(
+        "Database health check failed",
+        error as Record<string, unknown>,
+      );
     }
   } else {
     dbStatus = "initializing";
@@ -917,7 +920,10 @@ server.listen(
     monitoringService.start();
     logger.info("Monitoring service started");
   } catch (error) {
-    logger.warn("Failed to start monitoring service", error);
+    logger.warn(
+      "Failed to start monitoring service",
+      error as Record<string, unknown>,
+    );
   }
 
   // Start event reminder job
@@ -928,7 +934,10 @@ server.listen(
     await scheduleEventReminderJob();
     logger.info("Event reminder job scheduled");
   } catch (error) {
-    logger.warn("Failed to schedule event reminder job", error);
+    logger.warn(
+      "Failed to schedule event reminder job",
+      error as Record<string, unknown>,
+    );
   }
 
   // Start memory monitoring and integrate with alerting
@@ -945,7 +954,10 @@ server.listen(
       config: memoryMonitor.getStatus().config,
     });
   } catch (error) {
-    logger.warn("Failed to start memory monitoring", error);
+    logger.warn(
+      "Failed to start memory monitoring",
+      error as Record<string, unknown>,
+    );
   }
 })().catch((error) => {
   logger.error(

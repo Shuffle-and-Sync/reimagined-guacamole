@@ -50,7 +50,7 @@ const gameStates = new Map<
 // Get available games
 router.get(
   "/games",
-  asyncHandler(async (_req: Request, res) => {
+  asyncHandler(async (req, res) => {
     const games = getAvailableGames();
     return res.json({
       games,
@@ -209,6 +209,11 @@ router.get(
   isAuthenticated,
   asyncHandler(async (req, res) => {
     const { sessionId, playerId } = req.params;
+    if (!sessionId || !playerId) {
+      return res
+        .status(400)
+        .json({ message: "Session ID and Player ID are required" });
+    }
 
     const session = gameStates.get(sessionId);
     if (!session) {
