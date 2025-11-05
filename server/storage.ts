@@ -5193,7 +5193,6 @@ export class DatabaseStorage implements IStorage {
     if (result.length === 0) return undefined;
 
     const row = result[0];
-    if (!row) return undefined;
 
     const { tournament, organizer, community } = row;
     return {
