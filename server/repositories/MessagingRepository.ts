@@ -114,7 +114,6 @@ export class MessagingRepository extends BaseRepository<
           firstName: users.firstName,
           lastName: users.lastName,
           profileImageUrl: users.profileImageUrl,
-          name: users.name,
           username: users.username,
           status: users.status,
           createdAt: users.createdAt,
@@ -137,11 +136,10 @@ export class MessagingRepository extends BaseRepository<
           sender: r.sender,
         })) as MessageWithDetails[];
       } catch (error) {
-        logger.error(
-          "Failed to get user messages",
-          toLoggableError(error),
-          { userId, options },
-        );
+        logger.error("Failed to get user messages", toLoggableError(error), {
+          userId,
+          options,
+        });
         throw new DatabaseError("Failed to get user messages", {
           cause: error,
         });
@@ -282,11 +280,11 @@ export class MessagingRepository extends BaseRepository<
           sender: r.sender,
         })) as MessageWithDetails[];
       } catch (error) {
-        logger.error(
-          "Failed to get conversation",
-          toLoggableError(error),
-          { userId1, userId2, options },
-        );
+        logger.error("Failed to get conversation", toLoggableError(error), {
+          userId1,
+          userId2,
+          options,
+        });
         throw new DatabaseError("Failed to get conversation", {
           cause: error,
         });
@@ -351,11 +349,9 @@ export class MessagingRepository extends BaseRepository<
       try {
         return await this.create(data);
       } catch (error) {
-        logger.error(
-          "Failed to send message",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to send message", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to send message", { cause: error });
       }
     });
@@ -481,11 +477,9 @@ export class MessagingRepository extends BaseRepository<
       try {
         await this.delete(messageId);
       } catch (error) {
-        logger.error(
-          "Failed to delete message",
-          toLoggableError(error),
-          { messageId },
-        );
+        logger.error("Failed to delete message", toLoggableError(error), {
+          messageId,
+        });
         throw new DatabaseError("Failed to delete message", { cause: error });
       }
     });

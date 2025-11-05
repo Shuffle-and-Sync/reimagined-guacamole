@@ -107,7 +107,7 @@ export class EnhancedNotificationService {
       stream: {
         id: streamSession.id,
         title: streamSession.title,
-        platform: streamSession.platforms?.[0]?.platform || "streaming",
+        platform: "streaming",
       },
     };
 
@@ -132,8 +132,7 @@ export class EnhancedNotificationService {
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
-      stream: { id: collaborationRequest.streamSessionId },
-      type: collaborationRequest.type,
+      event: { id: collaborationRequest.eventId },
       requestId: collaborationRequest.id,
     };
 
@@ -154,8 +153,8 @@ export class EnhancedNotificationService {
       event: {
         id: event.id,
         title: event.title,
-        date: event.date,
-        time: event.time,
+        startTime: event.startTime?.toISOString() || "",
+        endTime: event.endTime?.toISOString() || "",
         location: event.location,
       },
       reminderTime,

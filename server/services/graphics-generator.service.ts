@@ -83,13 +83,18 @@ export class GraphicsGeneratorService {
     const backgroundColor = this.getTemplateColor(template);
     const textColor = template === "modern" ? "#FFFFFF" : "#000000";
 
-    // Format date
-    const eventDate = new Date(event.date);
+    // Format date from startTime
+    const eventDate = event.startTime ? new Date(event.startTime) : new Date();
     const formattedDate = eventDate.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
+    });
+
+    const formattedTime = eventDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
     });
 
     let svg = `
@@ -122,12 +127,12 @@ export class GraphicsGeneratorService {
           ${formattedDate}
         </text>
         <text x="${width / 2}" y="350" font-family="Arial, sans-serif" font-size="36" fill="${textColor}" text-anchor="middle" font-weight="bold">
-          ${event.time}
+          ${formattedTime}
         </text>
         
         <!-- Location -->
         <text x="${width / 2}" y="420" font-family="Arial, sans-serif" font-size="28" fill="${textColor}" text-anchor="middle">
-          📍 ${this.truncateText(event.location, 40)}
+          📍 ${this.truncateText(event.location || "TBD", 40)}
         </text>
     `;
 

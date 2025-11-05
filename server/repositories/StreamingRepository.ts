@@ -14,7 +14,7 @@
  * @module StreamingRepository
  */
 
-import { eq, and, desc, gte, lt } from "drizzle-orm";
+import { eq, and, desc, gte, lt, ne } from "drizzle-orm";
 import { db, withQueryTiming } from "@shared/database-unified";
 import {
   streamSessions,
@@ -132,13 +132,13 @@ export class StreamingRepository extends BaseRepository<
           }
 
           if (filters?.upcoming) {
-            conditions.push(gte(streamSessions.startTime, new Date()));
+            conditions.push(gte(streamSessions.scheduledStart, new Date()));
           }
 
           let query = this.db
             .select()
             .from(streamSessions)
-            .orderBy(desc(streamSessions.startTime));
+            .orderBy(desc(streamSessions.scheduledStart));
 
           if (conditions.length > 0) {
             query = query.where(and(...conditions)) as typeof query;
@@ -203,11 +203,9 @@ export class StreamingRepository extends BaseRepository<
           platforms,
         };
       } catch (error) {
-        logger.error(
-          "Failed to get stream session",
-          toLoggableError(error),
-          { id },
-        );
+        logger.error("Failed to get stream session", toLoggableError(error), {
+          id,
+        });
         throw new DatabaseError("Failed to get stream session", {
           cause: error,
         });
@@ -383,11 +381,9 @@ export class StreamingRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to add stream co-host",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to add stream co-host", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to add stream co-host", {
           cause: error,
         });
@@ -678,10 +674,6 @@ export class StreamingRepository extends BaseRepository<
 
           if (filters?.status) {
             conditions.push(eq(collaborationRequests.status, filters.status));
-          }
-
-          if (filters?.type) {
-            conditions.push(eq(collaborationRequests.type, filters.type));
           }
 
           const fromUser = users;
@@ -1103,7 +1095,7 @@ export class StreamingRepository extends BaseRepository<
           return await this.db
             .select()
             .from(streamCoordinationSessions)
-            .where(eq(streamCoordinationSessions.isActive, true))
+            .where(ne(streamCoordinationSessions.currentPhase, "ended"))
             .orderBy(desc(streamCoordinationSessions.createdAt));
         } catch (error) {
           logger.error(
