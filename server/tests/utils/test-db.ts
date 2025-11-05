@@ -241,10 +241,13 @@ export async function clearTestDb(
 
   for (const table of tables) {
     try {
-      // Use db.run() with sql.raw() for better-sqlite3
-      await db.run(sql.raw(`DELETE FROM ${table}`));
+      // Use Drizzle ORM's type-safe delete for SQLite Cloud
+      const tableSchema = (schema as Record<string, any>)[table];
+      if (tableSchema) {
+        await db.delete(tableSchema).execute();
+      }
     } catch {
-      // Table might not exist, skip it
+      // Table might not exist in schema, skip it
       continue;
     }
   }
