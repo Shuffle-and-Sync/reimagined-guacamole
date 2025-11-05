@@ -309,7 +309,7 @@ export const doubleEliminationService = {
       .from(tournamentMatches)
       .where(
         eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.bracketPosition as any, nextRound) &&
+          eq(tournamentMatches.bracketPosition, nextRound) &&
           eq(tournamentMatches.bracketType, "winners"),
       );
 
