@@ -189,11 +189,10 @@ export async function requireAuth(
 
     return next();
   } catch (error) {
-    logger.error(
-      "Auth middleware error",
-      toLoggableError(error),
-      { url: req.url, method: req.method },
-    );
+    logger.error("Auth middleware error", toLoggableError(error), {
+      url: req.url,
+      method: req.method,
+    });
     return res.status(401).json({ message: "Unauthorized" });
   }
 }
@@ -201,7 +200,7 @@ export async function requireAuth(
 // Middleware to optionally get user session (doesn't require auth)
 export async function optionalAuth(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) {
   try {
@@ -239,11 +238,10 @@ export async function optionalAuth(
 
     next();
   } catch (error) {
-    logger.warn(
-      "Optional auth middleware error",
-      toLoggableError(error),
-      { url: req.url, method: req.method },
-    );
+    logger.warn("Optional auth middleware error", toLoggableError(error), {
+      url: req.url,
+      method: req.method,
+    });
     // Continue without authentication on error
     next();
   }
@@ -377,14 +375,10 @@ export async function requireJWTAuth(
 
     next();
   } catch (error) {
-    logger.error(
-      "JWT authentication error",
-      toLoggableError(error),
-      {
-        ip: req.ip,
-        userAgent: req.headers["user-agent"],
-      },
-    );
+    logger.error("JWT authentication error", toLoggableError(error), {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
     res.status(500).json({ message: "Authentication failed" });
   }
 }
@@ -418,7 +412,7 @@ export async function requireHybridAuth(
  */
 export async function optionalJWTAuth(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): Promise<void> {
   const authHeader = req.headers.authorization;

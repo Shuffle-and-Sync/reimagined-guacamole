@@ -11,7 +11,7 @@
  * - Rate limiting and security middleware
  */
 
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { requireAuth } from "../../auth/auth.middleware";
@@ -329,36 +329,38 @@ router.delete(
 /**
  * Error handling middleware for this router
  */
-router.use((error: unknown, req: unknown, res: unknown, _next: unknown) => {
-  console.error("Game Stats API Error:", error);
+router.use(
+  (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("Game Stats API Error:", error);
 
-  if (error instanceof z.ZodError) {
-    return res.status(400).json({
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+      });
+    }
+
+    if (error instanceof ValidationError) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // Generic error response
+    res.status(500).json({
       success: false,
-      message: "Validation error",
-      errors: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+      message: "Internal server error",
     });
-  }
-
-  if (error instanceof ValidationError) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-
-  if (error instanceof NotFoundError) {
-    return res.status(404).json({
-      success: false,
-      message: error.message,
-    });
-  }
-
-  // Generic error response
-  res.status(500).json({
-    success: false,
-    message: "Internal server error",
-  });
-});
+  },
+);
 
 export { router as gameStatsRoutes };

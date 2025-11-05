@@ -35,10 +35,6 @@ import streamingRouter from "./routes/streaming";
 import userProfileRouter from "./routes/user-profile.routes";
 import { enhancedNotificationService } from "./services/enhanced-notifications.service";
 import { graphicsGeneratorService } from "./services/graphics-generator.service";
-import {
-  generatePlatformOAuthURL,
-  handlePlatformOAuthCallback,
-} from "./services/platform-oauth.service";
 import { waitlistService } from "./services/waitlist.service";
 import { assertRouteParam } from "./shared/utils";
 import { storage } from "./storage";
@@ -111,9 +107,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const preferences = await storage.getMatchmakingPreferences(userId);
       return res.json(preferences);
     } catch (error) {
-      logger.error("Failed to fetch matchmaking preferences", toLoggableError(error), {
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to fetch matchmaking preferences",
+        toLoggableError(error),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res.status(500).json({ message: "Failed to fetch preferences" });
     }
   });
@@ -128,9 +128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.upsertMatchmakingPreferences(preferencesData);
       return res.json(preferences);
     } catch (error) {
-      logger.error("Failed to update matchmaking preferences", toLoggableError(error), {
-        userId: getAuthUserId(authenticatedReq),
-      });
+      logger.error(
+        "Failed to update matchmaking preferences",
+        toLoggableError(error),
+        {
+          userId: getAuthUserId(authenticatedReq),
+        },
+      );
       return res.status(500).json({ message: "Failed to update preferences" });
     }
   });
@@ -171,9 +175,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const matches = await storage.findMatchingPlayers(userId, preferences);
         return res.json(matches);
       } catch (error) {
-        logger.error("Failed to find matching players", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-        });
+        logger.error(
+          "Failed to find matching players",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+          },
+        );
         return res.status(500).json({ message: "Failed to find matches" });
       }
     },
@@ -407,13 +415,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to send message" });
       }
     } catch (error) {
-      logger.error("Contact form error", toLoggableError(error), { email: req.body?.email });
+      logger.error("Contact form error", toLoggableError(error), {
+        email: req.body?.email,
+      });
       return res.status(500).json({ message: "Failed to send message" });
     }
   });
 
   // Communities routes
-  app.get("/api/communities", async (req, res) => {
+  app.get("/api/communities", async (_req: Request, res) => {
     try {
       const communities = await storage.getCommunities();
       return res.json(communities);
@@ -432,7 +442,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.json(community);
     } catch (error) {
-      logger.error("Failed to fetch community", toLoggableError(error), { id: _req.params.id });
+      logger.error("Failed to fetch community", toLoggableError(error), {
+        id: _req.params.id,
+      });
       return res.status(500).json({ message: "Failed to fetch community" });
     }
   });
@@ -482,10 +494,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.setPrimaryCommunity(userId, communityId);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to set primary community", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-          communityId: req.body.communityId,
-        });
+        logger.error(
+          "Failed to set primary community",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+            communityId: req.body.communityId,
+          },
+        );
         return res
           .status(500)
           .json({ message: "Failed to set primary community" });
@@ -504,9 +520,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const preferences = await storage.getUserThemePreferences(userId);
         return res.json(preferences);
       } catch (error) {
-        logger.error("Failed to fetch theme preferences", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-        });
+        logger.error(
+          "Failed to fetch theme preferences",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+          },
+        );
         return res
           .status(500)
           .json({ message: "Failed to fetch theme preferences" });
@@ -532,9 +552,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.json(preference);
       } catch (error) {
-        logger.error("Failed to update theme preferences", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-        });
+        logger.error(
+          "Failed to update theme preferences",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+          },
+        );
         return res
           .status(500)
           .json({ message: "Failed to update theme preferences" });
@@ -557,7 +581,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       return sendSuccess(res, events);
     } catch (error) {
-      logger.error("Failed to fetch events", toLoggableError(error), { filters: req.query });
+      logger.error("Failed to fetch events", toLoggableError(error), {
+        filters: req.query,
+      });
       return sendInternalError(res, "Failed to fetch events");
     }
   });
@@ -574,7 +600,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       return sendSuccess(res, event);
     } catch (error) {
-      logger.error("Failed to fetch event", toLoggableError(error), { eventId: req.params.id });
+      logger.error("Failed to fetch event", toLoggableError(error), {
+        eventId: req.params.id,
+      });
       return sendInternalError(res, "Failed to fetch event");
     }
   });
@@ -957,9 +985,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.markNotificationAsRead(id);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to mark notification as read", toLoggableError(error), {
-          notificationId: req.params.id,
-        });
+        logger.error(
+          "Failed to mark notification as read",
+          toLoggableError(error),
+          {
+            notificationId: req.params.id,
+          },
+        );
         return res.status(500).json({ message: "Internal server error" });
       }
     },
@@ -975,9 +1007,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.markAllNotificationsAsRead(userId);
         return res.json({ success: true });
       } catch (error) {
-        logger.error("Failed to mark all notifications as read", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-        });
+        logger.error(
+          "Failed to mark all notifications as read",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+          },
+        );
         return res.status(500).json({ message: "Internal server error" });
       }
     },
@@ -1089,9 +1125,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         return res.status(201).json(createdEvents);
       } catch (error) {
-        logger.error("Failed to create recurring events", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-        });
+        logger.error(
+          "Failed to create recurring events",
+          toLoggableError(error),
+          {
+            userId: getAuthUserId(authenticatedReq),
+          },
+        );
         return res.status(500).json({ message: "Internal server error" });
       }
     },
@@ -1162,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Health check endpoint for WebSocket server
-  app.get("/api/websocket/health", (req, res) => {
+  app.get("/api/websocket/health", (_req: Request, res) => {
     const stats = enhancedWebSocketServer.getStats();
     return res.json({
       status: "healthy",

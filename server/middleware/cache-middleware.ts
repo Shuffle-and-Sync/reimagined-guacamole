@@ -112,7 +112,7 @@ export function invalidateCacheMiddleware(
   patterns: string[],
 ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
   return async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
@@ -149,19 +149,19 @@ export const cacheConfigs = {
   // Short-lived cache for frequently changing data
   shortCache: {
     ttl: 30, // 30 seconds
-    skipCacheIf: (req: Request, res: Response) => res.statusCode !== 200,
+    skipCacheIf: (_req: Request, res: Response) => res.statusCode !== 200,
   },
 
   // Medium cache for relatively stable data
   mediumCache: {
     ttl: 300, // 5 minutes
-    skipCacheIf: (req: Request, res: Response) => res.statusCode !== 200,
+    skipCacheIf: (_req: Request, res: Response) => res.statusCode !== 200,
   },
 
   // Long cache for rarely changing data
   longCache: {
     ttl: 1800, // 30 minutes
-    skipCacheIf: (req: Request, res: Response) => res.statusCode !== 200,
+    skipCacheIf: (_req: Request, res: Response) => res.statusCode !== 200,
   },
 
   // User-specific cache

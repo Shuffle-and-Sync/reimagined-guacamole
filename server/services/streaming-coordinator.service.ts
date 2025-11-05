@@ -627,10 +627,7 @@ export class StreamingCoordinator {
       // Find and update relevant stream sessions based on channel ID
       // The actual implementation would depend on the YouTube webhook payload structure
     } catch (error) {
-      logger.error(
-        "Error handling YouTube event:",
-        toLoggableError(error),
-      );
+      logger.error("Error handling YouTube event:", toLoggableError(error));
     }
   }
 
@@ -653,10 +650,7 @@ export class StreamingCoordinator {
         // Find and update relevant stream sessions based on page ID
       }
     } catch (error) {
-      logger.error(
-        "Error handling Facebook event:",
-        toLoggableError(error),
-      );
+      logger.error("Error handling Facebook event:", toLoggableError(error));
     }
   }
 
@@ -664,7 +658,7 @@ export class StreamingCoordinator {
    * Get streaming analytics for a user
    */
   async getStreamingAnalytics(
-    userId: string,
+    _userId: string,
     _timeRange: "week" | "month" | "year" = "month",
   ): Promise<{
     totalStreams: number;

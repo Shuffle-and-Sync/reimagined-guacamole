@@ -819,8 +819,6 @@ export class NotificationDeliveryService {
   ): boolean {
     // Check quiet hours
     if (preferences.quietHours.enabled) {
-      const _now = new Date();
-      const _userTimezone = preferences.timezone || "UTC";
       // TODO: Implement timezone checking
       // For now, skip quiet hours check
     }
@@ -852,19 +850,20 @@ export class NotificationDeliveryService {
 
   /**
    * Get email template based on notification type
+   * Unused but kept for potential future email integration
    */
-  private getEmailTemplate(notificationType: string): string {
-    const templates: Record<string, string> = {
-      streamStarted: "stream-started",
-      collaborationInvite: "collaboration-invite",
-      eventReminders: "event-reminder",
-      friendRequests: "friend-request",
-      tournamentUpdates: "tournament-update",
-      systemAnnouncements: "system-announcement",
-    };
-
-    return templates[notificationType] || "default";
-  }
+  // private getEmailTemplate(notificationType: string): string {
+  //   const templates: Record<string, string> = {
+  //     streamStarted: "stream-started",
+  //     collaborationInvite: "collaboration-invite",
+  //     eventReminders: "event-reminder",
+  //     friendRequests: "friend-request",
+  //     tournamentUpdates: "tournament-update",
+  //     systemAnnouncements: "system-announcement",
+  //   };
+  //
+  //   return templates[notificationType] || "default";
+  // }
 
   /**
    * Register WebSocket connection for real-time notifications

@@ -7,8 +7,27 @@
 
 import { logger } from "../logger";
 import { aiAlgorithmEngine } from "./ai";
-import { aiStreamingMatcher } from "./ai-streaming-matcher";
-import type { ConnectedPlatform } from "./ai-streaming-matcher";
+import {
+  aiStreamingMatcher,
+  type ConnectedPlatform,
+} from "./ai-streaming-matcher";
+
+// Internal match representation from AI service
+interface AIMatchResult {
+  candidate: {
+    id: string;
+    username?: string;
+    platforms?: ConnectedPlatform[];
+    [key: string]: unknown;
+  };
+  totalScore: number;
+  reasoning?: {
+    sharedGames?: string[];
+    suggestedTypes?: string[];
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 // Real-time matching interfaces
 export interface RealTimeMatchRequest {
@@ -207,8 +226,9 @@ export class RealTimeMatchingAPI {
       });
 
       // Enhance matches with real-time data
+      // Note: Cast to AIMatchResult as the actual runtime data has this structure
       const enhancedMatches = await Promise.all(
-        baseMatches.map((match) =>
+        (baseMatches as unknown as AIMatchResult[]).map((match) =>
           this.enhanceMatchWithRealtimeData(match, request),
         ),
       );
@@ -431,7 +451,7 @@ export class RealTimeMatchingAPI {
   // Private helper methods
 
   private async enhanceMatchWithRealtimeData(
-    baseMatch: unknown,
+    baseMatch: AIMatchResult,
     request: RealTimeMatchRequest,
   ): Promise<EnhancedStreamerMatch> {
     try {
@@ -674,7 +694,7 @@ export class RealTimeMatchingAPI {
   }
 
   private calculateUrgencyScore(
-    baseMatch: unknown,
+    _baseMatch: AIMatchResult,
     request: RealTimeMatchRequest,
   ): number {
     let urgencyScore = 50; // Base score
@@ -709,7 +729,7 @@ export class RealTimeMatchingAPI {
   }
 
   private generateRecommendationReasons(
-    baseMatch: unknown,
+    baseMatch: AIMatchResult,
     availability: AvailabilityStatus,
     outcome: CollaborationOutcome,
   ): string[] {
@@ -741,7 +761,7 @@ export class RealTimeMatchingAPI {
   }
 
   private async estimateCollaborationOutcome(
-    baseMatch: unknown,
+    baseMatch: AIMatchResult,
     request: RealTimeMatchRequest,
   ): Promise<CollaborationOutcome> {
     // Use ML model to estimate outcomes
@@ -1046,7 +1066,6 @@ interface PerformanceMetric {
 class MachineLearningModel {
   private outcomeHistory: Map<string, any[]> = new Map();
   private userPatterns: Map<string, any> = new Map();
-  private collaborationSuccess: Map<string, number> = new Map();
 
   async recordOutcome(matchId: string, outcome: unknown): Promise<void> {
     const history = this.outcomeHistory.get(matchId) || [];

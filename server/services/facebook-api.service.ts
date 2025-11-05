@@ -202,9 +202,6 @@ export class FacebookAPIService {
       process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || this.generateSecureState();
   }
 
-  // Webhook verification token for security
-  private webhookVerifyToken: string;
-
   /**
    * Check if Facebook API is properly configured
    */

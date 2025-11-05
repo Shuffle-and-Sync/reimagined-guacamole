@@ -577,7 +577,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   }
 
   private canAttack(
-    state: PokemonGameState,
+    _state: PokemonGameState,
     player: PokemonPlayer,
     action: PokemonAction,
   ): boolean {
@@ -608,7 +608,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   }
 
   private applyPlayPokemon(
-    state: PokemonGameState,
+    _state: PokemonGameState,
     player: PokemonPlayer,
     action: PokemonAction,
   ): void {
@@ -631,7 +631,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   }
 
   private applyAttachEnergy(
-    state: PokemonGameState,
+    _state: PokemonGameState,
     player: PokemonPlayer,
     action: PokemonAction,
   ): void {
@@ -693,7 +693,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   }
 
   private applyRetreat(
-    state: PokemonGameState,
+    _state: PokemonGameState,
     player: PokemonPlayer,
     _action: PokemonAction,
   ): void {
@@ -719,7 +719,7 @@ export class PokemonGameAdapter extends BaseGameAdapter<
   }
 
   private knockOutPokemon(
-    state: PokemonGameState,
+    _state: PokemonGameState,
     player: PokemonPlayer,
     pokemon: PokemonCard,
   ): void {

@@ -136,21 +136,17 @@ import {
   type InsertEmailChangeToken,
   type InsertUserSocialLink,
   type InsertUserGamingProfile,
-  type _InsertFriendship,
   type InsertUserActivity,
   type InsertUserSettings,
   type InsertMatchmakingPreferences,
   type InsertTournament,
   type UpdateTournament,
-  type _InsertTournamentParticipant,
   type InsertTournamentFormat,
   type InsertTournamentRound,
   type InsertTournamentMatch,
   type InsertMatchResult,
   type InsertForumPost,
   type InsertForumReply,
-  type _InsertForumPostLike,
-  type _InsertForumReplyLike,
   type InsertStreamSession,
   type InsertStreamSessionCoHost,
   type InsertStreamSessionPlatform,
@@ -202,7 +198,6 @@ import {
   type UserMfaSettings,
   type InsertUserMfaSettings,
   type UserMfaAttempts,
-  type _InsertUserMfaAttempts,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
   type MfaSecurityContext,
@@ -213,30 +208,29 @@ import {
   type InsertRefreshToken,
   type AuthAuditLog,
   type InsertAuthAuditLog,
-  type _InsertRevokedJwtToken,
-  type _RevokedJwtToken,
 } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
 // Extended types for entities with properties not yet in schema
 // TODO: Add these columns to schema when implementing full functionality
-interface _ExtendedEvent extends Event {
-  date?: string;
-  time?: string;
-  gameFormat?: string;
-  powerLevel?: string;
-  isRecurring?: boolean;
-  recurrencePattern?: string;
-  recurrenceInterval?: number;
-  recurrenceEndDate?: Date;
-  isPublic?: boolean;
-}
-
-interface _ExtendedTournament extends Tournament {
-  gameFormat?: string;
-  rules?: Record<string, unknown>;
-}
+// Commented out unused interfaces - uncomment when needed
+// interface _ExtendedEvent extends Event {
+//   date?: string;
+//   time?: string;
+//   gameFormat?: string;
+//   powerLevel?: string;
+//   isRecurring?: boolean;
+//   recurrencePattern?: string;
+//   recurrenceInterval?: number;
+//   recurrenceEndDate?: Date;
+//   isPublic?: boolean;
+// }
+//
+// interface _ExtendedTournament extends Tournament {
+//   gameFormat?: string;
+//   rules?: Record<string, unknown>;
+// }
 
 // Type for matchmaking results
 export interface MatchedPlayer {
@@ -1505,7 +1499,6 @@ export class DatabaseStorage implements IStorage {
       limit = 20,
       cursor,
       includeOffline = false,
-      _sortBy = "lastActiveAt",
       sortDirection = "desc",
     } = options;
 
@@ -3629,15 +3622,16 @@ export class DatabaseStorage implements IStorage {
    * 3 failures: 2 minutes
    * 4 failures: 8 minutes
    * 5+ failures: 30 minutes
+   * Unused but kept for potential future use
    */
-  private calculateLockoutSeconds(failedAttempts: number): number {
-    if (failedAttempts < 2) return 0;
-    if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
-
-    // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
-    const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
-    return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
-  }
+  // private calculateLockoutSeconds(failedAttempts: number): number {
+  //   if (failedAttempts < 2) return 0;
+  //   if (failedAttempts >= 5) return 30 * 60; // 30 minutes in seconds
+  //
+  //   // Exponential backoff in seconds: [30, 120, 480] for attempts [2, 3, 4]
+  //   const lockoutTimes = [0, 0, 30, 120, 480]; // Index = failedAttempts
+  //   return lockoutTimes[failedAttempts] || 30 * 60; // Default to 30 minutes
+  // }
 
   // Refresh token operations implementation
   async createRefreshToken(data: InsertRefreshToken): Promise<RefreshToken> {
@@ -3747,7 +3741,7 @@ export class DatabaseStorage implements IStorage {
   async revokeJWT(
     jti: string,
     userId: string,
-    tokenType: string,
+    _tokenType: string,
     reason: string,
     expiresAt: Date,
     _originalExpiry?: Date,
@@ -6460,7 +6454,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPlatformMetrics(
     metricType?: string,
-    timeWindow?: string,
+    _timeWindow?: string,
     startDate?: Date,
     endDate?: Date,
   ): Promise<PlatformMetrics[]> {
@@ -7274,7 +7268,7 @@ export class DatabaseStorage implements IStorage {
 
   async recordReportSubmission(
     userId: string,
-    reportId: string,
+    _reportId: string,
     isAccurate?: boolean,
   ): Promise<void> {
     const reputation = await this.getUserReputation(userId);

@@ -150,9 +150,13 @@ class BackupService {
         backupDir: this.backupDir,
       });
     } catch (error) {
-      logger.error("Failed to initialize backup directory", toLoggableError(error), {
-        backupDir: this.backupDir,
-      });
+      logger.error(
+        "Failed to initialize backup directory",
+        toLoggableError(error),
+        {
+          backupDir: this.backupDir,
+        },
+      );
       throw error;
     }
   }
@@ -299,7 +303,9 @@ class BackupService {
       metadata.error = error instanceof Error ? error.message : "Unknown error";
       metadata.duration = Date.now() - startTime;
 
-      logger.error("Critical data backup failed", toLoggableError(error), { backupId });
+      logger.error("Critical data backup failed", toLoggableError(error), {
+        backupId,
+      });
       throw error;
     }
   }
@@ -380,7 +386,10 @@ class BackupService {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 
-      logger.error("Database restore failed", toLoggableError(error), { backupPath, duration });
+      logger.error("Database restore failed", toLoggableError(error), {
+        backupPath,
+        duration,
+      });
 
       return {
         success: false,
@@ -457,7 +466,9 @@ class BackupService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      logger.error("Backup verification failed", toLoggableError(error), { backupPath });
+      logger.error("Backup verification failed", toLoggableError(error), {
+        backupPath,
+      });
 
       return {
         valid: false,
@@ -537,7 +548,9 @@ class BackupService {
         } catch (error) {
           const errorMsg = `Failed to process file ${file}: ${error}`;
           errors.push(errorMsg);
-          logger.error("Backup cleanup error", toLoggableError(error), { file });
+          logger.error("Backup cleanup error", toLoggableError(error), {
+            file,
+          });
         }
       }
 
@@ -626,7 +639,7 @@ class BackupService {
    * @throws {Error} If pg_dump fails or DATABASE_URL is not configured
    */
   private async executePgDump(
-    filePath: string,
+    _filePath: string,
     options: {
       tables: string[];
       compression: boolean;
@@ -777,7 +790,9 @@ class BackupService {
 
       return hasCreateStatements && hasValidStructure;
     } catch (error) {
-      logger.error("SQL validation failed", toLoggableError(error), { filePath });
+      logger.error("SQL validation failed", toLoggableError(error), {
+        filePath,
+      });
       return false;
     }
   }

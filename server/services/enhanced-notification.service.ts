@@ -1,4 +1,11 @@
-import type { InsertNotification, Notification } from "@shared/schema";
+import type {
+  InsertNotification,
+  Notification,
+  StreamSession,
+  Event,
+  CollaborationRequest,
+  Friendship,
+} from "@shared/schema";
 import { logger } from "../logger";
 import { storage } from "../storage";
 import { notificationDeliveryService } from "./notification-delivery.service";
@@ -92,7 +99,7 @@ export class EnhancedNotificationService {
    * Send stream started notification
    */
   async notifyStreamStarted(
-    streamSession: unknown,
+    streamSession: StreamSession,
     followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
@@ -121,7 +128,7 @@ export class EnhancedNotificationService {
   async notifyCollaborationInvite(
     fromUserId: string,
     toUserId: string,
-    collaborationRequest: unknown,
+    collaborationRequest: CollaborationRequest,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
@@ -139,7 +146,7 @@ export class EnhancedNotificationService {
    * Send event reminder notifications
    */
   async notifyEventReminder(
-    event: unknown,
+    event: Event,
     attendees: string[],
     reminderTime: string = "15 minutes",
   ): Promise<void> {
@@ -170,7 +177,7 @@ export class EnhancedNotificationService {
   async notifyFriendRequest(
     fromUserId: string,
     toUserId: string,
-    friendship: unknown,
+    friendship: Friendship,
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },

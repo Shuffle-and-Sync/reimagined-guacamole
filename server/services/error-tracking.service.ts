@@ -94,10 +94,7 @@ export function initializeSentry(): void {
       sampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
     });
   } catch (error) {
-    logger.error(
-      "Failed to initialize Sentry",
-      toLoggableError(error),
-    );
+    logger.error("Failed to initialize Sentry", toLoggableError(error));
   }
 }
 
@@ -106,7 +103,7 @@ export function initializeSentry(): void {
  * Should be added before other error handlers but after all routes
  */
 export function sentryErrorHandler(): ErrorRequestHandler {
-  return (err: unknown, req: Request, res: Response, next: NextFunction) => {
+  return (err: unknown, _req: Request, _res: Response, next: NextFunction) => {
     // Capture error in Sentry
     Sentry.captureException(err);
 
@@ -120,7 +117,7 @@ export function sentryErrorHandler(): ErrorRequestHandler {
  * Should be added early in the middleware chain
  */
 export function sentryRequestHandler() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // Set request context for Sentry
     Sentry.setContext("request", {
       url: req.url,
@@ -319,10 +316,7 @@ export async function flushSentry(timeout = 2000): Promise<boolean> {
     logger.info("Sentry events flushed successfully");
     return result;
   } catch (error) {
-    logger.error(
-      "Failed to flush Sentry events",
-      toLoggableError(error),
-    );
+    logger.error("Failed to flush Sentry events", toLoggableError(error));
     return false;
   }
 }

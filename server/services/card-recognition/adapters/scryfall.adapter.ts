@@ -7,7 +7,10 @@
 
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../../logger";
-import { cardRecognitionService } from "../../card-recognition.service";
+import {
+  cardRecognitionService,
+  type MtgCard,
+} from "../../card-recognition.service";
 import type {
   ICardAdapter,
   UniversalCard,
@@ -25,7 +28,7 @@ export class ScryfallAdapter implements ICardAdapter {
   /**
    * Transform MTG card to universal format
    */
-  private transformToUniversal(mtgCard: unknown): UniversalCard {
+  private transformToUniversal(mtgCard: MtgCard): UniversalCard {
     return {
       id: mtgCard.id,
       gameId: this.MTG_GAME_ID,
@@ -77,7 +80,10 @@ export class ScryfallAdapter implements ICardAdapter {
         hasMore: result.hasMore,
       };
     } catch (error) {
-      logger.error("Scryfall adapter search failed", toLoggableError(error), { query, options });
+      logger.error("Scryfall adapter search failed", toLoggableError(error), {
+        query,
+        options,
+      });
       throw error;
     }
   }
@@ -89,7 +95,11 @@ export class ScryfallAdapter implements ICardAdapter {
 
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getCardById failed", toLoggableError(error), { id });
+      logger.error(
+        "Scryfall adapter getCardById failed",
+        toLoggableError(error),
+        { id },
+      );
       throw error;
     }
   }
@@ -104,10 +114,14 @@ export class ScryfallAdapter implements ICardAdapter {
 
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getCardByName failed", toLoggableError(error), {
-        name,
-        options,
-      });
+      logger.error(
+        "Scryfall adapter getCardByName failed",
+        toLoggableError(error),
+        {
+          name,
+          options,
+        },
+      );
       throw error;
     }
   }
@@ -117,10 +131,14 @@ export class ScryfallAdapter implements ICardAdapter {
       const result = await cardRecognitionService.autocomplete(query, limit);
       return result;
     } catch (error) {
-      logger.error("Scryfall adapter autocomplete failed", toLoggableError(error), {
-        query,
-        limit,
-      });
+      logger.error(
+        "Scryfall adapter autocomplete failed",
+        toLoggableError(error),
+        {
+          query,
+          limit,
+        },
+      );
       throw error;
     }
   }
@@ -133,7 +151,11 @@ export class ScryfallAdapter implements ICardAdapter {
       const card = await cardRecognitionService.getRandomCard(options);
       return this.transformToUniversal(card);
     } catch (error) {
-      logger.error("Scryfall adapter getRandomCard failed", toLoggableError(error), { options });
+      logger.error(
+        "Scryfall adapter getRandomCard failed",
+        toLoggableError(error),
+        { options },
+      );
       throw error;
     }
   }

@@ -5,7 +5,6 @@
 
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../../logger";
-import { aiAlgorithmEngine } from "../ai";
 import { aiStreamingMatcher } from "../ai-streaming-matcher.service";
 import { matchingCache } from "./matching-cache.service";
 import { matchingMLScorer } from "./matching-ml-scorer.service";
@@ -162,11 +161,9 @@ export class RealTimeMatchingCoreService {
 
       return response;
     } catch (error) {
-      logger.error(
-        "Error getting realtime matches",
-        toLoggableError(error),
-        { userId: request.userId },
-      );
+      logger.error("Error getting realtime matches", toLoggableError(error), {
+        userId: request.userId,
+      });
       throw error;
     }
   }

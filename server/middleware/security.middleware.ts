@@ -268,7 +268,7 @@ export function createRateLimit(
  */
 export function securityMonitoringMiddleware(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const suspiciousPatterns = [

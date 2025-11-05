@@ -503,11 +503,10 @@ export class AnalyticsRepository extends BaseRepository<
 
         return await query;
       } catch (error) {
-        logger.error(
-          "Failed to get event tracking",
-          toLoggableError(error),
-          { eventName, dateRange },
-        );
+        logger.error("Failed to get event tracking", toLoggableError(error), {
+          eventName,
+          dateRange,
+        });
         throw new DatabaseError("Failed to get event tracking", {
           cause: error,
         });
@@ -550,11 +549,10 @@ export class AnalyticsRepository extends BaseRepository<
 
         return result[0]?.count || 0;
       } catch (error) {
-        logger.error(
-          "Failed to get event count",
-          toLoggableError(error),
-          { eventName, dateRange },
-        );
+        logger.error("Failed to get event count", toLoggableError(error), {
+          eventName,
+          dateRange,
+        });
         throw new DatabaseError("Failed to get event count", { cause: error });
       }
     });
@@ -655,7 +653,6 @@ export class AnalyticsRepository extends BaseRepository<
 
           // Convert to array and calculate dropoff rates
           const steps = Array.from(stepCounts.entries());
-          const totalUsers = steps.length > 0 ? steps[0][1] : 0;
 
           return steps.map(([step, count], index) => ({
             step,
@@ -720,11 +717,9 @@ export class AnalyticsRepository extends BaseRepository<
           eventCount: eventResult[0]?.count || 0,
         };
       } catch (error) {
-        logger.error(
-          "Failed to get analytics data",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to get analytics data", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to get analytics data", {
           cause: error,
         });

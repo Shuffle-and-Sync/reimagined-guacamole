@@ -77,7 +77,7 @@ export const corsHandler = (
 };
 
 export const securityHeaders = (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

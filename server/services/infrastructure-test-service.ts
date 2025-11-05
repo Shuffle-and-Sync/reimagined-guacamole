@@ -151,7 +151,8 @@ class InfrastructureTestService {
     // Test alert creation (controlled test)
     suite.tests.push(
       await this.runTest("monitoring", "alert_system", async () => {
-        const _initialAlerts = monitoringService.getAlerts().length;
+        const initialAlerts = monitoringService.getAlerts().length;
+        void initialAlerts; // Checked for side effects
 
         // Trigger a test alert via event emission (safe way to test)
         monitoringService.emit("alert", {
@@ -437,7 +438,7 @@ class InfrastructureTestService {
       await this.runTest("analytics", "data_models", async () => {
         // Test that analytics tables exist and are accessible
         try {
-          const _result = await db.all(sql`
+          await db.all(sql`
           SELECT COUNT(*) as count 
           FROM sqlite_master 
           WHERE type = 'table' 

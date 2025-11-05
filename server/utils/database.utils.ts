@@ -89,11 +89,9 @@ export function buildWhereConditions(
         conditions.push(condition);
       }
     } catch (error) {
-      logger.error(
-        "Error building filter condition",
-        toLoggableError(error),
-        { filter },
-      );
+      logger.error("Error building filter condition", toLoggableError(error), {
+        filter,
+      });
       // Skip invalid conditions rather than failing the entire query
     }
   }
@@ -295,21 +293,22 @@ export function sanitizeDatabaseInput(input: unknown): unknown {
 
     let isSuspicious = false;
     let detectedPatterns: string[] = [];
+    let sanitizedInput = input; // Create a reassignable variable for sanitization
 
     // Check for suspicious patterns and collect them
     for (const pattern of suspiciousPatterns) {
-      if (pattern.test(input)) {
+      if (pattern.test(sanitizedInput)) {
         isSuspicious = true;
         detectedPatterns.push(pattern.source);
         // Sanitize aggressively
-        input = input.replace(pattern, "");
+        sanitizedInput = sanitizedInput.replace(pattern, "");
       }
     }
 
     // Log if suspicious patterns were detected
     if (isSuspicious) {
       logger.warn("Potential SQL injection attempt detected and sanitized", {
-        input: input.substring(0, 100), // Only log first 100 chars for security
+        input: sanitizedInput.substring(0, 100), // Only log first 100 chars for security
         detectedPatterns,
         timestamp: new Date().toISOString(),
       });
@@ -317,7 +316,7 @@ export function sanitizeDatabaseInput(input: unknown): unknown {
 
     // Remove potential XSS and other malicious patterns
     return (
-      input
+      sanitizedInput
         .replace(/[<>]/g, "") // Remove HTML tags
         // eslint-disable-next-line no-control-regex
         .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters
@@ -375,11 +374,11 @@ export async function executeWithRetry<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: Error) {
-      lastError = error;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
 
       // Only retry on specific database errors
-      if (shouldRetryDatabaseOperation(error) && attempt < maxRetries) {
+      if (shouldRetryDatabaseOperation(lastError) && attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
         logger.warn(`Database operation failed, retrying in ${delay}ms`, {
           attempt,
@@ -418,7 +417,7 @@ function shouldRetryDatabaseOperation(error: Error): boolean {
     "SQLITE_IOERR",
   ];
 
-  const errorCode = error.code || error.errno;
+  const errorCode = (error as any).code || (error as any).errno;
   return retryableCodes.includes(errorCode);
 }
 
@@ -433,13 +432,14 @@ export function createHealthCheckQuery(): SQL {
  * Format database error for logging
  */
 export function formatDatabaseError(error: Error): Record<string, unknown> {
+  const dbError = error as any; // Database errors have additional properties
   return {
     message: error.message,
-    code: error.code,
-    errno: error.errno,
-    sqlState: error.sqlState,
-    sqlMessage: error.sqlMessage,
-    sql: error.sql,
+    code: dbError.code,
+    errno: dbError.errno,
+    sqlState: dbError.sqlState,
+    sqlMessage: dbError.sqlMessage || dbError.message,
+    sql: dbError.sql,
     stack: error.stack,
   };
 }
@@ -523,18 +523,18 @@ export function parsePaginationQuery(query: Record<string, unknown>): {
   // Parse page with proper NaN handling
   let page: number | undefined;
   if (query.page) {
-    const parsed = parseInt(query.page);
+    const parsed = parseInt(String(query.page));
     page = isNaN(parsed) ? 1 : Math.max(1, parsed);
   }
 
   // Parse limit with proper NaN handling
   let limit: number | undefined;
   if (query.limit) {
-    const parsed = parseInt(query.limit);
+    const parsed = parseInt(String(query.limit));
     limit = isNaN(parsed) ? 1 : Math.min(Math.max(1, parsed), 100);
   }
 
-  const cursor = query.cursor || undefined;
+  const cursor = typeof query.cursor === "string" ? query.cursor : undefined;
 
   let sort: { field: string; direction: "asc" | "desc" } | undefined;
   if (
@@ -708,10 +708,7 @@ export class BatchQueryOptimizer {
 
       return resultMap;
     } catch (error) {
-      logger.error(
-        "Batch query failed:",
-        toLoggableError(error),
-      );
+      logger.error("Batch query failed:", toLoggableError(error));
       throw new DatabaseError("Failed to execute batch query");
     }
   }
@@ -731,7 +728,7 @@ export class BatchQueryOptimizer {
 
     if (uniqueIds.length === 0) return new Map();
 
-    const _relatedData = await batchLoader(uniqueIds);
+    await batchLoader(uniqueIds);
     const dataMap = new Map<K, R[]>();
 
     uniqueIds.forEach((id) => dataMap.set(id, []));

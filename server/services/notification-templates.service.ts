@@ -307,7 +307,6 @@ export class NotificationTemplateService {
     context: TemplateContext,
   ): NotificationTemplate => {
     const userName = context.user?.firstName || "there";
-    const _weeklyStats = context._weeklyStats || {};
 
     return {
       title: `Your weekly TCG update`,
@@ -401,7 +400,7 @@ export class NotificationTemplateService {
    * Default template for unknown notification types
    */
   private getDefaultTemplate = (
-    type: string,
+    _type: string,
     context: TemplateContext,
   ): NotificationTemplate => {
     return {

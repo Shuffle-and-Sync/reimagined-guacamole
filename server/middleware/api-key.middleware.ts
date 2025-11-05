@@ -71,7 +71,7 @@ export function authenticateApiKey(
  */
 export function optionalApiKey(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void {
   const apiKey = req.headers["x-api-key"];

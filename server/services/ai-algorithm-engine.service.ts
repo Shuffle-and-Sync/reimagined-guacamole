@@ -1018,8 +1018,8 @@ export class AIAlgorithmEngine {
   }
 
   private isTimeSlotCompatible(
-    userSlot: string,
-    candidateSlot: string,
+    _userSlot: string,
+    _candidateSlot: string,
     offset: number,
   ): boolean {
     // Simplified time compatibility check
@@ -1028,8 +1028,8 @@ export class AIAlgorithmEngine {
   }
 
   private identifySchedulingConflicts(
-    userSchedule: ScheduleData,
-    candidateSchedule: ScheduleData,
+    _userSchedule: ScheduleData,
+    _candidateSchedule: ScheduleData,
     timezoneOffset: number,
   ): string[] {
     const conflicts: string[] = [];
@@ -1326,9 +1326,7 @@ export class AIAlgorithmEngine {
           (sum, outcome) => sum + outcome.successScore,
           0,
         ) / collaborationOutcomes.length;
-      const _successfulCollabs = collaborationOutcomes.filter(
-        (o) => o.successScore > 0.7,
-      );
+      collaborationOutcomes.filter((o) => o.successScore > 0.7);
 
       // Analyze which factors contributed most to success
       const factorAnalysis = {
@@ -1352,7 +1350,6 @@ export class AIAlgorithmEngine {
 
       // Adjust weights based on factor success correlation
       const adjustmentFactor = 0.1; // Conservative adjustment
-      const _totalAdjustment = adjustmentFactor;
 
       if (avgSuccess > 0.8) {
         // System performing well, minimal adjustments

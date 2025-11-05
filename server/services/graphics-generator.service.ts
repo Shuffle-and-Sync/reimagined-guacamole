@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import type { Event } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
@@ -64,20 +65,16 @@ export class GraphicsGeneratorService {
       logger.info("Event graphic generated", { eventId, template });
       return svgDataUrl;
     } catch (error) {
-      logger.error(
-        "Failed to generate event graphic",
-        toLoggableError(error),
-        {
-          eventId,
-          template,
-        },
-      );
+      logger.error("Failed to generate event graphic", toLoggableError(error), {
+        eventId,
+        template,
+      });
       throw error;
     }
   }
 
   private generateSVG(
-    event: unknown,
+    event: Event,
     config: GraphicTemplate,
     qrCodeDataUrl: string,
     template: string,

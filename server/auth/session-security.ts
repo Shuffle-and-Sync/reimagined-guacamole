@@ -28,6 +28,12 @@ export interface SessionSecurityContext {
   timestamp: Date;
 }
 
+export interface HistoricalContext {
+  accountAge: number;
+  mfaEnabled: boolean;
+  recentFailures: number;
+}
+
 export interface SecurityRiskAssessment {
   riskScore: number; // 0.0 (safe) to 1.0 (high risk)
   riskFactors: string[];
@@ -84,9 +90,6 @@ export class SessionSecurityService {
     /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // Private networks
     /^127\./, // Localhost
   ];
-
-  // Maximum reasonable travel speed (km/h) for impossible travel detection
-  private readonly MAX_TRAVEL_SPEED = 900; // Approximately jet aircraft speed
 
   public static getInstance(): SessionSecurityService {
     if (!SessionSecurityService.instance) {
@@ -592,7 +595,7 @@ export class SessionSecurityService {
   private async calculateTrustScore(
     userId: string,
     deviceHash: string,
-    historicalContext: unknown,
+    historicalContext: HistoricalContext,
   ): Promise<number> {
     try {
       let trustScore = 0.5; // Start with neutral trust
@@ -678,7 +681,7 @@ export class SessionSecurityService {
    */
   private getRecommendedActions(
     riskLevel: "low" | "medium" | "high" | "critical",
-    riskFactors: string[],
+    _riskFactors: string[],
     suspiciousFlags: SuspiciousActivityFlags,
   ): string[] {
     const actions: string[] = [];

@@ -361,11 +361,9 @@ export const authConfig: AuthConfig = {
             image: user.profileImageUrl,
           };
         } catch (error) {
-          logger.error(
-            "Authentication error",
-            toLoggableError(error),
-            { provider: "credentials" },
-          );
+          logger.error("Authentication error", toLoggableError(error), {
+            provider: "credentials",
+          });
           return null;
         }
       },
@@ -390,7 +388,7 @@ export const authConfig: AuthConfig = {
       }
       return session;
     },
-    async signIn({ user, account, _profile }) {
+    async signIn({ user, account }) {
       try {
         // For OAuth providers, ensure user exists in our database
         if (account?.provider !== "credentials") {
@@ -433,11 +431,9 @@ export const authConfig: AuthConfig = {
 
         return true;
       } catch (error) {
-        logger.error(
-          "Sign-in callback error",
-          toLoggableError(error),
-          { provider: account?.provider },
-        );
+        logger.error("Sign-in callback error", toLoggableError(error), {
+          provider: account?.provider,
+        });
         return false;
       }
     },
@@ -490,7 +486,7 @@ export const authConfig: AuthConfig = {
   },
 
   events: {
-    signIn({ user, account, _isNewUser }) {
+    signIn({ user, account }) {
       logger.info("User signed in", {
         userId: user.id,
         provider: account?.provider,

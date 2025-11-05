@@ -484,7 +484,7 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
     }
   }
 
-  private canPlayLand(state: MTGGameState, player: MTGPlayer): boolean {
+  private canPlayLand(_state: MTGGameState, player: MTGPlayer): boolean {
     return (
       !player.hasPlayedLand &&
       player.zones.hand.some((c) => c.type.includes("Land"))
@@ -492,7 +492,7 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
   }
 
   private canCastSpell(
-    state: MTGGameState,
+    _state: MTGGameState,
     player: MTGPlayer,
     action: MTGAction,
   ): boolean {
@@ -502,7 +502,7 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
   }
 
   private applyPlayLand(
-    state: MTGGameState,
+    _state: MTGGameState,
     player: MTGPlayer,
     action: MTGAction,
   ): void {
@@ -536,7 +536,8 @@ export class MTGGameAdapter extends BaseGameAdapter<MTGGameState, MTGAction> {
         ...action,
         timestamp: new Date(),
       });
-      // Spell will resolve from stack later
+      // Spell will resolve from stack later (card moved to stack)
+      void card;
     }
   }
 

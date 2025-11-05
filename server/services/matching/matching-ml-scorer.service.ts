@@ -71,7 +71,7 @@ export class MatchingMLScorerService {
    */
   async applyMLScoring(
     matches: EnhancedStreamerMatch[],
-    request: RealTimeMatchRequest,
+    _request: RealTimeMatchRequest,
   ): Promise<EnhancedStreamerMatch[]> {
     const weights = this.mlModel.getWeights();
 

@@ -14,7 +14,7 @@ import { cacheService } from "../services/cache-service";
 import { redisClient } from "../services/redis-client.service";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { AuthorizationError, _ValidationError } = errors;
+const { AuthorizationError } = errors;
 
 const router = Router();
 

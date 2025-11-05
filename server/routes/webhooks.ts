@@ -59,7 +59,7 @@ const facebookWebhookSchema = z.object({
  * Raw body middleware for webhook signature verification
  * Must capture raw body before JSON parsing for HMAC verification
  */
-function rawBodyMiddleware(req: Request, res: Response, next: NextFunction) {
+function rawBodyMiddleware(req: Request, _res: Response, next: NextFunction) {
   let rawBody = "";
 
   req.on("data", (chunk) => {
@@ -301,7 +301,7 @@ router.get("/facebook", (req: Request, res: Response) => {
 /**
  * Webhook health check endpoint
  */
-router.get("/health", webhookRateLimit, (req: Request, res: Response) => {
+router.get("/health", webhookRateLimit, (_req: Request, res: Response) => {
   res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),

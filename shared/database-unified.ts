@@ -7,13 +7,12 @@ import * as schema from "./schema";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 // Import connection monitoring (only on server side)
- 
-let _connectionMonitor: unknown = null;
+
 if (typeof window === "undefined") {
   // Dynamic import to avoid issues in client-side builds
   import("../server/utils/connection-monitor")
-    .then((module) => {
-      _connectionMonitor = module.connectionMonitor;
+    .then(() => {
+      // Connection monitor imported for side effects
     })
     .catch(() => {
       // Silently fail if not available (e.g., in shared contexts)

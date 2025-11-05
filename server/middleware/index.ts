@@ -5,6 +5,7 @@
  * following Copilot best practices for middleware organization and composition.
  */
 
+
 // Import all middleware modules
 import compressionMiddleware from "./compression.middleware";
 import { costBasedRateLimiter } from "./cost-based-rate-limiter.middleware";
@@ -12,6 +13,7 @@ import { deprecated } from "./deprecation.middleware";
 import { errorHandlingMiddleware } from "./error-handling.middleware";
 import { performanceMonitoring } from "./performance.middleware";
 import { securityMiddleware } from "./security.middleware";
+import type { Express, RequestHandler } from "express";
 
 // Re-export individual middleware for granular control
 export { securityMiddleware } from "./security.middleware";
@@ -135,7 +137,10 @@ export const uploadMiddlewareStack = [
 /**
  * Utility function to apply middleware stack to Express app
  */
-export function applyMiddlewareStack(app: unknown, middlewareStack: unknown[]) {
+export function applyMiddlewareStack(
+  app: Express,
+  middlewareStack: RequestHandler[],
+) {
   middlewareStack.forEach((middleware) => {
     if (middleware) {
       app.use(middleware);
@@ -146,7 +151,7 @@ export function applyMiddlewareStack(app: unknown, middlewareStack: unknown[]) {
 /**
  * Express error handler setup utility
  */
-export function setupErrorHandlers(app: unknown) {
+export function setupErrorHandlers(app: Express) {
   // 404 handler for unmatched routes
   app.use(notFound);
 
@@ -157,7 +162,7 @@ export function setupErrorHandlers(app: unknown) {
 /**
  * Health and metrics endpoints setup
  */
-export function setupMonitoringEndpoints(app: unknown) {
+export function setupMonitoringEndpoints(app: Express) {
   app.get("/health", healthCheck);
   app.get("/metrics", metrics);
 }
