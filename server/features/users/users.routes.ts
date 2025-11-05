@@ -342,7 +342,7 @@ matchmakingRouter.get("/preferences", isAuthenticated, async (req, res) => {
         userId: getAuthUserId(authenticatedReq),
       },
     );
-    res
+    return res
       .status(500)
       .json({ message: "Failed to fetch matchmaking preferences" });
   }
@@ -365,7 +365,7 @@ matchmakingRouter.put("/preferences", isAuthenticated, async (req, res) => {
         userId: getAuthUserId(authenticatedReq),
       },
     );
-    res
+    return res
       .status(500)
       .json({ message: "Failed to update matchmaking preferences" });
   }

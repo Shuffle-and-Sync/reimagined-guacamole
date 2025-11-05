@@ -137,7 +137,7 @@ try {
 }
 
 // Handle CORS errors
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
   if (err.message === "Not allowed by CORS") {
     logger.warn("CORS error", {
       origin: req.headers.origin,
@@ -150,7 +150,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       origin: req.headers.origin,
     });
 
-    return res.status(corsError.statusCode).json({
+    res.status(corsError.statusCode).json({
       error: {
         code: corsError.code,
         message: "Origin not allowed",
@@ -159,6 +159,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
         requestId: req.headers["x-request-id"] || "unknown",
       },
     });
+    return;
   }
 
   next(err);
