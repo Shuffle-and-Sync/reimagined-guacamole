@@ -35,13 +35,13 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    const emailData: MailDataRequired = {
+    const emailData = {
       to: params.to,
       from: params.from,
       subject: params.subject,
       ...(params.text ? { text: params.text } : {}),
       ...(params.html ? { html: params.html } : {}),
-    };
+    } as MailDataRequired;
 
     await mailService.send(emailData);
     return true;

@@ -299,7 +299,7 @@ export class StreamingRepository extends BaseRepository<
    */
   async updateStreamStatus(
     id: string,
-    status: string,
+    status: "scheduled" | "live" | "ended" | "cancelled",
   ): Promise<StreamSession | null> {
     return withQueryTiming(
       "StreamingRepository:updateStreamStatus",

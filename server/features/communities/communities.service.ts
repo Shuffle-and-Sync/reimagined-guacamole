@@ -109,7 +109,7 @@ export class CommunitiesService {
         userId,
         communityId,
         themeMode,
-        customColors,
+        customColors: customColors ? String(customColors) : undefined,
       });
 
       logger.info("Theme preferences updated", {
