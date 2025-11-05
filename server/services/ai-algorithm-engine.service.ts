@@ -377,8 +377,8 @@ export class AIAlgorithmEngine {
 
       // Engagement pattern synergy
       const engagementSynergy = this.calculateEngagementSynergy(
-        userMetrics || ({} as StreamingMetrics),
-        candidateMetrics || ({} as StreamingMetrics),
+        userMetrics,
+        candidateMetrics,
       );
 
       // Growth potential calculation
@@ -389,8 +389,8 @@ export class AIAlgorithmEngine {
 
       // Retention synergy
       const retentionPotential = this.calculateRetentionSynergy(
-        userMetrics || ({} as StreamingMetrics),
-        candidateMetrics || ({} as StreamingMetrics),
+        userMetrics,
+        candidateMetrics,
       );
 
       // Geographic distribution analysis
@@ -842,8 +842,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateEngagementSynergy(
-    userMetrics: StreamingMetrics,
-    candidateMetrics: StreamingMetrics,
+    userMetrics?: StreamingMetrics,
+    candidateMetrics?: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.5;
 
@@ -873,8 +873,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateRetentionSynergy(
-    userMetrics: StreamingMetrics,
-    candidateMetrics: StreamingMetrics,
+    userMetrics?: StreamingMetrics,
+    candidateMetrics?: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.6;
 

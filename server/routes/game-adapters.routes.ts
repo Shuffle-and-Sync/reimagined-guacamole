@@ -26,7 +26,7 @@ import {
 } from "../services/games/adapters/formats";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { NotFoundError, ValidationError } = errors;
+const { NotFoundError, ValidationError, BadRequestError } = errors;
 
 const router = Router();
 
@@ -210,9 +210,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const { sessionId, playerId } = req.params;
     if (!sessionId || !playerId) {
-      return res
-        .status(400)
-        .json({ message: "Session ID and Player ID are required" });
+      throw new BadRequestError("Session ID and Player ID are required");
     }
 
     const session = gameStates.get(sessionId);

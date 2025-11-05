@@ -467,6 +467,7 @@ export async function retry<T>(
         lastError instanceof Error ? lastError : new Error(String(lastError));
 
       if (attempt === maxAttempts || !shouldRetry(errorForRetry)) {
+        // Always throw the converted Error for consistency
         throw errorForRetry;
       }
 
@@ -475,7 +476,9 @@ export async function retry<T>(
     }
   }
 
-  throw lastError;
+  // This line is unreachable because maxAttempts check above will throw
+  // Keep it for type safety
+  throw new Error("Retry failed");
 }
 
 /**

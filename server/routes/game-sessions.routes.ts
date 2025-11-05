@@ -61,11 +61,9 @@ router.get(
   "/:id",
   isAuthenticated,
   asyncHandler(async (req, res) => {
+    // Express route pattern /:id guarantees id is present
     const { id } = req.params;
-    if (!id) {
-      throw new BadRequestError("Session ID is required");
-    }
-    const gameSession = await storage.getGameSessionById(id);
+    const gameSession = await storage.getGameSessionById(id!);
 
     if (!gameSession) {
       throw new NotFoundError("Game session");
@@ -84,23 +82,21 @@ router.post(
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
+    // Express route pattern /:id guarantees id is present
     const { id } = req.params;
-    if (!id) {
-      throw new BadRequestError("Session ID is required");
-    }
 
     // Authorize session join
-    const authResult = await authorizeSessionJoin(id, userId);
+    const authResult = await authorizeSessionJoin(id!, userId);
     if (!authResult.authorized) {
       return res.status(403).json({
         error: authResult.reason || "Not authorized to join this session",
       });
     }
 
-    await storage.joinGameSession(id, userId);
+    await storage.joinGameSession(id!, userId);
 
     // Create notification for host when someone joins
-    const gameSession = await storage.getGameSessions({ eventId: id });
+    const gameSession = await storage.getGameSessions({ eventId: id! });
     if (gameSession.length > 0 && gameSession[0]?.hostId) {
       await storage.createNotification({
         userId: gameSession[0].hostId,
@@ -123,15 +119,13 @@ router.post(
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
+    // Express route pattern /:id guarantees id is present
     const { id } = req.params;
-    if (!id) {
-      throw new BadRequestError("Session ID is required");
-    }
 
-    await storage.leaveGameSession(id, userId);
+    await storage.leaveGameSession(id!, userId);
 
     // Create notification for host when someone leaves
-    const gameSession = await storage.getGameSessions({ eventId: id });
+    const gameSession = await storage.getGameSessions({ eventId: id! });
     if (gameSession.length > 0 && gameSession[0]?.hostId) {
       await storage.createNotification({
         userId: gameSession[0].hostId,
@@ -155,23 +149,21 @@ router.post(
     const authenticatedReq = req as AuthenticatedRequest;
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
+    // Express route pattern /:id guarantees id is present
     const { id } = req.params;
-    if (!id) {
-      throw new BadRequestError("Session ID is required");
-    }
 
     // Authorize spectating
-    const authResult = await authorizeSpectate(id, userId);
+    const authResult = await authorizeSpectate(id!, userId);
     if (!authResult.authorized) {
       return res.status(403).json({
         error: authResult.reason || "Not authorized to spectate this session",
       });
     }
 
-    await storage.spectateGameSession(id, userId);
+    await storage.spectateGameSession(id!, userId);
 
     // Create notification for host when someone starts spectating
-    const gameSession = await storage.getGameSessions({ eventId: id });
+    const gameSession = await storage.getGameSessions({ eventId: id! });
     if (gameSession.length > 0 && gameSession[0]?.hostId) {
       await storage.createNotification({
         userId: gameSession[0].hostId,

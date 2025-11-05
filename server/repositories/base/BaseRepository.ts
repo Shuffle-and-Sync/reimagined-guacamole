@@ -373,7 +373,7 @@ export abstract class BaseRepository<
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
-            .set({ deletedAt: new Date() } as any)
+            .set({ deletedAt: new Date() } as TInsert & { deletedAt?: Date })
             .where(eq(this.table.id, id))
             .returning();
 
@@ -417,7 +417,7 @@ export abstract class BaseRepository<
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
-            .set({ deletedAt: new Date() } as any)
+            .set({ deletedAt: new Date() } as TInsert & { deletedAt?: Date })
             .where(and(...whereConditions))
             .returning();
 

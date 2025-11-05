@@ -3910,7 +3910,9 @@ export class DatabaseStorage implements IStorage {
   async getUserMessages(
     userId: string,
     options?: { eventId?: string; communityId?: string; limit?: number },
-  ): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+  ): Promise<
+    (Message & { sender: User | null; recipient?: User; event?: Event })[]
+  > {
     let conditions = [
       sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`,
     ];
@@ -3940,12 +3942,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`${messages.createdAt} DESC`)
       .limit(options?.limit || 50);
 
-    return results
-      .filter((r): r is { message: Message; sender: User } => r.sender !== null)
-      .map((r) => ({
-        ...r.message,
-        sender: r.sender,
-      }));
+    return results.map((r) => ({
+      ...r.message,
+      sender: r.sender,
+    }));
   }
 
   async sendMessage(data: InsertMessage): Promise<Message> {
@@ -3976,7 +3976,9 @@ export class DatabaseStorage implements IStorage {
       sortField?: string;
       sortDirection?: "asc" | "desc";
     },
-  ): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+  ): Promise<
+    (Message & { sender: User | null; recipient?: User; event?: Event })[]
+  > {
     let conditions = [
       sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`,
     ];
@@ -4051,12 +4053,10 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(sql`${messages.createdAt} ASC`);
 
-    return results
-      .filter((r): r is { message: Message; sender: User } => r.sender !== null)
-      .map((r) => ({
-        ...r.message,
-        sender: r.sender,
-      }));
+    return results.map((r) => ({
+      ...r.message,
+      sender: r.sender,
+    }));
   }
 
   // Game session operations
@@ -4103,7 +4103,9 @@ export class DatabaseStorage implements IStorage {
     communityId?: string;
     hostId?: string;
     status?: string;
-  }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
+  }): Promise<
+    (GameSession & { host: User | null; coHost?: User; event: Event | null })[]
+  > {
     let conditions = [];
 
     if (filters?.eventId) {
@@ -4140,21 +4142,11 @@ export class DatabaseStorage implements IStorage {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results
-      .filter(
-        (
-          r,
-        ): r is {
-          gameSession: GameSession;
-          host: User;
-          event: Event;
-        } => r.host !== null && r.event !== null,
-      )
-      .map((r) => ({
-        ...r.gameSession,
-        host: r.host,
-        event: r.event,
-      }));
+    return results.map((r) => ({
+      ...r.gameSession,
+      host: r.host,
+      event: r.event,
+    }));
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
