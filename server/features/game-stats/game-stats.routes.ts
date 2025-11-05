@@ -107,8 +107,7 @@ router.get(
       // Validate query parameters
       const query = gameStatsQuerySchema.parse(req.query);
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
 
@@ -120,7 +119,7 @@ router.get(
         offset,
       });
 
-      res.json({
+      return res.json({
         success: true,
         data: result,
         message: "Game statistics retrieved successfully",
@@ -142,8 +141,7 @@ router.put(
   async (req, res, next): Promise<void> => {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
       const updateData = req.body;
@@ -153,7 +151,7 @@ router.put(
         updateData,
       );
 
-      res.json({
+      return res.json({
         success: true,
         data: updatedStats,
         message: "Game statistics preferences updated successfully",
@@ -175,14 +173,13 @@ router.get(
   async (req, res, next): Promise<void> => {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
 
       const aggregateStats = await gameStatsService.getAggregateStats(userId);
 
-      res.json({
+      return res.json({
         success: true,
         data: aggregateStats,
         message: "Aggregate statistics retrieved successfully",
@@ -223,7 +220,7 @@ router.get("/leaderboard", gameStatsLimiter, async (req, res, next) => {
 
     const leaderboard = await gameStatsService.getLeaderboard(leaderboardQuery);
 
-    res.json({
+    return res.json({
       success: true,
       data: leaderboard,
       message: "Leaderboard retrieved successfully",
@@ -244,8 +241,7 @@ router.post(
   async (req, res, next): Promise<void> => {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
       const gameResultData = req.body;
@@ -255,7 +251,7 @@ router.post(
         gameResultData,
       );
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: newResult,
         message: "Game result recorded successfully",
@@ -278,8 +274,7 @@ router.get(
     try {
       const query = gameStatsQuerySchema.parse(req.query);
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
 
@@ -290,7 +285,7 @@ router.get(
         offset,
       });
 
-      res.json({
+      return res.json({
         success: true,
         data: results,
         message: "Game results retrieved successfully",
@@ -312,14 +307,13 @@ router.delete(
     try {
       const id = assertRouteParam(req.params.id, "id");
       if (!req.user?.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+        return res.status(401).json({ message: "Unauthorized" });
       }
       const userId = req.user.id;
 
       await gameStatsService.deleteGameResult(id, userId);
 
-      res.status(204).send();
+      return res.status(204).send();
     } catch (error) {
       next(error);
     }
@@ -356,7 +350,7 @@ router.use(
     }
 
     // Generic error response
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
