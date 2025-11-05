@@ -755,40 +755,52 @@ export class EventRepository extends BaseRepository<
   }
 
   /**
-   * Get event tracking data
+   * Get analytics event tracking data
    *
    * NOTE: The eventTracking table stores analytics events (page views, clicks, etc.)
-   * not calendar event data. This function queries by eventName which may be used
-   * to store event-related analytics. Consider using eventProperties JSON field
-   * to filter by actual calendar event IDs if needed.
+   * not calendar event data. This function queries by eventName to find analytics
+   * events of a specific type.
    *
-   * @param eventId - Event name or identifier to search for
+   * @param eventName - Analytics event name/type to search for (e.g., 'page-view', 'button-click')
    * @returns Promise of event tracking records
    *
    * @example
    * ```typescript
-   * const tracking = await eventRepo.getEventTracking('event-view');
+   * const tracking = await eventRepo.getAnalyticsEventTracking('page-view');
    * ```
    */
+  async getAnalyticsEventTracking(eventName: string): Promise<EventTracking[]> {
+    return withQueryTiming(
+      "EventRepository:getAnalyticsEventTracking",
+      async () => {
+        try {
+          return await this.db
+            .select()
+            .from(eventTracking)
+            .where(eq(eventTracking.eventName, eventName))
+            .orderBy(desc(eventTracking.timestamp));
+        } catch (error) {
+          logger.error(
+            "Failed to get analytics event tracking",
+            toLoggableError(error),
+            {
+              eventName,
+            },
+          );
+          throw new DatabaseError("Failed to get analytics event tracking", {
+            cause: error,
+          });
+        }
+      },
+    );
+  }
+
+  /**
+   * @deprecated Use getAnalyticsEventTracking instead for clarity
+   * Get event tracking data by event name
+   */
   async getEventTracking(eventId: string): Promise<EventTracking[]> {
-    return withQueryTiming("EventRepository:getEventTracking", async () => {
-      try {
-        // Query by eventName - this searches analytics event names
-        // To query by calendar event ID, consider filtering eventProperties JSON field
-        return await this.db
-          .select()
-          .from(eventTracking)
-          .where(eq(eventTracking.eventName, eventId))
-          .orderBy(desc(eventTracking.timestamp));
-      } catch (error) {
-        logger.error("Failed to get event tracking", toLoggableError(error), {
-          eventId,
-        });
-        throw new DatabaseError("Failed to get event tracking", {
-          cause: error,
-        });
-      }
-    });
+    return this.getAnalyticsEventTracking(eventId);
   }
 
   /**

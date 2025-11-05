@@ -628,7 +628,13 @@ export class TournamentRepository extends BaseRepository<
           const player2 = alias(users, "player2");
           const winner = alias(users, "winner");
 
-          let query = this.db
+          // Build conditions array for where clause
+          const conditions = [eq(tournamentMatches.tournamentId, tournamentId)];
+          if (roundId) {
+            conditions.push(eq(tournamentMatches.roundId, roundId));
+          }
+
+          const query = this.db
             .select({
               match: tournamentMatches,
               player1,
@@ -639,15 +645,7 @@ export class TournamentRepository extends BaseRepository<
             .leftJoin(player1, eq(tournamentMatches.player1Id, player1.id))
             .leftJoin(player2, eq(tournamentMatches.player2Id, player2.id))
             .leftJoin(winner, eq(tournamentMatches.winnerId, winner.id))
-            .where(
-              (() => {
-                const conditions = [eq(tournamentMatches.tournamentId, tournamentId)];
-                if (roundId) {
-                  conditions.push(eq(tournamentMatches.roundId, roundId));
-                }
-                return and(...conditions);
-              })(),
-            );
+            .where(and(...conditions));
 
           const results = await query;
           return results.map((result) => ({

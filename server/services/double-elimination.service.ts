@@ -11,6 +11,7 @@ import {
   tournaments,
   tournamentMatches,
   tournamentParticipants,
+  tournamentRounds,
 } from "@shared/schema";
 import { InvalidBracketError } from "../errors/tournament-errors";
 import { logger } from "../logger";
@@ -294,24 +295,55 @@ export const doubleEliminationService = {
    */
   async advanceInWinnersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
+    match: typeof tournamentMatches.$inferSelect,
     winnerId: string,
     _bracket: unknown,
   ) {
-    // Find next winners bracket match
-    // NOTE: Schema mismatch - roundNumber field doesn't exist in tournamentMatches schema
-    // TODO: Either add roundNumber to schema or refactor to use only bracketPosition throughout
-    // Using bracketPosition as fallback for now to maintain compatibility
-    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    // Get the current round number from tournamentRounds table
+    const currentRoundData = await tx
+      .select({ roundNumber: tournamentRounds.roundNumber })
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.id, match.roundId))
+      .limit(1);
+
+    if (currentRoundData.length === 0) {
+      logger.error("Round not found for match", {
+        matchId: match.id,
+        roundId: match.roundId,
+      });
+      return;
+    }
+
+    const currentRound = currentRoundData[0]!.roundNumber;
     const nextRound = currentRound + 1;
     const nextMatchNumber = Math.ceil(match.matchNumber / 2);
 
+    // Find the next round
+    const nextRoundData = await tx
+      .select({ id: tournamentRounds.id })
+      .from(tournamentRounds)
+      .where(
+        eq(tournamentRounds.tournamentId, match.tournamentId) &&
+          eq(tournamentRounds.roundNumber, nextRound),
+      )
+      .limit(1);
+
+    if (nextRoundData.length === 0) {
+      logger.warn("Next round not found", {
+        tournamentId: match.tournamentId,
+        nextRound,
+      });
+      return;
+    }
+
+    const nextRoundId = nextRoundData[0]!.id;
+
+    // Find next winners bracket match
     const nextMatches = await tx
       .select()
       .from(tournamentMatches)
       .where(
-        eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.bracketPosition, nextRound) &&
+        eq(tournamentMatches.roundId, nextRoundId) &&
           eq(tournamentMatches.bracketType, "winners"),
       );
 
@@ -339,21 +371,54 @@ export const doubleEliminationService = {
    */
   async dropToLosersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
+    match: typeof tournamentMatches.$inferSelect,
     loserId: string,
     _bracket: unknown,
   ) {
-    // Calculate losers bracket round and position
-    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
-    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    // Get the current round number from tournamentRounds table
+    const currentRoundData = await tx
+      .select({ roundNumber: tournamentRounds.roundNumber })
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.id, match.roundId))
+      .limit(1);
+
+    if (currentRoundData.length === 0) {
+      logger.error("Round not found for match", {
+        matchId: match.id,
+        roundId: match.roundId,
+      });
+      return;
+    }
+
+    const currentRound = currentRoundData[0]!.roundNumber;
+    // Calculate losers bracket round (double elimination formula)
     const losersRound = 2 * currentRound - 1;
+
+    // Find the losers bracket round
+    const losersRoundData = await tx
+      .select({ id: tournamentRounds.id })
+      .from(tournamentRounds)
+      .where(
+        eq(tournamentRounds.tournamentId, match.tournamentId) &&
+          eq(tournamentRounds.roundNumber, losersRound),
+      )
+      .limit(1);
+
+    if (losersRoundData.length === 0) {
+      logger.warn("Losers round not found", {
+        tournamentId: match.tournamentId,
+        losersRound,
+      });
+      return;
+    }
+
+    const losersRoundId = losersRoundData[0]!.id;
 
     const losersMatches = await tx
       .select()
       .from(tournamentMatches)
       .where(
-        eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.bracketPosition, losersRound) &&
+        eq(tournamentMatches.roundId, losersRoundId) &&
           eq(tournamentMatches.bracketType, "losers"),
       );
 
@@ -385,20 +450,53 @@ export const doubleEliminationService = {
    */
   async advanceInLosersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
+    match: typeof tournamentMatches.$inferSelect,
     winnerId: string,
     _bracket: unknown,
   ) {
-    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
-    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    // Get the current round number from tournamentRounds table
+    const currentRoundData = await tx
+      .select({ roundNumber: tournamentRounds.roundNumber })
+      .from(tournamentRounds)
+      .where(eq(tournamentRounds.id, match.roundId))
+      .limit(1);
+
+    if (currentRoundData.length === 0) {
+      logger.error("Round not found for match", {
+        matchId: match.id,
+        roundId: match.roundId,
+      });
+      return;
+    }
+
+    const currentRound = currentRoundData[0]!.roundNumber;
     const nextRound = currentRound + 1;
+
+    // Find the next round
+    const nextRoundData = await tx
+      .select({ id: tournamentRounds.id })
+      .from(tournamentRounds)
+      .where(
+        eq(tournamentRounds.tournamentId, match.tournamentId) &&
+          eq(tournamentRounds.roundNumber, nextRound),
+      )
+      .limit(1);
+
+    if (nextRoundData.length === 0) {
+      logger.warn("Next round not found", {
+        tournamentId: match.tournamentId,
+        nextRound,
+      });
+      return;
+    }
+
+    const nextRoundId = nextRoundData[0]!.id;
 
     const nextMatches = await tx
       .select()
       .from(tournamentMatches)
       .where(
-        eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.bracketPosition as any, nextRound) &&
+        eq(tournamentMatches.roundId, nextRoundId) &&
           eq(tournamentMatches.bracketType, "losers"),
       );
 
