@@ -64,6 +64,11 @@ router.get(
   "/games/:gameId/supported",
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
+
     const supported = isGameSupported(gameId);
     return res.json({
       gameId,
@@ -77,6 +82,10 @@ router.get(
   "/games/:gameId/phases",
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
 
     if (!isGameSupported(gameId)) {
       throw new NotFoundError(`Game '${gameId}'`);
@@ -97,6 +106,10 @@ router.get(
   "/games/:gameId/formats",
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
 
     let formats;
     switch (gameId.toLowerCase()) {
@@ -128,6 +141,10 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const { gameId } = req.params;
     const { config } = req.body;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
 
     if (!isGameSupported(gameId)) {
       throw new NotFoundError(`Game '${gameId}'`);
@@ -161,6 +178,10 @@ router.get(
   asyncHandler(async (req, res) => {
     const { sessionId } = req.params;
     const { playerId } = req.query;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Session ID is required" });
+    }
 
     const session = gameStates.get(sessionId);
     if (!session) {
@@ -214,6 +235,10 @@ router.post(
     const { sessionId } = req.params;
     const { action } = req.body;
 
+    if (!sessionId) {
+      return res.status(400).json({ message: "Session ID is required" });
+    }
+
     if (!action || !action.playerId) {
       throw new BadRequestError("Action and playerId are required");
     }
@@ -261,6 +286,10 @@ router.post(
   isAuthenticated,
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
     const { state } = req.body;
 
     if (!isGameSupported(gameId)) {
@@ -284,6 +313,10 @@ router.post(
   asyncHandler(async (req, res) => {
     const { gameId } = req.params;
     const { oldState, newState } = req.body;
+
+    if (!gameId) {
+      return res.status(400).json({ message: "Game ID is required" });
+    }
 
     if (!oldState || !newState) {
       throw new BadRequestError("Both oldState and newState are required");
