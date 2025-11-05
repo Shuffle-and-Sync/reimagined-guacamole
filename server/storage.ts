@@ -2324,39 +2324,31 @@ export class DatabaseStorage implements IStorage {
   async getEventAttendees(
     eventId: string,
   ): Promise<(EventAttendee & { user: User })[]> {
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         user: users,
       })
       .from(eventAttendees)
       .innerJoin(users, eq(eventAttendees.userId, users.id))
       .where(eq(eventAttendees.eventId, eventId));
+
+    return results.map((r) => ({ ...r.attendee, user: r.user }));
   }
 
   async getUserEventAttendance(
     userId: string,
   ): Promise<(EventAttendee & { event: Event })[]> {
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         event: events,
       })
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+
+    return results.map((r) => ({ ...r.attendee, event: r.event }));
   }
 
   async getUsersEventAttendance(
@@ -2364,20 +2356,16 @@ export class DatabaseStorage implements IStorage {
   ): Promise<(EventAttendee & { event: Event })[]> {
     if (userIds.length === 0) return [];
 
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         event: events,
       })
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(inArray(eventAttendees.userId, userIds));
+
+    return results.map((r) => ({ ...r.attendee, event: r.event }));
   }
 
   async getUserCreatedEvents(userId: string): Promise<Event[]> {
@@ -2394,15 +2382,7 @@ export class DatabaseStorage implements IStorage {
     if (eventIds.length === 0) return [];
 
     return await db
-      .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
-      })
+      .select()
       .from(eventAttendees)
       .where(inArray(eventAttendees.eventId, eventIds));
   }
@@ -2448,6 +2428,9 @@ export class DatabaseStorage implements IStorage {
       .insert(notifications)
       .values(data)
       .returning();
+    if (!notification) {
+      throw new Error("Failed to create notification");
+    }
     return notification;
   }
 
@@ -5207,18 +5190,16 @@ export class DatabaseStorage implements IStorage {
     tx: Transaction,
     tournamentId: string,
   ): Promise<(TournamentParticipant & { user: User })[]> {
-    return await tx
+    const results = await tx
       .select({
-        id: tournamentParticipants.id,
-        tournamentId: tournamentParticipants.tournamentId,
-        userId: tournamentParticipants.userId,
-        joinedAt: tournamentParticipants.joinedAt,
-        status: tournamentParticipants.status,
+        participant: tournamentParticipants,
         user: users,
       })
       .from(tournamentParticipants)
       .innerJoin(users, eq(tournamentParticipants.userId, users.id))
       .where(eq(tournamentParticipants.tournamentId, tournamentId));
+
+    return results.map((r) => ({ ...r.participant, user: r.user }));
   }
 
   async getTournamentRoundsWithTransaction(
