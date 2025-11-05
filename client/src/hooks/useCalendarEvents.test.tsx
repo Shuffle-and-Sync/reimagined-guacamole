@@ -21,11 +21,6 @@ const mockCommunity: Community = {
   iconClass: "icon-test",
   createdAt: new Date(),
   isActive: true,
-  coverImage: null,
-  primaryCardGame: null,
-  isPublic: true,
-  memberCount: 0,
-  settings: null,
 };
 
 const mockEvents = [

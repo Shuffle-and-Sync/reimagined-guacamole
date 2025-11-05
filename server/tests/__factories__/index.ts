@@ -288,7 +288,18 @@ export function createMockMatch(
     tableNumber: null,
     startTime: null,
     endTime: null,
+    version: 1,
+    resultSubmittedAt: null,
+    resultSubmittedBy: null,
+    conflictDetectedAt: null,
+    conflictResolvedAt: null,
+    conflictResolution: null,
+    bracketType: null,
+    bracketPosition: null,
+    isGrandFinals: false,
+    isBracketReset: false,
     createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   };
 }
@@ -444,6 +455,10 @@ export function createMockNotification(
     title: faker.lorem.words(3),
     message: faker.lorem.sentence(),
     data: null,
+    actionUrl: null,
+    actionText: null,
+    expiresAt: null,
+    read: false,
     isRead: false,
     readAt: null,
     createdAt: new Date(),
@@ -541,6 +556,41 @@ export function createMockTwitchProfile(
     broadcaster_type: "",
     description: faker.lorem.sentence(),
     type: "",
+    ...overrides,
+  };
+}
+
+/**
+ * Extended Event Factory
+ * Creates a mock extended event with community and attendance info
+ */
+export interface ExtendedEvent extends Event {
+  creator: unknown;
+  community: Community | null;
+  attendeeCount: number;
+  isUserAttending?: boolean;
+  mainPlayers?: number;
+  alternates?: number;
+  date?: string;
+  time?: string;
+}
+
+export function createMockExtendedEvent(
+  overrides: Partial<ExtendedEvent> = {},
+): ExtendedEvent {
+  const baseEvent = createMockEvent();
+  const community = createMockCommunity();
+
+  return {
+    ...baseEvent,
+    creator: null,
+    community,
+    attendeeCount: faker.number.int({ min: 0, max: 50 }),
+    isUserAttending: false,
+    mainPlayers: faker.number.int({ min: 4, max: 32 }),
+    alternates: faker.number.int({ min: 0, max: 8 }),
+    date: baseEvent.startTime.toISOString().split("T")[0],
+    time: baseEvent.startTime.toTimeString().split(" ")[0].substring(0, 5),
     ...overrides,
   };
 }

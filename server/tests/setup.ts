@@ -132,16 +132,20 @@ global.setInterval = function (
 } as typeof setInterval;
 
 // Wrap clearTimeout to untrack timers
-global.clearTimeout = function (timer: NodeJS.Timeout): void {
-  activeTimers.delete(timer);
-  originalClearTimeout(timer);
-};
+global.clearTimeout = ((timer?: NodeJS.Timeout) => {
+  if (timer !== undefined) {
+    activeTimers.delete(timer);
+    originalClearTimeout(timer);
+  }
+}) as typeof clearTimeout;
 
 // Wrap clearInterval to untrack intervals
-global.clearInterval = function (interval: NodeJS.Timeout): void {
-  activeIntervals.delete(interval);
-  originalClearInterval(interval);
-};
+global.clearInterval = ((interval?: NodeJS.Timeout) => {
+  if (interval !== undefined) {
+    activeIntervals.delete(interval);
+    originalClearInterval(interval);
+  }
+}) as typeof clearInterval;
 
 /**
  * Clean up all active timers and intervals after all tests
