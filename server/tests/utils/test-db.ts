@@ -62,8 +62,8 @@ export async function initTestSchema(
 
     for (const statement of statements) {
       if (statement && !statement.startsWith("--")) {
-        // Use db.execute() with sql.raw() instead of db.run()
-        await db.execute(sql.raw(statement));
+        // Use sqlite.exec() instead of db.execute() - better-sqlite3 doesn't have execute method
+        sqlite.exec(statement);
       }
     }
   } catch {
@@ -241,10 +241,13 @@ export async function clearTestDb(
 
   for (const table of tables) {
     try {
-      // Use db.execute() with sql.raw() instead of db.run()
-      await db.execute(sql.raw(`DELETE FROM ${table}`));
+      // Use Drizzle ORM's type-safe delete for SQLite Cloud
+      const tableSchema = (schema as Record<string, any>)[table];
+      if (tableSchema) {
+        await db.delete(tableSchema).execute();
+      }
     } catch {
-      // Table might not exist, skip it
+      // Table might not exist in schema, skip it
       continue;
     }
   }

@@ -27,20 +27,25 @@ export class CustomGameAdapter implements ICardAdapter {
    * Transform database card to universal format
    */
   private transformToUniversal(dbCard: Card): UniversalCard {
+    // Parse metadata JSON
+    const metadata = dbCard.metadata
+      ? (JSON.parse(dbCard.metadata) as Record<string, unknown>)
+      : {};
+
     return {
       id: dbCard.id,
       gameId: dbCard.gameId,
       name: dbCard.name,
       setCode: dbCard.setCode,
       setName: dbCard.setName,
-      collectorNumber: dbCard.collectorNumber,
+      collectorNumber: String(metadata.collectorNumber || ""),
       rarity: dbCard.rarity,
-      externalId: dbCard.externalId,
-      externalSource: dbCard.externalSource,
-      attributes: dbCard.attributes || {},
-      imageUris: dbCard.imageUris || {},
-      isOfficial: dbCard.isOfficial,
-      isCommunitySubmitted: dbCard.isCommunitySubmitted,
+      externalId: String(metadata.externalId || dbCard.id),
+      externalSource: String(metadata.externalSource || "custom"),
+      attributes: (metadata.attributes as Record<string, unknown>) || {},
+      imageUris: (metadata.imageUris as Record<string, string>) || {},
+      isOfficial: Boolean(metadata.isOfficial),
+      isCommunitySubmitted: Boolean(metadata.isCommunitySubmitted),
     };
   }
 

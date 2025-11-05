@@ -139,13 +139,13 @@ export class AnalyticsRepository extends BaseRepository<
 
           if (dateRange?.startDate) {
             conditions.push(
-              gte(userActivityAnalytics.timestamp, dateRange.startDate),
+              gte(userActivityAnalytics.createdAt, dateRange.startDate),
             );
           }
 
           if (dateRange?.endDate) {
             conditions.push(
-              lte(userActivityAnalytics.timestamp, dateRange.endDate),
+              lte(userActivityAnalytics.createdAt, dateRange.endDate),
             );
           }
 
@@ -153,7 +153,7 @@ export class AnalyticsRepository extends BaseRepository<
             .select()
             .from(userActivityAnalytics)
             .where(and(...conditions))
-            .orderBy(desc(userActivityAnalytics.timestamp));
+            .orderBy(desc(userActivityAnalytics.createdAt));
         } catch (error) {
           logger.error(
             "Failed to get user activity analytics",
@@ -201,13 +201,13 @@ export class AnalyticsRepository extends BaseRepository<
 
           if (dateRange?.startDate) {
             conditions.push(
-              gte(userActivityAnalytics.timestamp, dateRange.startDate),
+              gte(userActivityAnalytics.createdAt, dateRange.startDate),
             );
           }
 
           if (dateRange?.endDate) {
             conditions.push(
-              lte(userActivityAnalytics.timestamp, dateRange.endDate),
+              lte(userActivityAnalytics.createdAt, dateRange.endDate),
             );
           }
 
@@ -390,11 +390,11 @@ export class AnalyticsRepository extends BaseRepository<
 
           metrics.forEach((metric) => {
             if (metric.metricType === "total_users") {
-              summary.totalUsers = Number(metric.value);
+              summary.totalUsers = Number(metric.metricValue);
             } else if (metric.metricType === "active_users") {
-              summary.activeUsers = Number(metric.value);
+              summary.activeUsers = Number(metric.metricValue);
             } else if (metric.metricType === "total_events") {
-              summary.totalEvents = Number(metric.value);
+              summary.totalEvents = Number(metric.metricValue);
             }
           });
 
@@ -631,12 +631,12 @@ export class AnalyticsRepository extends BaseRepository<
 
           if (dateRange?.startDate) {
             conditions.push(
-              gte(conversionFunnel.timestamp, dateRange.startDate),
+              gte(conversionFunnel.createdAt, dateRange.startDate),
             );
           }
 
           if (dateRange?.endDate) {
-            conditions.push(lte(conversionFunnel.timestamp, dateRange.endDate));
+            conditions.push(lte(conversionFunnel.createdAt, dateRange.endDate));
           }
 
           const records = await this.db
@@ -647,7 +647,7 @@ export class AnalyticsRepository extends BaseRepository<
           // Group by step and calculate metrics
           const stepCounts = new Map<string, number>();
           records.forEach((record) => {
-            const step = record.step || "unknown";
+            const step = record.stepName || "unknown";
             stepCounts.set(step, (stepCounts.get(step) || 0) + 1);
           });
 
@@ -703,7 +703,7 @@ export class AnalyticsRepository extends BaseRepository<
           .select()
           .from(userActivityAnalytics)
           .where(eq(userActivityAnalytics.userId, userId))
-          .orderBy(desc(userActivityAnalytics.timestamp))
+          .orderBy(desc(userActivityAnalytics.createdAt))
           .limit(10);
 
         const eventResult = await this.db

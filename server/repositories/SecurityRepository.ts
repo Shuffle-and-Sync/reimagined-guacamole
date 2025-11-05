@@ -222,11 +222,9 @@ export class SecurityRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to enable user MFA",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to enable user MFA", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to enable user MFA", { cause: error });
       }
     });
@@ -255,11 +253,9 @@ export class SecurityRepository extends BaseRepository<
           })
           .where(eq(userMfaSettings.userId, userId));
       } catch (error) {
-        logger.error(
-          "Failed to disable user MFA",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to disable user MFA", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to disable user MFA", { cause: error });
       }
     });
@@ -284,11 +280,9 @@ export class SecurityRepository extends BaseRepository<
           attemptedAt: new Date(),
         });
       } catch (error) {
-        logger.error(
-          "Failed to record MFA failure",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to record MFA failure", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to record MFA failure", {
           cause: error,
         });
@@ -322,7 +316,7 @@ export class SecurityRepository extends BaseRepository<
             and(
               eq(userMfaAttempts.userId, userId),
               eq(userMfaAttempts.success, false),
-              gte(userMfaAttempts.attemptedAt, fiveMinutesAgo),
+              gte(userMfaAttempts.createdAt, fiveMinutesAgo),
             ),
           );
 
@@ -342,11 +336,9 @@ export class SecurityRepository extends BaseRepository<
           attemptsRemaining: maxAttempts - failedAttempts,
         };
       } catch (error) {
-        logger.error(
-          "Failed to check MFA lockout",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to check MFA lockout", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to check MFA lockout", {
           cause: error,
         });
@@ -371,11 +363,9 @@ export class SecurityRepository extends BaseRepository<
           .delete(userMfaAttempts)
           .where(eq(userMfaAttempts.userId, userId));
       } catch (error) {
-        logger.error(
-          "Failed to reset MFA attempts",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to reset MFA attempts", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to reset MFA attempts", {
           cause: error,
         });
@@ -549,11 +539,9 @@ export class SecurityRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to revoke JWT token",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to revoke JWT token", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to revoke JWT token", { cause: error });
       }
     });
@@ -576,7 +564,7 @@ export class SecurityRepository extends BaseRepository<
         const result = await this.db
           .select()
           .from(revokedJwtTokens)
-          .where(eq(revokedJwtTokens.tokenHash, tokenHash))
+          .where(eq(revokedJwtTokens.jti, tokenHash))
           .limit(1);
 
         return result.length > 0;

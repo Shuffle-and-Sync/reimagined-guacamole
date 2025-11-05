@@ -145,7 +145,17 @@ export const authHandlers = {
    * Mock OAuth callback
    */
   oauthCallback: (provider: string, profile: unknown): MockResponse => {
-    if (!profile || !profile.email) {
+    // Type guard for profile
+    if (typeof profile !== "object" || profile === null) {
+      return {
+        status: 400,
+        error: "Invalid OAuth profile",
+      };
+    }
+
+    const profileObj = profile as Record<string, unknown>;
+
+    if (!profileObj.email || typeof profileObj.email !== "string") {
       return {
         status: 400,
         error: "Invalid OAuth profile",
@@ -156,11 +166,17 @@ export const authHandlers = {
       status: 200,
       data: {
         user: {
-          id: `oauth-${provider}-${profile.id}`,
-          email: profile.email,
-          firstName: profile.name?.split(" ")[0] || "User",
-          lastName: profile.name?.split(" ")[1] || "",
-          username: profile.email.split("@")[0],
+          id: `oauth-${provider}-${typeof profileObj.id === "string" ? profileObj.id : "unknown"}`,
+          email: profileObj.email,
+          firstName:
+            typeof profileObj.name === "string"
+              ? profileObj.name.split(" ")[0] || "User"
+              : "User",
+          lastName:
+            typeof profileObj.name === "string"
+              ? profileObj.name.split(" ")[1] || ""
+              : "",
+          username: profileObj.email.split("@")[0],
           status: "active",
           role: "user",
           isEmailVerified: true,

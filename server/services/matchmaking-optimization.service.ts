@@ -106,15 +106,14 @@ export const matchmakingOptimizationService = {
         userId: users.id,
         username: users.username,
         timezone: users.timezone,
-        skillLevel: matchmakingPreferences.skillLevel,
-        preferredFormat: matchmakingPreferences.preferredFormat,
+        preferredFormats: matchmakingPreferences.preferredFormats,
+        playStyle: matchmakingPreferences.playStyle,
         rating: playerRatings.rating,
         compatibilityScore: sql<number>`
           (
-            CASE WHEN ${matchmakingPreferences.preferredFormat} = ${userPref.preferredFormat} THEN 20 ELSE 0 END +
-            CASE WHEN ${playerRatings.rating} BETWEEN ${userRating - maxSkillDiff} AND ${userRating + maxSkillDiff} THEN 15 ELSE 0 END +
             CASE WHEN ${users.timezone} = ${userTimezone} THEN 10 ELSE 0 END +
-            CASE WHEN ${matchmakingPreferences.competitiveLevel} = ${userPref.competitiveLevel} THEN 8 ELSE 0 END
+            CASE WHEN ${playerRatings.rating} BETWEEN ${userRating - maxSkillDiff} AND ${userRating + maxSkillDiff} THEN 15 ELSE 0 END +
+            CASE WHEN ${matchmakingPreferences.playStyle} = ${userPref.playStyle} THEN 8 ELSE 0 END
           ) as compatibility_score
         `,
       })
@@ -132,7 +131,6 @@ export const matchmakingOptimizationService = {
       )
       .where(
         and(
-          eq(matchmakingPreferences.isActive, true),
           sql`${users.id} != ${query.userId}`,
           sql`compatibility_score >= 15`,
         ),

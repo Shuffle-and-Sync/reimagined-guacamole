@@ -999,18 +999,23 @@ export class AIAlgorithmEngine {
     ];
 
     days.forEach((day) => {
-      const userSlots = userSchedule?.weeklySchedule?.[day]?.timeSlots || [];
-      const candidateSlots =
-        candidateSchedule?.weeklySchedule?.[day]?.timeSlots || [];
+      const userSlots = userSchedule?.weeklySchedule?.[day] || [];
+      const candidateSlots = candidateSchedule?.weeklySchedule?.[day] || [];
 
-      userSlots.forEach((userSlot: string) => {
-        candidateSlots.forEach((candidateSlot: string) => {
-          if (
-            this.isTimeSlotCompatible(userSlot, candidateSlot, timezoneOffset)
-          ) {
-            optimalSlots.push(`${day}: ${userSlot} / ${candidateSlot}`);
-          }
-        });
+      userSlots.forEach((userSlot: { start: string; end: string }) => {
+        candidateSlots.forEach(
+          (candidateSlot: { start: string; end: string }) => {
+            if (
+              this.isTimeSlotCompatible(
+                `${userSlot.start}-${userSlot.end}`,
+                `${candidateSlot.start}-${candidateSlot.end}`,
+                timezoneOffset,
+              )
+            ) {
+              optimalSlots.push(`${day}: ${userSlot} / ${candidateSlot}`);
+            }
+          },
+        );
       });
     });
 
@@ -1049,8 +1054,9 @@ export class AIAlgorithmEngine {
     userSchedule: ScheduleData,
     candidateSchedule: ScheduleData,
   ): number {
-    const userFlexibility = userSchedule?.advanceNotice || 24;
-    const candidateFlexibility = candidateSchedule?.advanceNotice || 24;
+    const userFlexibility = userSchedule?.availability?.advanceNotice || 24;
+    const candidateFlexibility =
+      candidateSchedule?.availability?.advanceNotice || 24;
 
     // Higher flexibility when both can schedule with short notice
     const avgFlexibility = (userFlexibility + candidateFlexibility) / 2;
@@ -1091,9 +1097,8 @@ export class AIAlgorithmEngine {
     const weekendSlots: string[] = [];
 
     ["saturday", "sunday"].forEach((day) => {
-      const userSlots = userSchedule?.weeklySchedule?.[day]?.timeSlots || [];
-      const candidateSlots =
-        candidateSchedule?.weeklySchedule?.[day]?.timeSlots || [];
+      const userSlots = userSchedule?.weeklySchedule?.[day] || [];
+      const candidateSlots = candidateSchedule?.weeklySchedule?.[day] || [];
 
       if (userSlots.length > 0 && candidateSlots.length > 0) {
         weekendSlots.push(`${day}: Extended collaboration opportunity`);
@@ -1417,8 +1422,8 @@ export class AIAlgorithmEngine {
     if (outcomes.length === 0) return 0.5;
 
     const correlations = outcomes.map((outcome) => ({
-      factorScore: outcome[factor] || 0,
-      successScore: outcome.successScore || 0,
+      factorScore: (outcome as any)[factor] || 0,
+      successScore: typeof outcome.rating === 'number' ? outcome.rating / 10 : 0, // Normalize rating to 0-1 scale
     }));
 
     // Simple correlation calculation

@@ -68,10 +68,7 @@ export async function initializeServicesParallel<
     return resultsObject;
   } catch (error) {
     endTimer("parallel-initialization");
-    logger.error(
-      "Service initialization failed",
-      toLoggableError(error),
-    );
+    logger.error("Service initialization failed", toLoggableError(error));
     throw error;
   }
 }
@@ -123,10 +120,17 @@ export function setupGracefulShutdown(
           }
         }
 
-        if (clients?.drizzle?.$client) {
+        if (clients?.drizzle && typeof clients.drizzle === "object") {
           try {
-            await clients.drizzle.$client.end();
-            logger.info("Drizzle connection pool closed");
+            const drizzleObj = clients.drizzle as unknown as Record<
+              string,
+              unknown
+            >;
+            if (drizzleObj.$client && typeof drizzleObj.$client === "object") {
+              const client = drizzleObj.$client as { end: () => Promise<void> };
+              await client.end();
+              logger.info("Drizzle connection pool closed");
+            }
           } catch (error) {
             logger.warn("Error closing Drizzle connection pool", error);
           }
@@ -142,10 +146,7 @@ export function setupGracefulShutdown(
         process.exit(1);
       }, 10000); // 10 second grace period
     } catch (error) {
-      logger.error(
-        "Error during graceful shutdown",
-        toLoggableError(error),
-      );
+      logger.error("Error during graceful shutdown", toLoggableError(error));
       process.exit(1);
     }
   };

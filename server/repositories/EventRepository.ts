@@ -201,11 +201,9 @@ export class EventRepository extends BaseRepository<
           };
         });
       } catch (error) {
-        logger.error(
-          "Failed to get events",
-          toLoggableError(error),
-          { filters },
-        );
+        logger.error("Failed to get events", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get events", { cause: error });
       }
     });
@@ -299,11 +297,10 @@ export class EventRepository extends BaseRepository<
           isUserAttending,
         };
       } catch (error) {
-        logger.error(
-          "Failed to get event",
-          toLoggableError(error),
-          { id, userId },
-        );
+        logger.error("Failed to get event", toLoggableError(error), {
+          id,
+          userId,
+        });
         throw new DatabaseError("Failed to get event", { cause: error });
       }
     });
@@ -418,11 +415,9 @@ export class EventRepository extends BaseRepository<
           };
         });
       } catch (error) {
-        logger.error(
-          "Failed to get calendar events",
-          toLoggableError(error),
-          { filters },
-        );
+        logger.error("Failed to get calendar events", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get calendar events", {
           cause: error,
         });
@@ -449,11 +444,9 @@ export class EventRepository extends BaseRepository<
       try {
         return await this.createMany(data);
       } catch (error) {
-        logger.error(
-          "Failed to create bulk events",
-          toLoggableError(error),
-          { count: data.length },
-        );
+        logger.error("Failed to create bulk events", toLoggableError(error), {
+          count: data.length,
+        });
         throw new DatabaseError("Failed to create bulk events", {
           cause: error,
         });
@@ -543,11 +536,7 @@ export class EventRepository extends BaseRepository<
           .returning();
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to join event",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to join event", toLoggableError(error), { data });
         throw new DatabaseError("Failed to join event", { cause: error });
       }
     });
@@ -576,11 +565,10 @@ export class EventRepository extends BaseRepository<
             ),
           );
       } catch (error) {
-        logger.error(
-          "Failed to leave event",
-          toLoggableError(error),
-          { eventId, userId },
-        );
+        logger.error("Failed to leave event", toLoggableError(error), {
+          eventId,
+          userId,
+        });
         throw new DatabaseError("Failed to leave event", { cause: error });
       }
     });
@@ -658,11 +646,9 @@ export class EventRepository extends BaseRepository<
           .from(eventAttendees)
           .where(eq(eventAttendees.eventId, eventId));
       } catch (error) {
-        logger.error(
-          "Failed to get event attendees",
-          toLoggableError(error),
-          { eventId },
-        );
+        logger.error("Failed to get event attendees", toLoggableError(error), {
+          eventId,
+        });
         throw new DatabaseError("Failed to get event attendees", {
           cause: error,
         });
@@ -769,35 +755,52 @@ export class EventRepository extends BaseRepository<
   }
 
   /**
-   * Get event tracking data
+   * Get analytics event tracking data
    *
-   * @param eventId - Event ID
+   * NOTE: The eventTracking table stores analytics events (page views, clicks, etc.)
+   * not calendar event data. This function queries by eventName to find analytics
+   * events of a specific type.
+   *
+   * @param eventName - Analytics event name/type to search for (e.g., 'page-view', 'button-click')
    * @returns Promise of event tracking records
    *
    * @example
    * ```typescript
-   * const tracking = await eventRepo.getEventTracking('event-123');
+   * const tracking = await eventRepo.getAnalyticsEventTracking('page-view');
    * ```
    */
+  async getAnalyticsEventTracking(eventName: string): Promise<EventTracking[]> {
+    return withQueryTiming(
+      "EventRepository:getAnalyticsEventTracking",
+      async () => {
+        try {
+          return await this.db
+            .select()
+            .from(eventTracking)
+            .where(eq(eventTracking.eventName, eventName))
+            .orderBy(desc(eventTracking.timestamp));
+        } catch (error) {
+          logger.error(
+            "Failed to get analytics event tracking",
+            toLoggableError(error),
+            {
+              eventName,
+            },
+          );
+          throw new DatabaseError("Failed to get analytics event tracking", {
+            cause: error,
+          });
+        }
+      },
+    );
+  }
+
+  /**
+   * @deprecated Use getAnalyticsEventTracking instead for clarity
+   * Get event tracking data by event name
+   */
   async getEventTracking(eventId: string): Promise<EventTracking[]> {
-    return withQueryTiming("EventRepository:getEventTracking", async () => {
-      try {
-        return await this.db
-          .select()
-          .from(eventTracking)
-          .where(eq(eventTracking.eventId, eventId))
-          .orderBy(desc(eventTracking.trackedAt));
-      } catch (error) {
-        logger.error(
-          "Failed to get event tracking",
-          toLoggableError(error),
-          { eventId },
-        );
-        throw new DatabaseError("Failed to get event tracking", {
-          cause: error,
-        });
-      }
-    });
+    return this.getAnalyticsEventTracking(eventId);
   }
 
   /**

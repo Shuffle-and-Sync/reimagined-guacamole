@@ -135,11 +135,9 @@ export class TournamentRepository extends BaseRepository<
           participantCount: result.participantCount,
         }));
       } catch (error) {
-        logger.error(
-          "Failed to get tournaments",
-          toLoggableError(error),
-          { communityId },
-        );
+        logger.error("Failed to get tournaments", toLoggableError(error), {
+          communityId,
+        });
         throw new DatabaseError("Failed to get tournaments", { cause: error });
       }
     });
@@ -196,11 +194,9 @@ export class TournamentRepository extends BaseRepository<
           })),
         };
       } catch (error) {
-        logger.error(
-          "Failed to get tournament",
-          toLoggableError(error),
-          { tournamentId },
-        );
+        logger.error("Failed to get tournament", toLoggableError(error), {
+          tournamentId,
+        });
         throw new DatabaseError("Failed to get tournament", { cause: error });
       }
     });
@@ -230,11 +226,9 @@ export class TournamentRepository extends BaseRepository<
         try {
           return await this.create(data);
         } catch (error) {
-          logger.error(
-            "Failed to create tournament",
-            toLoggableError(error),
-            { data },
-          );
+          logger.error("Failed to create tournament", toLoggableError(error), {
+            data,
+          });
           throw new DatabaseError("Failed to create tournament", {
             cause: error,
           });
@@ -272,11 +266,10 @@ export class TournamentRepository extends BaseRepository<
 
           return await this.update(tournamentId, updateData);
         } catch (error) {
-          logger.error(
-            "Failed to update tournament",
-            toLoggableError(error),
-            { tournamentId, data },
-          );
+          logger.error("Failed to update tournament", toLoggableError(error), {
+            tournamentId,
+            data,
+          });
           throw new DatabaseError("Failed to update tournament", {
             cause: error,
           });
@@ -358,11 +351,10 @@ export class TournamentRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to join tournament",
-          toLoggableError(error),
-          { tournamentId, userId },
-        );
+        logger.error("Failed to join tournament", toLoggableError(error), {
+          tournamentId,
+          userId,
+        });
         throw new DatabaseError("Failed to join tournament", { cause: error });
       }
     });
@@ -401,11 +393,10 @@ export class TournamentRepository extends BaseRepository<
 
         return result.length > 0;
       } catch (error) {
-        logger.error(
-          "Failed to leave tournament",
-          toLoggableError(error),
-          { tournamentId, userId },
-        );
+        logger.error("Failed to leave tournament", toLoggableError(error), {
+          tournamentId,
+          userId,
+        });
         throw new DatabaseError("Failed to leave tournament", { cause: error });
       }
     });
@@ -637,7 +628,13 @@ export class TournamentRepository extends BaseRepository<
           const player2 = alias(users, "player2");
           const winner = alias(users, "winner");
 
-          let query = this.db
+          // Build conditions array for where clause
+          const conditions = [eq(tournamentMatches.tournamentId, tournamentId)];
+          if (roundId) {
+            conditions.push(eq(tournamentMatches.roundId, roundId));
+          }
+
+          const query = this.db
             .select({
               match: tournamentMatches,
               player1,
@@ -648,13 +645,7 @@ export class TournamentRepository extends BaseRepository<
             .leftJoin(player1, eq(tournamentMatches.player1Id, player1.id))
             .leftJoin(player2, eq(tournamentMatches.player2Id, player2.id))
             .leftJoin(winner, eq(tournamentMatches.winnerId, winner.id))
-            .where(eq(tournamentMatches.tournamentId, tournamentId));
-
-          if (roundId) {
-            query = query.where(
-              eq(tournamentMatches.roundId, roundId),
-            ) as typeof query;
-          }
+            .where(and(...conditions));
 
           const results = await query;
           return results.map((result) => ({
