@@ -98,37 +98,32 @@ const gameStatsQuerySchema = z.object({
  * - sortBy: Sort field
  * - sortOrder: Sort direction
  */
-router.get(
-  "/",
-  gameStatsLimiter,
-  requireAuth,
-  async (req, res, next): Promise<void> => {
-    try {
-      // Validate query parameters
-      const query = gameStatsQuerySchema.parse(req.query);
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const userId = req.user.id;
-
-      // Calculate pagination offset
-      const offset = (query.page - 1) * query.limit;
-
-      const result = await gameStatsService.getUserGameStats(userId, {
-        ...query,
-        offset,
-      });
-
-      return res.json({
-        success: true,
-        data: result,
-        message: "Game statistics retrieved successfully",
-      });
-    } catch (error) {
-      next(error);
+router.get("/", gameStatsLimiter, requireAuth, async (req, res, next) => {
+  try {
+    // Validate query parameters
+    const query = gameStatsQuerySchema.parse(req.query);
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-  },
-);
+    const userId = req.user.id;
+
+    // Calculate pagination offset
+    const offset = (query.page - 1) * query.limit;
+
+    const result = await gameStatsService.getUserGameStats(userId, {
+      ...query,
+      offset,
+    });
+
+    return res.json({
+      success: true,
+      data: result,
+      message: "Game statistics retrieved successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * PUT /api/game-stats
@@ -138,7 +133,7 @@ router.put(
   "/",
   requireAuth,
   validateRequest(updateGameStatsSchema),
-  async (req, res, next): Promise<void> => {
+  async (req, res, next) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -170,7 +165,7 @@ router.get(
   "/aggregate",
   gameStatsLimiter,
   requireAuth,
-  async (req, res, next): Promise<void> => {
+  async (req, res, next) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -238,7 +233,7 @@ router.post(
   "/game-results",
   requireAuth,
   validateRequest(createGameResultSchema),
-  async (req, res, next): Promise<void> => {
+  async (req, res, next) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -270,7 +265,7 @@ router.get(
   "/game-results",
   gameStatsLimiter,
   requireAuth,
-  async (req, res, next): Promise<void> => {
+  async (req, res, next) => {
     try {
       const query = gameStatsQuerySchema.parse(req.query);
       if (!req.user?.id) {
@@ -300,25 +295,21 @@ router.get(
  * DELETE /api/game-results/:id
  * Delete a specific game result (only if user owns it)
  */
-router.delete(
-  "/game-results/:id",
-  requireAuth,
-  async (req, res, next): Promise<void> => {
-    try {
-      const id = assertRouteParam(req.params.id, "id");
-      if (!req.user?.id) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      const userId = req.user.id;
-
-      await gameStatsService.deleteGameResult(id, userId);
-
-      return res.status(204).send();
-    } catch (error) {
-      next(error);
+router.delete("/game-results/:id", requireAuth, async (req, res, next) => {
+  try {
+    const id = assertRouteParam(req.params.id, "id");
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-  },
-);
+    const userId = req.user.id;
+
+    await gameStatsService.deleteGameResult(id, userId);
+
+    return res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Error handling middleware for this router
