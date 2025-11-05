@@ -285,6 +285,10 @@ export default function Tournaments() {
   );
 
   const getStatusBadgeVariant = useCallback((status: string | null) => {
+    if (status === null) {
+      // Explicitly handle null status; choose "secondary" or "outline" as appropriate
+      return "secondary";
+    }
     switch (status) {
       case "upcoming":
         return "default";
