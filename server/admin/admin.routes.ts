@@ -1876,7 +1876,7 @@ router.get(
 // Get cache statistics
 router.get(
   "/cache/stats",
-  requirePermission(ADMIN_PERMISSIONS.VIEW_SYSTEM),
+  requirePermission(ADMIN_PERMISSIONS.ANALYTICS_VIEW),
   async (req, res): Promise<void> => {
     try {
       const { advancedCache } = await import(
@@ -1903,7 +1903,7 @@ router.get(
 // Clear cache by pattern
 router.post(
   "/cache/invalidate",
-  requirePermission(ADMIN_PERMISSIONS.MANAGE_SYSTEM),
+  requirePermission(ADMIN_PERMISSIONS.SYSTEM_MAINTENANCE),
   auditAdminAction("cache_invalidated"),
   async (req, res): Promise<void> => {
     try {

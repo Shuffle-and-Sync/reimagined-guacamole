@@ -136,10 +136,7 @@ export class BackendCopilotAgent {
       );
       return result;
     } catch (error) {
-      logger.error(
-        "❌ Backend analysis failed:",
-        toLoggableError(error),
-      );
+      logger.error("❌ Backend analysis failed:", toLoggableError(error));
       throw error;
     }
   }
@@ -189,7 +186,7 @@ export class BackendCopilotAgent {
         });
       }
     } catch (error) {
-      logger.warn("TypeScript analysis had issues:", error);
+      logger.warn("TypeScript analysis had issues:", toLoggableError(error));
     }
 
     return issues;

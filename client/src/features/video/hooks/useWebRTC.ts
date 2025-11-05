@@ -72,7 +72,9 @@ export const useWebRTC = (options: UseWebRTCOptions) => {
       // Handle incoming stream
       pc.ontrack = (event) => {
         const [remoteStream] = event.streams;
-        setRemoteStreams((prev) => new Map(prev.set(peerId, remoteStream)));
+        if (remoteStream) {
+          setRemoteStreams((prev) => new Map(prev.set(peerId, remoteStream)));
+        }
       };
 
       // Handle ICE candidates

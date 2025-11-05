@@ -312,6 +312,17 @@ export function validateTokenSecurity(
     return false;
   }
 
+  // Type guard for payload
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("iat" in payload) ||
+    typeof payload.iat !== "number"
+  ) {
+    logger.warn("Invalid payload format", { tokenId });
+    return false;
+  }
+
   // Check for token age (not too old)
   const now = Math.floor(Date.now() / 1000);
   const tokenAge = now - payload.iat;

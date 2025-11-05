@@ -785,7 +785,9 @@ export class SessionSecurityService {
     return factors;
   }
 
-  private async getHistoricalSecurityContext(userId: string): Promise<unknown> {
+  private async getHistoricalSecurityContext(
+    userId: string,
+  ): Promise<HistoricalContext> {
     try {
       // Get user account information
       const user = await storage.getUser(userId);

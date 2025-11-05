@@ -76,7 +76,7 @@ export class AutomatedFixEngine {
         changedFiles: [],
       };
     } catch (error) {
-      logger.warn("Prettier formatting failed:", error);
+      logger.warn("Prettier formatting failed:", toLoggableError(error));
       return {
         success: false,
         message: "Prettier formatting failed",
