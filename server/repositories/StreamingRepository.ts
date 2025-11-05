@@ -1092,6 +1092,10 @@ export class StreamingRepository extends BaseRepository<
       "StreamingRepository:getActiveCoordinationSessions",
       async () => {
         try {
+          // Query active coordination sessions
+          // NOTE: Schema doesn't have isActive field - using currentPhase to determine active status
+          // Sessions are considered active if not in 'ended' phase
+          // This includes preparation, live, break, and wrap_up phases
           return await this.db
             .select()
             .from(streamCoordinationSessions)

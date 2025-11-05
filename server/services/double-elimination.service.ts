@@ -299,7 +299,9 @@ export const doubleEliminationService = {
     _bracket: unknown,
   ) {
     // Find next winners bracket match
-    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
+    // NOTE: Schema mismatch - roundNumber field doesn't exist in tournamentMatches schema
+    // TODO: Either add roundNumber to schema or refactor to use only bracketPosition throughout
+    // Using bracketPosition as fallback for now to maintain compatibility
     const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
     const nextRound = currentRound + 1;
     const nextMatchNumber = Math.ceil(match.matchNumber / 2);

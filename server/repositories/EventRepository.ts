@@ -757,17 +757,24 @@ export class EventRepository extends BaseRepository<
   /**
    * Get event tracking data
    *
-   * @param eventId - Event ID
+   * NOTE: The eventTracking table stores analytics events (page views, clicks, etc.)
+   * not calendar event data. This function queries by eventName which may be used
+   * to store event-related analytics. Consider using eventProperties JSON field
+   * to filter by actual calendar event IDs if needed.
+   *
+   * @param eventId - Event name or identifier to search for
    * @returns Promise of event tracking records
    *
    * @example
    * ```typescript
-   * const tracking = await eventRepo.getEventTracking('event-123');
+   * const tracking = await eventRepo.getEventTracking('event-view');
    * ```
    */
   async getEventTracking(eventId: string): Promise<EventTracking[]> {
     return withQueryTiming("EventRepository:getEventTracking", async () => {
       try {
+        // Query by eventName - this searches analytics event names
+        // To query by calendar event ID, consider filtering eventProperties JSON field
         return await this.db
           .select()
           .from(eventTracking)

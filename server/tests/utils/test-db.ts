@@ -62,8 +62,8 @@ export async function initTestSchema(
 
     for (const statement of statements) {
       if (statement && !statement.startsWith("--")) {
-        // Use db.execute() with await for async schema initialization
-        await db.execute(sql.raw(statement));
+        // Use sqlite.exec() instead of db.execute() - better-sqlite3 doesn't have execute method
+        sqlite.exec(statement);
       }
     }
   } catch {

@@ -5192,7 +5192,10 @@ export class DatabaseStorage implements IStorage {
 
     if (result.length === 0) return undefined;
 
-    const { tournament, organizer, community } = result[0]!;
+    const row = result[0];
+    if (!row) return undefined;
+
+    const { tournament, organizer, community } = row;
     return {
       ...tournament,
       organizer,
@@ -8158,7 +8161,11 @@ export class DatabaseStorage implements IStorage {
     basePriority = typePriorities[itemType] || basePriority;
 
     // Adjust based on metadata factors
-    if (metadata && typeof metadata === "object" && metadata !== null) {
+    if (
+      typeof metadata === "object" &&
+      metadata !== null &&
+      !Array.isArray(metadata)
+    ) {
       const meta = metadata as Record<string, unknown>;
 
       // High-reputation reporter increases priority
