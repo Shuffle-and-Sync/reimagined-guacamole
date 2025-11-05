@@ -39,8 +39,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       to: params.to,
       from: params.from,
       subject: params.subject,
-      text: params.text,
-      html: params.html,
+      ...(params.text ? { text: params.text } : {}),
+      ...(params.html ? { html: params.html } : {}),
     };
 
     await mailService.send(emailData);
