@@ -1424,8 +1424,8 @@ export class AIAlgorithmEngine {
     const correlations = outcomes.map((outcome) => ({
       factorScore: (outcome as any)[factor] || 0,
       successScore: outcome.userFeedback?.rating
-        ? outcome.userFeedback.rating / 5
-        : outcome.successScore || 0, // Normalize rating to 0-1 scale
+        ? outcome.userFeedback.rating / 10
+        : outcome.successScore || 0, // Normalize rating (1-10 scale) to 0-1
     }));
 
     // Simple correlation calculation
