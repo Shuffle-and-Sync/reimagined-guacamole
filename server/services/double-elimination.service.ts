@@ -294,12 +294,14 @@ export const doubleEliminationService = {
    */
   async advanceInWinnersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect,
+    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
     winnerId: string,
     _bracket: unknown,
   ) {
     // Find next winners bracket match
-    const nextRound = match.roundNumber + 1;
+    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
+    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    const nextRound = currentRound + 1;
     const nextMatchNumber = Math.ceil(match.matchNumber / 2);
 
     const nextMatches = await tx
@@ -307,7 +309,7 @@ export const doubleEliminationService = {
       .from(tournamentMatches)
       .where(
         eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.roundNumber, nextRound) &&
+          eq(tournamentMatches.bracketPosition as any, nextRound) &&
           eq(tournamentMatches.bracketType, "winners"),
       );
 
@@ -335,19 +337,21 @@ export const doubleEliminationService = {
    */
   async dropToLosersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect,
+    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
     loserId: string,
     _bracket: unknown,
   ) {
     // Calculate losers bracket round and position
-    const losersRound = 2 * match.roundNumber - 1;
+    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
+    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    const losersRound = 2 * currentRound - 1;
 
     const losersMatches = await tx
       .select()
       .from(tournamentMatches)
       .where(
         eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.roundNumber, losersRound) &&
+          eq(tournamentMatches.bracketPosition as any, losersRound) &&
           eq(tournamentMatches.bracketType, "losers"),
       );
 
@@ -379,18 +383,20 @@ export const doubleEliminationService = {
    */
   async advanceInLosersBracket(
     tx: Parameters<Parameters<typeof withTransaction>[0]>[0],
-    match: typeof tournamentMatches.$inferSelect,
+    match: typeof tournamentMatches.$inferSelect & { roundNumber?: number },
     winnerId: string,
     _bracket: unknown,
   ) {
-    const nextRound = match.roundNumber + 1;
+    // NOTE: roundNumber doesn't exist in current schema, using bracketPosition as fallback
+    const currentRound = match.roundNumber ?? match.bracketPosition ?? 1;
+    const nextRound = currentRound + 1;
 
     const nextMatches = await tx
       .select()
       .from(tournamentMatches)
       .where(
         eq(tournamentMatches.tournamentId, match.tournamentId) &&
-          eq(tournamentMatches.roundNumber, nextRound) &&
+          eq(tournamentMatches.bracketPosition as any, nextRound) &&
           eq(tournamentMatches.bracketType, "losers"),
       );
 

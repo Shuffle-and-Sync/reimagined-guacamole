@@ -37,7 +37,7 @@ export async function setupDistributedConnections(httpServer: HttpServer) {
    * Extended WebSocket message handler
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wsServer.on("message", async (ws: any, data: any) => {
+  (wsServer as any).on("message", async (ws: any, data: any) => {
     try {
       const message = JSON.parse(data.toString());
 
@@ -178,7 +178,7 @@ export async function setupDistributedConnections(httpServer: HttpServer) {
    * Handle WebSocket connection
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wsServer.on("connection", async (ws: any) => {
+  (wsServer as any).on("connection", async (ws: any) => {
     try {
       const userId = ws.userId;
       const connectionId = ws.connectionId;
@@ -206,7 +206,7 @@ export async function setupDistributedConnections(httpServer: HttpServer) {
    * Handle WebSocket disconnection
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wsServer.on("disconnect", async (ws: any) => {
+  (wsServer as any).on("disconnect", async (ws: any) => {
     try {
       const userId = ws.userId;
       const connectionId = ws.connectionId;
