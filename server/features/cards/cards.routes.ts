@@ -279,7 +279,7 @@ router.get("/random", async (req, res) => {
  *
  * NOTE: This endpoint is not deprecated as it's for internal monitoring
  */
-router.get("/cache/stats", async (_req: _req, res) => {
+router.get("/cache/stats", async (_req: Request, res) => {
   try {
     const stats = cardRecognitionService.getCacheStats();
     res.json(stats);

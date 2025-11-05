@@ -16,7 +16,7 @@ const router = Router();
 /**
  * GET /api/games - List all supported games
  */
-router.get("/", async (_req: _req, res) => {
+router.get("/", async (_req: Request, res) => {
   try {
     const supportedGames = await universalCardService.getSupportedGames();
     return res.json({

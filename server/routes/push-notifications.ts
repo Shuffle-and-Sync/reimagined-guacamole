@@ -143,7 +143,7 @@ router.get("/subscriptions", async (req, res) => {
  * Get VAPID public key for client-side subscription
  * GET /api/push/vapid-public-key
  */
-router.get("/vapid-public-key", (_req: _req, res) => {
+router.get("/vapid-public-key", (_req: Request, res) => {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
 
   if (!publicKey) {

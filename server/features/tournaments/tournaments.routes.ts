@@ -48,7 +48,7 @@ router.get("/", cacheStrategies.shortLived(), async (req, res) => {
 });
 
 // Get tournament formats (must be before /:id route to avoid shadowing)
-router.get("/formats", async (_req: _req, res) => {
+router.get("/formats", async (_req: Request, res) => {
   try {
     const formats = await tournamentsService.getTournamentFormats();
     res.json(formats);

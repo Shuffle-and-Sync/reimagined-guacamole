@@ -293,7 +293,7 @@ export function sanitizeDatabaseInput(input: unknown): unknown {
 
     let isSuspicious = false;
     let detectedPatterns: string[] = [];
-    let sanitizedInput = input; // Create a mutable copy
+    let sanitizedInput = input; // Create a reassignable variable for sanitization
 
     // Check for suspicious patterns and collect them
     for (const pattern of suspiciousPatterns) {

@@ -423,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Communities routes
-  app.get("/api/communities", async (_req: _req, res) => {
+  app.get("/api/communities", async (_req: Request, res) => {
     try {
       const communities = await storage.getCommunities();
       return res.json(communities);
@@ -1202,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Health check endpoint for WebSocket server
-  app.get("/api/websocket/health", (_req: _req, res) => {
+  app.get("/api/websocket/health", (_req: Request, res) => {
     const stats = enhancedWebSocketServer.getStats();
     return res.json({
       status: "healthy",

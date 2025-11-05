@@ -337,7 +337,7 @@ router.post("/community-metrics", async (req, res) => {
 router.get(
   "/realtime-stats",
   cacheMiddleware(cacheConfigs.shortCache),
-  async (_req: _req, res) => {
+  async (_req: Request, res) => {
     try {
       const stats = await analyticsService.getRealTimeStats();
       return res.json({ success: true, data: stats });
@@ -687,7 +687,7 @@ router.get("/user-insights/:userId", async (req, res) => {
  * Health check endpoint for analytics service
  * GET /api/analytics/health
  */
-router.get("/health", async (_req: _req, res) => {
+router.get("/health", async (_req: Request, res) => {
   try {
     // Test database connectivity and analytics service health
     const testMetrics = await storage.getPlatformMetrics("system", "1m");

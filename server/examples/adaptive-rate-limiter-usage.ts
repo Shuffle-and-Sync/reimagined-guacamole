@@ -96,7 +96,7 @@ const router = Router();
 router.post(
   "/api/critical-operation",
   createAdaptiveRateLimitMiddleware("high"),
-  (_req: _req, res) => {
+  (_req: Request, res) => {
     res.json({ message: "Critical operation completed" });
   },
 );
@@ -105,7 +105,7 @@ router.post(
 router.get(
   "/api/data",
   createAdaptiveRateLimitMiddleware("normal"),
-  (_req: _req, res) => {
+  (_req: Request, res) => {
     res.json({ data: "some data" });
   },
 );
@@ -114,7 +114,7 @@ router.get(
 router.post(
   "/api/analytics",
   createAdaptiveRateLimitMiddleware("low"),
-  (_req: _req, res) => {
+  (_req: Request, res) => {
     res.json({ message: "Analytics queued" });
   },
 );
@@ -184,7 +184,7 @@ function handleWebSocketMessage(ws: WebSocket, message: any) {
 router.get(
   "/api/admin/rate-limit-stats",
   // Add authentication middleware here
-  (_req: _req, res) => {
+  (_req: Request, res) => {
     const stats = apiRateLimiter.getStats();
     const serverLoad = apiRateLimiter.getServerLoad();
 
@@ -292,7 +292,7 @@ router.use("/api/*", (req, res, next) => {
 router.get(
   "/api/feature",
   createAdaptiveRateLimitMiddleware("normal"),
-  async (_req: _req, res) => {
+  async (_req: Request, res) => {
     const serverLoad = apiRateLimiter.getServerLoad();
 
     // Provide degraded response under high load

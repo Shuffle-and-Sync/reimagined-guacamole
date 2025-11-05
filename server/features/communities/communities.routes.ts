@@ -15,7 +15,7 @@ import { communitiesService } from "./communities.service";
 const router = Router();
 
 // Get all communities
-router.get("/", cacheStrategies.community(), async (_req: _req, res) => {
+router.get("/", cacheStrategies.community(), async (_req: Request, res) => {
   try {
     const communities = await communitiesService.getAllCommunities();
     res.json(communities);
