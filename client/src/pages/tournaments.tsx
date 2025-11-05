@@ -477,7 +477,7 @@ export default function Tournaments() {
                             Participants:
                           </span>
                           <span>
-                            {tournament.currentParticipants || 0}/
+                            {tournament.participantCount || 0}/
                             {tournament.maxParticipants}
                           </span>
                         </div>
