@@ -710,7 +710,6 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
       res.json(result);
     } catch (error) {
@@ -740,7 +739,6 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
       res.json(result);
     } catch (error) {
@@ -776,7 +774,6 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
       res.json(result);
     } catch (error) {
@@ -812,7 +809,6 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
       res.json(result);
     } catch (error) {
@@ -850,7 +846,6 @@ router.delete(
       const result = await gamePodSlotService.removePlayerSlot(eventId, userId);
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
       res.json(result);
     } catch (error) {
