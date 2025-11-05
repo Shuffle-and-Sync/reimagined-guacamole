@@ -203,7 +203,7 @@ export function getTimezoneOffset(timezone: string, date: Date): number {
   }
 
   const sign = match[1] === "+" ? 1 : -1;
-  const hours = parseInt(match[2] || "0", 10);
+  const hours = parseInt(match[2], 10);
   const minutes = match[3] ? parseInt(match[3], 10) : 0;
 
   return sign * (hours * 60 + minutes);
