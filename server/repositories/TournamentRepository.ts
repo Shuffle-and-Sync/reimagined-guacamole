@@ -640,12 +640,13 @@ export class TournamentRepository extends BaseRepository<
             .leftJoin(player2, eq(tournamentMatches.player2Id, player2.id))
             .leftJoin(winner, eq(tournamentMatches.winnerId, winner.id))
             .where(
-              roundId
-                ? and(
-                    eq(tournamentMatches.tournamentId, tournamentId),
-                    eq(tournamentMatches.roundId, roundId),
-                  )
-                : eq(tournamentMatches.tournamentId, tournamentId),
+              (() => {
+                const conditions = [eq(tournamentMatches.tournamentId, tournamentId)];
+                if (roundId) {
+                  conditions.push(eq(tournamentMatches.roundId, roundId));
+                }
+                return and(...conditions);
+              })(),
             );
 
           const results = await query;
