@@ -1423,7 +1423,7 @@ export class AIAlgorithmEngine {
 
     const correlations = outcomes.map((outcome) => ({
       factorScore: (outcome as any)[factor] || 0,
-      successScore: outcome.rating / 10, // Normalize rating to 0-1 scale
+      successScore: typeof outcome.rating === 'number' ? outcome.rating / 10 : 0, // Normalize rating to 0-1 scale
     }));
 
     // Simple correlation calculation
