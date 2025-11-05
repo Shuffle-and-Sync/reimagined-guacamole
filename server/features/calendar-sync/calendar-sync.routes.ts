@@ -26,13 +26,13 @@ calendarSyncRouter.get(
       }
 
       const connections = await storage.getUserCalendarConnections(userId);
-      res.json(connections);
+      return res.json(connections);
     } catch (error) {
       logger.error(
         "Failed to fetch calendar connections",
         toLoggableError(error),
       );
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -77,13 +77,13 @@ calendarSyncRouter.post(
         syncDirection: "both",
       });
 
-      res.status(201).json(connection);
+      return res.status(201).json(connection);
     } catch (error) {
       logger.error(
         "Failed to create calendar connection",
         toLoggableError(error),
       );
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -109,13 +109,13 @@ calendarSyncRouter.delete(
       }
 
       await storage.deleteCalendarConnection(id);
-      res.status(204).send();
+      return res.status(204).send();
     } catch (error) {
       logger.error(
         "Failed to delete calendar connection",
         toLoggableError(error),
       );
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -134,6 +134,10 @@ calendarSyncRouter.post(
 
       const { id } = req.params;
 
+      if (!id) {
+        return res.status(400).json({ message: "Connection ID is required" });
+      }
+
       const connection = await storage.getCalendarConnection(id);
 
       if (!connection || connection.userId !== userId) {
@@ -142,16 +146,13 @@ calendarSyncRouter.post(
 
       const importedCount = await calendarSyncService.importEvents(id);
 
-      res.json({
+      return res.json({
         message: "Sync completed successfully",
         importedCount,
       });
     } catch (error) {
-      logger.error(
-        "Failed to sync calendar",
-        toLoggableError(error),
-      );
-      res.status(500).json({ message: "Internal server error" });
+      logger.error("Failed to sync calendar", toLoggableError(error));
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -171,6 +172,10 @@ calendarSyncRouter.post(
       const { eventId } = req.params;
       const { connectionId } = req.body;
 
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       if (!connectionId) {
         return res.status(400).json({ message: "connectionId is required" });
       }
@@ -186,16 +191,13 @@ calendarSyncRouter.post(
         connectionId,
       );
 
-      res.json({
+      return res.json({
         message: "Event exported successfully",
         externalEventId,
       });
     } catch (error) {
-      logger.error(
-        "Failed to export event",
-        toLoggableError(error),
-      );
-      res.status(500).json({ message: "Internal server error" });
+      logger.error("Failed to export event", toLoggableError(error));
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -237,13 +239,10 @@ calendarSyncRouter.get(
         return res.status(400).json({ message: "Unsupported provider" });
       }
 
-      res.json(calendars);
+      return res.json(calendars);
     } catch (error) {
-      logger.error(
-        "Failed to list calendars",
-        toLoggableError(error),
-      );
-      res.status(500).json({ message: "Internal server error" });
+      logger.error("Failed to list calendars", toLoggableError(error));
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -262,6 +261,10 @@ calendarSyncRouter.get(
 
       const { id } = req.params;
 
+      if (!id) {
+        return res.status(400).json({ message: "Connection ID is required" });
+      }
+
       const connection = await storage.getCalendarConnection(id);
 
       if (!connection || connection.userId !== userId) {
@@ -269,13 +272,10 @@ calendarSyncRouter.get(
       }
 
       const events = await storage.getConnectionExternalEvents(id);
-      res.json(events);
+      return res.json(events);
     } catch (error) {
-      logger.error(
-        "Failed to fetch external events",
-        toLoggableError(error),
-      );
-      res.status(500).json({ message: "Internal server error" });
+      logger.error("Failed to fetch external events", toLoggableError(error));
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );

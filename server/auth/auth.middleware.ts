@@ -238,7 +238,9 @@ export async function optionalAuth(
 
     next();
   } catch (error) {
-    logger.warn("Optional auth middleware error", toLoggableError(error), {
+    const errorData = toLoggableError(error);
+    logger.warn("Optional auth middleware error", {
+      error: errorData,
       url: req.url,
       method: req.method,
     });

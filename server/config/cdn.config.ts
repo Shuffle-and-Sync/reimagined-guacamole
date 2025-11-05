@@ -163,7 +163,9 @@ export const cdnRewriteMiddleware = (
       const rewritten = rewriteUrls(data, cdnConfig.baseUrl);
       return originalJson(rewritten);
     } catch (error) {
-      logger.error("Failed to rewrite CDN URLs", toLoggableError(error), { path: req.path });
+      logger.error("Failed to rewrite CDN URLs", toLoggableError(error), {
+        path: req.path,
+      });
       // Fall back to original response if rewriting fails
       return originalJson(data);
     }
@@ -189,15 +191,30 @@ export const cdnCacheHeadersMiddleware = (
 
   // Set cache headers based on asset type
   if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
-    res.setHeader("Cache-Control", cdnConfig.cacheControl.images);
+    res.setHeader(
+      "Cache-Control",
+      cdnConfig.cacheControl.images || "public, max-age=31536000",
+    );
   } else if (url.match(/\.css$/i)) {
-    res.setHeader("Cache-Control", cdnConfig.cacheControl.css);
+    res.setHeader(
+      "Cache-Control",
+      cdnConfig.cacheControl.css || "public, max-age=31536000",
+    );
   } else if (url.match(/\.js$/i)) {
-    res.setHeader("Cache-Control", cdnConfig.cacheControl.js);
+    res.setHeader(
+      "Cache-Control",
+      cdnConfig.cacheControl.js || "public, max-age=31536000",
+    );
   } else if (url.match(/\.(woff|woff2|ttf|eot)$/i)) {
-    res.setHeader("Cache-Control", cdnConfig.cacheControl.fonts);
+    res.setHeader(
+      "Cache-Control",
+      cdnConfig.cacheControl.fonts || "public, max-age=31536000",
+    );
   } else if (url.match(/\.html$/i)) {
-    res.setHeader("Cache-Control", cdnConfig.cacheControl.html);
+    res.setHeader(
+      "Cache-Control",
+      cdnConfig.cacheControl.html || "public, max-age=3600",
+    );
   }
 
   next();

@@ -13,16 +13,12 @@ vi.mock("@/hooks/use-toast", () => ({
 const mockCommunity: Community = {
   id: "test-community",
   name: "Test Community",
-  slug: "test",
+  displayName: "Test Community",
   description: "Test",
   themeColor: "#000",
+  iconClass: "icon-test",
   createdAt: new Date(),
-  updatedAt: new Date(),
-  logo: null,
-  coverImage: null,
-  primaryCardGame: null,
-  isPublic: true,
-  memberCount: 0,
+  isActive: true,
   settings: null,
 };
 

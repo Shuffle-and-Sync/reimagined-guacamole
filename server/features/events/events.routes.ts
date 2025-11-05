@@ -68,12 +68,12 @@ router.get("/", cacheStrategies.events(), async (req, res) => {
       limit: parsedLimit,
     });
 
-    res.json(events);
+    return res.json(events);
   } catch (error) {
     logger.error("Failed to fetch events", toLoggableError(error), {
       filters: req.query,
     });
-    res.status(500).json({ message: "Failed to fetch events" });
+    return res.status(500).json({ message: "Failed to fetch events" });
   }
 });
 
@@ -306,6 +306,10 @@ router.post(
       const { id } = req.params;
       const { startTime, endTime } = req.body;
 
+      if (!id) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       if (!startTime) {
         return res.status(400).json({ message: "startTime is required" });
       }
@@ -317,7 +321,7 @@ router.post(
         endTime ? new Date(endTime) : undefined,
       );
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "Event not found") {
@@ -331,7 +335,7 @@ router.post(
         userId: getAuthUserId(authenticatedReq),
         eventId: req.params.id,
       });
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -361,7 +365,7 @@ router.post(
         communityId,
       });
 
-      res.json({
+      return res.json({
         hasConflicts: conflicts.length > 0,
         conflicts,
       });
@@ -369,7 +373,7 @@ router.post(
       logger.error("Failed to detect conflicts", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -391,7 +395,7 @@ router.post(
 
       const results = await eventsService.batchUpdateEvents(userId, updates);
 
-      res.json({
+      return res.json({
         total: results.length,
         successful: results.filter((r) => r.success).length,
         failed: results.filter((r) => !r.success).length,
@@ -401,7 +405,7 @@ router.post(
       logger.error("Batch update failed", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -418,6 +422,10 @@ router.delete(
       const { parentEventId } = req.params;
       const { deleteAll, deleteFrom } = req.query;
 
+      if (!parentEventId) {
+        return res.status(400).json({ message: "Parent event ID is required" });
+      }
+
       const result = await eventsService.deleteRecurringSeries(
         parentEventId,
         userId,
@@ -427,7 +435,7 @@ router.delete(
         },
       );
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "Series not found") {
@@ -445,7 +453,7 @@ router.delete(
           parentEventId: req.params.parentEventId,
         },
       );
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -504,12 +512,12 @@ router.get("/:eventId/attendees", async (req, res) => {
   try {
     const { eventId } = req.params;
     const attendees = await eventsService.getEventAttendees(eventId);
-    res.json(attendees);
+    return res.json(attendees);
   } catch (error) {
     logger.error("Failed to fetch event attendees", toLoggableError(error), {
       eventId: req.params.eventId,
     });
-    res.status(500).json({ message: "Failed to fetch event attendees" });
+    return res.status(500).json({ message: "Failed to fetch event attendees" });
   }
 });
 
@@ -556,7 +564,7 @@ router.post(
         userId,
         req.body,
       );
-      res.status(201).json(createdEvents);
+      return res.status(201).json(createdEvents);
     } catch (error) {
       logger.error(
         "Failed to create recurring events",
@@ -565,7 +573,7 @@ router.post(
           userId: getAuthUserId(authenticatedReq),
         },
       );
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );
@@ -578,6 +586,11 @@ router.post(
 router.get("/:id/export/ics", eventReadRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+
     const event = await eventsService.getEvent(id);
 
     if (!event) {
@@ -599,12 +612,12 @@ router.get("/:id/export/ics", eventReadRateLimit, async (req, res) => {
 
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.send(result.value);
+    return res.send(result.value);
   } catch (error) {
     logger.error("Failed to export event as ICS", toLoggableError(error), {
       eventId: req.params.id,
     });
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -645,10 +658,10 @@ router.post("/export/ics", eventReadRateLimit, async (req, res) => {
 
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.send(result.value);
+    return res.send(result.value);
   } catch (error) {
     logger.error("Failed to export events as ICS", toLoggableError(error));
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -663,13 +676,20 @@ router.get(
   async (req, res) => {
     try {
       const { eventId } = req.params;
+
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       const availability = await gamePodSlotService.getAvailableSlots(eventId);
-      res.json(availability);
+      return res.json(availability);
     } catch (error) {
       logger.error("Failed to get slot availability", toLoggableError(error), {
         eventId: req.params.eventId,
       });
-      res.status(500).json({ message: "Failed to get slot availability" });
+      return res
+        .status(500)
+        .json({ message: "Failed to get slot availability" });
     }
   },
 );
@@ -681,13 +701,20 @@ router.get(
   async (req, res) => {
     try {
       const { eventId } = req.params;
+
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       const assignments = await gamePodSlotService.getSlotAssignments(eventId);
-      res.json(assignments);
+      return res.json(assignments);
     } catch (error) {
       logger.error("Failed to get slot assignments", toLoggableError(error), {
         eventId: req.params.eventId,
       });
-      res.status(500).json({ message: "Failed to get slot assignments" });
+      return res
+        .status(500)
+        .json({ message: "Failed to get slot assignments" });
     }
   },
 );
@@ -703,6 +730,10 @@ router.post(
       const userId = (req as AuthenticatedRequest).user.id;
       const { position } = req.body;
 
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       const result = await gamePodSlotService.assignPlayerSlot(
         eventId,
         userId,
@@ -710,16 +741,15 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       logger.error("Failed to assign player slot", toLoggableError(error), {
         eventId: req.params.eventId,
       });
       const errorMessage =
         error instanceof Error ? error.message : "Failed to assign player slot";
-      res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ message: errorMessage });
     }
   },
 );
@@ -734,15 +764,18 @@ router.post(
       const { eventId } = req.params;
       const userId = (req as AuthenticatedRequest).user.id;
 
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       const result = await gamePodSlotService.assignAlternateSlot(
         eventId,
         userId,
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       logger.error("Failed to assign alternate slot", toLoggableError(error), {
         eventId: req.params.eventId,
@@ -751,7 +784,7 @@ router.post(
         error instanceof Error
           ? error.message
           : "Failed to assign alternate slot";
-      res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ message: errorMessage });
     }
   },
 );
@@ -764,8 +797,16 @@ router.post(
   async (req, res) => {
     try {
       const { eventId, slotPosition } = req.params;
-      const position = parseInt(slotPosition, 10);
 
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
+      if (slotPosition === undefined || slotPosition === null) {
+        return res.status(400).json({ message: "Slot position is required" });
+      }
+
+      const position = parseInt(slotPosition, 10);
       if (isNaN(position)) {
         return res.status(400).json({ message: "Invalid slot position" });
       }
@@ -776,9 +817,8 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       logger.error("Failed to promote alternate", toLoggableError(error), {
         eventId: req.params.eventId,
@@ -786,7 +826,7 @@ router.post(
       });
       const errorMessage =
         error instanceof Error ? error.message : "Failed to promote alternate";
-      res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ message: errorMessage });
     }
   },
 );
@@ -801,6 +841,10 @@ router.post(
       const { eventId } = req.params;
       const { userId1, userId2 } = req.body;
 
+      if (!eventId) {
+        return res.status(400).json({ message: "Event ID is required" });
+      }
+
       if (!userId1 || !userId2) {
         return res.status(400).json({ message: "Both user IDs are required" });
       }
@@ -812,9 +856,8 @@ router.post(
       );
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       logger.error("Failed to swap player positions", toLoggableError(error), {
         eventId: req.params.eventId,
@@ -823,7 +866,7 @@ router.post(
         error instanceof Error
           ? error.message
           : "Failed to swap player positions";
-      res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ message: errorMessage });
     }
   },
 );
@@ -850,9 +893,8 @@ router.delete(
       const result = await gamePodSlotService.removePlayerSlot(eventId, userId);
 
       // Invalidate relevant caches
-      await cacheInvalidation.invalidateEvent(eventId);
 
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       logger.error("Failed to remove player slot", toLoggableError(error), {
         eventId: req.params.eventId,
@@ -860,7 +902,7 @@ router.delete(
       });
       const errorMessage =
         error instanceof Error ? error.message : "Failed to remove player slot";
-      res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ message: errorMessage });
     }
   },
 );
@@ -875,12 +917,12 @@ userEventsRouter.get("/", isAuthenticated, async (req, res) => {
   try {
     const userId = getAuthUserId(authenticatedReq);
     const attendance = await eventsService.getUserEvents(userId);
-    res.json(attendance);
+    return res.json(attendance);
   } catch (error) {
     logger.error("Failed to fetch user events", toLoggableError(error), {
       userId: getAuthUserId(authenticatedReq),
     });
-    res.status(500).json({ message: "Failed to fetch user events" });
+    return res.status(500).json({ message: "Failed to fetch user events" });
   }
 });
 
@@ -1008,12 +1050,12 @@ calendarEventsRouter.get(
         "Content-Disposition",
         `attachment; filename="${filename}"`,
       );
-      res.send(result.value);
+      return res.send(result.value);
     } catch (error) {
       logger.error("Failed to export calendar", toLoggableError(error), {
         userId: getAuthUserId(authenticatedReq),
       });
-      res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error" });
     }
   },
 );

@@ -90,7 +90,9 @@ export class UserRepository extends BaseRepository<
 
         return result[0] || null;
       } catch (error) {
-        logger.error("Failed to find user by email", toLoggableError(error), { email });
+        logger.error("Failed to find user by email", toLoggableError(error), {
+          email,
+        });
         throw error;
       }
     });
@@ -129,7 +131,11 @@ export class UserRepository extends BaseRepository<
           communities: userCommunitiesData,
         };
       } catch (error) {
-        logger.error("Failed to find user with communities", toLoggableError(error), { userId });
+        logger.error(
+          "Failed to find user with communities",
+          toLoggableError(error),
+          { userId },
+        );
         throw error;
       }
     });
@@ -148,7 +154,7 @@ export class UserRepository extends BaseRepository<
           status,
           role,
           communityId,
-          _includeDeleted,
+          includeDeleted,
           ...baseOptions
         } = options;
 
@@ -278,7 +284,9 @@ export class UserRepository extends BaseRepository<
           filters: baseOptions.filters,
         });
       } catch (error) {
-        logger.error("Failed to search users", toLoggableError(error), { options });
+        logger.error("Failed to search users", toLoggableError(error), {
+          options,
+        });
         throw error;
       }
     });
@@ -319,7 +327,10 @@ export class UserRepository extends BaseRepository<
 
         return updatedUser;
       } catch (error) {
-        logger.error("Failed to update user profile", toLoggableError(error), { userId, data });
+        logger.error("Failed to update user profile", toLoggableError(error), {
+          userId,
+          data,
+        });
         throw error;
       }
     });
@@ -511,10 +522,14 @@ export class UserRepository extends BaseRepository<
           logger.info("Primary community updated", { userId, communityId });
         });
       } catch (error) {
-        logger.error("Failed to set primary community", toLoggableError(error), {
-          userId,
-          communityId,
-        });
+        logger.error(
+          "Failed to set primary community",
+          toLoggableError(error),
+          {
+            userId,
+            communityId,
+          },
+        );
         throw error;
       }
     });
@@ -557,7 +572,9 @@ export class UserRepository extends BaseRepository<
           joinedAt: user.createdAt,
         };
       } catch (error) {
-        logger.error("Failed to get user stats", toLoggableError(error), { userId });
+        logger.error("Failed to get user stats", toLoggableError(error), {
+          userId,
+        });
         throw error;
       }
     });
@@ -592,7 +609,9 @@ export class UserRepository extends BaseRepository<
           logger.info("User account soft deleted", { userId });
         });
       } catch (error) {
-        logger.error("Failed to soft delete user", toLoggableError(error), { userId });
+        logger.error("Failed to soft delete user", toLoggableError(error), {
+          userId,
+        });
         throw error;
       }
     });
@@ -624,7 +643,10 @@ export class UserRepository extends BaseRepository<
         logger.info("User account restored", { userId, newEmail });
         return result;
       } catch (error) {
-        logger.error("Failed to restore user", toLoggableError(error), { userId, newEmail });
+        logger.error("Failed to restore user", toLoggableError(error), {
+          userId,
+          newEmail,
+        });
         throw error;
       }
     });

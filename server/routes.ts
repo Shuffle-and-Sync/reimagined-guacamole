@@ -459,6 +459,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = getAuthUserId(authenticatedReq);
         const { communityId } = req.params;
 
+        if (!communityId) {
+          return res.status(400).json({ message: "Community ID is required" });
+        }
+
         // Verify community exists
         const community = await storage.getCommunity(communityId);
         if (!community) {
@@ -490,6 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = getAuthUserId(authenticatedReq);
         const { communityId } = req.params;
+
+        if (!communityId) {
+          return res.status(400).json({ message: "Community ID is required" });
+        }
 
         await storage.setPrimaryCommunity(userId, communityId);
         return res.json({ success: true });
@@ -642,6 +650,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id } = req.params;
         const userId = getAuthUserId(authenticatedReq);
 
+        if (!id) {
+          return res.status(400).json({ message: "Event ID is required" });
+        }
+
         // Check if user owns the event
         const existingEvent = await storage.getEvent(id);
         if (!existingEvent) {
@@ -693,6 +705,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id } = req.params;
         const userId = getAuthUserId(authenticatedReq);
 
+        if (!id) {
+          return res.status(400).json({ message: "Event ID is required" });
+        }
+
         // Check if user owns the event
         const existingEvent = await storage.getEvent(id);
         if (!existingEvent) {
@@ -725,6 +741,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { eventId } = req.params;
         const userId = getAuthUserId(authenticatedReq);
         const { status = "attending" } = req.body;
+
+        if (!eventId) {
+          return res.status(400).json({ message: "Event ID is required" });
+        }
 
         // Verify event exists
         const event = await storage.getEvent(eventId);
@@ -816,6 +836,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { eventId } = req.params;
         const userId = getAuthUserId(authenticatedReq);
+
+        if (!eventId) {
+          return res.status(400).json({ message: "Event ID is required" });
+        }
 
         // Get event and user details before leaving
         const event = await storage.getEvent(eventId);
@@ -982,6 +1006,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
+
+        if (!id) {
+          return res
+            .status(400)
+            .json({ message: "Notification ID is required" });
+        }
+
         await storage.markNotificationAsRead(id);
         return res.json({ success: true });
       } catch (error) {
@@ -1177,6 +1208,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = getAuthUserId(authenticatedReq);
         const { id } = req.params;
+
+        if (!id) {
+          return res
+            .status(400)
+            .json({ message: "Game session ID is required" });
+        }
+
         await storage.leaveSpectating(id, userId);
 
         return res.json({ success: true });

@@ -35,7 +35,13 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    const emailData: unknown = {
+    const emailData: {
+      to: string;
+      from: string;
+      subject: string;
+      text?: string;
+      html?: string;
+    } = {
       to: params.to,
       from: params.from,
       subject: params.subject,
@@ -47,14 +53,10 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     await mailService.send(emailData);
     return true;
   } catch (error) {
-    logger.error(
-      "Failed to send email via SendGrid",
-      toLoggableError(error),
-      {
-        to: params.to,
-        subject: params.subject,
-      },
-    );
+    logger.error("Failed to send email via SendGrid", toLoggableError(error), {
+      to: params.to,
+      subject: params.subject,
+    });
     return false;
   }
 }

@@ -156,18 +156,18 @@ router.post(
 
       // Response is already sent by handleWebhook or we send it here
       if (!res.headersSent) {
-        res.status(200).json({ received: true });
+        return res.status(200).json({ received: true });
       }
     } catch (error) {
       logger.error("Error processing Twitch webhook", { error });
       if (!res.headersSent) {
         if (error instanceof z.ZodError) {
-          res.status(400).json({
+          return res.status(400).json({
             error: "Invalid webhook payload",
             details: error.errors,
           });
         } else {
-          res.status(500).json({ error: "Internal server error" });
+          return res.status(500).json({ error: "Internal server error" });
         }
       }
     }
@@ -302,7 +302,7 @@ router.get("/facebook", (req: Request, res: Response) => {
  * Webhook health check endpoint
  */
 router.get("/health", webhookRateLimit, (_req: Request, res: Response) => {
-  res.status(200).json({
+  return res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),
     webhooks: ["twitch", "youtube", "facebook"],

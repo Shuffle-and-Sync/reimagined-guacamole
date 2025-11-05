@@ -98,7 +98,15 @@ export default function Tournaments() {
 
   // Create tournament mutation
   const createTournamentMutation = useMutation({
-    mutationFn: async (tournamentData: unknown) => {
+    mutationFn: async (tournamentData: {
+      name: string;
+      description: string;
+      gameFormat: string;
+      maxParticipants: number;
+      startDate: string;
+      prizePool: string;
+      rules: string;
+    }) => {
       const response = await apiRequest("POST", "/api/tournaments", {
         ...tournamentData,
         communityId: selectedCommunity?.id || "mtg",
@@ -165,7 +173,15 @@ export default function Tournaments() {
       updates,
     }: {
       tournamentId: string;
-      updates: unknown;
+      updates: Partial<{
+        name: string;
+        description: string;
+        gameFormat: string;
+        maxParticipants: number;
+        startDate: string;
+        prizePool: string;
+        rules: string;
+      }>;
     }) => {
       const response = await apiRequest(
         "PATCH",
@@ -247,8 +263,8 @@ export default function Tournaments() {
     // For active tournaments, omit restricted fields from the payload
     let updates;
     if (editingTournament.status === "active") {
-      // Remove fields that can&apos;t be changed for active tournaments
-      const { _gameFormat, _startDate, _maxParticipants, ...allowedUpdates } =
+      // Remove fields that can't be changed for active tournaments
+      const { gameFormat, startDate, maxParticipants, ...allowedUpdates } =
         editForm;
       updates = allowedUpdates;
     } else {
@@ -268,7 +284,11 @@ export default function Tournaments() {
     [user],
   );
 
-  const getStatusBadgeVariant = useCallback((status: string) => {
+  const getStatusBadgeVariant = useCallback((status: string | null) => {
+    if (status === null) {
+      // Explicitly handle null status; choose "secondary" or "outline" as appropriate
+      return "secondary";
+    }
     switch (status) {
       case "upcoming":
         return "default";
@@ -281,7 +301,8 @@ export default function Tournaments() {
     }
   }, []);
 
-  const formatGameName = useCallback((format: string) => {
+  const formatGameName = useCallback((format: string | null) => {
+    if (!format) return "Unknown";
     const gameFormats: Record<string, string> = {
       commander: "Commander/EDH",
       standard: "Standard",
@@ -477,12 +498,9 @@ export default function Tournaments() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">
-                            Organizer:
+                            Organizer ID:
                           </span>
-                          <span>
-                            {tournament.organizer?.username ||
-                              tournament.organizer?.firstName}
-                          </span>
+                          <span>{tournament.organizerId}</span>
                         </div>
                         {tournament.prizePool && (
                           <div className="flex items-center justify-between">
