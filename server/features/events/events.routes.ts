@@ -802,8 +802,11 @@ router.post(
         return res.status(400).json({ message: "Event ID is required" });
       }
 
-      const position = parseInt(slotPosition || "", 10);
+      if (slotPosition === undefined || slotPosition === null) {
+        return res.status(400).json({ message: "Slot position is required" });
+      }
 
+      const position = parseInt(slotPosition, 10);
       if (isNaN(position)) {
         return res.status(400).json({ message: "Invalid slot position" });
       }
