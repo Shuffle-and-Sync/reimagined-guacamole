@@ -146,7 +146,7 @@ export const authHandlers = {
    */
   oauthCallback: (provider: string, profile: unknown): MockResponse => {
     // Type guard for profile
-    if (!profile || typeof profile !== "object" || profile === null) {
+    if (typeof profile !== "object" || profile === null) {
       return {
         status: 400,
         error: "Invalid OAuth profile",
