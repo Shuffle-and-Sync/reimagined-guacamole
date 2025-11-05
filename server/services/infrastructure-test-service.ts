@@ -793,10 +793,14 @@ class InfrastructureTestService {
 
       // Check for warning conditions
       if (result && typeof result === "object") {
-        if (result.error || result.warning) {
+        const resultObj = result as Record<string, unknown>;
+        if (resultObj.error || resultObj.warning) {
           status = "warning";
-          message =
-            result.error || result.warning || "Test completed with warnings";
+          message = String(
+            resultObj.error ||
+              resultObj.warning ||
+              "Test completed with warnings",
+          );
         }
       }
 

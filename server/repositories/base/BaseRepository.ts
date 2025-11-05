@@ -67,7 +67,7 @@ export interface PaginatedResult<T> {
  * Provides common CRUD operations and utilities for database entities
  */
 export abstract class BaseRepository<
-  TTable extends SQLiteTable,
+  TTable extends SQLiteTable & { id: unknown },
   TEntity = TTable["$inferSelect"],
   TInsert = TTable["$inferInsert"],
   TUpdate = Partial<TInsert>,

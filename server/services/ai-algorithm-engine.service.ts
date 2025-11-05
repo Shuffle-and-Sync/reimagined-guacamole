@@ -999,18 +999,23 @@ export class AIAlgorithmEngine {
     ];
 
     days.forEach((day) => {
-      const userSlots = userSchedule?.weeklySchedule?.[day]?.timeSlots || [];
-      const candidateSlots =
-        candidateSchedule?.weeklySchedule?.[day]?.timeSlots || [];
+      const userSlots = userSchedule?.weeklySchedule?.[day] || [];
+      const candidateSlots = candidateSchedule?.weeklySchedule?.[day] || [];
 
-      userSlots.forEach((userSlot: string) => {
-        candidateSlots.forEach((candidateSlot: string) => {
-          if (
-            this.isTimeSlotCompatible(userSlot, candidateSlot, timezoneOffset)
-          ) {
-            optimalSlots.push(`${day}: ${userSlot} / ${candidateSlot}`);
-          }
-        });
+      userSlots.forEach((userSlot: { start: string; end: string }) => {
+        candidateSlots.forEach(
+          (candidateSlot: { start: string; end: string }) => {
+            if (
+              this.isTimeSlotCompatible(
+                `${userSlot.start}-${userSlot.end}`,
+                `${candidateSlot.start}-${candidateSlot.end}`,
+                timezoneOffset,
+              )
+            ) {
+              optimalSlots.push(`${day}: ${userSlot} / ${candidateSlot}`);
+            }
+          },
+        );
       });
     });
 
@@ -1049,8 +1054,9 @@ export class AIAlgorithmEngine {
     userSchedule: ScheduleData,
     candidateSchedule: ScheduleData,
   ): number {
-    const userFlexibility = userSchedule?.advanceNotice || 24;
-    const candidateFlexibility = candidateSchedule?.advanceNotice || 24;
+    const userFlexibility = userSchedule?.availability?.advanceNotice || 24;
+    const candidateFlexibility =
+      candidateSchedule?.availability?.advanceNotice || 24;
 
     // Higher flexibility when both can schedule with short notice
     const avgFlexibility = (userFlexibility + candidateFlexibility) / 2;
