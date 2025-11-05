@@ -323,9 +323,15 @@ describe("Tournaments Page", () => {
   describe("Authentication", () => {
     it("shows login prompt when not authenticated", () => {
       vi.mocked(authModule.useAuth).mockReturnValue({
+        session: null,
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<Tournaments />, { queryClient });
@@ -336,9 +342,15 @@ describe("Tournaments Page", () => {
 
     it("shows loading state while checking authentication", () => {
       vi.mocked(authModule.useAuth).mockReturnValue({
+        session: null,
         user: null,
         isAuthenticated: false,
         isLoading: true,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<Tournaments />, { queryClient });

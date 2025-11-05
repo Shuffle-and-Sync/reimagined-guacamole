@@ -636,7 +636,9 @@ router.post("/export/ics", eventReadRateLimit, async (req, res) => {
       eventIds.map((id: string) => eventsService.getEvent(id)),
     );
 
-    const validEvents = events.filter(Boolean);
+    const validEvents = events.filter(
+      (e): e is NonNullable<typeof e> => e !== null && e !== undefined,
+    );
 
     if (validEvents.length === 0) {
       return res.status(404).json({ message: "No valid events found" });
@@ -879,6 +881,12 @@ router.delete(
   async (req, res) => {
     try {
       const { eventId, userId } = req.params;
+      if (!eventId || !userId) {
+        return res
+          .status(400)
+          .json({ message: "Event ID and User ID are required" });
+      }
+
       const authenticatedUserId = (req as AuthenticatedRequest).user.id;
 
       // Only allow users to remove themselves or event organizers to remove others

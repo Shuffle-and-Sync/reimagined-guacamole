@@ -327,8 +327,15 @@ describe("Tournament Detail Page", () => {
 
     it("shows authentication required when not logged in", () => {
       vi.mocked(authModule.useAuth).mockReturnValue({
+        session: null,
         user: null,
         isAuthenticated: false,
+        isLoading: false,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<TournamentDetail />, { queryClient });

@@ -101,6 +101,9 @@ calendarSyncRouter.delete(
       }
 
       const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Connection ID is required" });
+      }
 
       const connection = await storage.getCalendarConnection(id);
 
