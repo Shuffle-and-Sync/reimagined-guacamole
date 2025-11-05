@@ -101,9 +101,12 @@ export class WebSocketConnectionManager {
               oldestWs.close(1000, "Connection limit exceeded");
             }
           } catch (error) {
+            const loggableError = toLoggableError(error);
             logger.warn(
               "Error closing oldest connection",
-              toLoggableError(error),
+              loggableError instanceof Error
+                ? { error: loggableError.message }
+                : loggableError,
             );
           }
         }
@@ -551,9 +554,12 @@ export class WebSocketConnectionManager {
             ws.close(1000, "Connection cleanup");
           }
         } catch (error) {
+          const loggableError = toLoggableError(error);
           logger.warn(
             "Error closing stale WebSocket connection",
-            toLoggableError(error),
+            loggableError instanceof Error
+              ? { error: loggableError.message }
+              : loggableError,
           );
         }
         this.removeConnection(connectionId);
@@ -582,14 +588,10 @@ export class WebSocketConnectionManager {
     });
 
     ws.on("error", (error) => {
-      logger.error(
-        "WebSocket connection error",
-        toLoggableError(error),
-        {
-          connectionId: ws.connectionId,
-          userId: ws.userId,
-        },
-      );
+      logger.error("WebSocket connection error", toLoggableError(error), {
+        connectionId: ws.connectionId,
+        userId: ws.userId,
+      });
     });
 
     ws.on("pong", () => {
@@ -655,9 +657,12 @@ export class WebSocketConnectionManager {
           try {
             ws.ping();
           } catch (error) {
+            const loggableError = toLoggableError(error);
             logger.warn(
               "Failed to ping WebSocket connection",
-              toLoggableError(error),
+              loggableError instanceof Error
+                ? { error: loggableError.message }
+                : loggableError,
             );
           }
         }

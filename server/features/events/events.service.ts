@@ -425,7 +425,7 @@ export class EventsService {
         };
       });
 
-      const createdEvents = await storage.createBulkEvents(eventData);
+      const createdEvents = await storage.createBulkEvents(eventData as any);
       logger.info("Bulk events created", {
         userId,
         count: createdEvents.length,
@@ -525,7 +525,7 @@ export class EventsService {
       };
 
       const createdEvents = await storage.createRecurringEvents(
-        eventData,
+        eventData as any,
         recurringRequest.recurrenceEndDate,
       );
 

@@ -3910,7 +3910,9 @@ export class DatabaseStorage implements IStorage {
   async getUserMessages(
     userId: string,
     options?: { eventId?: string; communityId?: string; limit?: number },
-  ): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+  ): Promise<
+    (Message & { sender: User | null; recipient?: User; event?: Event })[]
+  > {
     let conditions = [
       sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`,
     ];
@@ -3940,7 +3942,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`${messages.createdAt} DESC`)
       .limit(options?.limit || 50);
 
-    return results.map((r: { message: Message; sender: User | null }) => ({
+    return results.map((r) => ({
       ...r.message,
       sender: r.sender,
     }));
@@ -3974,7 +3976,9 @@ export class DatabaseStorage implements IStorage {
       sortField?: string;
       sortDirection?: "asc" | "desc";
     },
-  ): Promise<(Message & { sender: User; recipient?: User; event?: Event })[]> {
+  ): Promise<
+    (Message & { sender: User | null; recipient?: User; event?: Event })[]
+  > {
     let conditions = [
       sql`(${messages.senderId} = ${userId} OR ${messages.recipientId} = ${userId})`,
     ];
@@ -4049,7 +4053,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(sql`${messages.createdAt} ASC`);
 
-    return results.map((r: { message: Message; sender: User | null }) => ({
+    return results.map((r) => ({
       ...r.message,
       sender: r.sender,
     }));
@@ -4099,7 +4103,9 @@ export class DatabaseStorage implements IStorage {
     communityId?: string;
     hostId?: string;
     status?: string;
-  }): Promise<(GameSession & { host: User; coHost?: User; event: Event })[]> {
+  }): Promise<
+    (GameSession & { host: User | null; coHost?: User; event: Event | null })[]
+  > {
     let conditions = [];
 
     if (filters?.eventId) {
@@ -4136,17 +4142,11 @@ export class DatabaseStorage implements IStorage {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map(
-      (r: {
-        gameSession: GameSession;
-        host: User | null;
-        event: Event | null;
-      }) => ({
-        ...r.gameSession,
-        host: r.host as User,
-        event: r.event as Event,
-      }),
-    );
+    return results.map((r) => ({
+      ...r.gameSession,
+      host: r.host,
+      event: r.event,
+    }));
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -5837,15 +5837,19 @@ export class DatabaseStorage implements IStorage {
       >();
 
       allCoHosts.forEach((coHost) => {
-        const list = coHostsBySession.get(coHost.streamSessionId) || [];
-        list.push(coHost);
-        coHostsBySession.set(coHost.streamSessionId, list);
+        if (coHost.streamSessionId) {
+          const list = coHostsBySession.get(coHost.streamSessionId) || [];
+          list.push(coHost);
+          coHostsBySession.set(coHost.streamSessionId, list);
+        }
       });
 
       allPlatforms.forEach((platform) => {
-        const list = platformsBySession.get(platform.streamSessionId) || [];
-        list.push(platform);
-        platformsBySession.set(platform.streamSessionId, list);
+        if (platform.streamSessionId) {
+          const list = platformsBySession.get(platform.streamSessionId) || [];
+          list.push(platform);
+          platformsBySession.set(platform.streamSessionId, list);
+        }
       });
 
       // Map results with co-hosts and platforms

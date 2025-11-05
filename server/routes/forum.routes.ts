@@ -150,6 +150,9 @@ router.get(
   "/posts/:id/replies",
   asyncHandler(async (req, res) => {
     const postId = req.params.id;
+    if (!postId) {
+      return res.status(400).json({ message: "Post ID is required" });
+    }
     const userId = req.query.userId as string;
 
     const replies = await storage.getForumReplies(postId, userId);

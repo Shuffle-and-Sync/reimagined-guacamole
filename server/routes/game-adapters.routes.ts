@@ -26,7 +26,7 @@ import {
 } from "../services/games/adapters/formats";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { NotFoundError, ValidationError } = errors;
+const { NotFoundError, ValidationError, BadRequestError } = errors;
 
 const router = Router();
 
@@ -50,7 +50,7 @@ const gameStates = new Map<
 // Get available games
 router.get(
   "/games",
-  asyncHandler(async (_req: Request, res) => {
+  asyncHandler(async (req, res) => {
     const games = getAvailableGames();
     return res.json({
       games,
@@ -209,6 +209,9 @@ router.get(
   isAuthenticated,
   asyncHandler(async (req, res) => {
     const { sessionId, playerId } = req.params;
+    if (!sessionId || !playerId) {
+      throw new BadRequestError("Session ID and Player ID are required");
+    }
 
     const session = gameStates.get(sessionId);
     if (!session) {

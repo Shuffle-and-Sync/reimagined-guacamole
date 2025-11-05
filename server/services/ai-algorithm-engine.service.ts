@@ -842,8 +842,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateEngagementSynergy(
-    userMetrics: StreamingMetrics,
-    candidateMetrics: StreamingMetrics,
+    userMetrics?: StreamingMetrics,
+    candidateMetrics?: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.5;
 
@@ -873,8 +873,8 @@ export class AIAlgorithmEngine {
   }
 
   private calculateRetentionSynergy(
-    userMetrics: StreamingMetrics,
-    candidateMetrics: StreamingMetrics,
+    userMetrics?: StreamingMetrics,
+    candidateMetrics?: StreamingMetrics,
   ): number {
     if (!userMetrics || !candidateMetrics) return 0.6;
 
@@ -1418,12 +1418,14 @@ export class AIAlgorithmEngine {
   /**
    * Analyze how well a specific factor correlates with success
    */
-  private analyzeFactorSuccess(outcomes: MatchData[], factor: string): number {
+  private analyzeFactorSuccess(outcomes: any[], factor: string): number {
     if (outcomes.length === 0) return 0.5;
 
     const correlations = outcomes.map((outcome) => ({
       factorScore: (outcome as any)[factor] || 0,
-      successScore: typeof outcome.rating === 'number' ? outcome.rating / 10 : 0, // Normalize rating to 0-1 scale
+      successScore: outcome.userFeedback?.rating
+        ? outcome.userFeedback.rating / 10
+        : outcome.successScore || 0, // Normalize rating (1-10 scale) to 0-1
     }));
 
     // Simple correlation calculation

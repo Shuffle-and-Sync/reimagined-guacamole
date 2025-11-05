@@ -186,7 +186,13 @@ export class BackendCopilotAgent {
         });
       }
     } catch (error) {
-      logger.warn("TypeScript analysis had issues:", toLoggableError(error));
+      const loggableError = toLoggableError(error);
+      logger.warn(
+        "TypeScript analysis had issues:",
+        loggableError instanceof Error
+          ? { error: loggableError.message }
+          : loggableError,
+      );
     }
 
     return issues;

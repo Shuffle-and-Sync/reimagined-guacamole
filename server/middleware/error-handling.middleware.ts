@@ -430,7 +430,7 @@ export function createGracefulShutdownHandler(server: Server) {
   return function gracefulShutdown(signal: string) {
     logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
-    server.close((err: Error) => {
+    server.close((err?: Error) => {
       if (err) {
         logger.error("Error during server shutdown", err);
         process.exit(1);

@@ -269,10 +269,7 @@ class MonitoringService extends EventEmitter {
     // Start health checks
     const healthInterval = setInterval(() => {
       this.performHealthChecks().catch((error) => {
-        logger.error(
-          "Failed to perform health checks",
-          toLoggableError(error),
-        );
+        logger.error("Failed to perform health checks", toLoggableError(error));
       });
     }, this.config.intervals.healthCheck);
     this.intervals.set("health", healthInterval);
@@ -280,10 +277,7 @@ class MonitoringService extends EventEmitter {
     // Start alert evaluation
     const alertInterval = setInterval(() => {
       this.evaluateAlerts().catch((error) => {
-        logger.error(
-          "Failed to evaluate alerts",
-          toLoggableError(error),
-        );
+        logger.error("Failed to evaluate alerts", toLoggableError(error));
       });
     }, this.config.intervals.alertCheck);
     this.intervals.set("alerts", alertInterval);
@@ -292,10 +286,7 @@ class MonitoringService extends EventEmitter {
     const cleanupInterval = setInterval(
       () => {
         this.cleanup().catch((error) => {
-          logger.error(
-            "Failed to cleanup old data",
-            toLoggableError(error),
-          );
+          logger.error("Failed to cleanup old data", toLoggableError(error));
         });
       },
       24 * 60 * 60 * 1000,
@@ -304,16 +295,10 @@ class MonitoringService extends EventEmitter {
 
     // Perform initial checks
     this.collectSystemMetrics().catch((error) => {
-      logger.error(
-        "Initial metrics collection failed",
-        toLoggableError(error),
-      );
+      logger.error("Initial metrics collection failed", toLoggableError(error));
     });
     this.performHealthChecks().catch((error) => {
-      logger.error(
-        "Initial health check failed",
-        toLoggableError(error),
-      );
+      logger.error("Initial health check failed", toLoggableError(error));
     });
 
     logger.info("Monitoring service started successfully");
@@ -392,7 +377,10 @@ class MonitoringService extends EventEmitter {
         }
       } catch (error) {
         // If statfs is not available or cwd is undefined, use reasonable defaults
-        logger.debug("Disk usage calculation failed, using defaults", error);
+        logger.debug(
+          "Disk usage calculation failed, using defaults",
+          error as Record<string, unknown>,
+        );
       }
 
       const metrics: SystemMetrics = {
@@ -431,10 +419,7 @@ class MonitoringService extends EventEmitter {
 
       return metrics;
     } catch (error) {
-      logger.error(
-        "Failed to collect system metrics",
-        toLoggableError(error),
-      );
+      logger.error("Failed to collect system metrics", toLoggableError(error));
       throw error;
     }
   }

@@ -1126,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hostId: userId,
         }));
 
-        const createdEvents = await storage.createBulkEvents(eventData);
+        const createdEvents = await storage.createBulkEvents(eventData as any);
         return res.status(201).json(createdEvents);
       } catch (error) {
         logger.error("Failed to create bulk events", toLoggableError(error), {

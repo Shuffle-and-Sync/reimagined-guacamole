@@ -102,9 +102,15 @@ describe("Calendar Page", () => {
 
     it("shows unauthenticated prompt when not logged in", () => {
       vi.mocked(authModule.useAuth).mockReturnValue({
+        session: null,
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<Calendar />, { queryClient });
@@ -114,9 +120,15 @@ describe("Calendar Page", () => {
 
     it("shows loading state while checking authentication", () => {
       vi.mocked(authModule.useAuth).mockReturnValue({
+        session: null,
         user: null,
         isAuthenticated: false,
         isLoading: true,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<Calendar />, { queryClient });

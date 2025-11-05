@@ -1,4 +1,4 @@
-import { MailService } from "@sendgrid/mail";
+import { MailService, type MailDataRequired } from "@sendgrid/mail";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "./logger";
 
@@ -35,20 +35,13 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    const emailData: {
-      to: string;
-      from: string;
-      subject: string;
-      text?: string;
-      html?: string;
-    } = {
+    const emailData: MailDataRequired = {
       to: params.to,
       from: params.from,
       subject: params.subject,
+      ...(params.text ? { text: params.text } : {}),
+      ...(params.html ? { html: params.html } : {}),
     };
-
-    if (params.text) emailData.text = params.text;
-    if (params.html) emailData.html = params.html;
 
     await mailService.send(emailData);
     return true;

@@ -20,8 +20,15 @@ vi.mock("wouter", () => ({
 // Mock hooks
 vi.mock("@/features/auth", () => ({
   useAuth: vi.fn(() => ({
-    signIn: vi.fn(),
+    session: null,
+    user: null,
+    isLoading: false,
     isAuthenticated: false,
+    smartInvalidate: vi.fn(),
+    backgroundSync: vi.fn(),
+    prefetchUserData: vi.fn().mockResolvedValue(undefined),
+    signIn: vi.fn(),
+    signOut: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -90,8 +97,15 @@ describe("Sign In Page", () => {
     it("calls signIn with google provider when button clicked", async () => {
       const mockSignIn = vi.fn();
       vi.mocked(authModule.useAuth).mockReturnValue({
-        signIn: mockSignIn,
+        session: null,
+        user: null,
+        isLoading: false,
         isAuthenticated: false,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: mockSignIn,
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       const user = userEvent.setup();
@@ -186,8 +200,15 @@ describe("Sign In Page", () => {
       });
 
       vi.mocked(authModule.useAuth).mockReturnValue({
-        signIn: vi.fn(),
+        session: { user: { id: "123", email: "test@example.com" } } as any,
+        user: { id: "123", email: "test@example.com" } as any,
+        isLoading: false,
         isAuthenticated: true,
+        smartInvalidate: vi.fn(),
+        backgroundSync: vi.fn(),
+        prefetchUserData: vi.fn().mockResolvedValue(undefined),
+        signIn: vi.fn(),
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderWithProviders(<SignIn />, { queryClient });

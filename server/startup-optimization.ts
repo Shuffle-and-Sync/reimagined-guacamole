@@ -86,7 +86,10 @@ export async function warmupCriticalPaths(): Promise<void> {
 
     logger.info("Critical paths warmed up");
   } catch (error) {
-    logger.warn("Warmup failed, continuing startup", error);
+    logger.warn(
+      "Warmup failed, continuing startup",
+      error as Record<string, unknown>,
+    );
   } finally {
     endTimer("warmup");
   }
@@ -116,7 +119,10 @@ export function setupGracefulShutdown(
             await clients.closeDatabaseConnections();
             logger.info("Database connections closed");
           } catch (error) {
-            logger.warn("Error closing database connections", error);
+            logger.warn(
+              "Error closing database connections",
+              error as Record<string, unknown>,
+            );
           }
         }
 
@@ -132,7 +138,10 @@ export function setupGracefulShutdown(
               logger.info("Drizzle connection pool closed");
             }
           } catch (error) {
-            logger.warn("Error closing Drizzle connection pool", error);
+            logger.warn(
+              "Error closing Drizzle connection pool",
+              error as Record<string, unknown>,
+            );
           }
         }
 
