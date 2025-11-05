@@ -5,7 +5,18 @@
  * following Copilot best practices for database interaction patterns.
  */
 
-import { eq, and, SQL, sql, asc, desc, count, lt, gt } from "drizzle-orm";
+import {
+  eq,
+  and,
+  SQL,
+  sql,
+  asc,
+  desc,
+  count,
+  lt,
+  gt,
+  type AnyColumn,
+} from "drizzle-orm";
 import {
   withQueryTiming,
   type Database,
@@ -158,7 +169,9 @@ export abstract class BaseRepository<
           const column = this.table[sort.field as keyof TTable];
           if (column) {
             query = query.orderBy(
-              sort.direction === "desc" ? desc(column) : asc(column),
+              sort.direction === "desc"
+                ? desc(column as AnyColumn)
+                : asc(column as AnyColumn),
             ) as typeof query;
           }
         }
@@ -360,7 +373,7 @@ export abstract class BaseRepository<
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
-            .set({ deletedAt: new Date() } as Partial<TInsert>)
+            .set({ deletedAt: new Date() } as any)
             .where(eq(this.table.id, id))
             .returning();
 
@@ -404,7 +417,7 @@ export abstract class BaseRepository<
         if (hasDeletedAt) {
           const result = await this.db
             .update(this.table)
-            .set({ deletedAt: new Date() } as Partial<TInsert>)
+            .set({ deletedAt: new Date() } as any)
             .where(and(...whereConditions))
             .returning();
 
@@ -520,7 +533,9 @@ export abstract class BaseRepository<
         const sortColumn = this.table[sortField as keyof TTable];
         if (sortColumn) {
           query = query.orderBy(
-            sortDirection === "desc" ? desc(sortColumn) : asc(sortColumn),
+            sortDirection === "desc"
+              ? desc(sortColumn as AnyColumn)
+              : asc(sortColumn as AnyColumn),
           ) as typeof query;
         }
 

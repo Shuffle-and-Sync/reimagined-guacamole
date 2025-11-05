@@ -377,8 +377,8 @@ export class AIAlgorithmEngine {
 
       // Engagement pattern synergy
       const engagementSynergy = this.calculateEngagementSynergy(
-        userMetrics,
-        candidateMetrics,
+        userMetrics || ({} as StreamingMetrics),
+        candidateMetrics || ({} as StreamingMetrics),
       );
 
       // Growth potential calculation
@@ -389,8 +389,8 @@ export class AIAlgorithmEngine {
 
       // Retention synergy
       const retentionPotential = this.calculateRetentionSynergy(
-        userMetrics,
-        candidateMetrics,
+        userMetrics || ({} as StreamingMetrics),
+        candidateMetrics || ({} as StreamingMetrics),
       );
 
       // Geographic distribution analysis
@@ -1418,12 +1418,14 @@ export class AIAlgorithmEngine {
   /**
    * Analyze how well a specific factor correlates with success
    */
-  private analyzeFactorSuccess(outcomes: MatchData[], factor: string): number {
+  private analyzeFactorSuccess(outcomes: any[], factor: string): number {
     if (outcomes.length === 0) return 0.5;
 
     const correlations = outcomes.map((outcome) => ({
       factorScore: (outcome as any)[factor] || 0,
-      successScore: typeof outcome.rating === 'number' ? outcome.rating / 10 : 0, // Normalize rating to 0-1 scale
+      successScore: outcome.userFeedback?.rating
+        ? outcome.userFeedback.rating / 5
+        : outcome.successScore || 0, // Normalize rating to 0-1 scale
     }));
 
     // Simple correlation calculation

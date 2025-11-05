@@ -3940,10 +3940,12 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`${messages.createdAt} DESC`)
       .limit(options?.limit || 50);
 
-    return results.map((r: { message: Message; sender: User | null }) => ({
-      ...r.message,
-      sender: r.sender,
-    }));
+    return results
+      .filter((r): r is { message: Message; sender: User } => r.sender !== null)
+      .map((r) => ({
+        ...r.message,
+        sender: r.sender,
+      }));
   }
 
   async sendMessage(data: InsertMessage): Promise<Message> {
@@ -4049,10 +4051,12 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(sql`${messages.createdAt} ASC`);
 
-    return results.map((r: { message: Message; sender: User | null }) => ({
-      ...r.message,
-      sender: r.sender,
-    }));
+    return results
+      .filter((r): r is { message: Message; sender: User } => r.sender !== null)
+      .map((r) => ({
+        ...r.message,
+        sender: r.sender,
+      }));
   }
 
   // Game session operations
@@ -4136,17 +4140,21 @@ export class DatabaseStorage implements IStorage {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(sql`${gameSessions.createdAt} DESC`);
 
-    return results.map(
-      (r: {
-        gameSession: GameSession;
-        host: User | null;
-        event: Event | null;
-      }) => ({
+    return results
+      .filter(
+        (
+          r,
+        ): r is {
+          gameSession: GameSession;
+          host: User;
+          event: Event;
+        } => r.host !== null && r.event !== null,
+      )
+      .map((r) => ({
         ...r.gameSession,
-        host: r.host as User,
-        event: r.event as Event,
-      }),
-    );
+        host: r.host,
+        event: r.event,
+      }));
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -5837,15 +5845,19 @@ export class DatabaseStorage implements IStorage {
       >();
 
       allCoHosts.forEach((coHost) => {
-        const list = coHostsBySession.get(coHost.streamSessionId) || [];
-        list.push(coHost);
-        coHostsBySession.set(coHost.streamSessionId, list);
+        if (coHost.streamSessionId) {
+          const list = coHostsBySession.get(coHost.streamSessionId) || [];
+          list.push(coHost);
+          coHostsBySession.set(coHost.streamSessionId, list);
+        }
       });
 
       allPlatforms.forEach((platform) => {
-        const list = platformsBySession.get(platform.streamSessionId) || [];
-        list.push(platform);
-        platformsBySession.set(platform.streamSessionId, list);
+        if (platform.streamSessionId) {
+          const list = platformsBySession.get(platform.streamSessionId) || [];
+          list.push(platform);
+          platformsBySession.set(platform.streamSessionId, list);
+        }
       });
 
       // Map results with co-hosts and platforms

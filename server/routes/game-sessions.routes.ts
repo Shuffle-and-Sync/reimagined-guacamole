@@ -22,7 +22,7 @@ import { storage } from "../storage";
 import { validateRequest, validateGameSessionSchema } from "../validation";
 
 const { asyncHandler } = errorHandlingMiddleware;
-const { NotFoundError } = errors;
+const { NotFoundError, BadRequestError } = errors;
 
 const router = Router();
 
@@ -62,6 +62,9 @@ router.get(
   isAuthenticated,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
+    if (!id) {
+      throw new BadRequestError("Session ID is required");
+    }
     const gameSession = await storage.getGameSessionById(id);
 
     if (!gameSession) {
@@ -82,6 +85,9 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+    if (!id) {
+      throw new BadRequestError("Session ID is required");
+    }
 
     // Authorize session join
     const authResult = await authorizeSessionJoin(id, userId);
@@ -118,6 +124,9 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+    if (!id) {
+      throw new BadRequestError("Session ID is required");
+    }
 
     await storage.leaveGameSession(id, userId);
 
@@ -147,6 +156,9 @@ router.post(
     const userId = getAuthUserId(authenticatedReq);
     const user = authenticatedReq.user;
     const { id } = req.params;
+    if (!id) {
+      throw new BadRequestError("Session ID is required");
+    }
 
     // Authorize spectating
     const authResult = await authorizeSpectate(id, userId);
