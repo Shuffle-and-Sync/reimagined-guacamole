@@ -1291,7 +1291,7 @@ export class DatabaseStorage implements IStorage {
     } = filters || {};
 
     // Select safe user fields (exclude sensitive data like passwordHash)
-    let query = db
+    let query: any = db
       .select({
         id: users.id,
         email: users.email,
@@ -1342,16 +1342,13 @@ export class DatabaseStorage implements IStorage {
 
     // Add role filter (requires join with userRoles)
     if (role) {
-      query = query.leftJoin(
-        userRoles,
-        eq(users.id, userRoles.userId),
-      ) as unknown;
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId));
       conditions.push(eq(userRoles.role, role));
     }
 
     // Apply conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as unknown;
+      query = query.where(and(...conditions));
     }
 
     // Add sorting
@@ -1389,25 +1386,27 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (order === "asc") {
-        query = query.orderBy(asc(sortColumn)) as unknown;
+        query = query.orderBy(asc(sortColumn));
       } else {
-        query = query.orderBy(desc(sortColumn)) as unknown;
+        query = query.orderBy(desc(sortColumn));
       }
     } else {
       // Default sort
-      query = query.orderBy(desc(users.createdAt)) as unknown;
+      query = query.orderBy(desc(users.createdAt));
     }
 
     // Get total count with same filters
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+    let countQuery: any = db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
     if (role) {
       countQuery = countQuery.leftJoin(
         userRoles,
         eq(users.id, userRoles.userId),
-      ) as unknown;
+      );
     }
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions)) as unknown;
+      countQuery = countQuery.where(and(...conditions));
     }
     const countResult = await countQuery;
     const total = countResult?.[0]?.count ?? 0;
@@ -3944,6 +3943,9 @@ export class DatabaseStorage implements IStorage {
     data: InsertMessage,
   ): Promise<Message> {
     const [message] = await tx.insert(messages).values(data).returning();
+    if (!message) {
+      throw new Error("Failed to send message");
+    }
     return message;
   }
 
@@ -5144,8 +5146,8 @@ export class DatabaseStorage implements IStorage {
       await tx
         .update(tournamentMatches)
         .set({
-          winnerId: verifiedResult.winnerId,
-          status: "completed" as unknown,
+          winnerId: verifiedResult.winnerId as string | null,
+          status: "completed",
           endTime: new Date(),
         })
         .where(eq(tournamentMatches.id, matchResult.matchId));
@@ -5640,7 +5642,7 @@ export class DatabaseStorage implements IStorage {
       .groupBy(userGamingProfiles.communityId);
 
     return result.map((r) => ({
-      game: r.communityId,
+      game: r.communityId || "unknown",
       players: r.count,
       change: Math.floor(Math.random() * 20) - 10, // Mock change percentage
     }));
@@ -7342,13 +7344,13 @@ export class DatabaseStorage implements IStorage {
 
       await this.addToModerationQueue({
         itemType: "report",
-        itemId: report.id,
+        itemId: report.id as string,
         priority: priorityMap[data.priority || "medium"],
         summary: `${data.reason}: ${data.contentType} reported`,
-        metadata: JSON.stringify({
+        metadata: {
           contentType: data.contentType,
           contentId: data.contentId,
-        }),
+        },
       });
     }
 
@@ -7744,17 +7746,18 @@ export class DatabaseStorage implements IStorage {
         data.metadata.userReputationScore &&
         !enhancedData.userReputationScore
       ) {
-        enhancedData.userReputationScore = data.metadata.userReputationScore;
+        enhancedData.userReputationScore = data.metadata
+          .userReputationScore as number;
       }
       if (
         data.metadata.reporterReputationScore &&
         !enhancedData.reporterReputationScore
       ) {
-        enhancedData.reporterReputationScore =
-          data.metadata.reporterReputationScore;
+        enhancedData.reporterReputationScore = data.metadata
+          .reporterReputationScore as number;
       }
       if (data.metadata.riskScore && !enhancedData.riskScore) {
-        enhancedData.riskScore = data.metadata.riskScore as unknown;
+        enhancedData.riskScore = data.metadata.riskScore as number;
       }
     }
 
