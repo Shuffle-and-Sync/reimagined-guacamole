@@ -29,8 +29,6 @@ import {
   type InsertDeviceFingerprint,
   type RevokedJwtToken,
   type InsertRevokedJwtToken,
-  type MfaSecurityContext,
-  type InsertMfaSecurityContext,
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailVerificationToken,

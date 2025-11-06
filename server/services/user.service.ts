@@ -17,7 +17,6 @@ import {
 import { logger } from "../logger";
 import {
   ValidationError,
-  AuthenticationError,
   ConflictError,
 } from "../middleware/error-handling.middleware";
 import { PaginatedResult } from "../repositories/base.repository";
