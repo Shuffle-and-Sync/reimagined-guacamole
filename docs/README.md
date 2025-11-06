@@ -31,6 +31,7 @@ Technical reference documentation:
 - **API Documentation**
   - [API Overview](reference/api/API_OVERVIEW.md) - Quick reference for all API endpoints
   - [API Documentation](reference/api/API_DOCUMENTATION.md) - Complete API reference with details
+  - [API Review Summary](reference/api/API_REVIEW_SUMMARY.md) - API review and recommendations
   - [Universal Deck-Building API](reference/api/UNIVERSAL_DECK_BUILDING_API.md) - Universal deck-building framework
   - [OAuth Documentation](/oauth/README.md) - OAuth 2.0 flow documentation
 - **Configuration**
@@ -60,6 +61,10 @@ Database-specific documentation:
 - [Database Visual Guide](database/DATABASE_VISUAL_GUIDE.md) - Visual database documentation
 - [Database Performance](database/DATABASE_PERFORMANCE.md) - Performance optimization
 - [Database Improvements Summary](database/DATABASE_IMPROVEMENTS_SUMMARY.md) - Recent improvements
+- [Database Monitoring](DATABASE_MONITORING.md) - Database monitoring and health checks
+- [Index Optimization](database/INDEX_OPTIMIZATION.md) - Database index optimization guide
+- [N+1 Query Fixes](N_PLUS_ONE_FIXES.md) - N+1 query problem fixes and solutions
+- [Redis Connection Manager](redis-connection-manager.md) - Redis connection management
 - **Drizzle ORM:**
   - [Drizzle ORM Review](database/DRIZZLE_ORM_REVIEW.md) - ORM best practices
   - [Drizzle Optimizations](database/DRIZZLE_OPTIMIZATIONS.md) - Query optimizations
@@ -103,6 +108,9 @@ Development setup and tools:
 - [Copilot Agent Implementation](development/COPILOT_AGENT_IMPLEMENTATION.md) - Copilot agent setup
 - [Build Verification Summary](development/BUILD_VERIFICATION_SUMMARY.md) - Build verification process
 - [Formatting Guide](development/FORMATTING.md) - Code formatting standards
+- [Custom Hooks Usage](CUSTOM_HOOKS_USAGE.md) - Custom React hooks documentation and usage patterns
+- [UI Component Refactor Summary](UI_COMPONENT_REFACTOR_SUMMARY.md) - UI component refactoring summary
+- [Adaptive Rate Limiter](ADAPTIVE_RATE_LIMITER.md) - Adaptive rate limiting implementation
 
 ### 🔧 Troubleshooting (`/troubleshooting`)
 
@@ -121,6 +129,9 @@ Security documentation and guidelines:
 - [Security Audit Report](security/SECURITY_AUDIT_REPORT.md) - Comprehensive security audit
 - [Security Audit Summary](security/SECURITY_AUDIT_SUMMARY.md) - Audit summary
 - [Security Checklist Guide](security/SECURITY_CHECKLIST_GUIDE.md) - Security verification checklist
+- [MFA Audit Trail](MFA_AUDIT_TRAIL.md) - Multi-factor authentication audit trail documentation
+- [Authorization Usage Guide](AUTHORIZATION_USAGE_GUIDE.md) - Authorization system usage patterns
+- [ICS Export Security](features/ICS_EXPORT_SECURITY.md) - Calendar export security documentation
 - See also: [Security Policy](../SECURITY.md) in repository root
 
 ### 🧩 Features (`/features`)
@@ -135,6 +146,11 @@ Feature-specific documentation:
 - [TableSync Universal Framework Roadmap](features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_ROADMAP.md) - Implementation roadmap
 - [TableSync Universal Framework Summary](features/tablesync/TABLESYNC_UNIVERSAL_FRAMEWORK_SUMMARY.md) - Executive summary
 - [Card Recognition Guide](features/tablesync/CARD_RECOGNITION_GUIDE.md) - Card recognition implementation
+- [Game Seeding Guide](features/tablesync/GAME_SEEDING_GUIDE.md) - How to seed official game data
+- [Game Adapter Pattern](GAME_ADAPTER_PATTERN.md) - Game adapter implementation pattern
+- [Game Adapter Quick Reference](GAME_ADAPTER_QUICK_REFERENCE.md) - Quick reference for game adapters
+- [Game State Schema](GAME_STATE_SCHEMA.md) - Game state data structure
+- [Game Pod Slot Management](features/GAME_POD_SLOT_MANAGEMENT.md) - Pod slot management system
 
 #### AI Matchmaking
 
@@ -158,10 +174,37 @@ Operational procedures for production support:
 - [Deployment Rollback Runbook](operations/DEPLOYMENT_ROLLBACK_RUNBOOK.md) - Deployment and rollback procedures
 - [Monitoring & Alerting Runbook](operations/MONITORING_ALERTING_RUNBOOK.md) - Monitoring and alert response
 - [Incident Response Runbook](operations/INCIDENT_RESPONSE_RUNBOOK.md) - Incident management procedures
+- [Infrastructure Deployment Readiness](operations/INFRASTRUCTURE_DEPLOYMENT_READINESS.md) - Infrastructure readiness checklist
+
+#### Analysis & Code Review (`/analysis`)
+
+Code analysis and review documentation:
+
+- [React Patterns Review](analysis/REACT_PATTERNS_REVIEW.md) - React patterns analysis and recommendations
+
+#### Implementation Documentation (`/implementation`)
+
+Feature implementation documentation:
+
+- [Phase 4 Implementation Summary](PHASE4_IMPLEMENTATION_SUMMARY.md) - Phase 4 implementation details
 
 #### Known Issues
 
 - [Known Issues & Workarounds](KNOWN_ISSUES.md) - Current known issues with workarounds and solutions
+
+#### Calendar Features
+
+- [Calendar Sync](features/CALENDAR_SYNC.md) - Calendar synchronization features
+
+#### Event Features
+
+- [Event Registration System](implementation/EVENT_REGISTRATION_SYSTEM.md) - Event registration implementation
+- [Event Repository Summary](refactoring/EVENT_REPOSITORY_SUMMARY.md) - Event repository refactoring details
+
+#### Integration Guides
+
+- [Integration Guide](INTEGRATION_GUIDE.md) - Advanced features integration guide
+- [Delta Sync Guide](DELTA_SYNC_GUIDE.md) - Delta synchronization implementation
 
 #### Twitch Integration
 
@@ -172,6 +215,9 @@ Operational procedures for production support:
 #### WebSocket Features
 
 - [WebSocket Message Compression](features/websocket-compression.md) - Per-message deflate compression for bandwidth optimization
+- [WebSocket Message Types](WEBSOCKET_MESSAGE_TYPES.md) - Complete WebSocket message type reference
+- [WebSocket Reconnection](features/WEBSOCKET_RECONNECTION.md) - WebSocket reconnection handling
+- [WebSocket Message Batching](features/websocket-message-batching.md) - Message batching for performance optimization
 
 ### 🔧 Backend (`/backend`)
 
@@ -192,6 +238,7 @@ Testing documentation and strategies:
 - [Test Pyramid Analysis](testing/TEST_PYRAMID_ANALYSIS.md) - Test suite structure analysis
 - [Test Coverage Audit](testing/test-coverage-audit.md) - Coverage analysis and gaps
 - [Test Implementation Plan](testing/test-implementation-plan.md) - Implementation planning
+- [Test Mock Patterns](development/TEST_MOCK_PATTERNS.md) - Testing mock patterns and best practices
 - **Audit Reports:**
   - [Testing Audit Part 1](testing/TESTING_AUDIT_PART1.md) - Coverage analysis
   - [Testing Audit Part 2: Architecture](testing/TESTING_AUDIT_PART2_ARCHITECTURE.md) - Architecture review
@@ -217,6 +264,7 @@ Performance optimization documentation:
 - [Performance Optimization Summary](performance/PERFORMANCE_OPTIMIZATION_SUMMARY.md) - Optimization results
 - [Performance Security Summary](performance/PERFORMANCE_SECURITY_SUMMARY.md) - Security and performance
 - [Performance Verification Report](performance/PERFORMANCE_VERIFICATION_REPORT.md) - Verification results
+- [Performance Quick Start](performance/QUICK_START.md) - Quick start guide for performance testing
 - [Monitoring Implementation Summary](performance/MONITORING_IMPLEMENTATION_SUMMARY.md) - Monitoring setup
 - [Monitoring & Logging Checklist](performance/MONITORING_LOGGING_CHECKLIST.md) - Monitoring checklist
 
@@ -316,6 +364,10 @@ Some documentation remains in the repository root for quick access:
 - `CODE_OF_CONDUCT.md` - Community code of conduct
 - `CONTRIBUTING.md` - Contribution guidelines
 - `SECURITY.md` - Security policy
+
+## 📂 Repository Organization
+
+- [Documentation Reorganization Summary](REORGANIZATION_SUMMARY.md) - Summary of documentation structure reorganization
 
 ## 🤝 Contributing to Documentation
 
