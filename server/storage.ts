@@ -2569,17 +2569,26 @@ export class DatabaseStorage implements IStorage {
     // Update parent event IDs if needed
     // The first event is the parent, so we need to update all subsequent events
     if (createdEvents.length > 1) {
-      const firstEventId = createdEvents[0].id;
+      const firstEvent = createdEvents[0];
+      if (!firstEvent) {
+        throw new Error("Failed to create first event");
+      }
+      const firstEventId = firstEvent.id;
 
       // Update all subsequent events to reference the first event as parent
       for (let i = 1; i < createdEvents.length; i++) {
+        const event = createdEvents[i];
+        if (!event) {
+          continue;
+        }
+
         await db
           .update(events)
           .set({ parentEventId: firstEventId })
-          .where(eq(events.id, createdEvents[i].id));
+          .where(eq(events.id, event.id));
 
         // Update the in-memory object as well
-        createdEvents[i].parentEventId = firstEventId;
+        event.parentEventId = firstEventId;
       }
     }
 

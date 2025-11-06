@@ -758,10 +758,9 @@ export class RealTimeMatchingAPI {
       reasons.push("Significant audience growth potential");
     }
 
-    if (baseMatch.reasoning?.sharedGames?.length > 0) {
-      reasons.push(
-        `Shared interest in ${baseMatch.reasoning.sharedGames.join(", ")}`,
-      );
+    const sharedGames = baseMatch.reasoning?.sharedGames;
+    if (sharedGames && sharedGames.length > 0) {
+      reasons.push(`Shared interest in ${sharedGames.join(", ")}`);
     }
 
     return reasons.length > 0 ? reasons : ["Compatible gaming preferences"];

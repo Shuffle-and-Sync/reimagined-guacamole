@@ -783,8 +783,13 @@ export class EventsService {
         throw new Error("Series not found");
       }
 
+      const firstEvent = seriesEvents[0];
+      if (!firstEvent) {
+        throw new Error("Series not found");
+      }
+
       // Check permission (first event's creator)
-      if (seriesEvents[0].creatorId !== userId) {
+      if (firstEvent.creatorId !== userId) {
         throw new Error("Unauthorized to delete this series");
       }
 

@@ -324,8 +324,8 @@ export const circuitBreakerService = {
 
       logger.error("Circuit breaker opened", {
         breakerId,
-        platform: breaker[0].platform,
-        endpoint: breaker[0].endpoint,
+        platform: breakerRecord.platform,
+        endpoint: breakerRecord.endpoint,
         failureCount: newFailureCount,
         nextRetry: nextRetryAt,
       });
