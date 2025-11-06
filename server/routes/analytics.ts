@@ -461,7 +461,8 @@ router.get("/community/:communityId", async (req, res) => {
     const querySchema = z.object({
       startDate: z.coerce.date().default(() => {
         const date = new Date();
-        date.setDate(date.getDate() - 30);
+        // Use UTC method to avoid DST issues
+        date.setUTCDate(date.getUTCDate() - 30);
         return date;
       }),
       endDate: z.coerce.date().default(() => new Date()),
