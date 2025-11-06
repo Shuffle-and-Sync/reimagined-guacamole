@@ -218,7 +218,8 @@ export function globalErrorHandler(
       logger.warn("Client error", errorLog);
     }
 
-    return res.status(error.statusCode).json(errorResponse);
+    res.status(error.statusCode).json(errorResponse);
+    return;
   }
 
   // Handle Zod validation errors with JSend format
@@ -320,7 +321,8 @@ export function globalErrorHandler(
       preservedCustomMessage: hasCustomMessage,
     });
 
-    return res.status(standardizedError.statusCode).json(errorResponse);
+    res.status(standardizedError.statusCode).json(errorResponse);
+    return;
   }
 
   // Handle JWT errors

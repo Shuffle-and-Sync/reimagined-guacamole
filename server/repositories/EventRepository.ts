@@ -534,6 +534,9 @@ export class EventRepository extends BaseRepository<
           .insert(eventAttendees)
           .values(data)
           .returning();
+        if (!result[0]) {
+          throw new DatabaseError("Failed to join event - no result returned");
+        }
         return result[0];
       } catch (error) {
         logger.error("Failed to join event", toLoggableError(error), { data });
@@ -611,6 +614,12 @@ export class EventRepository extends BaseRepository<
 
         if (result.length === 0) {
           throw new Error("Event attendee not found");
+        }
+
+        if (!result[0]) {
+          throw new DatabaseError(
+            "Failed to update event attendee - no result returned",
+          );
         }
 
         return result[0];
@@ -825,6 +834,11 @@ export class EventRepository extends BaseRepository<
           .insert(eventTracking)
           .values(data)
           .returning();
+        if (!result[0]) {
+          throw new DatabaseError(
+            "Failed to create event tracking - no result returned",
+          );
+        }
         return result[0];
       } catch (error) {
         logger.error(
@@ -882,6 +896,9 @@ export class EventRepository extends BaseRepository<
   ): Promise<EventAttendee> {
     try {
       const result = await trx.insert(eventAttendees).values(data).returning();
+      if (!result[0]) {
+        throw new DatabaseError("Failed to join event - no result returned");
+      }
       return result[0];
     } catch (error) {
       logger.error(

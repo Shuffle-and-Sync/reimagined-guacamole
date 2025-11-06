@@ -938,7 +938,11 @@ export class AIStreamingMatcher {
         : ["19:00-22:00"],
       streamFrequency:
         typeof streamingSettings.frequency === "string"
-          ? streamingSettings.frequency
+          ? (streamingSettings.frequency as
+              | "daily"
+              | "weekly"
+              | "monthly"
+              | "biweekly")
           : "weekly",
       streamDuration:
         typeof streamingSettings.duration === "number"
@@ -946,15 +950,25 @@ export class AIStreamingMatcher {
           : 120,
       contentRating:
         typeof streamingSettings.contentRating === "string"
-          ? streamingSettings.contentRating
+          ? (streamingSettings.contentRating as
+              | "family_friendly"
+              | "teen"
+              | "mature")
           : "family_friendly",
       interactionStyle:
         typeof streamingSettings.interactionStyle === "string"
-          ? streamingSettings.interactionStyle
+          ? (streamingSettings.interactionStyle as
+              | "competitive"
+              | "educational"
+              | "high_energy"
+              | "chill")
           : "chill",
       chatModeration:
         typeof streamingSettings.chatModeration === "string"
-          ? streamingSettings.chatModeration
+          ? (streamingSettings.chatModeration as
+              | "strict"
+              | "moderate"
+              | "relaxed")
           : "moderate",
     };
   }

@@ -208,10 +208,10 @@ export class SecurityRepository extends BaseRepository<
         const result = await this.db
           .update(userMfaSettings)
           .set({
-            totpSecret,
-            backupCodes,
-            isEnabled: true,
-            enabledAt: new Date(),
+            secret: totpSecret,
+            backupCodes: JSON.stringify(backupCodes),
+            enabled: true,
+            updatedAt: new Date(),
           })
           .where(eq(userMfaSettings.userId, userId))
           .returning();
@@ -247,8 +247,6 @@ export class SecurityRepository extends BaseRepository<
           .update(userMfaSettings)
           .set({
             enabled: false,
-            secret: null,
-            backupCodes: null,
             updatedAt: new Date(),
           })
           .where(eq(userMfaSettings.userId, userId));
