@@ -170,8 +170,6 @@ router.post(
           return res.status(500).json({ error: "Internal server error" });
         }
       }
-      // If headers already sent, just return
-      return;
     }
   },
 );

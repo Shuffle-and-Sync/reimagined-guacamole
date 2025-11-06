@@ -589,7 +589,7 @@ export function createMockExtendedEvent(
     isUserAttending: false,
     mainPlayers: faker.number.int({ min: 4, max: 32 }),
     alternates: faker.number.int({ min: 0, max: 8 }),
-    date: baseEvent.startTime.toISOString().split("T")[0] || "",
+    date: baseEvent.startTime.toISOString().split("T")[0],
     time:
       baseEvent.startTime.toTimeString().split(" ")[0]?.substring(0, 5) ||
       "00:00",
