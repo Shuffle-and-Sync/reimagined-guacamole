@@ -260,6 +260,9 @@ export class EventRepository extends BaseRepository<
         }
 
         const event = result[0];
+        if (!event) {
+          return null;
+        }
 
         // Ensure creator exists
         if (!event.creator) {

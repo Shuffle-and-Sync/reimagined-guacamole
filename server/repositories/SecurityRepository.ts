@@ -20,7 +20,7 @@ import {
   userMfaAttempts,
   deviceFingerprints,
   revokedJwtTokens,
-  userSecurityContexts,
+  mfaSecurityContext,
   passwordResetTokens,
   emailVerificationTokens,
   type UserMfaSettings,
@@ -29,8 +29,8 @@ import {
   type InsertDeviceFingerprint,
   type RevokedJwtToken,
   type InsertRevokedJwtToken,
-  type UserSecurityContext,
-  type InsertUserSecurityContext,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailVerificationToken,
@@ -852,14 +852,14 @@ export class SecurityRepository extends BaseRepository<
    * @returns Promise of created context
    */
   async createSecurityContext(
-    data: InsertUserSecurityContext,
-  ): Promise<UserSecurityContext> {
+    data: InsertMfaSecurityContext,
+  ): Promise<MfaSecurityContext> {
     return withQueryTiming(
       "SecurityRepository:createSecurityContext",
       async () => {
         try {
           const result = await this.db
-            .insert(userSecurityContexts)
+            .insert(mfaSecurityContext)
             .values(data)
             .returning();
 
@@ -890,15 +890,15 @@ export class SecurityRepository extends BaseRepository<
    */
   async getUserSecurityContext(
     userId: string,
-  ): Promise<UserSecurityContext | null> {
+  ): Promise<MfaSecurityContext | null> {
     return withQueryTiming(
       "SecurityRepository:getUserSecurityContext",
       async () => {
         try {
           const result = await this.db
             .select()
-            .from(userSecurityContexts)
-            .where(eq(userSecurityContexts.userId, userId))
+            .from(mfaSecurityContext)
+            .where(eq(mfaSecurityContext.userId, userId))
             .limit(1);
 
           return result[0] || null;

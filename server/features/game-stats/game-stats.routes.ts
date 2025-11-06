@@ -121,7 +121,7 @@ router.get("/", requireAuth, gameStatsLimiter, async (req, res, next) => {
       message: "Game statistics retrieved successfully",
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -152,7 +152,7 @@ router.put(
         message: "Game statistics preferences updated successfully",
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 );
@@ -180,7 +180,7 @@ router.get(
         message: "Aggregate statistics retrieved successfully",
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 );
@@ -221,7 +221,7 @@ router.get("/leaderboard", gameStatsLimiter, async (req, res, next) => {
       message: "Leaderboard retrieved successfully",
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -252,7 +252,7 @@ router.post(
         message: "Game result recorded successfully",
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 );
@@ -286,7 +286,7 @@ router.get(
         message: "Game results retrieved successfully",
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 );
@@ -307,7 +307,7 @@ router.delete("/game-results/:id", requireAuth, async (req, res, next) => {
 
     return res.status(204).send();
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 

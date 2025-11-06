@@ -124,18 +124,21 @@ export const doubleEliminationService = {
       const player1Index = i * 2;
       const player2Index = i * 2 + 1;
 
+      const player1 =
+        player1Index < participants.length
+          ? participants[player1Index]
+          : undefined;
+      const player2 =
+        player2Index < participants.length
+          ? participants[player2Index]
+          : undefined;
+
       matches.push({
         id: crypto.randomUUID(),
         roundNumber: 1,
         matchNumber: i + 1,
-        player1Id:
-          player1Index < participants.length
-            ? participants[player1Index].userId
-            : undefined,
-        player2Id:
-          player2Index < participants.length
-            ? participants[player2Index].userId
-            : undefined,
+        player1Id: player1?.userId,
+        player2Id: player2?.userId,
         bracketType,
         bracketPosition: i,
         isGrandFinals: false,

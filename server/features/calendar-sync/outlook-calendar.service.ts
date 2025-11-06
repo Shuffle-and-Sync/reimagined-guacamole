@@ -7,7 +7,28 @@ import type {
   CalendarEventData,
   CalendarEventUpdate,
 } from "./types";
-import type { Event } from "@microsoft/microsoft-graph-types";
+
+// Microsoft Graph Event type (simplified)
+interface Event {
+  id?: string;
+  subject?: string;
+  body?: {
+    contentType?: string;
+    content?: string;
+  };
+  start?: {
+    dateTime?: string;
+    timeZone?: string;
+  };
+  end?: {
+    dateTime?: string;
+    timeZone?: string;
+  };
+  location?: {
+    displayName?: string;
+  };
+  [key: string]: any;
+}
 
 /**
  * Outlook Calendar Service
@@ -68,11 +89,9 @@ export class OutlookCalendarService {
       const response = await client.api("/me/calendars").get();
       return response.value || [];
     } catch (error) {
-      logger.error(
-        "Failed to list Outlook calendars",
-        toLoggableError(error),
-        { connectionId: connection.id },
-      );
+      logger.error("Failed to list Outlook calendars", toLoggableError(error), {
+        connectionId: connection.id,
+      });
       throw error;
     }
   }

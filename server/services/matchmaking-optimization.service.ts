@@ -113,7 +113,7 @@ export const matchmakingOptimizationService = {
           (
             CASE WHEN ${users.timezone} = ${userTimezone} THEN 10 ELSE 0 END +
             CASE WHEN ${playerRatings.rating} BETWEEN ${userRating - maxSkillDiff} AND ${userRating + maxSkillDiff} THEN 15 ELSE 0 END +
-            CASE WHEN ${matchmakingPreferences.playStyle} = ${userPref.playStyle} THEN 8 ELSE 0 END
+            CASE WHEN ${matchmakingPreferences.playStyle} = ${userPref?.playStyle || ""} THEN 8 ELSE 0 END
           ) as compatibility_score
         `,
       })
@@ -144,7 +144,7 @@ export const matchmakingOptimizationService = {
         const skillDiff = Math.abs((player.rating || 1500) - userRating);
         const skillMatch = Math.max(0, 20 - skillDiff / 10); // 20 points max
         const formatMatch =
-          player.preferredFormat === userPref.preferredFormat ? 20 : 0;
+          player.preferredFormat === userPref?.preferredFormat ? 20 : 0;
         const timezoneMatch = player.timezone === userTimezone ? 10 : 0;
         const recentOpponent = recentOpponentIds.includes(player.userId)
           ? -10

@@ -1,17 +1,17 @@
 import type {
-  _UserActivityAnalytics,
-  _CommunityAnalytics,
-  _PlatformMetrics,
-  _EventTracking,
-  _ConversionFunnel,
-  _StreamAnalytics,
-  _InsertUserActivityAnalytics,
+  UserActivityAnalytics,
+  CommunityAnalytics,
+  PlatformMetrics,
+  EventTracking,
+  ConversionFunnel,
+  StreamAnalytics,
+  InsertUserActivityAnalytics,
   InsertCommunityAnalytics,
   InsertPlatformMetrics,
   InsertEventTracking,
   InsertConversionFunnel,
-  _User,
-  _Community,
+  User,
+  Community,
 } from "@shared/schema";
 import { logger } from "../logger";
 import { storage } from "../storage";

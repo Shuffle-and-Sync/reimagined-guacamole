@@ -58,10 +58,7 @@ import {
   securityHeaders,
   validateEventSchema,
   uuidParamSchema,
-  _userParamSchema,
-  _communityParamSchema,
   paginationQuerySchema,
-  _searchQuerySchema,
 } from "./validation";
 import type { Express } from "express";
 
@@ -196,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...paginationQuerySchema.shape,
       }),
     ),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const {
         community: communityId,
         page,
@@ -218,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/tournaments/:id",
     validateParamsWithSchema(uuidParamSchema),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const tournamentId = assertRouteParam(req.params.id, "id");
       const tournament = await storage.getTournament(tournamentId);
 
@@ -249,7 +246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPublic: z.boolean().default(true),
       }),
     ),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const tournamentData = { ...req.body, organizerId: userId };
@@ -267,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/tournaments/:id/join",
     isAuthenticated,
     validateParamsWithSchema(uuidParamSchema),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const tournamentId = assertRouteParam(req.params.id, "id");
@@ -423,123 +420,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Communities routes
-  app.get("/api/communities", async (_req: Request, res) => {
-    try {
+  app.get(
+    "/api/communities",
+    asyncHandler(async (_req: Request, res, _next) => {
       const communities = await storage.getCommunities();
       return res.json(communities);
-    } catch (error) {
-      logger.error("Failed to fetch communities", toLoggableError(error));
-      return res.status(500).json({ message: "Failed to fetch communities" });
-    }
-  });
+    }),
+  );
 
-  app.get("/api/communities/:id", async (_req, res) => {
-    try {
+  app.get(
+    "/api/communities/:id",
+    asyncHandler(async (_req, res, _next) => {
       const { id } = _req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Community ID is required" });
+      }
       const community = await storage.getCommunity(id);
       if (!community) {
         return res.status(404).json({ message: "Community not found" });
       }
       return res.json(community);
-    } catch (error) {
-      logger.error("Failed to fetch community", toLoggableError(error), {
-        id: _req.params.id,
-      });
-      return res.status(500).json({ message: "Failed to fetch community" });
-    }
-  });
+    }),
+  );
 
   // User community management
   app.post(
     "/api/user/communities/:communityId/join",
     isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const { communityId } = req.params;
+      const userId = getAuthUserId(authenticatedReq);
+      const { communityId } = req.params;
 
-        if (!communityId) {
-          return res.status(400).json({ message: "Community ID is required" });
-        }
-
-        // Verify community exists
-        const community = await storage.getCommunity(communityId);
-        if (!community) {
-          return res.status(404).json({ message: "Community not found" });
-        }
-
-        const userCommunity = await storage.joinCommunity({
-          userId,
-          communityId,
-          isPrimary: false,
-        });
-
-        return res.json(userCommunity);
-      } catch (error) {
-        logger.error("Failed to join community", toLoggableError(error), {
-          userId: getAuthUserId(authenticatedReq),
-          communityId: req.body.communityId,
-        });
-        return res.status(500).json({ message: "Failed to join community" });
+      if (!communityId) {
+        return res.status(400).json({ message: "Community ID is required" });
       }
-    },
+
+      // Verify community exists
+      const community = await storage.getCommunity(communityId);
+      if (!community) {
+        return res.status(404).json({ message: "Community not found" });
+      }
+
+      const userCommunity = await storage.joinCommunity({
+        userId,
+        communityId,
+        isPrimary: false,
+      });
+
+      return res.json(userCommunity);
+    }),
   );
 
   app.post(
     "/api/user/communities/:communityId/set-primary",
     isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const { communityId } = req.params;
+      const userId = getAuthUserId(authenticatedReq);
+      const { communityId } = req.params;
 
-        if (!communityId) {
-          return res.status(400).json({ message: "Community ID is required" });
-        }
-
-        await storage.setPrimaryCommunity(userId, communityId);
-        return res.json({ success: true });
-      } catch (error) {
-        logger.error(
-          "Failed to set primary community",
-          toLoggableError(error),
-          {
-            userId: getAuthUserId(authenticatedReq),
-            communityId: req.body.communityId,
-          },
-        );
-        return res
-          .status(500)
-          .json({ message: "Failed to set primary community" });
+      if (!communityId) {
+        return res.status(400).json({ message: "Community ID is required" });
       }
-    },
+
+      await storage.setPrimaryCommunity(userId, communityId);
+      return res.json({ success: true });
+    }),
   );
 
   // Theme preferences
   app.get(
     "/api/user/theme-preferences",
     isAuthenticated,
-    async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
-      try {
-        const userId = getAuthUserId(authenticatedReq);
-        const preferences = await storage.getUserThemePreferences(userId);
-        return res.json(preferences);
-      } catch (error) {
-        logger.error(
-          "Failed to fetch theme preferences",
-          toLoggableError(error),
-          {
-            userId: getAuthUserId(authenticatedReq),
-          },
-        );
-        return res
-          .status(500)
-          .json({ message: "Failed to fetch theme preferences" });
-      }
-    },
+      const userId = getAuthUserId(authenticatedReq);
+      const preferences = await storage.getUserThemePreferences(userId);
+      return res.json(preferences);
+    }),
   );
 
   app.post(

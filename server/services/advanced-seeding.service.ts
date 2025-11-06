@@ -359,6 +359,10 @@ export const advancedSeedingService = {
       const position = this.calculateBracketPosition(seed, bracketSize);
       const participant = seeded[i];
 
+      if (!participant) {
+        continue; // Skip if participant is undefined
+      }
+
       positions.push({
         id: participant.id,
         userId: participant.userId,

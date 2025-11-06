@@ -118,6 +118,12 @@ export const circuitBreakerService = {
   async execute<T>(call: PlatformApiCall<T>): Promise<T> {
     const breaker = await this.getOrCreateBreaker(call.platform, call.endpoint);
 
+    if (!breaker) {
+      throw new Error(
+        `Failed to get circuit breaker for ${call.platform}:${call.endpoint}`,
+      );
+    }
+
     // Check circuit state
     if (breaker.state === "open") {
       const now = Date.now();
@@ -233,12 +239,13 @@ export const circuitBreakerService = {
       .where(eq(platformApiCircuitBreakers.id, breakerId))
       .limit(1);
 
-    if (!breaker[0]) return;
+    const breakerRecord = breaker[0];
+    if (!breakerRecord) return;
 
-    const newSuccessCount = breaker[0].successCount + 1;
+    const newSuccessCount = breakerRecord.successCount + 1;
 
     // If in half-open state, check if we should close
-    if (breaker[0].state === "half_open") {
+    if (breakerRecord.state === "half_open") {
       if (newSuccessCount >= defaultConfig.successThreshold) {
         await db
           .update(platformApiCircuitBreakers)
@@ -253,8 +260,8 @@ export const circuitBreakerService = {
 
         logger.info("Circuit breaker closed", {
           breakerId,
-          platform: breaker[0].platform,
-          endpoint: breaker[0].endpoint,
+          platform: breakerRecord.platform,
+          endpoint: breakerRecord.endpoint,
         });
 
         return;
@@ -289,10 +296,11 @@ export const circuitBreakerService = {
       .where(eq(platformApiCircuitBreakers.id, breakerId))
       .limit(1);
 
-    if (!breaker[0]) return;
+    const breakerRecord = breaker[0];
+    if (!breakerRecord) return;
 
-    const newFailureCount = breaker[0].failureCount + 1;
-    const totalRequests = newFailureCount + breaker[0].successCount;
+    const newFailureCount = breakerRecord.failureCount + 1;
+    const totalRequests = newFailureCount + breakerRecord.successCount;
 
     // Check if we should open the circuit
     const shouldOpen =
@@ -316,8 +324,8 @@ export const circuitBreakerService = {
 
       logger.error("Circuit breaker opened", {
         breakerId,
-        platform: breaker[0].platform,
-        endpoint: breaker[0].endpoint,
+        platform: breakerRecord.platform,
+        endpoint: breakerRecord.endpoint,
         failureCount: newFailureCount,
         nextRetry: nextRetryAt,
       });

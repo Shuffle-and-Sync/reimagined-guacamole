@@ -4,12 +4,12 @@ import type {
   StreamCoordinationSession,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
-  _InsertStreamCoordinationSession,
+  InsertStreamCoordinationSession,
 } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { aiStreamingMatcher } from "./ai-streaming-matcher";
+import { aiStreamingMatcher } from "./ai-streaming-matcher.service";
 import { facebookAPI } from "./facebook-api.service";
 import {
   resolvePlatformIdentifiers,
@@ -812,7 +812,9 @@ export class CollaborativeStreamingService {
       const platformStatuses = Object.keys(platformResults).reduce(
         (acc, platform) => {
           const result = platformResults[platform];
-          acc[platform] = result.status || "unknown";
+          if (result) {
+            acc[platform] = result.status || "unknown";
+          }
           return acc;
         },
         {} as Record<string, string>,
@@ -822,7 +824,7 @@ export class CollaborativeStreamingService {
       const viewerCounts = Object.keys(platformResults).reduce(
         (acc, platform) => {
           const result = platformResults[platform];
-          if (result.viewerCount !== undefined) {
+          if (result && result.viewerCount !== undefined) {
             acc[platform] = result.viewerCount;
           }
           return acc;

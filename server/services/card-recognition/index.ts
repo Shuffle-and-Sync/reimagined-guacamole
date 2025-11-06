@@ -79,6 +79,10 @@ export class UniversalCardService {
         }
 
         const game = gameByCode[0];
+        if (!game) {
+          throw new Error(`Game not found: ${gameId}`);
+        }
+
         if (!game.isActive) {
           throw new Error(`Game is not active: ${gameId}`);
         }
@@ -94,6 +98,10 @@ export class UniversalCardService {
       }
 
       const game = gameResult[0];
+      if (!game) {
+        throw new Error(`Game not found: ${gameId}`);
+      }
+
       if (!game.isActive) {
         throw new Error(`Game is not active: ${gameId}`);
       }

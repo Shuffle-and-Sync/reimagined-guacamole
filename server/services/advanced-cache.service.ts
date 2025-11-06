@@ -69,7 +69,9 @@ export class AdvancedCacheService {
 
       return cachedData.data;
     } catch (error) {
-      logger.error("Error parsing cached data", toLoggableError(error), { key });
+      logger.error("Error parsing cached data", toLoggableError(error), {
+        key,
+      });
       // Fallback to fresh fetch
       const data = await fetchFn();
       await this.set(key, data, options);
@@ -166,7 +168,9 @@ export class AdvancedCacheService {
     try {
       return await this.redis.del(key);
     } catch (error) {
-      logger.error("Error invalidating cache key", toLoggableError(error), { key });
+      logger.error("Error invalidating cache key", toLoggableError(error), {
+        key,
+      });
       return 0;
     }
   }
@@ -215,7 +219,7 @@ export class AdvancedCacheService {
 
   private parseInfoValue(info: string, key: string): string | null {
     const match = info.match(new RegExp(`${key}:(.+)`));
-    return match ? match[1].trim() : null;
+    return match && match[1] ? match[1].trim() : null;
   }
 
   /**

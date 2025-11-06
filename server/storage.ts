@@ -2518,8 +2518,6 @@ export class DatabaseStorage implements IStorage {
       ? new Date(data.endTime).getTime() - startDate.getTime()
       : 0;
 
-    let isFirstEvent = true;
-
     while (currentStartDate <= endDate) {
       const currentEndTime =
         duration > 0
@@ -2530,8 +2528,8 @@ export class DatabaseStorage implements IStorage {
         ...data,
         startTime: currentStartDate,
         endTime: currentEndTime,
-        // First event in series has no parent, rest reference the first event
-        parentEventId: isFirstEvent ? undefined : parentId,
+        // Parent IDs will be set after creation
+        parentEventId: undefined,
       };
 
       eventList.push(eventData);
@@ -2555,8 +2553,6 @@ export class DatabaseStorage implements IStorage {
             `Invalid recurrence pattern: ${data.recurrencePattern}`,
           );
       }
-
-      isFirstEvent = false;
     }
 
     if (eventList.length === 0) {
@@ -2573,13 +2569,18 @@ export class DatabaseStorage implements IStorage {
 
       // Update all subsequent events to reference the first event as parent
       for (let i = 1; i < createdEvents.length; i++) {
+        const event = createdEvents[i];
+        if (!event) {
+          continue;
+        }
+
         await db
           .update(events)
           .set({ parentEventId: firstEventId })
-          .where(eq(events.id, createdEvents[i].id));
+          .where(eq(events.id, event.id));
 
         // Update the in-memory object as well
-        createdEvents[i].parentEventId = firstEventId;
+        event.parentEventId = firstEventId;
       }
     }
 

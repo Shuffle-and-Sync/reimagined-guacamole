@@ -105,7 +105,7 @@ describe("useCalendarEvents", () => {
 
     await waitFor(() => {
       expect(result.current.todaysEvents).toHaveLength(1);
-      expect(result.current.todaysEvents[0].title).toBe("Today's Event");
+      expect(result.current.todaysEvents[0]?.title).toBe("Today's Event");
     });
   });
 
@@ -126,7 +126,7 @@ describe("useCalendarEvents", () => {
 
     await waitFor(() => {
       expect(result.current.upcomingEvents).toHaveLength(1);
-      expect(result.current.upcomingEvents[0].title).toBe("Future Event");
+      expect(result.current.upcomingEvents[0]?.title).toBe("Future Event");
     });
   });
 

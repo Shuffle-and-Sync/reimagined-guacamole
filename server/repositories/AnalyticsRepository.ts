@@ -654,14 +654,17 @@ export class AnalyticsRepository extends BaseRepository<
           // Convert to array and calculate dropoff rates
           const steps = Array.from(stepCounts.entries());
 
-          return steps.map(([step, count], index) => ({
-            step,
-            count,
-            dropoffRate:
-              index > 0
-                ? ((steps[index - 1][1] - count) / steps[index - 1][1]) * 100
-                : 0,
-          }));
+          return steps.map(([step, count], index) => {
+            const prevStep = index > 0 ? steps[index - 1] : null;
+            return {
+              step,
+              count,
+              dropoffRate:
+                prevStep && prevStep[1] !== undefined
+                  ? ((prevStep[1] - count) / prevStep[1]) * 100
+                  : 0,
+            };
+          });
         } catch (error) {
           logger.error(
             "Failed to get conversion funnel data",

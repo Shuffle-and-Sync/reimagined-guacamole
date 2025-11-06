@@ -2,9 +2,9 @@ import type { User } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { facebookAPI } from "./facebook-api";
-import { twitchAPI } from "./twitch-api";
-import { youtubeAPI } from "./youtube-api";
+import { facebookAPI } from "./facebook-api.service";
+import { twitchAPI } from "./twitch-api.service";
+import { youtubeAPI } from "./youtube-api.service";
 
 // Enhanced streaming-specific matching interfaces
 export interface StreamerProfile {

@@ -17,10 +17,9 @@ import {
 import { logger } from "../logger";
 import {
   ValidationError,
-  _AuthenticationError,
   ConflictError,
 } from "../middleware/error-handling.middleware";
-import { PaginatedResult } from "../repositories/base.repository";
+import { PaginatedResult } from "../repositories/base/BaseRepository";
 
 export interface CreateUserData {
   name: string;
@@ -111,11 +110,9 @@ export class UserService {
 
       return user;
     } catch (error) {
-      logger.error(
-        "Failed to create user",
-        toLoggableError(error),
-        { email: data.email },
-      );
+      logger.error("Failed to create user", toLoggableError(error), {
+        email: data.email,
+      });
       throw error;
     }
   }
@@ -127,11 +124,9 @@ export class UserService {
     try {
       return await this.userRepository.findByIdWithCommunities(userId);
     } catch (error) {
-      logger.error(
-        "Failed to get user by ID",
-        toLoggableError(error),
-        { userId },
-      );
+      logger.error("Failed to get user by ID", toLoggableError(error), {
+        userId,
+      });
       throw error;
     }
   }
@@ -147,11 +142,9 @@ export class UserService {
 
       return await this.userRepository.findByEmail(email);
     } catch (error) {
-      logger.error(
-        "Failed to get user by email",
-        toLoggableError(error),
-        { email },
-      );
+      logger.error("Failed to get user by email", toLoggableError(error), {
+        email,
+      });
       throw error;
     }
   }
@@ -170,11 +163,9 @@ export class UserService {
 
       return await this.userRepository.searchUsers(options);
     } catch (error) {
-      logger.error(
-        "Failed to search users",
-        toLoggableError(error),
-        { options },
-      );
+      logger.error("Failed to search users", toLoggableError(error), {
+        options,
+      });
       throw error;
     }
   }
@@ -221,11 +212,9 @@ export class UserService {
       logger.info("User profile updated", { userId });
       return updatedUser;
     } catch (error) {
-      logger.error(
-        "Failed to update user profile",
-        toLoggableError(error),
-        { userId },
-      );
+      logger.error("Failed to update user profile", toLoggableError(error), {
+        userId,
+      });
       throw error;
     }
   }
@@ -263,11 +252,10 @@ export class UserService {
       logger.info("User email changed", { userId, newEmail });
       return updatedUser;
     } catch (error) {
-      logger.error(
-        "Failed to change user email",
-        toLoggableError(error),
-        { userId, newEmail },
-      );
+      logger.error("Failed to change user email", toLoggableError(error), {
+        userId,
+        newEmail,
+      });
       throw error;
     }
   }
@@ -292,11 +280,10 @@ export class UserService {
         setAsPrimary,
       });
     } catch (error) {
-      logger.error(
-        "Failed to join community",
-        toLoggableError(error),
-        { userId, communityId },
-      );
+      logger.error("Failed to join community", toLoggableError(error), {
+        userId,
+        communityId,
+      });
       throw error;
     }
   }
@@ -309,11 +296,10 @@ export class UserService {
       await this.userRepository.leaveCommunity(userId, communityId);
       logger.info("User left community", { userId, communityId });
     } catch (error) {
-      logger.error(
-        "Failed to leave community",
-        toLoggableError(error),
-        { userId, communityId },
-      );
+      logger.error("Failed to leave community", toLoggableError(error), {
+        userId,
+        communityId,
+      });
       throw error;
     }
   }
@@ -329,14 +315,10 @@ export class UserService {
       await this.userRepository.setPrimaryCommunity(userId, communityId);
       logger.info("User primary community set", { userId, communityId });
     } catch (error) {
-      logger.error(
-        "Failed to set primary community",
-        toLoggableError(error),
-        {
-          userId,
-          communityId,
-        },
-      );
+      logger.error("Failed to set primary community", toLoggableError(error), {
+        userId,
+        communityId,
+      });
       throw error;
     }
   }
@@ -348,11 +330,9 @@ export class UserService {
     try {
       return await this.userRepository.getUserStats(userId);
     } catch (error) {
-      logger.error(
-        "Failed to get user stats",
-        toLoggableError(error),
-        { userId },
-      );
+      logger.error("Failed to get user stats", toLoggableError(error), {
+        userId,
+      });
       throw error;
     }
   }
@@ -386,11 +366,9 @@ export class UserService {
       await this.userRepository.softDeleteUser(userId);
       logger.info("User account deleted", { userId });
     } catch (error) {
-      logger.error(
-        "Failed to delete user account",
-        toLoggableError(error),
-        { userId },
-      );
+      logger.error("Failed to delete user account", toLoggableError(error), {
+        userId,
+      });
       throw error;
     }
   }
@@ -443,11 +421,7 @@ export class UserService {
       // For now, throwing not implemented error
       throw new Error("Email verification not yet implemented");
     } catch (error) {
-      logger.error(
-        "Failed to verify email",
-        toLoggableError(error),
-        { token },
-      );
+      logger.error("Failed to verify email", toLoggableError(error), { token });
       throw error;
     }
   }

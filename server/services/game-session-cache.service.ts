@@ -282,10 +282,12 @@ export class GameSessionCacheService {
       const byCommunity = activeSessions.reduce(
         (acc, session) => {
           if (session.communityId) {
-            if (!acc[session.communityId]) {
-              acc[session.communityId] = [];
+            const communityArray = acc[session.communityId];
+            if (!communityArray) {
+              acc[session.communityId] = [session];
+            } else {
+              communityArray.push(session);
             }
-            acc[session.communityId].push(session);
           }
           return acc;
         },

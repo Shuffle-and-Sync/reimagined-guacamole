@@ -372,7 +372,7 @@ export class DistributedConnectionManager {
         this.localConnectionManager.getGameRoomConnections(connectionId);
       if (connections.length > 0) {
         const ws = connections[0];
-        if (ws.readyState === 1) {
+        if (ws && ws.readyState === 1) {
           // OPEN
           ws.send(JSON.stringify(message));
           return true;
