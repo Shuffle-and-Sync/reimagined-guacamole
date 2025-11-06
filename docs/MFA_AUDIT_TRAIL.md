@@ -157,9 +157,13 @@ Analyze MFA failures by attempt type:
 const totpFailures = await db
   .select()
   .from(userMfaAttempts)
-  .where(eq(userMfaAttempts.attemptType, "totp"))
-  .where(eq(userMfaAttempts.success, false))
-  .where(gte(userMfaAttempts.createdAt, lastHour));
+  .where(
+    and(
+      eq(userMfaAttempts.attemptType, "totp"),
+      eq(userMfaAttempts.success, false),
+      gte(userMfaAttempts.createdAt, lastHour)
+    )
+  );
 
 // Get all failures from suspicious IP
 const suspiciousFailures = await db
