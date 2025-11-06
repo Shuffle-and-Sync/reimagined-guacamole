@@ -278,8 +278,8 @@ export default function Tournaments() {
   }, [editForm, editingTournament, editTournamentMutation, toast]);
 
   const isOrganizer = useCallback(
-    (tournament: Tournament) => {
-      return user && tournament.organizerId === user.id;
+    (tournament: Tournament): boolean => {
+      return Boolean(user && tournament.organizerId === user.id);
     },
     [user],
   );
