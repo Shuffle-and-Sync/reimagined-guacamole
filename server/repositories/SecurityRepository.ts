@@ -20,7 +20,7 @@ import {
   userMfaAttempts,
   deviceFingerprints,
   revokedJwtTokens,
-  userSecurityContexts,
+  mfaSecurityContext,
   passwordResetTokens,
   emailVerificationTokens,
   type UserMfaSettings,
@@ -29,8 +29,8 @@ import {
   type InsertDeviceFingerprint,
   type RevokedJwtToken,
   type InsertRevokedJwtToken,
-  type UserSecurityContext,
-  type InsertUserSecurityContext,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailVerificationToken,
@@ -859,7 +859,7 @@ export class SecurityRepository extends BaseRepository<
       async () => {
         try {
           const result = await this.db
-            .insert(userSecurityContexts)
+            .insert(mfaSecurityContext)
             .values(data)
             .returning();
 
@@ -897,8 +897,8 @@ export class SecurityRepository extends BaseRepository<
         try {
           const result = await this.db
             .select()
-            .from(userSecurityContexts)
-            .where(eq(userSecurityContexts.userId, userId))
+            .from(mfaSecurityContext)
+            .where(eq(mfaSecurityContext.userId, userId))
             .limit(1);
 
           return result[0] || null;

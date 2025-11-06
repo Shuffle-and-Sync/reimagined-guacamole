@@ -23,7 +23,7 @@ import {
   moderationActions,
   moderationQueue,
   banEvasionTracking,
-  adminAuditLogs,
+  adminAuditLog,
   users,
   type UserRole,
   type InsertUserRole,
@@ -124,11 +124,9 @@ export class AdminRepository extends BaseRepository<
           .from(userRoles)
           .where(eq(userRoles.userId, userId));
       } catch (error) {
-        logger.error(
-          "Failed to get user roles",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to get user roles", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to get user roles", { cause: error });
       }
     });
@@ -153,11 +151,9 @@ export class AdminRepository extends BaseRepository<
       try {
         return await this.create(data);
       } catch (error) {
-        logger.error(
-          "Failed to create user role",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to create user role", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to create user role", { cause: error });
       }
     });
@@ -228,11 +224,9 @@ export class AdminRepository extends BaseRepository<
           user: r.user,
         }));
       } catch (error) {
-        logger.error(
-          "Failed to get users by role",
-          toLoggableError(error),
-          { role },
-        );
+        logger.error("Failed to get users by role", toLoggableError(error), {
+          role,
+        });
         throw new DatabaseError("Failed to get users by role", {
           cause: error,
         });
@@ -262,11 +256,9 @@ export class AdminRepository extends BaseRepository<
 
         return result[0] || null;
       } catch (error) {
-        logger.error(
-          "Failed to get user reputation",
-          toLoggableError(error),
-          { userId },
-        );
+        logger.error("Failed to get user reputation", toLoggableError(error), {
+          userId,
+        });
         throw new DatabaseError("Failed to get user reputation", {
           cause: error,
         });
@@ -409,11 +401,9 @@ export class AdminRepository extends BaseRepository<
 
         return await query;
       } catch (error) {
-        logger.error(
-          "Failed to get content reports",
-          toLoggableError(error),
-          { filters },
-        );
+        logger.error("Failed to get content reports", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get content reports", {
           cause: error,
         });
@@ -731,11 +721,9 @@ export class AdminRepository extends BaseRepository<
 
         return await query;
       } catch (error) {
-        logger.error(
-          "Failed to get moderation queue",
-          toLoggableError(error),
-          { filters },
-        );
+        logger.error("Failed to get moderation queue", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get moderation queue", {
           cause: error,
         });
@@ -858,7 +846,7 @@ export class AdminRepository extends BaseRepository<
     return withQueryTiming("AdminRepository:createAuditLog", async () => {
       try {
         const result = await this.db
-          .insert(adminAuditLogs)
+          .insert(adminAuditLog)
           .values(data)
           .returning();
 
@@ -868,11 +856,9 @@ export class AdminRepository extends BaseRepository<
 
         return result[0];
       } catch (error) {
-        logger.error(
-          "Failed to create audit log",
-          toLoggableError(error),
-          { data },
-        );
+        logger.error("Failed to create audit log", toLoggableError(error), {
+          data,
+        });
         throw new DatabaseError("Failed to create audit log", { cause: error });
       }
     });
@@ -903,25 +889,25 @@ export class AdminRepository extends BaseRepository<
         const conditions = [];
 
         if (filters?.adminUserId) {
-          conditions.push(eq(adminAuditLogs.adminUserId, filters.adminUserId));
+          conditions.push(eq(adminAuditLog.adminUserId, filters.adminUserId));
         }
 
         if (filters?.action) {
-          conditions.push(eq(adminAuditLogs.action, filters.action));
+          conditions.push(eq(adminAuditLog.action, filters.action));
         }
 
         if (filters?.startDate) {
-          conditions.push(gte(adminAuditLogs.timestamp, filters.startDate));
+          conditions.push(gte(adminAuditLog.timestamp, filters.startDate));
         }
 
         if (filters?.endDate) {
-          conditions.push(lte(adminAuditLogs.timestamp, filters.endDate));
+          conditions.push(lte(adminAuditLog.timestamp, filters.endDate));
         }
 
         let query = this.db
           .select()
-          .from(adminAuditLogs)
-          .orderBy(desc(adminAuditLogs.timestamp));
+          .from(adminAuditLog)
+          .orderBy(desc(adminAuditLog.timestamp));
 
         if (conditions.length > 0) {
           query = query.where(and(...conditions)) as typeof query;
@@ -929,11 +915,9 @@ export class AdminRepository extends BaseRepository<
 
         return await query;
       } catch (error) {
-        logger.error(
-          "Failed to get audit logs",
-          toLoggableError(error),
-          { filters },
-        );
+        logger.error("Failed to get audit logs", toLoggableError(error), {
+          filters,
+        });
         throw new DatabaseError("Failed to get audit logs", { cause: error });
       }
     });

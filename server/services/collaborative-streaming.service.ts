@@ -4,7 +4,7 @@ import type {
   StreamCoordinationSession,
   InsertCollaborativeStreamEvent,
   InsertStreamCollaborator,
-  _InsertStreamCoordinationSession,
+  InsertStreamCoordinationSession,
 } from "@shared/schema";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";

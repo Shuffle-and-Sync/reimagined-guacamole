@@ -58,10 +58,10 @@ import {
   securityHeaders,
   validateEventSchema,
   uuidParamSchema,
-  _userParamSchema,
-  _communityParamSchema,
+  userParamSchema,
+  communityParamSchema,
   paginationQuerySchema,
-  _searchQuerySchema,
+  searchQuerySchema,
 } from "./validation";
 import type { Express } from "express";
 
