@@ -58,10 +58,7 @@ import {
   securityHeaders,
   validateEventSchema,
   uuidParamSchema,
-  userParamSchema,
-  communityParamSchema,
   paginationQuerySchema,
-  searchQuerySchema,
 } from "./validation";
 import type { Express } from "express";
 
@@ -196,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...paginationQuerySchema.shape,
       }),
     ),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const {
         community: communityId,
         page,
@@ -218,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/tournaments/:id",
     validateParamsWithSchema(uuidParamSchema),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const tournamentId = assertRouteParam(req.params.id, "id");
       const tournament = await storage.getTournament(tournamentId);
 
@@ -249,7 +246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPublic: z.boolean().default(true),
       }),
     ),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const tournamentData = { ...req.body, organizerId: userId };
@@ -267,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/tournaments/:id/join",
     isAuthenticated,
     validateParamsWithSchema(uuidParamSchema),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const tournamentId = assertRouteParam(req.params.id, "id");
@@ -425,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Communities routes
   app.get(
     "/api/communities",
-    asyncHandler(async (_req: Request, res) => {
+    asyncHandler(async (_req: Request, res, _next) => {
       const communities = await storage.getCommunities();
       return res.json(communities);
     }),
@@ -433,8 +430,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get(
     "/api/communities/:id",
-    asyncHandler(async (_req, res) => {
+    asyncHandler(async (_req, res, _next) => {
       const { id } = _req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Community ID is required" });
+      }
       const community = await storage.getCommunity(id);
       if (!community) {
         return res.status(404).json({ message: "Community not found" });
@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/user/communities/:communityId/join",
     isAuthenticated,
-    asyncHandler(async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const { communityId } = req.params;
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/user/communities/:communityId/set-primary",
     isAuthenticated,
-    asyncHandler(async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const { communityId } = req.params;
@@ -493,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/user/theme-preferences",
     isAuthenticated,
-    asyncHandler(async (req: AuthenticatedRequest, res) => {
+    asyncHandler(async (req: AuthenticatedRequest, res, _next) => {
       const authenticatedReq = req as AuthenticatedRequest;
       const userId = getAuthUserId(authenticatedReq);
       const preferences = await storage.getUserThemePreferences(userId);
