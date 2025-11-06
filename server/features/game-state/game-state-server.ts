@@ -4,8 +4,8 @@
  * Handles game state synchronization via Socket.IO
  */
 
-import { logger } from "@server/services/logger";
 import { Server as SocketServer } from "socket.io";
+import { logger } from "../../logger";
 
 interface GameState {
   gameId: string;

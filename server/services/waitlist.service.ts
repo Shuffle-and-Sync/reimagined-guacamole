@@ -1,7 +1,7 @@
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { enhancedNotificationService } from "./enhanced-notifications";
+import { enhancedNotificationService } from "./enhanced-notifications.service";
 
 export class WaitlistService {
   /**
@@ -145,11 +145,9 @@ export class WaitlistService {
 
       return null;
     } catch (error) {
-      logger.error(
-        "Failed to promote from waitlist",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to promote from waitlist", toLoggableError(error), {
+        eventId,
+      });
       throw error;
     }
   }
@@ -171,14 +169,10 @@ export class WaitlistService {
       const position = alternates.findIndex((a) => a.userId === userId);
       return position >= 0 ? position + 1 : 0;
     } catch (error) {
-      logger.error(
-        "Failed to get waitlist position",
-        toLoggableError(error),
-        {
-          eventId,
-          userId,
-        },
-      );
+      logger.error("Failed to get waitlist position", toLoggableError(error), {
+        eventId,
+        userId,
+      });
       return 0;
     }
   }
@@ -203,11 +197,9 @@ export class WaitlistService {
 
       return waitlist;
     } catch (error) {
-      logger.error(
-        "Failed to get waitlist",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to get waitlist", toLoggableError(error), {
+        eventId,
+      });
       return [];
     }
   }

@@ -10,7 +10,7 @@ import { aiAlgorithmEngine } from "./ai";
 import {
   aiStreamingMatcher,
   type ConnectedPlatform,
-} from "./ai-streaming-matcher";
+} from "./ai-streaming-matcher.service";
 
 // Internal match representation from AI service
 interface AIMatchResult {

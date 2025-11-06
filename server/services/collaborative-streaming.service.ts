@@ -9,7 +9,7 @@ import type {
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { storage } from "../storage";
-import { aiStreamingMatcher } from "./ai-streaming-matcher";
+import { aiStreamingMatcher } from "./ai-streaming-matcher.service";
 import { facebookAPI } from "./facebook-api.service";
 import {
   resolvePlatformIdentifiers,

@@ -19,7 +19,7 @@ import {
   ValidationError,
   ConflictError,
 } from "../middleware/error-handling.middleware";
-import { PaginatedResult } from "../repositories/base.repository";
+import { PaginatedResult } from "../repositories/base/BaseRepository";
 
 export interface CreateUserData {
   name: string;
