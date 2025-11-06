@@ -29,6 +29,8 @@ import {
   type InsertDeviceFingerprint,
   type RevokedJwtToken,
   type InsertRevokedJwtToken,
+  type MfaSecurityContext,
+  type InsertMfaSecurityContext,
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailVerificationToken,
@@ -850,8 +852,8 @@ export class SecurityRepository extends BaseRepository<
    * @returns Promise of created context
    */
   async createSecurityContext(
-    data: InsertUserSecurityContext,
-  ): Promise<UserSecurityContext> {
+    data: InsertMfaSecurityContext,
+  ): Promise<MfaSecurityContext> {
     return withQueryTiming(
       "SecurityRepository:createSecurityContext",
       async () => {
@@ -888,7 +890,7 @@ export class SecurityRepository extends BaseRepository<
    */
   async getUserSecurityContext(
     userId: string,
-  ): Promise<UserSecurityContext | null> {
+  ): Promise<MfaSecurityContext | null> {
     return withQueryTiming(
       "SecurityRepository:getUserSecurityContext",
       async () => {

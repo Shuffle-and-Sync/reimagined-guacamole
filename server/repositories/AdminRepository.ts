@@ -897,17 +897,17 @@ export class AdminRepository extends BaseRepository<
         }
 
         if (filters?.startDate) {
-          conditions.push(gte(adminAuditLog.timestamp, filters.startDate));
+          conditions.push(gte(adminAuditLog.createdAt, filters.startDate));
         }
 
         if (filters?.endDate) {
-          conditions.push(lte(adminAuditLog.timestamp, filters.endDate));
+          conditions.push(lte(adminAuditLog.createdAt, filters.endDate));
         }
 
         let query = this.db
           .select()
           .from(adminAuditLog)
-          .orderBy(desc(adminAuditLog.timestamp));
+          .orderBy(desc(adminAuditLog.createdAt));
 
         if (conditions.length > 0) {
           query = query.where(and(...conditions)) as typeof query;
