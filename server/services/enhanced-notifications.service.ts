@@ -204,7 +204,7 @@ export class EnhancedNotificationService {
         if (attendee.status === "attending") {
           await storage.createNotification({
             userId: attendee.userId,
-            type: "event_starting_soon" as unknown,
+            type: "event_starting_soon" as string,
             title: "Event Starting Soon!",
             message: `${event.title} starts in ${minutesUntilStart} minutes`,
             data: JSON.stringify({
@@ -242,7 +242,7 @@ export class EnhancedNotificationService {
 
       await storage.createNotification({
         userId,
-        type: "waitlist_promoted" as unknown,
+        type: "waitlist_promoted" as string,
         title: "Promoted from Waitlist!",
         message: `You've been promoted to a main player slot in ${event.title}`,
         data: JSON.stringify({ eventId, communityId: event.communityId }),

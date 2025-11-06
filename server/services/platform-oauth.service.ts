@@ -698,7 +698,11 @@ export async function resolvePlatformIdentifiers(userId: string): Promise<{
     }
   }
 
-  return identifiers;
+  return identifiers as {
+    twitch?: { userId: string; handle: string };
+    youtube?: { channelId: string; handle: string };
+    facebook?: { pageId?: string; handle: string };
+  };
 }
 
 /**
