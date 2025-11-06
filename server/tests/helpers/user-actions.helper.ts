@@ -283,7 +283,10 @@ export const deckFlows = {
    */
   async createDeck(userId: string, deckData: unknown): Promise<MockResponse> {
     const requiredFields = ["name", "format"];
-    const missingFields = requiredFields.filter((field) => !deckData[field]);
+    const typedDeckData = deckData as Record<string, unknown>;
+    const missingFields = requiredFields.filter(
+      (field) => !typedDeckData[field],
+    );
 
     if (missingFields.length > 0) {
       return {

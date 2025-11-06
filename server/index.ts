@@ -869,7 +869,8 @@ server.listen(
 
   // Basic error handler
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    console.error("Server error:", err.message);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("Server error:", errorMessage);
     res.status(500).json({ message: "Internal server error" });
   });
 

@@ -667,7 +667,11 @@ export async function resolvePlatformIdentifiers(userId: string): Promise<{
   facebook?: { pageId?: string; handle: string };
 }> {
   const accounts = await storage.getUserPlatformAccounts(userId);
-  const identifiers: unknown = {};
+  const identifiers: {
+    twitch?: { userId: string; handle: string };
+    youtube?: { channelId: string; handle: string };
+    facebook?: { pageId?: string; handle: string };
+  } = {};
 
   for (const account of accounts) {
     if (!account.isActive) continue;
@@ -691,7 +695,7 @@ export async function resolvePlatformIdentifiers(userId: string): Promise<{
         break;
       case "facebook":
         identifiers.facebook = {
-          pageId: account.pageId,
+          pageId: account.pageId || undefined,
           handle: account.handle,
         };
         break;

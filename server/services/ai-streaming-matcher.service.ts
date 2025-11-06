@@ -1027,8 +1027,10 @@ export class AIStreamingMatcher {
       timeSlots: ["19:00-22:00"],
     };
 
+    const typedUser = user as { timezone?: string };
+
     return {
-      timezone: user.timezone || "UTC",
+      timezone: typedUser.timezone || "UTC",
       weeklySchedule: {
         monday: defaultSchedule,
         tuesday: defaultSchedule,

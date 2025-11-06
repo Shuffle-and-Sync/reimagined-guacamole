@@ -156,7 +156,7 @@ router.get("/stats", async (req, res) => {
         queries: allStats,
         slowQueries,
         queryCount: Object.values(allStats).reduce(
-          (sum, stat: unknown) => sum + stat.count,
+          (sum, stat) => sum + stat.count,
           0,
         ),
       },
@@ -282,7 +282,10 @@ router.get("/connections", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to get connection monitoring details", toLoggableError(error));
+    logger.error(
+      "Failed to get connection monitoring details",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to get connection monitoring details",
@@ -324,7 +327,10 @@ router.post("/connections/reset", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Failed to reset connection monitoring metrics", toLoggableError(error));
+    logger.error(
+      "Failed to reset connection monitoring metrics",
+      toLoggableError(error),
+    );
     return res.status(500).json({
       success: false,
       error: "Failed to reset connection monitoring metrics",

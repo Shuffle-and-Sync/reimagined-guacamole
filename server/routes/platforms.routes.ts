@@ -64,10 +64,26 @@ router.get(
       state as string,
       userId,
     );
+
+    // Type guard for account response
+    if (
+      !account ||
+      typeof account !== "object" ||
+      !("platform" in account) ||
+      !("handle" in account)
+    ) {
+      throw new ValidationError("Invalid platform account response");
+    }
+
+    const typedAccount = account as {
+      platform: string;
+      handle: string;
+    };
+
     return res.json({
       success: true,
-      platform: account.platform,
-      handle: account.handle,
+      platform: typedAccount.platform,
+      handle: typedAccount.handle,
     });
   }),
 );

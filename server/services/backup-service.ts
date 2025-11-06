@@ -617,7 +617,7 @@ class BackupService {
         AND name NOT LIKE 'sqlite_%'
       `);
 
-      return result.map((row: unknown) => row.table_name);
+      return result.map((row) => (row as { table_name: string }).table_name);
     } catch (error) {
       logger.error("Failed to get table names", toLoggableError(error));
       return [];

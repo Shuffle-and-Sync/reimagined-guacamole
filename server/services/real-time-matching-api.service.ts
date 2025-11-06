@@ -538,8 +538,9 @@ export class RealTimeMatchingAPI {
     try {
       return await Promise.all(
         matches.map(async (match) => {
+          const candidate = match.candidate as { id: string };
           const mlScore = await this.mlModel.predictSuccess(
-            match.candidate.id,
+            candidate.id,
             request.userId,
             {
               compatibilityScore: match.compatibilityScore,
@@ -556,7 +557,7 @@ export class RealTimeMatchingAPI {
             ...match,
             compatibilityScore: Math.min(100, blendedScore),
             mlConfidence: await this.mlModel.getConfidenceScore(
-              match.candidate.id,
+              candidate.id,
               request.userId,
             ),
           };
@@ -584,19 +585,23 @@ export class RealTimeMatchingAPI {
 
     // Filter by platform
     if (request.preferences?.platformFilter?.length) {
-      filtered = filtered.filter((match) =>
-        match.candidate.platforms.some((platform: unknown) =>
+      filtered = filtered.filter((match) => {
+        const candidate = match.candidate as {
+          platforms: Array<{ platform: string }>;
+        };
+        return candidate.platforms.some((platform) =>
           request.preferences?.platformFilter?.includes(platform.platform),
-        ),
-      );
+        );
+      });
     }
 
     // Filter by excluded users
     if (request.preferences?.excludeUserIds?.length) {
       const excludeIds = request.preferences.excludeUserIds;
-      filtered = filtered.filter(
-        (match) => !excludeIds.includes(match.candidate.id),
-      );
+      filtered = filtered.filter((match) => {
+        const candidate = match.candidate as { id: string };
+        return !excludeIds.includes(candidate.id);
+      });
     }
 
     return filtered;
@@ -803,12 +808,13 @@ export class RealTimeMatchingAPI {
 
     // Generate quick actions for top matches
     matches.slice(0, 3).forEach((match) => {
+      const candidate = match.candidate as { username: string; id: string };
       if (match.availability.currentlyOnline) {
         quickActions.push({
           type: "send_request",
-          label: `Invite ${match.candidate.username}`,
+          label: `Invite ${candidate.username}`,
           description: "Send collaboration request now",
-          targetUserId: match.candidate.id,
+          targetUserId: candidate.id,
           priority: match.matchStrength === "perfect" ? "high" : "medium",
         });
       }
@@ -875,9 +881,10 @@ export class RealTimeMatchingAPI {
       matches.flatMap((match) => match.collaborationTypes),
     );
     const uniquePlatforms = new Set(
-      matches.flatMap((match) =>
-        match.candidate.platforms.map((p: ConnectedPlatform) => p.platform),
-      ),
+      matches.flatMap((match) => {
+        const candidate = match.candidate as { platforms: ConnectedPlatform[] };
+        return candidate.platforms.map((p) => p.platform);
+      }),
     );
 
     return Math.min(100, uniqueTypes.size * 20 + uniquePlatforms.size * 15);
@@ -976,7 +983,10 @@ export class RealTimeMatchingAPI {
   ): Promise<TrendingOpportunity[]> {
     // Simulate game trend analysis
     const trendingGames = ["Magic: The Gathering", "Pokemon", "Lorcana"];
-    const userGames = userProfile.contentPreferences?.primaryGames || [];
+    const typedProfile = userProfile as {
+      contentPreferences?: { primaryGames?: string[] };
+    };
+    const userGames = typedProfile.contentPreferences?.primaryGames || [];
 
     return trendingGames
       .filter((game) => userGames.includes(game))
@@ -1071,13 +1081,20 @@ class MachineLearningModel {
 
   async recordOutcome(matchId: string, outcome: unknown): Promise<void> {
     const history = this.outcomeHistory.get(matchId) || [];
+    const typedOutcome = outcome as {
+      success?: boolean;
+      [key: string]: unknown;
+    };
     history.push({
-      ...outcome,
+      ...typedOutcome,
       timestamp: new Date(),
     });
     this.outcomeHistory.set(matchId, history);
 
-    logger.debug("ML outcome recorded", { matchId, success: outcome.success });
+    logger.debug("ML outcome recorded", {
+      matchId,
+      success: typedOutcome.success,
+    });
   }
 
   async predictSuccess(
@@ -1095,9 +1112,26 @@ class MachineLearningModel {
       (userPattern.successRate + candidatePattern.successRate) / 2;
 
     // Adjust based on context
-    if (context.compatibilityScore > 85) prediction += 0.1;
-    if (context.availability.currentlyOnline) prediction += 0.05;
-    if (context.urgencyScore > 80) prediction += 0.05;
+    const typedContext = context as {
+      compatibilityScore?: number;
+      availability?: { currentlyOnline?: boolean };
+      urgencyScore?: number;
+    };
+    if (
+      typedContext.compatibilityScore !== undefined &&
+      typedContext.compatibilityScore > 85
+    ) {
+      prediction += 0.1;
+    }
+    if (typedContext.availability?.currentlyOnline) {
+      prediction += 0.05;
+    }
+    if (
+      typedContext.urgencyScore !== undefined &&
+      typedContext.urgencyScore > 80
+    ) {
+      prediction += 0.05;
+    }
 
     return Math.min(100, prediction * 100);
   }
