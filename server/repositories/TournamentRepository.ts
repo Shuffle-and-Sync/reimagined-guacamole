@@ -12,7 +12,7 @@
  * @module TournamentRepository
  */
 
-import { eq, and, desc, sql, count } from "drizzle-orm";
+import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
 import {
   db,
   withQueryTiming,
@@ -651,11 +651,7 @@ export class TournamentRepository extends BaseRepository<
             const matchUsers = await this.db
               .select()
               .from(users)
-              .where(
-                sql`${users.id} IN (${Array.from(userIds)
-                  .map((id) => `'${id}'`)
-                  .join(",")})`,
-              );
+              .where(inArray(users.id, Array.from(userIds)));
             matchUsers.forEach((user) => userMap.set(user.id, user));
           }
 

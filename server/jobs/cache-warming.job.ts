@@ -49,11 +49,10 @@ const highValueEndpoints: CacheWarmingEndpoint[] = [
   {
     path: "/api/calendar/events",
     params: {
-      startDate: new Date().toISOString().split("T")[0] || "",
-      endDate:
-        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0] || "",
+      startDate: new Date().toISOString().split("T")[0]!,
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]!,
     },
     priority: "low",
   },
