@@ -380,7 +380,15 @@ export class AnalyticsService {
   }> {
     try {
       const stats = await this.calculateRealTimeStats();
-      return stats;
+      return stats as {
+        activeUsers: number;
+        activeStreams: number;
+        activeTournaments: number;
+        liveStreams?: number;
+        totalViewers?: number;
+        activeCommunities?: number;
+        eventsToday?: number;
+      };
     } catch (error) {
       logger.error("Failed to get real-time stats", { error });
       return {
@@ -435,6 +443,15 @@ export class AnalyticsService {
           typeof metrics.engagementScore === "number"
             ? metrics.engagementScore
             : 0,
+      } as {
+        userId: string;
+        engagementLevel: "high" | "low" | "medium";
+        engagementScore: number;
+        preferredFeatures: string[];
+        recommendedActions: string[];
+        activityPattern: unknown[];
+        activityPatterns: unknown[];
+        collaborationHistory: unknown[];
       };
     } catch (error) {
       logger.error("Failed to generate user insights", { error, userId });

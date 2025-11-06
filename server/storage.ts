@@ -2031,7 +2031,12 @@ export class DatabaseStorage implements IStorage {
     if (!eventsWithDetails) {
       throw new Error("Database operation failed");
     }
-    return eventsWithDetails;
+    return eventsWithDetails as (Event & {
+      creator: User;
+      community: Community | null;
+      attendeeCount: number;
+      isUserAttending?: boolean;
+    })[];
   }
 
   async getEvent(
@@ -7347,10 +7352,10 @@ export class DatabaseStorage implements IStorage {
         itemId: report.id as string,
         priority: priorityMap[data.priority || "medium"],
         summary: `${data.reason}: ${data.contentType} reported`,
-        metadata: {
+        metadata: JSON.stringify({
           contentType: data.contentType,
           contentId: data.contentId,
-        },
+        }),
       });
     }
 
