@@ -199,7 +199,7 @@ export class EventRepository extends BaseRepository<
               ? userAttendanceSet.has(event.id)
               : undefined,
           };
-        });
+        }) as EventWithDetails[];
       } catch (error) {
         logger.error("Failed to get events", toLoggableError(error), {
           filters,
@@ -295,7 +295,7 @@ export class EventRepository extends BaseRepository<
           creator: event.creator,
           attendeeCount: Number(attendeeCountResult[0]?.count || 0),
           isUserAttending,
-        };
+        } as EventWithDetails;
       } catch (error) {
         logger.error("Failed to get event", toLoggableError(error), {
           id,
@@ -413,7 +413,7 @@ export class EventRepository extends BaseRepository<
               ? userAttendanceSet.has(event.id)
               : undefined,
           };
-        });
+        }) as EventWithDetails[];
       } catch (error) {
         logger.error("Failed to get calendar events", toLoggableError(error), {
           filters,
