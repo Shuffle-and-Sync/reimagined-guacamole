@@ -1291,7 +1291,7 @@ export class DatabaseStorage implements IStorage {
     } = filters || {};
 
     // Select safe user fields (exclude sensitive data like passwordHash)
-    let query = db
+    let query: any = db
       .select({
         id: users.id,
         email: users.email,
@@ -1342,16 +1342,13 @@ export class DatabaseStorage implements IStorage {
 
     // Add role filter (requires join with userRoles)
     if (role) {
-      query = query.leftJoin(
-        userRoles,
-        eq(users.id, userRoles.userId),
-      ) as unknown;
+      query = query.leftJoin(userRoles, eq(users.id, userRoles.userId));
       conditions.push(eq(userRoles.role, role));
     }
 
     // Apply conditions
     if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as unknown;
+      query = query.where(and(...conditions));
     }
 
     // Add sorting
@@ -1389,25 +1386,27 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (order === "asc") {
-        query = query.orderBy(asc(sortColumn)) as unknown;
+        query = query.orderBy(asc(sortColumn));
       } else {
-        query = query.orderBy(desc(sortColumn)) as unknown;
+        query = query.orderBy(desc(sortColumn));
       }
     } else {
       // Default sort
-      query = query.orderBy(desc(users.createdAt)) as unknown;
+      query = query.orderBy(desc(users.createdAt));
     }
 
     // Get total count with same filters
-    let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+    let countQuery: any = db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
     if (role) {
       countQuery = countQuery.leftJoin(
         userRoles,
         eq(users.id, userRoles.userId),
-      ) as unknown;
+      );
     }
     if (conditions.length > 0) {
-      countQuery = countQuery.where(and(...conditions)) as unknown;
+      countQuery = countQuery.where(and(...conditions));
     }
     const countResult = await countQuery;
     const total = countResult?.[0]?.count ?? 0;
@@ -2032,7 +2031,12 @@ export class DatabaseStorage implements IStorage {
     if (!eventsWithDetails) {
       throw new Error("Database operation failed");
     }
-    return eventsWithDetails;
+    return eventsWithDetails as (Event & {
+      creator: User;
+      community: Community | null;
+      attendeeCount: number;
+      isUserAttending?: boolean;
+    })[];
   }
 
   async getEvent(
@@ -2324,39 +2328,31 @@ export class DatabaseStorage implements IStorage {
   async getEventAttendees(
     eventId: string,
   ): Promise<(EventAttendee & { user: User })[]> {
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         user: users,
       })
       .from(eventAttendees)
       .innerJoin(users, eq(eventAttendees.userId, users.id))
       .where(eq(eventAttendees.eventId, eventId));
+
+    return results.map((r) => ({ ...r.attendee, user: r.user }));
   }
 
   async getUserEventAttendance(
     userId: string,
   ): Promise<(EventAttendee & { event: Event })[]> {
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         event: events,
       })
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(eq(eventAttendees.userId, userId));
+
+    return results.map((r) => ({ ...r.attendee, event: r.event }));
   }
 
   async getUsersEventAttendance(
@@ -2364,20 +2360,16 @@ export class DatabaseStorage implements IStorage {
   ): Promise<(EventAttendee & { event: Event })[]> {
     if (userIds.length === 0) return [];
 
-    return await db
+    const results = await db
       .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
+        attendee: eventAttendees,
         event: events,
       })
       .from(eventAttendees)
       .innerJoin(events, eq(eventAttendees.eventId, events.id))
       .where(inArray(eventAttendees.userId, userIds));
+
+    return results.map((r) => ({ ...r.attendee, event: r.event }));
   }
 
   async getUserCreatedEvents(userId: string): Promise<Event[]> {
@@ -2394,15 +2386,7 @@ export class DatabaseStorage implements IStorage {
     if (eventIds.length === 0) return [];
 
     return await db
-      .select({
-        id: eventAttendees.id,
-        eventId: eventAttendees.eventId,
-        userId: eventAttendees.userId,
-        status: eventAttendees.status,
-        role: eventAttendees.role,
-        playerType: eventAttendees.playerType,
-        joinedAt: eventAttendees.joinedAt,
-      })
+      .select()
       .from(eventAttendees)
       .where(inArray(eventAttendees.eventId, eventIds));
   }
@@ -2448,6 +2432,9 @@ export class DatabaseStorage implements IStorage {
       .insert(notifications)
       .values(data)
       .returning();
+    if (!notification) {
+      throw new Error("Failed to create notification");
+    }
     return notification;
   }
 
@@ -3945,7 +3932,7 @@ export class DatabaseStorage implements IStorage {
     return results.map((r) => ({
       ...r.message,
       sender: r.sender,
-    }));
+    })) as (Message & { sender: User | null })[];
   }
 
   async sendMessage(data: InsertMessage): Promise<Message> {
@@ -3961,6 +3948,9 @@ export class DatabaseStorage implements IStorage {
     data: InsertMessage,
   ): Promise<Message> {
     const [message] = await tx.insert(messages).values(data).returning();
+    if (!message) {
+      throw new Error("Failed to send message");
+    }
     return message;
   }
 
@@ -4018,7 +4008,7 @@ export class DatabaseStorage implements IStorage {
         sender: r.sender,
         event: r.event,
       }),
-    );
+    ) as (Message & { sender: User | null; event: Event | null })[];
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -4056,7 +4046,7 @@ export class DatabaseStorage implements IStorage {
     return results.map((r) => ({
       ...r.message,
       sender: r.sender,
-    }));
+    })) as (Message & { sender: User | null })[];
   }
 
   // Game session operations
@@ -4146,7 +4136,7 @@ export class DatabaseStorage implements IStorage {
       ...r.gameSession,
       host: r.host,
       event: r.event,
-    }));
+    })) as (GameSession & { host: User | null; event: Event | null })[];
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -4331,7 +4321,7 @@ export class DatabaseStorage implements IStorage {
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
-    }));
+    })) as (Friendship & { requester: User; addressee: User })[];
   }
 
   async getFriendRequests(
@@ -4365,7 +4355,7 @@ export class DatabaseStorage implements IStorage {
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
-    }));
+    })) as (Friendship & { requester: User; addressee: User })[];
   }
 
   async getFriendCount(userId: string): Promise<number> {
@@ -5091,7 +5081,12 @@ export class DatabaseStorage implements IStorage {
       loser: r.loser ?? undefined,
       reportedBy: r.reportedBy,
       verifiedBy: r.verifiedBy ?? undefined,
-    }));
+    })) as (MatchResult & {
+      winner: User;
+      loser?: User;
+      reportedBy: User;
+      verifiedBy?: User;
+    })[];
   }
 
   async createMatchResult(data: InsertMatchResult): Promise<MatchResult> {
@@ -5161,8 +5156,8 @@ export class DatabaseStorage implements IStorage {
       await tx
         .update(tournamentMatches)
         .set({
-          winnerId: verifiedResult.winnerId,
-          status: "completed" as unknown,
+          winnerId: verifiedResult.winnerId as string | null,
+          status: "completed",
           endTime: new Date(),
         })
         .where(eq(tournamentMatches.id, matchResult.matchId));
@@ -5207,18 +5202,16 @@ export class DatabaseStorage implements IStorage {
     tx: Transaction,
     tournamentId: string,
   ): Promise<(TournamentParticipant & { user: User })[]> {
-    return await tx
+    const results = await tx
       .select({
-        id: tournamentParticipants.id,
-        tournamentId: tournamentParticipants.tournamentId,
-        userId: tournamentParticipants.userId,
-        joinedAt: tournamentParticipants.joinedAt,
-        status: tournamentParticipants.status,
+        participant: tournamentParticipants,
         user: users,
       })
       .from(tournamentParticipants)
       .innerJoin(users, eq(tournamentParticipants.userId, users.id))
       .where(eq(tournamentParticipants.tournamentId, tournamentId));
+
+    return results.map((r) => ({ ...r.participant, user: r.user }));
   }
 
   async getTournamentRoundsWithTransaction(
@@ -5659,7 +5652,7 @@ export class DatabaseStorage implements IStorage {
       .groupBy(userGamingProfiles.communityId);
 
     return result.map((r) => ({
-      game: r.communityId,
+      game: r.communityId || "unknown",
       players: r.count,
       change: Math.floor(Math.random() * 20) - 10, // Mock change percentage
     }));
@@ -6204,7 +6197,11 @@ export class DatabaseStorage implements IStorage {
           fromUser: r.fromUser,
           toUser: r.toUser,
           streamSession: r.streamSession,
-        }));
+        })) as (CollaborationRequest & {
+        fromUser: User | null;
+        toUser: User | null;
+        streamSession?: StreamSession | null;
+      })[];
     } catch (error) {
       console.error("Error getting collaboration requests:", error);
       throw error;
@@ -7361,7 +7358,7 @@ export class DatabaseStorage implements IStorage {
 
       await this.addToModerationQueue({
         itemType: "report",
-        itemId: report.id,
+        itemId: report.id as string,
         priority: priorityMap[data.priority || "medium"],
         summary: `${data.reason}: ${data.contentType} reported`,
         metadata: JSON.stringify({
@@ -7746,34 +7743,40 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation queue operations
   async addToModerationQueue(
-    data: InsertModerationQueue & { metadata?: Record<string, unknown> },
+    data: InsertModerationQueue,
   ): Promise<ModerationQueue> {
     // Auto-calculate priority if not provided
     let enhancedData = { ...data };
+
+    // Parse metadata if it's a string
+    const metadata = data.metadata
+      ? typeof data.metadata === "string"
+        ? JSON.parse(data.metadata)
+        : data.metadata
+      : {};
+
     if (!enhancedData.priority) {
       enhancedData.priority = await this.calculateAutoPriority(
         data.itemType,
-        data.metadata,
+        metadata,
       );
     }
 
     // Set reputation scores if available in metadata
-    if (data.metadata) {
-      if (
-        data.metadata.userReputationScore &&
-        !enhancedData.userReputationScore
-      ) {
-        enhancedData.userReputationScore = data.metadata.userReputationScore;
+    if (metadata && typeof metadata === "object") {
+      if (metadata.userReputationScore && !enhancedData.userReputationScore) {
+        enhancedData.userReputationScore =
+          metadata.userReputationScore as number;
       }
       if (
-        data.metadata.reporterReputationScore &&
+        metadata.reporterReputationScore &&
         !enhancedData.reporterReputationScore
       ) {
         enhancedData.reporterReputationScore =
-          data.metadata.reporterReputationScore;
+          metadata.reporterReputationScore as number;
       }
-      if (data.metadata.riskScore && !enhancedData.riskScore) {
-        enhancedData.riskScore = data.metadata.riskScore as unknown;
+      if (metadata.riskScore && !enhancedData.riskScore) {
+        enhancedData.riskScore = metadata.riskScore as number;
       }
     }
 

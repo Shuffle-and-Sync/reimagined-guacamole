@@ -433,7 +433,9 @@ export class RealTimeMatchingAPI {
       };
 
       // Update adaptive weights
-      aiAlgorithmEngine.updateAdaptiveWeights([collaborationOutcome]);
+      aiAlgorithmEngine.updateAdaptiveWeights([
+        collaborationOutcome as MatchData,
+      ]);
 
       logger.info("Collaboration outcome recorded", {
         matchId,
@@ -677,7 +679,7 @@ export class RealTimeMatchingAPI {
         ),
         responseTime: ["immediate", "within_hour", "within_day"][
           Math.floor(Math.random() * 3)
-        ] as unknown,
+        ] as "immediate" | "within_hour" | "within_day" | "unknown",
         timezone: "UTC",
         preferredNotificationMethod: ["discord", "email", "platform_dm"],
       };

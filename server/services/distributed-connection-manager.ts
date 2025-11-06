@@ -436,7 +436,7 @@ export class DistributedConnectionManager {
     return {
       connectionId,
       userId: data.userId,
-      serverId: data.serverId,
+      serverId: data.serverId || "",
       timestamp: parseInt(data.timestamp || "0"),
       rooms: JSON.parse(data.rooms || "[]"),
     };

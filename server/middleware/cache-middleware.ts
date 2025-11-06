@@ -54,7 +54,8 @@ export function cacheMiddleware(
         res.set("X-Cache", "HIT");
         res.set("Cache-Control", `public, max-age=${ttl}`);
 
-        return res.json(cachedResponse);
+        res.json(cachedResponse);
+        return;
       }
 
       // Cache miss - intercept response

@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Community } from "@shared/schema";
+import type { Community, Event } from "@shared/schema";
 import { useCalendarHandlers } from "./useCalendarHandlers";
 
 // Mock toast hook
@@ -9,6 +9,18 @@ vi.mock("@/hooks/use-toast", () => ({
     toast: vi.fn(),
   }),
 }));
+
+// ExtendedEvent type matching useCalendarEvents
+type ExtendedEvent = Event & {
+  creator: unknown;
+  community: Community | null;
+  attendeeCount: number;
+  isUserAttending?: boolean;
+  mainPlayers?: number;
+  alternates?: number;
+  date?: string;
+  time?: string;
+};
 
 const mockCommunity: Community = {
   id: "test-community",
@@ -19,23 +31,44 @@ const mockCommunity: Community = {
   iconClass: "icon-test",
   createdAt: new Date(),
   isActive: true,
-  settings: null,
 };
 
-const mockEvent = {
+const mockEvent: ExtendedEvent = {
   id: "event-1",
   title: "Test Event",
-  type: "tournament",
-  date: "2024-12-31",
-  time: "18:00",
-  location: "Test Location",
   description: "Test Description",
+  type: "tournament",
+  status: "active",
+  startTime: new Date("2024-12-31T18:00:00Z"),
+  endTime: null,
+  timezone: "UTC",
+  displayTimezone: null,
+  location: "Test Location",
+  isVirtual: false,
+  maxAttendees: null,
+  playerSlots: 8,
+  alternateSlots: 2,
+  isPublic: true,
+  gameFormat: null,
+  powerLevel: null,
+  isRecurring: false,
+  recurrencePattern: null,
+  recurrenceInterval: null,
+  recurrenceEndDate: null,
+  parentEventId: null,
+  creatorId: "test-user",
+  hostId: null,
+  coHostId: null,
   communityId: "test-community",
+  createdAt: new Date(),
+  updatedAt: new Date(),
   creator: null,
   community: mockCommunity,
   attendeeCount: 5,
   mainPlayers: 8,
   alternates: 2,
+  date: "2024-12-31",
+  time: "18:00",
 };
 
 describe("useCalendarHandlers", () => {

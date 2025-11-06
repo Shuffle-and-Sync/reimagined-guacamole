@@ -217,7 +217,7 @@ export async function authorizeSessionJoin(
     if (session.hostId === userId || session.coHostId === userId) {
       return {
         authorized: true,
-        sessionData: session,
+        sessionData: session as typeof session | undefined,
       };
     }
 
@@ -237,7 +237,7 @@ export async function authorizeSessionJoin(
 
     return {
       authorized: true,
-      sessionData: session,
+      sessionData: session as typeof session | undefined,
     };
   } catch (error) {
     logger.error(
@@ -328,7 +328,7 @@ export async function authorizeGameAction(
 
     return {
       authorized: true,
-      sessionData: session,
+      sessionData: session as typeof session | undefined,
     };
   } catch (error) {
     logger.error(
@@ -374,7 +374,7 @@ export async function authorizeSpectate(
 
     return {
       authorized: true,
-      sessionData: session,
+      sessionData: session as typeof session | undefined,
     };
   } catch (error) {
     logger.error(

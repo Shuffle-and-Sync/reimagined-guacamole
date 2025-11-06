@@ -501,6 +501,10 @@ export class EventReminderService {
       .values(defaultSettings)
       .returning();
 
+    if (!newSettings) {
+      throw new Error("Failed to create default reminder settings");
+    }
+
     return newSettings;
   }
 
@@ -634,6 +638,10 @@ export class EventReminderService {
         .set(updateData)
         .where(eq(eventReminderSettings.id, existing.id))
         .returning();
+
+      if (!updated) {
+        throw new Error("Failed to update reminder settings");
+      }
 
       logger.info("Reminder settings updated", {
         userId,

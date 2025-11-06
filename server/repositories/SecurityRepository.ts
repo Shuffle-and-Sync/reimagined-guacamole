@@ -208,10 +208,10 @@ export class SecurityRepository extends BaseRepository<
         const result = await this.db
           .update(userMfaSettings)
           .set({
-            totpSecret,
-            backupCodes,
-            isEnabled: true,
-            enabledAt: new Date(),
+            secret: totpSecret,
+            backupCodes: JSON.stringify(backupCodes),
+            enabled: true,
+            updatedAt: new Date(),
           })
           .where(eq(userMfaSettings.userId, userId))
           .returning();
@@ -246,10 +246,8 @@ export class SecurityRepository extends BaseRepository<
         await this.db
           .update(userMfaSettings)
           .set({
-            isEnabled: false,
-            totpSecret: null,
-            backupCodes: null,
-            disabledAt: new Date(),
+            enabled: false,
+            updatedAt: new Date(),
           })
           .where(eq(userMfaSettings.userId, userId));
       } catch (error) {
@@ -276,8 +274,10 @@ export class SecurityRepository extends BaseRepository<
       try {
         await this.db.insert(userMfaAttempts).values({
           userId,
+          attemptType: "totp",
           success: false,
-          attemptedAt: new Date(),
+          ipAddress: "unknown",
+          createdAt: new Date(),
         });
       } catch (error) {
         logger.error("Failed to record MFA failure", toLoggableError(error), {
@@ -438,7 +438,7 @@ export class SecurityRepository extends BaseRepository<
             .select()
             .from(deviceFingerprints)
             .where(eq(deviceFingerprints.userId, userId))
-            .orderBy(desc(deviceFingerprints.lastSeenAt));
+            .orderBy(desc(deviceFingerprints.lastSeen));
         } catch (error) {
           logger.error(
             "Failed to get user device fingerprints",
@@ -481,7 +481,7 @@ export class SecurityRepository extends BaseRepository<
             .onConflictDoUpdate({
               target: deviceFingerprints.fingerprintHash,
               set: {
-                lastSeenAt: new Date(),
+                lastSeen: new Date(),
               },
             })
             .returning();
@@ -697,7 +697,7 @@ export class SecurityRepository extends BaseRepository<
         try {
           await this.db
             .update(passwordResetTokens)
-            .set({ used: true, usedAt: new Date() })
+            .set({ usedAt: new Date() })
             .where(eq(passwordResetTokens.token, token));
         } catch (error) {
           logger.error(
@@ -828,7 +828,7 @@ export class SecurityRepository extends BaseRepository<
         try {
           await this.db
             .update(emailVerificationTokens)
-            .set({ used: true, usedAt: new Date() })
+            .set({ verifiedAt: new Date() })
             .where(eq(emailVerificationTokens.token, token));
         } catch (error) {
           logger.error(

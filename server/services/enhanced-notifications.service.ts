@@ -74,7 +74,7 @@ export class EnhancedNotificationService {
         if (attendee.status === "attending") {
           await storage.createNotification({
             userId: attendee.userId,
-            type: "event_reminder" as unknown,
+            type: "event_reminder" as string,
             title: `Event Starting in ${hoursBeforeEvent} Hours`,
             message: `${event.title} starts at ${new Date(event.startTime).toLocaleString()}`,
             data: JSON.stringify({
@@ -89,11 +89,9 @@ export class EnhancedNotificationService {
 
       logger.info("Event reminders sent", { eventId, count: attendees.length });
     } catch (error) {
-      logger.error(
-        "Failed to send event reminders",
-        toLoggableError(error),
-        { eventId },
-      );
+      logger.error("Failed to send event reminders", toLoggableError(error), {
+        eventId,
+      });
     }
   }
 
@@ -120,7 +118,7 @@ export class EnhancedNotificationService {
         if (attendee.userId !== event.creatorId) {
           await storage.createNotification({
             userId: attendee.userId,
-            type: "event_updated" as unknown,
+            type: "event_updated" as string,
             title: "Event Updated",
             message: `${event.title} has been updated: ${changes.join(", ")}`,
             data: JSON.stringify({
@@ -166,7 +164,7 @@ export class EnhancedNotificationService {
       for (const attendee of attendees) {
         await storage.createNotification({
           userId: attendee.userId,
-          type: "event_cancelled" as unknown,
+          type: "event_cancelled" as string,
           title: "Event Cancelled",
           message: `${event.title} has been cancelled`,
           data: JSON.stringify({ eventId, communityId: event.communityId }),
@@ -206,7 +204,7 @@ export class EnhancedNotificationService {
         if (attendee.status === "attending") {
           await storage.createNotification({
             userId: attendee.userId,
-            type: "event_starting_soon" as unknown,
+            type: "event_starting_soon" as string,
             title: "Event Starting Soon!",
             message: `${event.title} starts in ${minutesUntilStart} minutes`,
             data: JSON.stringify({
@@ -244,7 +242,7 @@ export class EnhancedNotificationService {
 
       await storage.createNotification({
         userId,
-        type: "waitlist_promoted" as unknown,
+        type: "waitlist_promoted" as string,
         title: "Promoted from Waitlist!",
         message: `You've been promoted to a main player slot in ${event.title}`,
         data: JSON.stringify({ eventId, communityId: event.communityId }),

@@ -30,10 +30,12 @@ global.setTimeout = function (
 } as typeof setTimeout;
 
 // Wrap clearTimeout to untrack timers
-global.clearTimeout = function (timer: ReturnType<typeof setTimeout>): void {
-  activeTimers.delete(timer);
-  originalClearTimeout(timer);
-};
+global.clearTimeout = ((timer?: ReturnType<typeof setTimeout>) => {
+  if (timer !== undefined) {
+    activeTimers.delete(timer);
+    originalClearTimeout(timer);
+  }
+}) as typeof clearTimeout;
 
 // Start MSW server before all tests
 beforeAll(() => {

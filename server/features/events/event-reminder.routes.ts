@@ -17,7 +17,7 @@ const router = express.Router();
 const reminderRateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute window
   max: 10, // Limit each user to 10 requests per windowMs
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user?.id || req.ip || "unknown",
   message: { error: "Too many requests. Please try again later." },
 });
 

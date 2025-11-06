@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 import { validateUUID, sanitizeInput } from "../validation";
+import type { ParsedQs, ParamsDictionary } from "express-serve-static-core";
 
 // Security headers configuration
 export interface SecurityHeadersConfig {
@@ -134,12 +135,12 @@ export function inputSanitizationMiddleware(
 
     // Sanitize query parameters
     if (req.query && typeof req.query === "object") {
-      req.query = sanitizeObjectInputs(req.query);
+      req.query = sanitizeObjectInputs(req.query) as ParsedQs;
     }
 
     // Sanitize route parameters
     if (req.params && typeof req.params === "object") {
-      req.params = sanitizeObjectInputs(req.params);
+      req.params = sanitizeObjectInputs(req.params) as ParamsDictionary;
     }
 
     next();

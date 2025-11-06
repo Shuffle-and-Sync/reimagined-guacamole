@@ -12,7 +12,7 @@
  * @module TournamentRepository
  */
 
-import { eq, and, desc, sql, count, alias } from "drizzle-orm";
+import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
 import {
   db,
   withQueryTiming,
@@ -174,6 +174,7 @@ export class TournamentRepository extends BaseRepository<
         if (result.length === 0) return null;
 
         const tournament = result[0];
+        if (!tournament) return null;
 
         const participants = await this.db
           .select({
@@ -624,35 +625,48 @@ export class TournamentRepository extends BaseRepository<
       "TournamentRepository:getTournamentMatches",
       async () => {
         try {
-          const player1 = alias(users, "player1");
-          const player2 = alias(users, "player2");
-          const winner = alias(users, "winner");
-
           // Build conditions array for where clause
           const conditions = [eq(tournamentMatches.tournamentId, tournamentId)];
           if (roundId) {
             conditions.push(eq(tournamentMatches.roundId, roundId));
           }
 
-          const query = this.db
-            .select({
-              match: tournamentMatches,
-              player1,
-              player2,
-              winner,
-            })
+          // Get matches
+          const matches = await this.db
+            .select()
             .from(tournamentMatches)
-            .leftJoin(player1, eq(tournamentMatches.player1Id, player1.id))
-            .leftJoin(player2, eq(tournamentMatches.player2Id, player2.id))
-            .leftJoin(winner, eq(tournamentMatches.winnerId, winner.id))
             .where(and(...conditions));
 
-          const results = await query;
-          return results.map((result) => ({
-            ...result.match,
-            player1: result.player1 || undefined,
-            player2: result.player2 || undefined,
-            winner: result.winner || undefined,
+          // Get all unique user IDs
+          const userIds = new Set<string>();
+          matches.forEach((match) => {
+            if (match.player1Id) userIds.add(match.player1Id);
+            if (match.player2Id) userIds.add(match.player2Id);
+            if (match.winnerId) userIds.add(match.winnerId);
+          });
+
+          // Fetch all users at once if there are any
+          const userMap = new Map<string, User>();
+          if (userIds.size > 0) {
+            const matchUsers = await this.db
+              .select()
+              .from(users)
+              .where(inArray(users.id, Array.from(userIds)));
+            matchUsers.forEach((user) => userMap.set(user.id, user));
+          }
+
+          // Combine matches with user data
+          return matches.map((match) => ({
+            ...match,
+            player1: match.player1Id
+              ? userMap.get(match.player1Id) || undefined
+              : undefined,
+            player2: match.player2Id
+              ? userMap.get(match.player2Id) || undefined
+              : undefined,
+            winner: match.winnerId
+              ? userMap.get(match.winnerId) || undefined
+              : undefined,
           }));
         } catch (error) {
           logger.error(

@@ -204,9 +204,9 @@ function applyDiff<T = unknown>(state: T, diff: StateDiff): T {
     switch (diff.type) {
       case "replace":
       case "add":
-        return diff.newValue;
+        return diff.newValue as T;
       case "remove":
-        return undefined;
+        return undefined as T;
       default:
         return state;
     }
