@@ -48,7 +48,7 @@ export class EnhancedNotificationService {
       // Create notification in database
       const notificationData: InsertNotification = {
         userId,
-        type: type as unknown, // Type assertion for notification type enum
+        type: type as string, // Type assertion for notification type enum
         title: template.title,
         message: template.message,
         priority: options?.priority || template.priority,
@@ -103,7 +103,7 @@ export class EnhancedNotificationService {
     followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
-      fromUser: { id: streamSession.hostUserId },
+      fromUser: { id: streamSession.hostUserId ?? undefined },
       stream: {
         id: streamSession.id,
         title: streamSession.title,
@@ -115,7 +115,7 @@ export class EnhancedNotificationService {
     const notificationPromises = followers.map((userId) =>
       this.sendNotification(userId, "streamStarted", context, {
         priority: "normal",
-        communityId: streamSession.communityId,
+        communityId: streamSession.communityId ?? undefined,
       }),
     );
 
@@ -132,7 +132,7 @@ export class EnhancedNotificationService {
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
-      event: { id: collaborationRequest.eventId },
+      event: { id: collaborationRequest.eventId ?? undefined },
       requestId: collaborationRequest.id,
     };
 
@@ -155,7 +155,7 @@ export class EnhancedNotificationService {
         title: event.title,
         startTime: event.startTime?.toISOString() || "",
         endTime: event.endTime?.toISOString() || "",
-        location: event.location,
+        location: event.location ?? undefined,
       },
       reminderTime,
     };
@@ -163,7 +163,7 @@ export class EnhancedNotificationService {
     const notificationPromises = attendees.map((userId) =>
       this.sendNotification(userId, "eventReminders", context, {
         priority: "normal",
-        communityId: event.communityId,
+        communityId: event.communityId ?? undefined,
       }),
     );
 
