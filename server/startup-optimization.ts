@@ -110,7 +110,8 @@ export function setupGracefulShutdown(
 
     try {
       // Stop accepting new connections
-      server.close(async () => {
+      const typedServer = server as { close: (callback: () => void) => void };
+      typedServer.close(async () => {
         logger.info("HTTP server closed");
 
         // Disconnect from database clients

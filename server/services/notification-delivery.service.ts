@@ -871,7 +871,10 @@ export class NotificationDeliveryService {
   registerWebSocketConnection(userId: string, connection: unknown): void {
     this.webSocketConnections.set(userId, connection);
 
-    connection.on("close", () => {
+    const typedConnection = connection as {
+      on: (event: string, handler: () => void) => void;
+    };
+    typedConnection.on("close", () => {
       this.webSocketConnections.delete(userId);
     });
 

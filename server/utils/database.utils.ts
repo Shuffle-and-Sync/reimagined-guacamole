@@ -380,10 +380,12 @@ export async function executeWithRetry<T>(
       // Only retry on specific database errors
       if (shouldRetryDatabaseOperation(lastError) && attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         logger.warn(`Database operation failed, retrying in ${delay}ms`, {
           attempt,
           maxRetries,
-          error: error.message,
+          error: errorMessage,
         });
 
         await new Promise((resolve) => setTimeout(resolve, delay));

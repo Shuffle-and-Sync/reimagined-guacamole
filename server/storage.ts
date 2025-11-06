@@ -4472,7 +4472,7 @@ export class DatabaseStorage implements IStorage {
     const activities = await limitedQuery.orderBy(
       sql`${userActivities.createdAt} DESC`,
     );
-    return activities.map((activity: unknown) => ({
+    return activities.map((activity) => ({
       ...activity,
       community: activity.community || undefined,
     }));
@@ -4755,7 +4755,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const results = await query;
-    return results.map((result: unknown) => ({
+    return results.map((result) => ({
       ...result.tournament,
       organizer: result.organizer,
       community: result.community,
@@ -4797,7 +4797,7 @@ export class DatabaseStorage implements IStorage {
       ...tournament.tournament,
       organizer: tournament.organizer,
       community: tournament.community,
-      participants: participants.map((p: unknown) => ({
+      participants: participants.map((p) => ({
         ...p.participant,
         user: p.user,
       })),
@@ -5706,7 +5706,7 @@ export class DatabaseStorage implements IStorage {
       socialLinks,
       gamingProfiles,
       matchmakingPreferences: matchmakingPrefs,
-      tournaments: userTournaments.map((t: unknown) => t.tournament),
+      tournaments: userTournaments.map((t) => t.tournament),
       friends,
       exportDate: new Date().toISOString(),
       platform: "Shuffle & Sync",
@@ -5846,7 +5846,7 @@ export class DatabaseStorage implements IStorage {
       });
 
       // Map results with co-hosts and platforms
-      const enrichedResults = results.map((result: unknown) => ({
+      const enrichedResults = results.map((result) => ({
         ...result.session,
         host: result.host || null,
         community: result.community,
@@ -5900,8 +5900,8 @@ export class DatabaseStorage implements IStorage {
       ]);
 
       const coHosts = coHostsData
-        .filter((ch: unknown) => ch.user)
-        .map((ch: unknown) => ({
+        .filter((ch) => ch.user)
+        .map((ch) => ({
           ...ch.coHost,
           user: ch.user,
         }));
@@ -6191,7 +6191,7 @@ export class DatabaseStorage implements IStorage {
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
       return results
-        .filter((r: unknown) => r.fromUser && r.toUser)
+        .filter((r) => r.fromUser && r.toUser)
         .map((r) => ({
           ...r.request,
           fromUser: r.fromUser,
@@ -7106,10 +7106,13 @@ export class DatabaseStorage implements IStorage {
 
     let recentViolationPenalty = 0;
     const now = Date.now();
-    moderationHistory.forEach((action: unknown) => {
-      const actionDate = new Date(
-        action.timestamp || action.createdAt,
-      ).getTime();
+    moderationHistory.forEach((action) => {
+      const timestamp =
+        (action as { timestamp?: Date | string; createdAt?: Date | string })
+          .timestamp ||
+        (action as { timestamp?: Date | string; createdAt?: Date | string })
+          .createdAt;
+      const actionDate = new Date(timestamp || Date.now()).getTime();
       const daysSince = (now - actionDate) / (1000 * 60 * 60 * 24);
 
       if (daysSince <= 30) {
@@ -8077,17 +8080,19 @@ export class DatabaseStorage implements IStorage {
 
       let avgCompletionTime = 0;
       if (completedTasks.length > 0) {
-        const totalTime = completedTasks.reduce(
-          (sum: unknown, task: unknown) => {
-            if (task.completedAt && task.createdAt) {
-              return (
-                sum + (task.completedAt.getTime() - task.createdAt.getTime())
-              );
-            }
-            return sum;
-          },
-          0,
-        );
+        const totalTime = completedTasks.reduce((sum, task) => {
+          const typedTask = task as {
+            completedAt?: Date | null;
+            createdAt?: Date | null;
+          };
+          if (typedTask.completedAt && typedTask.createdAt) {
+            return (
+              sum +
+              (typedTask.completedAt.getTime() - typedTask.createdAt.getTime())
+            );
+          }
+          return sum;
+        }, 0);
         avgCompletionTime = totalTime / completedTasks.length / (1000 * 60); // Convert to minutes
       }
 
@@ -8234,17 +8239,18 @@ export class DatabaseStorage implements IStorage {
     };
 
     // Process status counts
-    statusCounts.forEach((row: unknown) => {
-      switch (row.status) {
+    statusCounts.forEach((row) => {
+      const typedRow = row as { status: string; count: number };
+      switch (typedRow.status) {
         case "open":
-          stats.totalOpen = row.count;
+          stats.totalOpen = typedRow.count;
           break;
         case "assigned":
         case "in_progress":
-          stats.totalAssigned += row.count;
+          stats.totalAssigned += typedRow.count;
           break;
         case "completed":
-          stats.totalCompleted = row.count;
+          stats.totalCompleted = typedRow.count;
           break;
       }
     });
@@ -8266,17 +8272,19 @@ export class DatabaseStorage implements IStorage {
       .limit(100);
 
     if (recentCompleted.length > 0) {
-      const totalTime = recentCompleted.reduce(
-        (sum: unknown, item: unknown) => {
-          if (item.completedAt && item.createdAt) {
-            return (
-              sum + (item.completedAt.getTime() - item.createdAt.getTime())
-            );
-          }
-          return sum;
-        },
-        0,
-      );
+      const totalTime = recentCompleted.reduce((sum, item) => {
+        const typedItem = item as {
+          completedAt?: Date | null;
+          createdAt?: Date | null;
+        };
+        if (typedItem.completedAt && typedItem.createdAt) {
+          return (
+            sum +
+            (typedItem.completedAt.getTime() - typedItem.createdAt.getTime())
+          );
+        }
+        return sum;
+      }, 0);
       stats.avgCompletionTime = Math.round(
         totalTime / recentCompleted.length / (1000 * 60),
       ); // Convert to minutes

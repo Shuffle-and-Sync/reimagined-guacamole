@@ -197,11 +197,18 @@ export class EnhancedNotificationService {
     updateType: string,
     updateMessage: string,
   ): Promise<void> {
+    const typedTournament = tournament as {
+      id: string;
+      name: string;
+      status: string | null;
+      communityId: string | null;
+    };
+
     const context: TemplateContext = {
       tournament: {
-        id: tournament.id,
-        name: tournament.name,
-        status: tournament.status,
+        id: typedTournament.id,
+        name: typedTournament.name,
+        status: typedTournament.status || "unknown",
       },
       updateType,
       updateMessage,
@@ -210,7 +217,7 @@ export class EnhancedNotificationService {
     const notificationPromises = participants.map((userId) =>
       this.sendNotification(userId, "tournamentUpdates", context, {
         priority: "normal",
-        communityId: tournament.communityId,
+        communityId: typedTournament.communityId || undefined,
       }),
     );
 

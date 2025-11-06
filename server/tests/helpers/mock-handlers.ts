@@ -293,7 +293,10 @@ export const eventHandlers = {
    */
   create: (eventData: unknown): MockResponse => {
     const requiredFields = ["title", "type", "startTime", "endTime"];
-    const missingFields = requiredFields.filter((field) => !eventData[field]);
+    const typedEventData = eventData as Record<string, unknown>;
+    const missingFields = requiredFields.filter(
+      (field) => !typedEventData[field],
+    );
 
     if (missingFields.length > 0) {
       return {
