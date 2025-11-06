@@ -169,8 +169,12 @@ const totpFailures = await db
 const suspiciousFailures = await db
   .select()
   .from(userMfaAttempts)
-  .where(eq(userMfaAttempts.ipAddress, suspiciousIp))
-  .where(eq(userMfaAttempts.success, false));
+  .where(
+    and(
+      eq(userMfaAttempts.ipAddress, suspiciousIp),
+      eq(userMfaAttempts.success, false)
+    )
+  );
 ```
 
 ### 4. IP-Based Rate Limiting
