@@ -205,13 +205,22 @@ export class SecurityRepository extends BaseRepository<
   ): Promise<UserMfaSettings> {
     return withQueryTiming("SecurityRepository:enableUserMfa", async () => {
       try {
+        const now = new Date();
+        const existingSettings = await this.getUserMfaSettings(userId);
+
         const result = await this.db
           .update(userMfaSettings)
           .set({
             secret: totpSecret,
             backupCodes: JSON.stringify(backupCodes),
             enabled: true,
-            updatedAt: new Date(),
+            // Set enabledAt only when transitioning from disabled to enabled
+            enabledAt: !existingSettings?.enabled
+              ? now
+              : existingSettings.enabledAt,
+            // Clear disabledAt when enabling
+            disabledAt: null,
+            updatedAt: now,
           })
           .where(eq(userMfaSettings.userId, userId))
           .returning();
@@ -243,11 +252,18 @@ export class SecurityRepository extends BaseRepository<
   async disableUserMfa(userId: string): Promise<void> {
     return withQueryTiming("SecurityRepository:disableUserMfa", async () => {
       try {
+        const now = new Date();
+        const existingSettings = await this.getUserMfaSettings(userId);
+
         await this.db
           .update(userMfaSettings)
           .set({
             enabled: false,
-            updatedAt: new Date(),
+            // Set disabledAt only when transitioning from enabled to disabled
+            disabledAt: existingSettings?.enabled
+              ? now
+              : existingSettings?.disabledAt || null,
+            updatedAt: now,
           })
           .where(eq(userMfaSettings.userId, userId));
       } catch (error) {
@@ -263,20 +279,46 @@ export class SecurityRepository extends BaseRepository<
    * Record MFA failure
    *
    * @param userId - User ID
+   * @param options - Optional parameters for attempt context
+   * @param options.attemptType - Type of MFA attempt (default: 'totp')
+   * @param options.ipAddress - IP address of the attempt (default: 'unknown')
+   * @param options.userAgent - User agent string (optional)
    *
    * @example
    * ```typescript
+   * // Basic usage (backward compatible)
    * await securityRepo.recordMfaFailure('user-123');
+   *
+   * // With full context
+   * await securityRepo.recordMfaFailure('user-123', {
+   *   attemptType: 'backup_code',
+   *   ipAddress: '192.168.1.1',
+   *   userAgent: 'Mozilla/5.0...'
+   * });
    * ```
    */
-  async recordMfaFailure(userId: string): Promise<void> {
+  async recordMfaFailure(
+    userId: string,
+    options?: {
+      attemptType?: "totp" | "backup_code" | "sms" | "email";
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ): Promise<void> {
     return withQueryTiming("SecurityRepository:recordMfaFailure", async () => {
       try {
+        const {
+          attemptType = "totp",
+          ipAddress = "unknown",
+          userAgent,
+        } = options || {};
+
         await this.db.insert(userMfaAttempts).values({
           userId,
-          attemptType: "totp",
+          attemptType,
           success: false,
-          ipAddress: "unknown",
+          ipAddress,
+          userAgent: userAgent || null,
           createdAt: new Date(),
         });
       } catch (error) {
