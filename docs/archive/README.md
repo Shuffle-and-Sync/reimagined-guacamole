@@ -55,6 +55,90 @@ These files documented GitHub Pages deployment issues and fixes. GitHub Pages de
 - **GITHUB_PAGES_FIX_SUMMARY.md** - General GitHub Pages fixes
 - **PAGES_SETUP_REQUIRED.md** - GitHub Pages setup instructions
 
+### Code Quality & Refactoring (Historical)
+
+Historical code quality reviews, refactoring summaries, and optimization reports.
+
+- **CODE_QUALITY_EXECUTIVE_SUMMARY.md** - Comprehensive code quality assessment
+- **CODE_QUALITY_QUICK_REFERENCE.md** - Quick reference for code quality improvements
+- **CODE_DEDUPLICATION_FINAL_REPORT.md** - Code deduplication completion report
+- **COMPLEXITY_REFACTORING_GUIDE.md** - Code complexity refactoring guide
+- **UTILITY_LIBRARIES_QUICK_REFERENCE.md** - Utility libraries reference guide
+
+### Service Decomposition & Architecture (Historical)
+
+Historical service decomposition phase summaries and architectural improvements.
+
+- **SERVICE_DECOMPOSITION_PHASE1_SUMMARY.md** - Phase 1 summary
+- **SERVICE_DECOMPOSITION_PHASES_1_2_SUMMARY.md** - Phases 1-2 summary
+- **SERVICE_DECOMPOSITION_PHASES_1_3_SUMMARY.md** - Phases 1-3 summary
+- **SERVICE_DECOMPOSITION_PHASES_1_4_SUMMARY.md** - Phases 1-4 summary
+- **SERVICE_DECOMPOSITION_PHASES_1_5_COMPLETE.md** - Phases 1-5 completion
+- **STORAGE_REFACTORING_SUMMARY.md** - Storage layer refactoring
+- **BACKEND_API_STANDARDIZATION_COMPLETE.md** - API standardization completion
+
+### Performance & Optimization (Historical)
+
+Historical performance optimization reports and implementation summaries.
+
+- **PERFORMANCE_ANALYSIS_SUMMARY.md** - Performance analysis results
+- **OPTIMIZATION_IMPLEMENTATION.md** - Optimization implementation details
+- **BUILD_OPTIMIZATION_EXECUTIVE_SUMMARY.md** - Build optimization summary
+- **DATABASE_OPTIMIZATION_COMPLETE.md** - Database optimization completion
+- **CALENDAR_OPTIMIZATION_SUMMARY.md** - Calendar optimization results
+- **TOURNAMENT_OPTIMIZATIONS_COMPLETE.md** - Tournament optimizations completion
+- **CODE_SPLITTING_IMPLEMENTATION.md** - Code splitting implementation
+- **VIRTUAL_SCROLLING_INTEGRATION.md** - Virtual scrolling integration
+
+### Feature Implementation (Historical)
+
+Historical feature implementation summaries for completed features.
+
+- **RECURRING_EVENTS_IMPLEMENTATION_SUMMARY.md** - Recurring events implementation
+- **EVENT_CONFLICT_DETECTION_SUMMARY.md** - Event conflict detection implementation
+- **TOURNAMENT_FEATURES_IMPLEMENTATION.md** - Tournament features implementation
+- **TOURNAMENT_BEFORE_AFTER.md** - Tournament system before/after comparison
+- **CALENDAR_REFACTORING_SUMMARY.md** - Calendar refactoring details
+- **PHASE_2_COMPLETE.md** - Phase 2 completion summary
+- **TABLESYNC_PHASES_COMPLETION_STATUS.md** - TableSync phases status
+- **INTEGRATION_GUIDE.md** - Advanced features integration (in archive)
+
+### Testing & Type Safety (Historical)
+
+Historical testing and type safety improvement reports.
+
+- **COMPREHENSIVE_TEST_STRATEGY_SUMMARY.md** - Test strategy summary
+- **TEST_REMEDIATION_SUMMARY.md** - Test remediation completion
+- **TYPESCRIPT_TYPE_SAFETY_REPORT.md** - TypeScript type safety report
+- **TYPESCRIPT_FIX_SUMMARY.md** - TypeScript fixes summary
+
+### Linting & Code Style (Historical)
+
+Historical ESLint and code style fix summaries.
+
+- **ESLINT_WARNING_FIX_SUMMARY.md** - ESLint warning fixes
+- **ESLINT_AND_WORKFLOW_FIX_SUMMARY.md** - ESLint and workflow fixes
+
+### Security & Documentation (Historical)
+
+Historical security enhancements and documentation cleanup reports.
+
+- **SECURITY_ENHANCEMENTS_SUMMARY.md** - Security enhancements summary
+- **DOCUMENTATION_CLEANUP_COMPLETE.md** - Documentation cleanup completion
+
+### Accessibility (Historical)
+
+Historical accessibility improvement reports.
+
+- **ACCESSIBILITY_CODE_FIXES.md** - Accessibility code fixes
+
+### Migration & Maintenance (Historical)
+
+Historical migration and maintenance documentation.
+
+- **TIMEZONE_MIGRATION.md** - Timezone handling migration
+- **FINAL_VERIFICATION.md** - Final verification checklist (historical)
+
 ## Current Documentation
 
 For current, actively maintained documentation, please refer to:
