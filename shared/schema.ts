@@ -976,6 +976,8 @@ export const userMfaSettings = sqliteTable("user_mfa_settings", {
   secret: text("secret").notNull(),
   backupCodes: text("backup_codes"), // JSON string array
   enabled: integer("enabled", { mode: "boolean" }).default(false),
+  enabledAt: integer("enabled_at", { mode: "timestamp" }), // When MFA was enabled (or re-enabled)
+  disabledAt: integer("disabled_at", { mode: "timestamp" }), // When MFA was disabled (null if currently enabled)
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date(),
   ),

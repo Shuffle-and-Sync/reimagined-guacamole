@@ -378,6 +378,10 @@ function applySchemaUpdates(sqlite: any): void {
     `ALTER TABLE events ADD COLUMN custom_fields TEXT`,
     `ALTER TABLE events ADD COLUMN recurrence_rule TEXT`,
     `ALTER TABLE events ADD COLUMN parent_series_id TEXT`,
+
+    // Add MFA audit trail columns to user_mfa_settings table
+    `ALTER TABLE user_mfa_settings ADD COLUMN enabled_at INTEGER`,
+    `ALTER TABLE user_mfa_settings ADD COLUMN disabled_at INTEGER`,
   ];
 
   for (const update of updates) {
@@ -393,6 +397,26 @@ function applySchemaUpdates(sqlite: any): void {
           console.warn(`⚠️  Schema update failed: ${error.message}`);
         }
       }
+    }
+  }
+
+  // Backfill enabledAt for currently enabled MFA records
+  // Note: Uses updated_at as approximation since the exact enable time is not available
+  // This may not be 100% accurate if the record was updated after being enabled,
+  // but provides a reasonable estimate for historical data
+  try {
+    sqlite
+      .prepare(
+        `UPDATE user_mfa_settings 
+         SET enabled_at = updated_at 
+         WHERE enabled = 1 AND enabled_at IS NULL`,
+      )
+      .run();
+  } catch (error) {
+    if (process.env.VERBOSE_TESTS) {
+      console.warn(
+        `⚠️  MFA backfill failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 }
