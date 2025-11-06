@@ -215,6 +215,7 @@ export class SecurityRepository extends BaseRepository<
             backupCodes: JSON.stringify(backupCodes),
             enabled: true,
             // Set enabledAt only when transitioning from disabled to enabled
+            // This preserves the original enabledAt timestamp when updating an already-enabled MFA
             enabledAt: !existingSettings?.enabled
               ? now
               : existingSettings.enabledAt,
@@ -260,6 +261,7 @@ export class SecurityRepository extends BaseRepository<
           .set({
             enabled: false,
             // Set disabledAt only when transitioning from enabled to disabled
+            // This preserves the original disabledAt timestamp when disabling an already-disabled MFA
             disabledAt: existingSettings?.enabled
               ? now
               : existingSettings?.disabledAt || null,

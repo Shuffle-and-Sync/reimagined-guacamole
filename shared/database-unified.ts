@@ -401,6 +401,9 @@ function applySchemaUpdates(sqlite: any): void {
   }
 
   // Backfill enabledAt for currently enabled MFA records
+  // Note: Uses updated_at as approximation since the exact enable time is not available
+  // This may not be 100% accurate if the record was updated after being enabled,
+  // but provides a reasonable estimate for historical data
   try {
     sqlite
       .prepare(
