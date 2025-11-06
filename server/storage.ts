@@ -7107,11 +7107,11 @@ export class DatabaseStorage implements IStorage {
     let recentViolationPenalty = 0;
     const now = Date.now();
     moderationHistory.forEach((action) => {
-      const timestamp =
-        (action as { timestamp?: Date | string; createdAt?: Date | string })
-          .timestamp ||
-        (action as { timestamp?: Date | string; createdAt?: Date | string })
-          .createdAt;
+      const typedAction = action as {
+        timestamp?: Date | string;
+        createdAt?: Date | string;
+      };
+      const timestamp = typedAction.timestamp || typedAction.createdAt;
       const actionDate = new Date(timestamp || Date.now()).getTime();
       const daysSince = (now - actionDate) / (1000 * 60 * 60 * 24);
 

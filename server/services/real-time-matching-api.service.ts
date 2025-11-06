@@ -1118,7 +1118,7 @@ class MachineLearningModel {
       urgencyScore?: number;
     };
     if (
-      typedContext.compatibilityScore &&
+      typedContext.compatibilityScore !== undefined &&
       typedContext.compatibilityScore > 85
     ) {
       prediction += 0.1;
@@ -1126,7 +1126,10 @@ class MachineLearningModel {
     if (typedContext.availability?.currentlyOnline) {
       prediction += 0.05;
     }
-    if (typedContext.urgencyScore && typedContext.urgencyScore > 80) {
+    if (
+      typedContext.urgencyScore !== undefined &&
+      typedContext.urgencyScore > 80
+    ) {
       prediction += 0.05;
     }
 
