@@ -3932,7 +3932,7 @@ export class DatabaseStorage implements IStorage {
     return results.map((r) => ({
       ...r.message,
       sender: r.sender,
-    }));
+    })) as (Message & { sender: User | null })[];
   }
 
   async sendMessage(data: InsertMessage): Promise<Message> {
@@ -4008,7 +4008,7 @@ export class DatabaseStorage implements IStorage {
         sender: r.sender,
         event: r.event,
       }),
-    );
+    ) as (Message & { sender: User | null; event: Event | null })[];
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -4046,7 +4046,7 @@ export class DatabaseStorage implements IStorage {
     return results.map((r) => ({
       ...r.message,
       sender: r.sender,
-    }));
+    })) as (Message & { sender: User | null })[];
   }
 
   // Game session operations
@@ -4136,7 +4136,7 @@ export class DatabaseStorage implements IStorage {
       ...r.gameSession,
       host: r.host,
       event: r.event,
-    }));
+    })) as (GameSession & { host: User | null; event: Event | null })[];
   }
 
   async createGameSession(data: InsertGameSession): Promise<GameSession> {
@@ -4321,7 +4321,7 @@ export class DatabaseStorage implements IStorage {
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
-    }));
+    })) as (Friendship & { requester: User; addressee: User })[];
   }
 
   async getFriendRequests(
@@ -4355,7 +4355,7 @@ export class DatabaseStorage implements IStorage {
       ...r,
       requester: r.requester as User,
       addressee: r.addressee as User,
-    }));
+    })) as (Friendship & { requester: User; addressee: User })[];
   }
 
   async getFriendCount(userId: string): Promise<number> {
@@ -5081,7 +5081,12 @@ export class DatabaseStorage implements IStorage {
       loser: r.loser ?? undefined,
       reportedBy: r.reportedBy,
       verifiedBy: r.verifiedBy ?? undefined,
-    }));
+    })) as (MatchResult & {
+      winner: User;
+      loser?: User;
+      reportedBy: User;
+      verifiedBy?: User;
+    })[];
   }
 
   async createMatchResult(data: InsertMatchResult): Promise<MatchResult> {
@@ -6192,7 +6197,11 @@ export class DatabaseStorage implements IStorage {
           fromUser: r.fromUser,
           toUser: r.toUser,
           streamSession: r.streamSession,
-        }));
+        })) as (CollaborationRequest & {
+        fromUser: User | null;
+        toUser: User | null;
+        streamSession?: StreamSession | null;
+      })[];
     } catch (error) {
       console.error("Error getting collaboration requests:", error);
       throw error;
@@ -7734,35 +7743,40 @@ export class DatabaseStorage implements IStorage {
 
   // Moderation queue operations
   async addToModerationQueue(
-    data: InsertModerationQueue & { metadata?: Record<string, unknown> },
+    data: InsertModerationQueue,
   ): Promise<ModerationQueue> {
     // Auto-calculate priority if not provided
     let enhancedData = { ...data };
+
+    // Parse metadata if it's a string
+    const metadata = data.metadata
+      ? typeof data.metadata === "string"
+        ? JSON.parse(data.metadata)
+        : data.metadata
+      : {};
+
     if (!enhancedData.priority) {
       enhancedData.priority = await this.calculateAutoPriority(
         data.itemType,
-        data.metadata,
+        metadata,
       );
     }
 
     // Set reputation scores if available in metadata
-    if (data.metadata) {
-      if (
-        data.metadata.userReputationScore &&
-        !enhancedData.userReputationScore
-      ) {
-        enhancedData.userReputationScore = data.metadata
-          .userReputationScore as number;
+    if (metadata && typeof metadata === "object") {
+      if (metadata.userReputationScore && !enhancedData.userReputationScore) {
+        enhancedData.userReputationScore =
+          metadata.userReputationScore as number;
       }
       if (
-        data.metadata.reporterReputationScore &&
+        metadata.reporterReputationScore &&
         !enhancedData.reporterReputationScore
       ) {
-        enhancedData.reporterReputationScore = data.metadata
-          .reporterReputationScore as number;
+        enhancedData.reporterReputationScore =
+          metadata.reporterReputationScore as number;
       }
-      if (data.metadata.riskScore && !enhancedData.riskScore) {
-        enhancedData.riskScore = data.metadata.riskScore as number;
+      if (metadata.riskScore && !enhancedData.riskScore) {
+        enhancedData.riskScore = metadata.riskScore as number;
       }
     }
 
