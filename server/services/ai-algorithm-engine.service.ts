@@ -158,6 +158,9 @@ export interface StreamingStyleData {
   productionQuality?: string;
   chatEngagement?: string;
   streamFormat?: string;
+  contentDelivery?: string;
+  communicationStyle?: string;
+  pace?: string;
   [key: string]: unknown; // Allow additional analytics fields
 }
 
@@ -915,7 +918,14 @@ export class AIAlgorithmEngine {
     const candidateAges = candidateAudience.demographics?.ageGroups || {};
 
     Object.keys(userAges).forEach((ageGroup) => {
-      if (userAges[ageGroup] > 20 && candidateAges[ageGroup] > 20) {
+      const userValue = userAges[ageGroup];
+      const candidateValue = candidateAges[ageGroup];
+      if (
+        userValue !== undefined &&
+        candidateValue !== undefined &&
+        userValue > 20 &&
+        candidateValue > 20
+      ) {
         shared.push(`Age ${ageGroup}`);
       }
     });
@@ -953,10 +963,19 @@ export class AIAlgorithmEngine {
     const strengths: string[] = [];
     const demo = audience.demographics || {};
 
-    if (demo.ageGroups?.["18-24"] > 40) strengths.push("Young Adult");
-    if (demo.ageGroups?.["25-34"] > 35) strengths.push("Professional");
-    if (audience.regions?.US > 50) strengths.push("US Market");
-    if (audience.regions?.EU > 30) strengths.push("EU Market");
+    const youngAdult = demo.ageGroups?.["18-24"];
+    if (youngAdult !== undefined && youngAdult > 40)
+      strengths.push("Young Adult");
+
+    const professional = demo.ageGroups?.["25-34"];
+    if (professional !== undefined && professional > 35)
+      strengths.push("Professional");
+
+    const usMarket = audience.regions?.US;
+    if (usMarket !== undefined && usMarket > 50) strengths.push("US Market");
+
+    const euMarket = audience.regions?.EU;
+    if (euMarket !== undefined && euMarket > 30) strengths.push("EU Market");
 
     return strengths;
   }

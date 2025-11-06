@@ -449,6 +449,10 @@ export class EventRegistrationService {
     // Update positions to be consecutive
     for (let i = 0; i < waitlist.length; i++) {
       const attendee = waitlist[i];
+      if (!attendee) {
+        continue;
+      }
+
       const newPosition = i + 1;
 
       if (attendee.waitlistPosition !== newPosition) {
