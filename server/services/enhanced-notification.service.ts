@@ -103,7 +103,7 @@ export class EnhancedNotificationService {
     followers: string[] = [],
   ): Promise<void> {
     const context: TemplateContext = {
-      fromUser: { id: streamSession.hostUserId ?? undefined },
+      fromUser: { id: streamSession.hostUserId || undefined },
       stream: {
         id: streamSession.id,
         title: streamSession.title,
@@ -115,7 +115,7 @@ export class EnhancedNotificationService {
     const notificationPromises = followers.map((userId) =>
       this.sendNotification(userId, "streamStarted", context, {
         priority: "normal",
-        communityId: streamSession.communityId ?? undefined,
+        communityId: streamSession.communityId || undefined,
       }),
     );
 
@@ -132,7 +132,7 @@ export class EnhancedNotificationService {
   ): Promise<void> {
     const context: TemplateContext = {
       fromUser: { id: fromUserId },
-      event: { id: collaborationRequest.eventId ?? undefined },
+      event: { id: collaborationRequest.eventId || undefined },
       requestId: collaborationRequest.id,
     };
 
@@ -155,7 +155,7 @@ export class EnhancedNotificationService {
         title: event.title,
         startTime: event.startTime?.toISOString() || "",
         endTime: event.endTime?.toISOString() || "",
-        location: event.location ?? undefined,
+        location: event.location || undefined,
       },
       reminderTime,
     };
@@ -163,7 +163,7 @@ export class EnhancedNotificationService {
     const notificationPromises = attendees.map((userId) =>
       this.sendNotification(userId, "eventReminders", context, {
         priority: "normal",
-        communityId: event.communityId ?? undefined,
+        communityId: event.communityId || undefined,
       }),
     );
 

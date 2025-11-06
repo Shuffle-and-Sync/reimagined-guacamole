@@ -646,7 +646,7 @@ export class TournamentRepository extends BaseRepository<
           });
 
           // Fetch all users at once if there are any
-          const userMap = new Map();
+          const userMap = new Map<string, User>();
           if (userIds.size > 0) {
             const matchUsers = await this.db
               .select()
