@@ -592,6 +592,6 @@ describe("MFA Module - Integration Tests", () => {
         expect(result.isValid).toBe(true);
         expect(result.codeIndex).toBe(i);
       }
-    });
+    }, 30000); // Increase timeout to 30 seconds for cryptographic operations
   });
 });

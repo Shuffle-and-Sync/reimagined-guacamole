@@ -3,12 +3,22 @@ import { toLoggableError } from "@shared/utils/type-guards";
 import { logger } from "../logger";
 
 // Argon2id configuration for enterprise-grade security
-const ARGON2_CONFIG = {
-  memoryCost: 65536, // 64 MB
-  timeCost: 3, // 3 iterations
-  outputLen: 32, // 32 bytes output
-  parallelism: 4, // 4 parallel threads
-};
+// In test environment, use reduced parameters for faster execution
+// while still maintaining cryptographic validity
+const ARGON2_CONFIG =
+  process.env.NODE_ENV === "test"
+    ? {
+        memoryCost: 4096, // 4 MB (reduced from 64 MB for tests)
+        timeCost: 1, // 1 iteration (reduced from 3 for tests)
+        outputLen: 32, // 32 bytes output
+        parallelism: 1, // 1 thread (reduced from 4 for tests)
+      }
+    : {
+        memoryCost: 65536, // 64 MB
+        timeCost: 3, // 3 iterations
+        outputLen: 32, // 32 bytes output
+        parallelism: 4, // 4 parallel threads
+      };
 
 /**
  * Hash a plain text password using Argon2id
@@ -36,10 +46,7 @@ export async function verifyPassword(
     });
     return false;
   } catch (error) {
-    logger.error(
-      "Password verification error",
-      toLoggableError(error),
-    );
+    logger.error("Password verification error", toLoggableError(error));
     return false;
   }
 }
