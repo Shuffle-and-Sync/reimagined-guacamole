@@ -286,21 +286,16 @@ describe("Card Recognition Service", () => {
   });
 
   describe("error handling", () => {
-    // Create typed mock fetch for this test suite
-    const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-
     beforeEach(() => {
+      // Create typed mock fetch for this test suite
+      const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
       // Override fetch with mock for error handling tests
       global.fetch = mockFetch;
       jest.clearAllMocks();
     });
 
-    afterEach(() => {
-      // Restore original fetch
-      global.fetch = originalFetch;
-    });
-
     test("should handle network errors gracefully", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
       // Mock network error
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
@@ -311,6 +306,7 @@ describe("Card Recognition Service", () => {
     });
 
     test("should handle malformed queries gracefully", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
       // Malformed queries are sanitized and result in empty query
       // which returns empty results without making API call
       const result = await cardRecognitionService.searchCards("!!!@@@###$$$");
@@ -324,6 +320,7 @@ describe("Card Recognition Service", () => {
     });
 
     test("should handle timeout errors", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
       // Mock AbortError (timeout)
       const timeoutError = new Error("The operation was aborted");
       timeoutError.name = "AbortError";
@@ -336,6 +333,7 @@ describe("Card Recognition Service", () => {
     });
 
     test("should handle API error responses", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
       // Mock API error response (500)
       const mockResponse = {
         ok: false,
@@ -354,6 +352,7 @@ describe("Card Recognition Service", () => {
     });
 
     test("should return empty results for 404 responses", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
       // Mock 404 response
       const mockResponse = {
         ok: false,

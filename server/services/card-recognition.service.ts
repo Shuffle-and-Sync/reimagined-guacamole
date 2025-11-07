@@ -107,7 +107,8 @@ export class CardRecognitionService {
   private readonly RATE_LIMIT_DELAY = 100; // 100ms between requests (10 req/sec max)
   private readonly API_TIMEOUT = 5000; // 5 second timeout for API requests
   private readonly MIN_QUERY_LENGTH = 2; // Minimum characters for a valid search query
-  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',]/g; // Regex for sanitizing queries
+  // Regex to remove special characters from queries (keeps: alphanumeric, spaces, hyphens, apostrophes, commas)
+  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',]/g;
   private lastRequestTime = 0;
 
   // In-memory cache for frequently accessed cards
