@@ -9,10 +9,19 @@ import {
   type _MtgCard,
 } from "../../services/card-recognition.service";
 
+// Store original fetch for restoration
+const originalFetch = global.fetch;
+
 describe("Card Recognition Service", () => {
   beforeEach(() => {
     // Clear cache before each test
     cardRecognitionService.clearCache();
+  });
+
+  afterEach(() => {
+    // Restore fetch after each test
+    global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   describe("searchCards", () => {
@@ -273,21 +282,92 @@ describe("Card Recognition Service", () => {
   });
 
   describe("error handling", () => {
+    // Create mock fetch for this test suite
+    const mockFetch = jest.fn();
+
+    beforeEach(() => {
+      // Override fetch with mock for error handling tests
+      global.fetch = mockFetch as any;
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      // Restore original fetch
+      global.fetch = originalFetch;
+    });
+
     test("should handle network errors gracefully", async () => {
-      // This test verifies error handling - we can't easily trigger real network errors
-      // but the service should handle them
-      expect(async () => {
-        await cardRecognitionService.getCardById("test-id");
-      }).not.toThrow();
+      // Mock network error
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      const result = await cardRecognitionService.getCardById("test-id");
+
+      // Should return null for network errors
+      expect(result).toBeNull();
     });
 
     test("should handle malformed queries gracefully", async () => {
-      // Empty query should return empty results
+      // Malformed queries are sanitized and result in empty query
+      // which returns empty results without making API call
       const result = await cardRecognitionService.searchCards("!!!@@@###$$$");
       expect(result).toBeDefined();
-      // Empty or error results are acceptable
-      expect(result.cards).toBeDefined();
-    }, 20000); // Increase timeout to 20 seconds
+      expect(result.cards).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.hasMore).toBe(false);
+
+      // Verify no API call was made due to sanitization
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test("should handle timeout errors", async () => {
+      // Mock AbortError (timeout)
+      const timeoutError = new Error("The operation was aborted");
+      timeoutError.name = "AbortError";
+      mockFetch.mockRejectedValueOnce(timeoutError);
+
+      const result = await cardRecognitionService.getCardById("test-id");
+
+      // Should return null for timeout errors
+      expect(result).toBeNull();
+    });
+
+    test("should handle API error responses", async () => {
+      // Mock API error response (500) with json method
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: jest.fn().mockResolvedValue({
+          object: "error",
+          code: "internal_error",
+        }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse as any);
+
+      await expect(async () => {
+        await cardRecognitionService.searchCards("test query");
+      }).rejects.toThrow("Scryfall API error");
+    });
+
+    test("should return empty results for 404 responses", async () => {
+      // Mock 404 response
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        json: jest.fn().mockResolvedValue({
+          object: "error",
+          code: "not_found",
+        }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse as any);
+
+      const result = await cardRecognitionService.searchCards("nonexistent");
+      expect(result).toBeDefined();
+      expect(result.cards).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
   });
 
   describe("rate limiting", () => {
