@@ -216,7 +216,7 @@ export class CardRecognitionService {
       return card;
     } catch (error) {
       logger.error("Error fetching card by ID", toLoggableError(error), { id });
-      return null;
+      throw error;
     }
   }
 
