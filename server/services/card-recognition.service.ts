@@ -422,7 +422,7 @@ export class CardRecognitionService {
       return response;
     } catch (error) {
       if ((error as Error).name === "AbortError") {
-        throw new Error("Request timeout");
+        throw new Error(`Request timeout after ${this.API_TIMEOUT}ms`);
       }
       throw error;
     } finally {
