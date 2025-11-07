@@ -58,26 +58,75 @@ export function formatDateLong(date: Date | string): string {
 }
 
 /**
- * Format time to HH:MM
+ * Default timezone for formatting functions
+ *
+ * Uses UTC as default to ensure consistent, predictable formatting across
+ * different environments and timezones. This matches the original test expectations
+ * and prevents timezone-dependent failures in CI/CD pipelines.
+ *
+ * For local timezone formatting, explicitly pass { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
  */
-export function formatTime(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "";
+const DEFAULT_TIMEZONE = "UTC";
 
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
+/**
+ * Default locale for formatting functions
+ */
+const DEFAULT_LOCALE = "en-US";
 
-  return `${hours}:${minutes}`;
+/**
+ * Options for formatting functions
+ * @example
+ * // Format in UTC (default)
+ * formatTime(date, { timezone: 'UTC' })
+ *
+ * // Format in US Central Time
+ * formatTime(date, { timezone: 'America/Chicago' })
+ *
+ * // Format in Pacific Time
+ * formatTime(date, { timezone: 'America/Los_Angeles' })
+ *
+ * // Format in user's local timezone
+ * formatTime(date, { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+ */
+interface FormatOptions {
+  timezone?: string; // IANA timezone string (e.g., 'UTC', 'America/Chicago', 'Europe/London')
+  locale?: string; // Locale string (e.g., 'en-US', 'en-GB')
 }
 
 /**
- * Format time to 12-hour format (e.g., "3:30 PM")
+ * Format time to HH:MM in specified timezone
  */
-export function formatTime12Hour(date: Date | string): string {
+export function formatTime(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+/**
+ * Format time to 12-hour format (e.g., "3:30 PM") in specified timezone
+ */
+export function formatTime12Hour(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -95,13 +144,19 @@ export function formatDateTimeISO(date: Date | string): string {
 }
 
 /**
- * Format datetime to human-readable string (e.g., "Jan 15, 2024 at 3:30 PM")
+ * Format datetime to human-readable string (e.g., "Jan 15, 2024 at 3:30 PM") in specified timezone
  */
-export function formatDateTimeHuman(date: Date | string): string {
+export function formatDateTimeHuman(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
     year: "numeric",
     month: "short",
     day: "numeric",
