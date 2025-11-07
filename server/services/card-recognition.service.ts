@@ -106,6 +106,8 @@ export class CardRecognitionService {
   private readonly SCRYFALL_API_BASE = "https://api.scryfall.com";
   private readonly RATE_LIMIT_DELAY = 100; // 100ms between requests (10 req/sec max)
   private readonly API_TIMEOUT = 5000; // 5 second timeout for API requests
+  private readonly MIN_QUERY_LENGTH = 2; // Minimum characters for a valid search query
+  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',]/g; // Regex for sanitizing queries
   private lastRequestTime = 0;
 
   // In-memory cache for frequently accessed cards
@@ -430,14 +432,16 @@ export class CardRecognitionService {
   /**
    * Sanitize query string to remove invalid characters
    * Returns empty string if query is invalid
+   *
+   * Keeps only: alphanumeric characters, spaces, hyphens, apostrophes, and commas
+   * (these are common in Magic: The Gathering card names like "Jace's Ingenuity")
    */
   private sanitizeQuery(query: string): string {
-    // Remove special characters that aren't useful for card searches
-    // Keep alphanumeric, spaces, hyphens, apostrophes, and commas (common in card names)
-    const sanitized = query.replace(/[^a-zA-Z0-9\s\-',]/g, "").trim();
+    // Remove characters that aren't useful for card searches
+    const sanitized = query.replace(this.VALID_QUERY_CHARS, "").trim();
 
-    // Require at least 2 characters for a valid query
-    return sanitized.length >= 2 ? sanitized : "";
+    // Require minimum length for a valid query
+    return sanitized.length >= this.MIN_QUERY_LENGTH ? sanitized : "";
   }
 
   /**

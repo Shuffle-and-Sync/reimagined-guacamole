@@ -9,10 +9,14 @@ import {
   type _MtgCard,
 } from "../../services/card-recognition.service";
 
-// Store original fetch for restoration
-const originalFetch = global.fetch;
-
 describe("Card Recognition Service", () => {
+  // Store original fetch for restoration
+  let originalFetch: typeof fetch;
+
+  beforeAll(() => {
+    originalFetch = global.fetch;
+  });
+
   beforeEach(() => {
     // Clear cache before each test
     cardRecognitionService.clearCache();
@@ -282,12 +286,12 @@ describe("Card Recognition Service", () => {
   });
 
   describe("error handling", () => {
-    // Create mock fetch for this test suite
-    const mockFetch = jest.fn();
+    // Create typed mock fetch for this test suite
+    const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
     beforeEach(() => {
       // Override fetch with mock for error handling tests
-      global.fetch = mockFetch as any;
+      global.fetch = mockFetch;
       jest.clearAllMocks();
     });
 
@@ -332,7 +336,7 @@ describe("Card Recognition Service", () => {
     });
 
     test("should handle API error responses", async () => {
-      // Mock API error response (500) with json method
+      // Mock API error response (500)
       const mockResponse = {
         ok: false,
         status: 500,
@@ -341,8 +345,8 @@ describe("Card Recognition Service", () => {
           object: "error",
           code: "internal_error",
         }),
-      };
-      mockFetch.mockResolvedValueOnce(mockResponse as any);
+      } as unknown as Response;
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
       await expect(async () => {
         await cardRecognitionService.searchCards("test query");
@@ -359,8 +363,8 @@ describe("Card Recognition Service", () => {
           object: "error",
           code: "not_found",
         }),
-      };
-      mockFetch.mockResolvedValueOnce(mockResponse as any);
+      } as unknown as Response;
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
       const result = await cardRecognitionService.searchCards("nonexistent");
       expect(result).toBeDefined();
