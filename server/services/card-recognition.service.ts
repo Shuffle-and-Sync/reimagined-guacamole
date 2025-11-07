@@ -431,11 +431,13 @@ export class CardRecognitionService {
   }
 
   /**
-   * Sanitize query string to remove invalid characters
-   * Returns empty string if query is invalid
-   *
+   * Sanitize query string to remove invalid characters.
    * Keeps only: alphanumeric characters, spaces, hyphens, apostrophes, and commas
-   * (these are common in Magic: The Gathering card names like "Jace's Ingenuity")
+   * (these are common in Magic: The Gathering card names like "Jace's Ingenuity").
+   * Returns an empty string if the sanitized query contains fewer than 2 valid characters.
+   *
+   * @param query - The input query string to sanitize.
+   * @returns Sanitized query string, or empty string if less than 2 valid characters remain.
    */
   private sanitizeQuery(query: string): string {
     // Remove characters that aren't useful for card searches
