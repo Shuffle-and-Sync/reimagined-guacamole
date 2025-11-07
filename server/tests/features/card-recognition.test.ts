@@ -291,6 +291,7 @@ describe("Card Recognition Service", () => {
       const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
       // Override fetch with mock for error handling tests
       global.fetch = mockFetch;
+      mockFetch.mockReset();
       jest.clearAllMocks();
     });
 
