@@ -419,14 +419,14 @@ export class CardRecognitionService {
         ...options,
         signal: controller.signal,
       });
-      clearTimeout(timeout);
       return response;
     } catch (error) {
-      clearTimeout(timeout);
       if ((error as Error).name === "AbortError") {
         throw new Error("Request timeout");
       }
       throw error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
