@@ -2535,18 +2535,23 @@ export class DatabaseStorage implements IStorage {
       eventList.push(eventData);
 
       // Calculate next occurrence based on pattern
+      // IMPORTANT: Use UTC methods to avoid DST issues
       switch (data.recurrencePattern) {
         case "daily":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setDate(currentStartDate.getDate() + interval);
+          currentStartDate.setUTCDate(currentStartDate.getUTCDate() + interval);
           break;
         case "weekly":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setDate(currentStartDate.getDate() + 7 * interval);
+          currentStartDate.setUTCDate(
+            currentStartDate.getUTCDate() + 7 * interval,
+          );
           break;
         case "monthly":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setMonth(currentStartDate.getMonth() + interval);
+          currentStartDate.setUTCMonth(
+            currentStartDate.getUTCMonth() + interval,
+          );
           break;
         default:
           throw new Error(
@@ -6367,7 +6372,8 @@ export class DatabaseStorage implements IStorage {
   ): Promise<UserActivityAnalytics[]> {
     try {
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      // Use UTC method to avoid DST issues
+      startDate.setUTCDate(startDate.getUTCDate() - days);
 
       return await db
         .select()

@@ -73,18 +73,23 @@ class MockStorage {
       eventList.push(eventData);
 
       // Calculate next occurrence based on pattern
+      // IMPORTANT: Use UTC methods to avoid DST issues
       switch (data.recurrencePattern) {
         case "daily":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setDate(currentStartDate.getDate() + interval);
+          currentStartDate.setUTCDate(currentStartDate.getUTCDate() + interval);
           break;
         case "weekly":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setDate(currentStartDate.getDate() + 7 * interval);
+          currentStartDate.setUTCDate(
+            currentStartDate.getUTCDate() + 7 * interval,
+          );
           break;
         case "monthly":
           currentStartDate = new Date(currentStartDate);
-          currentStartDate.setMonth(currentStartDate.getMonth() + interval);
+          currentStartDate.setUTCMonth(
+            currentStartDate.getUTCMonth() + interval,
+          );
           break;
         default:
           throw new Error(
@@ -461,6 +466,112 @@ describe("Recurring Events", () => {
       await expect(
         storage.createRecurringEvents(eventData, "2025-12-31T10:00:00Z"),
       ).rejects.toThrow("Invalid recurrence pattern");
+    });
+  });
+
+  describe("DST Edge Cases", () => {
+    test("handles DST spring forward correctly", async () => {
+      // March 9, 2025 02:00 - DST starts (spring forward)
+      // Event before DST transition
+      const eventData: InsertEvent = {
+        title: "DST Spring Forward Test",
+        type: "community",
+        startTime: new Date("2025-03-08T10:00:00Z"),
+        creatorId: "user-123",
+        isRecurring: true,
+        recurrencePattern: "monthly",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-04-08T10:00:00Z"),
+      };
+
+      const events = await storage.createRecurringEvents(
+        eventData,
+        "2025-04-08T10:00:00Z",
+      );
+
+      expect(events).toHaveLength(2);
+      // Should maintain 10:00 UTC regardless of DST
+      expect(events[0].startTime.getUTCHours()).toBe(10);
+      expect(events[1].startTime.getUTCHours()).toBe(10);
+      expect(events[0].startTime).toEqual(new Date("2025-03-08T10:00:00Z"));
+      expect(events[1].startTime).toEqual(new Date("2025-04-08T10:00:00Z"));
+    });
+
+    test("handles DST fall back correctly", async () => {
+      // November 2, 2025 02:00 - DST ends (fall back)
+      // Event before DST transition
+      const eventData: InsertEvent = {
+        title: "DST Fall Back Test",
+        type: "community",
+        startTime: new Date("2025-10-15T10:00:00Z"),
+        creatorId: "user-123",
+        isRecurring: true,
+        recurrencePattern: "monthly",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-11-15T10:00:00Z"),
+      };
+
+      const events = await storage.createRecurringEvents(
+        eventData,
+        "2025-11-15T10:00:00Z",
+      );
+
+      expect(events).toHaveLength(2);
+      // Should maintain 10:00 UTC regardless of DST
+      expect(events[0].startTime.getUTCHours()).toBe(10);
+      expect(events[1].startTime.getUTCHours()).toBe(10);
+      expect(events[0].startTime).toEqual(new Date("2025-10-15T10:00:00Z"));
+      expect(events[1].startTime).toEqual(new Date("2025-11-15T10:00:00Z"));
+    });
+
+    test("handles weekly events across DST spring forward", async () => {
+      // Weekly event spanning DST transition
+      const eventData: InsertEvent = {
+        title: "Weekly DST Test",
+        type: "tournament",
+        startTime: new Date("2025-03-05T19:00:00Z"), // Week before DST
+        creatorId: "user-123",
+        isRecurring: true,
+        recurrencePattern: "weekly",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-03-19T19:00:00Z"), // Week after DST
+      };
+
+      const events = await storage.createRecurringEvents(
+        eventData,
+        "2025-03-19T19:00:00Z",
+      );
+
+      expect(events).toHaveLength(3);
+      // All events should maintain 19:00 UTC
+      events.forEach((event) => {
+        expect(event.startTime.getUTCHours()).toBe(19);
+      });
+    });
+
+    test("handles daily events across DST spring forward", async () => {
+      // Daily event spanning DST transition
+      const eventData: InsertEvent = {
+        title: "Daily DST Test",
+        type: "stream",
+        startTime: new Date("2025-03-08T15:00:00Z"), // Day before DST
+        creatorId: "user-123",
+        isRecurring: true,
+        recurrencePattern: "daily",
+        recurrenceInterval: 1,
+        recurrenceEndDate: new Date("2025-03-11T15:00:00Z"), // Days after DST
+      };
+
+      const events = await storage.createRecurringEvents(
+        eventData,
+        "2025-03-11T15:00:00Z",
+      );
+
+      expect(events).toHaveLength(4);
+      // All events should maintain 15:00 UTC
+      events.forEach((event) => {
+        expect(event.startTime.getUTCHours()).toBe(15);
+      });
     });
   });
 

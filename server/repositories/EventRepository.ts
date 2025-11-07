@@ -498,7 +498,8 @@ export class EventRepository extends BaseRepository<
             });
 
             // Add 7 days for weekly recurrence
-            current.setDate(current.getDate() + 7);
+            // Use UTC method to avoid DST issues
+            current.setUTCDate(current.getUTCDate() + 7);
           }
 
           return await this.createMany(events);

@@ -827,7 +827,8 @@ export class StreamingRepository extends BaseRepository<
       async () => {
         try {
           const expirationDate = new Date();
-          expirationDate.setDate(expirationDate.getDate() - 30);
+          // Use UTC method to avoid DST issues
+          expirationDate.setUTCDate(expirationDate.getUTCDate() - 30);
 
           await this.db
             .update(collaborationRequests)

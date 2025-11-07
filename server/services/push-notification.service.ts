@@ -352,7 +352,8 @@ export class PushNotificationService {
     try {
       // Delete subscriptions that have been inactive for more than 90 days
       const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      // Use UTC method to avoid DST issues
+      ninetyDaysAgo.setUTCDate(ninetyDaysAgo.getUTCDate() - 90);
 
       const result = await db.delete(pushSubscriptions).where(
         and(
