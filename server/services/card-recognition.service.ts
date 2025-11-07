@@ -105,6 +105,12 @@ export interface AutocompleteResult {
 export class CardRecognitionService {
   private readonly SCRYFALL_API_BASE = "https://api.scryfall.com";
   private readonly RATE_LIMIT_DELAY = 100; // 100ms between requests (10 req/sec max)
+  private readonly API_TIMEOUT = 5000; // 5 second timeout for API requests
+  private readonly MIN_QUERY_LENGTH = 2; // Minimum characters for a valid search query
+  // Regex to remove special characters from queries
+  // Keeps: alphanumeric, spaces, hyphens, apostrophes, commas, periods, slashes, parentheses, brackets
+  // These are common in MTG card names like "B.F.M. (Big Furry Monster)" or "Erase (Not the Urza's Legacy One)"
+  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',./()[\]]/g;
   private lastRequestTime = 0;
 
   // In-memory cache for frequently accessed cards
@@ -127,8 +133,15 @@ export class CardRecognitionService {
     try {
       const { set, format, page = 1, limit = 20 } = options;
 
+      // Sanitize query to handle malformed input
+      const sanitizedQuery = this.sanitizeQuery(query);
+      if (!sanitizedQuery) {
+        // Return empty results for invalid queries
+        return { cards: [], total: 0, page: 1, hasMore: false };
+      }
+
       // Build Scryfall search query
-      let searchQuery = query;
+      let searchQuery = sanitizedQuery;
       if (set) searchQuery += ` set:${set}`;
       if (format) searchQuery += ` legal:${format}`;
 
@@ -139,7 +152,7 @@ export class CardRecognitionService {
       });
 
       await this.enforceRateLimit();
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.SCRYFALL_API_BASE}/cards/search?${params}`,
       );
 
@@ -187,7 +200,9 @@ export class CardRecognitionService {
       }
 
       await this.enforceRateLimit();
-      const response = await fetch(`${this.SCRYFALL_API_BASE}/cards/${id}`);
+      const response = await this.fetchWithTimeout(
+        `${this.SCRYFALL_API_BASE}/cards/${id}`,
+      );
 
       if (!response.ok) {
         if (response.status === 404) return null;
@@ -215,8 +230,15 @@ export class CardRecognitionService {
     options: { set?: string } = {},
   ): Promise<MtgCard | null> {
     try {
+      // Sanitize name input
+      const sanitizedName = this.sanitizeQuery(name);
+
+      if (!sanitizedName) {
+        return null;
+      }
+
       const params = new URLSearchParams({
-        exact: name,
+        exact: sanitizedName,
       });
 
       if (options.set) {
@@ -224,7 +246,7 @@ export class CardRecognitionService {
       }
 
       await this.enforceRateLimit();
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.SCRYFALL_API_BASE}/cards/named?${params}`,
       );
 
@@ -254,16 +276,19 @@ export class CardRecognitionService {
    */
   async autocomplete(query: string, limit = 20): Promise<AutocompleteResult> {
     try {
-      if (query.length < 2) {
+      // Sanitize query
+      const sanitizedQuery = this.sanitizeQuery(query);
+
+      if (!sanitizedQuery) {
         return { suggestions: [] };
       }
 
       const params = new URLSearchParams({
-        q: query,
+        q: sanitizedQuery,
       });
 
       await this.enforceRateLimit();
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.SCRYFALL_API_BASE}/cards/autocomplete?${params}`,
       );
 
@@ -304,7 +329,7 @@ export class CardRecognitionService {
       }
 
       await this.enforceRateLimit();
-      const response = await fetch(url);
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         throw new Error(`Scryfall API error: ${response.statusText}`);
@@ -389,6 +414,52 @@ export class CardRecognitionService {
     }
 
     this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Fetch with timeout to prevent hanging requests
+   */
+  private async fetchWithTimeout(
+    url: string,
+    options?: RequestInit,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.API_TIMEOUT);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      return response;
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        throw new Error(`Request timeout after ${this.API_TIMEOUT}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  /**
+   * Sanitize query string to remove invalid characters.
+   * Keeps: alphanumeric characters, spaces, hyphens, apostrophes, commas, periods, slashes, parentheses, and brackets.
+   * These are common in Magic: The Gathering card names like:
+   * - "Jace's Ingenuity" (apostrophe)
+   * - "B.F.M. (Big Furry Monster)" (periods and parentheses)
+   * - "Kongming, 'Sleeping Dragon'" (comma and apostrophe)
+   * Returns an empty string if the sanitized query contains fewer than 2 valid characters.
+   *
+   * @param query - The input query string to sanitize.
+   * @returns Sanitized query string, or empty string if less than 2 valid characters remain.
+   */
+  private sanitizeQuery(query: string): string {
+    // Remove characters that aren't useful for card searches
+    const sanitized = query.replace(this.VALID_QUERY_CHARS, "").trim();
+
+    // Require minimum length for a valid query
+    return sanitized.length >= this.MIN_QUERY_LENGTH ? sanitized : "";
   }
 
   /**

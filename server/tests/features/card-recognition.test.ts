@@ -10,9 +10,22 @@ import {
 } from "../../services/card-recognition.service";
 
 describe("Card Recognition Service", () => {
+  // Store original fetch for restoration
+  let originalFetch: typeof fetch;
+
+  beforeAll(() => {
+    originalFetch = global.fetch;
+  });
+
   beforeEach(() => {
     // Clear cache before each test
     cardRecognitionService.clearCache();
+  });
+
+  afterEach(() => {
+    // Restore fetch after each test
+    global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   describe("searchCards", () => {
@@ -273,21 +286,92 @@ describe("Card Recognition Service", () => {
   });
 
   describe("error handling", () => {
+    beforeEach(() => {
+      // Create typed mock fetch for this test suite
+      const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+      // Override fetch with mock for error handling tests
+      global.fetch = mockFetch;
+      mockFetch.mockReset();
+      jest.clearAllMocks();
+    });
+
     test("should handle network errors gracefully", async () => {
-      // This test verifies error handling - we can't easily trigger real network errors
-      // but the service should handle them
-      expect(async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+      // Mock network error
+      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+      // getCardById now throws errors for network failures
+      await expect(async () => {
         await cardRecognitionService.getCardById("test-id");
-      }).not.toThrow();
+      }).rejects.toThrow("Network error");
     });
 
     test("should handle malformed queries gracefully", async () => {
-      // Empty query should return empty results
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+      // Malformed queries are sanitized and result in empty query
+      // which returns empty results without making API call
       const result = await cardRecognitionService.searchCards("!!!@@@###$$$");
       expect(result).toBeDefined();
-      // Empty or error results are acceptable
-      expect(result.cards).toBeDefined();
-    }, 20000); // Increase timeout to 20 seconds
+      expect(result.cards).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.hasMore).toBe(false);
+
+      // Verify no API call was made due to sanitization
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test("should handle timeout errors", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+      // Mock AbortError (timeout)
+      const timeoutError = new Error("The operation was aborted");
+      timeoutError.name = "AbortError";
+      mockFetch.mockRejectedValueOnce(timeoutError);
+
+      // getCardById now throws timeout errors
+      await expect(async () => {
+        await cardRecognitionService.getCardById("test-id");
+      }).rejects.toThrow(/Request timeout after \d+ms/);
+    });
+
+    test("should handle API error responses", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+      // Mock API error response (500)
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: jest.fn().mockResolvedValue({
+          object: "error",
+          code: "internal_error",
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      await expect(async () => {
+        await cardRecognitionService.searchCards("test query");
+      }).rejects.toThrow("Scryfall API error");
+    });
+
+    test("should return empty results for 404 responses", async () => {
+      const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+      // Mock 404 response
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        json: jest.fn().mockResolvedValue({
+          object: "error",
+          code: "not_found",
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      const result = await cardRecognitionService.searchCards("nonexistent");
+      expect(result).toBeDefined();
+      expect(result.cards).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
   });
 
   describe("rate limiting", () => {
