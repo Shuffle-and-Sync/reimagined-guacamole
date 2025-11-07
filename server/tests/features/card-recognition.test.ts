@@ -300,10 +300,10 @@ describe("Card Recognition Service", () => {
       // Mock network error
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-      const result = await cardRecognitionService.getCardById("test-id");
-
-      // Should return null for network errors
-      expect(result).toBeNull();
+      // getCardById now throws errors for network failures
+      await expect(async () => {
+        await cardRecognitionService.getCardById("test-id");
+      }).rejects.toThrow("Network error");
     });
 
     test("should handle malformed queries gracefully", async () => {
@@ -327,10 +327,10 @@ describe("Card Recognition Service", () => {
       timeoutError.name = "AbortError";
       mockFetch.mockRejectedValueOnce(timeoutError);
 
-      const result = await cardRecognitionService.getCardById("test-id");
-
-      // Should return null for timeout errors
-      expect(result).toBeNull();
+      // getCardById now throws timeout errors
+      await expect(async () => {
+        await cardRecognitionService.getCardById("test-id");
+      }).rejects.toThrow(/Request timeout after \d+ms/);
     });
 
     test("should handle API error responses", async () => {

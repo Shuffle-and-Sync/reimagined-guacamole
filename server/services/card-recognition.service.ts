@@ -107,8 +107,10 @@ export class CardRecognitionService {
   private readonly RATE_LIMIT_DELAY = 100; // 100ms between requests (10 req/sec max)
   private readonly API_TIMEOUT = 5000; // 5 second timeout for API requests
   private readonly MIN_QUERY_LENGTH = 2; // Minimum characters for a valid search query
-  // Regex to remove special characters from queries (keeps: alphanumeric, spaces, hyphens, apostrophes, commas)
-  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',]/g;
+  // Regex to remove special characters from queries
+  // Keeps: alphanumeric, spaces, hyphens, apostrophes, commas, periods, slashes, parentheses, brackets
+  // These are common in MTG card names like "B.F.M. (Big Furry Monster)" or "Erase (Not the Urza's Legacy One)"
+  private readonly VALID_QUERY_CHARS = /[^a-zA-Z0-9\s\-',./()[\]]/g;
   private lastRequestTime = 0;
 
   // In-memory cache for frequently accessed cards
@@ -228,8 +230,15 @@ export class CardRecognitionService {
     options: { set?: string } = {},
   ): Promise<MtgCard | null> {
     try {
+      // Sanitize name input
+      const sanitizedName = this.sanitizeQuery(name);
+
+      if (!sanitizedName) {
+        return null;
+      }
+
       const params = new URLSearchParams({
-        exact: name,
+        exact: sanitizedName,
       });
 
       if (options.set) {
@@ -267,12 +276,15 @@ export class CardRecognitionService {
    */
   async autocomplete(query: string, limit = 20): Promise<AutocompleteResult> {
     try {
-      if (query.length < 2) {
+      // Sanitize query
+      const sanitizedQuery = this.sanitizeQuery(query);
+
+      if (!sanitizedQuery) {
         return { suggestions: [] };
       }
 
       const params = new URLSearchParams({
-        q: query,
+        q: sanitizedQuery,
       });
 
       await this.enforceRateLimit();
@@ -432,8 +444,11 @@ export class CardRecognitionService {
 
   /**
    * Sanitize query string to remove invalid characters.
-   * Keeps only: alphanumeric characters, spaces, hyphens, apostrophes, and commas
-   * (these are common in Magic: The Gathering card names like "Jace's Ingenuity").
+   * Keeps: alphanumeric characters, spaces, hyphens, apostrophes, commas, periods, slashes, parentheses, and brackets.
+   * These are common in Magic: The Gathering card names like:
+   * - "Jace's Ingenuity" (apostrophe)
+   * - "B.F.M. (Big Furry Monster)" (periods and parentheses)
+   * - "Kongming, 'Sleeping Dragon'" (comma and apostrophe)
    * Returns an empty string if the sanitized query contains fewer than 2 valid characters.
    *
    * @param query - The input query string to sanitize.
