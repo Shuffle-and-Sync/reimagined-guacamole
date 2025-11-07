@@ -58,11 +58,30 @@ export function formatDateLong(date: Date | string): string {
 }
 
 /**
+ * Default timezone for formatting functions
+ */
+const DEFAULT_TIMEZONE = "UTC";
+
+/**
+ * Default locale for formatting functions
+ */
+const DEFAULT_LOCALE = "en-US";
+
+/**
  * Options for formatting functions
+ * @example
+ * // Format in UTC (default)
+ * formatTime(date, { timezone: 'UTC' })
+ *
+ * // Format in US Central Time
+ * formatTime(date, { timezone: 'America/Chicago' })
+ *
+ * // Format in Pacific Time
+ * formatTime(date, { timezone: 'America/Los_Angeles' })
  */
 interface FormatOptions {
-  timezone?: string; // IANA timezone string (e.g., 'UTC', 'America/Chicago')
-  locale?: string;
+  timezone?: string; // IANA timezone string (e.g., 'UTC', 'America/Chicago', 'Europe/London')
+  locale?: string; // Locale string (e.g., 'en-US', 'en-GB')
 }
 
 /**
@@ -75,7 +94,7 @@ export function formatTime(
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  const { timezone = "UTC", locale = "en-US" } = options;
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
 
   return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
@@ -95,7 +114,7 @@ export function formatTime12Hour(
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  const { timezone = "UTC", locale = "en-US" } = options;
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
 
   return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
