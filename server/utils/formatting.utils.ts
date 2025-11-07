@@ -58,26 +58,47 @@ export function formatDateLong(date: Date | string): string {
 }
 
 /**
- * Format time to HH:MM
+ * Options for formatting functions
  */
-export function formatTime(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "";
-
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
-
-  return `${hours}:${minutes}`;
+interface FormatOptions {
+  timezone?: string; // IANA timezone string (e.g., 'UTC', 'America/Chicago')
+  locale?: string;
 }
 
 /**
- * Format time to 12-hour format (e.g., "3:30 PM")
+ * Format time to HH:MM in specified timezone
  */
-export function formatTime12Hour(date: Date | string): string {
+export function formatTime(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const { timezone = "UTC", locale = "en-US" } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+/**
+ * Format time to 12-hour format (e.g., "3:30 PM") in specified timezone
+ */
+export function formatTime12Hour(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  const { timezone = "UTC", locale = "en-US" } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -435,7 +456,7 @@ export function escapeHtml(text: string): string {
     '"': "&quot;",
     "'": "&#39;",
   };
-  return text.replace(/[&<>"']/g, (char) => map[char]);
+  return text.replace(/[&<>"']/g, (char) => map[char] || char);
 }
 
 /**

@@ -55,13 +55,57 @@ describe("formatting.utils", () => {
       expect(result).toContain("January");
     });
 
-    it("should format time as HH:MM", () => {
-      expect(formatTime(testDate)).toBe("14:30");
+    describe("UTC timezone (default)", () => {
+      it("should format time as HH:MM", () => {
+        expect(formatTime(testDate)).toBe("14:30");
+        expect(formatTime(testDate, { timezone: "UTC" })).toBe("14:30");
+      });
+
+      it("should format time to 12-hour format", () => {
+        const result = formatTime12Hour(testDate);
+        expect(result).toContain("PM");
+        expect(result).toContain("2:30");
+      });
+
+      it("should format time to 12-hour format with explicit UTC", () => {
+        const result = formatTime12Hour(testDate, { timezone: "UTC" });
+        expect(result).toContain("PM");
+        expect(result).toContain("2:30");
+      });
     });
 
-    it("should format time to 12-hour format", () => {
-      const result = formatTime12Hour(testDate);
-      expect(result).toContain("PM");
+    describe("CST timezone (America/Chicago)", () => {
+      it("should format time as HH:MM", () => {
+        // 14:30 UTC = 08:30 CST (UTC-6)
+        expect(formatTime(testDate, { timezone: "America/Chicago" })).toBe(
+          "08:30",
+        );
+      });
+
+      it("should format time to 12-hour format", () => {
+        const result = formatTime12Hour(testDate, {
+          timezone: "America/Chicago",
+        });
+        expect(result).toContain("AM");
+        expect(result).toContain("8:30");
+      });
+    });
+
+    describe("PST timezone (America/Los_Angeles)", () => {
+      it("should format time as HH:MM", () => {
+        // 14:30 UTC = 06:30 PST (UTC-8)
+        expect(formatTime(testDate, { timezone: "America/Los_Angeles" })).toBe(
+          "06:30",
+        );
+      });
+
+      it("should format time to 12-hour format", () => {
+        const result = formatTime12Hour(testDate, {
+          timezone: "America/Los_Angeles",
+        });
+        expect(result).toContain("AM");
+        expect(result).toContain("6:30");
+      });
     });
 
     it("should format datetime to ISO string", () => {
