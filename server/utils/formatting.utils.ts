@@ -59,6 +59,12 @@ export function formatDateLong(date: Date | string): string {
 
 /**
  * Default timezone for formatting functions
+ *
+ * Uses UTC as default to ensure consistent, predictable formatting across
+ * different environments and timezones. This matches the original test expectations
+ * and prevents timezone-dependent failures in CI/CD pipelines.
+ *
+ * For local timezone formatting, explicitly pass { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
  */
 const DEFAULT_TIMEZONE = "UTC";
 
@@ -78,6 +84,9 @@ const DEFAULT_LOCALE = "en-US";
  *
  * // Format in Pacific Time
  * formatTime(date, { timezone: 'America/Los_Angeles' })
+ *
+ * // Format in user's local timezone
+ * formatTime(date, { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
  */
 interface FormatOptions {
   timezone?: string; // IANA timezone string (e.g., 'UTC', 'America/Chicago', 'Europe/London')
@@ -135,13 +144,19 @@ export function formatDateTimeISO(date: Date | string): string {
 }
 
 /**
- * Format datetime to human-readable string (e.g., "Jan 15, 2024 at 3:30 PM")
+ * Format datetime to human-readable string (e.g., "Jan 15, 2024 at 3:30 PM") in specified timezone
  */
-export function formatDateTimeHuman(date: Date | string): string {
+export function formatDateTimeHuman(
+  date: Date | string,
+  options: FormatOptions = {},
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const { timezone = DEFAULT_TIMEZONE, locale = DEFAULT_LOCALE } = options;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
     year: "numeric",
     month: "short",
     day: "numeric",
